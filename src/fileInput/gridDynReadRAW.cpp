@@ -16,6 +16,7 @@
 #include "griddyn/links/acLine.h"
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/loads/svd.h"
+#include "griddyn/links/ThreeWindingTransformer.h"
 #include "readerHelper.h"
 #include <cassert>
 #include <cmath>

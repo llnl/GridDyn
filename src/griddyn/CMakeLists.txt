@@ -207,6 +207,7 @@ set(link_headers
     links/zBreaker.h
     links/longLine.h
     links/acLine.h
+    links/ThreeWindingTransformer.h
 )
 
 set(link_sources
@@ -220,6 +221,7 @@ set(link_sources
     links/zBreaker.cpp
     links/longLine.cpp
     links/acLine.cpp
+    links/ThreeWindingTransformer.cpp
 )
 
 set(simulation_headers

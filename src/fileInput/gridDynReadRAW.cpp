@@ -1116,6 +1116,14 @@ int rawReadTX_v33(coreObject* parentObject,
     auto R = numeric_conversion<double>(strvec2[0], 0.0);
     auto X = numeric_conversion<double>(strvec2[1], 0.0);
 
+    auto vn1=numeric_conversion<double>(strvec3[1], 0.0);
+    auto vn2=numeric_conversion<double>(strvec4[1], 0.0);
+
+    auto bv1=bus1->get("basevoltage");
+    auto bv2=bus2->get("basevoltage");
+
+    auto base=numeric_conversion<double>(strvec2[2], 0.0);
+
     if (Itype == 1)
     {
         lnk->set("r", R);
@@ -1123,9 +1131,19 @@ int rawReadTX_v33(coreObject* parentObject,
     }
     else if (Itype==2)
     {
-        auto base=numeric_conversion<double>(strvec2[2], 0.0);
-        lnk->set("r", R*opt.base/base);
-        lnk->set("x", X*opt.base/base);
+        auto r1=R*opt.base/base*(vn1/bv1)*(vn1/bv1);
+        auto x1=X*opt.base/base*(vn1/bv1)*(vn1/bv1);
+        auto r2=R*opt.base/base*(vn2/bv2)*(vn2/bv2);
+        auto x2=X*opt.base/base*(vn2/bv2)*(vn2/bv2);
+        if (ind2 == 2005)
+        {
+            r1=r2;
+        }
+        lnk->set("r", r2);
+       lnk->set("x", x2);
+       
+        //lnk->set("r", R*base/opt.base*(vn2/bv2)*(vn2/bv2));
+        //lnk->set("x", X*base/opt.base*(vn2/bv2)*(vn2/bv2));
     }
     else
     {
@@ -1143,11 +1161,8 @@ int rawReadTX_v33(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
-    auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
-
-    auto bv1=bus1->get("basevoltage");
-    auto bv2=bus2->get("basevoltage");
+    double tap2;
+    
     int tapcode=std::stoi(strvec[4]);
     if (tapcode == 2)
     {
@@ -1168,6 +1183,7 @@ int rawReadTX_v33(coreObject* parentObject,
             vn2=bv2;
         }
         tap = tap * (vn1 / bv1) / (vn2 / bv2);
+        
     }
 
         if (tap != 0) {
@@ -1183,7 +1199,7 @@ int rawReadTX_v33(coreObject* parentObject,
     if (abs(code) > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
-            /*if (abs(cbus) == ind1)
+            if (abs(cbus) == ind1)
             {
             static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
             }
@@ -1192,12 +1208,24 @@ int rawReadTX_v33(coreObject* parentObject,
             static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
             }
 
-            else */
+            else 
             {
-                //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+               static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
             }
-        }
 
+            if (tapcode == 2)
+            {
+                if (abs(cbus) == ind1)
+                {
+                    tap = (bus1->getVoltage() /bus2->getVoltage());
+                    if (tap != 0) {
+                        lnk->set("tap", tap);
+                    }
+                }
+            }
+
+        }
+       
         R = numeric_conversion<double>(strvec3[8], 0.0);
         X = numeric_conversion<double>(strvec3[9], 0.0);
 
@@ -1209,8 +1237,8 @@ int rawReadTX_v33(coreObject* parentObject,
             lnk->set("mintap", X / vn1);
         }
 
-            R = numeric_conversion<double>(strvec3[10], 0.0);
-            X = numeric_conversion<double>(strvec3[11], 0.0);
+        R = numeric_conversion<double>(strvec3[10], 0.0);
+        X = numeric_conversion<double>(strvec3[11], 0.0);
 
         if (code == 3) {
             lnk->set("pmax", R, MW);
@@ -1226,6 +1254,7 @@ int rawReadTX_v33(coreObject* parentObject,
         if (code != 3) {
             lnk->set("nsteps", R);
         }
+        
     }
     return tline;
 }

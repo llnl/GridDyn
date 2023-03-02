@@ -1554,6 +1554,7 @@ void acBus::setState(coreTime time,
     //    assert(voltage > 0.0);
 }
 
+#define TRACE_LOG_ENABLE
 // residual
 void acBus::residual(const IOdata& inputs,
                      const stateData& sD,

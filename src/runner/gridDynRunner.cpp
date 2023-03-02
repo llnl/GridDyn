@@ -346,6 +346,14 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
         ->ignore_underscore()
         ->transform(defineTransform);
 
+    ptr->add_option_function<std::string>(
+        "--power_flow_input_data",
+        [this](const std::string& input) { m_gds->set("powerflowinputfile", input); },
+        "file output for the power flow data prior to solving")
+        ->ignore_case()
+        ->ignore_underscore()
+        ->transform(defineTransform);
+
     ptr->add_flag_callback(
            "--powerflow_only,--powerflow-only",
            [this]() { m_gds->setFlag("powerflow_only", true); },

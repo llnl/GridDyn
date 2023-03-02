@@ -682,6 +682,9 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
     if (param == "powerflowfile") {
         powerFlowFile = val;
         controlFlags.set(save_power_flow_data);
+    }else if (param == "powerflowinputfile") {
+        powerFlowInputFile = val;
+        controlFlags.set(save_power_flow_input_data);
     } else if (param == "defpowerflow") {
         setDefaultMode(solution_modes_t::powerflow_mode, getSolverMode(val));
     } else if (param == "defdae") {
@@ -733,6 +736,9 @@ std::string gridDynSimulation::getString(const std::string& param) const
 {
     if (param == "powerflowfile") {
         return powerFlowFile;
+    }
+    if (param == "powerflowinputfile") {
+        return powerFlowInputFile;
     }
     return gridSimulation::getString(param);
 }
@@ -821,6 +827,7 @@ static const std::unordered_map<std::string, int> flagControlMap{
     {"powerflow_only", power_flow_only},
     {"no_powerflow_adjustments", no_powerflow_adjustments},
     {"savepowerflow", save_power_flow_data},
+    {"savepowerflowinput", save_power_flow_input_data},
     {"low_voltage_check", low_voltage_checking},
     {"no_powerflow_error_recovery", no_powerflow_error_recovery},
     {"dae_initialization_for_partitioned", dae_initialization_for_partitioned},

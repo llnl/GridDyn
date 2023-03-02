@@ -62,7 +62,10 @@ int gridDynSimulation::powerflow()
             change_code AdjustmentChanges = change_code::no_change;
             do {
                 guessState(currentTime, pFlowData->state_data(), nullptr, sm);
-
+                if ((controlFlags[save_power_flow_input_data] && !controlFlags[power_flow_input_saved]) ) {
+                    savePowerFlow(this, powerFlowInputFile);
+                    controlFlags[power_flow_input_saved] = true;
+                }
                 // solve
                 coreTime returnTime = currentTime;
                 retval = pFlowData->solve(currentTime, returnTime);

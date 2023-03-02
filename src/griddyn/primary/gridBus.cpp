@@ -1038,7 +1038,7 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
     outputs[angleInLocation] = getAngle(sD, sMode);
     outputs[frequencyInLocation] = getFreq(sD, sMode);
 #if DEBUG_KEY_BUS > 0
-    if (id == DEBUG_KEY_BUS) {
+    if (getID() == DEBUG_KEY_BUS) {
         printf("%d V=%f, A=%f voltage=%f, angle=%f \n",
                DEBUG_KEY_BUS,
                outputs[voltageInLocation],
@@ -1054,12 +1054,12 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
             S.linkP += link->getRealPower(cid);
             S.linkQ += link->getReactivePower(cid);
 #if DEBUG_KEY_BUS > 0
-            if (id == DEBUG_KEY_BUS) {
+            if (getID() == DEBUG_KEY_BUS) {
                 printf("%d linkP=%f, linkQ=%f line %s\n",
                        DEBUG_KEY_BUS,
                        link->getRealPower(cid),
                        link->getReactivePower(cid),
-                       link->name.c_str());
+                       link->getName().c_str());
             }
 #endif
         }

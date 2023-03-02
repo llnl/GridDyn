@@ -43,6 +43,11 @@ int rawReadTX(coreObject* parentObject,
               stringVec& txlines,
               std::vector<gridBus*>& busList,
               basicReaderInfo& opt);
+int rawReadTX_v33(coreObject* parentObject,
+    stringVec& txlines,
+    std::vector<gridBus*>& busList,
+    basicReaderInfo& opt);
+
 void rawReadSwitchedShunt(coreObject* parentObject,
                           const std::string& line,
                           std::vector<gridBus*>& busList,
@@ -141,19 +146,26 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     gridSimulation::resetObjectCounters();
     // get the base scenario information
     if (std::getline(file, line)) {
-        auto res = sscanf(
-            line.c_str(), "%*d, %lf,%d,%*d,%*d,%lf", &(opt.base), &(opt.version), &(opt.basefreq));
+        //auto res = sscanf(
+         //   line.c_str(), "%*d, %lf, %d,%*d,%*d,%lf", &(opt.base), &(opt.version), &(opt.basefreq));
 
-        if (res > 0) {
+        auto strvec = splitlineQuotes(line);
+        if (strvec.size() == 6)
+        {
+            opt.base=numeric_conversion<double>(strvec[1], 100.0);
+            opt.version=numeric_conversion<int>(strvec[2],0);
+            opt.basefreq=numeric_conversion<double>(strvec[5],60.0);
+        }
+        if (opt.base!=100.0) {
             parentObject->set("basepower", opt.base);
         }
         // temp1=line.substr(45,27);
         // parentObject->set("name",&temp1);
-        if (res > 2) {
+       // if (res > 2) {
             if (opt.basefreq != 60.0) {
                 parentObject->set("basefreq", opt.basefreq);
             }
-        }
+        //}
 
         if (opt.version == 0) {
             opt.version = getPSSversion(line);
@@ -331,7 +343,15 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                         std::getline(file, txlines[3]);
                         std::getline(file, txlines[4]);
                     }
-                    tline = rawReadTX(parentObject, txlines, busList, opt);
+                    if (opt.version >= 33)
+                    {
+                        tline = rawReadTX_v33(parentObject, txlines, busList, opt);
+                    }
+                    else
+                    {
+                        tline = rawReadTX(parentObject, txlines, busList, opt);
+                    }
+                    
                 }
                 break;
             case unknown:
@@ -628,16 +648,16 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
     if (qmin != 0.0) {
         gen->set("qmin", qmin, MVAR);
     }
-    auto V = numeric_conversion<double>(strvec[6], 0.0);
-    if (V > 0) {
+    auto Vtarget = numeric_conversion<double>(strvec[6], 0.0);
+    if (Vtarget > 0) {
         double vp = gen->getParent()->get("vtarget");
-        if (std::abs(vp - V) > 0.0001) {
-            gen->set("vtarget", V);
+        if (std::abs(vp - Vtarget) > 0.0001) {
+            gen->set("vtarget", Vtarget);
             // for raw files the bus doesn't necessarily set a control point it comes from the
             // generator, so we have to set it here.
             if (!opt.checkFlag(no_generator_bus_voltage_reset)) {
-                gen->getParent()->set("vtarget", V);
-                gen->getParent()->set("voltage", V);
+                gen->getParent()->set("vtarget", Vtarget);
+                gen->getParent()->set("voltage", Vtarget);
             }
         } else {
             gen->set("vtarget", vp);
@@ -778,15 +798,15 @@ void rawReadBranch(coreObject* parentObject,
     catch (const objectAddFailure&) {
         // must be a parallel branch
         std::string sub = lnk->getName();
-        char m = 'a';
+        char parallel = 'a';
         while (lnk->isRoot()) {
-            lnk->setName(sub + '_' + m);
-            m = m + 1;
+            lnk->setName(sub + '_' + parallel);
+            parallel = parallel + 1;
             try {
                 parentObject->add(lnk);
             }
             catch (const objectAddFailure& e) {
-                if (m > 'z') {
+                if (parallel > 'z') {
                     throw(e);
                 }
             }
@@ -978,11 +998,21 @@ void rawReadTXadj(coreObject* parentObject,
     }
 }
 
-int rawReadTX(coreObject* parentObject,
-              stringVec& txlines,
-              std::vector<gridBus*>& busList,
-              basicReaderInfo& opt)
+int rawReadTX_v33(coreObject* parentObject,
+    stringVec& txlines,
+    std::vector<gridBus*>& busList,
+    basicReaderInfo& opt)
 {
+    /* version 33
+    # """
+    # I,J,K,CKT,CW,CZ,CM,MAG1,MAG2,NMETR,'NAME',STAT,O1,F1,...,O4,F4
+    # R1-2,X1-2,SBASE1-2
+    # WINDV1,NOMV1,ANG1,RATA1,RATB1,RATC1,COD1,CONT1,RMA1,RMI1,VMA1,VMI1,NTP1,TAB1,CR1,CX1
+    # WINDV2,NOMV2
+    #
+    # """
+
+    */
     // gridBus *bus3;
     acLine* lnk = nullptr;
 
@@ -1012,22 +1042,22 @@ int rawReadTX(coreObject* parentObject,
     auto bus2 = busList[ind2];
     int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
-        case 0:
-        default:
-            lnk = linkfactory->makeDirectObject(name);
-            break;
-        case 1:
-            lnk = new links::adjustableTransformer(name);
-            lnk->set("mode", "voltage");
-            break;
-        case 2:
-            lnk = new links::adjustableTransformer(name);
-            lnk->set("mode", "mvar");
-            break;
-        case 3:
-            lnk = new links::adjustableTransformer(name);
-            lnk->set("mode", "mw");
-            break;
+    case 0:
+    default:
+        lnk = linkfactory->makeDirectObject(name);
+        break;
+    case 1:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "voltage");
+        break;
+    case 2:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "mvar");
+        break;
+    case 3:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "mw");
+        break;
     }
     if (code < 0)  // account for negative code values
     {
@@ -1072,16 +1102,205 @@ int rawReadTX(coreObject* parentObject,
     auto status = std::stoi(strvec[11]);
     if (status == 0) {
         lnk->disable();
-    } else if (status > 1) {
+    }
+    else if (status > 1) {
         // TODO:  other conditions for 3 way transformers
     }
 
     // TODO:PT get the other parameters (not critical for power flow)
+    auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    auto val = numeric_conversion<double>(strvec3[0], 0.0);
-    if (val != 0) {
-        lnk->set("tap", val);
+    auto vn1=numeric_conversion<double>(strvec3[1], 0.0);
+    auto vn2=numeric_conversion<double>(strvec4[1], 0.0);
+
+    int tapcode=std::stoi(strvec[4]);
+    if (tapcode == 2)
+    {
+        auto wv2=numeric_conversion<double>(strvec4[0],0.0);
+        tap = (tap / bus1->get("basevoltage") / (wv2 / bus2->get("basevoltage")));
     }
+    else if (tapcode == 3)
+    {
+        if (vn1 == 0.0)
+        {
+            vn1=bus1->get("basevoltage");
+        }
+        if (vn2 == 0.0)
+        {
+            vn2=bus2->get("basevoltage");
+        }
+        tap = tap * (vn1 / bus1->get("basevoltage")) / (vn2 / bus2->get("basevoltage"));
+    }
+        
+        if (tap != 0) {
+            lnk->set("tap", tap);
+        }
+    
+    auto angle = numeric_conversion<double>(strvec3[2], 0.0);
+    if (angle!= 0) {
+        lnk->set("tapangle", angle, deg);
+    }
+    // now get the stuff for the adjustable transformers
+    // SGS set this for adjustable transformers....is this correct?
+    if (abs(code) > 0) {
+        auto cbus = numeric_conversion<int>(strvec3[7], 0);
+        if (cbus != 0) {
+            /*if (abs(cbus) == ind1)
+            {
+            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+            }
+            else if (abs(cbus) == ind2)
+            {
+            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+            }
+
+            else */
+            {
+                //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+
+            }
+        }
+       
+        R = numeric_conversion<double>(strvec3[8], 0.0);
+        X = numeric_conversion<double>(strvec3[9], 0.0);
+       
+
+        if (code == 3) {
+            lnk->set("maxtapangle", R, deg);
+            lnk->set("mintapangle", X, deg);
+        } else {
+            lnk->set("maxtap", R/vn1);
+            lnk->set("mintap", X/vn1);
+        }
+        
+            R = numeric_conversion<double>(strvec3[10], 0.0);
+            X = numeric_conversion<double>(strvec3[11], 0.0);
+        
+        if (code == 3) {
+            lnk->set("pmax", R, MW);
+            lnk->set("pmin", X, MW);
+        } else if (code == 2) {
+            lnk->set("qmax", R, MVAR);
+            lnk->set("qmin", X, MVAR);
+        } else {
+            lnk->set("vmax", R);
+            lnk->set("vmin", X);
+        }
+        R = numeric_conversion<double>(strvec3[12], 0.0);
+        if (code != 3) {
+            lnk->set("nsteps", R);
+        }
+    }
+    return tline;
+}
+
+
+int rawReadTX(coreObject* parentObject,
+    stringVec& txlines,
+    std::vector<gridBus*>& busList,
+    basicReaderInfo& opt)
+{
+    
+    // gridBus *bus3;
+    acLine* lnk = nullptr;
+
+    stringVec strvec5;
+    auto strvec = splitline(txlines[0]);
+
+    auto strvec2 = splitline(txlines[1]);
+    auto strvec3 = splitline(txlines[2]);
+    auto strvec4 = splitline(txlines[3]);
+
+    std::string name;
+    int ind1, ind2;
+    std::tie(name, ind1, ind2) =
+        generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_", 3);
+
+    int ind3 = std::stoi(strvec[2]);
+    int tline = 4;
+    if (ind3 != 0) {
+        tline = 5;
+        strvec5 = splitline(txlines[4]);
+        // TODO handle 3 way transformers(complicated)
+        std::cout << "3 winding transformers not supported at this time\n";
+        return tline;
+    }
+
+    auto bus1 = busList[ind1];
+    auto bus2 = busList[ind2];
+    int code = std::stoi(strvec3[6]);
+    switch (abs(code)) {
+    case 0:
+    default:
+        lnk = linkfactory->makeDirectObject(name);
+        break;
+    case 1:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "voltage");
+        break;
+    case 2:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "mvar");
+        break;
+    case 3:
+        lnk = new links::adjustableTransformer(name);
+        lnk->set("mode", "mw");
+        break;
+    }
+    if (code < 0)  // account for negative code values
+    {
+        lnk->set("mode", "manual");
+    }
+    lnk->set("basepower", opt.base);
+    lnk->updateBus(bus1, 1);
+    lnk->updateBus(bus2, 2);
+
+    try {
+        parentObject->add(lnk);
+    }
+    catch (const objectAddFailure&) {
+        // must be a parallel branch
+        auto& sub = lnk->getName();
+        char m = 'a';
+        while (lnk->isRoot()) {
+            lnk->setName(sub + '_' + m);
+            m = m + 1;
+            try {
+                parentObject->add(lnk);
+            }
+            catch (const objectAddFailure& e) {
+                if (m > 'z') {
+                    throw(e);
+                }
+            }
+        }
+    }
+
+    // skip the load flow area and loss zone and circuit for now
+
+    // get the branch impedance
+
+    auto R = numeric_conversion<double>(strvec2[0], 0.0);
+    auto X = numeric_conversion<double>(strvec2[1], 0.0);
+
+    lnk->set("r", R);
+    lnk->set("x", X);
+    // get line capacitance
+
+    auto status = std::stoi(strvec[11]);
+    if (status == 0) {
+        lnk->disable();
+    }
+    else if (status > 1) {
+        // TODO:  other conditions for 3 way transformers
+    }
+
+    // TODO:PT get the other parameters (not critical for power flow)
+    auto val = numeric_conversion<double>(strvec3[0], 0.0);
+    
+        if (val != 0) {
+            lnk->set("tap", val);
+        }
     val = numeric_conversion<double>(strvec3[2], 0.0);
     if (val != 0) {
         lnk->set("tapangle", val, deg);
@@ -1091,10 +1310,25 @@ int rawReadTX(coreObject* parentObject,
     if (abs(code) > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
-            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[cbus]);
+           /*if (abs(cbus) == ind1)
+            {
+                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+            }
+            else if (abs(cbus) == ind2)
+            {
+                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+            }
+            
+            else */
+            {
+            //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+
+            }
         }
+        
         R = numeric_conversion<double>(strvec3[8], 0.0);
         X = numeric_conversion<double>(strvec3[9], 0.0);
+        
         if (code == 3) {
             lnk->set("maxtapangle", R, deg);
             lnk->set("mintapangle", X, deg);
@@ -1102,8 +1336,16 @@ int rawReadTX(coreObject* parentObject,
             lnk->set("maxtap", R);
             lnk->set("mintap", X);
         }
-        R = numeric_conversion<double>(strvec3[10], 0.0);
-        X = numeric_conversion<double>(strvec3[11], 0.0);
+        if (opt.version >= 33)
+        {
+            R = numeric_conversion<double>(strvec3[12], 0.0);
+            X = numeric_conversion<double>(strvec3[13], 0.0);
+        }
+        else
+        {
+            R = numeric_conversion<double>(strvec3[10], 0.0);
+            X = numeric_conversion<double>(strvec3[11], 0.0);
+        }
         if (code == 3) {
             lnk->set("pmax", R, MW);
             lnk->set("pmin", X, MW);

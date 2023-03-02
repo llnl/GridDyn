@@ -53,6 +53,8 @@ enum gd_flags {
     dae_initialization_for_partitioned = 51,
     force_extra_powerflow = 52,
     droop_power_flow = 53,
+    save_power_flow_input_data = 54,
+    power_flow_input_saved = 55,
 };
 
 // for the status flags bitset
@@ -152,6 +154,7 @@ class gridDynSimulation: public gridSimulation {
     struct tolerances tols;  //!< structure of the tolerances
 
     std::string powerFlowFile;  //!< the power flow output file if any
+    std::string powerFlowInputFile;  //!< the power flow before solving the power flow
     std::vector<std::shared_ptr<SolverInterface>> solverInterfaces;  //!< vector of solver data
     std::vector<const double*>
         extraStateInformation;  //!< a vector of additional state information for solveMode pairings

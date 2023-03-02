@@ -384,16 +384,17 @@ namespace solvers {
                                               NVECTOR_DATA(sd->use_omp, resid),
                                               sd->mode);
 #endif
-        if (sd->flags[print_residuals]) {
+        if (sd->flags[print_residuals] || true ) {
             long int val = 0;
             KINGetNumNonlinSolvIters(sd->solverMem, &val);
             double* residuals = NVECTOR_DATA(sd->use_omp, resid);
+            double* values = NVECTOR_DATA(sd->use_omp,state);
             fmt::print("Residual for {} at time ={} iteration %{}\n",
                        sd->getName(),
                        static_cast<double>(sd->solveTime),
                        val);
             for (int kk = 0; kk < static_cast<int>(sd->svsize); ++kk) {
-                fmt::print("resid[{}]={}\n", kk, residuals[kk]);
+                fmt::print("value[{}] = {}, resid[{}]={}\n", kk, values[kk],kk, residuals[kk]);
             }
             fmt::print("---------------------------------\n");
         }

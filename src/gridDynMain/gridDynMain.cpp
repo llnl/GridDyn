@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
         auto jsize = gds->getInt("pflownonzeros");
         auto res =
             boost::format(
-                "Simulation Final Dynamic Statesize =%d (%d V, %d angle), %d non zero elements in the the Jacobian\n") %
+                "Simulation Final Powerflow Statesize =%d (%d V, %d angle), %d non zero elements in the the Jacobian\n") %
             ssize % gds->getInt("vcount") % gds->getInt("account") % jsize;
         gds->log(nullptr, print_level::summary, res.str());
     }

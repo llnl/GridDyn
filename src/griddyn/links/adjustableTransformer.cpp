@@ -279,9 +279,9 @@ namespace links {
             }
         } else if (param == "nsteps") {
             if (cMode == control_mode_t::MW_control) {
-                stepSize = (maxTapAngle - minTapAngle) / val;
+                stepSize = (maxTapAngle - minTapAngle) / (val-1);
             } else {
-                stepSize = (maxTap - minTap) / val;
+                stepSize = (maxTap - minTap) / (val-1);
             }
         } else if (param == "dtapdt") {
             dTapdt = val;
@@ -466,6 +466,7 @@ namespace links {
         }
         adjCount = 0;
         oCount = 0;
+        tap=getValidTapRatio(tap);
         tap0 = tap;
         tapAngle0 = tapAngle;
         return acLine::pFlowObjectInitializeA(time0, flags);
@@ -1339,5 +1340,17 @@ namespace links {
         return ret;
     }
 
+    double adjustableTransformer::getValidTapRatio(double testTapValue) const
+    {
+        if (testTapValue >= maxTap)
+        {
+            return maxTap;
+        }
+        if (testTapValue <= minTap)
+        {
+            return minTap;
+        }
+        return std::round((testTapValue-minTap)/stepSize)*stepSize+minTap;
+    }
 }  // namespace links
 }  // namespace griddyn

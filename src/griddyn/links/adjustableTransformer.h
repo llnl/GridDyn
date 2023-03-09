@@ -230,6 +230,9 @@ the only one that adjusts the angle.  available control include stepped and cont
     stepped
     */
         change_code MVarControlAdjust();
+
+        /** compute a valid tap ratio*/
+        double getValidTapRatio(double testTapValue) const;
     };
 
 }  // namespace links

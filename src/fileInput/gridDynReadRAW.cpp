@@ -1230,9 +1230,19 @@ int rawReadTX_v33(coreObject* parentObject,
             {
                 if (abs(cbus) == ind1)
                 {
-                    tap = (bus1->getVoltage() /bus2->getVoltage());
-                    if (tap != 0) {
-                        lnk->set("tap", tap);
+                    auto tap1 = (bus1->getVoltage() /bus2->getVoltage());
+                    auto tap2 = (bus1->getVoltage()/(vn1/bv1));
+                    auto tap3 = (bus1->getVoltage()/(vn2/bv2));
+                    auto tap4 = ((vn1/bv1)/bus2->getVoltage());
+
+                    auto tap5 = (bus2->getVoltage() /bus1->getVoltage());
+                    auto tap6 = (bus2->getVoltage()/(vn2/bv2));
+                    auto tap7 = (bus2->getVoltage()/(vn1/bv1));
+                    auto tap8 = ((vn2/bv2)/bus1->getVoltage());
+
+                    auto tap9=(tap1+tap3)/2;
+                    if (tap9 != 0) {
+                        lnk->set("tap", tap9);
                     }
                 }
             }

@@ -840,7 +840,24 @@ void rawReadBranch(coreObject* parentObject,
     // get line capacitance
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
+    // get the line ratings
+    //get the ratings
+    auto ratA=numeric_conversion<double>(strvec[6],0.0);
+    auto ratB=numeric_conversion<double>(strvec[7],0.0);
+    auto ratC=numeric_conversion<double>(strvec[8],0.0);
 
+    if (ratA != 0.0)
+    {
+        lnk->set("ratinga",ratA,MW);
+    }
+    if (ratB != 0.0)
+    {
+        lnk->set("ratingb",ratB,MW);
+    }
+    if (ratC != 0.0)
+    {
+        lnk->set("ratingc",ratC,MW);
+    }
     int status;
     if (opt.version >= 29) {
         status = std::stoi(strvec[13]);
@@ -1206,6 +1223,24 @@ int rawReadTX_v33(coreObject* parentObject,
     auto angle = numeric_conversion<double>(strvec3[2], 0.0);
     if (angle != 0) {
         lnk->set("tapangle", angle, deg);
+    }
+
+    //get the ratings
+    auto ratA=numeric_conversion<double>(strvec3[3],0.0);
+    auto ratB=numeric_conversion<double>(strvec3[4],0.0);
+    auto ratC=numeric_conversion<double>(strvec3[5],0.0);
+
+    if (ratA != 0.0)
+    {
+        lnk->set("ratinga",ratA,MW);
+    }
+    if (ratB != 0.0)
+    {
+        lnk->set("ratingb",ratB,MW);
+    }
+    if (ratC != 0.0)
+    {
+        lnk->set("ratingc",ratC,MW);
     }
     // now get the stuff for the adjustable transformers
     // SGS set this for adjustable transformers....is this correct?

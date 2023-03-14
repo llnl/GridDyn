@@ -109,6 +109,7 @@ void Contingency::execute()
             ev->updateObject(
                 gds, object_update_mode::match);  // map the event back to the original simulation
         }
+        contSim->pFlowInitialize();
         res = contSim->powerflow();
     }
 

@@ -1031,6 +1031,11 @@ int rawReadTX_v33(coreObject* parentObject,
     #
     # """
 
+    110, 70401,     0,'1 ',1,2,1, 0.00000E+00, 0.00000E+00,2,'            ',1,   1,1.0000,   0,1.0000,   0,1.0000,   0,1.0000,'            '
+    0.00000E+0, 8.00000E-2,   100.00
+    1.00000,   0.000,   0.000,     0.00,     0.00,     0.00, 0,      0, 1.10000, 0.90000, 1.10000, 0.90000,  33, 0, 0.00000, 0.00000,  0.000
+    1.00000,   0.000
+
     */
     // gridBus *bus3;
     acLine* lnk = nullptr;
@@ -1059,6 +1064,10 @@ int rawReadTX_v33(coreObject* parentObject,
 
     auto bus1 = busList[ind1];
     auto bus2 = busList[ind2];
+    if (ind1 == 110)
+    {
+        ind1=110;
+    }
     int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
     case 0:
@@ -1131,16 +1140,20 @@ int rawReadTX_v33(coreObject* parentObject,
     }
     else if (Itype==2)
     {
-        auto r1=R*opt.base/base*(vn1/bv1)*(vn1/bv1);
-        auto x1=X*opt.base/base*(vn1/bv1)*(vn1/bv1);
-        auto r2=R*opt.base/base*(vn2/bv2)*(vn2/bv2);
-        auto x2=X*opt.base/base*(vn2/bv2)*(vn2/bv2);
-        if (ind2 == 2005)
+        if (vn2 != 0.0)
         {
-            r1=r2;
+            auto r1=R*opt.base/base*(vn1/bv1)*(vn1/bv1);
+            auto x1=X*opt.base/base*(vn1/bv1)*(vn1/bv1);
+            auto r2=R*opt.base/base*(vn2/bv2)*(vn2/bv2);
+            auto x2=X*opt.base/base*(vn2/bv2)*(vn2/bv2);
+            if (ind2 == 2005)
+            {
+                r1=r2;
+            }
+            lnk->set("r", r2);
+            lnk->set("x", x2);
         }
-        lnk->set("r", r2);
-       lnk->set("x", x2);
+        
        
         //lnk->set("r", R*base/opt.base*(vn2/bv2)*(vn2/bv2));
         //lnk->set("x", X*base/opt.base*(vn2/bv2)*(vn2/bv2));
@@ -1233,10 +1246,19 @@ int rawReadTX_v33(coreObject* parentObject,
             lnk->set("maxtapangle", R, deg);
             lnk->set("mintapangle", X, deg);
         } else {
-            lnk->set("maxtap", R / vn1);
-            lnk->set("mintap", X / vn1);
-        }
+            if (X < 1.0)
+            {
+                lnk->set("maxtap", R);
+                lnk->set("mintap", X);
+            }
+            else
+            {
+                lnk->set("maxtap", R/vn1);
+                lnk->set("mintap", X/vn1);
+            }
 
+        }
+        
         R = numeric_conversion<double>(strvec3[10], 0.0);
         X = numeric_conversion<double>(strvec3[11], 0.0);
 

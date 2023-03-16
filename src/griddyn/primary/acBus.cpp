@@ -195,13 +195,13 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     for (auto& gen : attachedGens) {
         gen->pFlowInitializeA(time0, flags);
-        if (gen->isConnected()) {
+        if (gen->isConnected() && gen->isEnabled()) {
             ++activeSecondary;
         }
     }
     for (auto& load : attachedLoads) {
         load->pFlowInitializeA(time0, flags);
-        if (load->isConnected()) {
+        if (load->isConnected() && load->isEnabled()) {
             ++activeSecondary;
         }
     }
@@ -2083,6 +2083,10 @@ void acBus::converge(coreTime time,
                 computeDerivatives(sD, sMode);
                 double DP = S.sumP();
                 double DQ = S.sumQ();
+                if (v1 <= 0.0 && iteration == 6)
+                {
+                    break;
+                }
                 double cerr1 = DP / v1;
                 double cerr2 = DQ / v1;
 

@@ -1083,7 +1083,7 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
     }
 
     for (auto& ld : attachedLoads) {
-        if (ld->isConnected()) {
+        if (ld->isConnected() && ld->isEnabled()) {
             ld->updateLocalCache(outputs, sD, sMode);
             S.loadP += ld->getRealPower(outputs, sD, sMode);
             S.loadQ += ld->getReactivePower(outputs, sD, sMode);
@@ -1091,7 +1091,7 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
     }
 
     for (auto& gen : attachedGens) {
-        if (gen->isConnected()) {
+        if (gen->isConnected() && gen->isEnabled()) {
             gen->updateLocalCache(outputs, sD, sMode);
             S.genP += gen->getRealPower(outputs, sD, sMode);
             S.genQ += gen->getReactivePower(outputs, sD, sMode);
@@ -1133,13 +1133,13 @@ void gridBus::updateLocalCache()
         }
     }
     for (auto& load : attachedLoads) {
-        if (load->isConnected()) {
+        if (load->isConnected() && load->isEnabled()) {
             S.loadP += load->getRealPower(voltage);
             S.loadQ += load->getReactivePower(voltage);
         }
     }
     for (auto& gen : attachedGens) {
-        if (gen->isConnected()) {
+        if (gen->isConnected() && gen->isEnabled()) {
             S.genP += gen->getRealPower();
             S.genQ += gen->getReactivePower();
         }

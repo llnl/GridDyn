@@ -771,7 +771,7 @@ auto generateBranchName(const stringVector& strvec,
     }
     // create the bus name
     std::string name;
-    if (prefix.empty()) {
+    if (prefix.empty() || prefix.back()=='_') {
         name = busList[ind1]->getName() + "_to_" + busList[ind2]->getName();
     } else {
         name = prefix + '_' + busList[ind1]->getName() + "_to_" + busList[ind2]->getName();

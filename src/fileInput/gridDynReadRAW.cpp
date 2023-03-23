@@ -850,11 +850,11 @@ void rawReadBranch(coreObject* parentObject,
     {
         lnk->set("ratinga",ratA,MW);
     }
-    if (ratB != 0.0)
+    if (ratB != 0.0 && ratB!=ratA)
     {
         lnk->set("ratingb",ratB,MW);
     }
-    if (ratC != 0.0)
+    if (ratC != 0.0 && ratC!=ratA && ratC !=ratB)
     {
         lnk->set("ratingc",ratC,MW);
     }
@@ -1234,11 +1234,11 @@ int rawReadTX_v33(coreObject* parentObject,
     {
         lnk->set("ratinga",ratA,MW);
     }
-    if (ratB != 0.0)
+    if (ratB != 0.0 && ratB!=ratA)
     {
         lnk->set("ratingb",ratB,MW);
     }
-    if (ratC != 0.0)
+    if (ratC != 0.0 && ratC!=ratB && ratC!=ratA)
     {
         lnk->set("ratingc",ratC,MW);
     }

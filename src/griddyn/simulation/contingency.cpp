@@ -155,23 +155,31 @@ void Contingency::add(std::shared_ptr<Event> ge, index_t stage)
     eventList[stage].push_back(std::move(ge));
 }
 
+std::string Contingency::generateOutputLine() const
+{
+    return (simplifiedOutput)?generateViolationsOutputLine():generateFullOutputLine();
+}
+
 std::string Contingency::generateHeader() const
 {
     std::stringstream ss;
     ss << "index, name, event";
 
-    stringVec busNames;
-    gds->getBusName(busNames);
-    for (auto& bn : busNames) {
-        ss << ", " << bn << ":V";
-    }
-    for (auto& bn : busNames) {
-        ss << ", " << bn << ":A";
-    }
-    stringVec linkNames;
-    gds->getLinkName(linkNames);
-    for (auto& ln : linkNames) {
-        ss << ", " << ln << ":flow";
+    if (!simplifiedOutput)
+    {
+        stringVec busNames;
+        gds->getBusName(busNames);
+        for (auto& bn : busNames) {
+            ss << ", " << bn << ":V";
+        }
+        for (auto& bn : busNames) {
+            ss << ", " << bn << ":A";
+        }
+        stringVec linkNames;
+        gds->getLinkName(linkNames);
+        for (auto& ln : linkNames) {
+            ss << ", " << ln << ":flow";
+        }
     }
     ss << ", violations";
     return ss.str();

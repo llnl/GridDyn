@@ -482,7 +482,13 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
             break;
         case gridDynAction::gd_action_t::contingency: {
-            auto contingencies = buildContingencyList(this, cmd.string1);
+            auto info=emptyExtraInfo;
+            
+            if (cmd.flag == 1)
+            {
+                info.simplified=true;
+            }
+            auto contingencies = buildContingencyList(this, cmd.string1,info);
             if (!contingencies.empty()) {
                 runContingencyAnalysis(contingencies, cmd.string2);
                 out = FUNCTION_EXECUTION_SUCCESS;

@@ -63,6 +63,7 @@ class extraContingencyInfo {
     double cutoff{0.0};  //!< the threshold level to trigger
     double delta{0.0};  //!< the change in data
     int stage{0};  //!< which stage should the contingency execute in
+    bool simplified{false};  //!< indicator that should use simplifed output
     extraContingencyInfo() = default;
 };
 
@@ -77,6 +78,7 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
   public:
     std::string name;  //!< contingency name
     int id;  //!< contingency id
+    bool simplifiedOutput{false};  //!< indicator to use simplified output
     std::atomic<bool> completed{false};  //!< boolean indicator if the contingency was run
 
     std::vector<Violation> Violations;  //!< the resulting violations
@@ -125,6 +127,8 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
      */
     std::string generateViolationsOutputLine() const;
 
+    /** generate an output line based on internal settings*/
+    std::string generateOutputLine() const;
     /** reset the contingency to be able to execute again*/
     void reset();
     /** wait for the contingency to finish executing*/

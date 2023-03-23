@@ -49,6 +49,7 @@ class gridDynAction {
     std::string string1;  //!< string parameter 1 of the action
     std::string string2;  //!< string parameter 2 of the action
     int val_int = -1;  //!< integer parameter of action
+    int flag{0};  //!< additional flag values for various purposes
     double val_double = kNullVal;  //!< double parameter 1 of the action
     double val_double2 = kNullVal;  //!< double parameter 2 of the action
 

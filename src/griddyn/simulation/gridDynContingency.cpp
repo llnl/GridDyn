@@ -64,7 +64,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
         } break;
         case contingency_mode_t::N_2:  // N-2 contingencies
         {
-            auto C1 = buildContingencyList(gds, "n-1", info);
+            auto C1 = buildContingencyList(gds, "N-1", info);
             extraContingencyInfo build;
             build.stage = 0;
             contList.reserve(C1.size() * C1.size());
@@ -232,6 +232,10 @@ void addContingency(gridDynSimulation* gds,
             cont->add(newEvent, info.stage);
             contList.push_back(std::move(cont));
         }
+    }
+    if (info.simplified)
+    {
+        contList.back()->simplifiedOutput=info.simplified;
     }
 }
 

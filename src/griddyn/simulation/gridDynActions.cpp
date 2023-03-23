@@ -284,9 +284,15 @@ void gridDynAction::process(const std::string& operation)
     } else if (cmd == "contingency") {
         // contingency mode|fileName output_file|method
         command = gd_action_t::contingency;
-        string1 = ssep[1];
-        if (sz > 2) {
-            string2 = ssep[2];
+        int nindex{1};
+        if (ssep[1] == "simplified")
+        {
+            flag=1;
+            ++nindex;
+        }
+        string1 = ssep[nindex];
+        if (sz > nindex+1) {
+            string2 = ssep[nindex+1];
         }
     } else if (cmd == "continuation") {
     } else {

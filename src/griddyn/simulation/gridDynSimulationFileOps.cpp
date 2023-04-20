@@ -1125,7 +1125,7 @@ void saveJacobian(gridDynSimulation* gds, const std::string& fileName, const sol
 }
 
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,
-                           const std::string& fileName)
+                           const std::string& fileName,int count)
 {
     if (contList.empty()) {
         return;
@@ -1134,12 +1134,33 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
     while (!contList[0]->isFinished()) {
         contList[0]->wait();
     }
+    bool simplified=(contList[0]->simplifiedOutput);
+
     bFile << contList[0]->generateHeader() << "\n";
+    
+    int ccnt{0};
     for (auto& cont : contList) {
+        if (!cont)
+        {
+            continue;
+        }
         while (!cont->isFinished()) {
             cont->wait();
         }
-        bFile << cont->generateFullOutputLine() << "\n";
+        if (simplified)
+        {
+            bFile << cont->generateViolationsOutputLine() << "\n";
+        }
+        else
+        {
+            bFile << cont->generateFullOutputLine() << "\n";
+        }
+        
+        ++ccnt;
+        if (count > 0 && ccnt > count)
+        {
+            break;
+        }
     }
 }
 

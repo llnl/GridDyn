@@ -51,7 +51,7 @@ class Violation {
 
 class Event;
 
-enum class contingency_mode_t { N_1, N_1_1, N_2, line, gen, load, bus, custom, unknown };
+enum class contingency_mode_t { N_1, N_1_1, N_2, N_2_LINE, N_3_LINE, line, gen, load, bus, custom, unknown };
 
 class Contingency;
 /** convert a string to a contingency mode*/
@@ -87,6 +87,8 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     std::vector<double> busVoltages;  //!< vector of bus voltages
     std::vector<double> busAngles;  //!< vector of bus Angles
     std::vector<double> Lineflows;  //!< vector of transmission line flows
+    double contingencyLoad{ 0.0 }; //!< the storage for the final load
+    double preContingencyLoad{0.0}; //!< storage for original load to detect load loss
   protected:
     gridDynSimulation* gds = nullptr;  //!< master simulation object
     std::promise<int> promise_val;  //!< paired with future for asynchronous operation
@@ -114,6 +116,15 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
       @param[in] stage  the stage to execute the contingency
     */
     void add(std::shared_ptr<Event> ge, index_t stage = 0);
+
+    /** merge two contingencies */
+    void merge(const Contingency &c2,index_t stage=0);
+    /**
+    merge two contingencies if they are unige
+    @return true if they were merged
+    */
+    bool mergeIfUnique(const Contingency &c2, index_t stage=0);
+
     /** generate a header string for a csv file including the data field names this
     @details this header line would be general to all similar contingencies
     */
@@ -146,29 +157,34 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
 // Contingency execution functions
 /** @brief build a list of contingencies
 @param[in] contMode a string with the type of contingency analysis
+@param[in] info extra information to pass to the contingency generator
+@param[in] skip skip the first N contingencies
 @return a vector of contingencies
 */
 std::vector<std::shared_ptr<Contingency>>
     buildContingencyList(gridDynSimulation* gds,
                          const std::string& contMode,
-                         const extraContingencyInfo& info = emptyExtraInfo);
+                         const extraContingencyInfo& info = emptyExtraInfo, int skip=0);
 
 /** @brief add a list of contingencies to an existing list of contingencies
  *@param[in] gds the simulation root object
 @param[in] cmode a string with the type of contingency analysis
 @param[out] contList the list of existing contingencies that
+@param[in] info extra information to pass to the contingency generator
+@param[in] skip skip the first N contingencies
 @return the number of contingencies added to the list
 */
 size_t buildContingencyList(gridDynSimulation* gds,
                             contingency_mode_t cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
-                            const extraContingencyInfo& info = emptyExtraInfo);
+                            const extraContingencyInfo& info = emptyExtraInfo,    int skip=0);
 
 /** @brief perform a contingency analysis
 @param[in] contList the list of specific contingencies to test
 @param[in] output a string containing the output specs (either fileName or some other string
+@param[in] count the number of contingencies to run, 0 means all
 */
 void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
-                            const std::string& output);
+                            const std::string& output, int count=0);
 
 }  // namespace griddyn

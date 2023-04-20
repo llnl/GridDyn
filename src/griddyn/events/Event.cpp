@@ -199,7 +199,7 @@ void Event::setValue(double val, units::unit newUnits)
     }
 }
 
-std::string Event::to_string()
+std::string Event::to_string() const
 {
     // [@time1 | ]rootobj::obj:field[(units)] = val1
     std::stringstream ss;

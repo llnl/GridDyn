@@ -42,7 +42,7 @@ namespace events {
         virtual void set(const std::string& param, double val) override;
         virtual void set(const std::string& param, const std::string& val) override;
         virtual void setFlag(const std::string& flag, bool val) override;
-        virtual std::string to_string() override;
+        virtual std::string to_string() const override;
 
         // friendly helper functions for sorting
       protected:

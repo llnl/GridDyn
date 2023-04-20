@@ -294,6 +294,14 @@ void gridDynAction::process(const std::string& operation)
         if (sz > nindex+1) {
             string2 = ssep[nindex+1];
         }
+        if (sz > nindex + 2)
+        {
+            val_int=numeric_conversion<int>(ssep[nindex+2], 0);
+        }
+        else
+        {
+            val_int=0;
+        }
     } else if (cmd == "continuation") {
     } else {
         throw(unrecognizedParameter(cmd));

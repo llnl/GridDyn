@@ -145,7 +145,7 @@ namespace events {
         }
     }
 
-    std::string Player::to_string()
+    std::string Player::to_string() const
     {
         // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
         std::stringstream ss;

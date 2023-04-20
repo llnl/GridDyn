@@ -238,8 +238,9 @@ class Contingency;
 /** write a contingency list to a text based file output
 @param[in] contList the vector of contingencies that have been run
 @param[in] fileName the name of the file to save
+@param[in] count the number of contingencies to save
 */
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,
-                           const std::string& fileName);
+                           const std::string& fileName, int count=0);
 
 }  // namespace griddyn

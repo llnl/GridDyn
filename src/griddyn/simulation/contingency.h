@@ -82,20 +82,27 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     std::atomic<bool> completed{false};  //!< boolean indicator if the contingency was run
 
     std::vector<Violation> Violations;  //!< the resulting violations
-    double PI = 0.0;  //!< performance index score
-    double lowV = 0.0;  //!< minimum voltage
+    double PI{ 0.0 };  //!< performance index score
+    double lowV{ 0.0 };  //!< minimum voltage
     std::vector<double> busVoltages;  //!< vector of bus voltages
     std::vector<double> busAngles;  //!< vector of bus Angles
     std::vector<double> Lineflows;  //!< vector of transmission line flows
-    double contingencyLoad{ 0.0 }; //!< the storage for the final load
+    double preEventLoad{0.0};
     double preContingencyLoad{0.0}; //!< storage for original load to detect load loss
+    double contingencyLoad{ 0.0 }; //!< the storage for the final load
+    double preEventGen{0.0};
+    double preContingencyGen{0.0}; //!< storage for original generation to detect generation loss
+    double contingencyGen{ 0.0 }; //!< the storage for the final generation
+    int islands{0}; //number of islands in the output
   protected:
     gridDynSimulation* gds = nullptr;  //!< master simulation object
     std::promise<int> promise_val;  //!< paired with future for asynchronous operation
+    /// the future object to contain the data that will come upon execution
     std::shared_future<int>
-        future_ret;  //!< the future object to contain the data that will come upon execution
+        future_ret;
+    /// events that describe the contingency
     std::vector<std::vector<std::shared_ptr<Event>>>
-        eventList;  //!< events that describe the contingency
+        eventList;  
   public:
     /** default constructor*/
     Contingency();

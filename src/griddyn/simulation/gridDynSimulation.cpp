@@ -175,7 +175,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         }
     }
     // check to make sure we have a swing bus for each network
-
+    networkCount=networkNum;
     for (int32_t nn = 1; nn <= networkNum; nn++) {
         bool slkfnd = false, pvfnd = false, afixfnd = false;
         for (auto& bn : slkBusses) {
@@ -983,8 +983,12 @@ double gridDynSimulation::get(const std::string& param, units::unit unitType) co
         val = nonZeros(*defDAEMode);
     } else if (param == "residcount") {
         val = residCount;
-    } else if (param == "haltcount") {
+    }
+    else if (param == "haltcount") {
         val = haltCount;
+    }else if (param=="islands"||param=="networkcount"||param=="networks")
+    {
+        val=networkCount;
     } else if (param == "iterationcount") {
         fval = getSolverInterface(*defPowerFlowMode)->get("iterationcount");
     } else if ((param == "jacobiancallcount") || (param == "jaccallcount")) {

@@ -150,6 +150,7 @@ class gridDynSimulation: public gridSimulation {
     count_t rootCount = 0;  //!< counter for the number of roots
     count_t busCount = 0;  //!< counter for the number of buses
     count_t linkCount = 0;  //!< counter for the number of links
+    count_t networkCount{0};  //!< number of islanded networks in the simulation
     coreTime probeStepTime = coreTime(1e-3);  //!< initial step size
     double powerAdjustThreshold = 0.01;  //!< tolerance on the power adjust step
     coreTime powerFlowStartTime =

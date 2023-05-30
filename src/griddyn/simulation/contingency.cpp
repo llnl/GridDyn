@@ -220,6 +220,10 @@ bool Contingency::mergeIfUnique(const Contingency& c2, index_t stage)
             bool matched=false;
             for (const auto& compEV : eventList[stage])
             {
+                if (!compEV)
+                {
+                    continue;
+                }
                 if (*ev == *compEV)
                 {
                     matched=true;

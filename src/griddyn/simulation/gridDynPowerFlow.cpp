@@ -91,6 +91,12 @@ int gridDynSimulation::powerflow()
                         {
                             checkNetwork(network_check_type::full);
                             reInitpFlow(sm, change_code::jacobian_change);
+                            if (hasPowerAdjustments) {
+                                slkBusBase.resize(slkBusses.size());
+                                for (size_t kk = 0; kk < slkBusses.size(); ++kk) {
+                                    slkBusBase[kk] = slkBusses[kk]->getGenerationRealNominal();
+                                }
+                            }
                             continue;
                         }
                         if (!controlFlags[disable_automatic_load_loss])

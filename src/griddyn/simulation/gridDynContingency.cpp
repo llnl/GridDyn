@@ -192,7 +192,10 @@ void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
 
     int ccnt{0};
     for (auto& cList : contList) {
-
+        if (!cList)
+        {
+            continue;
+        }
         wqI->addWorkBlock(cList);
         ++ccnt;
         if (count > 0 && ccnt > count)

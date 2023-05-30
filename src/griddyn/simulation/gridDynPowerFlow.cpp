@@ -53,6 +53,7 @@ int gridDynSimulation::powerflow()
     {
         // handle the condition when all buses are swing buses hence nothing to solve
         power_iteration_count = 0;
+        count_t rebalance_count{ 0 };
         do  // outer power distribution loop
         {
             if (hasPowerAdjustments) {
@@ -86,6 +87,30 @@ int gridDynSimulation::powerflow()
                     }
                     auto prc = pfer.attemptFix(retval);
                     if (prc == powerFlowErrorRecovery::recovery_return_codes::out_of_options) {
+                        if (tripSlippedLines()>0)
+                        {
+                            checkNetwork(network_check_type::full);
+                            reInitpFlow(sm, change_code::jacobian_change);
+                            continue;
+                        }
+                        if (!controlFlags[disable_automatic_load_loss])
+                        {
+                            ++rebalance_count;
+                            if (rebalance_count < 3)
+                            {
+                                int check = rebalanceLoadGen();
+                                if (check == 0)
+                                {
+                                    continue;
+                                }
+                            }
+                            if (doAutomaticLoadLoss())
+                            {
+                                continue;
+                            }
+                            
+                        }
+
                         LOG_ERROR("unable to solve power flow ||" +
                                   pFlowData->getLastErrorString());
                         return retval;
@@ -315,34 +340,17 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-// TODO(phlpt): This really should be done by areas instead of globally.
-bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
+bool gridDynSimulation::generatorAdjust(double adjustment)
 {
-    double cPower = 0.0;
-    double availPower = 0.0;
+    double availPower{ 0.0 };
     std::vector<double> avail;
     std::vector<gridBus*> gbusses;
     getBusVector(gbusses);
     avail.reserve(gbusses.size());
-    auto pv = prevSlkGen.begin();
-    for (auto& bus : slkBusses) {
-        cPower -= (bus->getLinkReal() + bus->getLoadReal());
-        // reset the slk generators to previous levels so the adjustments work properly
-        bus->set("p",
-                 -(*pv));  
-        ++pv;
-    }
 
-    cPower = -(cPower - prevPower);
-
-    // printf ("cPower=%f\n", cPower);
-    if (std::abs(cPower) < powerAdjustThreshold) {
-        // just let the residual error go to the swing bus.
-        return false;
-    }
     // TODO(phlpt): This makes a really big assumption about the location (in the simulation) of the
     // buses really need to put some thought into working this through the areas
-    if (cPower > 0.0) {
+    if (adjustment > 0.0) {
         for (auto& bus : gbusses) {
             if ((bus->isEnabled()) && (bus->getAdjustableCapacityUp() > 0.0)) {
                 double maxGen = bus->getMaxGenReal();
@@ -373,10 +381,35 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
     availPower = gmlc::utilities::sum(avail);
     for (size_t kk = 0; kk < gbusses.size(); ++kk) {
         if (avail[kk] > 0.0) {
-            gbusses[kk]->generationAdjust(avail[kk] / availPower * cPower);
+            gbusses[kk]->generationAdjust(avail[kk] / availPower * adjustment);
         }
     }
     return true;
+}
+
+// TODO::PT  this really should be done by areas instead of globally
+bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
+{
+    double cPower = 0.0;
+    
+    
+    auto pv = prevSlkGen.begin();
+    for (auto& bus : slkBusses) {
+        cPower -= (bus->getLinkReal() + bus->getLoadReal());
+        // reset the slk generators to previous levels so the adjustments work properly
+        bus->set("p",
+                 -(*pv));  
+        ++pv;
+    }
+
+    cPower = -(cPower - prevPower);
+
+    // printf ("cPower=%f\n", cPower);
+    if (std::abs(cPower) < powerAdjustThreshold) {
+        // just let the residual error go to the swing bus.
+        return false;
+    }
+    return generatorAdjust(cPower);
 }
 
 void gridDynSimulation::continuationPowerFlow(const std::string& contName)

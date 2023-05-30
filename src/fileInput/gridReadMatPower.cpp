@@ -62,10 +62,10 @@ void loadMatPower(coreObject* parentObject,
     mArray M1;
     int gencount = 0;
     std::vector<gridBus*> busList;
-    size_t A = filetext.find(basename + ".baseMVA");
-    if (A != std::string::npos) {
-        size_t B = filetext.find_first_of('=', A);
-        size_t C = filetext.find_first_of(";\n", A);
+    size_t baseMVALoc = filetext.find(basename + ".baseMVA");
+    if (baseMVALoc != std::string::npos) {
+        size_t B = filetext.find_first_of('=', baseMVALoc);
+        size_t C = filetext.find_first_of(";\n", baseMVALoc);
         auto tstr = filetext.substr(B + 1, C - B - 1);
         basepower = numeric_conversion(tstr, 0.0);
         parentObject->set("basepower", basepower);

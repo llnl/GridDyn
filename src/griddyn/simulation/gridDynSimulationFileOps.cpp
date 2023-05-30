@@ -78,9 +78,9 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
     fprintf(fp, "basepower=%f\n", basePower);
     fprintf(
         fp,
-        "\"Area #\",\"Bus #\",\"Bus "
+        "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
         "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
-        "\"Plink(MW)\",\"Qlink(MW)\"\n");
+        "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n");
     Area* Area = gds->getArea(0);
     index_t mmm = 0;
     while (Area != nullptr) {
@@ -88,9 +88,10 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
         gridBus* bus = Area->getBus(nn);
         while (bus != nullptr) {
             fprintf(fp,
-                    "%d, %d,\"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+                    "%d, %d, %d, \"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
                     Area->getUserID(),
                     bus->getUserID(),
+                bus->getUserID(),
                     bus->getName().c_str(),
                     bus->getVoltage(),
                     units::convert(bus->getAngle(), units::rad, units::deg),
@@ -99,7 +100,9 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
                     bus->getLoadReal() * basePower,
                     bus->getLoadReactive() * basePower,
                     bus->getLinkReal() * basePower,
-                    bus->getLinkReactive() * basePower);
+                    bus->getLinkReactive() * basePower,
+                (bus->getGenerationReal()+bus->getLoadReal()+bus->getLinkReal())*basePower,
+                (bus->getGenerationReactive()+bus->getLoadReactive()+bus->getLinkReactive())*basePower);
 
             ++nn;
             bus = Area->getBus(nn);
@@ -111,10 +114,12 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
     index_t nn = 0;
     gridBus* bus = gds->getBus(nn);
     while (bus != nullptr) {
+        bus->updateLocalCache();
         fprintf(fp,
-                "%d, %d, \"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+                "%d, %d, %d,\"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
                 1,
                 bus->locIndex + 1,
+            bus->getUserID(),
                 bus->getName().c_str(),
                 bus->getVoltage(),
                 units::convert(bus->getAngle(), units::rad, units::deg),
@@ -123,7 +128,9 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
                 bus->getLoadReal() * basePower,
                 bus->getLoadReactive() * basePower,
                 bus->getLinkReal() * basePower,
-                bus->getLinkReactive() * basePower);
+                bus->getLinkReactive() * basePower,
+            (bus->getGenerationReal()+bus->getLoadReal()+bus->getLinkReal())*basePower,
+            (bus->getGenerationReactive()+bus->getLoadReactive()+bus->getLinkReactive())*basePower);
 
         ++nn;
         bus = gds->getBus(nn);

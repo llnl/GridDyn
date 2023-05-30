@@ -88,26 +88,34 @@ coreObject* gridBus::clone(coreObject* obj) const
 
 bool gridBus::checkCapable()
 {
-    double remainingCapacity = 0.0;
+    double remainingCapacity{ 0.0 };
+    double excessCapacity{ 0.0 };
     if (!opFlags[pFlow_initialized]) {
         return true;
     }
     for (auto& load : attachedLoads) {
         if (load->isConnected()) {
             remainingCapacity -= load->getRealPower();
+            excessCapacity -= load->getRealPower();
         }
     }
     for (auto& gen : attachedGens) {
         if (gen->isConnected()) {
             remainingCapacity += gen->getPmax();
+            excessCapacity += gen->getPmin();
         }
     }
     for (auto& link : attachedLinks) {
         if (link->isConnected()) {
             remainingCapacity += link->getMaxTransfer();
+            excessCapacity-=link->getMaxTransfer();
         }
     }
-    if (remainingCapacity >= 0.0) {
+    if (remainingCapacity >= 0.0 ) {
+        return true;
+    }
+
+    if (excessCapacity <= 0.0) {
         return true;
     }
     LOG_WARNING("BUS failed");
@@ -996,6 +1004,9 @@ void gridBus::disconnect()
         LOG_DEBUG("disconnecting bus");
         voltage = 0.0;
         angle = 0.0;
+        for (auto& lnk : attachedLinks) {
+            lnk->disconnect();
+        }
     }
 }
 

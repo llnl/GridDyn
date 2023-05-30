@@ -478,6 +478,7 @@ class Area: public gridPrimary {
     count_t getLinkVector(std::vector<Link*>& linkVector, index_t start = 0) const;
 
   private:
+
     static std::atomic<count_t> areaCounter;  //!< basic counter for the areas to compute an id
 
     template<class X>

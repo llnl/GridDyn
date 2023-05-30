@@ -10,6 +10,7 @@
 #include "../events/eventQueue.h"
 #include "../events/parameterOperator.h"
 #include "../gridBus.h"
+#include "../Link.h"
 #include "../loads/gridLabDLoad.h"
 #include "../solvers/solverInterface.h"
 #include "contingency.h"
@@ -126,6 +127,144 @@ coreObject* gridDynSimulation::clone(coreObject* obj) const
     }
     return sim;
 }
+int gridDynSimulation::tripSlippedLines()
+{
+    std::vector<Link*> lineTest;
+    lineTest.reserve(linkCount);
+    getLinkVector(lineTest);
+    int disconnectCount{0};
+    for (auto& line : lineTest)
+    {
+        if (line->testAndTrip(2))
+        {
+            ++disconnectCount;
+        }
+    }
+    return disconnectCount;
+}
+
+int gridDynSimulation::rebalanceLoadGen()
+{
+    std::vector<gridBus*> bnetwork;
+    bnetwork.reserve(busCount);
+    getBusVector(bnetwork);
+    double totalLoad{0.0};
+    double totalGen{0.0};
+    int maxNetwork{ 1 };
+    int currentNetwork{ 1 };
+    for (auto& bus : bnetwork) {
+        if (bus->isConnected()  && bus->isEnabled()) {
+            if (bus->Network == currentNetwork) {
+                totalLoad += bus->getLoadReal();
+                totalGen += bus->getGenerationReal();
+            }
+            else if (bus->Network>maxNetwork)
+            {
+                maxNetwork=bus->Network;
+            }
+        }
+        else
+        {
+            bus->Network=8;
+        }
+        
+    }
+    totalLoad*=1.04;
+    if (std::abs(totalLoad + totalGen) > 0.04)
+    {
+        if (generatorAdjust(totalLoad + totalGen))
+        {
+            return 0;
+        }
+    }
+    
+    return -1;
+}
+
+
+bool gridDynSimulation::doAutomaticLoadLoss()
+{
+    std::vector<gridBus*> bnetwork;
+    bnetwork.reserve(busCount);
+    getBusVector(bnetwork);
+    bool modified{false};
+    for (auto& bus : bnetwork)
+    {
+        if (bus->getLoadReal() != 0.0)
+        {
+            if (bus->getVoltage() < 0.95)
+            {
+                int ii{0};
+                do
+                {
+                    auto *ld=bus->getLoad(ii);
+                    if (ld != nullptr)
+                    {
+                        if (ld->isConnected())
+                        {
+                            modified=true;
+                            ld->disconnect();
+                            break;
+                        }
+                        ++ii;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                while (true);
+            }
+
+        }
+    }
+
+    if (!modified)
+    {
+        gridBus* mxBus{ nullptr };
+        double maxDiff{0.0};
+        for (auto& bus : bnetwork)
+        {
+            auto ldp=bus->getLoadReal();
+            if (ldp == 0.0)
+            {
+                continue;
+            }
+            auto genp=bus->getGenerationReal();
+            auto lnkp=bus->getLinkReal();
+            auto sum=lnkp+ldp+genp;
+            if (sum > maxDiff)
+            {
+                mxBus=bus;
+                maxDiff=sum;
+            }
+        }
+        if (maxDiff>0.01)
+        {
+            int ii{ 0 };
+            do
+            {
+                auto* ld = mxBus->getLoad(ii);
+                if (ld != nullptr)
+                {
+                    if (ld->isConnected())
+                    {
+                        modified = true;
+                        ld->disconnect();
+                        break;
+                    }
+                    ++ii;
+                }
+                else
+                {
+                    break;
+                }
+            } while (true);
+
+        }
+    }
+    return modified;
+}
 
 int gridDynSimulation::checkNetwork(network_check_type checkType)
 {
@@ -137,7 +276,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         slkBusses.clear();
 
         for (auto& bus : bnetwork) {
-            if (bus->isEnabled()) {
+            if (bus->isEnabled() && bus->isConnected()) {
                 // check to make sure the bus can actually work
                 if (bus->checkCapable()) {
                     bus->Network = 0;
@@ -209,8 +348,8 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         }
         // now we go into a loop to make a new slack bus
         if (!slkfnd) {
-            if (controlFlags[no_auto_slack_bus]) {
-                if (controlFlags[no_auto_disconnect]) {
+            if (controlFlags[disable_auto_slack_bus]) {
+                if (controlFlags[disable_auto_disconnect]) {
                     LOG_ERROR("no SLK bus found in network " + std::to_string(nn));
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
@@ -246,7 +385,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                 if (maxCapBus != nullptr) {
                     maxCapBus->set("type", "slk");
                 } else {
-                    if (controlFlags[no_auto_disconnect]) {
+                    if (controlFlags[disable_auto_disconnect]) {
                         LOG_ERROR("no SLK bus or PV bus found in network " + std::to_string(nn));
                         for (auto& networkBus : bnetwork) {
                             if (networkBus->Network == nn) {
@@ -832,8 +971,8 @@ static const std::unordered_map<std::string, int> flagControlMap{
     {"constraints_disabled", constraints_disabled},
     {"dc_mode", dc_mode},
     {"dcFlow_initialization", dcFlow_initialization},
-    {"no_link_adjustments", no_link_adjustments},
-    {"disable_link_adjustments", no_link_adjustments},
+    {"no_link_adjustments", disable_link_adjustments},
+    {"disable_link_adjustments", disable_link_adjustments},
     {"ignore_bus_limits", ignore_bus_limits},
     {"powerflow_only", power_flow_only},
     {"no_powerflow_adjustments", no_powerflow_adjustments},

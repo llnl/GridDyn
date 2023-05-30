@@ -47,10 +47,15 @@ typedef struct linkPartialDerivatives {
 *  the base class for objects which connect other objects mainly buses
 it implements the basic transmission model
 
-Each link has a disconnect switch at the from bus and the to bus
+Each link has a disconnect switch at the "from" bus and the "to" bus
 */
 class acLine: public Link {
   public:
+      enum acLine_flags
+      {
+          //indicator that the angle slipped past 90 degree on a test
+          angle_slip_on_test = object_flag10,
+      };
   protected:
     model_parameter mp_B{0.0};  //!< [pu] per unit shunt capacitance (jb/2 on each end of the line)
     model_parameter mp_G{0.0};  //!< [pu] per unit shunt conductance (g/2 on each end of the line)
@@ -199,6 +204,7 @@ class acLine: public Link {
                                   const solverMode& sMode,
                                   check_level_t level) override;
 
+    virtual bool testAndTrip(int tripLevel) override;
   protected:
     void setAdmit();
     // virtual void basePowerComp ();

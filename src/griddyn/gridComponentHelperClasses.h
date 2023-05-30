@@ -164,8 +164,8 @@ enum init_control_flags {
     no_governor_limits = 4,  //!< ignore governor limits
     no_limits = 5,  //!< ignore all limits
     ignore_bus_limits = 6,  //!< ignore bus limits
-    no_link_adjustments = 7,  //!< disable all link adjustments
-    no_load_adjustments = 8,  //!< disable all load adjustments
+    disable_link_adjustments = 7,  //!< disable all link adjustments
+    disable_load_adjustments = 8,  //!< disable all load adjustments
     auto_bus_disconnect = 9,  //!< disable automatic bus disconnection in exceptional circumstances
     no_auto_autogen = 10,  //!< disable automatic autogeneration for slk/afix/pv buses
     all_loads_to_constant_impedence = 11,  //!< convert all loads to constant impedance

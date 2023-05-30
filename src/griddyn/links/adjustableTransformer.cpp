@@ -626,7 +626,7 @@ namespace links {
                                                        std::uint32_t flags,
                                                        check_level_t /*level*/)
     {
-        if (CHECK_CONTROLFLAG(flags, no_link_adjustments)) {
+        if (CHECK_CONTROLFLAG(flags, disable_link_adjustments)) {
             return change_code::no_change;
         }
         auto ret = change_code::no_change;

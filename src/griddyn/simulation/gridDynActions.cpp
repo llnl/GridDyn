@@ -27,7 +27,8 @@ void gridDynAction::reset()
     string2.clear();
     val_double = kNullVal;
     val_double2 = kNullVal;
-    val_int = -1;
+    val_int1 = -1;
+    val_int2 = -1;
 }
 
 void gridDynAction::process(const std::string& operation)
@@ -83,10 +84,10 @@ void gridDynAction::process(const std::string& operation)
         command = gd_action_t::setsolver;
         if (sz >= 3) {
             string1 = ssep[1];
-            val_int = gmlc::utilities::numeric_conversion<int>(
+            val_int1 = gmlc::utilities::numeric_conversion<int>(
                 ssep[2],
                 -435);  //-435 is some random number with no meaning outside this call
-            if (val_int == -435) {
+            if (val_int1 == -435) {
                 string1 = ssep[2];
             }
         } else {
@@ -195,9 +196,9 @@ void gridDynAction::process(const std::string& operation)
             if (test_int == -435) {
                 throw(invalidParameterValue(cmd));
             }
-            val_int = test_int;
+            val_int1 = test_int;
         } else {
-            val_int = 0;
+            val_int1 = 0;
         }
         command = gd_action_t::reset;
     } else if (cmd == "iterate") {
@@ -282,7 +283,7 @@ void gridDynAction::process(const std::string& operation)
             string1 = "";
         }
     } else if (cmd == "contingency") {
-        // contingency mode|fileName output_file|method
+        // contingency mode|fileName output_file|method start count
         command = gd_action_t::contingency;
         int nindex{1};
         if (ssep[1] == "simplified")
@@ -296,11 +297,19 @@ void gridDynAction::process(const std::string& operation)
         }
         if (sz > nindex + 2)
         {
-            val_int=numeric_conversion<int>(ssep[nindex+2], 0);
+            val_int1=numeric_conversion<int>(ssep[nindex+2], 0);
         }
         else
         {
-            val_int=0;
+            val_int1=0;
+        }
+        if (sz > nindex + 3)
+        {
+            val_int2=numeric_conversion<int>(ssep[nindex+3], 0);
+        }
+        else
+        {
+            val_int2=0;
         }
     } else if (cmd == "continuation") {
     } else {

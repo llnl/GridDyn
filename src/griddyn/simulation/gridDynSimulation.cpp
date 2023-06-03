@@ -629,7 +629,7 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
             auto contingencies = buildContingencyList(this, cmd.string1,info);
             if (!contingencies.empty()) {
-                runContingencyAnalysis(contingencies, cmd.string2, cmd.val_int);
+                runContingencyAnalysis(contingencies, cmd.string2, cmd.val_int1, cmd.val_int2);
                 out = FUNCTION_EXECUTION_SUCCESS;
             } else {
                 out = FUNCTION_EXECUTION_FAILURE;
@@ -778,8 +778,8 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
             break;
         case gridDynAction::gd_action_t::reset:
-            if (cmd.val_int >= 0) {
-                reset(static_cast<reset_levels>(cmd.val_int));
+            if (cmd.val_int1 >= 0) {
+                reset(static_cast<reset_levels>(cmd.val_int1));
             } else {
                 reset(reset_levels::minimal);
             }

@@ -136,6 +136,11 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     @details this header line would be general to all similar contingencies
     */
     std::string generateHeader() const;
+
+    /** generate the name and contingency as a string
+    */
+    std::string generateContingencyString() const;
+
     /** generate an output line for a csv file containing the contingency result data and any
      * violations
      */
@@ -151,6 +156,9 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     void reset();
     /** wait for the contingency to finish executing*/
     void wait() const;
+    /** Waits for the result to become available. Blocks until specified timeout_duration has elapsed or the result becomes available, whichever comes first. The return value identifies the state of the result.
+    */
+    std::future_status wait_for(std::chrono::milliseconds waitTime) const;
 
     coreObject* getObject() const override;
 
@@ -192,6 +200,6 @@ size_t buildContingencyList(gridDynSimulation* gds,
 @param[in] count the number of contingencies to run, 0 means all
 */
 void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
-                            const std::string& output, int count=0);
+                            const std::string& output, int count1=0, int count2=0);
 
 }  // namespace griddyn

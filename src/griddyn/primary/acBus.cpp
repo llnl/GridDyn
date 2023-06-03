@@ -2066,6 +2066,7 @@ void acBus::converge(coreTime time,
             }
             double minV = -kBigNum;
             double pcerr = 120000;
+            int forceCount{0};
             while (not_converged) {
                 if (iteration > 1) {
                     v1 = uV ? state[Voffset] : voltage;
@@ -2103,7 +2104,11 @@ void acBus::converge(coreTime time,
                             if ((forceUp) || (iteration == 1)) {
                                 dV = -0.1;
                                 forceUp = true;
-                                iteration = (iteration > 5) ? 5 : iteration;
+                                ++forceCount;
+                                if (forceCount < 8)
+                                {
+                                    iteration = (iteration > 5) ? 5 : iteration;
+                                }
                             } else {
                                 dV = DQ / Qvii + DP / Pvii;
                                 if ((!std::isfinite(dV)) ||

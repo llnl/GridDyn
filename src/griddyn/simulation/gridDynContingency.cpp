@@ -186,30 +186,56 @@ std::vector<std::shared_ptr<Contingency>> buildContingencyList(gridDynSimulation
 }
 
 void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
-                            const std::string& output, int count)
+                            const std::string& output, int count1, int count2)
 {
     const auto& wqI = getGlobalWorkQueue();
 
+    
+    int numContingencies=count2;
+    int start=count1;
+    if (count2 == 0)
+    {
+        if (start <= 0)
+        {
+            start=-start;
+        }
+        else
+        {
+            numContingencies=start;
+            start=0;
+        }
+    }
+    std::vector<std::shared_ptr<Contingency>> usedList;
+    usedList.reserve(numContingencies);
     int ccnt{0};
+    int skipped{0};
     for (auto& cList : contList) {
         if (!cList)
         {
             continue;
         }
+        
+            if (skipped < start)
+            {
+                ++skipped;
+                continue;
+            }
+
         wqI->addWorkBlock(cList);
+        usedList.push_back(cList);
         ++ccnt;
-        if (count > 0 && ccnt > count)
+        if (numContingencies > 0 && ccnt > numContingencies)
         {
             break;
         }
     }
     if (output.compare(0, 6, "file:/") == 0) {
-        saveContingencyOutput(contList, output.substr(7),count);
+        saveContingencyOutput(usedList, output.substr(7),numContingencies);
     } else if (output.compare(0, 10, "database:/") == 0) {
         // TODO(PT)::something with a database
     } else {
         // assume it is a file output
-        saveContingencyOutput(contList, output,count);
+        saveContingencyOutput(usedList, output,numContingencies);
     }
 }
 

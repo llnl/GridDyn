@@ -1138,13 +1138,19 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
         return;
     }
     std::ofstream bFile(fileName.c_str(), std::ios::out);
-    while (!contList[0]->isFinished()) {
-        contList[0]->wait();
+    int index=0;
+    while (!contList[index])
+    {
+        ++index;
     }
-    bool simplified=(contList[0]->simplifiedOutput);
+    while (!contList[index]->isFinished()) {
+        contList[index]->wait();
+    }
+    bool simplified=(contList[index]->simplifiedOutput);
 
-    bFile << contList[0]->generateHeader() << "\n";
-    
+    bFile << contList[index]->generateHeader() << "\n";
+
+    std::vector<std::shared_ptr<Contingency>> timedoutList;
     int ccnt{0};
     for (auto& cont : contList) {
         if (!cont)
@@ -1152,7 +1158,16 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
             continue;
         }
         while (!cont->isFinished()) {
-            cont->wait();
+            auto res=cont->wait_for(std::chrono::milliseconds(5000));
+            if (res == std::future_status::timeout)
+            {
+                timedoutList.push_back(cont);
+                break;
+            }
+        }
+        if (!cont->isFinished())
+        {
+            continue;
         }
         if (simplified)
         {
@@ -1167,6 +1182,33 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
         if (count > 0 && ccnt > count)
         {
             break;
+        }
+    }
+    if (ccnt<count && !timedoutList.empty())
+    {
+        for (auto& cont : timedoutList) {
+            while (!cont->isFinished()) {
+                auto res=cont->wait_for(std::chrono::milliseconds(30000));
+                if (res == std::future_status::timeout)
+                {
+                    std::cout<<cont->generateContingencyString()<<" ERROR contingency timed out\n";
+                    continue;
+                }
+            }
+            if (simplified)
+            {
+                bFile << cont->generateViolationsOutputLine() << "\n";
+            }
+            else
+            {
+                bFile << cont->generateFullOutputLine() << "\n";
+            }
+
+            ++ccnt;
+            if (count > 0 && ccnt > count)
+            {
+                break;
+            }
         }
     }
 }

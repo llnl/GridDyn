@@ -21,7 +21,27 @@ set(UNITS_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "")
 add_subdirectory("${PROJECT_SOURCE_DIR}/ThirdParty/units"
                  "${PROJECT_BINARY_DIR}/ThirdParty/units")
 
-set_target_properties(units-static PROPERTIES FOLDER Extern)
+# Upstream units target naming changed (`units`/`units::units`), while GridDyn
+# still expects `units-static`. Create a compatibility target as needed.
+if(NOT TARGET units-static)
+    if(TARGET units)
+        add_library(units-static INTERFACE)
+        target_link_libraries(units-static INTERFACE units)
+    elseif(TARGET units::units)
+        add_library(units-static INTERFACE)
+        target_link_libraries(units-static INTERFACE units::units)
+    endif()
+endif()
+
+set(_griddyn_units_targets)
+foreach(_units_tgt IN ITEMS units-static units)
+    if(TARGET ${_units_tgt})
+        list(APPEND _griddyn_units_targets ${_units_tgt})
+    endif()
+endforeach()
+if(_griddyn_units_targets)
+    set_target_properties(${_griddyn_units_targets} PROPERTIES FOLDER Extern)
+endif()
 
 hide_variable(UNITS_HEADER_ONLY)
 hide_variable(UNITS_BUILD_OBJECT_LIBRARY)

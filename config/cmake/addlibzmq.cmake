@@ -27,72 +27,40 @@ endif()
 
 string(TOLOWER "libzmq" lcName)
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.11)
-    include(FetchContent)
+include(FetchContent)
 
-    mark_as_advanced(FETCHCONTENT_BASE_DIR)
-    mark_as_advanced(FETCHCONTENT_FULLY_DISCONNECTED)
-    mark_as_advanced(FETCHCONTENT_QUIET)
-    mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
+mark_as_advanced(FETCHCONTENT_BASE_DIR)
+mark_as_advanced(FETCHCONTENT_FULLY_DISCONNECTED)
+mark_as_advanced(FETCHCONTENT_QUIET)
+mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
 
-    fetchcontent_declare(
-        libzmq
-        GIT_REPOSITORY https://github.com/zeromq/libzmq.git
-        GIT_TAG ${${PROJECT_NAME}_LIBZMQ_VERSION}
+fetchcontent_declare(
+    libzmq
+    GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+    GIT_TAG ${${PROJECT_NAME}_LIBZMQ_VERSION}
+)
+
+fetchcontent_getproperties(libzmq)
+
+if(NOT ${lcName}_POPULATED)
+    # Fetch the content using previously declared details
+    fetchcontent_populate(libzmq)
+
+    # this section to be removed at the next release of ZMQ for now we need to
+    # download the file in master as the one in the release doesn't work
+    file(RENAME ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
+         ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in.old
     )
-
-    fetchcontent_getproperties(libzmq)
-
-    if(NOT ${lcName}_POPULATED)
-        # Fetch the content using previously declared details
-        fetchcontent_populate(libzmq)
-
-        # this section to be removed at the next release of ZMQ for now we need to
-        # download the file in master as the one in the release doesn't work
-        file(RENAME ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
-             ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in.old
-        )
-        file(
-            DOWNLOAD
-            https://raw.githubusercontent.com/zeromq/libzmq/master/builds/cmake/ZeroMQConfig.cmake.in
-            ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
-        )
-
-    endif()
-
-    hide_variable(FETCHCONTENT_SOURCE_DIR_LIBZMQ)
-    hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_LIBZMQ)
-else() # CMake <3.11
-
-    # create the directory first
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_deps)
-
-    include(GitUtils)
-    git_clone(
-        PROJECT_NAME
-        ${lcName}
-        GIT_URL
-        https://github.com/zeromq/libzmq.git
-        GIT_TAG
-        ${${PROJECT_NAME}_LIBZMQ_VERSION}
-        DIRECTORY
-        ${PROJECT_BINARY_DIR}/_deps
+    file(
+        DOWNLOAD
+        https://raw.githubusercontent.com/zeromq/libzmq/master/builds/cmake/ZeroMQConfig.cmake.in
+        ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
     )
-
-    set(${lcName}_BINARY_DIR ${PROJECT_BINARY_DIR}/_deps/${lcName}-build)
-
-    if(NOT EXISTS ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in.old)
-        file(RENAME ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
-             ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in.old
-        )
-        file(
-            DOWNLOAD
-            https://raw.githubusercontent.com/zeromq/libzmq/master/builds/cmake/ZeroMQConfig.cmake.in
-            ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
-        )
-    endif()
 
 endif()
+
+hide_variable(FETCHCONTENT_SOURCE_DIR_LIBZMQ)
+hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_LIBZMQ)
 
 # Set custom variables, policies, etc. ...
 
@@ -193,26 +161,13 @@ if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIB OR NOT ${PROJECT_NAME}_DISABLE_C_SHARED_
 
     if(NOT ${PROJECT_NAME}_USE_ZMQ_STATIC_LIBRARY AND NOT ${PROJECT_NAME}_SKIP_ZMQ_INSTALL)
         set_target_properties(${zmq_target_output} PROPERTIES PUBLIC_HEADER "")
-        if(NOT CMAKE_VERSION VERSION_LESS "3.13")
-            install(
-                TARGETS ${zmq_target_output}
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                FRAMEWORK DESTINATION "Library/Frameworks"
-            )
-        elseif(WIN32)
-            install(
-                FILES $<TARGET_FILE:${zmq_target_output}>
-                DESTINATION ${CMAKE_INSTALL_BINDIR}
-                COMPONENT libs
-            )
-        else()
-            message(
-                WARNING
-                    "Update to CMake 3.13+ or enable the ${PROJECT_NAME}_USE_ZMQ_STATIC_LIBRARY CMake option to install when using ZMQ as a subproject"
-            )
-        endif()
+        install(
+            TARGETS ${zmq_target_output}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            FRAMEWORK DESTINATION "Library/Frameworks"
+        )
         if(MSVC
            AND NOT EMBEDDED_DEBUG_INFO
            AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL

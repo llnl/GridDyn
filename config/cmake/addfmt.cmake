@@ -14,7 +14,7 @@
 set(FMT_SILENT ON)
 
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14) # Supported values are ``14``, and ``17``.
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 
 set(SUPPORTS_VARIADIC_TEMPLATES ON)

@@ -11,7 +11,7 @@
 set(UNITS_INSTALL OFF CACHE INTERNAL "")
 
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14) # Supported values are ``11``, ``14``, and ``17``.
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 
 set(UNITS_BUILD_OBJECT_LIBRARY OFF CACHE INTERNAL "")

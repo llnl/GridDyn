@@ -25,7 +25,7 @@ endif()
 
     #generate false dependency project
     set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.5)
+    cmake_minimum_required(VERSION 3.28)
     include(ExternalProject)
 ExternalProject_Add(suitesparse
     SOURCE_DIR ${PROJECT_BINARY_DIR}/Download/suitesparse

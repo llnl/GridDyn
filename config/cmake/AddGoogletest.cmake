@@ -13,54 +13,29 @@
 #
 
 set(gtest_version release-1.10.0)
-set(gtest_vtype GIT_TAG)
-# depending on what the version is set to the git_clone command may need to change to
-# GIT_TAG||GIT_BRANCH|GIT_COMMIT
-
 string(TOLOWER "googletest" gtName)
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.11)
-    include(FetchContent)
-    mark_as_advanced(FETCHCONTENT_BASE_DIR)
-    mark_as_advanced(FETCHCONTENT_FULLY_DISCONNECTED)
-    mark_as_advanced(FETCHCONTENT_QUIET)
-    mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
+include(FetchContent)
+mark_as_advanced(FETCHCONTENT_BASE_DIR)
+mark_as_advanced(FETCHCONTENT_FULLY_DISCONNECTED)
+mark_as_advanced(FETCHCONTENT_QUIET)
+mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
 
-    fetchcontent_declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG ${gtest_version}
-    )
+fetchcontent_declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG ${gtest_version}
+)
 
-    fetchcontent_getproperties(googletest)
+fetchcontent_getproperties(googletest)
 
-    if(NOT ${gtName}_POPULATED)
-        # Fetch the content using previously declared details
-        fetchcontent_populate(googletest)
-
-    endif()
-    hide_variable(FETCHCONTENT_SOURCE_DIR_GOOGLETEST)
-    hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_GOOGLETEST)
-else() # cmake <3.11
-
-    # create the directory first
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_deps)
-
-    include(GitUtils)
-    git_clone(
-        PROJECT_NAME
-        googletest
-        GIT_URL
-        https://github.com/google/googletest.git
-        ${gtest_vtype}
-        ${gtest_version}
-        DIRECTORY
-        ${PROJECT_BINARY_DIR}/_deps
-    )
-
-    set(${gtName}_BINARY_DIR ${PROJECT_BINARY_DIR}/_deps/${gtName}-build)
+if(NOT ${gtName}_POPULATED)
+    # Fetch the content using previously declared details
+    fetchcontent_populate(googletest)
 
 endif()
+hide_variable(FETCHCONTENT_SOURCE_DIR_GOOGLETEST)
+hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_GOOGLETEST)
 
 set(gtest_force_shared_crt ON CACHE INTERNAL "")
 
@@ -78,11 +53,7 @@ if(NOT MSVC)
 endif()
 
 if(GOOGLE_TEST_INDIVIDUAL)
-    if(NOT CMAKE_VERSION VERSION_LESS 3.9)
-        include(GoogleTest)
-    else()
-        set(GOOGLE_TEST_INDIVIDUAL OFF)
-    endif()
+    include(GoogleTest)
 endif()
 
 # Target must already exist
@@ -90,27 +61,14 @@ macro(add_gtest TESTNAME)
     target_link_libraries(${TESTNAME} PUBLIC gtest gmock gtest_main)
 
     if(GOOGLE_TEST_INDIVIDUAL)
-        if(CMAKE_VERSION VERSION_LESS 3.10)
-            gtest_add_tests(
-                TARGET
-                ${TESTNAME}
-                TEST_PREFIX
-                "${TESTNAME}."
-                TEST_LIST
-                TmpTestList
-            )
-            set_tests_properties(${TmpTestList} PROPERTIES FOLDER "Tests")
-        else()
-            gtest_discover_tests(
-                ${TESTNAME}
-                TEST_PREFIX
-                "${TESTNAME}."
-                PROPERTIES
-                FOLDER
-                "Tests"
-            )
-
-        endif()
+        gtest_discover_tests(
+            ${TESTNAME}
+            TEST_PREFIX
+            "${TESTNAME}."
+            PROPERTIES
+            FOLDER
+            "Tests"
+        )
     else()
         add_test(${TESTNAME} ${TESTNAME})
         set_target_properties(${TESTNAME} PROPERTIES FOLDER "Tests")

@@ -19,7 +19,7 @@ set(INSTALL_EXPORT "" CACHE INTERNAL "")
 set(JSONCPP_DISABLE_CCACHE ON CACHE INTERNAL "")
 
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14) # Supported values are ``11``, ``14``, and ``17``.
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 
 if(BUILD_SHARED_LIBS)

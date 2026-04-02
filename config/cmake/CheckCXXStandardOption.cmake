@@ -10,19 +10,8 @@
 
 
 
-#check for clang 3.4 and the fact that CMAKE_CXX_STANDARD doesn't work yet for that compiler
-
-if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)
-    set(VERSION_OPTION -std=c++1y)
-  else ()
-    set(VERSION_OPTION -std=c++1z)
-  endif()
-elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  # c++14 becomes default in GCC 6.1
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.1)
-    set(VERSION_OPTION -std=c++1y)
-  else ()
-    set(VERSION_OPTION -std=c++1z)
-  endif()
+# Legacy fallback helper retained for compatibility with old include sites.
+# With current GridDyn policy, both GCC and Clang builds require C++20.
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  set(VERSION_OPTION -std=c++20)
 endif()

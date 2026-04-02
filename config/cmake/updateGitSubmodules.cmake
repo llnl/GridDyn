@@ -10,7 +10,7 @@
 # Based on https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
 
 find_package(Git QUIET)
-if(GIT_FOUND AND (GIT_VERSION_STRING VERSION_GREATER "1.5.2"))
+if(GIT_FOUND)
     if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
         option(ENABLE_SUBMODULE_UPDATE "Checkout and update git submodules" ON)
         mark_as_advanced(ENABLE_SUBMODULE_UPDATE)

@@ -21,7 +21,7 @@ file(MAKE_DIRECTORY ${trigger_build_dir} ${trigger_build_dir}/build)
 
 #generate false dependency project
 set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.5)
+    cmake_minimum_required(VERSION 3.28)
 
     include(ExternalProject)
     ExternalProject_Add(zlib

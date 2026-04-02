@@ -22,7 +22,7 @@ include(escape_string)
 
     #generate false dependency project
     set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.4)
+    cmake_minimum_required(VERSION 3.28)
     include(ExternalProject)
 ExternalProject_Add(minizip
     SOURCE_DIR ${project_src_dir_string}/ThirdParty/Minizip

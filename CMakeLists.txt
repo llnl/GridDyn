@@ -7,20 +7,28 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# cmake >= 3.5 required, minimum_required sets policy
-cmake_minimum_required(VERSION 3.5)
-cmake_policy(VERSION 3.5)
+# cmake >= 3.28 required, minimum_required sets policy
+cmake_minimum_required(VERSION 3.28)
+cmake_policy(VERSION 3.28)
 
-# Make sure users don't get warnings on a tested (3.5 to 3.17) version of CMake. For most of the
-# policies, the new version is better (hence the change). We don't use the 3.0...3.16 syntax because
-# of a bug in MSVC 15.7 built-in and modified CMake 3.11
-if(CMAKE_VERSION VERSION_LESS 3.17)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.17)
+project(GRIDDYN VERSION 0.10.0)
+
+# Require C++20 (or newer) across the project.
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 20)
 endif()
+if(CMAKE_CXX_STANDARD LESS 20)
+    message(FATAL_ERROR "GridDyn requires CMAKE_CXX_STANDARD to be at least 20")
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(GRIDDYN VERSION 0.9.3)
+# Minimum supported compiler versions for C++20-era GridDyn.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+    message(FATAL_ERROR "GridDyn requires GCC 13 or newer")
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18)
+    message(FATAL_ERROR "GridDyn requires Clang 18 or newer")
+endif()
 
 # version number
 set(GRIDDYN_VERSION_BUILD)
@@ -403,7 +411,7 @@ if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
 endif(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
 
 # ------------------------------------------------------------
-# Get some configuration for C++17 as that becomes available
+# Get some configuration for modern C++ features as available
 # ------------------------------------------------------------
 # message(STATUS ${CMAKE_CXX_FLAGS})
 set(CONFIGURE_TARGET_LOCATION ${GRIDDYN_BINARY_DIR}/griddyn_generated_includes/griddyn/)
@@ -418,15 +426,7 @@ target_include_directories(
 if(GRIDDYN_ENABLE_OPENMP)
     find_package(OpenMP QUIET)
     if(OPENMP_FOUND)
-        if(NOT CMAKE_VERSION VERSION_LESS 3.9)
-            link_libraries(OpenMP::OpenMP_C OpenMP::OpenMP_CXX)
-        else()
-            add_compile_options(
-                $<$<COMPILE_LANGUAGE:C>:${OpenMP_C_FLAGS}>
-                $<$<COMPILE_LANGUAGE:CXX>:${OpenMP_CXX_FLAGS}>
-            )
-            link_libraries(${OpenMP_C_FLAGS})
-        endif()
+        link_libraries(OpenMP::OpenMP_C OpenMP::OpenMP_CXX)
     else(OPENMP_FOUND)
         if(NOT GRIDDYN_ENABLE_OPENMP STREQUAL "AUTO")
             message(FATAL_ERROR "Disabling OpenMP support, could not determine compiler flags")

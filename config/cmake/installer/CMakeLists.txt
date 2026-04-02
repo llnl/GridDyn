@@ -13,9 +13,9 @@ message(FATAL_ERROR "This file is significantly out-of-date with the root CMakeL
 #project name
 project(GridDyn)
 
-#states that Cmake version > 3.4
-cmake_minimum_required(VERSION 3.4)
-cmake_policy(VERSION 3.4)
+#states that Cmake version > 3.28
+cmake_minimum_required(VERSION 3.28)
+cmake_policy(VERSION 3.28)
 
 #version number
 set(GridDyn_VERSION_MAJOR 0)

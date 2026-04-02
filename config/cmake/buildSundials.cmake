@@ -43,7 +43,7 @@ function (build_sundials_msvc)
         set(SUNDIALS_KLU_ENABLE "-DKLU_ENABLE=OFF")
     endif()
     set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.5)
+    cmake_minimum_required(VERSION 3.28)
     include(ExternalProject)
 ExternalProject_Add(sundials
     SOURCE_DIR ${PROJECT_BINARY_DIR}/Download/sundials
@@ -173,7 +173,7 @@ endif()
         set(SUNDIALS_KLU_ENABLE "-DKLU_ENABLE=OFF")
     endif()
     set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.5)
+    cmake_minimum_required(VERSION 3.28)
     include(ExternalProject)
 ExternalProject_Add(sundials
     SOURCE_DIR ${PROJECT_BINARY_DIR}/Download/sundials
@@ -277,7 +277,7 @@ endif()
         set(SUNDIALS_KLU_ENABLE "-DKLU_ENABLE=OFF")
     endif()
     set(CMAKE_LIST_CONTENT "
-    cmake_minimum_required(VERSION 3.5)
+    cmake_minimum_required(VERSION 3.28)
     include(ExternalProject)
 ExternalProject_Add(sundials
     SOURCE_DIR ${PROJECT_BINARY_DIR}/Download/sundials

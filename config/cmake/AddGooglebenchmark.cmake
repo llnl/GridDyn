@@ -11,46 +11,24 @@ set(gbenchmark_version v1.5.0)
 
 string(TOLOWER "gbenchmark" gbName)
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.11)
-    include(FetchContent)
+include(FetchContent)
 
-    fetchcontent_declare(
-        gbenchmark
-        GIT_REPOSITORY https://github.com/google/benchmark.git
-        GIT_TAG ${gbenchmark_version}
-    )
+fetchcontent_declare(
+    gbenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG ${gbenchmark_version}
+)
 
-    fetchcontent_getproperties(gbenchmark)
+fetchcontent_getproperties(gbenchmark)
 
-    if(NOT ${gbName}_POPULATED)
-        # Fetch the content using previously declared details
-        fetchcontent_populate(gbenchmark)
-
-    endif()
-
-    hide_variable(FETCHCONTENT_SOURCE_DIR_GBENCHMARK)
-    hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_GBENCHMARK)
-
-else() # cmake <3.11
-
-    # create the directory first
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_deps)
-
-    include(GitUtils)
-    git_clone(
-        PROJECT_NAME
-        gbenchmark
-        GIT_URL
-        https://github.com/google/benchmark.git
-        GIT_TAG
-        ${gbenchmark_version}
-        DIRECTORY
-        ${PROJECT_BINARY_DIR}/_deps
-    )
-
-    set(${gbName}_BINARY_DIR ${PROJECT_BINARY_DIR}/_deps/${gbName}-build)
+if(NOT ${gbName}_POPULATED)
+    # Fetch the content using previously declared details
+    fetchcontent_populate(gbenchmark)
 
 endif()
+
+hide_variable(FETCHCONTENT_SOURCE_DIR_GBENCHMARK)
+hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_GBENCHMARK)
 
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE INTERNAL "")
 set(BENCHMARK_ENABLE_TESTING OFF CACHE INTERNAL "Suppressing benchmark's tests")

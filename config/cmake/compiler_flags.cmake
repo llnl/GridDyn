@@ -98,38 +98,23 @@ if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
     # options produces lots of warning but is useful for checking every once in a while
     # with Clang, GCC warning notices with this aren't as useful
     # target_compile_options(compile_flags_target INTERFACE
-    # $<$<COMPILE_LANGUAGE:CXX>:-Wpadded>) add some gnu specific options if the compiler
-    # is newer
+    # $<$<COMPILE_LANGUAGE:CXX>:-Wpadded>)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        # this option produces a number of warnings in third party libraries but useful
-        # for checking for any internal usages
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
-            target_compile_options(
-                compile_flags_target
-                INTERFACE
-                    $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond -Wnull-dereference>
-            )
-        endif()
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0)
-            target_compile_options(
-                compile_flags_target
-                INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wimplicit-fallthrough=2>
-            )
-        endif()
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.9)
-            target_compile_options(
-                compile_flags_target
-                INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wclass-memaccess>
-            )
-        endif()
+        # GCC 13+ is required by project policy, so these warnings are always available.
+        target_compile_options(
+            compile_flags_target
+            INTERFACE
+                $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond -Wnull-dereference
+                -Wimplicit-fallthrough=2
+                -Wclass-memaccess>
+        )
     endif()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
-            target_compile_options(
-                compile_flags_target
-                INTERFACE -Wdocumentation -Wno-documentation-deprecated-sync
-            )
-        endif()
+        # Clang 18+ is required by project policy.
+        target_compile_options(
+            compile_flags_target
+            INTERFACE -Wdocumentation -Wno-documentation-deprecated-sync
+        )
     endif()
 endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
 
@@ -146,9 +131,7 @@ if(MSVC)
     add_compile_options(/EHsc /MP)
     target_compile_options(build_flags_target INTERFACE /EHsc)
 
-    if (CMAKE_VERSION VERSION_GREATER 3.13.0)
-       target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
-    endif()
+    target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
     if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
         target_compile_options(compile_flags_target INTERFACE /W4 /sdl /wd4244 )
     endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)

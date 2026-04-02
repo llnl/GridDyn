@@ -10,7 +10,7 @@ function (build_external_project target prefix url) #FOLLOWING ARGUMENTS are the
 
     #generate false dependency project
     set(CMAKE_LIST_CONTENT "
-        cmake_minimum_required(VERSION 3.4)
+        cmake_minimum_required(VERSION 3.28)
 
         include(ExternalProject)
         ExternalProject_add(${target}

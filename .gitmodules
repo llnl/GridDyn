@@ -7,10 +7,9 @@
 [submodule "ThirdParty/concurrency"]
     path = ThirdParty/concurrency
     url = https://github.com/GMLC-TDC/concurrency.git
-[submodule "ThirdParty/jsoncpp"]
-    path = ThirdParty/jsoncpp
-    url = https://github.com/phlptp/jsoncpp.git
-    branch = fix_jsoncpp_shadow_warnings
+[submodule "ThirdParty/jsoncpp_new"]
+	path = ThirdParty/jsoncpp_new
+	url = https://github.com/open-source-parsers/jsoncpp
 [submodule "ThirdParty/units"]
     path = ThirdParty/units
     url = https://github.com/LLNL/units.git

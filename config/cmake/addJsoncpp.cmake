@@ -34,11 +34,34 @@ set(HAVE_LOCALECONV ON)
 set(COMPILER_HAS_DEPRECATED ON)
 set(HAVE_STDINT_H ON)
 set(HAVE_DECIMAL_POINT ON)
-add_subdirectory("${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp"
-                 "${PROJECT_BINARY_DIR}/ThirdParty/jsoncpp" EXCLUDE_FROM_ALL)
+add_subdirectory("${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp_new"
+                 "${PROJECT_BINARY_DIR}/ThirdParty/jsoncpp_new" EXCLUDE_FROM_ALL)
 
+# Upstream jsoncpp target names vary by build mode/version. GridDyn expects
+# `jsoncpp_lib`, so create a compatibility target when only `jsoncpp_static`
+# (or namespaced targets) are present.
+if(NOT TARGET jsoncpp_lib)
+    if(TARGET jsoncpp_static)
+        add_library(jsoncpp_lib INTERFACE)
+        target_link_libraries(jsoncpp_lib INTERFACE jsoncpp_static)
+    elseif(TARGET JsonCpp::JsonCpp)
+        add_library(jsoncpp_lib INTERFACE)
+        target_link_libraries(jsoncpp_lib INTERFACE JsonCpp::JsonCpp)
+    elseif(TARGET jsoncpp_object)
+        add_library(jsoncpp_lib INTERFACE)
+        target_link_libraries(jsoncpp_lib INTERFACE jsoncpp_object)
+    endif()
+endif()
 
-set_target_properties(jsoncpp_lib PROPERTIES FOLDER Extern)
+set(_griddyn_jsoncpp_targets)
+foreach(_json_tgt IN ITEMS jsoncpp_lib jsoncpp_static jsoncpp_object)
+    if(TARGET ${_json_tgt})
+        list(APPEND _griddyn_jsoncpp_targets ${_json_tgt})
+    endif()
+endforeach()
+if(_griddyn_jsoncpp_targets)
+    set_target_properties(${_griddyn_jsoncpp_targets} PROPERTIES FOLDER Extern)
+endif()
 
 if(OLD_BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})

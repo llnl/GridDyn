@@ -464,8 +464,8 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/fmtlib/CMakeLists.txt")
     submod_update(ThirdParty/fmtlib)
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp/CMakeLists.txt")
-    submod_update(ThirdParty/jsoncpp)
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp_new/CMakeLists.txt")
+    submod_update(ThirdParty/jsoncpp_new)
 endif()
 
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/containers/gmlc/containers/BlockingQueue.hpp")

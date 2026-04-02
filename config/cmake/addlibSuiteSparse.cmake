@@ -8,7 +8,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #
-# This file is used to add suitesparse to a project
+# This file is used to add suitesparse to a project.
+# GridDyn now expects the cmake-enabled SuiteSparse source to be available as
+# the tracked submodule in ThirdParty/suitesparse-cmake rather than downloading
+# a second copy at configure time.
 #
 
 if(${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
@@ -19,79 +22,37 @@ else()
     set(suitesparse_shared_build ON)
 endif()
 
-string(TOLOWER "suitesparse" lcName)
+set(suitesparse_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/suitesparse-cmake")
+set(suitesparse_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/suitesparse-cmake")
 
-if(NOT CMAKE_VERSION VERSION_LESS 3.11)
-    include(FetchContent)
-
-    mark_as_advanced(FETCHCONTENT_BASE_DIR)
-    mark_as_advanced(FETCHCONTENT_FULLY_DISCONNECTED)
-    mark_as_advanced(FETCHCONTENT_QUIET)
-    mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
-
-    fetchcontent_declare(
-        suitesparse
-        GIT_REPOSITORY https://github.com/phlptp/suitesparse-metis-for-windows.git
-        GIT_TAG cmake_tweaks
+if(NOT EXISTS "${suitesparse_SOURCE_DIR}/CMakeLists.txt")
+    message(
+        FATAL_ERROR
+            "The SuiteSparse submodule was not found at ${suitesparse_SOURCE_DIR}. "
+            "Initialize/update submodules before enabling the local SuiteSparse build."
     )
-
-    fetchcontent_getproperties(suitesparse)
-
-    if(NOT ${lcName}_POPULATED)
-        # Fetch the content using previously declared details
-        fetchcontent_populate(suitesparse)
-
-    endif()
-
-    hide_variable(FETCHCONTENT_SOURCE_DIR_SUITESPARSE)
-    hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_SUITESPARSE)
-else() # CMake <3.11
-
-    # create the directory first
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_deps)
-
-    include(GitUtils)
-    git_clone(
-        PROJECT_NAME
-        ${lcName}
-        GIT_URL
-        https://github.com/phlptp/suitesparse-metis-for-windows.git
-        GIT_BRANCH
-        cmake_tweaks
-        DIRECTORY
-        ${PROJECT_BINARY_DIR}/_deps
-    )
-
-    set(${lcName}_BINARY_DIR ${PROJECT_BINARY_DIR}/_deps/${lcName}-build)
-
 endif()
-
-# Set custom variab
-#if (MSVC OR MINGW)
-#    set(LAPACK_DIR ${${lcName}_SOURCE_DIR}/lapack_windows/x64 CACHE INTERNAL "")
-#    endif()
 
 set(${PROJECT_NAME}_SUITESPARSE_LOCAL_BUILD
     ON
     CACHE INTERNAL ""
 )
-set(KLU_INCLUDE_DIR "${${lcName}_SOURCE_DIR}/Suitesparse/KLU/Include"
-                    "${${lcName}_SOURCE_DIR}/Suitesparse/AMD/Include"
-                    "${${lcName}_SOURCE_DIR}/Suitesparse/SuiteSparse_config"
-                    "${${lcName}_SOURCE_DIR}/Suitesparse/COLAMD/Include"
-                    "${${lcName}_SOURCE_DIR}/Suitesparse/BTF/Include"
-                    CACHE INTERNAL "")
+set(KLU_INCLUDE_DIR
+    "${suitesparse_SOURCE_DIR}/SuiteSparse/KLU/Include"
+    "${suitesparse_SOURCE_DIR}/SuiteSparse/AMD/Include"
+    "${suitesparse_SOURCE_DIR}/SuiteSparse/SuiteSparse_config"
+    "${suitesparse_SOURCE_DIR}/SuiteSparse/COLAMD/Include"
+    "${suitesparse_SOURCE_DIR}/SuiteSparse/BTF/Include"
+    CACHE INTERNAL ""
+)
 
-add_subdirectory(${${lcName}_SOURCE_DIR} ${${lcName}_BINARY_DIR} EXCLUDE_FROM_ALL)
+add_subdirectory("${suitesparse_SOURCE_DIR}" "${suitesparse_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
 set(SuiteSparse_FOUND ON CACHE INTERNAL "")
 
 set(SuiteSparse_LIBRARIES klu btf amd colamd suitesparseconfig)
 
 set_target_properties(${SuiteSparse_LIBRARIES} PROPERTIES FOLDER "klu")
-
-# hide a bunch of local variables and options
-
 
 if(${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
     set(klu_primary_target klu)

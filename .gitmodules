@@ -17,3 +17,10 @@
 [submodule "ThirdParty/utilities"]
     path = ThirdParty/utilities
     url = https://github.com/GMLC-TDC/utilities.git
+[submodule "ThirdParty/suitesparse-cmake"]
+	path = ThirdParty/suitesparse-cmake
+	url = https://github.com/phlptp/suitesparse-metis-for-windows.git
+	branch = cmake_current
+[submodule "ThirdParty/sundials"]
+	path = ThirdParty/sundials
+	url = https://github.com/LLNL/sundials.git

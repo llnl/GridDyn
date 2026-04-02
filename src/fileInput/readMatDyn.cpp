@@ -19,11 +19,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string_view>
 
 namespace griddyn {
 using namespace units;
 using namespace gmlc::utilities::string_viewOps;
-using gmlc::utilities::string_view;
+using std::string_view;
 using namespace gmlc::utilities;
 
 void loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
@@ -47,7 +48,7 @@ void loadMatDyn(coreObject* parentObject,
     size_t Dindex = Bindex;
     size_t Cindex;
     Aindex = ftext.find(Tline[3], Dindex);  // freq
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         Cindex = ftext.find_first_of(";\n", Aindex);
         tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
@@ -56,7 +57,7 @@ void loadMatDyn(coreObject* parentObject,
     }
     // get the timestep parameter
     Aindex = ftext.find(Tline[4], Dindex);  // steptime
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         Cindex = ftext.find_first_of(";\n", Aindex);
         tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
@@ -65,7 +66,7 @@ void loadMatDyn(coreObject* parentObject,
     }
     // get the stoptime parameter
     Aindex = ftext.find(Tline[5], Dindex);  // stoptime
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         Cindex = ftext.find_first_of(";\n", Aindex);
         tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
@@ -73,21 +74,21 @@ void loadMatDyn(coreObject* parentObject,
         parentObject->set("timestop", val);
     }
     Aindex = ftext.find(Tline[0], Dindex);  // gen
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         readMatlabArray(filetext, Bindex + 1, M1);
         loadGenDynArray(parentObject, M1, genList);
     }
 
     Aindex = ftext.find(Tline[1], Dindex);  // exc
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         readMatlabArray(filetext, Bindex + 1, M1);
         loadGenExcArray(parentObject, M1, genList);
     }
 
     Aindex = ftext.find(Tline[2], Dindex);  // gov
-    if (Aindex != string_view::npos) {
+    if (Aindex != std::string_view::npos) {
         Bindex = ftext.find_first_of('=', Aindex);
         readMatlabArray(filetext, Bindex + 1, M1);
         loadGenGovArray(parentObject, M1, genList);
@@ -303,14 +304,14 @@ void loadMatDynEvent(coreObject* parentObject,
     auto Tline = split(tstr, "\t ,");
     auto locC = locB;
     locA = ftext.find(Tline[0], locC);  // event
-    if (locA != string_view::npos) {
+    if (locA != std::string_view::npos) {
         locB = ftext.find_first_of('=', locA);
         readMatlabArray(filetext, locB + 1, event1);
         // loadGenDynArray(parentObject, M1, genList);
     }
 
     locA = ftext.find(Tline[1], locC);  // buschange
-    if (locA != string_view::npos) {
+    if (locA != std::string_view::npos) {
         locB = ftext.find_first_of('=', locA);
         readMatlabArray(filetext, locB + 1, M1);
         for (auto& eventSpec : M1) {

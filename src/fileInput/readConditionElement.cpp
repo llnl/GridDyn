@@ -9,12 +9,13 @@
 #include "readElement.h"
 #include "readerHelper.h"
 #include <cmath>
+#include <string_view>
 
 namespace griddyn {
 using namespace readerConfig;
 using namespace gmlc::utilities;
 
-using gmlc::utilities::string_view;
+using std::string_view;
 
 static const IgnoreListType ignoreConditionVariables{"condition"};
 bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject);
@@ -76,14 +77,14 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
     bool rev = false;
     if ((cond[0] == '!') || (cond[0] == '~')) {
         rev = true;
-        cond = cond.substr(1, string_view::npos);
+        cond = cond.substr(1, std::string_view::npos);
     }
     size_t pos = cond.find_first_of("><=!");
     bool eval = false;
     char A, B;
     string_view BlockA, BlockB;
 
-    if (pos == string_view::npos) {
+    if (pos == std::string_view::npos) {
         A = '!';
         B = '=';
         BlockA = trim(cond);
@@ -92,7 +93,7 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
             auto a1 = BlockA.find_first_of('(', 6);
             auto a2 = BlockA.find_last_of(')');
             auto check = BlockA.substr(a1 + 1, a2 - a1 - 1);
-            coreObject* obj = locateObject(check.to_string(), parentObject, false);
+            coreObject* obj = locateObject(std::string{check}, parentObject, false);
             return (rev) ? (obj == nullptr) : (obj != nullptr);
         }
     } else {
@@ -103,8 +104,8 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
     }
 
     ri.setKeyObject(parentObject);
-    double aval = interpretString(BlockA.to_string(), ri);
-    double bval = interpretString(BlockB.to_string(), ri);
+    double aval = interpretString(std::string{BlockA}, ri);
+    double bval = interpretString(std::string{BlockB}, ri);
 
     if (!std::isnan(aval) && !std::isnan(bval)) {
         try {
@@ -114,8 +115,8 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
         }
     } else if (std::isnan(aval) && (std::isnan(bval))) {  // do a string comparison
-        std::string astr = ri.checkDefines(BlockA.to_string());
-        std::string bstr = ri.checkDefines(BlockB.to_string());
+        std::string astr = ri.checkDefines(std::string{BlockA});
+        std::string bstr = ri.checkDefines(std::string{BlockB});
 
         try {
             eval = compare(astr, bstr, A, B);

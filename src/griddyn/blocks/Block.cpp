@@ -818,6 +818,7 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     using namespace gmlc::utilities::string_viewOps;
     using namespace gmlc::utilities;
     using namespace blocks;
+    using std::string_view;
 
     string_view blockstrv(blockstr);
     auto posp1 = blockstrv.find_first_of('(');
@@ -834,12 +835,12 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     std::unique_ptr<Block> ret;
     std::string fstr;
     if (posp1 == std::string::npos) {
-        fstr = convertToLowerCase(blockNameStr.to_string());
+        fstr = convertToLowerCase(std::string{blockNameStr});
     } else {
         gain = numeric_conversion(blockNameStr, 1.0);  // purposely not using
                                                        // numeric_conversionComplete to just
                                                        // get the first number
-        fstr = convertToLowerCase(blockNameStr.substr(posp1 + 1).to_string());
+        fstr = convertToLowerCase(std::string{blockNameStr.substr(posp1 + 1)});
     }
     if (fstr == "basic") {
         ret = std::make_unique<Block>(gain);
@@ -903,7 +904,7 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
         if (argstr.empty()) {
             ret = std::make_unique<functionBlock>();
         } else {
-            ret = std::make_unique<functionBlock>(argstr.to_string());
+            ret = std::make_unique<functionBlock>(std::string{argstr});
         }
         if (gain != 1.0) {
             ret->set("gain", gain);
@@ -916,14 +917,14 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
         for (auto& ta : tailArgs) {
             auto eloc = ta.find_first_of('=');
             if (eloc == std::string::npos) {
-                ret->setFlag(ta.to_string(), true);
+                ret->setFlag(std::string{ta}, true);
             } else {
                 auto param = ta.substr(0, eloc);
                 double val = numeric_conversionComplete(ta.substr(eloc + 1), kNullVal);
                 if (val == kNullVal) {
-                    ret->set(param.to_string(), ta.substr(eloc + 1).to_string());
+                    ret->set(std::string{param}, std::string{ta.substr(eloc + 1)});
                 } else {
-                    ret->set(param.to_string(), val);
+                    ret->set(std::string{param}, val);
                 }
             }
         }

@@ -16,6 +16,13 @@ namespace links {
     class ThreeWindingTransformer: public subsystem {
       private:
         int faultLink = -1;  //!< link number of the fault if one is present
+        double r = 0.0;
+        double x = 0.0;
+        double mp_B = 0.0;
+        double mp_G = 0.0;
+        double segmentationLength = 0.0;
+        double length = 0.0;
+        double fault = -1.0;
       public:
         /** @brief default constructor*/
         ThreeWindingTransformer(const std::string& objName = "ThreeWinding_$");

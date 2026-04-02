@@ -9,6 +9,7 @@
 #include "../gridComponent.h"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/string_viewOps.h"
+#include <string_view>
 
 namespace griddyn {
 parameterOperator::parameterOperator() = default;
@@ -77,7 +78,7 @@ std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& par
                                                           gridComponent* rootObject)
 {
     using namespace gmlc::utilities::string_viewOps;
-    using gmlc::utilities::string_view;
+    using std::string_view;
 
     string_view paramS(param);
     auto renameloc = paramS.find(" as ");  // spaces are important
@@ -87,12 +88,12 @@ std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& par
         rname = trim(paramS.substr(renameloc + 4));
         paramS = paramS.substr(0, renameloc);
     }
-    objInfo objI(paramS.to_string(), rootObject);
+    objInfo objI(std::string{paramS}, rootObject);
 
     auto pop =
         std::make_unique<parameterOperator>(dynamic_cast<gridComponent*>(objI.m_obj), objI.m_field);
     if (!rname.empty()) {
-        pop->setName(rname.to_string());
+        pop->setName(std::string{rname});
     }
     return pop;
 }

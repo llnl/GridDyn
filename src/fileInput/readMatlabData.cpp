@@ -8,6 +8,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "readerHelper.h"
+#include <string_view>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -101,7 +102,7 @@ bool readMatlabArray(const std::string& Name, const std::string& text, mArray& m
 void readMatlabArray(const std::string& text, size_t start, mArray& matA)
 {
     using namespace gmlc::utilities::string_viewOps;
-    using gmlc::utilities::string_view;
+    using std::string_view;
 
     string_view svtext = text;
     size_t A = text.find_first_of('[', start);
@@ -112,7 +113,7 @@ void readMatlabArray(const std::string& text, size_t start, mArray& matA)
     std::vector<double> M;
     size_t D = 0;
     size_t C = Adat.find_first_of("];");
-    while (C != string_view::npos) {
+    while (C != std::string_view::npos) {
         auto line = Adat.substr(D, C - D);
         string_viewOps::trimString(line);
         if (line.empty()) {

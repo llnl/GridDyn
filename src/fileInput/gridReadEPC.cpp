@@ -22,13 +22,14 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <string_view>
 
 namespace griddyn {
 static constexpr bool unimplemented = false;
 
 using namespace units;
 using namespace gmlc::utilities::string_viewOps;
-using gmlc::utilities::string_view;
+using std::string_view;
 using namespace gmlc::utilities;
 
 void epcReadBus(gridBus* bus, string_view line, double base, const basicReaderInfo& bri);
@@ -91,7 +92,7 @@ int getSectionCount(string_view line)
 {
     auto bbegin = line.find_first_of('[');
     int cnt = -1;
-    if (bbegin != string_view::npos) {
+    if (bbegin != std::string_view::npos) {
         auto bend = line.find_first_of(']', bbegin);
         cnt = numeric_conversion<int>(line.substr(bbegin + 1, (bend - bbegin - 1)), 0);
     }
@@ -420,17 +421,17 @@ void epcReadBus(gridBus* bus, string_view line, double /*base*/, const basicRead
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
     // get the bus name
     auto temp = strvec[0];
-    std::string temp2 = trim(removeQuotes(strvec[1])).to_string();
+    std::string temp2 = std::string{trim(removeQuotes(strvec[1]))};
 
     if (bri.prefix.empty()) {
         if (temp2.empty())  // 12 spaces is default value which would all get trimmed
         {
-            temp2 = "BUS_" + temp.to_string();
+            temp2 = "BUS_" + std::string{temp};
         }
     } else {
         if (temp2.empty())  // 12 spaces is default value which would all get trimmed
         {
-            temp2 = bri.prefix + '_' + temp.to_string();
+            temp2 = bri.prefix + '_' + std::string{temp};
         } else {
             temp2 = bri.prefix + '_' + temp2;
         }
@@ -460,7 +461,7 @@ void epcReadBus(gridBus* bus, string_view line, double /*base*/, const basicRead
             temp = "PQ";
             break;
     }
-    bus->set("type", temp.to_string());
+    bus->set("type", std::string{temp});
     // skip the load flow area and loss zone for now
     // skip the owner information
     // get the voltage and angle specifications
@@ -497,17 +498,17 @@ void epcReadDCBus(dcBus* bus, string_view line, double /*base*/, const basicRead
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
     // get the bus name
     auto temp = strvec[0];
-    std::string temp2 = trim(removeQuotes(strvec[1])).to_string();
+    std::string temp2 = std::string{trim(removeQuotes(strvec[1]))};
 
     if (bri.prefix.empty()) {
         if (temp2.empty())  // 12 spaces is default value which would all get trimmed
         {
-            temp2 = "BUS_" + temp.to_string();
+            temp2 = "BUS_" + std::string{temp};
         }
     } else {
         if (temp2.empty())  // 12 spaces is default value which would all get trimmed
         {
-            temp2 = bri.prefix + '_' + temp.to_string();
+            temp2 = bri.prefix + '_' + std::string{temp};
         } else {
             temp2 = bri.prefix + '_' + temp2;
         }
@@ -535,7 +536,7 @@ void epcReadDCBus(dcBus* bus, string_view line, double /*base*/, const basicRead
             temp = "PQ";
             break;
     }
-    bus->set("type", temp.to_string());
+    bus->set("type", std::string{temp});
 
     // skip the load flow area and loss zone for now
     // skip the owner information
@@ -562,12 +563,12 @@ void epcReadLoad(zipLoad* ld, string_view line, double /*base*/)
     // get the load index and name
     std::string prefix = ld->getParent()->getName() + "_Load";
     if (!strvec[3].empty()) {
-        prefix += '_' + strvec[3].to_string();
+        prefix += '_' + std::string{strvec[3]};
     }
     ld->setName(prefix);
     auto long_id = trim(removeQuotes(strvec[4]));
     if (!long_id.empty()) {
-        ld->setDescription(long_id.to_string());
+        ld->setDescription(std::string{long_id});
     }
     // get the status
     int status = toIntSimple(strvec[5]);
@@ -618,12 +619,12 @@ void epcReadFixedShunt(zipLoad* ld, string_view line, double /*base*/)
     // get the load index and name
     std::string prefix = ld->getParent()->getName() + "_Shunt";
     if (!strvec[7].empty()) {
-        prefix += '_' + trim(strvec[7]).to_string();
+        prefix += '_' + std::string{trim(strvec[7])};
     }
 
     auto long_id = trim(removeQuotes(strvec[4]));
     if (!long_id.empty()) {
-        ld->setDescription(long_id.to_string());
+        ld->setDescription(std::string{long_id});
     }
 
     ld->setName(prefix);
@@ -658,7 +659,7 @@ void epcReadSwitchShunt(loads::svd* ld, string_view line, double /*base*/)
 
     auto long_id = trim(removeQuotes(strvec[1]));
     if (!long_id.empty()) {
-        ld->setDescription(long_id.to_string());
+        ld->setDescription(std::string{long_id});
     }
 
     ld->setName(prefix);
@@ -783,10 +784,10 @@ void epcReadGen(Generator* gen, string_view line, double /*base*/)
     // get the gen index and name
     std::string prefix = gen->getParent()->getName() + "_Gen";
     if (!trim(removeQuotes(strvec[3])).empty()) {
-        prefix += '_' + strvec[3].to_string();
+        prefix += '_' + std::string{strvec[3]};
     }
     if (!trim(removeQuotes(strvec[4])).empty()) {
-        gen->setName(trim(removeQuotes(strvec[4])).to_string());
+        gen->setName(std::string{trim(removeQuotes(strvec[4]))});
     } else {
         gen->setName(prefix);
     }
@@ -845,10 +846,10 @@ void epcReadGen(Generator* gen, string_view line, double /*base*/)
 /** function to generate a name for a line based on the input data*/
 std::string generateLineName(const string_viewVector& svec, const std::string& prefix)
 {
-    std::string temp = trim(removeQuotes(svec[1])).to_string();
+    std::string temp = std::string{trim(removeQuotes(svec[1]))};
     std::string temp2;
     if (temp.empty()) {
-        temp = trim(svec[0]).to_string();
+        temp = std::string{trim(svec[0])};
     }
     if (prefix.empty()) {
         temp2 = temp + "_to_";
@@ -856,9 +857,9 @@ std::string generateLineName(const string_viewVector& svec, const std::string& p
         temp2 = prefix + '_' + temp + "_to_";
     }
 
-    temp = trim(removeQuotes(svec[4])).to_string();
+    temp = std::string{trim(removeQuotes(svec[4]))};
     if (temp.empty()) {
-        temp = trim(svec[3]).to_string();
+        temp = std::string{trim(svec[3])};
     }
     temp2 = temp2 + temp;
     if (trim(svec[7]) != "1") {
@@ -896,7 +897,7 @@ void epcReadBranch(coreObject* parentObject,
     auto lnk = new acLine(name);
     auto long_id = trim(removeQuotes(strvec[8]));
     if (!long_id.empty()) {
-        lnk->setDescription(long_id.to_string());
+        lnk->setDescription(std::string{long_id});
     }
 
     // set the base power to that used this model
@@ -973,7 +974,7 @@ void epcReadDCBranch(coreObject* parentObject,
     auto lnk = new links::dcLink(name);
     auto long_id = trim(removeQuotes(strvec[7]));
     if (!long_id.empty()) {
-        lnk->setDescription(long_id.to_string());
+        lnk->setDescription(std::string{long_id});
     }
 
     // set the base power to that used this model
@@ -1085,7 +1086,7 @@ void epcReadTX(coreObject* parentObject,
 
     auto long_id = trim(removeQuotes(strvec[7]));
     if (!long_id.empty()) {
-        lnk->setDescription(long_id.to_string());
+        lnk->setDescription(std::string{long_id});
     }
 
     addToParentRename(lnk, parentObject);

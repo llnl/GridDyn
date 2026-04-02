@@ -125,11 +125,11 @@ if(MSVC)
 
     target_compile_options(
         compile_flags_target
-        INTERFACE -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /MP
+        INTERFACE -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DNOMINMAX /MP /utf-8
     )
     # these next two should be global
-    add_compile_options(/EHsc /MP)
-    target_compile_options(build_flags_target INTERFACE /EHsc)
+    add_compile_options(/EHsc /MP /utf-8)
+    target_compile_options(build_flags_target INTERFACE /EHsc /utf-8)
 
     target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
     if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)

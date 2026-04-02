@@ -6,10 +6,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/libraryLoader.cpp)
+set(GRIDDYN_LIBRARY_LOADER_CPP ${CMAKE_CURRENT_BINARY_DIR}/libraryLoader.cpp)
 
 file(
-    WRITE ${PROJECT_BINARY_DIR}/libraryLoader.cpp
+    WRITE ${GRIDDYN_LIBRARY_LOADER_CPP}
     "/*\n"
     "* Copyright (c) 2014-2020, Lawrence Livermore National Security\n"
     "* See the top-level NOTICE for additional details. All rights reserved.\n"
@@ -22,20 +22,20 @@ file(
 )
 
 foreach(header ${optional_library_key_headers})
-    file(APPEND ${PROJECT_BINARY_DIR}/libraryLoader.cpp "\n" "\#include \"${header}\"\n")
+    file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "\#include \"${header}\"\n")
 endforeach(header)
 
-file(APPEND ${PROJECT_BINARY_DIR}/libraryLoader.cpp "namespace griddyn {\n"
+file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "namespace griddyn {\n"
                                                     "void loadLibraries()\n" "{\n"
 )
 
 foreach(ns ${optional_library_functions})
-    file(APPEND ${PROJECT_BINARY_DIR}/libraryLoader.cpp "\n" "${ns}();\n" "\n")
+    file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "${ns}();\n" "\n")
 endforeach(ns)
 
-file(APPEND ${PROJECT_BINARY_DIR}/libraryLoader.cpp "\n" "}\n" "}//namespace griddyn")
+file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "}\n" "}//namespace griddyn")
 
-add_library(gridDynLoader STATIC libraryLoader.h ${PROJECT_BINARY_DIR}/libraryLoader.cpp)
+add_library(gridDynLoader STATIC libraryLoader.h ${GRIDDYN_LIBRARY_LOADER_CPP})
 
 set_target_properties(gridDynLoader PROPERTIES FOLDER libraries)
 

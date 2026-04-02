@@ -129,27 +129,28 @@ void loadCSV(coreObject* parentObject,
                 return;
             }
             // check the identifier
-            auto ref = (refkey >= 0) ? trim(lineTokens[refkey]) : "";
-            auto type = (typekey >= 0) ? trim(lineTokens[typekey]) : "";
+            std::string ref = (refkey >= 0) ? std::string{trim(lineTokens[refkey])} : std::string{};
+            std::string type =
+                (typekey >= 0) ? std::string{trim(lineTokens[typekey])} : std::string{};
             // find or create the object
             auto index = numeric_conversion<int>(lineTokens[0], -2);
             coreObject* obj = nullptr;
             if (index >= 0) {
                 obj = parentObject->findByUserID(ObjectMode, index);
             } else if (index == -2) {
-                obj = locateObject(trim(lineTokens[0]).to_string(), parentObject);
+                obj = locateObject(std::string{trim(lineTokens[0])}, parentObject);
             }
             if (refkey >= 0) {
-                obj = ri.makeLibraryObject(ref.to_string(), obj);
+                obj = ri.makeLibraryObject(ref, obj);
             }
 
             if (obj == nullptr) {
-                obj = cof->createObject(ObjectMode, type.to_string());
+                obj = cof->createObject(ObjectMode, type);
                 if (obj != nullptr) {
                     if (index > 0) {
                         obj->setUserID(index);
                     } else if (index == -2) {
-                        obj->setName(lineTokens[0].to_string());
+                        obj->setName(std::string{lineTokens[0]});
                     }
                 }
             }
@@ -178,14 +179,14 @@ void loadCSV(coreObject* parentObject,
                 if (field == "type") {
                     if (ObjectMode == "bus") {
                         auto str = trim(lineTokens[kk]);
-                        obj->set("type", str.to_string());
+                        obj->set("type", std::string{str});
                     }
                 } else if ((field == "name") || (field == "description")) {
-                    auto str = trim(lineTokens[kk]).to_string();
+                    auto str = std::string{trim(lineTokens[kk])};
                     str = ri.checkDefines(str);
                     obj->set(field, str);
                 } else if ((field.compare(0, 2, "to") == 0) && (ObjectMode == "link")) {
-                    auto str = trim(lineTokens[kk]).to_string();
+                    auto str = std::string{trim(lineTokens[kk])};
 
                     str = ri.checkDefines(str);
                     auto val = numeric_conversion<double>(str, kBigNum);
@@ -200,7 +201,7 @@ void loadCSV(coreObject* parentObject,
                         static_cast<Link*>(obj)->updateBus(bus, 2);
                     }
                 } else if ((field.compare(0, 4, "from") == 0) && (ObjectMode == "link")) {
-                    auto str = ri.checkDefines(trim(lineTokens[kk]).to_string());
+                    auto str = ri.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     gridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -213,11 +214,11 @@ void loadCSV(coreObject* parentObject,
                         static_cast<Link*>(obj)->updateBus(bus, 1);
                     } else {
                         WARNPRINT(READER_WARN_ALL,
-                                  "line " << lineNumber << ":: unable to locate bus object  "
+                                          "line " << lineNumber << ":: unable to locate bus object  "
                                           << str);
                     }
                 } else if ((field == "bus") && ((ObjectMode == "load") || (ObjectMode == "gen"))) {
-                    auto str = ri.checkDefines(lineTokens[kk].to_string());
+                    auto str = ri.checkDefines(std::string{lineTokens[kk]});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     gridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -230,12 +231,12 @@ void loadCSV(coreObject* parentObject,
                         bus->add(obj);
                     } else {
                         WARNPRINT(READER_WARN_ALL,
-                                  "line " << lineNumber << ":: unable to locate bus object  "
+                                          "line " << lineNumber << ":: unable to locate bus object  "
                                           << str);
                     }
                 } else if (((field == "target") || (field == "sink") || (field == "source")) &&
                            (ObjectMode == "relay")) {
-                    auto str = ri.checkDefines(lineTokens[kk].to_string());
+                    auto str = ri.checkDefines(std::string{lineTokens[kk]});
                     auto obj2 = locateObject(str, parentObject);
                     if (obj2 != nullptr) {
                         if (field != "sink") {
@@ -249,19 +250,19 @@ void loadCSV(coreObject* parentObject,
                                   "line " << lineNumber << ":: unable to locate object  " << str);
                     }
                 } else if (field == "file") {
-                    auto str = lineTokens[kk].to_string();
+                    auto str = std::string{lineTokens[kk]};
                     ri.checkFileParam(str);
                     gridParameter po(field, str);
 
                     objectParameterSet(std::to_string(lineNumber), obj, po);
                 } else if (field == "workdir") {
-                    auto str = lineTokens[kk].to_string();
+                    auto str = std::string{lineTokens[kk]};
                     ri.checkDirectoryParam(str);
                     gridParameter po(field, str);
 
                     objectParameterSet(std::to_string(lineNumber), obj, po);
                 } else {
-                    auto str = ri.checkDefines(trim(lineTokens[kk]).to_string());
+                    auto str = ri.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
 
                     if (val < kHalfBigNum) {

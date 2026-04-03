@@ -11,18 +11,19 @@
 // SUNDIALS libraries
 #include "griddyn/griddyn-config.h"  // Needed for ENABLE_OPENMP_SUNDIALS define
 #include "nvector/nvector_serial.h"
+#include <sundials/sundials_context.h>
 
 #ifdef GRIDDYN_ENABLE_OPENMP_SUNDIALS
 #    include "nvector/nvector_openmp.h"
 #    include <omp.h>
 #    define NVECTOR_DESTROY(omp, vec) (omp) ? N_VDestroy_OpenMP(vec) : N_VDestroy_Serial(vec)
 #    define NVECTOR_NEW(omp, size)                                                                 \
-        (omp) ? N_VNew_OpenMP(size, omp_get_max_threads()) : N_VNew_Serial(size)
+        (omp) ? N_VNew_OpenMP(size, omp_get_max_threads(), sunctx) : N_VNew_Serial(size, sunctx)
 #    define NVECTOR_DATA(omp, vec) (omp) ? NV_DATA_OMP(vec) : NV_DATA_S(vec)
 
 #else
 #    define NVECTOR_DESTROY(omp, vec) N_VDestroy_Serial(vec)
-#    define NVECTOR_NEW(omp, size) N_VNew_Serial(size)
+#    define NVECTOR_NEW(omp, size) N_VNew_Serial(size, sunctx)
 #    define NVECTOR_DATA(omp, vec) NV_DATA_S(vec)
 #endif
 
@@ -83,6 +84,7 @@ anything on its own just provides common functionality to SUNDIALS SolverInterfa
             nullptr;  //!< direct file reference for input to the solver itself
         SUNMatrix J = nullptr;  //!< sundials matrix to use
         SUNLinearSolver LS = nullptr;  //!< the link to the linear solver to use
+        SUNContext sunctx = nullptr;  //!< SUNDIALS context
       public:
         explicit sundialsInterface(const std::string& objName = "sundials");
         /** @brief constructor loading the SolverInterface structure*

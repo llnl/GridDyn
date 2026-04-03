@@ -537,15 +537,13 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
     acGroup
         ->add_option("--auto-capture,--auto_capture,--auto_capture_file,--auto-capture-file",
                      std::get<1>(*acdata),
-                     "file for automatic recording",
-                     true)
+                     "file for automatic recording")
         ->needs(acp);
     acGroup
         ->add_option(
             "--auto-capture-field,--auto-capture-fields,--auto_capture_field,--auto_capture_fields",
             std::get<2>(*acdata),
-            "fields to automatically capture",
-            true)
+            "fields to automatically capture")
         ->delimiter(',')
         ->needs(acp);
 

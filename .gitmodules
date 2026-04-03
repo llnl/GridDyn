@@ -23,3 +23,9 @@
 [submodule "ThirdParty/sundials"]
 	path = ThirdParty/sundials
 	url = https://github.com/LLNL/sundials.git
+[submodule "ThirdParty/benchmark"]
+	path = ThirdParty/benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "ThirdParty/googletest"]
+	path = ThirdParty/googletest
+	url = https://github.com/google/googletest.git

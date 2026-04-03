@@ -29,8 +29,9 @@ endif(WIN32)
 # message(${test_dir})
 
 target_compile_definitions(shared_library_tests PRIVATE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
+target_compile_definitions(shared_library_tests PRIVATE BOOST_TEST_NO_LIB)
 
-target_link_libraries(shared_library_tests PUBLIC griddyn_shared_lib ${Boost_LIBRARIES_test})
+target_link_libraries(shared_library_tests PUBLIC griddyn_shared_lib)
 
 if(VERSION_OPTION)
     if(MSVC)

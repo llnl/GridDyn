@@ -12,7 +12,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cvode/cvode.h>
-#include <cvode/cvode_direct.h>
+#include <cvode/cvode_ls.h>
 
 #ifdef GRIDDYN_ENABLE_KLU
 #    include <sunlinsol/sunlinsol_klu.h>
@@ -100,7 +100,7 @@ namespace solvers {
         if (solverMem != nullptr) {
             CVodeFree(&(solverMem));
         }
-        solverMem = CVodeCreate(CV_ADAMS);
+        solverMem = CVodeCreate(CV_ADAMS, sunctx);
         check_flag(solverMem, "CVodeCreate", 0);
 
         sundialsInterface::allocate(stateCount, numRoots);
@@ -166,7 +166,7 @@ namespace solvers {
 #ifdef GRIDDYN_ENABLE_KLU
 //    CVodeCVodeSlsGetNumJacEvals(solverMem, &val);
 #else
-            CVodeDlsGetNumJacEvals(solverMem, &val);
+            CVodeGetNumJacEvals(solverMem, &val);
 #endif
         } else {
             return sundialsInterface::get(param);
@@ -320,34 +320,34 @@ namespace solvers {
 
 #ifdef GRIDDYN_ENABLE_KLU
         if (flags[dense_flag]) {
-            J = SUNDenseMatrix(svsize, svsize);
+            J = SUNDenseMatrix(svsize, svsize, sunctx);
             check_flag(J, "SUNDenseMatrix", 0);
             /* Create KLU solver object */
-            LS = SUNDenseLinearSolver(state, J);
-            check_flag(LS, "SUNDenseLinearSolver", 0);
+            LS = SUNLinSol_Dense(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_Dense", 0);
         } else {
             /* Create sparse SUNMatrix */
-            J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT);
+            J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT, sunctx);
             check_flag(J, "SUNSparseMatrix", 0);
 
             /* Create KLU solver object */
-            LS = SUNKLU(state, J);
-            check_flag(LS, "SUNKLU", 0);
+            LS = SUNLinSol_KLU(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_KLU", 0);
         }
 #else
-        J = SUNDenseMatrix(svsize, svsize);
+        J = SUNDenseMatrix(svsize, svsize, sunctx);
         check_flag(J, "SUNSparseMatrix", 0);
         /* Create KLU solver object */
-        LS = SUNDenseLinearSolver(state, J);
-        check_flag(LS, "SUNDenseLinearSolver", 0);
+        LS = SUNLinSol_Dense(state, J, sunctx);
+        check_flag(LS, "SUNLinSol_Dense", 0);
 #endif
 
-        retval = CVDlsSetLinearSolver(solverMem, LS, J);
+        retval = CVodeSetLinearSolver(solverMem, LS, J);
 
-        check_flag(&retval, "IDADlsSetLinearSolver", 1);
+        check_flag(&retval, "CVodeSetLinearSolver", 1);
 
-        retval = CVDlsSetJacFn(solverMem, cvodeJac);
-        check_flag(&retval, "IDADlsSetJacFn", 1);
+        retval = CVodeSetJacFn(solverMem, cvodeJac);
+        check_flag(&retval, "CVodeSetJacFn", 1);
 
         retval = CVodeSetMaxNonlinIters(solverMem, 20);
         check_flag(&retval, "CVodeSetMaxNonlinIters", 1);

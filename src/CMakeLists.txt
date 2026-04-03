@@ -108,6 +108,10 @@ endif(GRIDDYN_BUILD_C_SHARED_LIBRARY)
 # ------------------------------------------------------------
 add_subdirectory(gridDynLoader)
 
+# Attach the generated loader target after it exists so the dependency propagates correctly through
+# fileInput -> runner -> executables.
+target_link_libraries(fileInput PUBLIC gridDynLoader)
+
 set(optional_component_test_files ${optional_component_test_files} PARENT_SCOPE)
 set(optional_component_test_linkages ${optional_component_test_linkages} PARENT_SCOPE)
 set(optional_system_test_files ${optional_system_test_files} PARENT_SCOPE)

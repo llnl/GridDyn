@@ -1,45 +1,35 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Copyright (c) 2017-2019, Battelle Memorial Institute; Lawrence Livermore
+# Copyright (c) 2017-2026, Battelle Memorial Institute; Lawrence Livermore
 # National Security, LLC; Alliance for Sustainable Energy, LLC.
 # See the top-level NOTICE for additional details.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-set(gbenchmark_version v1.5.0)
-
-string(TOLOWER "gbenchmark" gbName)
-
-include(FetchContent)
-
-fetchcontent_declare(
-    gbenchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG ${gbenchmark_version}
-)
-
-fetchcontent_getproperties(gbenchmark)
-
-if(NOT ${gbName}_POPULATED)
-    # Fetch the content using previously declared details
-    fetchcontent_populate(gbenchmark)
-
-endif()
-
-hide_variable(FETCHCONTENT_SOURCE_DIR_GBENCHMARK)
-hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_GBENCHMARK)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE INTERNAL "")
 set(BENCHMARK_ENABLE_TESTING OFF CACHE INTERNAL "Suppressing benchmark's tests")
-set(BENCHMARK_ENABLE_INSTALL OFF CACHE INTERNAL "" )
-set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON CACHE INTERNAL "")
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE INTERNAL "")
+set(BENCHMARK_DOWNLOAD_DEPENDENCIES OFF CACHE INTERNAL "")
 set(BENCHMARK_ENABLE_ASSEMBLY_TESTS OFF CACHE INTERNAL "")
-# tell google benchmarks to use std regex since we only compile on compilers with std regex
-set(HAVE_STD_REGEX ON CACHE INTERNAL "" )
-set(HAVE_POSIX_REGEX OFF CACHE INTERNAL "" )
-set(HAVE_GNU_POSIX_REGEX OFF CACHE INTERNAL "" )
-add_subdirectory(${${gbName}_SOURCE_DIR} ${${gbName}_BINARY_DIR} EXCLUDE_FROM_ALL)
+set(BENCHMARK_INSTALL_DOCS OFF CACHE INTERNAL "")
+# Tell Google Benchmark to use std::regex on the supported compilers.
+set(HAVE_STD_REGEX ON CACHE INTERNAL "")
+set(HAVE_POSIX_REGEX OFF CACHE INTERNAL "")
+set(HAVE_GNU_POSIX_REGEX OFF CACHE INTERNAL "")
+
+set(gbenchmark_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/benchmark")
+set(gbenchmark_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/benchmarks")
+
+if(NOT EXISTS "${gbenchmark_SOURCE_DIR}/CMakeLists.txt")
+    message(
+        FATAL_ERROR
+            "The benchmark submodule was not found at ${gbenchmark_SOURCE_DIR}. "
+            "Initialize/update submodules before enabling benchmark builds."
+    )
+endif()
+
+add_subdirectory("${gbenchmark_SOURCE_DIR}" "${gbenchmark_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
 # Target must already exist
 macro(add_benchmark_with_main TESTNAME)
@@ -48,7 +38,6 @@ macro(add_benchmark_with_main TESTNAME)
         target_link_libraries(${TESTNAME} PUBLIC shlwapi)
     endif()
     set_target_properties(${TESTNAME} PROPERTIES FOLDER "benchmarks")
-
 endmacro()
 
 macro(add_benchmark TESTNAME)
@@ -57,7 +46,6 @@ macro(add_benchmark TESTNAME)
         target_link_libraries(${TESTNAME} PUBLIC shlwapi)
     endif()
     set_target_properties(${TESTNAME} PROPERTIES FOLDER "benchmarks")
-
 endmacro()
 
 hide_variable(BENCHMARK_BUILD_32_BITS)
@@ -66,15 +54,19 @@ hide_variable(BENCHMARK_ENABLE_ASSEMBLY_TESTS)
 hide_variable(BENCHMARK_ENABLE_EXCEPTIONS)
 hide_variable(BENCHMARK_ENABLE_LTO)
 hide_variable(BENCHMARK_USE_LIBCXX)
+hide_variable(BENCHMARK_ENABLE_DOXYGEN)
+hide_variable(BENCHMARK_ENABLE_LIBPFM)
+hide_variable(BENCHMARK_ENABLE_WERROR)
+hide_variable(BENCHMARK_FORCE_WERROR)
+hide_variable(BENCHMARK_USE_BUNDLED_GTEST)
+hide_variable(CXXFEATURECHECK_DEBUG)
 hide_variable(LIBRT)
 
 set_target_properties(benchmark benchmark_main PROPERTIES FOLDER "Extern")
 target_compile_options(benchmark_main PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/wd4244 /wd4800>)
 target_compile_options(benchmark PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/wd4244 /wd4800>)
 
-if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
-    target_compile_definitions(benchmark PUBLIC
-                               _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
-    target_compile_definitions(benchmark_main PUBLIC
-                               _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+if(MSVC)
+    target_compile_definitions(benchmark PUBLIC _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+    target_compile_definitions(benchmark_main PUBLIC _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
 endif()

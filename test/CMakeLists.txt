@@ -7,6 +7,8 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+include(AddGoogletest)
+
 set(testComponent_sources
     componentTests/ConditionTests.cpp
     componentTests/testComponents.cpp
@@ -92,12 +94,18 @@ if(GRIDDYN_ENABLE_FMI)
 endif()
 
 set(testMain_headers testHelper.h exeTestHelper.h)
+set(library_gtest_sources libraryTests/gtestLibrarySmokeTests.cpp)
 
 # add a baseline library for underlying dependencies and flags for test executables
 add_library(griddyn_test_base INTERFACE)
-target_link_libraries(griddyn_test_base INTERFACE Boostlibs::test)
+target_link_libraries(griddyn_test_base INTERFACE Boostlibs::core)
+target_compile_definitions(griddyn_test_base INTERFACE BOOST_TEST_NO_LIB)
 
 target_link_libraries(griddyn_test_base INTERFACE griddyn_base)
+
+add_library(griddyn_gtest_base INTERFACE)
+target_link_libraries(griddyn_gtest_base INTERFACE gtest gtest_main gmock)
+target_link_libraries(griddyn_gtest_base INTERFACE griddyn_base)
 
 file(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/test_files test_dir)
 
@@ -125,15 +133,26 @@ add_executable(testLibrary ${testLibrary_sources} ${testMain_headers})
 add_executable(testComponents ${testComponent_sources} ${testMain_headers})
 add_executable(testSystem ${testSystem_sources} ${testMain_headers})
 add_executable(testExtra ${testExtra_sources} ${testMain_headers})
+add_executable(LibraryTests ${library_gtest_sources})
 
-set_target_properties(testLibrary testComponents testSystem testExtra PROPERTIES FOLDER tests)
+set_target_properties(testLibrary testComponents testSystem testExtra PROPERTIES FOLDER
+                                                                                 tests_boost
+)
 
 target_link_libraries(testLibrary fileInput griddyn_test_base)
 target_link_libraries(
-    testComponents griddyn_optional fileInput griddyn_test_base ${optional_component_test_linkages}
+    testComponents
+    griddyn_optional
+    fileInput
+    griddyn_test_base
+    ${optional_component_test_linkages}
 )
 target_link_libraries(testSystem fileInput griddyn_test_base)
 target_link_libraries(testExtra fileInput griddyn_test_base)
+target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
+add_gtest(LibraryTests)
+set_target_properties(LibraryTests PROPERTIES FOLDER tests)
+set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
 
 # message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
@@ -141,4 +160,5 @@ install(TARGETS testLibrary RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS testComponents RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS testSystem RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS testExtra RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS LibraryTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)

@@ -85,7 +85,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_compile_options(tinyxml PRIVATE -Wno-suggest-override)
 endif()
 
-set_target_properties(tinyxml PROPERTIES FOLDER libraries)
+set_target_properties(tinyxml PROPERTIES FOLDER Extern)
 
 add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_headers})
 

@@ -49,11 +49,15 @@ namespace solvers {
     sundialsInterface::sundialsInterface(const std::string& objName): SolverInterface(objName)
     {
         tolerance = 1e-8;
+        int retval = SUNContext_Create(nullptr, &sunctx);
+        check_flag(&retval, "SUNContext_Create", 1);
     }
     sundialsInterface::sundialsInterface(gridDynSimulation* gds, const solverMode& sMode):
         SolverInterface(gds, sMode)
     {
         tolerance = 1e-8;
+        int retval = SUNContext_Create(nullptr, &sunctx);
+        check_flag(&retval, "SUNContext_Create", 1);
     }
 
     sundialsInterface::~sundialsInterface()
@@ -87,6 +91,9 @@ namespace solvers {
             if (J != nullptr) {
                 SUNMatDestroy(J);
             }
+        }
+        if (sunctx != nullptr) {
+            SUNContext_Free(&sunctx);
         }
     }
 
@@ -215,20 +222,20 @@ namespace solvers {
         }
         switch (sparseReInitModes) {
             case sparse_reinit_modes::refactor: {
-                int retval = SUNKLUReInit(LS, J, maxNNZ, 2);
-                check_flag(&retval, "SUNKLUReInit", 1);
+                int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
+                check_flag(&retval, "SUNLinSol_KLUReInit", 1);
             } break;
             case sparse_reinit_modes::resize:
                 /*there is a major bug in sundials with KLU on resize*/
                 {
                     if (maxNNZ > SM_NNZ_S(J)) {
                         SUNMatDestroy(J);
-                        J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT);
-                        int retval = SUNKLUReInit(LS, J, maxNNZ, 2);
-                        check_flag(&retval, "SUNKLUReInit", 1);
+                        J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
+                        int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
+                        check_flag(&retval, "SUNLinSol_KLUReInit", 1);
                     } else {
-                        int retval = SUNKLUReInit(LS, J, maxNNZ, 2);
-                        check_flag(&retval, "SUNKLUReInit", 1);
+                        int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
+                        check_flag(&retval, "SUNLinSol_KLUReInit", 1);
                     }
                 }
                 break;

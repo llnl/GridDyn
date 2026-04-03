@@ -13,7 +13,7 @@
 #include "utilities/matrixCreation.h"
 #include "utilities/matrixDataFilter.hpp"
 #include <ida/ida.h>
-#include <ida/ida_direct.h>
+#include <ida/ida_ls.h>
 #include <sundials/sundials_math.h>
 
 #ifdef GRIDDYN_ENABLE_KLU
@@ -101,7 +101,7 @@ namespace solvers {
         if (solverMem != nullptr) {
             IDAFree(&(solverMem));
         }
-        solverMem = IDACreate();
+        solverMem = IDACreate(sunctx);
         check_flag(solverMem, "IDACreate", 0);
 
         sundialsInterface::allocate(stateCount, numRoots);
@@ -136,7 +136,7 @@ namespace solvers {
         } else if (param == "nliterations") {
             IDAGetNumNonlinSolvIters(solverMem, &val);
         } else if (param == "jac calls") {
-            IDADlsGetNumJacEvals(solverMem, &val);
+            IDAGetNumJacEvals(solverMem, &val);
         } else {
             return sundialsInterface::get(param);
         }
@@ -159,8 +159,8 @@ namespace solvers {
 
         int retval = IDAGetNumResEvals(solverMem, &nre);
         check_flag(&retval, "IDAGetNumResEvals", 1);
-        retval = IDADlsGetNumJacEvals(solverMem, &nje);
-        check_flag(&retval, "IDADlsGetNumJacEvals", 1);
+        retval = IDAGetNumJacEvals(solverMem, &nje);
+        check_flag(&retval, "IDAGetNumJacEvals", 1);
         retval = IDAGetNumNonlinSolvIters(solverMem, &nni);
         check_flag(&retval, "IDAGetNumNonlinSolvIters", 1);
         retval = IDAGetNumNonlinSolvConvFails(solverMem, &ncfn);
@@ -170,8 +170,8 @@ namespace solvers {
             check_flag(&retval, "IDAGetNumSteps", 1);
             retval = IDAGetNumErrTestFails(solverMem, &netf);
             check_flag(&retval, "IDAGetNumErrTestFails", 1);
-            retval = IDADlsGetNumResEvals(solverMem, &nreLS);
-            check_flag(&retval, "IDADlsGetNumResEvals", 1);
+            retval = IDAGetNumLinResEvals(solverMem, &nreLS);
+            check_flag(&retval, "IDAGetNumLinResEvals", 1);
             retval = IDAGetNumGEvals(solverMem, &nge);
             check_flag(&retval, "IDAGetNumGEvals", 1);
             retval = IDAGetCurrentOrder(solverMem, &kcur);
@@ -306,37 +306,37 @@ namespace solvers {
         check_flag(&retval, "IDASetMaxNumSteps", 1);
 #ifdef GRIDDYN_ENABLE_KLU
         if (flags[dense_flag]) {
-            J = SUNDenseMatrix(svsize, svsize);
+            J = SUNDenseMatrix(svsize, svsize, sunctx);
             check_flag(J, "SUNDenseMatrix", 0);
             /* Create KLU solver object */
-            LS = SUNDenseLinearSolver(state, J);
-            check_flag(LS, "SUNDenseLinearSolver", 0);
+            LS = SUNLinSol_Dense(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_Dense", 0);
         } else {
             /* Create sparse SUNMatrix */
-            J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT);
+            J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT, sunctx);
             check_flag(J, "SUNSparseMatrix", 0);
 
             /* Create KLU solver object */
-            LS = SUNKLU(state, J);
-            check_flag(LS, "SUNKLU", 0);
+            LS = SUNLinSol_KLU(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_KLU", 0);
 
-            retval = SUNKLUSetOrdering(LS, 0);
-            check_flag(&retval, "SUNKLUSetOrdering", 1);
+            retval = SUNLinSol_KLUSetOrdering(LS, 0);
+            check_flag(&retval, "SUNLinSol_KLUSetOrdering", 1);
         }
 #else
-        J = SUNDenseMatrix(svsize, svsize);
+        J = SUNDenseMatrix(svsize, svsize, sunctx);
         check_flag(J, "SUNSparseMatrix", 0);
         /* Create KLU solver object */
-        LS = SUNDenseLinearSolver(state, J);
-        check_flag(LS, "SUNDenseLinearSolver", 0);
+        LS = SUNLinSol_Dense(state, J, sunctx);
+        check_flag(LS, "SUNLinSol_Dense", 0);
 #endif
 
-        retval = IDADlsSetLinearSolver(solverMem, LS, J);
+        retval = IDASetLinearSolver(solverMem, LS, J);
 
-        check_flag(&retval, "IDADlsSetLinearSolver", 1);
+        check_flag(&retval, "IDASetLinearSolver", 1);
 
-        retval = IDADlsSetJacFn(solverMem, idaJac);
-        check_flag(&retval, "IDADlsSetJacFn", 1);
+        retval = IDASetJacFn(solverMem, idaJac);
+        check_flag(&retval, "IDASetJacFn", 1);
 
         retval = IDASetMaxNonlinIters(solverMem, 20);
         check_flag(&retval, "IDASetMaxNonlinIters", 1);

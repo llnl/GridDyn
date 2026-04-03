@@ -133,47 +133,68 @@ target_include_directories(sundials_all INTERFACE
 add_library(SUNDIALS::SUNDIALS ALIAS sundials_all)
 
 set(SUNDIALS_LIBRARIES
+    sundials_generic_static
+    sundials_generic_obj_static
+    sundials_nvecserial_obj_static
     sundials_nvecserial_static
+    sundials_nvecmanyvector_obj_static
+    sundials_nvecmanyvector_static
+    sundials_sunmatrixband_obj_static
     sundials_sunlinsolband_static
+    sundials_sunlinsolband_obj_static
+    sundials_sunmatrixdense_obj_static
     sundials_sunlinsoldense_static
+    sundials_sunlinsoldense_obj_static
     sundials_sunlinsolpcg_static
+    sundials_sunlinsolpcg_obj_static
     sundials_sunlinsolspbcgs_static
+    sundials_sunlinsolspbcgs_obj_static
     sundials_sunlinsolspfgmr_static
+    sundials_sunlinsolspfgmr_obj_static
     sundials_sunlinsolspgmr_static
+    sundials_sunlinsolspgmr_obj_static
     sundials_sunlinsolsptfqmr_static
+    sundials_sunlinsolsptfqmr_obj_static
+    sundials_sunlinsolklu_obj_static
     sundials_sunmatrixband_static
     sundials_sunmatrixdense_static
+    sundials_sunmatrixsparse_obj_static
     sundials_sunmatrixsparse_static
+    sundials_sunmemsys_obj_static
+    sundials_sunnonlinsolfixedpoint_obj_static
     sundials_sunnonlinsolfixedpoint_static
+    sundials_sunnonlinsolnewton_obj_static
     sundials_sunnonlinsolnewton_static
-    sundials_nvecmanyvector_static
 )
 
 if(${PROJECT_NAME}_ENABLE_IDA)
+    list(APPEND SUNDIALS_LIBRARIES sundials_ida_obj_static)
     list(APPEND SUNDIALS_LIBRARIES sundials_ida_static)
 endif()
 
 if(${PROJECT_NAME}_ENABLE_KINSOL)
+    list(APPEND SUNDIALS_LIBRARIES sundials_kinsol_obj_static)
     list(APPEND SUNDIALS_LIBRARIES sundials_kinsol_static)
 endif()
 
 if(${PROJECT_NAME}_ENABLE_CVODE)
+    list(APPEND SUNDIALS_LIBRARIES sundials_cvode_obj_static)
     list(APPEND SUNDIALS_LIBRARIES sundials_cvode_static)
 endif()
 
 if(${PROJECT_NAME}_ENABLE_ARKODE)
+    list(APPEND SUNDIALS_LIBRARIES sundials_arkode_obj_static)
     list(APPEND SUNDIALS_LIBRARIES sundials_arkode_static)
 endif()
 
-set(_griddyn_sundials_targets)
+set(_griddyn_sundials_targets sundials_all)
 foreach(_sd_target IN LISTS SUNDIALS_LIBRARIES)
     if(TARGET ${_sd_target})
         list(APPEND _griddyn_sundials_targets ${_sd_target})
     endif()
 endforeach()
-if(TARGET sundials_generic_static_obj)
-    list(APPEND _griddyn_sundials_targets sundials_generic_static_obj)
-endif()
+
+list(REMOVE_DUPLICATES _griddyn_sundials_targets)
 if(_griddyn_sundials_targets)
     set_target_properties(${_griddyn_sundials_targets} PROPERTIES FOLDER sundials)
 endif()

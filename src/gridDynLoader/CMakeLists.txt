@@ -8,32 +8,33 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set(GRIDDYN_LIBRARY_LOADER_CPP ${CMAKE_CURRENT_BINARY_DIR}/libraryLoader.cpp)
 
-file(
-    WRITE ${GRIDDYN_LIBRARY_LOADER_CPP}
-    "/*\n"
-    "* Copyright (c) 2014-2020, Lawrence Livermore National Security\n"
-    "* See the top-level NOTICE for additional details. All rights reserved.\n"
-    "* SPDX-License-Identifier: BSD-3-Clause\n"
-    "*/\n"
-    "\n"
-    "//automatically generated file\n"
-    "\#include \"gridDynLoader/libraryLoader.h\"\n"
-    "\#include \"griddyn/griddyn-config.h\"\n"
+set(
+    GRIDDYN_LIBRARY_LOADER_CONTENT
+    [=[/*
+* Copyright (c) 2014-2020, Lawrence Livermore National Security
+* See the top-level NOTICE for additional details. All rights reserved.
+* SPDX-License-Identifier: BSD-3-Clause
+*/
+
+//automatically generated file
+#include "gridDynLoader/libraryLoader.h"
+#include "griddyn/griddyn-config.h"
+]=]
 )
 
 foreach(header ${optional_library_key_headers})
-    file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "\#include \"${header}\"\n")
+    string(APPEND GRIDDYN_LIBRARY_LOADER_CONTENT "\n#include \"${header}\"\n")
 endforeach(header)
 
-file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "namespace griddyn {\n"
-                                                    "void loadLibraries()\n" "{\n"
-)
+string(APPEND GRIDDYN_LIBRARY_LOADER_CONTENT "\nnamespace griddyn {\nvoid loadLibraries()\n{\n")
 
 foreach(ns ${optional_library_functions})
-    file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "${ns}();\n" "\n")
+    string(APPEND GRIDDYN_LIBRARY_LOADER_CONTENT "\n${ns}();\n")
 endforeach(ns)
 
-file(APPEND ${GRIDDYN_LIBRARY_LOADER_CPP} "\n" "}\n" "}//namespace griddyn")
+string(APPEND GRIDDYN_LIBRARY_LOADER_CONTENT "\n}\n}  // namespace griddyn\n")
+
+file(WRITE ${GRIDDYN_LIBRARY_LOADER_CPP} "${GRIDDYN_LIBRARY_LOADER_CONTENT}")
 
 add_library(gridDynLoader STATIC libraryLoader.h ${GRIDDYN_LIBRARY_LOADER_CPP})
 

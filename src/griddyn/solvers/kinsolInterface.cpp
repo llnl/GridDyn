@@ -14,7 +14,7 @@
 #include "fmtlib/include/fmt/format.h"
 #include "utilities/matrixCreation.h"
 #include <kinsol/kinsol.h>
-#include <kinsol/kinsol_direct.h>
+#include <kinsol/kinsol_ls.h>
 #include <sunlinsol/sunlinsol_dense.h>
 
 #ifdef GRIDDYN_ENABLE_KLU
@@ -93,7 +93,7 @@ namespace solvers {
         if (solverMem != nullptr) {
             KINFree(&(solverMem));
         }
-        solverMem = KINCreate();
+        solverMem = KINCreate(sunctx);
         check_flag(solverMem, "KINCreate", 0);
 
         sundialsInterface::allocate(stateCount, 0);
@@ -114,10 +114,10 @@ namespace solvers {
         flag = KINGetNumFuncEvals(solverMem, &nfe);
         check_flag(&flag, "KINGetNumFuncEvals", 1);
 
-        flag = KINDlsGetNumJacEvals(solverMem, &nje);
-        check_flag(&flag, "KINDlsGetNumJacEvals", 1);
-        flag = KINDlsGetNumFuncEvals(solverMem, &nfeD);
-        check_flag(&flag, "KINDlsGetNumFuncEvals", 1);
+        flag = KINGetNumJacEvals(solverMem, &nje);
+        check_flag(&flag, "KINGetNumJacEvals", 1);
+        flag = KINGetNumLinFuncEvals(solverMem, &nfeD);
+        check_flag(&flag, "KINGetNumLinFuncEvals", 1);
 
         std::string logstr = "Kinsoln Statistics: \n";
         logstr += "Number of nonlinear iterations    = " + std::to_string(nni) + '\n';
@@ -172,9 +172,7 @@ namespace solvers {
                     m_sundialsInfoFile = fopen("kinsol.out", "w");
                 }
             }
-            int retval = KINSetInfoFile(solverMem, m_sundialsInfoFile);
-            check_flag(&retval, "KINSetInfoFile", 1);
-            retval = KINSetPrintLevel(solverMem, solverPrintLevel);
+            int retval = KINSetPrintLevel(solverMem, solverPrintLevel);
             check_flag(&retval, "KINSetPrintLevel", 1);
         }
 
@@ -198,37 +196,37 @@ namespace solvers {
 
 #ifdef GRIDDYN_ENABLE_KLU
         if (flags[dense_flag]) {
-            J = SUNDenseMatrix(svsize, svsize);
+            J = SUNDenseMatrix(svsize, svsize, sunctx);
             check_flag(J, "SUNDenseMatrix", 0);
             /* Create KLU solver object */
-            LS = SUNDenseLinearSolver(state, J);
-            check_flag(LS, "SUNDenseLinearSolver", 0);
+            LS = SUNLinSol_Dense(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_Dense", 0);
         } else {
             /* Create sparse SUNMatrix */
-            J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT);
+            J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
             check_flag(J, "SUNSparseMatrix", 0);
 
             /* Create KLU solver object */
-            LS = SUNKLU(state, J);
-            check_flag(LS, "SUNKLU", 0);
+            LS = SUNLinSol_KLU(state, J, sunctx);
+            check_flag(LS, "SUNLinSol_KLU", 0);
 
-            retval = SUNKLUSetOrdering(LS, 0);
-            check_flag(&retval, "SUNKLUSetOrdering", 1);
+            retval = SUNLinSol_KLUSetOrdering(LS, 0);
+            check_flag(&retval, "SUNLinSol_KLUSetOrdering", 1);
         }
 #else
-        J = SUNDenseMatrix(svsize, svsize);
+        J = SUNDenseMatrix(svsize, svsize, sunctx);
         check_flag(J, "SUNSparseMatrix", 0);
         /* Create KLU solver object */
-        LS = SUNDenseLinearSolver(state, J);
-        check_flag(LS, "SUNDenseLinearSolver", 0);
+        LS = SUNLinSol_Dense(state, J, sunctx);
+        check_flag(LS, "SUNLinSol_Dense", 0);
 #endif
 
-        retval = KINDlsSetLinearSolver(solverMem, LS, J);
+        retval = KINSetLinearSolver(solverMem, LS, J);
 
-        check_flag(&retval, "KINDlsSetLinearSolver", 1);
+        check_flag(&retval, "KINSetLinearSolver", 1);
 
-        retval = KINDlsSetJacFn(solverMem, kinsolJac);
-        check_flag(&retval, "KINDlsSetJacFn", 1);
+        retval = KINSetJacFn(solverMem, kinsolJac);
+        check_flag(&retval, "KINSetJacFn", 1);
 
         retval = KINSetMaxSetupCalls(solverMem, 1);  // exact Newton
         check_flag(&retval, "KINSetMaxSetupCalls", 1);
@@ -274,7 +272,7 @@ namespace solvers {
     {
         long int val = -1;
         if (param == "jac calls") {
-            KINDlsGetNumJacEvals(solverMem, &val);
+            KINGetNumJacEvals(solverMem, &val);
         } else if (param == "nliterations") {
             KINGetNumNonlinSolvIters(solverMem, &val);
 #if MEASURE_TIMINGS > 0

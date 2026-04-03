@@ -62,7 +62,7 @@ set(fileInput_sources ${xml_sources} ${reader_sources} ${elementReader_sources}
 )
 add_library(fileInput STATIC ${fileInput_sources})
 
-target_link_libraries(fileInput PUBLIC gridDynLoader formatInterpreter utilities)
+target_link_libraries(fileInput PUBLIC formatInterpreter utilities)
 source_group("Elements" FILES ${elementReader_sources})
 source_group("formatSpecific" FILES ${formattedfileInput_sources})
 source_group("general" FILES ${reader_sources})

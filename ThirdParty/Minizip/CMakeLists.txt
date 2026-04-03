@@ -1,11 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 project(minizip LANGUAGES C VERSION 2.0)
 
 set(BUILD_SHARED_LIBS OFF)
 
-cmake_minimum_required(VERSION 3.5)
-cmake_policy(VERSION 3.5)
+cmake_policy(VERSION 3.10)
 
 if (TARGET zlib::zlib)
 	set(ZLIB_LINK zlib::zlib)

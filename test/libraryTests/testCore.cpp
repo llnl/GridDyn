@@ -14,116 +14,109 @@
 #include "griddyn/loads/sourceLoad.h"
 #include "griddyn/loads/zipLoad.h"
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 // test case for coreObject object
 
 using namespace griddyn;
 
-BOOST_AUTO_TEST_SUITE(core_tests, *boost::unit_test::label("quick"))
-
-BOOST_AUTO_TEST_CASE(coreObject_test)
+TEST(CoreTests, CoreObject)
 {
     auto* obj1 = new coreObject();
     auto* obj2 = new coreObject();
 
-    BOOST_CHECK_EQUAL(obj1->getName().compare("object_" + std::to_string(obj1->getID())), 0);
+    EXPECT_EQ(obj1->getName().compare("object_" + std::to_string(obj1->getID())), 0);
 
     // check to make sure the object m_oid counter is working
 
-    BOOST_CHECK(obj2->getID() > obj1->getID());
+    EXPECT_GT(obj2->getID(), obj1->getID());
     // check if the name setting is working
     std::string name1 = "test_object";
     obj1->setName(name1);
-    BOOST_CHECK_EQUAL(obj1->getName().compare(name1), 0);
+    EXPECT_EQ(obj1->getName().compare(name1), 0);
 
     obj1->setName("test_object");
-    BOOST_CHECK_EQUAL(obj1->getName().compare("test_object"), 0);
+    EXPECT_EQ(obj1->getName().compare("test_object"), 0);
 
     double ntime = 1;
     obj1->set("nextupdatetime", ntime);
-    BOOST_CHECK_EQUAL(double(obj1->getNextUpdateTime()), ntime);
+    EXPECT_DOUBLE_EQ(double(obj1->getNextUpdateTime()), ntime);
 
     // use alternative form for set
     obj2->set("nextupdatetime", 0.1);
-    BOOST_CHECK_EQUAL(double(obj2->getNextUpdateTime()), 0.1);
+    EXPECT_DOUBLE_EQ(double(obj2->getNextUpdateTime()), 0.1);
 
-    BOOST_CHECK(compareUpdates(obj2, obj1));
+    EXPECT_TRUE(compareUpdates(obj2, obj1));
 
     coreObject* obj3 = nullptr;
     obj3 = obj1->clone(obj3);
 
     // check the copy constructor
-    BOOST_CHECK_EQUAL(double(obj3->getNextUpdateTime()), ntime);
-    BOOST_CHECK_EQUAL(obj3->getName().compare("test_object"), 0);
-    BOOST_CHECK(obj3->isRoot());
+    EXPECT_DOUBLE_EQ(double(obj3->getNextUpdateTime()), ntime);
+    EXPECT_EQ(obj3->getName().compare("test_object"), 0);
+    EXPECT_TRUE(obj3->isRoot());
 
     ntime = 3;
     obj1->set("nextupdatetime", ntime);
     obj3 = obj1->clone(obj3);
-    BOOST_CHECK_EQUAL(double(obj3->getNextUpdateTime()), ntime);
-    BOOST_CHECK_EQUAL(obj3->getName(), "test_object");
+    EXPECT_DOUBLE_EQ(double(obj3->getNextUpdateTime()), ntime);
+    EXPECT_EQ(obj3->getName(), "test_object");
     // check the parameter not found function
-    try {
-        obj3->set("bob", 0.5);  // this should throw and exception
-        BOOST_CHECK(false);
-    }
-    catch (unrecognizedParameter&) {
-    }
+    EXPECT_THROW(obj3->set("bob", 0.5), unrecognizedParameter);
     delete (obj1);
     delete (obj2);
     delete (obj3);
 }
 
 // testcase for GenModel Object
-BOOST_AUTO_TEST_CASE(GenModel_test)
+TEST(CoreTests, GenModel)
 {
     auto gm = new genmodels::GenModel4();
     auto id = gm->getID();
-    BOOST_CHECK_EQUAL(gm->getName().compare("genModel4_" + std::to_string(id)), 0);
+    EXPECT_EQ(gm->getName().compare("genModel4_" + std::to_string(id)), 0);
     std::string temp1 = "gen_model 5";
     gm->setName(temp1);
-    BOOST_CHECK_EQUAL(gm->getName().compare(temp1), 0);
+    EXPECT_EQ(gm->getName().compare(temp1), 0);
 
     gm->setName("namebbghs");
-    BOOST_CHECK_EQUAL(gm->getName().compare("namebbghs"), 0);
+    EXPECT_EQ(gm->getName().compare("namebbghs"), 0);
     gm->dynInitializeA(timeZero, 0);
-    BOOST_CHECK_EQUAL(gm->stateSize(cLocalSolverMode), 6_cnt);
+    EXPECT_EQ(gm->stateSize(cLocalSolverMode), 6_cnt);
     gm->set("h", 4.5);
     gm->setOffset(0, cLocalSolverMode);
-    BOOST_CHECK_EQUAL(gm->findIndex("freq", cLocalSolverMode), static_cast<index_t>(3));
+    EXPECT_EQ(gm->findIndex("freq", cLocalSolverMode), static_cast<index_t>(3));
     delete (gm);
 }
 
-BOOST_AUTO_TEST_CASE(Exciter_test)
+TEST(CoreTests, Exciter)
 {
     Exciter* ex = new exciters::ExciterIEEEtype1();
     std::string temp1 = "exciter 2";
     ex->setName(temp1);
-    BOOST_CHECK_EQUAL(ex->getName().compare(temp1), 0);
+    EXPECT_EQ(ex->getName().compare(temp1), 0);
     ex->dynInitializeA(0.0, 0);
-    BOOST_CHECK_EQUAL(ex->stateSize(cLocalSolverMode), 3_ind);
+    EXPECT_EQ(ex->stateSize(cLocalSolverMode), 3_ind);
     ex->set("tf", 4.5);
     ex->setOffset(0, cLocalSolverMode);
-    BOOST_CHECK_EQUAL(ex->findIndex("vr", cLocalSolverMode), static_cast<index_t>(1));
+    EXPECT_EQ(ex->findIndex("vr", cLocalSolverMode), static_cast<index_t>(1));
     delete (ex);
 }
 
-BOOST_AUTO_TEST_CASE(Governor_test)
+TEST(CoreTests, Governor)
 {
     auto* gov = new Governor();
     std::string temp1 = "gov 2";
     gov->set("name", temp1);
-    BOOST_CHECK_EQUAL(gov->getName().compare(temp1), 0);
+    EXPECT_EQ(gov->getName().compare(temp1), 0);
     gov->dynInitializeA(timeZero, 0);
-    BOOST_CHECK_EQUAL(gov->stateSize(cLocalSolverMode), 4_cnt);
+    EXPECT_EQ(gov->stateSize(cLocalSolverMode), 4_cnt);
     gov->set("t1", 4.5);
     gov->setOffset(0, cLocalSolverMode);
-    BOOST_CHECK_EQUAL(gov->findIndex("pm", cLocalSolverMode), static_cast<index_t>(0));
+    EXPECT_EQ(gov->findIndex("pm", cLocalSolverMode), static_cast<index_t>(0));
     delete (gov);
 }
 
-BOOST_AUTO_TEST_CASE(test_unit_functions)
+TEST(CoreTests, UnitFunctions)
 {
     using namespace units;
     // units_t u1;
@@ -133,67 +126,67 @@ BOOST_AUTO_TEST_CASE(test_unit_functions)
     //  double basevoltage = 10;
     // power conversions
     val1 = convert(100.0, MW, kW);
-    BOOST_CHECK_CLOSE(val1, 100000, 0.0001);
+    EXPECT_NEAR(val1, 100000, 100000 * 1e-6);
     val1 = convert(100.0, MW, W);
-    BOOST_CHECK_CLOSE(val1, 100000000, 0.0001);
+    EXPECT_NEAR(val1, 100000000, 100000000 * 1e-6);
     val1 = convert(1000000.0, W, MW);
-    BOOST_CHECK_CLOSE(val1, 1, 0.0001);
+    EXPECT_NEAR(val1, 1, 1e-6);
     val1 = convert(100000.0, kW, MW);
-    BOOST_CHECK_CLOSE(val1, 100, 0.0001);
+    EXPECT_NEAR(val1, 100, 100 * 1e-6);
     val1 = convert(100000.0, kW, puMW, basepower);
-    BOOST_CHECK_CLOSE(val1, 1, 0.0001);
+    EXPECT_NEAR(val1, 1, 1e-6);
     // angle conversions
     val1 = convert(10, deg, rad);
-    BOOST_CHECK_CLOSE(val1, 0.17453292, 0.0001);
+    EXPECT_NEAR(val1, 0.17453292, 0.17453292 * 1e-6);
     val1 = convert(0.17453292, rad, deg);
-    BOOST_CHECK_CLOSE(val1, 10, 0.0001);
+    EXPECT_NEAR(val1, 10, 10 * 1e-6);
     // pu conversions
     val1 = convert(1.0, puOhm, ohm, 0.1, 0.6);
-    BOOST_CHECK_CLOSE(val1, 3.600, 0.001);
+    EXPECT_NEAR(val1, 3.600, 3.600 * 1e-5);
     val1 = convert(1.0, puA, A, 100000.0, 600.0);
-    BOOST_CHECK_CLOSE(val1, 166.6666666, 0.01);
+    EXPECT_NEAR(val1, 166.6666666, 166.6666666 * 1e-4);
 }
 
-BOOST_AUTO_TEST_CASE(object_factory_test)
+TEST(CoreTests, ObjectFactory)
 {
     auto cof = coreObjectFactory::instance();
     coreObject* obj = cof->createObject("load", "basic");
     auto ld = dynamic_cast<zipLoad*>(obj);
-    BOOST_CHECK(ld != nullptr);
+    EXPECT_NE(ld, nullptr);
     delete ld;
     auto gsL = dynamic_cast<loads::sourceLoad*>(cof->createObject("load", "sine"));
-    BOOST_CHECK(gsL != nullptr);
+    EXPECT_NE(gsL, nullptr);
     delete gsL;
 
     obj = cof->createObject("load");
     ld = dynamic_cast<zipLoad*>(obj);
-    BOOST_CHECK(ld != nullptr);
+    EXPECT_NE(ld, nullptr);
     delete ld;
 }
 
-BOOST_AUTO_TEST_CASE(gridDynTime_tests)
+TEST(CoreTests, GridDynTime)
 {
     coreTime rt(34.123141512);
 
     auto dval = static_cast<double>(rt);
-    BOOST_CHECK_CLOSE(dval, 34.123141512, 0.0000001);
+    EXPECT_NEAR(dval, 34.123141512, 34.123141512 * 1e-9);
 
     coreTime rt2(-2.3);
 
     auto dval2 = static_cast<double>(rt2);
-    BOOST_CHECK_CLOSE(dval2, -2.3, 0.0000001);
+    EXPECT_NEAR(dval2, -2.3, 2.3e-9);
 
     coreTime rt3(-1.0);
 
     auto dval3 = static_cast<double>(rt3);
-    BOOST_CHECK_CLOSE(dval3, -1.0, 0.0000001);
+    EXPECT_NEAR(dval3, -1.0, 1e-9);
 }
 
 /** test case to construct all objects and do some potentially problematic things to them to ensure
 the object doesn't break or cause a fault
 */
 
-BOOST_AUTO_TEST_CASE(object_tests_probe)
+TEST(CoreTests, ObjectProbe)
 {
     auto cof = coreObjectFactory::instance();
     auto componentList = cof->getFactoryNames();
@@ -202,11 +195,11 @@ BOOST_AUTO_TEST_CASE(object_tests_probe)
         auto typeList = componentFactory->getTypeNames();
         for (auto& type : typeList) {
             auto* obj = componentFactory->makeObject(type);
-            BOOST_REQUIRE(obj != nullptr);
+            ASSERT_NE(obj, nullptr);
             obj->setName("bob");  // NOLINT
-            BOOST_CHECK_EQUAL(obj->getName(), "bob");
+            EXPECT_EQ(obj->getName(), "bob");
             obj->setName(std::string());
-            BOOST_CHECK_EQUAL(obj->getName(), "");
+            EXPECT_EQ(obj->getName(), "");
             obj->set("", "empty");  // this should not throw an exception
             obj->set("", 0.34, units::defunit);  // this should not throw an exception
             obj->setFlag("", false);  // This should not throw an exception
@@ -216,9 +209,21 @@ BOOST_AUTO_TEST_CASE(object_tests_probe)
 
             if (obj->isCloneable()) {
                 auto nobj = obj->clone();
-                BOOST_CHECK(nobj != nullptr);
+                EXPECT_NE(nobj, nullptr);
                 if (nobj != nullptr) {
-                    BOOST_CHECK(typeid(nobj) == typeid(obj));
+                    auto* sameTypeObj = componentFactory->makeObject(type);
+                    ASSERT_NE(sameTypeObj, nullptr);
+                    auto* copiedObj = obj->clone(sameTypeObj);
+                    EXPECT_NE(copiedObj, nullptr);
+                    if (copiedObj != nullptr) {
+                        EXPECT_EQ(typeid(*copiedObj), typeid(*obj));
+                    }
+                    if ((copiedObj != nullptr) && (copiedObj != sameTypeObj)) {
+                        delete copiedObj;
+                    }
+                    if (sameTypeObj != nullptr) {
+                        delete sameTypeObj;
+                    }
                     delete (nobj);
                 } else {
                     std::cout << "unable to clone " << comp << "::" << type << '\n';
@@ -228,5 +233,3 @@ BOOST_AUTO_TEST_CASE(object_tests_probe)
         }
     }
 }
-
-BOOST_AUTO_TEST_SUITE_END()

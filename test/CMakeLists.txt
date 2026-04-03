@@ -39,14 +39,12 @@ endif()
 list(APPEND testComponent_sources ${optional_component_test_files})
 
 set(testLibrary_sources
-    libraryTests/testCore.cpp
     libraryTests/testXML.cpp
     testHelperFunctions.cpp
     exeTestHelper.cpp
     libraryTests/libraryTests.cpp
     libraryTests/testGridDynRunner.cpp
     libraryTests/testElementReaders.cpp
-    libraryTests/testGridParameter.cpp
     libraryTests/testJsonReader.cpp
     libraryTests/testReaderInfo.cpp
     libraryTests/testMatrixData.cpp
@@ -94,7 +92,13 @@ if(GRIDDYN_ENABLE_FMI)
 endif()
 
 set(testMain_headers testHelper.h exeTestHelper.h)
-set(library_gtest_sources libraryTests/gtestLibrarySmokeTests.cpp)
+set(
+    library_gtest_sources
+    gtestHelperFunctions.cpp
+    libraryTests/gtestLibrarySmokeTests.cpp
+    libraryTests/testCore.cpp
+    libraryTests/testGridParameter.cpp
+)
 
 # add a baseline library for underlying dependencies and flags for test executables
 add_library(griddyn_test_base INTERFACE)
@@ -118,15 +122,25 @@ endif(WIN32)
 # message(${test_dir})
 
 target_compile_definitions(griddyn_test_base INTERFACE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
+target_compile_definitions(griddyn_gtest_base INTERFACE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
 
 target_compile_definitions(
     griddyn_test_base INTERFACE -DGRIDDYNMAIN_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
 target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNMAIN_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
+target_compile_definitions(
     griddyn_test_base INTERFACE -DGRIDDYNSERVER_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
 target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNSERVER_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
+target_compile_definitions(
     griddyn_test_base INTERFACE -DGRIDDYNINSTALL_LOCATION="${CMAKE_INSTALL_PREFIX}"
+)
+target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNINSTALL_LOCATION="${CMAKE_INSTALL_PREFIX}"
 )
 
 add_executable(testLibrary ${testLibrary_sources} ${testMain_headers})

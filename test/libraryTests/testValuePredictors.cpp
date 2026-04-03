@@ -6,14 +6,9 @@
 
 // test case for Value Predictors
 
+#include "../gtestHelper.h"
 #include "utilities/valuePredictor.hpp"
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-BOOST_AUTO_TEST_SUITE(valuepredictor_tests)
-
-BOOST_AUTO_TEST_CASE(simple_predictor_test) {}
-
-BOOST_AUTO_TEST_SUITE_END()
+TEST(ValuePredictorTests, SimplePredictorTest) {}

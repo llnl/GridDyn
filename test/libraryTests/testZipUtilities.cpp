@@ -6,28 +6,26 @@
 
 // test case for workQueue
 
+#include "../gtestHelper.h"
 #include "utilities/zipUtilities.h"
 #include <fstream>
 
-#include <boost/test/unit_test.hpp>
-
 #include <boost/filesystem.hpp>
+#include <gtest/gtest.h>
 
 static const std::string zip_test_directory(GRIDDYN_TEST_DIRECTORY "/zip_tests/");
 
-BOOST_AUTO_TEST_SUITE(zipUtilities_tests, *boost::unit_test::label("quick"))
-
-BOOST_AUTO_TEST_CASE(unzip_test)
+TEST(ZipUtilitiesTests, Unzip)
 {
     std::string file = zip_test_directory + "Rectifier.fmu";
     std::string directory = zip_test_directory + "Rectifier";
     int status = utilities::unzip(file, directory);
-    BOOST_CHECK(status == 0);
-    BOOST_REQUIRE(boost::filesystem::exists(directory));
+    EXPECT_EQ(status, 0);
+    ASSERT_TRUE(boost::filesystem::exists(directory));
     boost::filesystem::remove_all(directory);
 }
 
-BOOST_AUTO_TEST_CASE(zip_test2)
+TEST(ZipUtilitiesTests, ZipRoundTrip)
 {
     // make two files with very simple text
     int fileSize1 = 1000000;
@@ -45,8 +43,8 @@ BOOST_AUTO_TEST_CASE(zip_test2)
     // zip them up into a zip file
     auto zipfile = zip_test_directory + "data.zip";
     auto status = utilities::zip(zipfile, std::vector<std::string>{fileZeros, fileOnes});
-    BOOST_CHECK(status == 0);
-    BOOST_REQUIRE(boost::filesystem::exists(zipfile));
+    EXPECT_EQ(status, 0);
+    ASSERT_TRUE(boost::filesystem::exists(zipfile));
 
     // get the sizes of the original files
     auto filesize1 = boost::filesystem::file_size(fileZeros);
@@ -54,26 +52,24 @@ BOOST_AUTO_TEST_CASE(zip_test2)
 
     auto zipsize = boost::filesystem::file_size(zipfile);
     // make sure we compressed a lot
-    BOOST_CHECK(zipsize < (filesize1 + filesize2) / 40);
+    EXPECT_LT(zipsize, (filesize1 + filesize2) / 40);
 
     // remove the files
     boost::filesystem::remove(fileZeros);
     boost::filesystem::remove(fileOnes);
     // extract them and recheck sizes
     status = utilities::unzip(zipfile, zip_test_directory);
-    BOOST_CHECK(status == 0);
-    BOOST_REQUIRE(boost::filesystem::exists(fileZeros));
-    BOOST_REQUIRE(boost::filesystem::exists(fileOnes));
+    EXPECT_EQ(status, 0);
+    ASSERT_TRUE(boost::filesystem::exists(fileZeros));
+    ASSERT_TRUE(boost::filesystem::exists(fileOnes));
 
     auto filesize1b = boost::filesystem::file_size(fileZeros);
     auto filesize2b = boost::filesystem::file_size(fileOnes);
 
-    BOOST_CHECK(filesize1 == filesize1b);
-    BOOST_CHECK(filesize2 == filesize2b);
+    EXPECT_EQ(filesize1, filesize1b);
+    EXPECT_EQ(filesize2, filesize2b);
     // remove all the files
     boost::filesystem::remove(fileZeros);
     boost::filesystem::remove(fileOnes);
     boost::filesystem::remove(zipfile);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

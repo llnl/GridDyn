@@ -6,25 +6,20 @@
 
 // test case for operatingBoundary class
 
+#include "../gtestHelper.h"
 #include "utilities/OperatingBoundary.h"
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-BOOST_AUTO_TEST_SUITE(operatingBoundary_tests, *boost::unit_test::label("quick"))
+#include <gtest/gtest.h>
 
 using namespace utilities;
-BOOST_AUTO_TEST_CASE(opbound_test1)
+TEST(OperatingBoundaryTests, BasicLimits)
 {
     OperatingBoundary Bound(-10, 10, 0, 5);
 
     auto lim = Bound.getLimits(0.0);
-    BOOST_CHECK_CLOSE(lim.first, 0.0, 0.000001);
-    BOOST_CHECK_CLOSE(lim.second, 5.0, 0.000001);
+    EXPECT_NEAR(lim.first, 0.0, 1e-8);
+    EXPECT_NEAR(lim.second, 5.0, 1e-8);
 
-    BOOST_CHECK_SMALL(Bound.dMaxROC(0.0), 0.000001);
-    BOOST_CHECK_SMALL(Bound.dMinROC(0.0), 0.0000001);
+    EXPECT_NEAR(Bound.dMaxROC(0.0), 0.0, 1e-6);
+    EXPECT_NEAR(Bound.dMinROC(0.0), 0.0, 1e-7);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -39,18 +39,9 @@ endif()
 list(APPEND testComponent_sources ${optional_component_test_files})
 
 set(testLibrary_sources
-    libraryTests/testXML.cpp
     testHelperFunctions.cpp
     exeTestHelper.cpp
     libraryTests/libraryTests.cpp
-    libraryTests/testGridDynRunner.cpp
-    libraryTests/testElementReaders.cpp
-    libraryTests/testJsonReader.cpp
-    libraryTests/testReaderInfo.cpp
-    libraryTests/testMatrixData.cpp
-    libraryTests/testZipUtilities.cpp
-    libraryTests/testOperatingBounds.cpp
-    libraryTests/testValuePredictors.cpp
 )
 
 list(APPEND testLibrary_sources ${optional_library_test_files})
@@ -98,6 +89,20 @@ set(
     libraryTests/gtestLibrarySmokeTests.cpp
     libraryTests/testCore.cpp
     libraryTests/testGridParameter.cpp
+    libraryTests/testMatrixData.cpp
+    libraryTests/testZipUtilities.cpp
+    libraryTests/testOperatingBounds.cpp
+    libraryTests/testValuePredictors.cpp
+)
+
+set(
+    file_reader_gtest_sources
+    gtestHelperFunctions.cpp
+    libraryTests/testReaderInfo.cpp
+    libraryTests/testXML.cpp
+    libraryTests/testJsonReader.cpp
+    libraryTests/testElementReaders.cpp
+    libraryTests/testGridDynRunner.cpp
 )
 
 # add a baseline library for underlying dependencies and flags for test executables
@@ -148,6 +153,7 @@ add_executable(testComponents ${testComponent_sources} ${testMain_headers})
 add_executable(testSystem ${testSystem_sources} ${testMain_headers})
 add_executable(testExtra ${testExtra_sources} ${testMain_headers})
 add_executable(LibraryTests ${library_gtest_sources})
+add_executable(FileReaderTests ${file_reader_gtest_sources})
 
 set_target_properties(testLibrary testComponents testSystem testExtra PROPERTIES FOLDER
                                                                                  tests_boost
@@ -164,9 +170,12 @@ target_link_libraries(
 target_link_libraries(testSystem fileInput griddyn_test_base)
 target_link_libraries(testExtra fileInput griddyn_test_base)
 target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(FileReaderTests PRIVATE fileInput griddyn_gtest_base)
 add_gtest(LibraryTests)
-set_target_properties(LibraryTests PROPERTIES FOLDER tests)
+add_gtest(FileReaderTests)
+set_target_properties(LibraryTests FileReaderTests PROPERTIES FOLDER tests)
 set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
 
 # message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
@@ -175,4 +184,5 @@ install(TARGETS testComponents RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/
 install(TARGETS testSystem RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS testExtra RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS LibraryTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS FileReaderTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)

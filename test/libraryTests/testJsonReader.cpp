@@ -6,132 +6,128 @@
 
 // test case for coreObject object
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "formatInterpreters/jsonReaderElement.h"
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
                                                     "/element_reader_tests/");
 
-BOOST_AUTO_TEST_SUITE(jsonElementReader_tests, *boost::unit_test::label("quick"))
-
-BOOST_AUTO_TEST_CASE(jsonElementReader_test1)
+TEST(JsonElementReaderTests, JsonElementReaderTest1)
 {
     jsonReaderElement reader;
-    BOOST_REQUIRE(reader.loadFile(elementReaderTestDirectory + "json_test1.json"));
-    BOOST_CHECK(reader.isValid());
+    ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "json_test1.json"));
+    EXPECT_TRUE(reader.isValid());
     auto firstChild = reader.clone();
-    BOOST_CHECK(firstChild != nullptr);
-    BOOST_CHECK(firstChild->getName() == elementReaderTestDirectory + "json_test1.json");
+    ASSERT_NE(firstChild, nullptr);
+    EXPECT_EQ(firstChild->getName(), elementReaderTestDirectory + "json_test1.json");
 
     auto sibling = firstChild->nextSibling();
-    BOOST_CHECK(sibling->isValid() == false);
+    EXPECT_FALSE(sibling->isValid());
 
     auto att1 = firstChild->getFirstAttribute();
-    BOOST_CHECK(att1.getName() == "age");
-    BOOST_CHECK(att1.getValue() == 25);
-    BOOST_CHECK(att1.getText() == "25");
+    EXPECT_EQ(att1.getName(), "age");
+    EXPECT_EQ(att1.getValue(), 25);
+    EXPECT_EQ(att1.getText(), "25");
     auto att2 = firstChild->getNextAttribute();
-    BOOST_CHECK(att2.getName() == "firstName");
-    BOOST_CHECK(att2.getValue() == readerNullVal);
-    BOOST_CHECK(att2.getText() == "John");
+    EXPECT_EQ(att2.getName(), "firstName");
+    EXPECT_EQ(att2.getValue(), readerNullVal);
+    EXPECT_EQ(att2.getText(), "John");
     att2 = firstChild->getNextAttribute();
-    BOOST_CHECK(att2.getName() == "isAlive");
-    BOOST_CHECK(att2.getText() == "true");
+    EXPECT_EQ(att2.getName(), "isAlive");
+    EXPECT_EQ(att2.getText(), "true");
     att2 = firstChild->getNextAttribute();
-    BOOST_CHECK(att2.getName() == "lastName");
-    BOOST_CHECK(att2.getText() == "Smith");
+    EXPECT_EQ(att2.getName(), "lastName");
+    EXPECT_EQ(att2.getText(), "Smith");
 
     att2 = firstChild->getNextAttribute();
-    BOOST_CHECK(att2.isValid() == false);
+    EXPECT_FALSE(att2.isValid());
 
     firstChild->moveToFirstChild();
-    BOOST_CHECK(firstChild->isValid());
-    BOOST_CHECK(firstChild->getName() == "address");
+    EXPECT_TRUE(firstChild->isValid());
+    EXPECT_EQ(firstChild->getName(), "address");
     firstChild->moveToNextSibling();
-    BOOST_CHECK(firstChild->isValid());
-    BOOST_CHECK(firstChild->getName() == "phoneNumbers");
+    EXPECT_TRUE(firstChild->isValid());
+    EXPECT_EQ(firstChild->getName(), "phoneNumbers");
     firstChild->moveToNextSibling();
-    BOOST_CHECK(firstChild->isValid());
-    BOOST_CHECK(firstChild->getName() == "phoneNumbers");
+    EXPECT_TRUE(firstChild->isValid());
+    EXPECT_EQ(firstChild->getName(), "phoneNumbers");
     firstChild->moveToNextSibling();
-    BOOST_CHECK(firstChild->isValid());
-    BOOST_CHECK(firstChild->getName() == "phoneNumbers");
+    EXPECT_TRUE(firstChild->isValid());
+    EXPECT_EQ(firstChild->getName(), "phoneNumbers");
     firstChild->moveToNextSibling();
-    BOOST_CHECK(firstChild->isValid() == false);
+    EXPECT_FALSE(firstChild->isValid());
     firstChild->moveToParent();
-    BOOST_CHECK(firstChild->getName() == elementReaderTestDirectory + "json_test1.json");
+    EXPECT_EQ(firstChild->getName(), elementReaderTestDirectory + "json_test1.json");
 }
 
-BOOST_AUTO_TEST_CASE(jsonElementReader_test2)
+TEST(JsonElementReaderTests, JsonElementReaderTest2)
 {
     jsonReaderElement reader;
     // test a bad file
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_missing_file.xml");
     std::cout
         << "NOTE:: this should have a message about a missing file >>testing bad file input\n";
-    BOOST_CHECK(reader.isValid() == false);
+    EXPECT_FALSE(reader.isValid());
     reader.loadFile(elementReaderTestDirectory + "json_test2.json");
-    BOOST_CHECK(reader.isValid() == true);
+    EXPECT_TRUE(reader.isValid());
     auto firstChild = reader.clone();
 
     auto sibling = firstChild->firstChild();
-    BOOST_CHECK(sibling->getName() == "bus");
+    EXPECT_EQ(sibling->getName(), "bus");
     auto cChild = sibling->nextSibling();
-    BOOST_CHECK(cChild->isValid() == false);
+    EXPECT_FALSE(cChild->isValid());
     sibling->moveToNextSibling();
-    BOOST_CHECK(sibling->isValid() == false);
+    EXPECT_FALSE(sibling->isValid());
 
     auto busElement = firstChild->firstChild();
 
-    BOOST_CHECK(busElement->getAttributeText("type") == "SLK");
+    EXPECT_EQ(busElement->getAttributeText("type"), "SLK");
 
     // Go through the children
     auto att1 = busElement->getFirstAttribute();
-    BOOST_CHECK(att1.getName() == "angle");
-    BOOST_CHECK(att1.getValue() == 0.0);
+    EXPECT_EQ(att1.getName(), "angle");
+    EXPECT_EQ(att1.getValue(), 0.0);
     att1 = busElement->getNextAttribute();
-    BOOST_CHECK(att1.getName() == "name");
-    BOOST_CHECK(att1.getText() == "bus1");
+    EXPECT_EQ(att1.getName(), "name");
+    EXPECT_EQ(att1.getText(), "bus1");
     att1 = busElement->getNextAttribute();
     att1 = busElement->getNextAttribute();
-    BOOST_CHECK(att1.getName() == "voltage");
-    BOOST_CHECK(att1.getText() == "1.04");
-    BOOST_CHECK_CLOSE(att1.getValue(), 1.04, 0.000001);
+    EXPECT_EQ(att1.getName(), "voltage");
+    EXPECT_EQ(att1.getText(), "1.04");
+    EXPECT_NEAR(att1.getValue(), 1.04, 1e-6);
 
     auto busChild = busElement->firstChild();
-    BOOST_CHECK(busChild->getName() == "generator");
-    BOOST_CHECK(busChild->getText().empty());
+    EXPECT_EQ(busChild->getName(), "generator");
+    EXPECT_TRUE(busChild->getText().empty());
     auto att2 = busChild->getFirstAttribute();
 
-    BOOST_CHECK(att2.getName() == "name");
-    BOOST_CHECK(att2.getText() == "gen1");
+    EXPECT_EQ(att2.getName(), "name");
+    EXPECT_EQ(att2.getText(), "gen1");
     att2 = busChild->getNextAttribute();
-    BOOST_CHECK(att2.getName() == "p");
-    BOOST_CHECK_CLOSE(att2.getValue(), 0.7160, 0.00001);
+    EXPECT_EQ(att2.getName(), "p");
+    EXPECT_NEAR(att2.getValue(), 0.7160, 1e-5);
 
     // move busChild to the parent to make sure they are the same
     busChild->moveToParent();
-    BOOST_CHECK(busChild->getName() == busElement->getName());
+    EXPECT_EQ(busChild->getName(), busElement->getName());
 
     // Now go back to the first child to do a few checks on attributes
     att1 = firstChild->getAttribute("name");
-    BOOST_CHECK(att1.getName() == "name");
-    BOOST_CHECK(att1.getText() == "test1");
+    EXPECT_EQ(att1.getName(), "name");
+    EXPECT_EQ(att1.getText(), "test1");
 }
 
-BOOST_AUTO_TEST_CASE(jsonElementReader_test3)
+TEST(JsonElementReaderTests, JsonElementReaderTest3)
 {
     jsonReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     std::cout
         << "NOTE:: this should have a message indicating format error >>testing bad file input\n";
-    BOOST_CHECK(reader.isValid() == false);
+    EXPECT_FALSE(reader.isValid());
     reader.loadFile(elementReaderTestDirectory + "json_test3.json");
-    BOOST_CHECK(reader.isValid() == true);
+    EXPECT_TRUE(reader.isValid());
     // test traversal using move commands
     auto main = reader.clone();
     // bookmark the top level
@@ -139,34 +135,34 @@ BOOST_AUTO_TEST_CASE(jsonElementReader_test3)
     main->moveToFirstChild("bus");
     main->moveToFirstChild();
     // traverse to the generator
-    BOOST_CHECK(main->getName() == "generator");
+    EXPECT_EQ(main->getName(), "generator");
     main->restore();
     // restore to the root
-    BOOST_CHECK(main->isDocument() == true);
+    EXPECT_TRUE(main->isDocument());
     // traverse to the second bus and check name
     main->moveToFirstChild("bus");
     main->moveToNextSibling("bus");
-    BOOST_CHECK(main->isValid());
-    BOOST_CHECK(main->getAttributeText("name") == "bus2");
+    EXPECT_TRUE(main->isValid());
+    EXPECT_EQ(main->getAttributeText("name"), "bus2");
     main->moveToParent();
     main->moveToFirstChild();
     main->moveToFirstChild();
     // check we are in the generator now
-    BOOST_CHECK(main->getAttributeText("name") == "gen1");
+    EXPECT_EQ(main->getAttributeText("name"), "gen1");
     // make a bookmark
     main->bookmark();
     // traverse to the second bus
     main->moveToParent();
     main->moveToNextSibling("bus");
-    BOOST_CHECK_CLOSE(main->getAttributeValue("voltage"), 1.01, 0.0000001);
+    EXPECT_NEAR(main->getAttributeValue("voltage"), 1.01, 1e-7);
     // traverse to the parent
     main->moveToParent();
     // restore and check if we are in the generator again
     main->restore();
-    BOOST_CHECK_CLOSE(main->getAttributeValue("p"), 0.7160, 0.0000001);
+    EXPECT_NEAR(main->getAttributeValue("p"), 0.7160, 1e-7);
 }
 
-BOOST_AUTO_TEST_CASE(jsonElementReader_test4)
+TEST(JsonElementReaderTests, JsonElementReaderTest4)
 {
     /*auto reader = std::make_shared<jsonReaderElement>(xmlTestDirectory +
     "xmlElementReader_test3.xml"); BOOST_CHECK(reader->getName() == "main_element");
@@ -191,5 +187,3 @@ BOOST_AUTO_TEST_CASE(jsonElementReader_test4)
     BOOST_CHECK(main->getName() == "main_element");
     */
 }
-
-BOOST_AUTO_TEST_SUITE_END()

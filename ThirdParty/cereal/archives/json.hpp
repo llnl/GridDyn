@@ -11,14 +11,14 @@
       * Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
-      * Neither the name of cereal nor the
+      * Neither the name of the copyright holder nor the
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -39,6 +39,11 @@ namespace cereal
   struct RapidJSONException : Exception
   { RapidJSONException( const char * what_ ) : Exception( what_ ) {} };
 }
+
+// Inform rapidjson that assert will throw
+#ifndef CEREAL_RAPIDJSON_ASSERT_THROWS
+#define CEREAL_RAPIDJSON_ASSERT_THROWS
+#endif // CEREAL_RAPIDJSON_ASSERT_THROWS
 
 // Override rapidjson assertions to throw exceptions by default
 #ifndef CEREAL_RAPIDJSON_ASSERT
@@ -67,11 +72,6 @@ namespace cereal
 #include <stack>
 #include <vector>
 #include <string>
-
-#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 7)
-CEREAL_RAPIDJSON_DIAG_PUSH
-CEREAL_RAPIDJSON_DIAG_OFF(implicit-fallthrough)
-#endif
 
 namespace cereal
 {
@@ -188,7 +188,7 @@ namespace cereal
 
         auto base64string = base64::encode( reinterpret_cast<const unsigned char *>( data ), size );
         saveValue( base64string );
-      };
+      }
 
       //! @}
       /*! @name Internal Functionality
@@ -220,11 +220,13 @@ namespace cereal
         {
           case NodeType::StartArray:
             itsWriter.StartArray();
+            // fall through
           case NodeType::InArray:
             itsWriter.EndArray();
             break;
           case NodeType::StartObject:
             itsWriter.StartObject();
+            // fall through
           case NodeType::InObject:
             itsWriter.EndObject();
             break;
@@ -259,6 +261,13 @@ namespace cereal
       //! Saves a nullptr to the current node
       void saveValue(std::nullptr_t)        { itsWriter.Null();                                                          }
 
+      template <class T> inline
+      typename std::enable_if<!std::is_same<T, int64_t>::value && std::is_same<T, long long>::value, void>::type
+      saveValue(T val)     { itsWriter.Int64(val); }
+      template <class T> inline
+      typename std::enable_if<!std::is_same<T, uint64_t>::value && std::is_same<T, unsigned long long>::value, void>::type
+      saveValue(T val)     { itsWriter.Uint64(val); }
+
     private:
       // Some compilers/OS have difficulty disambiguating the above for various flavors of longs, so we provide
       // special overloads to handle these cases.
@@ -284,19 +293,19 @@ namespace cereal
       void saveLong(T lu){ saveValue( static_cast<std::uint64_t>( lu ) ); }
 
     public:
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1916
       //! MSVC only long overload to current node
       void saveValue( unsigned long lu ){ saveLong( lu ); };
 #else // _MSC_VER
       //! Serialize a long if it would not be caught otherwise
       template <class T, traits::EnableIf<std::is_same<T, long>::value,
-                                          !std::is_same<T, std::int32_t>::value,
+                                          !std::is_same<T, int>::value,
                                           !std::is_same<T, std::int64_t>::value> = traits::sfinae> inline
       void saveValue( T t ){ saveLong( t ); }
 
       //! Serialize an unsigned long if it would not be caught otherwise
       template <class T, traits::EnableIf<std::is_same<T, unsigned long>::value,
-                                          !std::is_same<T, std::uint32_t>::value,
+                                          !std::is_same<T, unsigned>::value,
                                           !std::is_same<T, std::uint64_t>::value> = traits::sfinae> inline
       void saveValue( T t ){ saveLong( t ); }
 #endif // _MSC_VER
@@ -308,6 +317,8 @@ namespace cereal
                                           !std::is_same<T, unsigned long>::value,
                                           !std::is_same<T, std::int64_t>::value,
                                           !std::is_same<T, std::uint64_t>::value,
+                                          !std::is_same<T, long long>::value,
+                                          !std::is_same<T, unsigned long long>::value,
                                           (sizeof(T) >= sizeof(long double) || sizeof(T) >= sizeof(long long))> = traits::sfinae> inline
       void saveValue(T const & t)
       {
@@ -463,7 +474,7 @@ namespace cereal
 
         std::memcpy( data, decoded.data(), decoded.size() );
         itsNextName = nullptr;
-      };
+      }
 
     private:
       //! @}
@@ -481,16 +492,16 @@ namespace cereal
           Iterator() : itsIndex( 0 ), itsType(Null_) {}
 
           Iterator(MemberIterator begin, MemberIterator end) :
-            itsMemberItBegin(begin), itsMemberItEnd(end), itsIndex(0), itsType(Member)
+            itsMemberItBegin(begin), itsMemberItEnd(end), itsIndex(0), itsSize(std::distance(begin, end)), itsType(Member)
           {
-            if( std::distance( begin, end ) == 0 )
+            if( itsSize == 0 )
               itsType = Null_;
           }
 
           Iterator(ValueIterator begin, ValueIterator end) :
-            itsValueItBegin(begin), itsValueItEnd(end), itsIndex(0), itsType(Value)
+            itsValueItBegin(begin), itsIndex(0), itsSize(std::distance(begin, end)), itsType(Value)
           {
-            if( std::distance( begin, end ) == 0 )
+            if( itsSize == 0 )
               itsType = Null_;
           }
 
@@ -504,6 +515,9 @@ namespace cereal
           //! Get the value of the current node
           GenericValue const & value()
           {
+            if( itsIndex >= itsSize )
+              throw cereal::Exception("No more objects in input");
+
             switch(itsType)
             {
               case Value : return itsValueItBegin[itsIndex];
@@ -543,8 +557,8 @@ namespace cereal
 
         private:
           MemberIterator itsMemberItBegin, itsMemberItEnd; //!< The member iterator (object)
-          ValueIterator itsValueItBegin, itsValueItEnd;    //!< The value iterator (array)
-          size_t itsIndex;                                 //!< The current index of this iterator
+          ValueIterator itsValueItBegin;                   //!< The value iterator (array)
+          size_t itsIndex, itsSize;                        //!< The current index of this iterator
           enum Type {Value, Member, Null_} itsType;        //!< Whether this holds values (array) or members (objects) or nothing
       };
 
@@ -559,18 +573,20 @@ namespace cereal
           @throws Exception if an expectedName is given and not found */
       inline void search()
       {
+        // store pointer to itsNextName locally and reset to nullptr in case search() throws
+        auto localNextName = itsNextName;
+        itsNextName = nullptr;
+
         // The name an NVP provided with setNextName()
-        if( itsNextName )
+        if( localNextName )
         {
           // The actual name of the current node
           auto const actualName = itsIteratorStack.back().name();
 
           // Do a search if we don't see a name coming up, or if the names don't match
-          if( !actualName || std::strcmp( itsNextName, actualName ) != 0 )
-            itsIteratorStack.back().search( itsNextName );
+          if( !actualName || std::strcmp( localNextName, actualName ) != 0 )
+            itsIteratorStack.back().search( localNextName );
         }
-
-        itsNextName = nullptr;
       }
 
     public:
@@ -652,6 +668,12 @@ namespace cereal
       //! Loads a nullptr from the current node
       void loadValue(std::nullptr_t&)   { search(); CEREAL_RAPIDJSON_ASSERT(itsIteratorStack.back().value().IsNull()); ++itsIteratorStack.back(); }
 
+      template <class T> inline
+      typename std::enable_if<!std::is_same<T, int64_t>::value && std::is_same<T, long long>::value, void>::type
+      loadValue(T & val)     { search(); val = itsIteratorStack.back().value().GetInt64(); ++itsIteratorStack.back(); }
+      template <class T> inline
+      typename std::enable_if<!std::is_same<T, uint64_t>::value && std::is_same<T, unsigned long long>::value, void>::type
+      loadValue(T & val)     { search(); val = itsIteratorStack.back().value().GetUint64(); ++itsIteratorStack.back(); }
       // Special cases to handle various flavors of long, which tend to conflict with
       // the int32_t or int64_t on various compiler/OS combinations.  MSVC doesn't need any of this.
       #ifndef _MSC_VER
@@ -707,6 +729,8 @@ namespace cereal
                                           !std::is_same<T, unsigned long>::value,
                                           !std::is_same<T, std::int64_t>::value,
                                           !std::is_same<T, std::uint64_t>::value,
+                                          !std::is_same<T, long long>::value,
+                                          !std::is_same<T, unsigned long long>::value,
                                           (sizeof(T) >= sizeof(long double) || sizeof(T) >= sizeof(long long))> = traits::sfinae>
       inline void loadValue(T & val)
       {
@@ -1013,9 +1037,5 @@ CEREAL_REGISTER_ARCHIVE(cereal::JSONOutputArchive)
 
 // tie input and output archives together
 CEREAL_SETUP_ARCHIVE_TRAITS(cereal::JSONInputArchive, cereal::JSONOutputArchive)
-
-#if defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 7)
-CEREAL_RAPIDJSON_DIAG_POP
-#endif
 
 #endif // CEREAL_ARCHIVES_JSON_HPP_

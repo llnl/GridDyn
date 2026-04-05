@@ -11,14 +11,14 @@
       * Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
-      * Neither the name of cereal nor the
+      * Neither the name of the copyright holder nor the
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL RANDOLPH VOORHIES OR SHANE GRANT BE LIABLE FOR ANY
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -100,7 +100,50 @@ namespace cereal
 
   // ######################################################################
   //! Marks data for deferred serialization
-  /*! @relates DeferredData
+  /*! cereal performs a recursive depth-first traversal of data it serializes. When
+      serializing smart pointers to large, nested, or cyclical data structures, it
+      is possible to encounter a stack overflow from excessive recursion when following
+      a chain of pointers.
+
+      Deferment can help in these situations if the data can be serialized separately from
+      the pointers used to traverse the structure. For example, a graph structure can have its
+      nodes serialized before its edges:
+
+      @code{.cpp}
+      struct MyEdge
+      {
+        std::shared_ptr<MyNode> connection;
+        int some_value;
+
+        template<class Archive>
+        void serialize(Archive & archive)
+        {
+          // when we serialize an edge, we'll defer serializing the associated node
+          archive( cereal::defer( connection ),
+                   some_value );
+        }
+      };
+
+      struct MyGraphStructure
+      {
+        std::vector<MyEdge> edges;
+        std::vector<MyNodes> nodes;
+
+        template<class Archive>
+        void serialize(Archive & archive)
+        {
+          // because of the deferment, we ensure all nodes are fully serialized
+          // before any connection pointers to those nodes are serialized
+          archive( edges, nodes );
+
+          // we have to explicitly inform the archive when it is safe to serialize
+          // the deferred data
+          archive.serializeDeferments();
+        }
+      };
+      @endcode
+
+      @relates DeferredData
       @ingroup Utility */
   template <class T> inline
   DeferredData<T> defer( T && value )
@@ -133,7 +176,7 @@ namespace cereal
         a serialization function.  Classes with no data members are considered to be
         empty.  Be warned that if this is enabled and you attempt to serialize an
         empty class with improperly formed serialize or load/save functions, no
-        static error will occur - the error will propogate silently and your
+        static error will occur - the error will propagate silently and your
         intended serialization functions may not be called.  You can manually
         ensure that your classes that have custom serialization are correct
         by using the traits is_output_serializable and is_input_serializable
@@ -215,6 +258,26 @@ namespace cereal
       Interfaces for other forms of serialization functions is similar.  This
       macro should be placed at global scope.
       @ingroup Utility */
+
+  //! On C++17, define the StaticObject as inline to merge the definitions across TUs
+  //! This prevents multiple definition errors when this macro appears in a header file
+  //! included in multiple TUs.
+  #ifdef CEREAL_HAS_CPP17
+  #define CEREAL_CLASS_VERSION(TYPE, VERSION_NUMBER)                             \
+  namespace cereal { namespace detail {                                          \
+    template <> struct Version<TYPE>                                             \
+    {                                                                            \
+      static std::uint32_t registerVersion()                                     \
+      {                                                                          \
+        ::cereal::detail::StaticObject<Versions>::getInstance().mapping.emplace( \
+             std::type_index(typeid(TYPE)).hash_code(), VERSION_NUMBER );        \
+        return VERSION_NUMBER;                                                   \
+      }                                                                          \
+      static inline const std::uint32_t version = registerVersion();             \
+      CEREAL_UNUSED_FUNCTION                                                     \
+    }; /* end Version */                                                         \
+  } } // end namespaces
+  #else
   #define CEREAL_CLASS_VERSION(TYPE, VERSION_NUMBER)                             \
   namespace cereal { namespace detail {                                          \
     template <> struct Version<TYPE>                                             \
@@ -231,6 +294,8 @@ namespace cereal
     const std::uint32_t Version<TYPE>::version =                                 \
       Version<TYPE>::registerVersion();                                          \
   } } // end namespaces
+
+  #endif
 
   // ######################################################################
   //! The base output archive class
@@ -269,6 +334,14 @@ namespace cereal
         return *self;
       }
 
+      //! Serializes any data marked for deferment using defer
+      /*! This will cause any data wrapped in DeferredData to be immediately serialized */
+      void serializeDeferments()
+      {
+        for( auto & deferment : itsDeferments )
+          deferment();
+      }
+
       /*! @name Boost Transition Layer
           Functionality that mirrors the syntax for Boost.  This is useful if you are transitioning
           a large project from Boost to cereal.  The preferred interface for cereal is using operator(). */
@@ -277,14 +350,14 @@ namespace cereal
       //! Indicates this archive is not intended for loading
       /*! This ensures compatibility with boost archive types.  If you are transitioning
           from boost, you can check this value within a member or external serialize function
-          (i.e., Archive::is_loading::value) to disable behavior specific to loading, until 
+          (i.e., Archive::is_loading::value) to disable behavior specific to loading, until
           you can transition to split save/load or save_minimal/load_minimal functions */
       using is_loading = std::false_type;
 
       //! Indicates this archive is intended for saving
       /*! This ensures compatibility with boost archive types.  If you are transitioning
           from boost, you can check this value within a member or external serialize function
-          (i.e., Archive::is_saving::value) to enable behavior specific to loading, until 
+          (i.e., Archive::is_saving::value) to enable behavior specific to loading, until
           you can transition to split save/load or save_minimal/load_minimal functions */
       using is_saving = std::true_type;
 
@@ -318,12 +391,17 @@ namespace cereal
           point to the same data.
 
           @internal
-          @param addr The address (see shared_ptr get()) pointed to by the shared pointer
+          @param sharedPointer The shared pointer itself (the address is taken via get()).
+                               The archive takes a copy to prevent the memory location to be freed
+                               as long as the address is used as id. This is needed to prevent CVE-2020-11105.
           @return A key that uniquely identifies the pointer */
-      inline std::uint32_t registerSharedPointer( void const * addr )
+      inline std::uint32_t registerSharedPointer(const std::shared_ptr<const void>& sharedPointer)
       {
+        void const * addr = sharedPointer.get();
+
         // Handle null pointers by just returning 0
         if(addr == 0) return 0;
+        itsSharedPointerStorage.push_back(sharedPointer);
 
         auto id = itsSharedPointerMap.find( addr );
         if( id == itsSharedPointerMap.end() )
@@ -355,12 +433,6 @@ namespace cereal
         }
         else
           return id->second;
-      }
-
-      void serializeDeferments()
-      {
-        for( auto & deferment : itsDeferments )
-          deferment();
       }
 
     private:
@@ -409,7 +481,7 @@ namespace cereal
       template <class T> inline
       ArchiveType & processImpl(DeferredData<T> const & d)
       {
-        std::function<void(void)> deferment( [=](){ self->process( d.value ); } );
+        std::function<void(void)> deferment( [this, d](){ self->process( d.value ); } );
         itsDeferments.emplace_back( std::move(deferment) );
 
         return *self;
@@ -600,6 +672,10 @@ namespace cereal
       //! Maps from addresses to pointer ids
       std::unordered_map<void const *, std::uint32_t> itsSharedPointerMap;
 
+      //! Copy of shared pointers used in #itsSharedPointerMap to make sure they are kept alive
+      //  during lifetime of itsSharedPointerMap to prevent CVE-2020-11105.
+      std::vector<std::shared_ptr<const void>> itsSharedPointerStorage;
+
       //! The id to be given to the next pointer
       std::uint32_t itsCurrentPointerId;
 
@@ -655,6 +731,14 @@ namespace cereal
         return *self;
       }
 
+      //! Serializes any data marked for deferment using defer
+      /*! This will cause any data wrapped in DeferredData to be immediately serialized */
+      void serializeDeferments()
+      {
+        for( auto & deferment : itsDeferments )
+          deferment();
+      }
+
       /*! @name Boost Transition Layer
           Functionality that mirrors the syntax for Boost.  This is useful if you are transitioning
           a large project from Boost to cereal.  The preferred interface for cereal is using operator(). */
@@ -663,14 +747,14 @@ namespace cereal
       //! Indicates this archive is intended for loading
       /*! This ensures compatibility with boost archive types.  If you are transitioning
           from boost, you can check this value within a member or external serialize function
-          (i.e., Archive::is_loading::value) to enable behavior specific to loading, until 
+          (i.e., Archive::is_loading::value) to enable behavior specific to loading, until
           you can transition to split save/load or save_minimal/load_minimal functions */
       using is_loading = std::true_type;
 
       //! Indicates this archive is not intended for saving
       /*! This ensures compatibility with boost archive types.  If you are transitioning
           from boost, you can check this value within a member or external serialize function
-          (i.e., Archive::is_saving::value) to disable behavior specific to loading, until 
+          (i.e., Archive::is_saving::value) to disable behavior specific to loading, until
           you can transition to split save/load or save_minimal/load_minimal functions */
       using is_saving = std::false_type;
 
@@ -702,6 +786,7 @@ namespace cereal
       /*! This is used to retrieve a previously registered shared_ptr
           which has already been loaded.
 
+          @internal
           @param id The unique id that was serialized for the pointer
           @return A shared pointer to the data
           @throw Exception if the id does not exist */
@@ -720,6 +805,7 @@ namespace cereal
       /*! After a shared pointer has been allocated for the first time, it should
           be registered with its loaded id for future references to it.
 
+          @internal
           @param id The unique identifier for the shared pointer
           @param ptr The actual shared pointer */
       inline void registerSharedPointer(std::uint32_t const id, std::shared_ptr<void> ptr)
@@ -732,8 +818,9 @@ namespace cereal
       /*! This is used to retrieve a string previously registered during
           a polymorphic load.
 
+          @internal
           @param id The unique id that was serialized for the polymorphic type
-          @return The string identifier for the tyep */
+          @return The string identifier for the type */
       inline std::string getPolymorphicName(std::uint32_t const id)
       {
         auto name = itsPolymorphicTypeMap.find( id );
@@ -748,18 +835,13 @@ namespace cereal
       /*! After a polymorphic type has been loaded for the first time, it should
           be registered with its loaded id for future references to it.
 
+          @internal
           @param id The unique identifier for the polymorphic type
-          @param name The name associated with the tyep */
+          @param name The name associated with the type */
       inline void registerPolymorphicName(std::uint32_t const id, std::string const & name)
       {
         std::uint32_t const stripped_id = id & ~detail::msb_32bit;
         itsPolymorphicTypeMap.insert( {stripped_id, name} );
-      }
-
-      void serializeDeferments()
-      {
-        for( auto & deferment : itsDeferments )
-          deferment();
       }
 
     private:
@@ -808,7 +890,7 @@ namespace cereal
       template <class T> inline
       ArchiveType & processImpl(DeferredData<T> const & d)
       {
-        std::function<void(void)> deferment( [=](){ self->process( d.value ); } );
+        std::function<void(void)> deferment( [this, d](){ self->process( d.value ); } );
         itsDeferments.emplace_back( std::move(deferment) );
 
         return *self;

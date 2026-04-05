@@ -29,8 +29,8 @@ namespace paradae {
         NSType type;
         std::map<int, std::list<int>> map1;
         std::map<std::pair<int, int>, std::list<int>> map2;
-        NewtonStats(): iter(0), level(0), step(0), max_iter(0), max_level(0), type(sequential){};
-        NewtonStats(NSType t): iter(0), level(0), step(0), max_iter(0), max_level(0), type(t){};
+        NewtonStats(): iter(0), level(0), step(0), max_iter(0), max_level(0), type(sequential) {};
+        NewtonStats(NSType t): iter(0), level(0), step(0), max_iter(0), max_level(0), type(t) {};
         void SetMPIComm(MPI_Comm comm_) { comm = comm_; };
         void SetType(NSType t) { type = t; };
         void SetNextStep() { step++; };

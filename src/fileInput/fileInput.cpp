@@ -29,7 +29,10 @@ namespace readerConfig {
 
     xmlreader default_xml_reader = xmlreader::tinyxml;
 
-    void setPrintMode(int level) { printMode = level; }
+    void setPrintMode(int level)
+    {
+        printMode = level;
+    }
 #define READER_VERBOSE_PRINT 3
 #define READER_NORMAL_PRINT 2
 #define READER_SUMMARY_PRINT 1
@@ -54,7 +57,10 @@ namespace readerConfig {
         }
     }
 
-    void setWarnMode(int level) { warnMode = level; }
+    void setWarnMode(int level)
+    {
+        warnMode = level;
+    }
 
     void setWarnMode(const std::string& level)
     {

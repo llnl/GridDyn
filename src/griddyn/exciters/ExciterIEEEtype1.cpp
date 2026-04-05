@@ -238,7 +238,10 @@ namespace exciters {
 
     static const stringVec ieeeType1Fields{"ef", "vr", "rf"};
 
-    stringVec ExciterIEEEtype1::localStateNames() const { return ieeeType1Fields; }
+    stringVec ExciterIEEEtype1::localStateNames() const
+    {
+        return ieeeType1Fields;
+    }
     void ExciterIEEEtype1::set(const std::string& param, const std::string& val)
     {
         return Exciter::set(param, val);

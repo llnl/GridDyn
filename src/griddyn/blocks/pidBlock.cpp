@@ -217,7 +217,10 @@ namespace blocks {
     }
 
     // set parameters
-    void pidBlock::set(const std::string& param, const std::string& val) { Block::set(param, val); }
+    void pidBlock::set(const std::string& param, const std::string& val)
+    {
+        Block::set(param, val);
+    }
     void pidBlock::set(const std::string& param, double val, units::unit unitType)
     {
         if ((param == "p") || (param == "proportional")) {

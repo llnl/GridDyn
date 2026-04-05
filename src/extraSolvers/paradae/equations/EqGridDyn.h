@@ -47,7 +47,7 @@ namespace paradae {
                                     const Real cj,
                                     Matrix& J);
         virtual void init(const Real t, Vector& y);
-        virtual ~EquationGridDyn(){};
+        virtual ~EquationGridDyn() {};
     };
 
 }  // namespace paradae

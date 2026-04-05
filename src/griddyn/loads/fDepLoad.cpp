@@ -151,7 +151,10 @@ namespace loads {
         return getReactivePower(inputs[voltageInLocation], inputs[frequencyInLocation]);
     }
 
-    double fDepLoad::getRealPower(const double V) const { return getRealPower(V, bus->getFreq()); }
+    double fDepLoad::getRealPower(const double V) const
+    {
+        return getRealPower(V, bus->getFreq());
+    }
     double fDepLoad::getReactivePower(double V) const
     {
         return getReactivePower(V, bus->getFreq());

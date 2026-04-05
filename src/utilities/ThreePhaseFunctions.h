@@ -21,9 +21,10 @@
 template<class X>
 constexpr X phaseSelector(char phase, X valA, X valB, X valC, X def) noexcept
 {
-    return ((phase == 'a') || (phase == '1')) ?
-        valA :
-        ((phase == 'b') || (phase == '2')) ? valB : ((phase == 'c') || (phase == '3')) ? valC : def;
+    return ((phase == 'a') || (phase == '1')) ? valA :
+        ((phase == 'b') || (phase == '2'))    ? valB :
+        ((phase == 'c') || (phase == '3'))    ? valC :
+                                                def;
 }
 
 constexpr auto k_PI = 3.14159265358979323846;

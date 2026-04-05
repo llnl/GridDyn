@@ -40,12 +40,30 @@ namespace solvers {
         bos->deltaT = deltaT;
     }
 
-    double* basicOdeSolver::state_data() noexcept { return state.data(); }
-    double* basicOdeSolver::deriv_data() noexcept { return deriv.data(); }
-    double* basicOdeSolver::type_data() noexcept { return type.data(); }
-    const double* basicOdeSolver::state_data() const noexcept { return state.data(); }
-    const double* basicOdeSolver::deriv_data() const noexcept { return deriv.data(); }
-    const double* basicOdeSolver::type_data() const noexcept { return type.data(); }
+    double* basicOdeSolver::state_data() noexcept
+    {
+        return state.data();
+    }
+    double* basicOdeSolver::deriv_data() noexcept
+    {
+        return deriv.data();
+    }
+    double* basicOdeSolver::type_data() noexcept
+    {
+        return type.data();
+    }
+    const double* basicOdeSolver::state_data() const noexcept
+    {
+        return state.data();
+    }
+    const double* basicOdeSolver::deriv_data() const noexcept
+    {
+        return deriv.data();
+    }
+    const double* basicOdeSolver::type_data() const noexcept
+    {
+        return type.data();
+    }
     void basicOdeSolver::allocate(count_t stateCount, count_t numRoots)
     {
         // load the vectors

@@ -8,7 +8,6 @@
 
 #include "../gtestHelper.h"
 #include "utilities/OperatingBoundary.h"
-
 #include <gtest/gtest.h>
 
 using namespace utilities;

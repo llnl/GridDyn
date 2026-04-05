@@ -26,8 +26,7 @@ tinyxmlReaderElement::tinyxmlReaderElement(const std::string& fileName)
 }
 tinyxmlReaderElement::tinyxmlReaderElement(const ticpp::Element* ticppElement,
                                            const ticpp::Element* ticppParent):
-    element(ticppElement),
-    parent(ticppParent)
+    element(ticppElement), parent(ticppParent)
 {
 }
 

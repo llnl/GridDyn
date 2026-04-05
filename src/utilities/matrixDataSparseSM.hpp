@@ -317,8 +317,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     class matrixIteratorSM {
       public:
         explicit matrixIteratorSM(const matrixDataSparseSMB<K, X, ValueT, M>* matrixData,
-                                  index_t start = 0):
-            mDS(matrixData)
+                                  index_t start = 0): mDS(matrixData)
         {
             if (start == 0) {
                 ci = 0;
@@ -502,8 +501,7 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
     class matrixIteratorSM {
       public:
         explicit matrixIteratorSM(const matrixDataSparseSMB<0, X, ValueT, M>* matrixData,
-                                  index_t start = 0):
-            mDS(matrixData)
+                                  index_t start = 0): mDS(matrixData)
         {
             if (start == 0) {
                 cptr = mDS->dVec.cbegin();
@@ -705,8 +703,7 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
     class matrixIteratorSM {
       public:
         explicit matrixIteratorSM(const matrixDataSparseSMB<1, X, ValueT, M>* matrixData,
-                                  index_t start = 0):
-            mDS(matrixData)
+                                  index_t start = 0): mDS(matrixData)
         {
             if (start == 0) {
                 ci = 0;

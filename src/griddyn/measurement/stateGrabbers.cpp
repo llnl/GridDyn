@@ -117,10 +117,10 @@ static const std::map<std::string, std::string> stringTranslate{
     {"loadp", "loadreal"},
     {"reactivegen", "genreactive"},
     {"genq", "genreactive"},
-    {"gen", "genreal"},
-    {"generation", "genreal"},
-    {"genp", "genreal"},
-    {"realgen", "genreal"},
+    {"gen", "general"},
+    {"generation", "general"},
+    {"genp", "general"},
+    {"realgen", "general"},
     {"f", "freq"},
     {"frequency", "freq"},
     {"omega", "freq"},
@@ -213,7 +213,7 @@ static const std::map<std::string, fstateobjectPair> busFunctions{
 {"busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridBus *> (obj)->getAngle(sD, sMode); }, rad } },
 {"freq", {FUNCTION_SIGNATURE{return static_cast<gridBus *> (obj)->getFreq (sD, sMode);}, puHz}},
 { "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridBus *> (obj)->getFreq(sD, sMode); }, puHz } },
-{"genreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getGenerationReal ();}, puMW}},
+{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getGenerationReal ();}, puMW}},
 {"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getGenerationReactive ();}, puMW}},
 {"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLoadReal ();}, puMW}},
 {"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLoadReactive ();}, puMW}},
@@ -236,7 +236,7 @@ static const std::map<std::string, objJacFunction> busJacFunctions{
 
 static const std::map<std::string, fstateobjectPair> areaFunctions{
   {"avgfreq", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getAvgFreq ();}, puHz}},
-{"genreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getGenerationReal ();}, puMW}},
+{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getGenerationReal ();}, puMW}},
 {"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getGenerationReactive ();}, puMW}},
 {"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getLoadReal ();}, puMW}},
 {"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getLoadReactive ();}, puMW}},
@@ -266,7 +266,7 @@ static const std::map<std::string, fstateobjectPair> loadFunctions{{"loadreal", 
 };
 
 static const std::map<std::string, fstateobjectPair> genFunctions{
-  {"genreal", {rpower, puMW}},
+  {"general", {rpower, puMW}},
   {"genreactive", {qpower, puMW}},
   {"pset", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getPset ();}, puMW}},
   {"adjup", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getAdjustableCapacityUp ();}, puMW}},
@@ -644,8 +644,7 @@ void stateFunctionGrabber::outputPartialDerivatives(const stateData& sD,
 
 stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
                                std::shared_ptr<stateGrabber> ggb2,
-                               std::string op):
-    op_name(std::move(op))
+                               std::string op): op_name(std::move(op))
 {
     if (ggb1) {
         bgrabber1 = std::move(ggb1);

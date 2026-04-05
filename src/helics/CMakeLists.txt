@@ -72,15 +72,23 @@ set(optional_library_functions ${optional_library_functions} PARENT_SCOPE)
 list(APPEND optional_component_test_files ${CMAKE_CURRENT_SOURCE_DIR}/test/helicsTest.cpp)
 set(optional_component_test_files ${optional_component_test_files} PARENT_SCOPE)
 
-if (GRIDDYN_ENABLE_HELICS_EXECUTABLE AND WIN32)
+if(GRIDDYN_ENABLE_HELICS_EXECUTABLE AND WIN32)
 
-add_custom_command(TARGET helicsLib POST_BUILD        # Adds a post-build event to MyTest
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
-        $<TARGET_FILE:HELICS::helics-apps-shared>      # <--this is in-file
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/")                 # <--this is out-file path
-add_custom_command(TARGET helicsLib POST_BUILD        # Adds a post-build event to MyTest
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
-        $<TARGET_FILE:HELICS::helics-shared>      # <--this is in-file
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/")                 # <--this is out-file path
+    add_custom_command(
+        TARGET helicsLib
+        POST_BUILD # Adds a post-build event to MyTest
+        COMMAND
+            ${CMAKE_COMMAND} -E copy_if_different # which executes "cmake - E copy_if_different..."
+            $<TARGET_FILE:HELICS::helics-apps-shared> # <--this is in-file
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/"
+    ) # <--this is out-file path
+    add_custom_command(
+        TARGET helicsLib
+        POST_BUILD # Adds a post-build event to MyTest
+        COMMAND
+            ${CMAKE_COMMAND} -E copy_if_different # which executes "cmake - E copy_if_different..."
+            $<TARGET_FILE:HELICS::helics-shared> # <--this is in-file
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/"
+    ) # <--this is out-file path
 
 endif()

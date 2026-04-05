@@ -177,7 +177,10 @@ namespace fmi {
         }
     }
 
-    const std::string& fmiCoordinator::getFMIName() const { return getParent()->getName(); }
+    const std::string& fmiCoordinator::getFMIName() const
+    {
+        return getParent()->getName();
+    }
 
     void fmiCoordinator::addHelper(std::shared_ptr<helperObject> ho)
     {

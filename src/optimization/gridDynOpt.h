@@ -8,7 +8,7 @@
 #define GRIDDYNOPT_H_
 #pragma once
 // debug
-//#define DEBUG_IDA
+// #define DEBUG_IDA
 
 // header files
 #include "griddyn/gridDynSimulation.h"

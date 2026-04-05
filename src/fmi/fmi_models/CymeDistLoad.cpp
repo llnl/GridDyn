@@ -24,7 +24,10 @@ namespace fmi {
         configIndex = indexCounter++;
     }
 
-    coreObject* CymeDistLoadME::clone(coreObject* /* obj */) const { return nullptr; }
+    coreObject* CymeDistLoadME::clone(coreObject* /* obj */) const
+    {
+        return nullptr;
+    }
 
     void CymeDistLoadME::set(const std::string& param, const std::string& val)
     {

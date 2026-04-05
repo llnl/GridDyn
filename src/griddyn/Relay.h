@@ -338,8 +338,7 @@ class Relay: public gridPrimary, objectOperatorInterface {
                       index_t aNum = 0,
                       coreTime time = maxTime,
                       bool mcond = false):
-            conditionNum(cNum),
-            actionNum(aNum), testTime(time), multiCondition(mcond)
+            conditionNum(cNum), actionNum(aNum), testTime(time), multiCondition(mcond)
         {
         }
     };

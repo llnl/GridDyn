@@ -9,7 +9,6 @@
 #include "../gtestHelper.h"
 #include "fileInput/readerInfo.h"
 #include "griddyn/gridDynDefinitions.hpp"
-
 #include <gtest/gtest.h>
 
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");

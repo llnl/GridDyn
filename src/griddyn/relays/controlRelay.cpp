@@ -7,7 +7,7 @@
 #include "controlRelay.h"
 
 #include "core/coreExceptions.h"
-//#include "utilities/TimeSeries.hpp"
+// #include "utilities/TimeSeries.hpp"
 #include "../comms/Communicator.h"
 #include "../comms/controlMessage.h"
 #include "../events/Event.h"
@@ -49,9 +49,9 @@ namespace relays {
     void controlRelay::addMeasurement(const std::string& measure)
     {
         auto vals = makeGrabbers(measure,
-                                 (m_sourceObject != nullptr) ?
-                                     m_sourceObject :
-                                     (m_sinkObject != nullptr) ? m_sinkObject : getParent());
+                                 (m_sourceObject != nullptr)   ? m_sourceObject :
+                                     (m_sinkObject != nullptr) ? m_sinkObject :
+                                                                 getParent());
 
         for (auto& ggb : vals) {
             pointNames_.emplace(gmlc::utilities::convertToLowerCase(ggb->getDesc()),

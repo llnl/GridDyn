@@ -99,7 +99,7 @@ ELSE(UNIX)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wredundant-decls>)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wcast-align>)
-  #this options produces lots of warning but is useful for checking ever once in a while with Clang GCC warnin notices with this aren't as useful
+  #this options produces lots of warning but is useful for checking ever once in a while with Clang GCC warning notices with this aren't as useful
   #add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wpadded>)
   endif(ENABLE_EXTRA_COMPILER_WARNINGS)
   ENDIF(MINGW)

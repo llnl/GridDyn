@@ -51,7 +51,7 @@ class coreOwningPtr {
         ptr = nullptr;
         return *this;
     }
-    auto operator-> () const noexcept
+    auto operator->() const noexcept
     {  // return pointer to class object
         return ptr.operator->();
     }

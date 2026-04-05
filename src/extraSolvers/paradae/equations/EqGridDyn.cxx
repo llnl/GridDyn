@@ -107,7 +107,10 @@ namespace paradae {
         //}
     }
 
-    void EquationGridDyn::init(const Real t, Vector& y) { y.CopyData(y0); }
+    void EquationGridDyn::init(const Real t, Vector& y)
+    {
+        y.CopyData(y0);
+    }
     /*
 void EquationGridDyn::root_init_state(const Real t, Vector& state)
 {

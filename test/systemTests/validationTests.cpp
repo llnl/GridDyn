@@ -8,12 +8,11 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/gridDynSimulationFileOps.h"
 #include <cstdio>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <set>
 #include <utility>
-
-#include <gtest/gtest.h>
 
 #define COMPUTE_TIMES 1
 
@@ -36,7 +35,7 @@ std::ostream& operator<<(std::ostream& stream, const std::pair<std::string, std:
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class ValidationTests : public gridDynSimulationTestFixture, public ::testing::Test {
+class ValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {
   protected:
     void compareMatpowerCase(const file_pair_t& test_case_pair, const std::string& solver = "")
     {
@@ -72,8 +71,7 @@ class ValidationTests : public gridDynSimulationTestFixture, public ::testing::T
         if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(),
-                  gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -243,8 +241,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(),
-                  gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -278,9 +275,9 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
                 maxvdiffbus = static_cast<double>(kk);
             }
             if (diff > 1e-6) {
-                std::cout << mp.first << " Voltage difference bus " << kk + 1 << "::"
-                          << volts1[kk] << " vs. " << volts2[kk] << "::"
-                          << std::abs(volts1[kk] - volts2[kk]) << " puV\n";
+                std::cout << mp.first << " Voltage difference bus " << kk + 1 << "::" << volts1[kk]
+                          << " vs. " << volts2[kk] << "::" << std::abs(volts1[kk] - volts2[kk])
+                          << " puV\n";
                 vdiff++;
             }
             diff = std::abs(ang1[kk] - ang2[kk]);
@@ -290,9 +287,8 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
             }
             if (diff > 1e-6) {
                 std::cout << mp.first << " Angle difference-- bus " << kk + 1
-                          << "::" << ang1[kk] * 180.0 / kPI << " vs. "
-                          << ang2[kk] * 180.0 / kPI << "::"
-                          << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg\n";
+                          << "::" << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
+                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg\n";
                 adiff++;
             }
         }
@@ -350,8 +346,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(),
-                  gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -406,9 +401,9 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
                 maxvdiffbus = static_cast<double>(kk);
             }
             if (diff > 1e-3) {
-                std::cout << mp.first << " Voltage difference bus " << kk + 1 << "::"
-                          << volts1[kk] << " vs. " << volts2[kk] << "::"
-                          << std::abs(volts1[kk] - volts2[kk]) << " puV\n";
+                std::cout << mp.first << " Voltage difference bus " << kk + 1 << "::" << volts1[kk]
+                          << " vs. " << volts2[kk] << "::" << std::abs(volts1[kk] - volts2[kk])
+                          << " puV\n";
                 vdiff++;
             }
             diff = std::abs(ang1[kk] - ang2[kk]);
@@ -418,14 +413,13 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
             }
             if (diff > 0.01 / 180.0 * kPI) {
                 std::cout << mp.first << " Angle difference-- bus " << kk + 1
-                          << "::" << ang1[kk] * 180.0 / kPI << " vs. "
-                          << ang2[kk] * 180.0 / kPI << "::"
-                          << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg\n";
+                          << "::" << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
+                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg\n";
                 adiff++;
             }
         }
-        std::cout << mp.first << "max vdiff [" << maxvdiffbus << "] = " << mvdiff
-                  << "|| max adiff[" << maxadiffbus << "] = " << madiff << '\n';
+        std::cout << mp.first << "max vdiff [" << maxvdiffbus << "] = " << mvdiff << "|| max adiff["
+                  << maxadiffbus << "] = " << madiff << '\n';
         EXPECT_EQ(vdiff, 0);
         EXPECT_EQ(adiff, 0);
     }

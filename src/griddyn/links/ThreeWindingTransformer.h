@@ -12,7 +12,7 @@
 namespace griddyn {
 namespace links {
     /** @brief class defining a thee winding transformer model
-*/
+     */
     class ThreeWindingTransformer: public subsystem {
       private:
         int faultLink = -1;  //!< link number of the fault if one is present
@@ -23,6 +23,7 @@ namespace links {
         double segmentationLength = 0.0;
         double length = 0.0;
         double fault = -1.0;
+
       public:
         /** @brief default constructor*/
         ThreeWindingTransformer(const std::string& objName = "ThreeWinding_$");
@@ -40,7 +41,6 @@ namespace links {
 
         virtual double get(const std::string& param,
                            units::unit unitType = units::defunit) const override;
-
     };
 
 }  // namespace links

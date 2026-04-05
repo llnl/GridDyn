@@ -73,8 +73,7 @@ functionEventAdapter::functionEventAdapter(ccode_function_t fcal): fptr(std::mov
 functionEventAdapter::functionEventAdapter(ccode_function_t fcal,
                                            coreTime triggerTime,
                                            coreTime period):
-    eventAdapter(triggerTime, period),
-    fptr(std::move(fcal))
+    eventAdapter(triggerTime, period), fptr(std::move(fcal))
 {
 }
 

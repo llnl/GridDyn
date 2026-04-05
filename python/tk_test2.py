@@ -166,7 +166,9 @@ midgroup.pack(side=TOP)
 button2 = Button(bgroup1, text="Close", command=_quit)
 button2.pack(side=RIGHT)
 bgroup1.pack(
-    side=TOP, fill=Y, expand=1,
+    side=TOP,
+    fill=Y,
+    expand=1,
 )
 
 mainloop()

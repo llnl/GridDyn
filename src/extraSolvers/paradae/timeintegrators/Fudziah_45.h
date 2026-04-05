@@ -11,7 +11,7 @@ namespace griddyn {
 namespace paradae {
     /*!
   Butcher tableau:
-  (Steps 5 and 6 are probably not defined accruately enough... but seems ok on Expo1D)
+  (Steps 5 and 6 are probably not defined accurately enough... but seems ok on Expo1D)
   \f[\begin{array}{c|ccccccc}
   0&&&&&&&\\
   0.57178&0.28589&0.28589&&&&&\\

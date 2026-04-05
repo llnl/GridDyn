@@ -34,7 +34,7 @@ namespace paradae {
                                  bool add = false);
 
         // Redefinition of inherited virtual methods
-        virtual ~Equation_ODE(){};
+        virtual ~Equation_ODE() {};
         virtual void function(const Real t,
                               const Vector& y,
                               const Vector& dy,

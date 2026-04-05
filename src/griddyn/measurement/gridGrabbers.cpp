@@ -428,8 +428,7 @@ void functionGrabber::getObjects(std::vector<coreObject*>& objects) const
 // operatorGrabber
 opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
                      std::shared_ptr<gridGrabber> ggb2,
-                     std::string op):
-    op_name(std::move(op))
+                     std::string op): op_name(std::move(op))
 {
     if (ggb1) {
         bgrabber1 = std::move(ggb1);

@@ -139,9 +139,15 @@ namespace loads {
         prevTime = time;
     }
 
-    double frequencySensitiveLoad::getRealPower() const { return Pout; }
+    double frequencySensitiveLoad::getRealPower() const
+    {
+        return Pout;
+    }
 
-    double frequencySensitiveLoad::getReactivePower() const { return Qout; }
+    double frequencySensitiveLoad::getReactivePower() const
+    {
+        return Qout;
+    }
 
     double frequencySensitiveLoad::getRealPower(const IOdata& inputs,
                                                 const stateData& sD,

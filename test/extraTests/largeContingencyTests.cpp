@@ -6,13 +6,13 @@
 
 #include "../gtestHelper.h"
 #include <chrono>
+#include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
-#include <gtest/gtest.h>
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 
-class LargeContingencyTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class LargeContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace boost::filesystem;
 using namespace griddyn;

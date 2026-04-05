@@ -12,9 +12,8 @@
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/zipLoad.h"
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 // test case for coreObject object
 
@@ -23,8 +22,7 @@
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
 // create a test fixture that makes sure everything gets deleted properly
 
-class XmlTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class XmlTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace griddyn;
 using namespace gmlc::utilities;

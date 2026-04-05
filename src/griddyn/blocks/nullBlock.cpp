@@ -90,7 +90,10 @@ namespace blocks {
         return 0.0;
     }
 
-    double nullBlock::getBlockDoutDt() const { return 0.0; }
+    double nullBlock::getBlockDoutDt() const
+    {
+        return 0.0;
+    }
 
     void nullBlock::blockResidual(double /*input*/,
                                   double /*didt*/,

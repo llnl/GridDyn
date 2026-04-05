@@ -12,18 +12,16 @@
 #include "griddyn/gridDynSimulation.h"
 #include "griddyn/links/acLine.h"
 #include "griddyn/simulation/diagnostics.h"
-
 #include <gtest/gtest.h>
 
-//#include <crtdbg.h>
-// test case for link objects
+// #include <crtdbg.h>
+//  test case for link objects
 
 #define LINK_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/link_tests/"
 
 using namespace griddyn;
 
-class LinkTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class LinkTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(LinkTests, LinkTest1Simple)
 {

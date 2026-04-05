@@ -11,7 +11,10 @@ namespace griddyn {
 namespace paradae {
     using namespace std;
 
-    LinearSearch::LinearSearch(int max_iter_) { max_iter = max_iter_; }
+    LinearSearch::LinearSearch(int max_iter_)
+    {
+        max_iter = max_iter_;
+    }
 
     int LinearSearch::Solve(Solver_App* app, Vector& x)
     {

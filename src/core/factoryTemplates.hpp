@@ -211,9 +211,7 @@ class childClassFactoryArg: public classFactory<parentClass> {
     }
     childClassFactoryArg(const std::vector<std::string>& names,
                          const std::string& defType,
-                         argType iArg):
-        classFactory<parentClass>(names, defType),
-        argVal(iArg)
+                         argType iArg): classFactory<parentClass>(names, defType), argVal(iArg)
     {
     }
     std::unique_ptr<parentClass> makeObject() override

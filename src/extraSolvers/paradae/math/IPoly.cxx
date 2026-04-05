@@ -29,9 +29,7 @@ namespace paradae {
     IPoly::IPoly(const PMultiVector& tyy_,
                  const PMultiVector& yy_,
                  const PMultiVector& typ_,
-                 const PMultiVector yp_):
-        tyy(tyy_),
-        yy(yy_), typ(typ_), yp(yp_)
+                 const PMultiVector yp_): tyy(tyy_), yy(yy_), typ(typ_), yp(yp_)
     {
         nyy = yy.GetSSize();
         nyp = yp.GetSSize();

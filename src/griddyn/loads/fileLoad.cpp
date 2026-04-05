@@ -116,7 +116,7 @@ namespace loads {
                     dIqdt = diffrate;
                     break;
                 case 4:
-                    setYp(val);
+                    setup(val);
                     dYpdt = diffrate;
                     if (qratio != kNullVal) {
                         setYq(qratio * val);

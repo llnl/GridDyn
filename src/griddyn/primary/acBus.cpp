@@ -17,7 +17,7 @@
 #include "core/coreOwningPtr.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-//#include "matrixDataSparse.hpp"
+// #include "matrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/compiler-config.h"
 #include <cassert>

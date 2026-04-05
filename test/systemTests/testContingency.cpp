@@ -5,7 +5,6 @@
  */
 
 #include "../gtestHelper.h"
-
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
@@ -16,8 +15,7 @@ using namespace griddyn;
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 
-class ContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class ContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace boost::filesystem;
 TEST_F(ContingencyTests, DISABLED_ContingencyTest1)

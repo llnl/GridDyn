@@ -1156,11 +1156,11 @@ void gridBus::updateLocalCache()
 double gridBus::getGenerationRealNominal() const
 {
     if ((type == busType::SLK) || (type == busType::afix)) {
-        double genreal = 0.0;
+        double general = 0.0;
         for (auto gen : attachedGens) {
-            genreal += gen->getRealPower();
+            general += gen->getRealPower();
         }
-        return genreal;
+        return general;
     }
     return S.genP;
 }
@@ -1330,7 +1330,7 @@ double gridBus::get(const std::string& param, unit unitType) const
         val = Atol;
     } else if ((param == "basevoltage") || (param == "vbase")) {
         val = localBaseVoltage;
-    } else if ((param == "genreal") || (param == "generationreal")) {
+    } else if ((param == "general") || (param == "generationreal")) {
         val = convert(getGenerationReal(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if ((param == "genreactive") || (param == "generationreactive")) {
         val = convert(getGenerationReactive(), puMW, unitType, systemBasePower, localBaseVoltage);

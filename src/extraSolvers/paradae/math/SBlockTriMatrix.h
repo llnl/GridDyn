@@ -12,10 +12,10 @@ namespace griddyn {
 namespace paradae {
     class SBlockTriMatrix: public DBlockTriMatrix {
       private:
-        void operator=(const SBlockTriMatrix& mat){};
+        void operator=(const SBlockTriMatrix& mat) {};
 
       public:
-        SBlockTriMatrix(): DBlockTriMatrix(){};
+        SBlockTriMatrix(): DBlockTriMatrix() {};
         SBlockTriMatrix(int m_, int s_, bool isdense_ = true);
         SBlockTriMatrix(const SBlockTriMatrix& mat);
         virtual ~SBlockTriMatrix();

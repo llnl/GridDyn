@@ -107,7 +107,7 @@ class zipLoad: public Load {
 
     double getx() const;
 
-    void setYp(double newYp);
+    void setup(double newYp);
 
     void setYq(double newYq);
 

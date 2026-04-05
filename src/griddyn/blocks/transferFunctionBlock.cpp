@@ -38,8 +38,7 @@ namespace blocks {
 
     transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef,
                                                  std::vector<double> Bcoef):
-        a(std::move(Acoef)),
-        b(std::move(Bcoef))
+        a(std::move(Acoef)), b(std::move(Bcoef))
     {
         b.resize(a.size(), 0);
         opFlags.set(use_state);
@@ -274,6 +273,9 @@ namespace blocks {
 
     static stringVec stNames{"output", "Intermediate1", "intermediate2"};
 
-    stringVec transferFunctionBlock::localStateNames() const { return stNames; }
+    stringVec transferFunctionBlock::localStateNames() const
+    {
+        return stNames;
+    }
 }  // namespace blocks
 }  // namespace griddyn

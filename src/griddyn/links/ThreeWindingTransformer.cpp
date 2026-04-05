@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "ThreeWindingTransformer.h"
+
 #include "../primary/acBus.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
-#include "ThreeWindingTransformer.h"
 #include <cmath>
 
 namespace griddyn {
@@ -35,7 +36,6 @@ namespace links {
         cterm[0] = 1;
         cterm[1] = 2;
         cterm[2] = 2;
-
     }
     coreObject* ThreeWindingTransformer::clone(coreObject* obj) const
     {
@@ -43,14 +43,16 @@ namespace links {
         if (line == nullptr) {
             return obj;
         }
-        
+
         return line;
     }
     // add components
-    void ThreeWindingTransformer::add(coreObject* /*obj*/) { throw(unrecognizedObjectException(this)); }
+    void ThreeWindingTransformer::add(coreObject* /*obj*/)
+    {
+        throw(unrecognizedObjectException(this));
+    }
     // remove components
     void ThreeWindingTransformer::remove(coreObject* /*obj*/) {}
-   
 
     void ThreeWindingTransformer::set(const std::string& param, const std::string& val)
     {

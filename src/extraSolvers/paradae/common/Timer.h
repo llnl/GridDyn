@@ -49,9 +49,9 @@ namespace paradae {
         Real cumul_time;
 
       public:
-        TimedElem(): name(""), is_started(false), start_time(0), cumul_time(0){};
+        TimedElem(): name(""), is_started(false), start_time(0), cumul_time(0) {};
         TimedElem(std::string name_):
-            name(name_), is_started(false), start_time(0), cumul_time(0){};
+            name(name_), is_started(false), start_time(0), cumul_time(0) {};
         void Start(std::string name_ = "");
         void Stop();
         Real GetTime() { return cumul_time + ((is_started) ? MPI_Wtime() - start_time : 0); };
@@ -73,7 +73,7 @@ namespace paradae {
         void Gather();
 
       public:
-        Timer(): mpi_rank(0), mpi_size(1), nb_elems(0), sstr(0){};
+        Timer(): mpi_rank(0), mpi_size(1), nb_elems(0), sstr(0) {};
         Timer(MPI_Comm comm_);
         void SetComm(MPI_Comm comm_);
         void Start(std::string key, std::string output = "", std::string dep = "");

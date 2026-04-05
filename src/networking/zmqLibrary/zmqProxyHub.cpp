@@ -87,8 +87,7 @@ void zmqProxyHub::modifyOutgoingConnection(socket_ops op, const std::string& con
 
 zmqProxyHub::zmqProxyHub(const std::string& proxyName,
                          const std::string& pairtype,
-                         const std::string& context):
-    name(proxyName)
+                         const std::string& context): name(proxyName)
 {
     contextManager = zmqContextManager::getContextPointer(context);
     if ((pairtype == "pubsub") || (pairtype == "sub") || (pairtype == "pub")) {

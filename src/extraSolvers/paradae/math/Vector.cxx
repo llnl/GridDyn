@@ -121,7 +121,10 @@ namespace paradae {
         return res;
     }
 
-    void Vector::dump() const { this->dump(cout); }
+    void Vector::dump() const
+    {
+        this->dump(cout);
+    }
 
     void Vector::dump(ostream& output) const
     {

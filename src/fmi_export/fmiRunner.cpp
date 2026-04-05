@@ -21,9 +21,7 @@ namespace fmi {
     fmiRunner::fmiRunner(const std::string& name,
                          const std::string& resourceLocations,
                          const fmi2CallbackFunctions* functions,
-                         bool ModelExchange):
-        identifier(name),
-        resource_loc(resourceLocations)
+                         bool ModelExchange): identifier(name), resource_loc(resourceLocations)
     {
         if (functions != nullptr) {
             loggerFunc = functions->logger;
@@ -61,9 +59,15 @@ namespace fmi {
         return FUNCTION_EXECUTION_SUCCESS;
     }
 
-    void fmiRunner::UpdateOutputs() { coord->updateOutputs(m_gds->getSimulationTime()); }
+    void fmiRunner::UpdateOutputs()
+    {
+        coord->updateOutputs(m_gds->getSimulationTime());
+    }
 
-    coreTime fmiRunner::Run() { return GriddynRunner::Run(); }
+    coreTime fmiRunner::Run()
+    {
+        return GriddynRunner::Run();
+    }
 
     void fmiRunner::StepAsync(coreTime time)
     {
@@ -93,9 +97,15 @@ namespace fmi {
         return retTime;
     }
 
-    void fmiRunner::Finalize() { GriddynRunner::Finalize(); }
+    void fmiRunner::Finalize()
+    {
+        GriddynRunner::Finalize();
+    }
 
-    index_t fmiRunner::findVR(const std::string& varName) const { return coord->findVR(varName); }
+    index_t fmiRunner::findVR(const std::string& varName) const
+    {
+        return coord->findVR(varName);
+    }
 
     void fmiRunner::logger(int level, const std::string& logMessage)
     {
@@ -145,13 +155,25 @@ namespace fmi {
         }
     }
 
-    id_type_t fmiRunner::GetID() const { return m_gds->getID(); }
+    id_type_t fmiRunner::GetID() const
+    {
+        return m_gds->getID();
+    }
 
-    bool fmiRunner::Set(index_t vr, double val) { return coord->sendInput(vr, val); }
+    bool fmiRunner::Set(index_t vr, double val)
+    {
+        return coord->sendInput(vr, val);
+    }
 
-    bool fmiRunner::SetString(index_t vr, const char* s) { return coord->sendInput(vr, s); }
+    bool fmiRunner::SetString(index_t vr, const char* s)
+    {
+        return coord->sendInput(vr, s);
+    }
 
-    double fmiRunner::Get(index_t vr) { return coord->getOutput(vr); }
+    double fmiRunner::Get(index_t vr)
+    {
+        return coord->getOutput(vr);
+    }
 
 }  // namespace fmi
 }  // namespace griddyn

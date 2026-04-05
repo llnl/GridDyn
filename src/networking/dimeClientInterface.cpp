@@ -25,8 +25,7 @@
 
 dimeClientInterface::dimeClientInterface(const std::string& dimeName,
                                          const std::string& dimeAddress):
-    name(dimeName),
-    address(dimeAddress)
+    name(dimeName), address(dimeAddress)
 {
     if (address.empty()) {
 #ifdef WIN32

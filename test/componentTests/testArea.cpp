@@ -10,7 +10,6 @@
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include <cmath>
-
 #include <gtest/gtest.h>
 // testP case for coreObject object
 
@@ -18,8 +17,7 @@
 
 using namespace griddyn;
 
-class AreaTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class AreaTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(AreaTests, AreaTest1)
 {

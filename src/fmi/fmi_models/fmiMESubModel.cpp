@@ -22,8 +22,7 @@ namespace fmi {
 
     fmiMESubModel::fmiMESubModel(const std::string& newName,
                                  std::shared_ptr<fmi2ModelExchangeObject> fmi):
-        gridSubModel(newName),
-        me(std::move(fmi))
+        gridSubModel(newName), me(std::move(fmi))
     {
     }
 
@@ -42,7 +41,10 @@ namespace fmi {
         return gco;
     }
 
-    bool fmiMESubModel::isLoaded() const { return static_cast<bool>(me); }
+    bool fmiMESubModel::isLoaded() const
+    {
+        return static_cast<bool>(me);
+    }
 
     void fmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
@@ -224,9 +226,15 @@ namespace fmi {
         }
     }
 
-    stringVec fmiMESubModel::getOutputNames() const { return me->getOutputNames(); }
+    stringVec fmiMESubModel::getOutputNames() const
+    {
+        return me->getOutputNames();
+    }
 
-    stringVec fmiMESubModel::getInputNames() const { return me->getInputNames(); }
+    stringVec fmiMESubModel::getInputNames() const
+    {
+        return me->getInputNames();
+    }
 
     void fmiMESubModel::set(const std::string& param, const std::string& val)
     {

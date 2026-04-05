@@ -10,7 +10,6 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/gridDynSimulationFileOps.h"
 #include <cstdlib>
-
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
@@ -20,8 +19,7 @@ using gmlc::utilities::countDiffs;
 
 static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
 
-class OutputTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class OutputTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(OutputTests, OutputTest1)
 {

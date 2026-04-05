@@ -11,7 +11,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 
-//#include <ctime>
+// #include <ctime>
 namespace griddyn {
 namespace loads {
     using namespace units;
@@ -136,7 +136,7 @@ namespace loads {
             setr(getr() + drdt * tdiff);
             setx(getx() + dxdt * tdiff);
         } else if ((dYpdt != 0.0) || (dYqdt != 0.0)) {
-            setYp(getYp() + dYpdt * tdiff);
+            setup(getYp() + dYpdt * tdiff);
             setYq(getYq() + dYqdt * tdiff);
         }
         if ((dIpdt != 0) || (dIqdt != 0)) {

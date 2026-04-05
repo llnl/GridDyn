@@ -2810,7 +2810,7 @@ SWIG_Python_TypeQuery(const char *type)
 #define SWIG_MustGetPtr(p, type, argnum, flags)  SWIG_Python_MustGetPtr(p, type, argnum, flags)
 
 SWIGRUNTIME int
-SWIG_Python_AddErrMesg(const char* mesg, int infront)
+SWIG_Python_AddErrMesg(const char* mesg, int in front)
 {
   if (PyErr_Occurred()) {
     PyObject *type = 0;
@@ -2822,7 +2822,7 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       PyObject *old_str = PyObject_Str(value);
       Py_XINCREF(type);
       PyErr_Clear();
-      if (infront) {
+      if (in front) {
     PyErr_Format(type, "%s %s", mesg, tmp = SWIG_Python_str_AsChar(old_str));
       } else {
     PyErr_Format(type, "%s %s", tmp = SWIG_Python_str_AsChar(old_str), mesg);

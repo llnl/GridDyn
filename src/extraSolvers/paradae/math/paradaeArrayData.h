@@ -16,7 +16,7 @@ namespace paradae {
         SparseMatrix* J = nullptr;
 
       public:
-        paradaeArrayData(){};
+        paradaeArrayData() {};
         paradaeArrayData(SparseMatrix* mat);
 
         void clear();

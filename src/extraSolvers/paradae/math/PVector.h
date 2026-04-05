@@ -12,9 +12,9 @@ namespace griddyn {
 namespace paradae {
     class PVector: public Vector {
       public:
-        PVector(): Vector(){};
+        PVector(): Vector() {};
         PVector(const Vector& v);
-        virtual ~PVector(){};
+        virtual ~PVector() {};
         PVector& operator=(const Vector& v);
         PVector& operator=(const PVector& v);
         void Set(int m_, Real* data_);

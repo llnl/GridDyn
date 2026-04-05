@@ -3,11 +3,11 @@ variables:
   griddyn.build_type: Release
   griddyn.options:
   CMAKE_BUILD_PARALLEL_LEVEL: 4
-  
+
 jobs:
   - job: macOS_latest
     pool:
-      vmImage: 'macOS-latest'
+      vmImage: "macOS-latest"
     steps:
       # -----------------------
       # Install dependencies
@@ -22,25 +22,25 @@ jobs:
       - task: CMake@1
         inputs:
           cmakeArgs: -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON ..
-        displayName: 'Configure GridDyn'
+        displayName: "Configure GridDyn"
 
       # -----------------------
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: 'Build GridDyn'
+        displayName: "Build GridDyn"
         workingDirectory: build
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: 'Test GridDyn'
+        displayName: "Test GridDyn"
         workingDirectory: build
 
   - job: macOS_mojave
     pool:
-      vmImage: 'macOS-10.14'
+      vmImage: "macOS-10.14"
     steps:
       # -----------------------
       # Install dependencies
@@ -55,26 +55,26 @@ jobs:
       - task: CMake@1
         inputs:
           cmakeArgs: -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_BUILD_TESTS=ON ..
-        displayName: 'Configure GridDyn'
+        displayName: "Configure GridDyn"
 
       # -----------------------
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: 'Build GridDyn'
+        displayName: "Build GridDyn"
         workingDirectory: build
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: 'Test GridDyn'
+        displayName: "Test GridDyn"
         workingDirectory: build
   - job: Docker
     variables:
       griddyn.options:
     pool:
-      v1mImage: 'ubuntu-latest'
+      v1mImage: "ubuntu-latest"
     strategy:
       matrix:
         helics:
@@ -89,17 +89,17 @@ jobs:
     strategy:
       matrix:
         VS2017-32bit:
-          imageName: 'vs2017-win2016'
-          langArch: 'x86'
-          vsArch: 'Win32'
+          imageName: "vs2017-win2016"
+          langArch: "x86"
+          vsArch: "Win32"
         VS2017-64bit:
-          imageName: 'vs2017-win2016'
-          langArch: 'x64'
-          vsArch: 'x64'
+          imageName: "vs2017-win2016"
+          langArch: "x64"
+          vsArch: "x64"
         VS2019-64bit:
-          imageName: 'windows-2019'
-          langArch: 'x64'
-          vsArch: 'x64'
+          imageName: "windows-2019"
+          langArch: "x64"
+          vsArch: "x64"
     pool:
       vmImage: $(imageName)
 
@@ -113,7 +113,7 @@ jobs:
 
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: '3.5'
+          versionSpec: "3.5"
           addToPath: true
           architecture: $(langArch)
 
@@ -128,7 +128,7 @@ jobs:
       - task: CMake@1
         inputs:
           cmakeArgs: -A $(vsArch) -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON ..
-        displayName: 'Configure GridDyn'
+        displayName: "Configure GridDyn"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
       #  - task: CMake@1
@@ -147,7 +147,7 @@ jobs:
       # Build GridDyn
       # -----------------------
       - bash: cmake --build . --config Release
-        displayName: 'Build GridDyn'
+        displayName: "Build GridDyn"
         workingDirectory: build
 
       # -----------------------
@@ -157,23 +157,23 @@ jobs:
           cpack_dir="$(which cmake)"
           cpack_dir="${cpack_dir%/cmake}"
           "${cpack_dir}/cpack" -G "NSIS" -C Release -B "$PWD/installer-output"
-        displayName: 'Package GridDyn'
+        displayName: "Package GridDyn"
         workingDirectory: build
 
       - task: CopyFiles@2
         inputs:
-          sourceFolder: '$(Build.SourcesDirectory)/build/installer-output'
-          contents: '*.exe'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+          sourceFolder: "$(Build.SourcesDirectory)/build/installer-output"
+          contents: "*.exe"
+          TargetFolder: "$(Build.ArtifactStagingDirectory)"
 
       - task: PublishBuildArtifacts@1
         inputs:
-          pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          pathtoPublish: "$(Build.ArtifactStagingDirectory)"
           artifactName: installer
 
       # -----------------------
       # Test GridDyn
       # -----------------------
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
-        displayName: 'Test GridDyn'
+        displayName: "Test GridDyn"
         workingDirectory: build

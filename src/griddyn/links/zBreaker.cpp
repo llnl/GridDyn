@@ -49,7 +49,10 @@ namespace links {
         }
     }
 
-    void zBreaker::switchChange(int /*switchNum*/) { coordinateMergeStatus(); }
+    void zBreaker::switchChange(int /*switchNum*/)
+    {
+        coordinateMergeStatus();
+    }
     void zBreaker::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     {
         coordinateMergeStatus();
@@ -111,7 +114,10 @@ namespace links {
         linkInfo.v2 = linkInfo.v1;
     }
 
-    double zBreaker::quickupdateP() { return 0; }
+    double zBreaker::quickupdateP()
+    {
+        return 0;
+    }
     void zBreaker::coordinateMergeStatus()
     {
         if (isConnected()) {

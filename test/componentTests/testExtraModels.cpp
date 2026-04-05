@@ -7,15 +7,13 @@
 #include "../gtestHelper.h"
 #include "gridDynLoader/libraryLoader.h"
 #include "griddyn/measurement/collector.h"
-
 #include <gtest/gtest.h>
 
 #define EXTRAMODEL_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/extraModel_tests/"
 
 using namespace griddyn;
 
-class ExtraModelTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class ExtraModelTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ExtraModelTests, TestThermaltxTxage)
 {

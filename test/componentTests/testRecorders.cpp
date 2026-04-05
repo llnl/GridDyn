@@ -12,7 +12,6 @@
 #include "griddyn/measurement/collector.h"
 #include <cmath>
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 // test case for coreObject object
@@ -24,8 +23,7 @@ static const std::string collector_test_directory =
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class RecorderTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class RecorderTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(RecorderTests, TsMultiTests)
 {
@@ -420,8 +418,12 @@ TEST_F(RecorderTests, RecorderTest10)
     EXPECT_EQ(ts2.columns(), 3U);
     int ret = remove(recname.c_str());
     EXPECT_EQ(ret, 0);
-    EXPECT_NEAR(ts2.data(0, 2) - ts2.data(1, 2), ts2.data(2, 2), std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
-    EXPECT_NEAR(ts2.data(0, 8) - ts2.data(1, 8), ts2.data(2, 8), std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ts2.data(0, 2) - ts2.data(1, 2),
+                ts2.data(2, 2),
+                std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ts2.data(0, 8) - ts2.data(1, 8),
+                ts2.data(2, 8),
+                std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
 }
 
 TEST_F(RecorderTests, RecorderTest11)

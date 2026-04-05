@@ -55,7 +55,7 @@ class coreObject {
     coreTime updateDelay = timeZero;  //!<[s]the requested delay between updateA and
                                       //!< updateB--requested is key here not guaranteed
   private:
-    // these shouldn't generate false shareing as one is static
+    // these shouldn't generate false sharing as one is static
     static std::atomic<id_type_t> s_obcnt;  //!< the global object counter
     std::atomic<count_t> m_refCount;  //!< counter for the number of owning objects;
   public:
@@ -67,7 +67,7 @@ class coreObject {
     std::string name;  //!< the text name of the object
   public:
     /** @brief default constructor
-    @param[in] objName the name of the object[optiona] default to "object_#"
+    @param[in] objName the name of the object[optional] default to "object_#"
     the name can be followed by a few symbols see # appends the id, $ appends the userid, and @
     appends the locIndex
     */

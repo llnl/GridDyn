@@ -21,10 +21,10 @@ namespace paradae {
         bool isdense;
 
       private:
-        void operator=(const DBlockTriMatrix& mat){};
+        void operator=(const DBlockTriMatrix& mat) {};
 
       public:
-        DBlockTriMatrix(): VirtualMatrix(), diag(NULL), data(NULL){};
+        DBlockTriMatrix(): VirtualMatrix(), diag(NULL), data(NULL) {};
         DBlockTriMatrix(int m_, int s_, bool isdense_ = true);
         DBlockTriMatrix(const DBlockTriMatrix& mat);
         virtual ~DBlockTriMatrix();

@@ -9,15 +9,13 @@
 #include "griddyn/events/Event.h"
 #include <cmath>
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 // test case for coreObject object
 
 static std::string event_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/event_tests/");
 
-class EventTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class EventTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(EventTests, EventTestLoadstring)
 {

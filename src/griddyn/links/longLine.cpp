@@ -27,7 +27,10 @@ namespace links {
         return line;
     }
     // add components
-    void longLine::add(coreObject* /*obj*/) { throw(unrecognizedObjectException(this)); }
+    void longLine::add(coreObject* /*obj*/)
+    {
+        throw(unrecognizedObjectException(this));
+    }
     // remove components
     void longLine::remove(coreObject* /*obj*/) {}
     void longLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)

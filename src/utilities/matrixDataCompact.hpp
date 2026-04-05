@@ -78,9 +78,7 @@ class matrixDataCompact: public matrixData<ValueT> {
     class matrixIteratorCompact {
       public:
         explicit matrixIteratorCompact(const matrixDataCompact<R, C, ValueT>* matrixData,
-                                       index_t start = 0):
-            mDC(matrixData),
-            counter(start)
+                                       index_t start = 0): mDC(matrixData), counter(start)
         {
             if (start == mDC->size()) {
                 Rctr = R;

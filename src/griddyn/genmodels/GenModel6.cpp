@@ -269,6 +269,9 @@ namespace genmodels {
     static const stringVec
         genModel6Names{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp"};
 
-    stringVec GenModel6::localStateNames() const { return genModel6Names; }
+    stringVec GenModel6::localStateNames() const
+    {
+        return genModel6Names;
+    }
 }  // namespace genmodels
 }  // namespace griddyn

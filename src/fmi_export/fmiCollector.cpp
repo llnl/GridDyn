@@ -65,7 +65,10 @@ namespace fmi {
         return defFMIName;
     }
 
-    coreObject* fmiCollector::getOwner() const { return coord; }
+    coreObject* fmiCollector::getOwner() const
+    {
+        return coord;
+    }
 
     void fmiCollector::dataPointAdded(const collectorPoint& cp)
     {

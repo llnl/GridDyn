@@ -7,17 +7,15 @@
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 // test case for coreObject object
 
 #define DYN2_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests2/"
 
 using namespace griddyn;
 
-class DynamicSystemTests2: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class DynamicSystemTests2: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
 {

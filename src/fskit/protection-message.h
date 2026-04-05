@@ -65,7 +65,7 @@ class ProtectionMessage: public fskit::EventMessage {
     template<class Archive>
     void serialize(Archive& ar, const int version)
     {
-        ar& m_messageType;
+        ar & m_messageType;
     }
 
     MESSAGE_TYPE m_messageType;

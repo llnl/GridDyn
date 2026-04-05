@@ -16,7 +16,10 @@ namespace solvers {
         J(mat)
     {
     }
-    void sundialsMatrixDataDense::clear() { SUNMatZero(J); }
+    void sundialsMatrixDataDense::clear()
+    {
+        SUNMatZero(J);
+    }
     void sundialsMatrixDataDense::assign(index_t X, index_t Y, double num)
     {
         SM_ELEMENT_D(J, X, Y) += num;

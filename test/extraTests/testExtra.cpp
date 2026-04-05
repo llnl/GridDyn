@@ -5,5 +5,4 @@
  */
 
 #include "../gtestHelper.h"
-
 #include <gtest/gtest.h>

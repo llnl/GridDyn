@@ -189,8 +189,14 @@ namespace solvers {
         nnz = nonZeroCount;
     }
 
-    double* sundialsInterface::state_data() noexcept { return nvecdata(use_omp, state); }
-    double* sundialsInterface::deriv_data() noexcept { return nvecdata(use_omp, dstate_dt); }
+    double* sundialsInterface::state_data() noexcept
+    {
+        return nvecdata(use_omp, state);
+    }
+    double* sundialsInterface::deriv_data() noexcept
+    {
+        return nvecdata(use_omp, dstate_dt);
+    }
 
     const double* sundialsInterface::state_data() const noexcept
     {
@@ -203,8 +209,14 @@ namespace solvers {
     }
     // output solver stats
 
-    double* sundialsInterface::type_data() noexcept { return nvecdata(use_omp, types); }
-    const double* sundialsInterface::type_data() const noexcept { return nvecdata(use_omp, types); }
+    double* sundialsInterface::type_data() noexcept
+    {
+        return nvecdata(use_omp, types);
+    }
+    const double* sundialsInterface::type_data() const noexcept
+    {
+        return nvecdata(use_omp, types);
+    }
 
     double sundialsInterface::get(const std::string& param) const
     {

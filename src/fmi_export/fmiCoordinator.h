@@ -82,7 +82,7 @@ namespace fmi {
 
         /** get a numerical output
     @param[in] vr the fmi Value Reference
-    @return the numberical output
+    @return the numerical output
     */
         double getOutput(index_t vr);
 

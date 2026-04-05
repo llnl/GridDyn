@@ -22,8 +22,7 @@ namespace fmi {
 
     fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
                                        std::shared_ptr<fmi2CoSimObject> fmi):
-        gridSubModel(newName),
-        cs(std::move(fmi))
+        gridSubModel(newName), cs(std::move(fmi))
     {
     }
 
@@ -41,7 +40,10 @@ namespace fmi {
         return gco;
     }
 
-    bool fmiCoSimSubModel::isLoaded() const { return static_cast<bool>(cs); }
+    bool fmiCoSimSubModel::isLoaded() const
+    {
+        return static_cast<bool>(cs);
+    }
 
     void fmiCoSimSubModel::dynObjectInitializeA(coreTime time, std::uint32_t flags)
     {
@@ -224,9 +226,15 @@ namespace fmi {
         }
     }
 
-    stringVec fmiCoSimSubModel::getOutputNames() const { return cs->getOutputNames(); }
+    stringVec fmiCoSimSubModel::getOutputNames() const
+    {
+        return cs->getOutputNames();
+    }
 
-    stringVec fmiCoSimSubModel::getInputNames() const { return cs->getInputNames(); }
+    stringVec fmiCoSimSubModel::getInputNames() const
+    {
+        return cs->getInputNames();
+    }
 
     void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
     {

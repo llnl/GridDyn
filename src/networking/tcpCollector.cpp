@@ -73,7 +73,10 @@ namespace tcpLib {
         }
     }
 
-    const std::string& tcpCollector::getSinkName() const { return server; }
+    const std::string& tcpCollector::getSinkName() const
+    {
+        return server;
+    }
 
 }  // namespace tcpLib
 }  // namespace griddyn

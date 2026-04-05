@@ -8,19 +8,16 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #
-# GridDyn now expects SUNDIALS to be available as the tracked submodule in
-# ThirdParty/sundials rather than downloading a separate source tree during
-# configure.
+# GridDyn now expects SUNDIALS to be available as the tracked submodule in ThirdParty/sundials
+# rather than downloading a separate source tree during configure.
 #
 
 set(sundials_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/sundials")
 set(sundials_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/sundials-v6")
 
 if(NOT EXISTS "${sundials_SOURCE_DIR}/CMakeLists.txt")
-    message(
-        FATAL_ERROR
-            "The SUNDIALS submodule was not found at ${sundials_SOURCE_DIR}. "
-            "Initialize/update submodules before enabling the local SUNDIALS build."
+    message(FATAL_ERROR "The SUNDIALS submodule was not found at ${sundials_SOURCE_DIR}. "
+                        "Initialize/update submodules before enabling the local SUNDIALS build."
     )
 endif()
 
@@ -33,33 +30,47 @@ if(EXISTS "${sundials_klu_module}")
         file(RENAME "${sundials_klu_module}" "${sundials_klu_backup}")
     endif()
     file(COPY "${PROJECT_SOURCE_DIR}/config/cmake/SundialsKLU.cmake"
-         DESTINATION "${sundials_klu_module_dir}")
+         DESTINATION "${sundials_klu_module_dir}"
+    )
 else()
-    message(
-        WARNING
-            "Unable to find SUNDIALS KLU module at ${sundials_klu_module}; "
-            "GridDyn will not override the bundled KLU detection logic."
+    message(WARNING "Unable to find SUNDIALS KLU module at ${sundials_klu_module}; "
+                    "GridDyn will not override the bundled KLU detection logic."
     )
 endif()
 
-# Map deprecated SUNDIALS cache options to their current names if present from
-# older build trees, then clear the deprecated cache keys to avoid warning spam.
+# Map deprecated SUNDIALS cache options to their current names if present from older build trees,
+# then clear the deprecated cache keys to avoid warning spam.
 set(_sundials_deprecated_options
-    F2003_INTERFACE_ENABLE BUILD_FORTRAN_MODULE_INTERFACE
-    MPI_ENABLE ENABLE_MPI
-    OPENMP_ENABLE ENABLE_OPENMP
-    OPENMP_DEVICE_ENABLE ENABLE_OPENMP_DEVICE
-    SKIP_OPENMP_DEVICE_CHECK OPENMP_DEVICE_WORKS
-    PTHREAD_ENABLE ENABLE_PTHREAD
-    CUDA_ENABLE ENABLE_CUDA
-    LAPACK_ENABLE ENABLE_LAPACK
-    SUPERLUDIST_ENABLE ENABLE_SUPERLUDIST
-    SUPERLUMT_ENABLE ENABLE_SUPERLUMT
-    KLU_ENABLE ENABLE_KLU
-    HYPRE_ENABLE ENABLE_HYPRE
-    PETSC_ENABLE ENABLE_PETSC
-    Trilinos_ENABLE ENABLE_TRILINOS
-    RAJA_ENABLE ENABLE_RAJA
+    F2003_INTERFACE_ENABLE
+    BUILD_FORTRAN_MODULE_INTERFACE
+    MPI_ENABLE
+    ENABLE_MPI
+    OPENMP_ENABLE
+    ENABLE_OPENMP
+    OPENMP_DEVICE_ENABLE
+    ENABLE_OPENMP_DEVICE
+    SKIP_OPENMP_DEVICE_CHECK
+    OPENMP_DEVICE_WORKS
+    PTHREAD_ENABLE
+    ENABLE_PTHREAD
+    CUDA_ENABLE
+    ENABLE_CUDA
+    LAPACK_ENABLE
+    ENABLE_LAPACK
+    SUPERLUDIST_ENABLE
+    ENABLE_SUPERLUDIST
+    SUPERLUMT_ENABLE
+    ENABLE_SUPERLUMT
+    KLU_ENABLE
+    ENABLE_KLU
+    HYPRE_ENABLE
+    ENABLE_HYPRE
+    PETSC_ENABLE
+    ENABLE_PETSC
+    Trilinos_ENABLE
+    ENABLE_TRILINOS
+    RAJA_ENABLE
+    ENABLE_RAJA
 )
 list(LENGTH _sundials_deprecated_options _sundials_opt_len)
 math(EXPR _sundials_last_pair "${_sundials_opt_len} - 2")
@@ -126,9 +137,9 @@ endif()
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
 
 add_library(sundials_all INTERFACE)
-target_include_directories(sundials_all INTERFACE
-    $<BUILD_INTERFACE:${sundials_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${sundials_BINARY_DIR}/include>
+target_include_directories(
+    sundials_all INTERFACE $<BUILD_INTERFACE:${sundials_SOURCE_DIR}/include>
+                           $<BUILD_INTERFACE:${sundials_BINARY_DIR}/include>
 )
 add_library(SUNDIALS::SUNDIALS ALIAS sundials_all)
 

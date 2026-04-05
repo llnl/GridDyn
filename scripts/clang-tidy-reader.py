@@ -39,6 +39,7 @@ def filter_pair(results):
 
 filter_apply_is_start = lambda arg: filter_apply(parser.is_start, identity, arg)
 
+
 ## extract chunk ranges
 def get_line_ranges(line_starts, total):
     # get line ranges, assuming sorted

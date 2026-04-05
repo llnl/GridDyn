@@ -17,9 +17,8 @@
 #include "griddyn/simulation/diagnostics.h"
 #include "griddyn/simulation/gridDynSimulationFileOps.h"
 #include "griddyn/solvers/solverInterface.h"
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace griddyn;
 

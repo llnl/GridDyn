@@ -1,6 +1,6 @@
 // $Id: Distribution Simple model.
 // For verification purposes on gridDyn we are also going to need a very simple model, which consists of a swing bus, and 3
-// other buses.  All the other busses should be connected to the swing bus via lossless 3 phase transmission lines and have a
+// other buses.  All the other buses should be connected to the swing bus via lossless 3 phase transmission lines and have a
 // single load object with a constant power load of 3 MW and 0.9 MVar. So 1 MW and 0.3 Mvar reactive power per phase per
 // object. So in total the model has a load of 9 MW real power and 2.7 MW reactive power. 
 
@@ -28,7 +28,7 @@
 //--- Define simulation time - start
 
 clock {
-	timezone PST+8PDT;
+    timezone PST+8PDT;
      starttime '2011-07-04 00:00:00';
      stoptime '2011-07-04 00:00:60';
 
@@ -90,10 +90,10 @@ object  meter{
 //---Create node objects - start
 
 object  node{
-	name  node_swingbus;
-	bustype  SWING;
-	phases ABCN;
-	nominal_voltage 12470;
+    name  node_swingbus;
+    bustype  SWING;
+    phases ABCN;
+    nominal_voltage 12470;
  }
 
 object node {

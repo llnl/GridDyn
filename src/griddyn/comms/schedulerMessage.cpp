@@ -42,8 +42,7 @@ namespace comms {
 
     schedulerMessagePayload::schedulerMessagePayload(std::vector<double> time,
                                                      std::vector<double> target):
-        m_time(std::move(time)),
-        m_target(std::move(target))
+        m_time(std::move(time)), m_target(std::move(target))
     {
     }
     void schedulerMessagePayload::loadMessage(std::vector<double> time, std::vector<double> target)

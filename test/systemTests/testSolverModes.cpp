@@ -8,13 +8,11 @@
 #include "griddyn/simulation/diagnostics.h"
 #include "griddyn/solvers/solverInterface.h"
 #include <cstdio>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace griddyn;
 static std::string solverMode_test_directory =
     std::string(GRIDDYN_TEST_DIRECTORY "/solvermode_tests/");
 
-class SolverModeTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class SolverModeTests: public gridDynSimulationTestFixture, public ::testing::Test {};

@@ -13,8 +13,7 @@
 namespace griddyn {
 powerFlowErrorRecovery::powerFlowErrorRecovery(gridDynSimulation* gds,
                                                std::shared_ptr<SolverInterface> sd):
-    sim(gds),
-    solver(std::move(sd))
+    sim(gds), solver(std::move(sd))
 {
 }
 powerFlowErrorRecovery::~powerFlowErrorRecovery() = default;

@@ -332,7 +332,7 @@ void cdfBusPrint(FILE* fp, int areaNum, gridBus* bus)
 
     double P = bus->get("p", units::MW);
     double Q = bus->get("q", units::MW);
-    double genP = -bus->get("genreal", units::MW);
+    double genP = -bus->get("general", units::MW);
     double genQ = -bus->get("genreactive", units::MW);
 
     fprintf(fp, "%9.2f%9.2f%9.2f%8.2f", P, Q, genP, genQ);

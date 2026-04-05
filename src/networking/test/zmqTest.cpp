@@ -18,13 +18,12 @@
 #include "networking/zmqLibrary/zmqReactor.h"
 #include "networking/zmqLibrary/zmqSocketDescriptor.h"
 #include <chrono>
-#include <thread>
-
 #include <gtest/gtest.h>
+#include <thread>
 
 static const std::string zmq_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/zmq_tests/");
 
-class ZmqTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace zmq;
 using namespace zmqlib;

@@ -90,7 +90,7 @@ namespace paradae {
                 } else {
                     equation->jacobian_ypcdy(
                         t + rk_c(i) * this->dt, xi, Ki, pstate, 1.0 / (this->dt * rk_A(i, i)), *Ji);
-                    Ji->operator*=(this->dt* rk_A(i, i));
+                    Ji->operator*=(this->dt * rk_A(i, i));
                 }
                 jacmat->SetSubMat(i * size_x, i * size_x, *Ji);
                 delete Ji;

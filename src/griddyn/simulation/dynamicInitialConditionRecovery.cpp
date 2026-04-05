@@ -14,9 +14,7 @@
 namespace griddyn {
 dynamicInitialConditionRecovery::dynamicInitialConditionRecovery(
     gridDynSimulation* gds,
-    std::shared_ptr<SolverInterface> sd):
-    sim(gds),
-    solver(std::move(sd))
+    std::shared_ptr<SolverInterface> sd): sim(gds), solver(std::move(sd))
 {
 }
 dynamicInitialConditionRecovery::~dynamicInitialConditionRecovery() = default;

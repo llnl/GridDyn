@@ -214,7 +214,7 @@ void loadCSV(coreObject* parentObject,
                         static_cast<Link*>(obj)->updateBus(bus, 1);
                     } else {
                         WARNPRINT(READER_WARN_ALL,
-                                          "line " << lineNumber << ":: unable to locate bus object  "
+                                  "line " << lineNumber << ":: unable to locate bus object  "
                                           << str);
                     }
                 } else if ((field == "bus") && ((ObjectMode == "load") || (ObjectMode == "gen"))) {
@@ -231,7 +231,7 @@ void loadCSV(coreObject* parentObject,
                         bus->add(obj);
                     } else {
                         WARNPRINT(READER_WARN_ALL,
-                                          "line " << lineNumber << ":: unable to locate bus object  "
+                                  "line " << lineNumber << ":: unable to locate bus object  "
                                           << str);
                     }
                 } else if (((field == "target") || (field == "sink") || (field == "source")) &&

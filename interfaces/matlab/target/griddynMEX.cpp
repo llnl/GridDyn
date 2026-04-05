@@ -207,7 +207,7 @@ T SwigValueInit()
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
-#    define SWIG_QUOTE_STRING(x) #    x
+#    define SWIG_QUOTE_STRING(x) #x
 #    define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
 #    define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
 #else
@@ -354,7 +354,7 @@ T SwigValueInit()
 #    ifndef SWIG_MAXCASTRANK /* Default cast allowed */
 #        define SWIG_MAXCASTRANK (2)
 #    endif
-#    define SWIG_CASTRANKMASK ((SWIG_CASTRANKLIMIT)-1)
+#    define SWIG_CASTRANKMASK ((SWIG_CASTRANKLIMIT) - 1)
 #    define SWIG_CastRank(r) (r & SWIG_CASTRANKMASK)
 SWIGINTERNINLINE int SWIG_AddCast(int r)
 {
@@ -6731,7 +6731,7 @@ SWIGRUNTIME void SWIG_InitializeModule(void* clientdata)
      set up already */
     if (init == 0) return;
 
-        /* Now work on filling in swig_module.types */
+    /* Now work on filling in swig_module.types */
 #ifdef SWIGRUNTIME_DEBUG
     printf("SWIG_InitializeModule: size %d\n", swig_module.size);
 #endif

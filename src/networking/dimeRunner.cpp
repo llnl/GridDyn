@@ -68,7 +68,10 @@ namespace dimeLib {
     }
 
 */
-    coreTime dimeRunner::Run() { return GriddynRunner::Run(); }
+    coreTime dimeRunner::Run()
+    {
+        return GriddynRunner::Run();
+    }
 
     coreTime dimeRunner::Step(coreTime time)
     {
@@ -77,7 +80,10 @@ namespace dimeLib {
         return retTime;
     }
 
-    void dimeRunner::Finalize() { GriddynRunner::Finalize(); }
+    void dimeRunner::Finalize()
+    {
+        GriddynRunner::Finalize();
+    }
 
 }  // namespace dimeLib
 }  // namespace griddyn

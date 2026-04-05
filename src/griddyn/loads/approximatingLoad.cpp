@@ -20,7 +20,7 @@
 
 using gmlc::utilities::convertToLowerCase;
 
-//#define SGS_DEBUG
+// #define SGS_DEBUG
 namespace griddyn {
 namespace loads {
 #define CONJUGATE 1
@@ -196,7 +196,7 @@ namespace loads {
                 setQ(LV[1]);
                 setIp(LV[2]);
                 setIq(LV[3]);
-                setYp(LV[4]);
+                setup(LV[4]);
                 setYq(LV[5]);
 
                 if (LV.size() == 12) {

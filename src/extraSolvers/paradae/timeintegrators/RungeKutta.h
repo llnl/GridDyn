@@ -25,7 +25,7 @@ namespace paradae {
 
       public:
         Solver_App_RK(Real rtol_, const Vector& atol_, const Vector& x0_, RungeKutta* rk_);
-        virtual ~Solver_App_RK(){};
+        virtual ~Solver_App_RK() {};
         virtual Real XNorm(const Vector& dx, const Vector& x) const;
         virtual Real FxNorm(const Vector& fx) const;
         virtual Real XNorm(const Vector& dx, const Vector& x, Real tol_) const;
@@ -47,7 +47,7 @@ namespace paradae {
 
       public:
         RungeKutta();
-        ~RungeKutta(){};
+        ~RungeKutta() {};
         RungeKutta(Equation* eq, bool varstep = false);
         RCODE AdvanceStep(DATA_Struct& val, int iter_ref = 0);
         bool EstimateNextStepSize(const Vector& x0,

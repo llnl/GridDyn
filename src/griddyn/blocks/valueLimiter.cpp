@@ -16,7 +16,10 @@ namespace blocks {
         minVal = nmin;
         maxVal = nmax;
     }
-    void valueLimiter::setResetLevel(double newReset) { resetLevel = newReset; }
+    void valueLimiter::setResetLevel(double newReset)
+    {
+        resetLevel = newReset;
+    }
     double valueLimiter::limitCheck(double input) const
     {
         double val;
@@ -66,8 +69,14 @@ namespace blocks {
         return (limiterEngaged) ? ((limiterHigh) ? maxVal : minVal) : input;
     }
 
-    double valueLimiter::deriv(double dIdt) const { return (limiterEngaged) ? 0.0 : dIdt; }
-    double valueLimiter::DoutDin() const { return (limiterEngaged) ? 0.0 : 1.0; }
+    double valueLimiter::deriv(double dIdt) const
+    {
+        return (limiterEngaged) ? 0.0 : dIdt;
+    }
+    double valueLimiter::DoutDin() const
+    {
+        return (limiterEngaged) ? 0.0 : 1.0;
+    }
     double valueLimiter::clampOutput(double input) const
     {
         return (input > maxVal) ? maxVal : (input < minVal) ? minVal : input;

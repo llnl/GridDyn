@@ -14,9 +14,9 @@ namespace paradae {
 
     class SVector: public Vector {
       public:
-        SVector(): Vector(){};
+        SVector(): Vector() {};
         SVector(int m_, Real fill_ = 0);
-        SVector(const SVector& v): SVector((Vector)v){};
+        SVector(const SVector& v): SVector((Vector)v) {};
         SVector(const Vector& v);
         virtual ~SVector();
         void Free();

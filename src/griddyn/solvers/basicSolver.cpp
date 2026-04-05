@@ -14,7 +14,10 @@ namespace griddyn {
 using namespace gmlc::utilities;
 
 namespace solvers {
-    basicSolver::basicSolver(mode_t alg): algorithm(alg) { mode.algebraic = true; }
+    basicSolver::basicSolver(mode_t alg): algorithm(alg)
+    {
+        mode.algebraic = true;
+    }
     basicSolver::basicSolver(const std::string& objName, mode_t alg):
         SolverInterface(objName), algorithm(alg)
     {
@@ -45,12 +48,30 @@ namespace solvers {
         ai->alpha = alpha;
     }
 
-    double* basicSolver::state_data() noexcept { return state.data(); }
-    double* basicSolver::deriv_data() noexcept { return nullptr; }
-    double* basicSolver::type_data() noexcept { return type.data(); }
-    const double* basicSolver::state_data() const noexcept { return state.data(); }
-    const double* basicSolver::deriv_data() const noexcept { return nullptr; }
-    const double* basicSolver::type_data() const noexcept { return type.data(); }
+    double* basicSolver::state_data() noexcept
+    {
+        return state.data();
+    }
+    double* basicSolver::deriv_data() noexcept
+    {
+        return nullptr;
+    }
+    double* basicSolver::type_data() noexcept
+    {
+        return type.data();
+    }
+    const double* basicSolver::state_data() const noexcept
+    {
+        return state.data();
+    }
+    const double* basicSolver::deriv_data() const noexcept
+    {
+        return nullptr;
+    }
+    const double* basicSolver::type_data() const noexcept
+    {
+        return type.data();
+    }
     void basicSolver::allocate(count_t stateCount, count_t numRoots)
     {
         // load the vectors

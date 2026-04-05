@@ -458,9 +458,7 @@ class stateData {
     stateData(coreTime sTime = 0.0,
               const double* sstate = nullptr,
               const double* ndstate_dt = nullptr,
-              count_t cseq = 0):
-        time(sTime),
-        seqID(cseq), state(sstate), dstate_dt(ndstate_dt)
+              count_t cseq = 0): time(sTime), seqID(cseq), state(sstate), dstate_dt(ndstate_dt)
     {
     }
     bool empty() const { return (state == nullptr); }

@@ -41,10 +41,10 @@ namespace paradae {
 
         RootManager():
             n_sroots(0), n_uroots(0), n_sactive(0), n_uactive(0), n_state(0), is_active(0),
-            dir_root(0), t_sroot(0), tol(0){};
+            dir_root(0), t_sroot(0), tol(0) {};
         RootManager(int n_sr, int n_ur, int n_st, Real tol_):
             n_sroots(n_sr), n_uroots(n_ur), n_sactive(0), n_uactive(0), n_state(n_st),
-            is_active(n_sr + n_ur), dir_root(n_ur), t_sroot(n_sr), tol(tol_){};
+            is_active(n_sr + n_ur), dir_root(n_ur), t_sroot(n_sr), tol(tol_) {};
         inline bool HasSRoots() const { return n_sactive > 0; };
         inline bool HasURoots() const { return n_uactive > 0; };
         inline bool HasRoots() const { return (n_sactive > 0) || (n_uactive > 0); };
@@ -70,7 +70,7 @@ namespace paradae {
 
       public:
         Equation();
-        virtual ~Equation(){};
+        virtual ~Equation() {};
         virtual void function(const Real t,
                               const Vector& y,
                               const Vector& dy,
@@ -104,11 +104,11 @@ namespace paradae {
                                     const Vector& y,
                                     const Vector& dy,
                                     const Vector& state,
-                                    Vector& rv){};
+                                    Vector& rv) {};
         // Change the state depending on which root is found (should be private?)
-        virtual void root_crossings(const Vector& iroot, Vector& state){};
+        virtual void root_crossings(const Vector& iroot, Vector& state) {};
         // initialize the state
-        virtual void root_init_state(const Real t, Vector& state){};
+        virtual void root_init_state(const Real t, Vector& state) {};
         // Check if a root has been crossed. If so, estimate the time t and change the state.
         bool CheckAllRoots(IPoly& P, Real tlo, Vector& glo, Real& thi, Vector& ghi, Vector& state);
         // Check if a unscheduled root has been crossed. If so, estimate the time t.

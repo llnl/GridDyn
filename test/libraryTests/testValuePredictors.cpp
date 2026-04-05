@@ -8,7 +8,6 @@
 
 #include "../gtestHelper.h"
 #include "utilities/valuePredictor.hpp"
-
 #include <gtest/gtest.h>
 
 TEST(ValuePredictorTests, SimplePredictorTest) {}

@@ -8,15 +8,13 @@
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 // test case for coreObject object
 
 using namespace griddyn;
 #define ROOTS_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/rootFinding_tests/"
 
-class RootTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class RootTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
 TEST_F(RootTests, RootTest1)

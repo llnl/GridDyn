@@ -23,7 +23,7 @@ namespace paradae {
                          const Vector& x0_,
                          RungeKutta_Implicit* rk_);
         void SetSolverStep(int i, SMultiVector& allK, const Vector& x0);
-        virtual ~Solver_App_SDIRK(){};
+        virtual ~Solver_App_SDIRK() {};
         virtual void
             EvaluateFunAndJac(const Vector& allK, Vector& gx, bool require_jac, bool factorize);
     };
@@ -37,7 +37,7 @@ namespace paradae {
         virtual void SetDenseMatrix(bool dense_mat_ = true);
         virtual Solver_App_RK* BuildSolverApp(Real t, Real dt, const Vector& x0);
         virtual bool SolveInnerSteps(Real t, Real used_dt, const Vector& x0, SMultiVector& allK);
-        virtual ~RungeKutta_SDIRK(){};
+        virtual ~RungeKutta_SDIRK() {};
     };
 }  // namespace paradae
 }  // namespace griddyn

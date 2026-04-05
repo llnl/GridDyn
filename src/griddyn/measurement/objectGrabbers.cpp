@@ -42,11 +42,11 @@ static const std::map<std::string, std::string> stringTranslate{
     {"loadpower", "loadreal"},
     {"reactivegen", "genreactive"},
     {"genq", "genreactive"},
-    {"gen", "genreal"},
-    {"generation", "genreal"},
-    {"genp", "genreal"},
-    {"genpower", "genreal"},
-    {"realgen", "genreal"},
+    {"gen", "general"},
+    {"generation", "general"},
+    {"genp", "general"},
+    {"genpower", "general"},
+    {"realgen", "general"},
     {"f", "freq"},
     {"frequency", "freq"},
     {"omega", "freq"},
@@ -161,7 +161,7 @@ static const std::map<std::string, fobjectPair> busFunctions{
     {"busangle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
     {"freq", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
     {"busfreq", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
-    {"genreal",
+    {"general",
      {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
      {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReactive(); }, puMW}},
@@ -175,7 +175,7 @@ static const std::map<std::string, fobjectPair> busFunctions{
 
 static const std::map<std::string, fobjectPair> areaFunctions{
     {"avgfreq", {[](coreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
-    {"genreal",
+    {"general",
      {[](coreObject* obj) { return static_cast<Area*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
      {[](coreObject* obj) { return static_cast<Area*>(obj)->getGenerationReactive(); }, puMW}},
@@ -295,7 +295,7 @@ static const std::map<std::string, fobjectPair> loadFunctions{
 };
 
 static const std::map<std::string, fobjectPair> genFunctions{
-    {"genreal",
+    {"general",
      {[](coreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
     {"genreactive",
      {[](coreObject* obj) { return static_cast<Generator*>(obj)->getReactivePower(); }, puMW}},

@@ -13,7 +13,7 @@ import unittest
 
 
 class gridDyn(unittest.TestCase):
-    """unittest for gridDy python interface """
+    """unittest for gridDy python interface"""
 
     def setUp(self):
         self.ieee_test_directory = "../../test/test_files/IEEE_test_cases/"

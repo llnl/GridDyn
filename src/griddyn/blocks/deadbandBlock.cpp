@@ -228,7 +228,7 @@ namespace blocks {
             auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
             double ival = input + bias;
             update[offset] = K * computeValue(ival);
-            // printf("db %f intput=%f val=%f dbstate=%d\n", sD.time, ival,
+            // printf("db %f input=%f val=%f dbstate=%d\n", sD.time, ival,
             // update[offset], static_cast<int>(dbstate));
             if (limiter_alg > 0) {
                 return Block::blockAlgebraicUpdate(input, sD, update, sMode);

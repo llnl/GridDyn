@@ -151,7 +151,10 @@ namespace exciters {
 
     static const stringVec ieeeType2Fields{"ef", "vr", "x1", "x2"};
 
-    stringVec ExciterIEEEtype2::localStateNames() const { return ieeeType2Fields; }
+    stringVec ExciterIEEEtype2::localStateNames() const
+    {
+        return ieeeType2Fields;
+    }
     void ExciterIEEEtype2::rootTest(const IOdata& inputs,
                                     const stateData& sD,
                                     double roots[],

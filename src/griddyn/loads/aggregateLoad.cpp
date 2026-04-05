@@ -99,7 +99,7 @@ namespace loads {
             setQ(aggregateSLoad->getQ());
             setIp(aggregateSLoad->getIp());
             setIq(aggregateSLoad->getIq());
-            setYp(aggregateSLoad->getYp());
+            setup(aggregateSLoad->getYp());
             setYq(aggregateSLoad->getYq());
 
             for (size_t nn = 0; nn < subLoads.size(); ++nn) {

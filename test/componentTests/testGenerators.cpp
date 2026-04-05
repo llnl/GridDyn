@@ -8,15 +8,13 @@
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/gridBus.h"
-
 #include <gtest/gtest.h>
 
 #define GEN_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gen_tests/"
 
 using namespace griddyn;
 
-class GeneratorTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class GeneratorTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GeneratorTests, GenTestRemote)
 {

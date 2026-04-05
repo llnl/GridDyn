@@ -26,8 +26,8 @@ void allGrabbers(const std::string& mode,
                  std::vector<std::unique_ptr<gridGrabber>>& v);
 
 void perObjectGrabbers(const std::string& cmd,
-                 coreObject* obj,
-                 std::vector<std::unique_ptr<gridGrabber>>& v);
+                       coreObject* obj,
+                       std::vector<std::unique_ptr<gridGrabber>>& v);
 
 static grabberInterpreter<gridGrabber, opGrabber, functionGrabber>
     gInterpret([](const std::string& fld, coreObject* obj) { return createGrabber(fld, obj); });
@@ -73,8 +73,8 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& comman
                     allGrabbers(cmd, ggb->getObject(), v);
                 } else if (ggb->field == "auto") {
                     autoGrabbers(ggb->getObject(), v);
-               }else if (ggb->field.compare(0, 5, "state") == 0){
-                       v.push_back(std::move(ggb));  
+                } else if (ggb->field.compare(0, 5, "state") == 0) {
+                    v.push_back(std::move(ggb));
                 } else {
                     obj->log(obj, print_level::warning, "Unable to load recorder " + command);
                 }
@@ -85,7 +85,7 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& comman
                 allGrabbers(cmd, obj, v);
             } else if (cmdlc == "auto") {
                 autoGrabbers(obj, v);
-            } else if (cmdlc.compare(0, 4, "per_")==0) {
+            } else if (cmdlc.compare(0, 4, "per_") == 0) {
                 perObjectGrabbers(cmd, obj, v);
             } else {  // create a single grabber
                 auto ggb = createGrabber(cmdlc, obj);
@@ -193,7 +193,7 @@ void perObjectGrabbers(const std::string& cmd,
         return;
     }
     auto fieldlist = cmd.substr(bstart + 1);
-    while (fieldlist.back() !=']') {
+    while (fieldlist.back() != ']') {
         fieldlist.pop_back();
     }
     fieldlist.pop_back();
@@ -201,9 +201,9 @@ void perObjectGrabbers(const std::string& cmd,
     auto objType = cmd.substr(4, bstart - 4);
     index_t index = 0;
     auto* sub_obj = obj->getSubObject(objType, index);
-    while (sub_obj!=nullptr) {
+    while (sub_obj != nullptr) {
         auto gbrs = makeGrabbers(fieldlist, sub_obj);
-        for (auto &gb:gbrs) {
+        for (auto& gb : gbrs) {
             v.push_back(std::move(gb));
         }
         ++index;

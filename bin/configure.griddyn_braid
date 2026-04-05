@@ -12,18 +12,18 @@
 # Check if environment variable with path to XBraid install is set
 # e.g., export XBRAID_ROOT=~/apps/xbraid/barid
 if [ -z "$XBRAID_ROOT" ]; then
-    echo "ERROR: XBRAID_ROOT not set!"
-    exit 1
+	echo "ERROR: XBRAID_ROOT not set!"
+	exit 1
 fi
 
 # Configure GridDyn
 cmake .. \
-      -D CMAKE_BUILD_TYPE=release \
-      -D CMAKE_INSTALL_PREFIX=./install \
-      -D BUILD_SHARED_LIBS=OFF \
-      -D CMAKE_POSITION_INDEPENDENT_CODE=ON \
-      -D GRIDDYN_ENABLE_MPI=ON \
-      -D GRIDDYN_ENABLE_OPENMP=OFF \
-      -D GRIDDYN_ENABLE_EXTRA_SOLVERS=ON \
-      -D BUILD_BRAID_SOLVER=ON \
-      -D BRAID_INSTALL_DIR="$XBRAID_ROOT"
+	-D CMAKE_BUILD_TYPE=release \
+	-D CMAKE_INSTALL_PREFIX=./install \
+	-D BUILD_SHARED_LIBS=OFF \
+	-D CMAKE_POSITION_INDEPENDENT_CODE=ON \
+	-D GRIDDYN_ENABLE_MPI=ON \
+	-D GRIDDYN_ENABLE_OPENMP=OFF \
+	-D GRIDDYN_ENABLE_EXTRA_SOLVERS=ON \
+	-D BUILD_BRAID_SOLVER=ON \
+	-D BRAID_INSTALL_DIR="$XBRAID_ROOT"

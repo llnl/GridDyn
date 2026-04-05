@@ -8,13 +8,11 @@
 #include "fileInput/readElement.h"
 #include "griddyn/sources/sourceTypes.h"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 #define SOURCE_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/source_tests/"
 
-class SourceTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class SourceTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace griddyn;
 using namespace griddyn::sources;

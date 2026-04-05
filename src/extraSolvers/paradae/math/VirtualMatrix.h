@@ -16,7 +16,7 @@ namespace paradae {
 
     class VirtualMatrix {
       private:
-        void operator=(const VirtualMatrix& /*mat*/){};
+        void operator=(const VirtualMatrix& /*mat*/) {};
 
       protected:
         int m;
@@ -24,11 +24,11 @@ namespace paradae {
         bool isrankdef;
 
       public:
-        VirtualMatrix(): m(0), isfacto(false), isrankdef(false){};
-        VirtualMatrix(int m_): m(m_), isfacto(false), isrankdef(false){};
+        VirtualMatrix(): m(0), isfacto(false), isrankdef(false) {};
+        VirtualMatrix(int m_): m(m_), isfacto(false), isrankdef(false) {};
         VirtualMatrix(const VirtualMatrix& mat):
-            m(mat.m), isfacto(mat.isfacto), isrankdef(mat.isrankdef){};
-        virtual ~VirtualMatrix(){};
+            m(mat.m), isfacto(mat.isfacto), isrankdef(mat.isrankdef) {};
+        virtual ~VirtualMatrix() {};
 
         inline int& GetM() { return m; };
         inline int GetM() const { return m; };
@@ -59,13 +59,13 @@ namespace paradae {
 
     class Matrix: public VirtualMatrix {
       private:
-        void operator=(const Matrix& mat){};
+        void operator=(const Matrix& mat) {};
 
       public:
-        Matrix(): VirtualMatrix(){};
-        Matrix(int m_): VirtualMatrix(m_){};
-        Matrix(const Matrix& mat): VirtualMatrix(mat){};
-        virtual ~Matrix(){};
+        Matrix(): VirtualMatrix() {};
+        Matrix(int m_): VirtualMatrix(m_) {};
+        Matrix(const Matrix& mat): VirtualMatrix(mat) {};
+        virtual ~Matrix() {};
         virtual void SetIJV(int n_, int nnz_, int* ival, int* jval, Real* vval) = 0;
     };
 

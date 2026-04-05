@@ -248,7 +248,10 @@ namespace genmodels {
 
     static const stringVec genModel4Names{"id", "iq", "delta", "freq", "edp", "eqp"};
 
-    stringVec GenModel4::localStateNames() const { return genModel4Names; }
+    stringVec GenModel4::localStateNames() const
+    {
+        return genModel4Names;
+    }
     // set parameters
     void GenModel4::set(const std::string& param, const std::string& val)
     {

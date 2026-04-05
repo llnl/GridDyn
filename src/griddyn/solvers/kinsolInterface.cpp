@@ -9,7 +9,7 @@
 #include "../gridDynSimulation.h"
 #include "../simulation/gridDynSimulationFileOps.h"
 #include "sundialsMatrixData.h"
-//#include "matrixDataBoost.h"
+// #include "matrixDataBoost.h"
 #include "core/coreExceptions.h"
 #include "fmtlib/include/fmt/format.h"
 #include "utilities/matrixCreation.h"
@@ -295,10 +295,10 @@ namespace solvers {
 
 #define SHOW_MISSING_ELEMENTS 0
 
-    //#define KIN_NONE       0
-    //#define KIN_LINESEARCH 1
-    //#define KIN_PICARD     2
-    //#define KIN_FP         3
+    // #define KIN_NONE       0
+    // #define KIN_LINESEARCH 1
+    // #define KIN_PICARD     2
+    // #define KIN_FP         3
     int kinsolInterface::solve(coreTime tStop, coreTime& tReturn, step_mode /*mode*/)
     {
         // check if the multiple data sets are in use and if we should toggle the data to use
@@ -386,13 +386,13 @@ namespace solvers {
             long int val = 0;
             KINGetNumNonlinSolvIters(sd->solverMem, &val);
             double* residuals = NVECTOR_DATA(sd->use_omp, resid);
-            double* values = NVECTOR_DATA(sd->use_omp,state);
+            double* values = NVECTOR_DATA(sd->use_omp, state);
             fmt::print("Residual for {} at time ={} iteration %{}\n",
                        sd->getName(),
                        static_cast<double>(sd->solveTime),
                        val);
             for (int kk = 0; kk < static_cast<int>(sd->svsize); ++kk) {
-                fmt::print("value[{}] = {}, resid[{}]={}\n", kk, values[kk],kk, residuals[kk]);
+                fmt::print("value[{}] = {}, resid[{}]={}\n", kk, values[kk], kk, residuals[kk]);
             }
             fmt::print("---------------------------------\n");
         }

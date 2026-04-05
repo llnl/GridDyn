@@ -4,23 +4,22 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/events/Event.h"
 #include <cmath>
 #include <cstdio>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 // test case for coreObject object
 
 static std::string event_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/event_tests/");
 
-BOOST_FIXTURE_TEST_SUITE(event_tests, gridDynSimulationTestFixture)
+class EventTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
 
-BOOST_AUTO_TEST_CASE(event_test_loadstring)
+TEST_F(EventTests, EventTestLoadstring)
 {
     std::string fileName = event_test_directory + "event_test_loadstring.xml";
     gds = griddyn::readSimXMLFile(fileName);
@@ -28,16 +27,15 @@ BOOST_AUTO_TEST_CASE(event_test_loadstring)
     griddyn::EventInfo gdEI;
     gdEI.loadString("@2+3|LINK#1:param(MW)=13", gds->getRoot());
 
-    BOOST_CHECK(gdEI.targetObjs[0] != nullptr);
-    BOOST_CHECK_EQUAL(gdEI.fieldList[0], "param");
-    BOOST_CHECK_EQUAL(gdEI.value[0], 13);
-    BOOST_CHECK(gdEI.units[0] == units::MW);
-    BOOST_CHECK_EQUAL(gdEI.time[0], griddyn::coreTime(2));
-    BOOST_CHECK_EQUAL(gdEI.period, griddyn::coreTime(3));
+    ASSERT_NE(gdEI.targetObjs[0], nullptr);
+    EXPECT_EQ(gdEI.fieldList[0], "param");
+    EXPECT_EQ(gdEI.value[0], 13);
+    EXPECT_EQ(gdEI.units[0], units::MW);
+    EXPECT_EQ(gdEI.time[0], griddyn::coreTime(2));
+    EXPECT_EQ(gdEI.period, griddyn::coreTime(3));
 }
 
-BOOST_AUTO_TEST_CASE(event_test1) {}
-BOOST_AUTO_TEST_CASE(event_test2) {}
-BOOST_AUTO_TEST_CASE(event_test3) {}
-BOOST_AUTO_TEST_CASE(event_test4) {}
-BOOST_AUTO_TEST_SUITE_END()
+TEST_F(EventTests, EventTest1) {}
+TEST_F(EventTests, EventTest2) {}
+TEST_F(EventTests, EventTest3) {}
+TEST_F(EventTests, EventTest4) {}

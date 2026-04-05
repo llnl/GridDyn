@@ -4,26 +4,24 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "core/coreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include <cmath>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 // testP case for coreObject object
 
 #define AREA_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/area_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(area_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
-
 using namespace griddyn;
-BOOST_AUTO_TEST_CASE(area_test1)
+
+class AreaTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(AreaTests, AreaTest1)
 {
     std::string fileName = std::string(AREA_TEST_DIRECTORY "area_test1.xml");
 
@@ -35,12 +33,12 @@ BOOST_AUTO_TEST_CASE(area_test1)
 
     int count;
     count = gds->getInt("totalareacount");
-    BOOST_CHECK_EQUAL(count, 1);
+    EXPECT_EQ(count, 1);
     count = gds->getInt("totalbuscount");
-    BOOST_CHECK_EQUAL(count, 9);
+    EXPECT_EQ(count, 9);
     // check the linkcount
     count = gds->getInt("totallinkcount");
-    BOOST_CHECK_EQUAL(count, 9);
+    EXPECT_EQ(count, 9);
 
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
@@ -56,10 +54,10 @@ BOOST_AUTO_TEST_CASE(area_test1)
 
     auto st2 = gds2->getState();
     auto diffs = gmlc::utilities::countDiffs(st, st2, 0.00001);
-    BOOST_CHECK(diffs == 0);
+    EXPECT_EQ(diffs, 0);
 }
 
-BOOST_AUTO_TEST_CASE(area_test_add)
+TEST_F(AreaTests, AreaTestAdd)
 {
     auto area = std::make_unique<Area>("area1");
 
@@ -69,26 +67,24 @@ BOOST_AUTO_TEST_CASE(area_test_add)
         area->add(bus1);
     }
     catch (...) {
-        BOOST_CHECK(false);
+        FAIL();
     }
 
     auto bus2 = bus1->clone();
     try {
         area->add(bus2);
         // this is testing failure
-        BOOST_CHECK(false);
+        FAIL();
     }
     catch (const objectAddFailure& oaf) {
-        BOOST_CHECK(oaf.who() == "area1");
+        EXPECT_EQ(oaf.who(), "area1");
     }
     bus2->setName("bus2");
     try {
         area->add(bus2);
-        BOOST_CHECK(isSameObject(bus2->getParent(), area.get()));
+        EXPECT_TRUE(isSameObject(bus2->getParent(), area.get()));
     }
     catch (...) {
-        BOOST_CHECK(false);
+        FAIL();
     }
 }
-
-BOOST_AUTO_TEST_SUITE_END()

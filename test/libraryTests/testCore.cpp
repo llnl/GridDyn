@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "core/coreExceptions.h"
 #include "core/objectFactory.hpp"
 #include "griddyn/Governor.h"

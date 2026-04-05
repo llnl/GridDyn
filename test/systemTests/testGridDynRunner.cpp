@@ -7,21 +7,16 @@
 // test case for element readers
 
 #include "../exeTestHelper.h"
-#include "../testHelper.h"
 #include "runner/gridDynRunner.h"
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-BOOST_AUTO_TEST_SUITE(runner_tests)
+#include <gtest/gtest.h>
 
 #ifdef ENABLE_THIS_CASE
-BOOST_AUTO_TEST_CASE(runner_test1)
+TEST(GridDynRunnerTests, RunnerTest1)
 {
     std::string fileName = std::string(GRIDDYN_TEST_DIRECTORY "/runnerTests/test_180_trip.xml");
     // std::string fileName = std::string(GRIDDYN_TEST_DIRECTORY
@@ -85,4 +80,3 @@ BOOST_AUTO_TEST_CASE(runner_test1)
 }
 
 #endif
-BOOST_AUTO_TEST_SUITE_END()

@@ -10,9 +10,7 @@
  * LLNS Copyright End
  */
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 /** these test cases test out the value converters
  */
@@ -25,22 +23,20 @@ static const std::string matlab_test_directory =
 static const std::string other_test_directory =
     std::string(GRIDDYN_TEST_DIRECTORY "/other_test_cases/");
 
-BOOST_AUTO_TEST_SUITE(basic_tests, *boost::unit_test::label("quick"))
-
 /** just a check that in the simple case we do actually get the time back we requested*/
-BOOST_AUTO_TEST_CASE(simple_load_test)
+TEST(SharedLibraryBasicTests, SimpleLoadTest)
 {
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
-    BOOST_CHECK(sim != nullptr);
+    EXPECT_NE(sim, nullptr);
     std::string file = ieee_test_directory + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
-    BOOST_CHECK(err.error_code == griddyn_ok);
+    EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationRun(sim, &err);
 
     double time = gridDynSimulationGetCurrentTime(sim, &err);
 
-    BOOST_CHECK_CLOSE(time, 30.0, 0.0001);
+    EXPECT_NEAR(time, 30.0, 0.0001);
     auto obj = getSimulationObject(sim, &err);
 
     gridDynObjectFree(obj);
@@ -48,72 +44,72 @@ BOOST_AUTO_TEST_CASE(simple_load_test)
     gridDynSimulationFree(sim);
 }
 
-BOOST_AUTO_TEST_CASE(getResult_test)
+TEST(SharedLibraryBasicTests, GetResultTest)
 {
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
-    BOOST_CHECK(sim != nullptr);
+    EXPECT_NE(sim, nullptr);
     std::string file = ieee_test_directory + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
-    BOOST_CHECK(err.error_code == griddyn_ok);
+    EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationPowerflow(sim, &err);
 
     int cnt = gridDynSimulationBusCount(sim);
 
-    BOOST_CHECK_EQUAL(cnt, 14);
+    EXPECT_EQ(cnt, 14);
     std::vector<double> voltages(cnt);
     std::vector<double> angles(cnt);
     int act;
     gridDynSimulationGetResults(sim, "voltage", voltages.data(), cnt, &act, &err);
-    BOOST_REQUIRE_EQUAL(cnt, act);
+    ASSERT_EQ(cnt, act);
     gridDynSimulationGetResults(sim, "angles", angles.data(), cnt, &act, &err);
-    BOOST_REQUIRE_EQUAL(cnt, act);
-    BOOST_CHECK_CLOSE(voltages[0], 1.06, 0.001);
-    BOOST_CHECK_SMALL(angles[0], 0.00001);
-    BOOST_CHECK_CLOSE(voltages[1], 1.045, 0.001);
-    BOOST_CHECK_CLOSE(voltages[2], 1.01, 0.001);
-    BOOST_CHECK_CLOSE(voltages[8], 1.056, 0.1);
-    BOOST_CHECK_CLOSE(angles[5], -14.22 * 3.1415927 / 180.0, 0.1);
+    ASSERT_EQ(cnt, act);
+    EXPECT_NEAR(voltages[0], 1.06, 0.001);
+    EXPECT_NEAR(angles[0], 0.0, 0.00001);
+    EXPECT_NEAR(voltages[1], 1.045, 0.001);
+    EXPECT_NEAR(voltages[2], 1.01, 0.001);
+    EXPECT_NEAR(voltages[8], 1.056, 0.1);
+    EXPECT_NEAR(angles[5], -14.22 * 3.1415927 / 180.0, 0.1);
 
     gridDynSimulationFree(sim);
 }
 
-BOOST_AUTO_TEST_CASE(getObject_tests)
+TEST(SharedLibraryBasicTests, GetObjectTests)
 {
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
-    BOOST_CHECK(sim != nullptr);
+    EXPECT_NE(sim, nullptr);
     std::string file = ieee_test_directory + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
-    BOOST_CHECK(err.error_code == griddyn_ok);
+    EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationPowerflow(sim, &err);
 
     auto obj = getSimulationObject(sim, &err);
 
     auto bus2 = gridDynObjectGetSubObject(obj, "bus", 8, &err);
     gridDynObjectFree(obj);  // just making sure the bus object is disconnected from obj
-    BOOST_CHECK(bus2 != nullptr);
+    EXPECT_NE(bus2, nullptr);
 
     double result = gridDynObjectGetValue(bus2, "voltage", &err);
-    BOOST_CHECK(err.error_code == griddyn_ok);
-    BOOST_CHECK_CLOSE(result, 1.056, 0.1);
+    EXPECT_EQ(err.error_code, griddyn_ok);
+    EXPECT_NEAR(result, 1.056, 0.1);
 
     char name[50];
     int strSize;
     gridDynObjectGetString(bus2, "name", name, 50, &strSize, &err);
 
     std::string namestr(name);
-    BOOST_CHECK_EQUAL(strSize, static_cast<int>(namestr.size()));
-    BOOST_CHECK_EQUAL(namestr.compare(0, 5, "Bus 9"), 0);
+    EXPECT_EQ(strSize, static_cast<int>(namestr.size()));
+    EXPECT_EQ(namestr.compare(0, 5, "Bus 9"), 0);
     gridDynObjectFree(bus2);
     gridDynSimulationFree(sim);
 }
 
-BOOST_AUTO_TEST_CASE(build_small_test_case)
+TEST(SharedLibraryBasicTests, BuildSmallTestCase)
 {
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
-    BOOST_CHECK(sim != nullptr);
+    EXPECT_NE(sim, nullptr);
     auto obj = getSimulationObject(sim, &err);
 
     auto bus1 = gridDynObjectCreate("bus", "infinite", &err);
@@ -128,7 +124,7 @@ BOOST_AUTO_TEST_CASE(build_small_test_case)
     gridDynObjectSetValue(ld1, "p", 0.7, &err);
     gridDynObjectSetValue(ld1, "q", 0.3, &err);
     gridDynObjectAdd(bus2, ld1, &err);
-    BOOST_CHECK(err.error_code == 0);
+    EXPECT_EQ(err.error_code, 0);
 
     auto lnk = gridDynObjectCreate("link", "ac", &err);
     gridDynObjectSetValue(lnk, "x", 0.1, &err);
@@ -141,17 +137,15 @@ BOOST_AUTO_TEST_CASE(build_small_test_case)
     gridDynSimulationPowerflow(sim, &err);
 
     double V = gridDynObjectGetValueUnits(bus2, "voltage", "pu", &err);
-    BOOST_CHECK(V < 1.0);
+    EXPECT_LT(V, 1.0);
     double A = gridDynObjectGetValueUnits(bus2, "angle", "deg", &err);
-    BOOST_CHECK(A < 0);
+    EXPECT_LT(A, 0);
     gridDynObjectFree(bus1);
     gridDynObjectFree(ld1);
     gridDynObjectFree(lnk);
     gridDynObjectFree(obj);
     gridDynSimulationFree(sim);
     double V2 = gridDynObjectGetValue(bus2, "voltage", &err);
-    BOOST_CHECK_EQUAL(V, V2);
+    EXPECT_EQ(V, V2);
     gridDynObjectFree(bus2);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

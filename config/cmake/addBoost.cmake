@@ -159,7 +159,7 @@ hide_variable(BOOST_TEST_PATH)
 hide_variable(BOOST_CMAKE_PATH)
 
 if(NOT BOOST_REQUIRED_LIBRARIES)
-    set(BOOST_REQUIRED_LIBRARIES unit_test_framework filesystem system date_time timer chrono)
+    set(BOOST_REQUIRED_LIBRARIES filesystem system date_time timer chrono)
 endif()
 
 # Minimum version of Boost required for building GridDyn.
@@ -205,14 +205,8 @@ endif()
 if(NOT TARGET Boostlibs::core)
     add_library(Boostlibs::core INTERFACE IMPORTED)
 endif()
-if(NOT TARGET Boostlibs::test)
-    add_library(Boostlibs::test INTERFACE IMPORTED)
-endif()
-
 set(Boost_LIBRARIES_core)
-set(Boost_LIBRARIES_test)
 set(griddyn_boost_core_targets)
-set(griddyn_boost_test_targets)
 
 foreach(boost_component IN LISTS BOOST_REQUIRED_LIBRARIES)
     if(TARGET Boost::${boost_component})
@@ -223,16 +217,9 @@ foreach(boost_component IN LISTS BOOST_REQUIRED_LIBRARIES)
         set(boost_component_link "")
     endif()
 
-    if(boost_component STREQUAL "unit_test_framework")
-        if(boost_component_link)
-            list(APPEND Boost_LIBRARIES_test ${boost_component_link})
-            list(APPEND griddyn_boost_test_targets ${boost_component_link})
-        endif()
-    else()
-        if(boost_component_link)
-            list(APPEND Boost_LIBRARIES_core ${boost_component_link})
-            list(APPEND griddyn_boost_core_targets ${boost_component_link})
-        endif()
+    if(boost_component_link)
+        list(APPEND Boost_LIBRARIES_core ${boost_component_link})
+        list(APPEND griddyn_boost_core_targets ${boost_component_link})
     endif()
 endforeach()
 
@@ -243,21 +230,16 @@ elseif(TARGET Boost::headers)
 endif()
 
 list(REMOVE_DUPLICATES Boost_LIBRARIES_core)
-list(REMOVE_DUPLICATES Boost_LIBRARIES_test)
 list(REMOVE_DUPLICATES griddyn_boost_core_targets)
-list(REMOVE_DUPLICATES griddyn_boost_test_targets)
 
 set_target_properties(
-    Boostlibs::core Boostlibs::test PROPERTIES
+    Boostlibs::core PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
         INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
 )
 
 set_target_properties(
     Boostlibs::core PROPERTIES INTERFACE_LINK_LIBRARIES "${griddyn_boost_core_targets}"
-)
-set_target_properties(
-    Boostlibs::test PROPERTIES INTERFACE_LINK_LIBRARIES "${griddyn_boost_test_targets}"
 )
 
 # Minimum version of Boost required for building test suite

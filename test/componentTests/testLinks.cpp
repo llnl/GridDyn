@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/events/Event.h"
@@ -13,35 +13,34 @@
 #include "griddyn/links/acLine.h"
 #include "griddyn/simulation/diagnostics.h"
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 //#include <crtdbg.h>
 // test case for link objects
 
 #define LINK_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/link_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(link_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
 using namespace griddyn;
-BOOST_AUTO_TEST_CASE(link_test1_simple)
+
+class LinkTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(LinkTests, LinkTest1Simple)
 {
     // test a bunch of different link parameters to make sure all the solve properly
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     std::vector<double> v;
     gds->getVoltage(v);
 
-    BOOST_CHECK(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
+    EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
 }
 
-BOOST_AUTO_TEST_CASE(link_test_switches)
+TEST_F(LinkTests, LinkTestSwitches)
 {
     auto B1 = new gridBus();
     auto B2 = new gridBus();
@@ -54,51 +53,54 @@ BOOST_AUTO_TEST_CASE(link_test_switches)
     auto Q1 = L1->getReactivePower(1);
     auto P2 = L1->getRealPower(2);
     auto Q2 = L1->getReactivePower(2);
-    BOOST_CHECK((P1 > P2));
-    BOOST_CHECK(std::abs(P1) > std::abs(P2));
+    EXPECT_GT(P1, P2);
+    EXPECT_GT(std::abs(P1), std::abs(P2));
     L1->set("fault", 0.5);
     L1->updateLocalCache();
     P1 = L1->getRealPower(1);
     Q1 = L1->getReactivePower(1);
     P2 = L1->getRealPower(2);
     Q2 = L1->getReactivePower(2);
-    BOOST_CHECK(P1 > 0);
-    BOOST_CHECK(P2 > 0);
-    BOOST_CHECK(Q1 > 9.99);
-    BOOST_CHECK(Q2 > 9.99);
+    EXPECT_GT(P1, 0);
+    EXPECT_GT(P2, 0);
+    EXPECT_GT(Q1, 9.99);
+    EXPECT_GT(Q2, 9.99);
     L1->set("switch1", 1);
     L1->updateLocalCache();
     P1 = L1->getRealPower(1);
     Q1 = L1->getReactivePower(1);
     P2 = L1->getRealPower(2);
     Q2 = L1->getReactivePower(2);
-    BOOST_CHECK(P1 == 0);
-    BOOST_CHECK(P2 > 0);
-    BOOST_CHECK(Q1 == 0);
-    BOOST_CHECK(Q2 > 9.99);
+    EXPECT_EQ(P1, 0);
+    EXPECT_GT(P2, 0);
+    EXPECT_EQ(Q1, 0);
+    EXPECT_GT(Q2, 9.99);
     L1->set("switch2", 1);
     L1->updateLocalCache();
     P1 = L1->getRealPower(1);
     Q1 = L1->getReactivePower(1);
     P2 = L1->getRealPower(2);
     Q2 = L1->getReactivePower(2);
-    BOOST_CHECK(P1 == 0);
-    BOOST_CHECK(P2 == 0);
-    BOOST_CHECK(Q1 == 0);
-    BOOST_CHECK(Q2 == 0);
+    EXPECT_EQ(P1, 0);
+    EXPECT_EQ(P2, 0);
+    EXPECT_EQ(Q1, 0);
+    EXPECT_EQ(Q2, 0);
     L1->set("fault", -1);
     L1->updateLocalCache();
     P1 = L1->getRealPower(1);
     Q1 = L1->getReactivePower(1);
     P2 = L1->getRealPower(2);
     Q2 = L1->getReactivePower(2);
-    BOOST_CHECK(P1 == 0);
-    BOOST_CHECK(P2 == 0);
-    BOOST_CHECK(Q1 == 0);
-    BOOST_CHECK(Q2 == 0);
+    EXPECT_EQ(P1, 0);
+    EXPECT_EQ(P2, 0);
+    EXPECT_EQ(Q1, 0);
+    EXPECT_EQ(Q2, 0);
+
+    delete B1;
+    delete B2;
 }
 
-BOOST_AUTO_TEST_CASE(link_test1_dynamic)
+TEST_F(LinkTests, LinkTest1Dynamic)
 {
     // test a bunch of different link parameters to make sure all the solve properly
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
@@ -123,20 +125,20 @@ BOOST_AUTO_TEST_CASE(link_test1_dynamic)
     gds->run(0.5);
     int mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
-    BOOST_REQUIRE_EQUAL(mmatch, 0);
+    ASSERT_EQ(mmatch, 0);
     gds->run(20.0);
     mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
-    BOOST_REQUIRE_EQUAL(mmatch, 0);
+    ASSERT_EQ(mmatch, 0);
     std::vector<double> v;
     gds->getVoltage(v);
-    BOOST_CHECK(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
+    EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
 
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 // test line fault in powerflow and power flow after line fault in recovery.
-BOOST_AUTO_TEST_CASE(link_test_fault_powerflow)
+TEST_F(LinkTests, LinkTestFaultPowerflow)
 {
     // test a bunch of different link parameters to make sure all the solve properly
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
@@ -154,7 +156,7 @@ BOOST_AUTO_TEST_CASE(link_test_fault_powerflow)
     obj->set("fault", 0.5);
     gds->powerflow();
     int mmatch = runJacobianCheck(gds, cPflowSolverMode);
-    BOOST_CHECK(mmatch == 0);
+    EXPECT_EQ(mmatch, 0);
     std::vector<double> v2;
     gds->getVoltage(v2);
 
@@ -167,16 +169,16 @@ BOOST_AUTO_TEST_CASE(link_test_fault_powerflow)
 
     std::vector<double> v3;
     gds->getVoltage(v3);
-    BOOST_CHECK(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
+    EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto mm = gmlc::utilities::countDiffs(v3, v, 0.0001);
 
-    BOOST_CHECK_EQUAL(mm, 0u);
+    EXPECT_EQ(mm, 0u);
 }
 
 // test line fault in powerflow and power flow after line fault in recovery.
-BOOST_AUTO_TEST_CASE(link_test_fault_powerflow2)
+TEST_F(LinkTests, LinkTestFaultPowerflow2)
 {
     // test a bunch of different link parameters to make sure all the solve properly
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
@@ -196,7 +198,7 @@ BOOST_AUTO_TEST_CASE(link_test_fault_powerflow2)
 
     std::vector<double> v2;
     gds->getVoltage(v2);
-    BOOST_CHECK(std::all_of(v2.begin(), v2.end(), [](double a) { return (a > -1e-8); }));
+    EXPECT_TRUE(std::all_of(v2.begin(), v2.end(), [](double a) { return (a > -1e-8); }));
 
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
@@ -207,14 +209,14 @@ BOOST_AUTO_TEST_CASE(link_test_fault_powerflow2)
 
     std::vector<double> v3;
     gds->getVoltage(v3);
-    BOOST_CHECK(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
+    EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.95); }));
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto mm = gmlc::utilities::countDiffs(v3, v, 0.0001);
-    BOOST_CHECK_EQUAL(mm, 0u);
+    EXPECT_EQ(mm, 0u);
 }
 
-BOOST_AUTO_TEST_CASE(link_test_fixPower)
+TEST_F(LinkTests, LinkTestFixPower)
 {
     // test a bunch of different link parameters to make sure all the solve properly
     Link* a = new acLine();
@@ -238,43 +240,42 @@ BOOST_AUTO_TEST_CASE(link_test_fixPower)
 
     b2->setVoltageAngle(v2, -0.18);
     a->fixPower(rP1, qP1, 1, 1);
-    BOOST_CHECK_SMALL(std::abs(a2 - b2->getAngle()), 0.0001);
+    EXPECT_NEAR(std::abs(a2 - b2->getAngle()), 0.0, 1e-4);
 
     b2->setVoltageAngle(1.05, a2);
     a->fixPower(rP1, qP1, 1, 1);
-    BOOST_CHECK_SMALL(std::abs(v2 - b2->getVoltage()), 0.0001);
+    EXPECT_NEAR(std::abs(v2 - b2->getVoltage()), 0.0, 1e-4);
 
     b2->setVoltageAngle(v2, -0.18);
     a->fixPower(rP2, qP2, 2, 1);
-    BOOST_CHECK_SMALL(std::abs(a2 - b2->getAngle()), 0.0001);
+    EXPECT_NEAR(std::abs(a2 - b2->getAngle()), 0.0, 1e-4);
 
     b2->setVoltageAngle(1.05, a2);
     a->fixPower(rP2, qP2, 2, 1);
-    BOOST_CHECK_SMALL(std::abs(v2 - b2->getVoltage()), 0.0001);
+    EXPECT_NEAR(std::abs(v2 - b2->getVoltage()), 0.0, 1e-4);
 
     b1->setVoltageAngle(1.05, a1);
     a->fixPower(rP1, qP1, 1, 2);
-    BOOST_CHECK_SMALL(std::abs(v1 - b1->getVoltage()), 0.0001);
+    EXPECT_NEAR(std::abs(v1 - b1->getVoltage()), 0.0, 1e-4);
 
     b1->setVoltageAngle(v1, 0.02);
     a->fixPower(rP1, qP1, 1, 2);
-    BOOST_CHECK_SMALL(std::abs(a1 - b1->getAngle()), 0.0001);
+    EXPECT_NEAR(std::abs(a1 - b1->getAngle()), 0.0, 1e-4);
 
     b1->setVoltageAngle(1.05, a1);
     a->fixPower(rP2, qP2, 2, 2);
-    BOOST_CHECK_SMALL(std::abs(v1 - b1->getVoltage()), 0.0001);
+    EXPECT_NEAR(std::abs(v1 - b1->getVoltage()), 0.0, 1e-4);
 
     b1->setVoltageAngle(v1, 0.02);
     a->fixPower(rP2, qP2, 2, 2);
-    BOOST_CHECK_SMALL(std::abs(a1 - b1->getAngle()), 0.0001);
+    EXPECT_NEAR(std::abs(a1 - b1->getAngle()), 0.0, 1e-4);
 
     b1->setVoltageAngle(1.05, -0.07);
     a->fixPower(rP1, qP1, 1, 2);
-    BOOST_CHECK_SMALL(std::abs(v1 - b1->getVoltage()), 0.0001);
-    BOOST_CHECK_SMALL(std::abs(a1 - b1->getAngle()), 0.0001);
+    EXPECT_NEAR(std::abs(v1 - b1->getVoltage()), 0.0, 1e-4);
+    EXPECT_NEAR(std::abs(a1 - b1->getAngle()), 0.0, 1e-4);
 
     delete a;
     delete b1;
     delete b2;
 }
-BOOST_AUTO_TEST_SUITE_END()

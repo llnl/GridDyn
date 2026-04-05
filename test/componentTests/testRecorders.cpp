@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "griddyn/events/Event.h"
@@ -13,9 +13,7 @@
 #include <cmath>
 #include <cstdio>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 // test case for coreObject object
 
@@ -23,13 +21,13 @@
 static const std::string collector_test_directory =
     std::string(GRIDDYN_TEST_DIRECTORY "/recorder_tests/");
 
-BOOST_FIXTURE_TEST_SUITE(recorder_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-BOOST_AUTO_TEST_CASE(tsMulti_tests)
+class RecorderTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(RecorderTests, TsMultiTests)
 {
     TimeSeriesMulti<> ts2;
     TimeSeriesMulti<> ts3(1, 10);
@@ -43,11 +41,11 @@ BOOST_AUTO_TEST_CASE(tsMulti_tests)
         val[kk] = 4.5;
         t = t + 1.0;
     }
-    BOOST_CHECK_EQUAL(ts2.size(), 10U);
+    EXPECT_EQ(ts2.size(), 10U);
     ts3.addData(tv, val);
-    BOOST_CHECK_EQUAL(ts3.size(), 10U);
+    EXPECT_EQ(ts3.size(), 10U);
 
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.0001);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-4);
 
     ts3.setCols(4);
     ts3.addData(val, 1);
@@ -55,10 +53,10 @@ BOOST_AUTO_TEST_CASE(tsMulti_tests)
     ts3.addData(val, 3);
     ts3.updateData(3, 4, 6.5);
 
-    BOOST_CHECK_CLOSE(compare(ts2, ts3, 0, 3), 2.0, 0.0001);
+    EXPECT_NEAR(compare(ts2, ts3, 0, 3), 2.0, std::abs(2.0) * 1e-6 + 1e-12);
 }
 
-BOOST_AUTO_TEST_CASE(file_save_tests)
+TEST_F(RecorderTests, FileSaveTests)
 {
     TimeSeriesMulti<> ts2(1);
     double t = 0.0;
@@ -66,26 +64,26 @@ BOOST_AUTO_TEST_CASE(file_save_tests)
         ts2.addData(t, 4.5);
         t = t + 1.0;
     }
-    BOOST_CHECK_EQUAL(ts2.size(), 10U);
+    EXPECT_EQ(ts2.size(), 10U);
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "ts_test.dat");
     ts2.writeBinaryFile(fileName);
 
     TimeSeriesMulti<> ts3;
 
     ts3.loadBinaryFile(fileName);
-    BOOST_CHECK_EQUAL(ts3.columns(), 1U);
-    BOOST_CHECK_EQUAL(ts3.size(), 10U);
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_EQ(ts3.columns(), 1U);
+    EXPECT_EQ(ts3.size(), 10U);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
     int ret = remove(fileName.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(file_save_tests2)
+TEST_F(RecorderTests, FileSaveTests2)
 {
     TimeSeriesMulti<> ts2;
     ts2.setCols(4);  // test the set cols method
-    BOOST_CHECK(ts2.columns() == 4);
+    EXPECT_EQ(ts2.columns(), 4);
 
     std::vector<double> vt{4.5, 5.5, 6.5, 7.5};
 
@@ -94,53 +92,53 @@ BOOST_AUTO_TEST_CASE(file_save_tests2)
         ts2.addData(t, vt);
         t = t + 1.0;
     }
-    BOOST_CHECK_EQUAL(ts2.size(), 30U);
+    EXPECT_EQ(ts2.size(), 30U);
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "ts_test2.dat");
     ts2.writeBinaryFile(fileName);
 
     TimeSeriesMulti<> ts3(fileName);
 
-    BOOST_CHECK_EQUAL(ts3.columns(), 4U);
-    BOOST_CHECK_EQUAL(ts3.size(), 30U);
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_EQ(ts3.columns(), 4U);
+    EXPECT_EQ(ts3.size(), 30U);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
 
     ts3.updateData(3, 2, 7.0);
     double diff = compare(ts2, ts3);
-    BOOST_CHECK_CLOSE(diff, 0.5, 0.001);
-    BOOST_CHECK_EQUAL(ts3.size(), ts3[3].size());
+    EXPECT_NEAR(diff, 0.5, std::abs(0.5) * 1e-5 + 1e-12);
+    EXPECT_EQ(ts3.size(), ts3[3].size());
     int ret = remove(fileName.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(recorder_test1)
+TEST_F(RecorderTests, RecorderTest1)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::debug;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 1);
+    EXPECT_EQ(val, 1);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
 
     std::string recname = std::string(RECORDER_TEST_DIRECTORY "loadrec.dat");
     TimeSeriesMulti<> ts3(recname);
-    BOOST_CHECK(ts3.getField(0) == "load3:power");
-    BOOST_CHECK_EQUAL(ts3.size(), 31U);
+    EXPECT_EQ(ts3.getField(0), "load3:power");
+    EXPECT_EQ(ts3.size(), 31U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(recorder_test2)
+TEST_F(RecorderTests, RecorderTest2)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test2.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 1);
+    EXPECT_EQ(val, 1);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -148,22 +146,22 @@ BOOST_AUTO_TEST_CASE(recorder_test2)
     std::string recname = std::string(RECORDER_TEST_DIRECTORY "genrec.dat");
     TimeSeriesMulti<> ts3(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 31U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 2U);
+    EXPECT_EQ(ts3.size(), 31U);
+    EXPECT_EQ(ts3.columns(), 2U);
     int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(recorder_test3)
+TEST_F(RecorderTests, RecorderTest3)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test3.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 3);
+    EXPECT_EQ(val, 3);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -171,40 +169,40 @@ BOOST_AUTO_TEST_CASE(recorder_test3)
     std::string recname = std::string(RECORDER_TEST_DIRECTORY "genrec.dat");
     TimeSeriesMulti<> ts3(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 121U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 4U);
+    EXPECT_EQ(ts3.size(), 121U);
+    EXPECT_EQ(ts3.columns(), 4U);
     int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec.dat");
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 2U);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 2U);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "loadrec.dat");
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 31U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 1U);
+    EXPECT_EQ(ts3.size(), 31U);
+    EXPECT_EQ(ts3.columns(), 1U);
     ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
 // testing the recorder as subObject and recorder found via link
-BOOST_AUTO_TEST_CASE(recorder_test4)
+TEST_F(RecorderTests, RecorderTest4)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test4.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 2);
+    EXPECT_EQ(val, 2);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -212,33 +210,33 @@ BOOST_AUTO_TEST_CASE(recorder_test4)
     std::string recname = std::string(RECORDER_TEST_DIRECTORY "busrec.dat");
     TimeSeriesMulti<> ts3(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 2U);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 2U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec2.dat");
     TimeSeriesMulti<> ts2(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 61U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 2U);
+    EXPECT_EQ(ts2.size(), 61U);
+    EXPECT_EQ(ts2.columns(), 2U);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
 }
 
 // testing the vector recorders of the simulation object
-BOOST_AUTO_TEST_CASE(recorder_test5)
+TEST_F(RecorderTests, RecorderTest5)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test5.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 2);
+    EXPECT_EQ(val, 2);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -247,33 +245,33 @@ BOOST_AUTO_TEST_CASE(recorder_test5)
     TimeSeriesMulti<> ts3;
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.getField(2), "test1:voltage[2]");
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 4U);
+    EXPECT_EQ(ts3.getField(2), "test1:voltage[2]");
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 4U);
     int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
     recname = std::string(RECORDER_TEST_DIRECTORY "linkVrec.dat");
 
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 5u);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 5u);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
 // testing multiple items in a field
-BOOST_AUTO_TEST_CASE(recorder_test6)
+TEST_F(RecorderTests, RecorderTest6)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test6.xml");
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
-    BOOST_CHECK_EQUAL(gds->getInt("recordercount"), 2);
+    EXPECT_EQ(gds->getInt("recordercount"), 2);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -282,36 +280,36 @@ BOOST_AUTO_TEST_CASE(recorder_test6)
     TimeSeriesMulti<> ts3(recname);
     // ts3.loadBinaryFile ;
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 2U);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 2U);
     int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec2.dat");
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 61U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 2U);
+    EXPECT_EQ(ts2.size(), 61U);
+    EXPECT_EQ(ts2.columns(), 2U);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
 }
 
 // testing multiple :: naming for fields
-BOOST_AUTO_TEST_CASE(recorder_test7)
+TEST_F(RecorderTests, RecorderTest7)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test7.xml");
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 2);
+    EXPECT_EQ(val, 2);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -320,35 +318,35 @@ BOOST_AUTO_TEST_CASE(recorder_test7)
     TimeSeriesMulti<> ts3;
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 2U);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 2U);
     int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec2.dat");
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 61U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 2U);
+    EXPECT_EQ(ts2.size(), 61U);
+    EXPECT_EQ(ts2.columns(), 2U);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
 }
 
 // testing multiple :: naming for fields and units
-BOOST_AUTO_TEST_CASE(recorder_test8)
+TEST_F(RecorderTests, RecorderTest8)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test8.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
-    BOOST_CHECK_EQUAL(val, 2);
+    EXPECT_EQ(val, 2);
     gds->set("recorddirectory", collector_test_directory);
 
     gds->run();
@@ -357,32 +355,32 @@ BOOST_AUTO_TEST_CASE(recorder_test8)
     TimeSeriesMulti<> ts3;
     ts3.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts3.size(), 61U);
-    BOOST_CHECK_EQUAL(ts3.columns(), 3U);
+    EXPECT_EQ(ts3.size(), 61U);
+    EXPECT_EQ(ts3.columns(), 3U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
     // check to make sure the conversion is correct
-    BOOST_CHECK_SMALL(ts3.data(0, 3) * 180 / kPI - ts3.data(2, 3), 0.0001);
+    EXPECT_NEAR(ts3.data(0, 3) * 180 / kPI - ts3.data(2, 3), 0.0, 1e-4);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec2.dat");
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 61U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 3U);
+    EXPECT_EQ(ts2.size(), 61U);
+    EXPECT_EQ(ts2.columns(), 3U);
     ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 
-    BOOST_CHECK_SMALL(compare(ts2, ts3), 0.00001);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
 }
 
 // testing gain and bias
-BOOST_AUTO_TEST_CASE(recorder_test9)
+TEST_F(RecorderTests, RecorderTest9)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test9.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
 
@@ -394,19 +392,19 @@ BOOST_AUTO_TEST_CASE(recorder_test9)
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 21U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 4U);
+    EXPECT_EQ(ts2.size(), 21U);
+    EXPECT_EQ(ts2.columns(), 4U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
-    BOOST_CHECK_CLOSE(ts2.data(1, 2) - 1.0, ts2.data(3, 2), 0.0001);
+    EXPECT_EQ(ret, 0);
+    EXPECT_NEAR(ts2.data(1, 2) - 1.0, ts2.data(3, 2), std::abs(ts2.data(3, 2)) * 1e-6 + 1e-12);
 }
 
 // testing multiple grabber calculations
-BOOST_AUTO_TEST_CASE(recorder_test10)
+TEST_F(RecorderTests, RecorderTest10)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test10.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
 
@@ -418,19 +416,19 @@ BOOST_AUTO_TEST_CASE(recorder_test10)
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 11U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 3U);
+    EXPECT_EQ(ts2.size(), 11U);
+    EXPECT_EQ(ts2.columns(), 3U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
-    BOOST_CHECK_CLOSE(ts2.data(0, 2) - ts2.data(1, 2), ts2.data(2, 2), 0.0001);
-    BOOST_CHECK_CLOSE(ts2.data(0, 8) - ts2.data(1, 8), ts2.data(2, 8), 0.0001);
+    EXPECT_EQ(ret, 0);
+    EXPECT_NEAR(ts2.data(0, 2) - ts2.data(1, 2), ts2.data(2, 2), std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ts2.data(0, 8) - ts2.data(1, 8), ts2.data(2, 8), std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
 }
 
-BOOST_AUTO_TEST_CASE(recorder_test11)
+TEST_F(RecorderTests, RecorderTest11)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test11.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
 
@@ -442,20 +440,24 @@ BOOST_AUTO_TEST_CASE(recorder_test11)
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 11U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 4U);
+    EXPECT_EQ(ts2.size(), 11U);
+    EXPECT_EQ(ts2.columns(), 4U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
-    BOOST_CHECK_CLOSE(ts2.data(0, 2) - (ts2.data(1, 2) - ts2.data(2, 2)), ts2.data(3, 2), 0.0001);
-    BOOST_CHECK_CLOSE(ts2.data(0, 8) - (ts2.data(1, 8) - ts2.data(2, 8)), ts2.data(3, 8), 0.0001);
+    EXPECT_EQ(ret, 0);
+    EXPECT_NEAR(ts2.data(0, 2) - (ts2.data(1, 2) - ts2.data(2, 2)),
+                ts2.data(3, 2),
+                std::abs(ts2.data(3, 2)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ts2.data(0, 8) - (ts2.data(1, 8) - ts2.data(2, 8)),
+                ts2.data(3, 8),
+                std::abs(ts2.data(3, 8)) * 1e-6 + 1e-12);
 }
 
 // testing function calls
-BOOST_AUTO_TEST_CASE(recorder_test12)
+TEST_F(RecorderTests, RecorderTest12)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test12.xml");
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
 
@@ -467,38 +469,42 @@ BOOST_AUTO_TEST_CASE(recorder_test12)
     TimeSeriesMulti<> ts2;
     ts2.loadBinaryFile(recname);
 
-    BOOST_CHECK_EQUAL(ts2.size(), 11U);
-    BOOST_CHECK_EQUAL(ts2.columns(), 3U);
+    EXPECT_EQ(ts2.size(), 11U);
+    EXPECT_EQ(ts2.columns(), 3U);
     int ret = remove(recname.c_str());
-    BOOST_CHECK_EQUAL(ret, 0);
-    BOOST_CHECK_CLOSE(sin(ts2.data(0, 2) - ts2.data(1, 2)), ts2.data(2, 2), 0.0001);
-    BOOST_CHECK_CLOSE(sin(ts2.data(0, 8) - ts2.data(1, 8)), ts2.data(2, 8), 0.0001);
+    EXPECT_EQ(ret, 0);
+    EXPECT_NEAR(sin(ts2.data(0, 2) - ts2.data(1, 2)),
+                ts2.data(2, 2),
+                std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(sin(ts2.data(0, 8) - ts2.data(1, 8)),
+                ts2.data(2, 8),
+                std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
 }
 
 // test and invalid input
-BOOST_AUTO_TEST_CASE(recorder_test_bad_input)
+TEST_F(RecorderTests, RecorderTestBadInput)
 {
     std::string fileName = collector_test_directory + "recorder_test_invalid_field1.xml";
     printf("NOTE:  this should produce some warning messages\n");
     gds = readSimXMLFile(fileName);
 
-    BOOST_CHECK_GT(readerConfig::warnCount, 0);
+    EXPECT_GT(readerConfig::warnCount, 0);
     readerConfig::warnCount = 0;
 
     fileName = collector_test_directory + "recorder_test_invalid_field2.xml";
     gds = readSimXMLFile(fileName);
 
-    BOOST_CHECK_GT(readerConfig::warnCount, 0);
+    EXPECT_GT(readerConfig::warnCount, 0);
 
     readerConfig::warnCount = 0;
 }
 
 // testing if the recorders have any material impact on the results
-BOOST_AUTO_TEST_CASE(recorder_test_period)
+TEST_F(RecorderTests, RecorderTestPeriod)
 {
     std::string fileName = collector_test_directory + "recorder_test_sineA.xml";
     gds = readSimXMLFile(fileName);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
     gds->solverSet("dynamic", "printlevel", 0);
 
@@ -511,7 +517,7 @@ BOOST_AUTO_TEST_CASE(recorder_test_period)
 
     std::string fname2 = collector_test_directory + "recorder_test_sineB.xml";
     gds2 = readSimXMLFile(fname2);
-    BOOST_CHECK_EQUAL(readerConfig::warnCount, 0);
+    EXPECT_EQ(readerConfig::warnCount, 0);
     gds2->consolePrintLevel = print_level::no_print;
     gds2->solverSet("dynamic", "printlevel", 0);
 
@@ -523,7 +529,7 @@ BOOST_AUTO_TEST_CASE(recorder_test_period)
     TimeSeriesMulti<> tsB(recname2);
 
     size_t diffc = 0;
-    BOOST_REQUIRE((tsA.size() - 1) * 4 == (tsB.size() - 1));
+    ASSERT_EQ((tsA.size() - 1) * 4, (tsB.size() - 1));
     for (decltype(tsA.size()) ii = 1; ii < tsA.size(); ++ii) {
         for (decltype(tsA.columns()) jj = 0; jj < tsA.columns(); ++jj) {
             if (std::abs(tsA.data(jj, ii) - tsB.data(jj, 4 * ii)) >
@@ -535,9 +541,7 @@ BOOST_AUTO_TEST_CASE(recorder_test_period)
             }
         }
     }
-    BOOST_CHECK_EQUAL(diffc, 0U);
+    EXPECT_EQ(diffc, 0U);
     // remove (recname.c_str ());
     // remove (recname2.c_str ());
 }
-
-BOOST_AUTO_TEST_SUITE_END()

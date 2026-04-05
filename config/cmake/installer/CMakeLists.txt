@@ -347,9 +347,9 @@ ENDIF(MSVC)
 SHOW_VARIABLE(BOOST_ROOT PATH "Boost root directory" "${BOOST_ROOT}")
 
 IF(MPI_ENABLE)
-  find_package(Boost COMPONENTS program_options unit_test_framework filesystem serialization mpi system date_time REQUIRED)
+  find_package(Boost COMPONENTS program_options filesystem serialization mpi system date_time REQUIRED)
 ELSE(MPI_ENABLE)
-  find_package(Boost COMPONENTS program_options unit_test_framework filesystem system date_time REQUIRED)
+  find_package(Boost COMPONENTS program_options filesystem system date_time REQUIRED)
 ENDIF(MPI_ENABLE)
 
 mark_as_advanced(CLEAR BOOST_ROOT)
@@ -683,12 +683,6 @@ INSTALL(FILES ${docs} DESTINATION docs)
 # -------------------------------------------------------------
 
 enable_testing()
-add_test(NAME testComponents
-         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test/testComponents.exe)
-add_test(NAME testLibrary
-         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test/testLibrary.exe)
-add_test(NAME testSystem
-         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test/testSystem.exe)
 
 # -------------------------------------------------------------
 # CPack for NSIS Installer

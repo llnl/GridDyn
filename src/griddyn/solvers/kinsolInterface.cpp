@@ -382,7 +382,7 @@ namespace solvers {
                                               NVECTOR_DATA(sd->use_omp, resid),
                                               sd->mode);
 #endif
-        if (sd->flags[print_residuals] || true ) {
+        if (sd->flags[print_residuals]) {
             long int val = 0;
             KINGetNumNonlinSolvIters(sd->solverMem, &val);
             double* residuals = NVECTOR_DATA(sd->use_omp, resid);

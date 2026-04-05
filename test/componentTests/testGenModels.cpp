@@ -4,32 +4,30 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "core/objectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include <cmath>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 // test case for coreObject object
 
 #define GENMODEL_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/genmodel_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(genModel_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
-
 using namespace griddyn;
-BOOST_AUTO_TEST_CASE(model_test1)
+
+class GenModelTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(GenModelTests, ModelTest1)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
     gds = readSimXMLFile(fileName);
 
     int retval = gds->dynInitialize();
-    BOOST_CHECK_EQUAL(retval, 0);
+    EXPECT_EQ(retval, 0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState();
@@ -41,10 +39,10 @@ BOOST_AUTO_TEST_CASE(model_test1)
 
     auto cdiff = gmlc::utilities::countDiffs(st, st2, 0.001, 0.01);
 
-    BOOST_CHECK_EQUAL(cdiff, 0u);
+    EXPECT_EQ(cdiff, 0u);
 }
 
-BOOST_AUTO_TEST_CASE(model_test2)  // Jacobian code check
+TEST_F(GenModelTests, ModelTest2)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
@@ -59,26 +57,27 @@ BOOST_AUTO_TEST_CASE(model_test2)  // Jacobian code check
         gds = readSimXMLFile(fileName);
 
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
 
         auto obj = cof->createObject("genmodel", gname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create model " << gname;
         gen->add(obj);
 
         int retval = gds->dynInitialize();
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Model " << gname << " dynInitialize issue";
         auto mmatch = runResidualCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " residual issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " residual issue";
         mmatch = runJacobianCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " Jacobian issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " Jacobian issue";
         mmatch = runDerivativeCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " derivative issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " derivative issue";
         mmatch = runAlgebraicCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " algebraic issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " algebraic issue";
     }
 }
 
-BOOST_AUTO_TEST_CASE(model_test2_withr)  // Jacobian code check
+TEST_F(GenModelTests, ModelTest2WithR)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
@@ -92,25 +91,25 @@ BOOST_AUTO_TEST_CASE(model_test2_withr)  // Jacobian code check
         gds = readSimXMLFile(fileName);
 
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         auto obj = cof->createObject("genmodel", gname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create model " << gname;
         // just set the resistance to make sure the models can handle that parameter
         obj->set("r", 0.001);
         gen->add(obj);
 
         int retval = gds->dynInitialize();
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Model " << gname << " dynInitialize r issue";
         auto mmatch = runResidualCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " residual r issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " residual r issue";
         mmatch = runJacobianCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " Jacobian r issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " Jacobian r issue";
     }
 }
 
 #ifdef LOAD_CVODE
-BOOST_AUTO_TEST_CASE(
-    model_test2_alg_diff_tests)  // test the algebraic updates and derivative updates
+TEST_F(GenModelTests, ModelTest2AlgDiffTests)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
@@ -125,32 +124,33 @@ BOOST_AUTO_TEST_CASE(
         gds = readSimXMLFile(fileName);
 
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         auto obj = cof->createObject("genmodel", gname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create model " << gname;
         // just set the resistance to make sure the models can handle that parameter
         obj->set("r", 0.001);
         gen->add(obj);
 
         int retval = gds->dynInitialize();
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Model " << gname << " dynInitialize issue";
         auto mmatch = runResidualCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " residual issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " residual issue";
         mmatch = runDerivativeCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " derivative issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " derivative issue";
         mmatch = runAlgebraicCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " algebraic issue");
+        ASSERT_EQ(mmatch, 0) << "Model " << gname << " algebraic issue";
         if (gds->diffSize(cDaeSolverMode) > 0) {
             mmatch = runJacobianCheck(gds, cDynDiffSolverMode, false);
-            BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " Jacobian dynDiff issue");
+            ASSERT_EQ(mmatch, 0) << "Model " << gname << " Jacobian dynDiff issue";
             mmatch = runJacobianCheck(gds, cDynAlgSolverMode, false);
-            BOOST_REQUIRE_MESSAGE(mmatch == 0, "Model " << gname << " Jacobian dynAlg issue");
+            ASSERT_EQ(mmatch, 0) << "Model " << gname << " Jacobian dynAlg issue";
         }
     }
 }
 #endif
 
-BOOST_AUTO_TEST_CASE(model_test3)  // Jacobian code check
+TEST_F(GenModelTests, ModelTest3)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model2.xml");
 
@@ -159,5 +159,3 @@ BOOST_AUTO_TEST_CASE(model_test3)  // Jacobian code check
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

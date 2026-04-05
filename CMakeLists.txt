@@ -372,7 +372,7 @@ install(
 # BOOST  find the boost libraries
 # ------------------------------------------------------------
 # TODO check if boost works (e.g. libstdc++ vs libc++)
-set(BOOST_REQUIRED_LIBRARIES filesystem system unit_test_framework date_time)
+set(BOOST_REQUIRED_LIBRARIES filesystem system date_time)
 
 include(addBoost)
 
@@ -720,20 +720,6 @@ if(GRIDDYN_BUILD_TESTS AND BUILD_TESTING)
              COMMAND gridDynMain ${PROJECT_SOURCE_DIR}/test/test_files/IEEE_test_cases/ieee300.cdf
     )
     set_property(TEST Example179BusDynamicTest PROPERTY LABELS Quick Continuous Nightly)
-
-    add_test(NAME testComponents COMMAND testComponents)
-    add_test(NAME testLibrary COMMAND testLibrary)
-    add_test(NAME testSystem COMMAND testSystem)
-    add_test(NAME testExtra COMMAND testExtra)
-    set_property(TEST testComponents testLibrary testSystem PROPERTY LABELS Nightly Release)
-    set_property(TEST testExtra PROPERTY LABELS TESTLABEL Release)
-
-    # Runs a subset of the overall tests
-    add_test(NAME testComponentsQuick COMMAND testComponents --run_test=@quick)
-    add_test(NAME testLibraryQuick COMMAND testLibrary --run_test=@quick)
-    add_test(NAME testSystemQuick COMMAND testSystem --run_test=@quick)
-    set_property(TEST testComponentsQuick testSystemQuick PROPERTY LABELS Quick Continuous)
-    set_property(TEST testLibraryQuick PROPERTY LABELS Quick Continuous Valgrind)
 
     if(GRIDDYN_BUILD_C_SHARED_LIBRARY)
         add_test(NAME testSharedLibrary COMMAND shared_library_tests)

@@ -11,8 +11,8 @@
  */
 #include "helicsTest.h"
 
-#include "../test/exeTestHelper.h"
-#include "../test/testHelper.h"
+#include "../../../test/exeTestHelper.h"
+#include "../../../test/gtestHelper.h"
 #include "core/objectFactory.hpp"
 #include "gmlc/utilities/string_viewOps.h"
 #include "griddyn/Generator.h"
@@ -32,165 +32,144 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/test/unit_test.hpp>
-
 #include <boost/filesystem.hpp>
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
-BOOST_FIXTURE_TEST_SUITE(helics_tests, gridDynSimulationTestFixture)
+class HelicsTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+
 using namespace griddyn;
 using namespace griddyn::helicsLib;
 
 static const std::string helics_test_directory =
     std::string(GRIDDYN_TEST_DIRECTORY "/helics_tests/");
 
-BOOST_AUTO_TEST_CASE(time_conversion_test)
+TEST_F(HelicsTests, TimeConversionTest)
 {
     coreTime val = 4.5234235;
     auto helicsTime = gd2helicsTime(val);
     coreTime ret = helics2gdTime(helicsTime);
 
-    BOOST_CHECK_SMALL(std::abs(static_cast<double>(val) - static_cast<double>(ret)), 0.0000001);
+    EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.0000001);
 
     val = 9.0;
     helicsTime = gd2helicsTime(val);
     ret = helics2gdTime(helicsTime);
 
-    BOOST_CHECK_SMALL(std::abs(static_cast<double>(val) - static_cast<double>(ret)), 0.000000001);
+    EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.000000001);
 
     val = -2.0;
     helicsTime = gd2helicsTime(val);
     ret = helics2gdTime(helicsTime);
 
-    BOOST_CHECK_SMALL(std::abs(static_cast<double>(val) - static_cast<double>(ret)), 0.000000001);
+    EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.000000001);
 }
 
-BOOST_AUTO_TEST_CASE(test_pub_sub_str)
+TEST_F(HelicsTests, TestPubSubStr)
 {
     helics::FederateInfo fi;
     fi.coreType = helics::core_type::INPROC;
     fi.coreInitString = "--autobroker";
 
     auto vFed = std::make_shared<helics::ValueFederate>("string_test", fi);
-    // register the publications
     auto& pubid = vFed->registerGlobalPublication<std::string>("pub1");
 
     auto& subid = vFed->registerSubscription("pub1");
     vFed->setProperty(helics::defs::properties::period, 1.0);
     vFed->enterExecutingMode();
-    // publish string1 at time=0.0;
     vFed->publish(pubid, "string1");
     auto gtime = vFed->requestTime(1.0);
 
-    BOOST_CHECK_EQUAL(gtime, 1.0);
-    // get the value
+    EXPECT_EQ(gtime, 1.0);
     std::string s = subid.getValue<std::string>();
 
-    // make sure the string is what we expect
-    BOOST_CHECK_EQUAL(s, "string1");
-    // publish a second string
+    EXPECT_EQ(s, "string1");
     vFed->publish(pubid, "string2");
-    // make sure the value is still what we expect
     subid.getValue(s);
 
-    BOOST_CHECK_EQUAL(s, "string1");
-    // advance time
+    EXPECT_EQ(s, "string1");
     gtime = vFed->requestTime(2.0);
-    // make sure the value was updated
-    BOOST_CHECK_EQUAL(gtime, 2.0);
+    EXPECT_EQ(gtime, 2.0);
     subid.getValue(s);
 
-    BOOST_CHECK_EQUAL(s, "string2");
+    EXPECT_EQ(s, "string2");
     vFed->finalize();
 }
 
-BOOST_AUTO_TEST_CASE(test_pub_sub_double)
+TEST_F(HelicsTests, TestPubSubDouble)
 {
     helics::FederateInfo fi;
     fi.coreType = helics::core_type::INPROC;
     fi.coreInitString = "--autobroker";
 
     auto vFed = std::make_shared<helics::ValueFederate>("double_test", fi);
-    // register the publications
     auto pubid = vFed->registerGlobalPublication<double>("pub1");
 
     auto& subid = vFed->registerSubscription("pub1");
     vFed->setProperty(helics::defs::properties::period, 1.0);
     vFed->enterExecutingMode();
-    // publish string1 at time=0.0;
     vFed->publish(pubid, 27.0);
     auto gtime = vFed->requestTime(1.0);
 
-    BOOST_CHECK_EQUAL(gtime, 1.0);
+    EXPECT_EQ(gtime, 1.0);
     double s = subid.getValue<double>();
 
-    // make sure the string is what we expect
-    BOOST_CHECK_EQUAL(s, 27.0);
-    // publish a second string
+    EXPECT_EQ(s, 27.0);
     vFed->publish(pubid, 23.234234);
-    // make sure the value is still what we expect
     s = vFed->getDouble(subid);
-    BOOST_CHECK_EQUAL(s, 27.0);
+    EXPECT_EQ(s, 27.0);
 
-    // advance time
     gtime = vFed->requestTime(2.0);
-    // make sure the value was updated
-    BOOST_CHECK_EQUAL(gtime, 2.0);
+    EXPECT_EQ(gtime, 2.0);
     subid.getValue(s);
 
-    BOOST_CHECK_CLOSE(s, 23.234234, 0.00001);
+    EXPECT_NEAR(s, 23.234234, 0.00001);
     vFed->finalize();
 }
 
-BOOST_AUTO_TEST_CASE(helics_coordinator_tests1)
+TEST_F(HelicsTests, HelicsCoordinatorTests1)
 {
     helicsCoordinator coord;
     auto ind1 = coord.addPublication("pub1", helics::data_type::helics_double);
     auto ind2 = coord.addSubscription("pub1");
-    BOOST_CHECK_GE(ind1, 0);
-    BOOST_CHECK_GE(ind2, 0);
+    EXPECT_GE(ind1, 0);
+    EXPECT_GE(ind2, 0);
     coord.set("coretype", "inproc");
     coord.set("init", "-f 1 --autobroker");
     coord.set("name", "coordtest");
 
     auto fed = coord.RegisterAsFederate();
 
-    // BOOST_CHECK (fed->currentState () == helics::Federate::op_states::startup);
-    // fed->enterInitializationState ();
-
-    BOOST_CHECK(fed->getCurrentMode() == helics::Federate::modes::initializing);
+    EXPECT_EQ(fed->getCurrentMode(), helics::Federate::modes::initializing);
     fed->enterExecutingMode();
-    BOOST_CHECK(fed->getCurrentMode() == helics::Federate::modes::executing);
+    EXPECT_EQ(fed->getCurrentMode(), helics::Federate::modes::executing);
 
     coord.publish(ind1, 23.234);
     fed->requestTime(3.0);
     double val = coord.getValueAs<double>(ind2);
 
-    BOOST_CHECK_CLOSE(val, 23.234, 0.0001);
+    EXPECT_NEAR(val, 23.234, 0.0001);
 
     std::string v = coord.getValueAs<std::string>(ind2);
-    BOOST_CHECK((v.compare(0, 7, "23.2340") == 0) || (v.compare(0, 7, "23.2339") == 0));
+    EXPECT_TRUE((v.compare(0, 7, "23.2340") == 0) || (v.compare(0, 7, "23.2339") == 0));
 }
 
-BOOST_AUTO_TEST_CASE(load_helics_xml)
+TEST_F(HelicsTests, LoadHelicsXml)
 {
     helics::FederateInfo fi(helics::core_type::INPROC);
     fi.coreInitString = "-f 2 --autobroker";
 
     auto vFed = std::make_shared<helics::ValueFederate>("source_test", fi);
-    // register the publications
     auto pubid = vFed->registerGlobalPublication<double>("sourceValue");
 
-    auto hR = new helicsRunner();
+    auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "helics_test1.xml --core_type=inproc");
 
     coreObject* obj =
         coreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
 
-    BOOST_REQUIRE(dynamic_cast<helicsSource*>(obj) != nullptr);
-    // as a note sources are source with respect to GridDyn not HELICS
+    ASSERT_NE(dynamic_cast<helicsSource*>(obj), nullptr);
     auto src = static_cast<helicsSource*>(obj);
-    BOOST_REQUIRE(src != nullptr);
+    ASSERT_NE(src, nullptr);
     src->set("valkey", "sourceValue");
     src->set("period", 2);
     src->set("value", 0.4);
@@ -198,7 +177,7 @@ BOOST_AUTO_TEST_CASE(load_helics_xml)
 
     auto genObj = sim->find("bus2::gen#0");
     auto gen = dynamic_cast<Generator*>(genObj);
-    BOOST_REQUIRE(gen != nullptr);
+    ASSERT_NE(gen, nullptr);
 
     gen->add(src);
 
@@ -212,36 +191,34 @@ BOOST_AUTO_TEST_CASE(load_helics_xml)
 
     auto resT = std::async(std::launch::async, [&]() { return hR->Step(3.0); });
     auto tm = vFed->requestTime(3.0);
-    BOOST_CHECK_EQUAL(tm, 3.0);
+    EXPECT_EQ(tm, 3.0);
 
     double tret = resT.get();
-    BOOST_CHECK_EQUAL(tret, 3.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.3, 0.00001);
+    EXPECT_EQ(tret, 3.0);
+    EXPECT_NEAR(src->getOutput(), 0.3, 0.00001);
     vFed->publish(pubid, 0.5);
 
     resT = std::async(std::launch::async, [&]() { return hR->Step(5.0); });
     tm = vFed->requestTime(5.0);
-    BOOST_CHECK_EQUAL(tm, 5.0);
+    EXPECT_EQ(tm, 5.0);
 
     tret = resT.get();
-    BOOST_CHECK_EQUAL(tret, 5.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.5, 0.00001);
+    EXPECT_EQ(tret, 5.0);
+    EXPECT_NEAR(src->getOutput(), 0.5, 0.00001);
     hR->Finalize();
     vFed->finalize();
-    delete hR;
 }
 
-BOOST_AUTO_TEST_CASE(helics_xml_with_load)
+TEST_F(HelicsTests, HelicsXmlWithLoad)
 {
     helics::FederateInfo fi(helics::core_type::INPROC);
     fi.coreName = "test2";
     fi.coreInitString = "-f 2 --autobroker";
     auto vFed = std::make_shared<helics::ValueFederate>("helics_load_test", fi);
-    // register the publications
     auto& subid = vFed->registerSubscription("voltage3key");
     auto& pubid = vFed->registerGlobalPublication<std::complex<double>>("load3val");
 
-    auto hR = new helicsRunner();
+    auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory +
                              "helics_test2.xml --core_type=inproc --core_name=test2");
 
@@ -249,7 +226,7 @@ BOOST_AUTO_TEST_CASE(helics_xml_with_load)
 
     auto ldObj = sim->find("bus2::load#0");
     auto ld = dynamic_cast<helicsLoad*>(ldObj);
-    BOOST_REQUIRE(ld != nullptr);
+    ASSERT_NE(ld, nullptr);
 
     auto res = std::async(std::launch::async, [&]() { hR->simInitialize(); });
 
@@ -265,10 +242,10 @@ BOOST_AUTO_TEST_CASE(helics_xml_with_load)
     while (tm < 3.0) {
         tm = vFed->requestTime(3.0);
     }
-    BOOST_CHECK_EQUAL(tm, 3.0);
+    EXPECT_EQ(tm, 3.0);
 
     double tret = resT.get();
-    BOOST_CHECK_EQUAL(tret, 3.0);
+    EXPECT_EQ(tret, 3.0);
     auto voltageVal = subid.getValue<std::complex<double>>();
     pubid.publish(std::complex<double>{150.0, 70.0});
 
@@ -277,19 +254,18 @@ BOOST_AUTO_TEST_CASE(helics_xml_with_load)
     while (tm < 7.0) {
         tm = vFed->requestTime(7.0);
     }
-    BOOST_CHECK_EQUAL(tm, 7.0);
+    EXPECT_EQ(tm, 7.0);
 
     tret = resT.get();
-    BOOST_CHECK_EQUAL(tret, 7.0);
+    EXPECT_EQ(tret, 7.0);
     auto voltageVal2 = subid.getValue<std::complex<double>>();
 
-    BOOST_CHECK_GT(std::abs(voltageVal), std::abs(voltageVal2));
+    EXPECT_GT(std::abs(voltageVal), std::abs(voltageVal2));
     hR->Finalize();
     vFed->finalize();
-    delete hR;
 }
 
-BOOST_AUTO_TEST_CASE(test_recorder_player)
+TEST_F(HelicsTests, TestRecorderPlayer)
 {
     auto brk = runBroker("2");
     auto play = runPlayer(helics_test_directory +
@@ -298,48 +274,48 @@ BOOST_AUTO_TEST_CASE(test_recorder_player)
         helics_test_directory +
         "recorder_capture_list.txt --name=rec --stop=25 --output=rec_capture.txt 2> recout.txt");
 
-    BOOST_CHECK(play.get() == 0);
-    BOOST_CHECK(rec.get() == 0);
+    EXPECT_EQ(play.get(), 0);
+    EXPECT_EQ(rec.get(), 0);
 
-    BOOST_CHECK(brk.get() == 0);
-    BOOST_CHECK(boost::filesystem::exists("rec_capture.txt"));
+    EXPECT_EQ(brk.get(), 0);
+    EXPECT_TRUE(boost::filesystem::exists("rec_capture.txt"));
 
     std::ifstream inFile("rec_capture.txt");
     std::string line;
     std::getline(inFile, line);
     std::getline(inFile, line);
-    BOOST_CHECK(!line.empty());
+    EXPECT_FALSE(line.empty());
     using namespace gmlc::utilities::string_viewOps;
     auto lineEle = split(line, whiteSpaceCharacters, delimiter_compression::on);
-    BOOST_REQUIRE_GE(lineEle.size(), 3);
-    BOOST_CHECK_EQUAL(lineEle[0], "3");
-    BOOST_CHECK_EQUAL(lineEle[1], "gen");
-    BOOST_CHECK_EQUAL(lineEle[2], "40");
+    ASSERT_GE(lineEle.size(), 3U);
+    EXPECT_EQ(lineEle[0], "3");
+    EXPECT_EQ(lineEle[1], "gen");
+    EXPECT_EQ(lineEle[2], "40");
 
     std::getline(inFile, line);
     std::getline(inFile, line);
-    BOOST_CHECK(!line.empty());
+    EXPECT_FALSE(line.empty());
 
     lineEle = split(line, whiteSpaceCharacters, delimiter_compression::on);
-    BOOST_REQUIRE_GE(lineEle.size(), 3);
-    BOOST_CHECK_EQUAL(lineEle[0], "11");
-    BOOST_CHECK_EQUAL(lineEle[1], "gen");
-    BOOST_CHECK_EQUAL(lineEle[2], "50");
+    ASSERT_GE(lineEle.size(), 3U);
+    EXPECT_EQ(lineEle[0], "11");
+    EXPECT_EQ(lineEle[1], "gen");
+    EXPECT_EQ(lineEle[2], "50");
     inFile.close();
     remove("rec_capture.txt");
 }
 
-BOOST_AUTO_TEST_CASE(test_zmq_core)
+TEST_F(HelicsTests, TestZmqCore)
 {
-    auto hR = new helicsRunner();
+    auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "helics_test3.xml");
 
     auto sim = hR->getSim();
 
     auto genObj = sim->find("bus2::gen1");
-    BOOST_REQUIRE(genObj != nullptr);
+    ASSERT_NE(genObj, nullptr);
     auto src = static_cast<Source*>(genObj->find("source"));
-    BOOST_REQUIRE(src != nullptr);
+    ASSERT_NE(src, nullptr);
     auto brk = runBroker("2");
     auto play = runPlayer(helics_test_directory + "source_player.txt --name=player --stop=24");
 
@@ -347,27 +323,25 @@ BOOST_AUTO_TEST_CASE(test_zmq_core)
 
     auto tret = hR->Step(5.0);
 
-    BOOST_CHECK_EQUAL(tret, 5.0);
+    EXPECT_EQ(tret, 5.0);
 
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.40, 0.00001);
+    EXPECT_NEAR(src->getOutput(), 0.40, 0.00001);
     tret = hR->Step(9.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.45, 0.000001);
+    EXPECT_NEAR(src->getOutput(), 0.45, 0.000001);
     tret = hR->Step(13.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.50, 0.00000001);
+    EXPECT_NEAR(src->getOutput(), 0.50, 0.00000001);
     tret = hR->Step(17.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.55, 0.00000001);
+    EXPECT_NEAR(src->getOutput(), 0.55, 0.00000001);
     tret = hR->Step(24.0);
-    BOOST_CHECK_CLOSE(src->getOutput(), 0.65, 0.00000001);
+    EXPECT_NEAR(src->getOutput(), 0.65, 0.00000001);
 
-    BOOST_CHECK(play.get() == 0);
+    EXPECT_EQ(play.get(), 0);
     hR->Finalize();
-    delete hR;
     sim = nullptr;
-    BOOST_CHECK(brk.get() == 0);
-    // BOOST_CHECK_CLOSE(src->getOutput(), 0.5, 0.00001);
+    EXPECT_EQ(brk.get(), 0);
 }
 
-BOOST_AUTO_TEST_CASE(test_collector)
+TEST_F(HelicsTests, TestCollector)
 {
     auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "simple_bus_test1.xml");
@@ -383,19 +357,18 @@ BOOST_AUTO_TEST_CASE(test_collector)
 
     auto tret = hR->Run();
 
-    BOOST_CHECK_EQUAL(tret, 240.0);
+    EXPECT_EQ(tret, 240.0);
 
     fut.get();
     hR->Finalize();
     auto pts = rec.pointCount();
-    BOOST_CHECK_EQUAL(pts, 41 * 4);
+    EXPECT_EQ(pts, 41 * 4);
     rec.finalize();
-    // I want this freed first PT
     hR = nullptr;
     sim = nullptr;
 }
 
-BOOST_AUTO_TEST_CASE(test_collector_vector)
+TEST_F(HelicsTests, TestCollectorVector)
 {
     auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "simple_bus_test_collector_vec.xml");
@@ -411,23 +384,22 @@ BOOST_AUTO_TEST_CASE(test_collector_vector)
 
     auto tret = hR->Run();
 
-    BOOST_CHECK_EQUAL(tret, 240.0);
+    EXPECT_EQ(tret, 240.0);
 
     fut.get();
     hR->Finalize();
     auto pts = rec.pointCount();
-    BOOST_CHECK_EQUAL(pts, 41);
+    EXPECT_EQ(pts, 41);
 
     auto pt1 = rec.getValue(0);
-    BOOST_CHECK_EQUAL(pt1.first, "vout");
-    BOOST_CHECK(pt1.second.compare(0, 3, "v4[") == 0);
+    EXPECT_EQ(pt1.first, "vout");
+    EXPECT_TRUE(pt1.second.compare(0, 3, "v4[") == 0);
     rec.finalize();
-    // I want this freed first PT
     hR = nullptr;
     sim = nullptr;
 }
 
-BOOST_AUTO_TEST_CASE(test_event)
+TEST_F(HelicsTests, TestEvent)
 {
     auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "simple_bus_test1_event.xml");
@@ -438,7 +410,6 @@ BOOST_AUTO_TEST_CASE(test_event)
     auto cmd = std::vector<std::string>{"--tags=\"mag1,mag2,ang1,ang2\""};
     auto rec = helics::apps::Recorder(cmd);
 
-    // add a single point
     auto play = helics::apps::Player(std::string{}, helics::FederateInfo());
     play.addPublication("breaker", helics::data_type::helics_double);
     play.addPoint(120.0, "breaker", 1.0);
@@ -449,22 +420,21 @@ BOOST_AUTO_TEST_CASE(test_event)
 
     auto tret = hR->Run();
 
-    BOOST_CHECK_EQUAL(tret, 240.0);
+    EXPECT_EQ(tret, 240.0);
 
     fut_rec.get();
     fut_play.get();
     hR->Finalize();
     auto pts = rec.pointCount();
-    BOOST_CHECK_EQUAL(pts, 41 * 4);
+    EXPECT_EQ(pts, 41 * 4);
     auto endpt = rec.getValue(163);
-    BOOST_CHECK_EQUAL(gmlc::utilities::numeric_conversion(endpt.second, 45.7), 0.0);
+    EXPECT_EQ(gmlc::utilities::numeric_conversion(endpt.second, 45.7), 0.0);
     rec.finalize();
-    // I want this freed first PT
     hR = nullptr;
     sim = nullptr;
 }
 
-BOOST_AUTO_TEST_CASE(test_vector_event)
+TEST_F(HelicsTests, TestVectorEvent)
 {
     auto hR = std::make_unique<helicsRunner>();
     hR->InitializeFromString(helics_test_directory + "simple_bus_test2_event.xml");
@@ -475,7 +445,6 @@ BOOST_AUTO_TEST_CASE(test_vector_event)
     auto cmd = std::vector<std::string>{"--tags=\"mag1,mag2,ang1,ang2\""};
     auto rec = helics::apps::Recorder(cmd);
 
-    // add a single point
     auto play = helics::apps::Player(std::string{}, helics::FederateInfo{});
     play.addPublication("breakers", helics::data_type::helics_vector);
     play.addPoint(120.0, "breakers", "v[0.0,1.0,0.0,0.0]");
@@ -486,22 +455,21 @@ BOOST_AUTO_TEST_CASE(test_vector_event)
 
     auto tret = hR->Run();
 
-    BOOST_CHECK_EQUAL(tret, 240.0);
+    EXPECT_EQ(tret, 240.0);
 
     fut_rec.get();
     fut_play.get();
     hR->Finalize();
     auto pts = rec.pointCount();
-    BOOST_CHECK_EQUAL(pts, 41 * 4);
+    EXPECT_EQ(pts, 41 * 4);
     auto endpt = rec.getValue(163);
-    BOOST_CHECK_EQUAL(gmlc::utilities::numeric_conversion(endpt.second, 45.7), 0.0);
+    EXPECT_EQ(gmlc::utilities::numeric_conversion(endpt.second, 45.7), 0.0);
     rec.finalize();
-    // I want this freed first PT
     hR = nullptr;
     sim = nullptr;
 }
 
-BOOST_AUTO_TEST_CASE(test_main_exe)
+TEST_F(HelicsTests, TestMainExe)
 {
     exeTestRunner mainExeRunner(GRIDDYNINSTALL_LOCATION, GRIDDYNMAIN_LOCATION, "gridDynMain");
     if (mainExeRunner.isActive()) {
@@ -510,62 +478,10 @@ BOOST_AUTO_TEST_CASE(test_main_exe)
         auto out =
             mainExeRunner.runCaptureOutput(helics_test_directory + "helics_test3.xml --helics");
         auto res = out.find("HELICS");
-        BOOST_CHECK(res != std::string::npos);
-        BOOST_CHECK(play.get() == 0);
-        BOOST_CHECK(brk.get() == 0);
+        EXPECT_NE(res, std::string::npos);
+        EXPECT_EQ(play.get(), 0);
+        EXPECT_EQ(brk.get(), 0);
     } else {
         std::cout << "Unable to locate main executable:: skipping test\n";
     }
 }
-#ifdef ENABLE_EXTRA_HELICS_TEST
-bool testHELICSCollector()
-{
-    helics::clear();
-    std::unique_ptr<gridDynSimulation> gds = std::make_unique<gridDynSimulation>();
-    std::string tfile1 = std::string(HELICS_TEST_DIRECTORY "/helics_collector_test1.xml");
-
-    loadFile(gds.get(), tfile1);
-
-    int cc = gds->getInt("collectorcount");
-    if (cc != 1) {
-        std::cout << "incorrect number of collectors\n";
-        return false;
-    }
-    gds->run(2.0);
-    auto val = helicsGetVal("p1");
-    if (std::abs(val - 0.35) > 0.000001) {
-        std::cout << "incorrect bus load\n";
-        return false;
-    }
-
-    auto keys = helics::get_keys();
-    if (keys.size() != 9) {
-        std::cout << "incorrect number of keys\n";
-        return false;
-    }
-    helicsSendComplex("helicsload1", 0.45, 0.2);
-    helicsSendComplex("helicsload2", 0.54, 0.31);
-
-    gds->run(4.0);
-    val = helicsGetVal("p1");
-    if (std::abs(val - 0.45) > 0.000001) {
-        std::cout << "incorrect bus real load\n";
-        return false;
-    }
-    val = helicsGetVal("q2");
-    if (std::abs(val - 0.31) > 0.000001) {
-        std::cout << "incorrect bus reactive load\n";
-        return false;
-    }
-    auto v1 = helicsGetComplex("helicsvoltage1");
-    auto v2 = helicsGetComplex("helicsvoltage2");
-    if (std::abs(v1 - v2) > 0.000001) {
-        std::cout << "incorrect voltage\n";
-        return false;
-    }
-    return true;
-}
-
-#endif
-
-BOOST_AUTO_TEST_SUITE_END()

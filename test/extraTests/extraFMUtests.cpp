@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "fmi/fmi_models/fmiMELoad3phase.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/gridBus.h"
@@ -18,14 +18,13 @@
 #include <set>
 #include <utility>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 using namespace griddyn;
 
-BOOST_FIXTURE_TEST_SUITE(extraFMU_tests, gridDynSimulationTestFixture)
-BOOST_AUTO_TEST_CASE(load_fmu)
+class ExtraFmuTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(ExtraFmuTests, LoadFmu)
 {
     fmi::fmiMELoad3phase ld3;
     ld3.set(
@@ -38,5 +37,3 @@ BOOST_AUTO_TEST_CASE(load_fmu)
     IOdata res;
     ld3.dynInitializeB(noInputs, noInputs, res);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

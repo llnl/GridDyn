@@ -10,35 +10,30 @@
  * LLNS Copyright End
  */
 
-// test case for workQueue
-
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "utilities/workQueue.h"
 #include <chrono>
 #include <iostream>
 
-#include <boost/test/unit_test.hpp>
-BOOST_AUTO_TEST_SUITE(workQueue_tests, *boost::unit_test::label("quick"))
-
-// some tests only make sense if multithreading is enabled
+#include <gtest/gtest.h>
 
 #ifdef ENABLE_MULTITHREADING
-BOOST_AUTO_TEST_CASE(workQueue_test1)
+TEST(WorkQueueTests, WorkQueueTest1)
 {
     int check = workQueue::getWorkerCount();
-    BOOST_CHECK_EQUAL(check, 0);
+    EXPECT_EQ(check, 0);
 
     auto wq = workQueue::instance(1);
 
-    BOOST_CHECK((wq));
+    EXPECT_TRUE(static_cast<bool>(wq));
     check = workQueue::getWorkerCount();
-    BOOST_CHECK_EQUAL(check, 1);
+    EXPECT_EQ(check, 1);
 
     wq->destroyWorkerQueue();
 
-    wq.reset();  // reset to make get rid of shared ptr reference
+    wq.reset();
     check = workQueue::getWorkerCount();
-    BOOST_CHECK_EQUAL(check, 0);
+    EXPECT_EQ(check, 0);
 
     auto fk = [] {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -46,7 +41,7 @@ BOOST_AUTO_TEST_CASE(workQueue_test1)
     };
     wq = workQueue::instance(5);
     check = workQueue::getWorkerCount();
-    BOOST_CHECK_EQUAL(check, 5);
+    EXPECT_EQ(check, 5);
     std::vector<decltype(make_shared_workBlock(fk))> blocks(10);
     std::vector<std::shared_ptr<basicWorkBlock>> bblocks(10);
     for (size_t kk = 0; kk < 10; ++kk) {
@@ -61,15 +56,13 @@ BOOST_AUTO_TEST_CASE(workQueue_test1)
     std::sort(res.begin(), res.end());
     auto last = std::unique(res.begin(), res.end());
     res.erase(last, res.end());
-    BOOST_CHECK_EQUAL(res.size(), 5u);
+    EXPECT_EQ(res.size(), 5U);
     wq->destroyWorkerQueue();
 }
-
 #endif
 
-BOOST_AUTO_TEST_CASE(workQueue_test2)
+TEST(WorkQueueTests, WorkQueueTest2)
 {
-    // Test a zero worker count
     auto wq = workQueue::instance(0);
     std::function<void()> fk = [] { std::this_thread::sleep_for(std::chrono::milliseconds(110)); };
 
@@ -78,16 +71,14 @@ BOOST_AUTO_TEST_CASE(workQueue_test2)
     wq->addWorkBlock(b1);
     auto stop_t = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_time = stop_t - start_t;
-    // verifying the block was run immediately
-    BOOST_CHECK_GE(elapsed_time.count(), 0.1);
-    // verify the block won't run again until reset
+    EXPECT_GE(elapsed_time.count(), 0.1);
+
     start_t = std::chrono::high_resolution_clock::now();
     wq->addWorkBlock(b1);
     stop_t = std::chrono::high_resolution_clock::now();
     elapsed_time = stop_t - start_t;
-    // verifying the block was run immediately
-    BOOST_CHECK_LT(elapsed_time.count(), 0.05);
-    // verify function update works properly
+    EXPECT_LT(elapsed_time.count(), 0.05);
+
     fk = [] { std::this_thread::sleep_for(std::chrono::milliseconds(130)); };
     b1->updateWorkFunction(fk);
 
@@ -95,7 +86,7 @@ BOOST_AUTO_TEST_CASE(workQueue_test2)
     wq->addWorkBlock(b1);
     stop_t = std::chrono::high_resolution_clock::now();
     elapsed_time = stop_t - start_t;
-    BOOST_CHECK_GE(elapsed_time.count(), 0.125);
+    EXPECT_GE(elapsed_time.count(), 0.125);
 
     wq->destroyWorkerQueue();
 #ifdef ENABLE_MULTITHREADING
@@ -105,23 +96,18 @@ BOOST_AUTO_TEST_CASE(workQueue_test2)
     wq->addWorkBlock(b1);
     stop_t = std::chrono::high_resolution_clock::now();
     elapsed_time = stop_t - start_t;
-    // verifying the block was run immediately
-    BOOST_CHECK_LT(elapsed_time.count(), 0.05);
+    EXPECT_LT(elapsed_time.count(), 0.05);
     wq->destroyWorkerQueue();
 #endif
 }
 
 #ifdef ENABLE_MULTITHREADING
-BOOST_AUTO_TEST_CASE(workQueue_test3)
+TEST(WorkQueueTests, WorkQueueTest3)
 {
-    // Test a queue priority mechanisms
-
     auto wq = workQueue::instance(1);
-    // a sleeper work block to give us time to set up the rest
     auto fk = [] { std::this_thread::sleep_for(std::chrono::milliseconds(300)); };
 
     auto b1 = make_workBlock(fk);
-    // only 1 worker thread so don't worry about locking
     std::vector<int> order;
 
     auto hp = [&order] { order.push_back(1); };
@@ -150,7 +136,7 @@ BOOST_AUTO_TEST_CASE(workQueue_test3)
     while (!wq->isEmpty()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(40));
     }
-    BOOST_CHECK_EQUAL(order.size(), 14u);
+    ASSERT_EQ(order.size(), 14U);
     std::vector<int> orderCorrect = {1, 1, 2, 2, 2, 3, 2, 2, 2, 3, 2, 2, 2, 3};
     int cdiff = 0;
     for (size_t kk = 0; kk < 14; ++kk) {
@@ -158,9 +144,6 @@ BOOST_AUTO_TEST_CASE(workQueue_test3)
             ++cdiff;
         }
     }
-    BOOST_CHECK_MESSAGE(cdiff == 0, "Execution out of order");
+    EXPECT_EQ(cdiff, 0) << "Execution out of order";
 }
-
 #endif
-
-BOOST_AUTO_TEST_SUITE_END()

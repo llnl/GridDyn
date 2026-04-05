@@ -407,7 +407,7 @@ TEST_F(XmlTests, XmlTest9)
 
     // check for equality
     ASSERT_EQ(st.size(), st2.size());
-    // BOOST_REQUIRE_SMALL(compare(st, st2), 0.001);
+    // ASSERT_LT(compare(st, st2), 0.001);
 
     double diff = compareVec(st, st2);
     EXPECT_LT(diff, 0.01);
@@ -465,8 +465,8 @@ TEST_F(XmlTests, TestParamSpecs)
     EXPECT_NEAR(ld2->get("yp"), 1.27, 1e-4);
     EXPECT_NEAR(ld2->get("yq"), 0.74, 1e-4);
     // TODO:: PT this capability is not enabled yet
-    // BOOST_CHECK_CLOSE(ld2->get("ip"), 0.145, 0.0001);
-    // BOOST_CHECK_CLOSE(ld2->get("iq"), 0.064, 0.0001);
+    // EXPECT_NEAR(ld2->get("ip"), 0.145, 0.0001);
+    // EXPECT_NEAR(ld2->get("iq"), 0.064, 0.0001);
 }
 
 // Test case for testing the various means of setting parameters

@@ -165,25 +165,25 @@ TEST(JsonElementReaderTests, JsonElementReaderTest3)
 TEST(JsonElementReaderTests, JsonElementReaderTest4)
 {
     /*auto reader = std::make_shared<jsonReaderElement>(xmlTestDirectory +
-    "xmlElementReader_test3.xml"); BOOST_CHECK(reader->getName() == "main_element");
+    "xmlElementReader_test3.xml"); EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();
     reader = nullptr;
-    BOOST_CHECK(main->getName() == "main_element");
+    EXPECT_EQ(main->getName(), "main_element");
     main->bookmark();
     main->moveToFirstChild();
     auto tstr = main->getMultiText(", ");
-    BOOST_CHECK(tstr == "part1, part2, part3");
+    EXPECT_EQ(tstr, "part1, part2, part3");
     main->moveToFirstChild();
     //att1 is 23t"  should return as not a value
     double val = main->getAttributeValue("att1");
-    BOOST_CHECK(val == kNullVal);
+    EXPECT_EQ(val, kNullVal);
     main->moveToFirstChild();
 
     val = main->getValue();
-    BOOST_CHECK(val == kNullVal);
-    BOOST_CHECK(main->getText() == "45.3echo");
+    EXPECT_EQ(val, kNullVal);
+    EXPECT_EQ(main->getText(), "45.3echo");
     main->restore();
-    BOOST_CHECK(main->getName() == "main_element");
+    EXPECT_EQ(main->getName(), "main_element");
     */
 }

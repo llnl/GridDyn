@@ -4,24 +4,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 #define HVDC_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dcLink_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(hvdc_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
+class HvdcTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
-BOOST_AUTO_TEST_CASE(hvdc_test1)
+TEST_F(HvdcTests, HvdcTest1)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc1.xml");
     gds = readSimXMLFile(fileName);
@@ -34,7 +31,7 @@ BOOST_AUTO_TEST_CASE(hvdc_test1)
     if (mmatch > 0) {
         printStateNames(gds, cPflowSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 
     gds->powerflow();
 
@@ -45,18 +42,18 @@ BOOST_AUTO_TEST_CASE(hvdc_test1)
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 
     mmatch = JacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 }
 #endif
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
-BOOST_AUTO_TEST_CASE(hvdc_test2)
+TEST_F(HvdcTests, HvdcTest2)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc2.xml");
     gds = readSimXMLFile(fileName);
@@ -68,13 +65,13 @@ BOOST_AUTO_TEST_CASE(hvdc_test2)
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 
     mmatch = JacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 
     gds->run(20);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
@@ -83,7 +80,7 @@ BOOST_AUTO_TEST_CASE(hvdc_test2)
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
-BOOST_AUTO_TEST_CASE(hvdc_test3)
+TEST_F(HvdcTests, HvdcTest3)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc3_sc.xml");
     gds = readSimXMLFile(fileName);
@@ -95,13 +92,13 @@ BOOST_AUTO_TEST_CASE(hvdc_test3)
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
 
     mmatch = JacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
-    BOOST_REQUIRE(mmatch == 0);
+    ASSERT_EQ(mmatch, 0);
     gds->run(20);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
@@ -109,4 +106,3 @@ BOOST_AUTO_TEST_CASE(hvdc_test3)
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #endif
-BOOST_AUTO_TEST_SUITE_END()

@@ -4,22 +4,19 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include <cstdio>
 
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
-#include <boost/test/tools/floating_point_comparison.hpp>
 using namespace griddyn;
-// test case for coreObject object
 
 #define CONSTRAINT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/constraint_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(constraint_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
+class ConstraintTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
 
-BOOST_AUTO_TEST_CASE(constraint_test1)
+TEST_F(ConstraintTests, ConstraintTest1)
 {
     std::string fileName = std::string(CONSTRAINT_TEST_DIRECTORY "test_constSimple1.xml");
     gds = readSimXMLFile(fileName);
@@ -34,5 +31,3 @@ BOOST_AUTO_TEST_CASE(constraint_test1)
     gds->run(30.0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

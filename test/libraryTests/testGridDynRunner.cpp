@@ -6,7 +6,6 @@
 
 // test case for element readers
 
-#include "../exeTestHelper.h"
 #include "../gtestHelper.h"
 #include "runner/gridDynRunner.h"
 #include <cstdlib>

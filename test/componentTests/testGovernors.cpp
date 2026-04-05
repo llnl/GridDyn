@@ -4,45 +4,44 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "core/objectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 // test case for coreObject object
 
 #define GOVERNOR_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/governor_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(governor_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
-
 using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE(gov_stability_test)
+class GovernorTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(GovernorTests, GovStabilityTest)
 {
     std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
 
     gds->resetObjectCounters();
     gds = readSimXMLFile(fileName);
     Generator* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
+    ASSERT_NE(gen, nullptr);
 
     auto cof = coreObjectFactory::instance();
     coreObject* obj = cof->createObject("governor", "basic");
+    ASSERT_NE(obj, nullptr);
 
     gen->add(obj);
 
     int retval = gds->dynInitialize();
-    BOOST_CHECK_EQUAL(retval, 0);
+    EXPECT_EQ(retval, 0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-    BOOST_CHECK_EQUAL(runJacobianCheck(gds, cDaeSolverMode), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
     gds->run(0.005);
-    BOOST_CHECK_EQUAL(runJacobianCheck(gds, cDaeSolverMode), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
 
     gds->run(400.0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
@@ -52,7 +51,7 @@ BOOST_AUTO_TEST_CASE(gov_stability_test)
     std::vector<double> st2 = gds->getState();
 
     // check for stability
-    BOOST_REQUIRE_EQUAL(st.size(), st2.size());
+    ASSERT_EQ(st.size(), st2.size());
     int ncnt = 0;
     double a0 = st2[0];
     for (size_t kk = 0; kk < st.size(); ++kk) {
@@ -63,7 +62,5 @@ BOOST_AUTO_TEST_CASE(gov_stability_test)
             }
         }
     }
-    BOOST_CHECK_EQUAL(ncnt, 0);
+    EXPECT_EQ(ncnt, 0);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

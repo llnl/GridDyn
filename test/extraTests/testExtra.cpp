@@ -4,13 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "griddyn/griddyn-config.h"
+#include "../gtestHelper.h"
 
-#define BOOST_TEST_MODULE testExtra
-#define BOOST_TEST_DETECT_MEMORY_LEAK 0
-
-#include "../testHelper.h"
-
-#include <boost/test/included/unit_test.hpp>
-
-BOOST_GLOBAL_FIXTURE(glbconfig);
+#include <gtest/gtest.h>

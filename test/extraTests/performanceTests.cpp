@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/gridBus.h"
 #include "griddyn/simulation/diagnostics.h"
@@ -18,18 +18,16 @@
 #include <set>
 #include <utility>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-BOOST_FIXTURE_TEST_SUITE(performance_tests, gridDynSimulationTestFixture)
+class ExtraPerformanceTests : public gridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 
-BOOST_AUTO_TEST_CASE(performance_tests1)
+TEST_F(ExtraPerformanceTests, PerformanceTests1)
 {
     const stringVec perf_cases{
         "case1354pegase.m", "case2869pegase.m", "case3012wp.m", "case3375wp.m", "case9241pegase.m"};
@@ -43,8 +41,7 @@ BOOST_AUTO_TEST_CASE(performance_tests1)
         } else {
             fileName = validationTestDirectory + mp;
         }
-        for (int kk = 0; kk < 10; ++kk)  // Do this 10 time
-        {
+        for (int kk = 0; kk < 10; ++kk) {
             gds = std::make_unique<gridDynSimulation>();
             gds->set("consoleprintlevel", "summary");
             auto start_t = std::chrono::high_resolution_clock::now();
@@ -53,7 +50,7 @@ BOOST_AUTO_TEST_CASE(performance_tests1)
             auto stop_t = std::chrono::high_resolution_clock::now();
             load_time += (stop_t - start_t);
 
-            BOOST_REQUIRE(gds->currentProcessState() == gridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
@@ -64,8 +61,8 @@ BOOST_AUTO_TEST_CASE(performance_tests1)
                 std::cout << fileName << " did not complete power flow calculation\n";
                 break;
             }
-            BOOST_REQUIRE(gds->currentProcessState() ==
-                          gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+            ASSERT_EQ(gds->currentProcessState(),
+                      gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
         }
         printf("%s load in %f powerflow in %f\n",
                mp.c_str(),
@@ -74,7 +71,7 @@ BOOST_AUTO_TEST_CASE(performance_tests1)
     }
 }
 
-BOOST_AUTO_TEST_CASE(performance_tests_scaling_pFlow)
+TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
 {
     std::string testFile =
         std::string(GRIDDYN_TEST_DIRECTORY "/performance_tests/block_grid3_motor.xml");
@@ -83,13 +80,10 @@ BOOST_AUTO_TEST_CASE(performance_tests_scaling_pFlow)
         3,   4,   5,   6,   7,   8,   9,   10,  11,  12,  14,  16,  18,  20,  24,  28,
         32,  36,  40,  45,  50,  56,  60,  66,  70,  74,  80,  84,  86,  88,  90,  92,
         100, 110, 120, 132, 136, 140, 148, 156, 164, 168, 172, 180, 188, 196, 204, 212,
-        218, 220, 224, 230, 240, 244, 250, 260, 270, 318, 340, 360, 400, /*450, 500, 550, 600,
-                                                                            720,800*/
+        218, 220, 224, 230, 240, 244, 250, 260, 270, 318, 340, 360, 400,
     };
     int numLoops = 1;
     for (int rr = 0; rr < numLoops; ++rr) {
-        // std::vector<int> elements = {212,240,260};
-        // std::vector<int> elements{ 800 };
         std::chrono::duration<double> pflow_time(0);
         std::chrono::duration<double> load_time(0);
 
@@ -114,7 +108,7 @@ BOOST_AUTO_TEST_CASE(performance_tests_scaling_pFlow)
             load_time = (stop_t - start_t);
             ldtime[ii] = load_time.count();
 
-            BOOST_REQUIRE(gds->currentProcessState() == gridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
@@ -154,23 +148,20 @@ BOOST_AUTO_TEST_CASE(performance_tests_scaling_pFlow)
                    minV.second,
                    maxV.first,
                    maxV.second);
-            // savePowerFlowCSV(gds,"bigCSV.csv");
+            ++ii;
         }
     }
 }
 
-BOOST_AUTO_TEST_CASE(dynamic_scalable_test)
+TEST_F(ExtraPerformanceTests, DynamicScalableTest)
 {
     std::string testFile =
         std::string(GRIDDYN_TEST_DIRECTORY "/performance_tests/block_grid2_dynamic.xml");
 
-    // std::vector<int> elements = {212,240,260};
-    // std::vector<int> elements{ 800 };
     std::chrono::duration<double> pflow_time(0);
     std::chrono::duration<double> load_time(0);
 
     int gsize = 50;
-    //    int ii = 0;
 
     gds = std::make_unique<gridDynSimulation>();
 
@@ -183,7 +174,7 @@ BOOST_AUTO_TEST_CASE(dynamic_scalable_test)
     auto stop_t = std::chrono::high_resolution_clock::now();
     load_time = (stop_t - start_t);
 
-    BOOST_REQUIRE(gds->currentProcessState() == gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
 
     start_t = std::chrono::high_resolution_clock::now();
     gds->powerflow();
@@ -208,8 +199,4 @@ BOOST_AUTO_TEST_CASE(dynamic_scalable_test)
            bus->getGenerationReactive());
 
     gds->run();
-
-    // savePowerFlowCSV(gds,"bigCSV.csv");
 }
-
-BOOST_AUTO_TEST_SUITE_END()

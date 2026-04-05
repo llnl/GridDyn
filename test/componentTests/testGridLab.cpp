@@ -4,22 +4,21 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "coupling/GhostSwingBusManager.h"
 #include "griddyn/loads/approximatingLoad.h"
 #include <cstdio>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 
 #define GRIDLAB_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(gridlabd_tests, gridDynSimulationTestFixture)
-
 using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE(gridlab_test1)
+class GridLabTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(GridLabTests, GridlabTest1)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
@@ -29,7 +28,7 @@ BOOST_AUTO_TEST_CASE(gridlab_test1)
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
-    BOOST_CHECK_EQUAL(glb, 1);
+    EXPECT_EQ(glb, 1);
 
     gds->pFlowInitialize();
     requireState(gridDynSimulation::gridState_t::INITIALIZED);
@@ -38,24 +37,24 @@ BOOST_AUTO_TEST_CASE(gridlab_test1)
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload1"));
 
-    BOOST_REQUIRE(ld != nullptr);
+    ASSERT_NE(ld, nullptr);
     double val = ld->get("p");
-    BOOST_CHECK_CLOSE(val, 0.9, 0.01);
+    EXPECT_NEAR(val, 0.9, std::abs(0.9) * 1e-4 + 1e-12);
     val = ld->get("yp");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("yq");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("ip");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("iq");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("q");
-    BOOST_CHECK_CLOSE(val, 0.27, 0.01);
+    EXPECT_NEAR(val, 0.27, std::abs(0.27) * 1e-4 + 1e-12);
 
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(gridlab_test2)
+TEST_F(GridLabTests, GridlabTest2)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
@@ -65,7 +64,7 @@ BOOST_AUTO_TEST_CASE(gridlab_test2)
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
-    BOOST_CHECK_EQUAL(glb, 3);
+    EXPECT_EQ(glb, 3);
 
     gds->pFlowInitialize();
     requireState(gridDynSimulation::gridState_t::INITIALIZED);
@@ -75,25 +74,25 @@ BOOST_AUTO_TEST_CASE(gridlab_test2)
     zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
-    BOOST_REQUIRE(ld != nullptr);
+    ASSERT_NE(ld, nullptr);
     double val = ld->get("p");
-    BOOST_CHECK_CLOSE(val, 0.3, 0.01);
+    EXPECT_NEAR(val, 0.3, std::abs(0.3) * 1e-4 + 1e-12);
     val = ld->get("yp");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("yq");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("ip");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("iq");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("q");
-    BOOST_CHECK_CLOSE(val, 0.09, 0.01);
+    EXPECT_NEAR(val, 0.09, std::abs(0.09) * 1e-4 + 1e-12);
 
     gds->run(30.0);
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(gridlab_test3)
+TEST_F(GridLabTests, GridlabTest3)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
@@ -103,7 +102,7 @@ BOOST_AUTO_TEST_CASE(gridlab_test3)
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
-    BOOST_CHECK_EQUAL(glb, 3);
+    EXPECT_EQ(glb, 3);
 
     gds->pFlowInitialize();
     requireState(gridDynSimulation::gridState_t::INITIALIZED);
@@ -113,25 +112,25 @@ BOOST_AUTO_TEST_CASE(gridlab_test3)
     zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
-    BOOST_REQUIRE(ld != nullptr);
+    ASSERT_NE(ld, nullptr);
     double val = ld->get("p");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("yp");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("yq");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
     val = ld->get("ip");
-    BOOST_CHECK_CLOSE(val, 0.3, 0.01);
+    EXPECT_NEAR(val, 0.3, std::abs(0.3) * 1e-4 + 1e-12);
     val = ld->get("iq");
-    BOOST_CHECK_CLOSE(val, 0.09, 0.01);
+    EXPECT_NEAR(val, 0.09, std::abs(0.09) * 1e-4 + 1e-12);
     val = ld->get("q");
-    BOOST_CHECK_SMALL(val, 0.000001);
+    EXPECT_NEAR(val, 0.0, 1e-6);
 
     gds->run(30.0);
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(test_gridlabArray)
+TEST_F(GridLabTests, TestGridlabArray)
 {
     // test the define functionality
     int argc = 0;
@@ -153,11 +152,10 @@ BOOST_AUTO_TEST_CASE(test_gridlabArray)
     if (b != "outerSize") {
         cnt = cnt * std::stoi(b);
     }
-    BOOST_CHECK_EQUAL(glb, cnt);
+    EXPECT_EQ(glb, cnt);
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
-BOOST_AUTO_TEST_SUITE_END()

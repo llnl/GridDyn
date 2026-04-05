@@ -4,25 +4,23 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../testHelper.h"
+#include "../gtestHelper.h"
 #include "core/objectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include <cmath>
 
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <gtest/gtest.h>
 // test case for coreObject object
 
 #define EXCITER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/exciter_tests/"
 
-BOOST_FIXTURE_TEST_SUITE(exciter_tests,
-                         gridDynSimulationTestFixture,
-                         *boost::unit_test::label("quick"))
 using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE(root_exciter_test)
+class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {
+};
+
+TEST_F(ExciterTests, RootExciterTest)
 {
     std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_root_exciter.xml");
 
@@ -30,7 +28,7 @@ BOOST_AUTO_TEST_CASE(root_exciter_test)
     gds = readSimXMLFile(fileName);
 
     int retval = gds->dynInitialize();
-    BOOST_CHECK_EQUAL(retval, 0);
+    EXPECT_EQ(retval, 0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState();
@@ -41,10 +39,10 @@ BOOST_AUTO_TEST_CASE(root_exciter_test)
 
     // check for stability
     auto diff = gmlc::utilities::countDiffs(st, st2, 0.0001);
-    BOOST_CHECK_EQUAL(diff, 0u);
+    EXPECT_EQ(diff, 0u);
 }
 
-BOOST_AUTO_TEST_CASE(basic_stability_test1)
+TEST_F(ExciterTests, BasicStabilityTest1)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
@@ -65,10 +63,11 @@ BOOST_AUTO_TEST_CASE(basic_stability_test1)
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
 
         auto obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -82,31 +81,31 @@ BOOST_AUTO_TEST_CASE(basic_stability_test1)
         int retval = gds->dynInitialize();
         requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
 
         int badresid = runResidualCheck(gds, cDaeSolverMode, false);
 
-        BOOST_REQUIRE_MESSAGE(badresid == 0, "exciter type " << excname << "resid issue\n");
+        ASSERT_EQ(badresid, 0) << "exciter type " << excname << " resid issue";
         int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(badjacobian == 0, "exciter type " << excname << "Jacobian issue\n");
+        ASSERT_EQ(badjacobian, 0) << "exciter type " << excname << " Jacobian issue";
 
         std::vector<double> volt1;
         gds->getVoltage(volt1);
 
         gds->run();
 
-        BOOST_REQUIRE_MESSAGE(gds->getSimulationTime() >= 30.0,
-                              "exciter type " << excname << " didn't complete\n");
+        ASSERT_GE(gds->getSimulationTime(), 30.0)
+            << "exciter type " << excname << " didn't complete";
         std::vector<double> volt2;
         gds->getVoltage(volt2);
-        BOOST_CHECK((volt2[0] > 0.95) && (volt2[0] < 1.00));
-        BOOST_CHECK((volt2[1] > 0.95) && (volt2[1] < 1.000));
+        EXPECT_TRUE((volt2[0] > 0.95) && (volt2[0] < 1.00));
+        EXPECT_TRUE((volt2[1] > 0.95) && (volt2[1] < 1.000));
 
         // check for stability
     }
 }
 
-BOOST_AUTO_TEST_CASE(basic_stability_test2)
+TEST_F(ExciterTests, BasicStabilityTest2)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
@@ -126,9 +125,10 @@ BOOST_AUTO_TEST_CASE(basic_stability_test2)
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
         auto obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -140,16 +140,15 @@ BOOST_AUTO_TEST_CASE(basic_stability_test2)
         gen->add(obj);
 
         int retval = gds->dynInitialize();
-        BOOST_REQUIRE(gds->currentProcessState() ==
-                      gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
 
         int badresid = runResidualCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(badresid == 0, "Exciter " << excname << " residual issue");
+        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
         int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
 
-        BOOST_REQUIRE_MESSAGE(badjacobian == 0, "Exciter " << excname << " Jacobian issue");
+        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
 
         std::vector<double> volt1;
         gds->getVoltage(volt1);
@@ -159,17 +158,17 @@ BOOST_AUTO_TEST_CASE(basic_stability_test2)
             printf("exciter didn't complete %s\n", excname.c_str());
             gds->saveRecorders();
         }
-        BOOST_REQUIRE(gds->getSimulationTime() >= 30.0);
+        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
         std::vector<double> volt2;
         gds->getVoltage(volt2);
-        BOOST_CHECK((volt2[0] > 1.00) && (volt2[0] < 1.05));
-        BOOST_CHECK((volt2[1] > 0.99) && (volt2[1] < 1.04));
+        EXPECT_TRUE((volt2[0] > 1.00) && (volt2[0] < 1.05));
+        EXPECT_TRUE((volt2[1] > 0.99) && (volt2[1] < 1.04));
 
         // check for stability
     }
 }
 
-BOOST_AUTO_TEST_CASE(basic_stability_test3)
+TEST_F(ExciterTests, BasicStabilityTest3)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         //{ "basic",{ { "ta",0.2 },{ "ka",11.0 } } },
@@ -195,9 +194,10 @@ BOOST_AUTO_TEST_CASE(basic_stability_test3)
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
         obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -209,17 +209,16 @@ BOOST_AUTO_TEST_CASE(basic_stability_test3)
         gen->add(obj);
 
         int retval = gds->dynInitialize();
-        BOOST_REQUIRE(gds->currentProcessState() ==
-                      gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
 
         int badresid = runResidualCheck(gds, cDaeSolverMode, false);
 
-        BOOST_REQUIRE_MESSAGE(badresid == 0, "Exciter " << excname << " residual issue");
+        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
         int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
 
-        BOOST_REQUIRE_MESSAGE(badjacobian == 0, "Exciter " << excname << " Jacobian issue");
+        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
 
         std::vector<double> volt1;
         gds->getVoltage(volt1);
@@ -229,16 +228,16 @@ BOOST_AUTO_TEST_CASE(basic_stability_test3)
             printf("exciter didn't complete %s\n", excname.c_str());
             gds->saveRecorders();
         }
-        BOOST_REQUIRE(gds->getSimulationTime() >= 30.0);
+        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
         std::vector<double> volt2;
         gds->getVoltage(volt2);
-        BOOST_CHECK((volt2[0] > 0.98) && (volt2[0] < 1.02));
-        BOOST_CHECK((volt2[1] > 0.97) && (volt2[1] < 1.02));
+        EXPECT_TRUE((volt2[0] > 0.98) && (volt2[0] < 1.02));
+        EXPECT_TRUE((volt2[1] > 0.97) && (volt2[1] < 1.02));
         // check for stability
     }
 }
 
-BOOST_AUTO_TEST_CASE(basic_stability_test4)
+TEST_F(ExciterTests, BasicStabilityTest4)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         //{ "basic",{ { "ta",0.2 },{ "ka",11.0 } } },
@@ -264,9 +263,10 @@ BOOST_AUTO_TEST_CASE(basic_stability_test4)
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
         obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -278,16 +278,15 @@ BOOST_AUTO_TEST_CASE(basic_stability_test4)
         gen->add(obj);
 
         int retval = gds->dynInitialize();
-        BOOST_REQUIRE(gds->currentProcessState() ==
-                      gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
 
         int badresid = runResidualCheck(gds, cDaeSolverMode, false);
 
-        BOOST_REQUIRE_MESSAGE(badresid == 0, "Exciter " << excname << " residual issue");
+        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
         int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(badjacobian == 0, "Exciter " << excname << " residual issue");
+        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
 
         std::vector<double> volt1;
         gds->getVoltage(volt1);
@@ -297,18 +296,17 @@ BOOST_AUTO_TEST_CASE(basic_stability_test4)
             printf("exciter didn't complete %s\n", excname.c_str());
             gds->saveRecorders();
         }
-        BOOST_REQUIRE(gds->getSimulationTime() >= 30.0);
+        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
         std::vector<double> volt2;
         gds->getVoltage(volt2);
-        BOOST_CHECK((volt2[0] > 0.98) && (volt2[0] < 1.02));
-        BOOST_CHECK((volt2[1] > 0.97) && (volt2[1] < 1.02));
+        EXPECT_TRUE((volt2[0] > 0.98) && (volt2[0] < 1.02));
+        EXPECT_TRUE((volt2[1] > 0.97) && (volt2[1] < 1.02));
         // check for stability
     }
 }
 
 #ifdef LOAD_CVODE
-BOOST_AUTO_TEST_CASE(
-    exciter_test2_alg_diff_tests)  // test the algebraic updates and derivative updates
+TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
@@ -329,9 +327,10 @@ BOOST_AUTO_TEST_CASE(
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
         auto obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -344,18 +343,17 @@ BOOST_AUTO_TEST_CASE(
 
         int retval = gds->dynInitialize();
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
         auto mmatch = runResidualCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Exciter " << excname << " residual issue");
+        ASSERT_EQ(mmatch, 0) << "Exciter " << excname << " residual issue";
         mmatch = runDerivativeCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Exciter " << excname << " derivative issue");
+        ASSERT_EQ(mmatch, 0) << "Exciter " << excname << " derivative issue";
         mmatch = runAlgebraicCheck(gds, cDaeSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Exciter " << excname << " algebraic issue");
+        ASSERT_EQ(mmatch, 0) << "Exciter " << excname << " algebraic issue";
     }
 }
 
-BOOST_AUTO_TEST_CASE(
-    exciter_alg_diff_jacobian_tests)  // test the algebraic updates and derivative updates
+TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
@@ -376,9 +374,10 @@ BOOST_AUTO_TEST_CASE(
         }
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
+        ASSERT_NE(gen, nullptr);
         gds->consolePrintLevel = print_level::no_print;
         auto obj = cof->createObject("exciter", excname);
-        BOOST_CHECK(obj != nullptr);
+        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
@@ -390,13 +389,11 @@ BOOST_AUTO_TEST_CASE(
         gen->add(obj);
         int retval = gds->dynInitialize();
 
-        BOOST_CHECK_EQUAL(retval, 0);
+        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
         auto mmatch = runJacobianCheck(gds, cDynDiffSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Exciter " << excname << " Jacobian dynDiff issue");
+        ASSERT_EQ(mmatch, 0) << "Exciter " << excname << " Jacobian dynDiff issue";
         mmatch = runJacobianCheck(gds, cDynAlgSolverMode, false);
-        BOOST_REQUIRE_MESSAGE(mmatch == 0, "Exciter " << excname << " Jacobian dynAlg issue");
+        ASSERT_EQ(mmatch, 0) << "Exciter " << excname << " Jacobian dynAlg issue";
     }
 }
 #endif
-
-BOOST_AUTO_TEST_SUITE_END()

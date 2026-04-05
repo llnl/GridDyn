@@ -29,8 +29,6 @@ endif(WIN32)
 # message(${test_dir})
 
 target_compile_definitions(shared_library_tests PRIVATE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
-target_compile_definitions(shared_library_tests PRIVATE BOOST_TEST_NO_LIB)
-
 target_link_libraries(shared_library_tests PUBLIC griddyn_shared_lib)
 
 if(VERSION_OPTION)
@@ -43,8 +41,7 @@ if(VERSION_OPTION)
     endif(MSVC)
 endif(VERSION_OPTION)
 
-target_link_libraries(shared_library_tests PUBLIC ${Boost_LIBRARIES_core})
+target_link_libraries(shared_library_tests PUBLIC gtest gtest_main gmock)
 
 add_test(NAME shared_library_tests COMMAND shared_library_tests)
-
-set_target_properties(testExtra PROPERTIES FOLDER tests)
+set_target_properties(shared_library_tests PROPERTIES FOLDER tests)

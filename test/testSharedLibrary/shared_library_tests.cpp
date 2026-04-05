@@ -10,7 +10,4 @@
  * LLNS Copyright End
  */
 
-#define BOOST_TEST_MODULE shared_library_tests
-#define BOOST_TEST_DETECT_MEMORY_LEAK 0
-
-#include <boost/test/included/unit_test.hpp>
+#include <gtest/gtest.h>

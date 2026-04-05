@@ -17,7 +17,7 @@
 #include <map>
 #include <utility>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 // test case for coreObject object
 
 #define INPUT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/input_tests/"
@@ -189,7 +189,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
         auto caseSet = compareCases[caseIndex];
         SCOPED_TRACE(caseSet[0]);
         std::string fileName = std::string(IEEE_TEST_DIRECTORY) + caseSet[0];
-        if (!boost::filesystem::exists(fileName)) {
+        if (!std::filesystem::exists(fileName)) {
             fileName = std::string(INPUT_TEST_DIRECTORY) + caseSet[0];
         }
         loadFile(gds, fileName);
@@ -208,7 +208,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
             gds2 = std::make_unique<gridDynSimulation>();
             if (fname2.size() < 25) {
                 fname2 = std::string(IEEE_TEST_DIRECTORY) + nf;
-                if (!boost::filesystem::exists(fname2)) {
+                if (!std::filesystem::exists(fname2)) {
                     fname2 = std::string(INPUT_TEST_DIRECTORY) + nf;
                 }
             }

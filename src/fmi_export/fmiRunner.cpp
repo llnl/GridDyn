@@ -14,7 +14,7 @@
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
 namespace fmi {
@@ -47,10 +47,10 @@ namespace fmi {
 
         ri.addDirectory(resource_loc);
 
-        boost::filesystem::path mainFilePath = resource_loc;
+        std::filesystem::path mainFilePath = resource_loc;
         mainFilePath /= "simulation.xml";
 
-        if (boost::filesystem::exists(mainFilePath)) {
+        if (std::filesystem::exists(mainFilePath)) {
             loadFile(m_gds.get(), mainFilePath.string(), &ri, "xml");
         } else {
             throw(std::invalid_argument("unable to locate main file"));

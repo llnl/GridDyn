@@ -372,7 +372,7 @@ install(
 # BOOST  find the boost libraries
 # ------------------------------------------------------------
 # TODO check if boost works (e.g. libstdc++ vs libc++)
-set(BOOST_REQUIRED_LIBRARIES filesystem system date_time)
+set(BOOST_REQUIRED_LIBRARIES system date_time)
 
 include(addBoost)
 

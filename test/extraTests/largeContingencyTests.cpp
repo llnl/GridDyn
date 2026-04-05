@@ -8,13 +8,13 @@
 #include <chrono>
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 
 class LargeContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 using namespace griddyn;
 
 TEST_F(LargeContingencyTests, ContingencyN2)

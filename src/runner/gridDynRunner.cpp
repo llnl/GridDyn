@@ -23,9 +23,9 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
-namespace filesystem = boost::filesystem;
+namespace filesystem = std::filesystem;
 
 namespace griddyn {
 using namespace gmlc::utilities::stringOps;

@@ -22,12 +22,12 @@
 #include <gtest/gtest.h>
 #include <set>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/");
 
 using namespace griddyn;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 

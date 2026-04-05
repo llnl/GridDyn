@@ -14,7 +14,7 @@
 #include "utilities/gridRandom.h"
 #include <sstream>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
 using namespace readerConfig;
@@ -78,7 +78,7 @@ void readImports(std::shared_ptr<readerElement>& element,
         // check through the files to find the right location
         ri.checkFileParam(sourceFile, true);
 
-        boost::filesystem::path sourcePath(sourceFile);
+        std::filesystem::path sourcePath(sourceFile);
         std::string prefix = getElementField(element, "prefix", match_type::capital_case_match);
         // get the prefix if any
         if (prefix.empty()) {

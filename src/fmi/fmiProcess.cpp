@@ -15,7 +15,7 @@
 
 #include "fmi_importGD.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <boost/program_options.hpp>
 // headers
 
@@ -138,7 +138,7 @@ int argumentParser(int argc, char* argv[], po::variables_map& vm_map)
     std::string config_file_name;
     if (cmd_vm.count("config_file")) {
         config_file_name = cmd_vm["config_file"].as<std::string>();
-        if (!boost::filesystem::exists(config_file_name)) {
+        if (!std::filesystem::exists(config_file_name)) {
             std::cerr << "config file " << config_file_name << " does not exist\n";
             return -1;
         } else {
@@ -148,7 +148,7 @@ int argumentParser(int argc, char* argv[], po::variables_map& vm_map)
             fstr.close();
         }
     }
-    if (boost::filesystem::exists("fmiProcess.ini")) {
+    if (std::filesystem::exists("fmiProcess.ini")) {
         std::ifstream fstr;
         fstr.open("fmiProcess.ini");
         po::store(po::parse_config_file(fstr, config_file), vm_map);

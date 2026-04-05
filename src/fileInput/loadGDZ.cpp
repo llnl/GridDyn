@@ -7,10 +7,10 @@
 #include "fileInput.h"
 #include "utilities/zipUtilities.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& ri)
 {

@@ -15,7 +15,7 @@
 
 #include <boost/date_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 namespace griddyn {
 using namespace readerConfig;
 
@@ -308,18 +308,18 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
         return false;
     }
     strVal = checkDefines(strVal);
-    boost::filesystem::path sourcePath(strVal);
+    std::filesystem::path sourcePath(strVal);
     bool ret = false;
     if (sourcePath.has_relative_path()) {
         // check the most recently added directories first
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
-            auto qpath = boost::filesystem::path(*checkDirectory);
+            auto qpath = std::filesystem::path(*checkDirectory);
             auto tempPath = (qpath.has_root_path()) ?
                 qpath / sourcePath :
-                boost::filesystem::current_path() / qpath / sourcePath;
+                std::filesystem::current_path() / qpath / sourcePath;
 
-            if (boost::filesystem::exists(tempPath)) {
+            if (std::filesystem::exists(tempPath)) {
                 sourcePath = tempPath;
                 ret = true;
                 break;
@@ -329,12 +329,12 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
             // check the most recently added directories first
             for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
                  ++checkDirectory) {
-                auto qpath = boost::filesystem::path(*checkDirectory);
+                auto qpath = std::filesystem::path(*checkDirectory);
                 auto tempPath = (qpath.has_root_path()) ?
                     qpath / sourcePath.filename() :
-                    boost::filesystem::current_path() / qpath / sourcePath.filename();
+                    std::filesystem::current_path() / qpath / sourcePath.filename();
 
-                if (boost::filesystem::exists(tempPath)) {
+                if (std::filesystem::exists(tempPath)) {
                     sourcePath = tempPath;
                     WARNPRINT(READER_WARN_ALL,
                               "file location path change " << strVal << " mapped to "
@@ -345,13 +345,13 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
             }
         }
         if (!ret) {
-            if (boost::filesystem::exists(sourcePath)) {
+            if (std::filesystem::exists(sourcePath)) {
                 ret = true;
             }
         }
         strVal = sourcePath.string();
     } else {
-        if (boost::filesystem::exists(sourcePath)) {
+        if (std::filesystem::exists(sourcePath)) {
             ret = true;
         }
     }
@@ -367,17 +367,17 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
 bool readerInfo::checkDirectoryParam(std::string& strVal)
 {
     strVal = checkDefines(strVal);
-    boost::filesystem::path sourcePath(strVal);
+    std::filesystem::path sourcePath(strVal);
     bool ret = false;
     if (sourcePath.has_relative_path()) {
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
-            auto qpath = boost::filesystem::path(*checkDirectory);
+            auto qpath = std::filesystem::path(*checkDirectory);
             auto tempPath = (qpath.has_root_path()) ?
                 qpath / sourcePath :
-                boost::filesystem::current_path() / qpath / sourcePath;
+                std::filesystem::current_path() / qpath / sourcePath;
 
-            if (boost::filesystem::exists(tempPath)) {
+            if (std::filesystem::exists(tempPath)) {
                 sourcePath = tempPath;
                 ret = true;
                 break;

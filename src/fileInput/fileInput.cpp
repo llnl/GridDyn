@@ -17,7 +17,7 @@
 #include "readElementFile.h"
 
 #include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 namespace griddyn {
 
 namespace readerConfig {
@@ -168,7 +168,7 @@ void loadFile(coreObject* parentObject,
               std::string ext)
 {
     if (ext.empty()) {
-        boost::filesystem::path sourcePath(fileName);
+        std::filesystem::path sourcePath(fileName);
         ext = gmlc::utilities::convertToLowerCase(sourcePath.extension().string());
         if (ext[0] == '.') {
             ext.erase(0, 1);

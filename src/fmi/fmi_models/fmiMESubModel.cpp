@@ -15,6 +15,7 @@
 #include "outputEstimator.h"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
+#include <filesystem>
 
 namespace griddyn {
 namespace fmi {
@@ -244,7 +245,7 @@ namespace fmi {
                     // printf("loading instance of fmi %s\n", val.c_str());
                     me = fmiLibraryManager::instance().createModelExchangeObject(val, getName());
                 }
-                catch (const boost::filesystem::filesystem_error& fse) {
+                catch (const std::filesystem::filesystem_error& fse) {
                     // printf("error loading object %s\n",fse.what());
                     LOG_ERROR(std::string("file system error") + fse.what());
                 }

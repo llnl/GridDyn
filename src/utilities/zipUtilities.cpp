@@ -13,8 +13,7 @@
 #include <Minizip/miniunz.h>
 #include <Minizip/minizip.h>
 
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
+#include <filesystem>
 
 namespace utilities {
 static const char* zipname = "minizip";
@@ -23,7 +22,7 @@ static const char* ziparg_append = "-a";
 static const char* ziparg2 = "-3";
 static const char* ziparg3 = "-j";
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 int zip(const std::string& file, const std::vector<std::string>& filesToZip, zipMode mode)
 {
@@ -74,11 +73,11 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
 void addToFileList(std::vector<path>& files, const path& startpath)
 {
     if (is_directory(startpath)) {
-        for (auto& entry : boost::make_iterator_range(directory_iterator(startpath), {})) {
+        for (const auto& entry : directory_iterator(startpath)) {
             if (is_regular_file(entry)) {
-                files.push_back(entry);
+                files.push_back(entry.path());
             } else if (is_directory(entry)) {
-                addToFileList(files, path(entry));
+                addToFileList(files, entry.path());
             }
         }
     }

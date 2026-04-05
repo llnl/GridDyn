@@ -7,7 +7,7 @@
 #include "../gtestHelper.h"
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 using namespace griddyn;
 /** these test cases test out the contingency capabilities in GridDyn
@@ -17,7 +17,7 @@ static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/con
 
 class ContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
 {
     std::string fileName = contingency_test_directory + "contingency_test1.xml";

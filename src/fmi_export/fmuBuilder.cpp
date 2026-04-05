@@ -19,7 +19,7 @@
 #include <iostream>
 #include <set>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #ifndef GRIDDYNFMILIBRARY_BINARY_LOC
 #    define GRIDDYNFMILIBRARY_BINARY_LOC ""
@@ -83,14 +83,14 @@ namespace fmi {
         return app;
     }
 
-    using namespace boost::filesystem;
+    using namespace std::filesystem;
     /** helper function to copy a file and overwrite if requested*/
     bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
     {
         std::cout << "copying " << source << " to " << dest << std::endl;
-        copy_option option = copy_option::fail_if_exists;
+        copy_options option = copy_options::none;
         if (overwrite) {
-            option = copy_option::overwrite_if_exists;
+            option = copy_options::overwrite_existing;
         }
 
         try {

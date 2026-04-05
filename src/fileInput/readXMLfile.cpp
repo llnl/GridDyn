@@ -15,7 +15,7 @@
 #include <sstream>
 #include <utility>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
 using namespace readerConfig;
@@ -23,7 +23,7 @@ using namespace readerConfig;
 std::unique_ptr<gridDynSimulation>
     readSimXMLFile(const std::string& fileName, readerInfo* ri, xmlreader rtype)
 {
-    if (!boost::filesystem::exists(fileName)) {
+    if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
     if (rtype == xmlreader::default_reader) {

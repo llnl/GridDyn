@@ -11,7 +11,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 static const std::string zip_test_directory(GRIDDYN_TEST_DIRECTORY "/zip_tests/");
 
@@ -21,8 +21,8 @@ TEST(ZipUtilitiesTests, Unzip)
     std::string directory = zip_test_directory + "Rectifier";
     int status = utilities::unzip(file, directory);
     EXPECT_EQ(status, 0);
-    ASSERT_TRUE(boost::filesystem::exists(directory));
-    boost::filesystem::remove_all(directory);
+    ASSERT_TRUE(std::filesystem::exists(directory));
+    std::filesystem::remove_all(directory);
 }
 
 TEST(ZipUtilitiesTests, ZipRoundTrip)
@@ -44,32 +44,32 @@ TEST(ZipUtilitiesTests, ZipRoundTrip)
     auto zipfile = zip_test_directory + "data.zip";
     auto status = utilities::zip(zipfile, std::vector<std::string>{fileZeros, fileOnes});
     EXPECT_EQ(status, 0);
-    ASSERT_TRUE(boost::filesystem::exists(zipfile));
+    ASSERT_TRUE(std::filesystem::exists(zipfile));
 
     // get the sizes of the original files
-    auto filesize1 = boost::filesystem::file_size(fileZeros);
-    auto filesize2 = boost::filesystem::file_size(fileOnes);
+    auto filesize1 = std::filesystem::file_size(fileZeros);
+    auto filesize2 = std::filesystem::file_size(fileOnes);
 
-    auto zipsize = boost::filesystem::file_size(zipfile);
+    auto zipsize = std::filesystem::file_size(zipfile);
     // make sure we compressed a lot
     EXPECT_LT(zipsize, (filesize1 + filesize2) / 40);
 
     // remove the files
-    boost::filesystem::remove(fileZeros);
-    boost::filesystem::remove(fileOnes);
+    std::filesystem::remove(fileZeros);
+    std::filesystem::remove(fileOnes);
     // extract them and recheck sizes
     status = utilities::unzip(zipfile, zip_test_directory);
     EXPECT_EQ(status, 0);
-    ASSERT_TRUE(boost::filesystem::exists(fileZeros));
-    ASSERT_TRUE(boost::filesystem::exists(fileOnes));
+    ASSERT_TRUE(std::filesystem::exists(fileZeros));
+    ASSERT_TRUE(std::filesystem::exists(fileOnes));
 
-    auto filesize1b = boost::filesystem::file_size(fileZeros);
-    auto filesize2b = boost::filesystem::file_size(fileOnes);
+    auto filesize1b = std::filesystem::file_size(fileZeros);
+    auto filesize2b = std::filesystem::file_size(fileOnes);
 
     EXPECT_EQ(filesize1, filesize1b);
     EXPECT_EQ(filesize2, filesize2b);
     // remove all the files
-    boost::filesystem::remove(fileZeros);
-    boost::filesystem::remove(fileOnes);
-    boost::filesystem::remove(zipfile);
+    std::filesystem::remove(fileZeros);
+    std::filesystem::remove(fileOnes);
+    std::filesystem::remove(zipfile);
 }

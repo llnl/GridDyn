@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
@@ -28,7 +28,7 @@ TEST_F(OutputTests, OutputTest1)
     simpleStageCheck(fileName, gridSimulation::gridState_t::POWERFLOW_COMPLETE);
     savePowerFlowCdf(gds.get(), "testout.cdf");
 
-    ASSERT_TRUE(boost::filesystem::exists("testout.cdf"));
+    ASSERT_TRUE(std::filesystem::exists("testout.cdf"));
 
     gds2 = std::make_unique<gridDynSimulation>();
     loadFile(gds2.get(), "testout.cdf");

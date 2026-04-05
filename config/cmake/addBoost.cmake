@@ -159,7 +159,7 @@ hide_variable(BOOST_TEST_PATH)
 hide_variable(BOOST_CMAKE_PATH)
 
 if(NOT BOOST_REQUIRED_LIBRARIES)
-    set(BOOST_REQUIRED_LIBRARIES filesystem system date_time timer chrono)
+    set(BOOST_REQUIRED_LIBRARIES system date_time timer chrono)
 endif()
 
 # Minimum version of Boost required for building GridDyn.

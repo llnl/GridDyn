@@ -31,7 +31,7 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
 namespace helicsLib {

@@ -33,7 +33,7 @@
 #include <iostream>
 #include <memory>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
@@ -278,7 +278,7 @@ TEST_F(HelicsTests, TestRecorderPlayer)
     EXPECT_EQ(rec.get(), 0);
 
     EXPECT_EQ(brk.get(), 0);
-    EXPECT_TRUE(boost::filesystem::exists("rec_capture.txt"));
+    EXPECT_TRUE(std::filesystem::exists("rec_capture.txt"));
 
     std::ifstream inFile("rec_capture.txt");
     std::string line;

@@ -10,7 +10,7 @@
 #include <functional>
 #include <memory>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 class readerElement;
 
@@ -170,7 +170,7 @@ class fmiLibrary {
     void loadInformation();
     int extract();
 
-    boost::filesystem::path findSoPath(fmutype_t type = fmutype_t::unknown);
+    std::filesystem::path findSoPath(fmutype_t type = fmutype_t::unknown);
     void loadBaseFunctions();
     void loadCommonFunctions();
     void loadModelExchangeFunctions();
@@ -179,9 +179,9 @@ class fmiLibrary {
     void makeCallbackFunctions();
 
   private:  // private Variables
-    boost::filesystem::path extractDirectory;  //!< the path to the extracted directory
-    boost::filesystem::path fmuName;  //!< the path to the FMU file itself
-    boost::filesystem::path resourceDir;  //!< the path to the resource Directory
+    std::filesystem::path extractDirectory;  //!< the path to the extracted directory
+    std::filesystem::path fmuName;  //!< the path to the FMU file itself
+    std::filesystem::path resourceDir;  //!< the path to the resource Directory
     bool error = false;  //!< flag indicating that the fmuLibrary has an error
     bool xmlLoaded = false;  //!< flag indicating that the FMU information has been loaded
     bool soMeLoaded =

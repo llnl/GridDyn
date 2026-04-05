@@ -10,10 +10,9 @@
 #include "formatInterpreters/readerElement.h"
 #include "griddyn/simulation/gridSimulation.h"
 #include "readElement.h"
+#include <filesystem>
 #include <memory>
 #include <type_traits>
-
-#include <boost/filesystem.hpp>
 
 namespace griddyn {
 void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& ri);
@@ -52,9 +51,9 @@ coreObject* loadElementFile(coreObject* parentObject, const std::string& fileNam
         riScope = ri->newScope();
     }
 
-    boost::filesystem::path mainPath(fileName);
+    std::filesystem::path mainPath(fileName);
 
-    ri->addDirectory(boost::filesystem::current_path().string());
+    ri->addDirectory(std::filesystem::current_path().string());
     ri->addDirectory(mainPath.parent_path().string());
 
     // read xml file from location

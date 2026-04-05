@@ -31,22 +31,22 @@
 #include <cstdio>
 #include <fstream>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
 
 void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
 {
-    boost::filesystem::path filePath(fileName);
+    std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
         auto powerFlowFile = gds->getString("powerflowfile");
         if (powerFlowFile.empty()) {
             auto sourceFile = gds->getString("sourcefile");
-            filePath = boost::filesystem::path(sourceFile);
-            filePath = boost::filesystem::path(filePath.filename().string() + ".csv");
+            filePath = std::filesystem::path(sourceFile);
+            filePath = std::filesystem::path(filePath.filename().string() + ".csv");
         } else {
-            filePath = boost::filesystem::path(powerFlowFile);
+            filePath = std::filesystem::path(powerFlowFile);
         }
     }
 
@@ -756,14 +756,14 @@ void saveState(gridDynSimulation* gds,
                const solverMode& sMode,
                bool append)
 {
-    boost::filesystem::path filePath(fileName);
+    std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
         auto stateFile = gds->getString("statefile");
         if (stateFile.empty()) {
             std::cerr << "no file specified" << std::endl;
             return;
         }
-        filePath = boost::filesystem::path(stateFile);
+        filePath = std::filesystem::path(stateFile);
     }
 
     std::string ext = convertToLowerCase(filePath.extension().string());
@@ -898,7 +898,7 @@ void writeArray(coreTime time,
 
 void loadState(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
-    boost::filesystem::path filePath(fileName);
+    std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
         auto stateFile = gds->getString("statefile");
         if (stateFile.empty()) {
@@ -906,10 +906,10 @@ void loadState(gridDynSimulation* gds, const std::string& fileName, const solver
             gds->log(gds, print_level::error, "no state file specified");
             throw(invalidFileName());
         }
-        filePath = boost::filesystem::path(stateFile);
+        filePath = std::filesystem::path(stateFile);
     }
 
-    if (!boost::filesystem::exists(filePath)) {
+    if (!std::filesystem::exists(filePath)) {
         gds->log(gds, print_level::error, "file does not exist");
         throw(invalidFileName());
     }
@@ -973,7 +973,7 @@ void loadStateXML(gridDynSimulation* /*gds*/,
 
 void loadPowerFlow(gridDynSimulation* gds, const std::string& fileName)
 {
-    boost::filesystem::path filePath(fileName);
+    std::filesystem::path filePath(fileName);
     std::string ext = convertToLowerCase(filePath.extension().string());
     // get rid of the . on the extension if it has one
     if (ext[0] == '.') {

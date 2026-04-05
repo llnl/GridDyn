@@ -17,7 +17,7 @@
 #include <boost/dll/import.hpp>
 #include <boost/dll/shared_library.hpp>
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 fmiLibrary::fmiLibrary()
 {
@@ -212,7 +212,7 @@ void fmiLibrary::loadSharedLibrary(fmutype_t type)
     auto sopath = findSoPath(type);
     bool loaded = false;
     if (!sopath.empty()) {
-        lib = std::make_shared<boost::dll::shared_library>(sopath);
+        lib = std::make_shared<boost::dll::shared_library>(sopath.string());
         if (lib->is_loaded()) {
             loaded = true;
         } else {

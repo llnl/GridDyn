@@ -12,7 +12,7 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <gtest/gtest.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 // test case for coreObject object
 
@@ -25,7 +25,7 @@ static const std::string fmu_directory(GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_f
 
 // create a test fixture that makes sure everything gets deleted properly
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 class FmiTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(FmiTests, TestFmiXml)

@@ -56,8 +56,7 @@ if(KLU_LIBRARIES)
     # To ensure we do not use stuff from the previous attempts, we must remove the CMakeFiles
     # directory.
     file(REMOVE_RECURSE ${KLUTest_DIR}/CMakeFiles)
-    # Process test result
-    # PRINT_WARNING("LTEST_OK" "${LTEST_OK}")
+    # Process test result PRINT_WARNING("LTEST_OK" "${LTEST_OK}")
     if(LTEST_OK)
         # PRINT_WARNING("x SundialsKLU.cmake KLU_LIBRARIES" "${KLU_LIBRARIES}")
         message(STATUS "Checking if KLU works... OK")

@@ -1102,8 +1102,7 @@ int rawReadTX_v33(coreObject* parentObject,
     auto status = std::stoi(strvec[11]);
     if (status == 0) {
         lnk->disable();
-    }
-    else if (status > 1) {
+    } else if (status > 1) {
         // TODO:  other conditions for 3 way transformers
     }
 
@@ -1290,17 +1289,15 @@ int rawReadTX(coreObject* parentObject,
     auto status = std::stoi(strvec[11]);
     if (status == 0) {
         lnk->disable();
-    }
-    else if (status > 1) {
+    } else if (status > 1) {
         // TODO:  other conditions for 3 way transformers
     }
 
     // TODO:PT get the other parameters (not critical for power flow)
     auto val = numeric_conversion<double>(strvec3[0], 0.0);
-    
-        if (val != 0) {
-            lnk->set("tap", val);
-        }
+    if (val != 0) {
+        lnk->set("tap", val);
+    }
     val = numeric_conversion<double>(strvec3[2], 0.0);
     if (val != 0) {
         lnk->set("tapangle", val, deg);

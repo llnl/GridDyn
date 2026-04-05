@@ -73,8 +73,7 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& comman
                     allGrabbers(cmd, ggb->getObject(), v);
                 } else if (ggb->field == "auto") {
                     autoGrabbers(ggb->getObject(), v);
-               }else if (ggb->field.compare(0, 5, "state") == 0)
-               {
+               }else if (ggb->field.compare(0, 5, "state") == 0){
                        v.push_back(std::move(ggb));  
                 } else {
                     obj->log(obj, print_level::warning, "Unable to load recorder " + command);

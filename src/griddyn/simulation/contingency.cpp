@@ -118,7 +118,7 @@ void Contingency::execute()
         Violations.emplace_back(contSim->getName(), CONVERGENCE_FAILURE);
     }
 
-    completed.store(true, std::memory_order::memory_order_release);
+    completed.store(true, std::memory_order_release);
     promise_val.set_value(static_cast<int>(Violations.size()));
 }
 void Contingency::reset()

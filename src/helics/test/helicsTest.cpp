@@ -393,7 +393,7 @@ TEST_F(HelicsTests, TestCollectorVector)
 
     auto pt1 = rec.getValue(0);
     EXPECT_EQ(pt1.first, "vout");
-    EXPECT_TRUE(pt1.second.compare(0, 3, "v4[") == 0);
+    EXPECT_EQ(pt1.second.compare(0, 3, "v4["), 0);
     rec.finalize();
     hR = nullptr;
     sim = nullptr;

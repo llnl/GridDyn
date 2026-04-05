@@ -3,23 +3,26 @@ on:
   push:
     branches:
       - develop
+      - modernization
   pull_request:
     branches:
       - develop
+      - modernization
 
 jobs:
   pre-commit:
     name: Formatting-check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-    - name: set PY
-      run: echo "::set-env name=PY::$(python --version --version | sha256sum | cut -d' ' -f1)"
-    - uses: actions/cache@v1
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      id: setup-python
+      with:
+        python-version: "3.x"
+    - uses: actions/cache@v4
       with:
         path: ~/.cache/pre-commit
-        key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+        key: pre-commit|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - uses: pre-commit/action@v1.0.0
     - name: Stage changed doc/script files
       if: failure() && github.event.pull_request.draft != true && github.event.pull_request.head.repo.full_name == github.repository
@@ -45,4 +48,3 @@ jobs:
         BRANCH_PREFIX: "pre-commit/"
         NO_HASH: "true"
         REPLACE_BRANCH: "true"
-

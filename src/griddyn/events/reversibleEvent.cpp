@@ -117,7 +117,10 @@ namespace events {
         return res;
     }
 
-    void reversibleEvent::updateStringValue(const std::string& newStr) { newStringValue = newStr; }
+    void reversibleEvent::updateStringValue(const std::string& newStr)
+    {
+        newStringValue = newStr;
+    }
 
     void reversibleEvent::updateObject(coreObject* gco, object_update_mode mode)
     {
@@ -137,7 +140,10 @@ namespace events {
         return change_code::not_triggered;
     }
 
-    double reversibleEvent::query() { return (ggrab) ? (ggrab->grabData()) : kNullVal; }
+    double reversibleEvent::query()
+    {
+        return (ggrab) ? (ggrab->grabData()) : kNullVal;
+    }
 
 }  // namespace events
 }  // namespace griddyn

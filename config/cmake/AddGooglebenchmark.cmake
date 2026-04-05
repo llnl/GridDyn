@@ -22,10 +22,8 @@ set(gbenchmark_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/benchmark")
 set(gbenchmark_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/benchmarks")
 
 if(NOT EXISTS "${gbenchmark_SOURCE_DIR}/CMakeLists.txt")
-    message(
-        FATAL_ERROR
-            "The benchmark submodule was not found at ${gbenchmark_SOURCE_DIR}. "
-            "Initialize/update submodules before enabling benchmark builds."
+    message(FATAL_ERROR "The benchmark submodule was not found at ${gbenchmark_SOURCE_DIR}. "
+                        "Initialize/update submodules before enabling benchmark builds."
     )
 endif()
 

@@ -305,7 +305,7 @@ T SwigValueInit()
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
-#    define SWIG_QUOTE_STRING(x) #    x
+#    define SWIG_QUOTE_STRING(x) #x
 #    define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
 #    define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
 #else
@@ -452,7 +452,7 @@ T SwigValueInit()
 #    ifndef SWIG_MAXCASTRANK /* Default cast allowed */
 #        define SWIG_MAXCASTRANK (2)
 #    endif
-#    define SWIG_CASTRANKMASK ((SWIG_CASTRANKLIMIT)-1)
+#    define SWIG_CASTRANKMASK ((SWIG_CASTRANKLIMIT) - 1)
 #    define SWIG_CastRank(r) (r & SWIG_CASTRANKMASK)
 SWIGINTERNINLINE int SWIG_AddCast(int r)
 {
@@ -876,9 +876,9 @@ SWIGRUNTIME const char* SWIG_UnpackDataName(const char* c, void* ptr, size_t sz,
 #define SWIG_NullReferenceError -13
 
 #if !SWIG_OCTAVE_PREREQ(3, 2, 0)
-#    define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#    cname, wname, FS##cname, args, nargout, doc)
+#    define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, FS##cname, args, nargout, doc)
 #else
-#    define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#    cname, wname, G##cname, args, nargout, doc)
+#    define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, G##cname, args, nargout, doc)
 #endif
 
 SWIGRUNTIME bool SWIG_check_num_args(const char* func_name,
@@ -1233,8 +1233,7 @@ class octave_swig_type: public octave_base_value {
                      const swig_type_info* _type = 0,
                      int _own = 0,
                      bool _always_static = false):
-        module(0),
-        construct_type(_ptr ? 0 : _type), own(_own), always_static(_always_static)
+        module(0), construct_type(_ptr ? 0 : _type), own(_own), always_static(_always_static)
     {
         if (_type || _ptr) types.push_back(std::make_pair(_type, _ptr));
 #ifdef SWIG_DIRECTORS
@@ -1840,9 +1839,9 @@ class octave_swig_type: public octave_base_value {
             indent(os);
             if (it->second.first) {
                 const char* objtype = it->second.first->method ? "method" : "variable";
-                const char* modifier = (it->second.first->flags & 1) ?
-                    "static " :
-                    (it->second.first->flags & 2) ? "global " : "";
+                const char* modifier = (it->second.first->flags & 1) ? "static " :
+                    (it->second.first->flags & 2)                    ? "global " :
+                                                                       "";
                 os << it->second.first->name << " (" << modifier << objtype << ")";
                 newline(os);
                 assert(it->second.first->name == it->first);
@@ -8081,7 +8080,7 @@ SWIGRUNTIME void SWIG_InitializeModule(void* clientdata)
      set up already */
     if (init == 0) return;
 
-        /* Now work on filling in swig_module.types */
+    /* Now work on filling in swig_module.types */
 #ifdef SWIGRUNTIME_DEBUG
     printf("SWIG_InitializeModule: size %d\n", swig_module.size);
 #endif

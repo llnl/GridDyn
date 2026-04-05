@@ -10,7 +10,6 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/gridBus.h"
 #include "griddyn/simulation/diagnostics.h"
-
 #include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
@@ -27,8 +26,7 @@ static const std::string fmu_directory(GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_f
 // create a test fixture that makes sure everything gets deleted properly
 
 using namespace boost::filesystem;
-class FmiTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class FmiTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(FmiTests, TestFmiXml)
 {

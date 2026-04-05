@@ -319,7 +319,10 @@ namespace genmodels {
     }
     static const stringVec genModelNames{"angle"};
 
-    stringVec GenModelInverter::localStateNames() const { return genModelNames; }
+    stringVec GenModelInverter::localStateNames() const
+    {
+        return genModelNames;
+    }
     // set parameters
     void GenModelInverter::set(const std::string& param, const std::string& val)
     {

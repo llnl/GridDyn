@@ -8,15 +8,13 @@
 #include "coupling/GhostSwingBusManager.h"
 #include "griddyn/loads/approximatingLoad.h"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 #define GRIDLAB_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/"
 
 using namespace griddyn;
 
-class GridLabTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class GridLabTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GridLabTests, GridlabTest1)
 {

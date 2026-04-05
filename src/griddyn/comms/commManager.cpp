@@ -50,7 +50,10 @@ namespace comms {
 
     commManager& commManager::operator=(commManager&&) = default;
 
-    void commManager::setName(const std::string& name) { commName = name; }
+    void commManager::setName(const std::string& name)
+    {
+        commName = name;
+    }
     bool commManager::set(const std::string& param, const std::string& val)
     {
         if ((param == "commname") || (param == "name")) {

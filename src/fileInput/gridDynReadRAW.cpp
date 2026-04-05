@@ -13,10 +13,10 @@
 #include "griddyn/Load.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/gridDynSimulation.h"
+#include "griddyn/links/ThreeWindingTransformer.h"
 #include "griddyn/links/acLine.h"
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/loads/svd.h"
-#include "griddyn/links/ThreeWindingTransformer.h"
 #include "readerHelper.h"
 #include <cassert>
 #include <cmath>
@@ -44,9 +44,9 @@ int rawReadTX(coreObject* parentObject,
               std::vector<gridBus*>& busList,
               basicReaderInfo& opt);
 int rawReadTX_v33(coreObject* parentObject,
-    stringVec& txlines,
-    std::vector<gridBus*>& busList,
-    basicReaderInfo& opt);
+                  stringVec& txlines,
+                  std::vector<gridBus*>& busList,
+                  basicReaderInfo& opt);
 
 void rawReadSwitchedShunt(coreObject* parentObject,
                           const std::string& line,
@@ -146,25 +146,25 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     gridSimulation::resetObjectCounters();
     // get the base scenario information
     if (std::getline(file, line)) {
-        //auto res = sscanf(
-         //   line.c_str(), "%*d, %lf, %d,%*d,%*d,%lf", &(opt.base), &(opt.version), &(opt.basefreq));
+        // auto res = sscanf(
+        //    line.c_str(), "%*d, %lf, %d,%*d,%*d,%lf", &(opt.base), &(opt.version),
+        //    &(opt.basefreq));
 
         auto strvec = splitlineQuotes(line);
-        if (strvec.size() == 6)
-        {
-            opt.base=numeric_conversion<double>(strvec[1], 100.0);
-            opt.version=numeric_conversion<int>(strvec[2],0);
-            opt.basefreq=numeric_conversion<double>(strvec[5],60.0);
+        if (strvec.size() == 6) {
+            opt.base = numeric_conversion<double>(strvec[1], 100.0);
+            opt.version = numeric_conversion<int>(strvec[2], 0);
+            opt.basefreq = numeric_conversion<double>(strvec[5], 60.0);
         }
-        if (opt.base!=100.0) {
+        if (opt.base != 100.0) {
             parentObject->set("basepower", opt.base);
         }
         // temp1=line.substr(45,27);
         // parentObject->set("name",&temp1);
-       // if (res > 2) {
-            if (opt.basefreq != 60.0) {
-                parentObject->set("basefreq", opt.basefreq);
-            }
+        // if (res > 2) {
+        if (opt.basefreq != 60.0) {
+            parentObject->set("basefreq", opt.basefreq);
+        }
         //}
 
         if (opt.version == 0) {
@@ -343,15 +343,11 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                         std::getline(file, txlines[3]);
                         std::getline(file, txlines[4]);
                     }
-                    if (opt.version >= 33)
-                    {
+                    if (opt.version >= 33) {
                         tline = rawReadTX_v33(parentObject, txlines, busList, opt);
-                    }
-                    else
-                    {
+                    } else {
                         tline = rawReadTX(parentObject, txlines, busList, opt);
                     }
-                    
                 }
                 break;
             case unknown:
@@ -999,9 +995,9 @@ void rawReadTXadj(coreObject* parentObject,
 }
 
 int rawReadTX_v33(coreObject* parentObject,
-    stringVec& txlines,
-    std::vector<gridBus*>& busList,
-    basicReaderInfo& opt)
+                  stringVec& txlines,
+                  std::vector<gridBus*>& busList,
+                  basicReaderInfo& opt)
 {
     /* version 33
     # """
@@ -1042,22 +1038,22 @@ int rawReadTX_v33(coreObject* parentObject,
     auto bus2 = busList[ind2];
     int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
-    case 0:
-    default:
-        lnk = linkfactory->makeDirectObject(name);
-        break;
-    case 1:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "voltage");
-        break;
-    case 2:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "mvar");
-        break;
-    case 3:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "mw");
-        break;
+        case 0:
+        default:
+            lnk = linkfactory->makeDirectObject(name);
+            break;
+        case 1:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "voltage");
+            break;
+        case 2:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "mvar");
+            break;
+        case 3:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "mw");
+            break;
     }
     if (code < 0)  // account for negative code values
     {
@@ -1109,34 +1105,29 @@ int rawReadTX_v33(coreObject* parentObject,
     // TODO:PT get the other parameters (not critical for power flow)
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    auto vn1=numeric_conversion<double>(strvec3[1], 0.0);
-    auto vn2=numeric_conversion<double>(strvec4[1], 0.0);
+    auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
+    auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
 
-    int tapcode=std::stoi(strvec[4]);
-    if (tapcode == 2)
-    {
-        auto wv2=numeric_conversion<double>(strvec4[0],0.0);
+    int tapcode = std::stoi(strvec[4]);
+    if (tapcode == 2) {
+        auto wv2 = numeric_conversion<double>(strvec4[0], 0.0);
         tap = (tap / bus1->get("basevoltage") / (wv2 / bus2->get("basevoltage")));
-    }
-    else if (tapcode == 3)
-    {
-        if (vn1 == 0.0)
-        {
-            vn1=bus1->get("basevoltage");
+    } else if (tapcode == 3) {
+        if (vn1 == 0.0) {
+            vn1 = bus1->get("basevoltage");
         }
-        if (vn2 == 0.0)
-        {
-            vn2=bus2->get("basevoltage");
+        if (vn2 == 0.0) {
+            vn2 = bus2->get("basevoltage");
         }
         tap = tap * (vn1 / bus1->get("basevoltage")) / (vn2 / bus2->get("basevoltage"));
     }
-        
-        if (tap != 0) {
-            lnk->set("tap", tap);
-        }
-    
+
+    if (tap != 0) {
+        lnk->set("tap", tap);
+    }
+
     auto angle = numeric_conversion<double>(strvec3[2], 0.0);
-    if (angle!= 0) {
+    if (angle != 0) {
         lnk->set("tapangle", angle, deg);
     }
     // now get the stuff for the adjustable transformers
@@ -1156,25 +1147,23 @@ int rawReadTX_v33(coreObject* parentObject,
             else */
             {
                 //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
-
             }
         }
-       
+
         R = numeric_conversion<double>(strvec3[8], 0.0);
         X = numeric_conversion<double>(strvec3[9], 0.0);
-       
 
         if (code == 3) {
             lnk->set("maxtapangle", R, deg);
             lnk->set("mintapangle", X, deg);
         } else {
-            lnk->set("maxtap", R/vn1);
-            lnk->set("mintap", X/vn1);
+            lnk->set("maxtap", R / vn1);
+            lnk->set("mintap", X / vn1);
         }
-        
-            R = numeric_conversion<double>(strvec3[10], 0.0);
-            X = numeric_conversion<double>(strvec3[11], 0.0);
-        
+
+        R = numeric_conversion<double>(strvec3[10], 0.0);
+        X = numeric_conversion<double>(strvec3[11], 0.0);
+
         if (code == 3) {
             lnk->set("pmax", R, MW);
             lnk->set("pmin", X, MW);
@@ -1193,13 +1182,11 @@ int rawReadTX_v33(coreObject* parentObject,
     return tline;
 }
 
-
 int rawReadTX(coreObject* parentObject,
-    stringVec& txlines,
-    std::vector<gridBus*>& busList,
-    basicReaderInfo& opt)
+              stringVec& txlines,
+              std::vector<gridBus*>& busList,
+              basicReaderInfo& opt)
 {
-    
     // gridBus *bus3;
     acLine* lnk = nullptr;
 
@@ -1229,22 +1216,22 @@ int rawReadTX(coreObject* parentObject,
     auto bus2 = busList[ind2];
     int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
-    case 0:
-    default:
-        lnk = linkfactory->makeDirectObject(name);
-        break;
-    case 1:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "voltage");
-        break;
-    case 2:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "mvar");
-        break;
-    case 3:
-        lnk = new links::adjustableTransformer(name);
-        lnk->set("mode", "mw");
-        break;
+        case 0:
+        default:
+            lnk = linkfactory->makeDirectObject(name);
+            break;
+        case 1:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "voltage");
+            break;
+        case 2:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "mvar");
+            break;
+        case 3:
+            lnk = new links::adjustableTransformer(name);
+            lnk->set("mode", "mw");
+            break;
     }
     if (code < 0)  // account for negative code values
     {
@@ -1307,25 +1294,24 @@ int rawReadTX(coreObject* parentObject,
     if (abs(code) > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
-           /*if (abs(cbus) == ind1)
-            {
-                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
-            }
-            else if (abs(cbus) == ind2)
-            {
-                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
-            }
-            
-            else */
-            {
-            //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+            /*if (abs(cbus) == ind1)
+             {
+                 static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+             }
+             else if (abs(cbus) == ind2)
+             {
+                 static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+             }
 
+             else */
+            {
+                //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
             }
         }
-        
+
         R = numeric_conversion<double>(strvec3[8], 0.0);
         X = numeric_conversion<double>(strvec3[9], 0.0);
-        
+
         if (code == 3) {
             lnk->set("maxtapangle", R, deg);
             lnk->set("mintapangle", X, deg);
@@ -1333,13 +1319,10 @@ int rawReadTX(coreObject* parentObject,
             lnk->set("maxtap", R);
             lnk->set("mintap", X);
         }
-        if (opt.version >= 33)
-        {
+        if (opt.version >= 33) {
             R = numeric_conversion<double>(strvec3[12], 0.0);
             X = numeric_conversion<double>(strvec3[13], 0.0);
-        }
-        else
-        {
+        } else {
             R = numeric_conversion<double>(strvec3[10], 0.0);
             X = numeric_conversion<double>(strvec3[11], 0.0);
         }

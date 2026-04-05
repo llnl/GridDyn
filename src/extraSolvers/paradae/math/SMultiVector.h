@@ -17,11 +17,11 @@ namespace paradae {
         int ns;
 
       public:
-        SMultiVector(): SVector(), nx(1), ns(0){};
+        SMultiVector(): SVector(), nx(1), ns(0) {};
         SMultiVector(int ns_, int nx_, Real fill_ = 0);
         SMultiVector(const SMultiVector& mv);
         SMultiVector(const Vector& v);
-        virtual ~SMultiVector(){};
+        virtual ~SMultiVector() {};
         void Free();
         void Resize(int ns_, int nx_, Real fill_ = 0);
         SMultiVector& operator=(const SMultiVector& v);

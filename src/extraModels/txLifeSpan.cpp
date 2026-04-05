@@ -85,7 +85,10 @@ namespace extra {
         return sensor::get(param, unitType);
     }
 
-    void txLifeSpan::add(coreObject* /*obj*/) { throw(unrecognizedObjectException(this)); }
+    void txLifeSpan::add(coreObject* /*obj*/)
+    {
+        throw(unrecognizedObjectException(this));
+    }
 
     void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     {

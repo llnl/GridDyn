@@ -350,8 +350,14 @@ namespace helicsLib {
         helpers.push_back(std::move(ho));
     }
 
-    void helicsCoordinator::addEvent(helicsEvent* evnt) { events.push_back(evnt); }
-    void helicsCoordinator::addCollector(helicsCollector* col) { collectors.push_back(col); }
+    void helicsCoordinator::addEvent(helicsEvent* evnt)
+    {
+        events.push_back(evnt);
+    }
+    void helicsCoordinator::addCollector(helicsCollector* col)
+    {
+        collectors.push_back(col);
+    }
 
     int32_t helicsCoordinator::getSubscriptionIndex(const std::string& subName) const
     {

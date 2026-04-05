@@ -144,7 +144,7 @@ namespace paradae {
                 TI = new BackwardDiff(6, equation, do_varstep, force_fixedleading);
             else {
                 if (mpi_rank == 0) cerr << "Unknown type of time integrator : " << stepper << endl;
-                throw - 2;
+                throw -2;
             }
         }
         TI->SetRTol(rtol);

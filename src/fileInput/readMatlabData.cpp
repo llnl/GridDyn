@@ -8,10 +8,10 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "readerHelper.h"
-#include <string_view>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string_view>
 
 namespace griddyn {
 

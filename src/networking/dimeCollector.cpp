@@ -59,7 +59,10 @@ namespace dimeLib {
         return out;
     }
 
-    void dimeCollector::set(const std::string& param, double val) { collector::set(param, val); }
+    void dimeCollector::set(const std::string& param, double val)
+    {
+        collector::set(param, val);
+    }
 
     void dimeCollector::set(const std::string& param, const std::string& val)
     {
@@ -72,7 +75,10 @@ namespace dimeLib {
         }
     }
 
-    const std::string& dimeCollector::getSinkName() const { return server; }
+    const std::string& dimeCollector::getSinkName() const
+    {
+        return server;
+    }
 
 }  // namespace dimeLib
 }  // namespace griddyn

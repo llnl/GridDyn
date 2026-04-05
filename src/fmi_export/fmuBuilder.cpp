@@ -31,7 +31,10 @@
 
 namespace griddyn {
 namespace fmi {
-    fmuBuilder::fmuBuilder() { loadComponents(); }
+    fmuBuilder::fmuBuilder()
+    {
+        loadComponents();
+    }
 
     fmuBuilder::fmuBuilder(std::shared_ptr<gridDynSimulation> gds): GriddynRunner(std::move(gds))
     {

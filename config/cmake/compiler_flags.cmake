@@ -7,8 +7,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 include(CMakeDependentOption)
-if (WIN32)
-# from https://stackoverflow.com/a/40217291/2019765 by squareskittles
+if(WIN32)
+    # from https://stackoverflow.com/a/40217291/2019765 by squareskittles
     macro(get_WIN32_WINNT version)
         if(CMAKE_SYSTEM_VERSION)
             set(ver ${CMAKE_SYSTEM_VERSION})
@@ -28,14 +28,19 @@ if (WIN32)
     endmacro(get_WIN32_WINNT)
 endif()
 
+cmake_dependent_option(
+    ${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS
+    "disable compiler warning for ${CMAKE_PROJECT_NAME} build" ON
+    "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME" OFF
+)
 
-cmake_dependent_option(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS
-       "disable compiler warning for ${CMAKE_PROJECT_NAME} build" ON "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME" OFF)
+cmake_dependent_option(
+    ${PROJECT_NAME}_ENABLE_ERROR_ON_WARNINGS
+    "generate a compiler error for any warning encountered" OFF
+    "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME" OFF
+)
 
-cmake_dependent_option(${PROJECT_NAME}_ENABLE_ERROR_ON_WARNINGS
-       "generate a compiler error for any warning encountered" OFF "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME" OFF)
-
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     mark_as_advanced(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
     mark_as_advanced(${PROJECT_NAME}_ENABLE_ERROR_ON_WARNINGS)
 endif()
@@ -43,15 +48,15 @@ endif()
 # -------------------------------------------------------------
 # Setup compiler options and configurations
 # -------------------------------------------------------------
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-   message(STATUS "setting up for ${CMAKE_CXX_COMPILER_ID} on ${CMAKE_SYSTEM}")
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    message(STATUS "setting up for ${CMAKE_CXX_COMPILER_ID} on ${CMAKE_SYSTEM}")
 endif()
 
 if(NOT TARGET compile_flags_target)
     add_library(compile_flags_target INTERFACE)
 endif()
 
-if (NOT TARGET build_flags_target)
+if(NOT TARGET build_flags_target)
     add_library(build_flags_target INTERFACE)
 endif()
 
@@ -64,56 +69,49 @@ target_compile_options(
 
 if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
     target_compile_options(
-        compile_flags_target
-        INTERFACE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -pedantic>
+        compile_flags_target INTERFACE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -pedantic>
     )
     target_compile_options(
         compile_flags_target
-        INTERFACE
-            $<$<COMPILE_LANGUAGE:CXX>:$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra
-            -Wshadow
-            -Wstrict-aliasing=1
-            -Wunreachable-code
-            -Woverloaded-virtual
-            -Wundef>>
+        INTERFACE $<$<COMPILE_LANGUAGE:CXX>:$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wextra
+                  -Wshadow
+                  -Wstrict-aliasing=1
+                  -Wunreachable-code
+                  -Woverloaded-virtual
+                  -Wundef>>
     )
 
     target_compile_options(
-        compile_flags_target
-        INTERFACE $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:Clang>: -Wstrict-overflow=5 -Wcast-align>>
+        compile_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:Clang>:
+                                       -Wstrict-overflow=5 -Wcast-align>>
     )
     target_compile_options(
         compile_flags_target
-        INTERFACE $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:GNU>:-Wstrict-overflow=5 -Wcast-align -Wlogical-op>>
+        INTERFACE $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:GNU>:-Wstrict-overflow=5
+                  -Wcast-align -Wlogical-op>>
     )
     # target_compile_options(compile_flags_target INTERFACE
-    # $<$<COMPILE_LANGUAGE:CXX>:-Wredundant-decls>)
-    # target_compile_options(compile_flags_target INTERFACE
-    # $<$<COMPILE_LANGUAGE:CXX>:-Wstrict-overflow=5>)
-
+    # $<$<COMPILE_LANGUAGE:CXX>:-Wredundant-decls>) target_compile_options(compile_flags_target
+    # INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wstrict-overflow=5>)
 
     # this option produces a number of warnings in third party libraries
     # target_compile_options(compile_flags_target INTERFACE
-    # $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:GNU>:-Wold-style-cast>>) this
-    # options produces lots of warning but is useful for checking every once in a while
-    # with Clang, GCC warning notices with this aren't as useful
-    # target_compile_options(compile_flags_target INTERFACE
+    # $<$<COMPILE_LANGUAGE:CXX>:$<$<CXX_COMPILER_ID:GNU>:-Wold-style-cast>>) this options produces
+    # lots of warning but is useful for checking every once in a while with Clang, GCC warning
+    # notices with this aren't as useful target_compile_options(compile_flags_target INTERFACE
     # $<$<COMPILE_LANGUAGE:CXX>:-Wpadded>)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # GCC 13+ is required by project policy, so these warnings are always available.
         target_compile_options(
             compile_flags_target
-            INTERFACE
-                $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond -Wnull-dereference
-                -Wimplicit-fallthrough=2
-                -Wclass-memaccess>
+            INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond -Wnull-dereference
+                      -Wimplicit-fallthrough=2 -Wclass-memaccess>
         )
     endif()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         # Clang 18+ is required by project policy.
         target_compile_options(
-            compile_flags_target
-            INTERFACE -Wdocumentation -Wno-documentation-deprecated-sync
+            compile_flags_target INTERFACE -Wdocumentation -Wno-documentation-deprecated-sync
         )
     endif()
 endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
@@ -124,8 +122,8 @@ endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
 if(MSVC)
 
     target_compile_options(
-        compile_flags_target
-        INTERFACE -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DNOMINMAX /MP /utf-8
+        compile_flags_target INTERFACE -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS
+                                       -DNOMINMAX /MP /utf-8
     )
     # these next two should be global
     add_compile_options(/EHsc /MP /utf-8)
@@ -133,13 +131,14 @@ if(MSVC)
 
     target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
     if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
-        target_compile_options(compile_flags_target INTERFACE /W4 /sdl /wd4244 )
+        target_compile_options(compile_flags_target INTERFACE /W4 /sdl /wd4244)
     endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
     get_win32_winnt(COPTION_WIN32_WINNT_DEFAULT)
-    target_compile_options(compile_flags_target INTERFACE "-D_WIN32_WINNT=${COPTION_WIN32_WINNT_DEFAULT}")
+    target_compile_options(
+        compile_flags_target INTERFACE "-D_WIN32_WINNT=${COPTION_WIN32_WINNT_DEFAULT}"
+    )
     message(
-        STATUS
-            "Detected _WIN32_WINNT from CMAKE_SYSTEM_VERSION: ${COPTION_WIN32_WINNT_DEFAULT}"
+        STATUS "Detected _WIN32_WINNT from CMAKE_SYSTEM_VERSION: ${COPTION_WIN32_WINNT_DEFAULT}"
     )
 else(MSVC)
     option(USE_LIBCXX "Use Libc++ vs as opposed to the default" OFF)
@@ -149,20 +148,22 @@ else(MSVC)
         add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
         link_libraries("-stdlib=libc++")
         link_libraries("c++abi")
-        target_compile_options(build_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
+        target_compile_options(
+            build_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>
+        )
         target_link_libraries(build_flags_target INTERFACE "-stdlib=libc++")
         target_link_libraries(build_flags_target INTERFACE "c++abi")
     endif(USE_LIBCXX)
 endif()
 
-## remove potential duplicates from the flags
+# remove potential duplicates from the flags
 
 get_target_property(compile_flags_list compile_flags_target INTERFACE_COMPILE_OPTIONS)
 list(REMOVE_DUPLICATES compile_flags_list)
 set_property(TARGET compile_flags_target PROPERTY INTERFACE_COMPILE_OPTIONS ${compile_flags_list})
 
 get_target_property(link_flags_list compile_flags_target INTERFACE_LINK_OPTIONS)
-if (link_flags_list)
+if(link_flags_list)
     list(REMOVE_DUPLICATES link_flags_list)
     set_property(TARGET compile_flags_target PROPERTY INTERFACE_LINK_OPTIONS ${link_flags_list})
 endif()
@@ -172,23 +173,20 @@ endif()
 # -------------------------------------------------------------
 include(CheckLatestCXXStandardOption)
 
-message(
-        STATUS "setting helics C++ standard build option to \"${CXX_STANDARD_FLAG}\""
-    )
+message(STATUS "setting helics C++ standard build option to \"${CXX_STANDARD_FLAG}\"")
 if(CXX_STANDARD_FLAG)
-   if(MSVC)
-       add_compile_options(${CXX_STANDARD_FLAG})
-       target_compile_options(build_flags_target INTERFACE ${CXX_STANDARD_FLAG})
-   else(MSVC)
-       add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>)
-       target_compile_options(
-           build_flags_target
-           INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>
-       )
-   endif(MSVC)
+    if(MSVC)
+        add_compile_options(${CXX_STANDARD_FLAG})
+        target_compile_options(build_flags_target INTERFACE ${CXX_STANDARD_FLAG})
+    else(MSVC)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>)
+        target_compile_options(
+            build_flags_target INTERFACE $<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>
+        )
+    endif(MSVC)
 endif(CXX_STANDARD_FLAG)
 
-## remove potential duplicates from the flags
+# remove potential duplicates from the flags
 get_target_property(build_flags_list build_flags_target INTERFACE_COMPILE_OPTIONS)
 list(REMOVE_DUPLICATES build_flags_list)
 set_property(TARGET build_flags_target PROPERTY INTERFACE_COMPILE_OPTIONS ${build_flags_list})

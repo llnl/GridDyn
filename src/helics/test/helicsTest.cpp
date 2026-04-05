@@ -29,13 +29,13 @@
 #include <complex>
 #include <fstream>
 #include <future>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
 
 #include <boost/filesystem.hpp>
-#include <gtest/gtest.h>
 
-class HelicsTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace griddyn;
 using namespace griddyn::helicsLib;

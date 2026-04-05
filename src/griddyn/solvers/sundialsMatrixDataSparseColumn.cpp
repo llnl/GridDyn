@@ -17,7 +17,10 @@ namespace solvers {
     {
     }
 
-    void sundialsMatrixDataSparseColumn::clear() { SUNMatZero(J); }
+    void sundialsMatrixDataSparseColumn::clear()
+    {
+        SUNMatZero(J);
+    }
     void sundialsMatrixDataSparseColumn::assign(index_t row, index_t col, double num)
     {
         int sti = SM_INDEXPTRS_S(J)[col];

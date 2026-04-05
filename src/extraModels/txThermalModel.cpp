@@ -184,7 +184,10 @@ namespace extra {
         return sensor::get(param, unitType);
     }
 
-    void txThermalModel::add(coreObject* /*obj*/) { throw(unrecognizedObjectException(this)); }
+    void txThermalModel::add(coreObject* /*obj*/)
+    {
+        throw(unrecognizedObjectException(this));
+    }
 
     void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
@@ -244,7 +247,7 @@ namespace extra {
             b1->parentSetFlag(separate_processing, true, this);
             b2->parentSetFlag(separate_processing, true, this);
             auto g1 = std::make_shared<customGrabber>();
-            g1->setGrabberFunction("ambient", [this](coreObject * /*unused*/) -> double {
+            g1->setGrabberFunction("ambient", [this](coreObject* /*unused*/) -> double {
                 return ambientTemp;
             });
             sensor::add(g1);

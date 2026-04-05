@@ -10,10 +10,9 @@
 #include "runner/gridDynRunner.h"
 #include <cstdlib>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <sstream>
-
-#include <gtest/gtest.h>
 
 #ifdef ENABLE_THIS_CASE
 TEST(GridDynRunnerTests, RunnerTest1)

@@ -8,7 +8,6 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 // test case for coreObject object
 
@@ -17,8 +16,7 @@ static const std::string clone_test_directory = std::string(GRIDDYN_TEST_DIRECTO
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
-class CloneTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class CloneTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(CloneTests, CloningTest1)
 {

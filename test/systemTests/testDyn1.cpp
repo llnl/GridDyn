@@ -9,7 +9,6 @@
 #include "griddyn/gridBus.h"
 #include "griddyn/primary/infiniteBus.h"
 #include "griddyn/simulation/diagnostics.h"
-
 #include <gtest/gtest.h>
 // test case for coreObject object
 
@@ -18,8 +17,7 @@ using namespace gmlc::utilities;
 
 #define DYN1_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests1/"
 
-class DynamicSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class DynamicSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(DynamicSystemTests, DynTestGenModel)
 {

@@ -9,9 +9,8 @@
 #include "../gtestHelper.h"
 #include "formatInterpreters/tinyxml2ReaderElement.h"
 #include "formatInterpreters/tinyxmlReaderElement.h"
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
                                                     "/element_reader_tests/");

@@ -79,7 +79,10 @@ namespace fmi {
         return ret;
     }
 
-    coreObject* fmiEvent::getOwner() const { return coord; }
+    coreObject* fmiEvent::getOwner() const
+    {
+        return coord;
+    }
 
     void fmiEvent::updateObject(coreObject* gco, object_update_mode mode)
     {

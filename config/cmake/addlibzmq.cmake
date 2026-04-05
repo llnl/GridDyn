@@ -35,8 +35,7 @@ mark_as_advanced(FETCHCONTENT_QUIET)
 mark_as_advanced(FETCHCONTENT_UPDATES_DISCONNECTED)
 
 fetchcontent_declare(
-    libzmq
-    GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+    libzmq GIT_REPOSITORY https://github.com/zeromq/libzmq.git
     GIT_TAG ${${PROJECT_NAME}_LIBZMQ_VERSION}
 )
 
@@ -46,15 +45,14 @@ if(NOT ${lcName}_POPULATED)
     # Fetch the content using previously declared details
     fetchcontent_populate(libzmq)
 
-    # this section to be removed at the next release of ZMQ for now we need to
-    # download the file in master as the one in the release doesn't work
+    # this section to be removed at the next release of ZMQ for now we need to download the file in
+    # master as the one in the release doesn't work
     file(RENAME ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
          ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in.old
     )
-    file(
-        DOWNLOAD
-        https://raw.githubusercontent.com/zeromq/libzmq/master/builds/cmake/ZeroMQConfig.cmake.in
-        ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
+    file(DOWNLOAD
+         https://raw.githubusercontent.com/zeromq/libzmq/master/builds/cmake/ZeroMQConfig.cmake.in
+         ${${lcName}_SOURCE_DIR}/builds/cmake/ZeroMQConfig.cmake.in
     )
 
 endif()
@@ -64,55 +62,19 @@ hide_variable(FETCHCONTENT_UPDATES_DISCONNECTED_LIBZMQ)
 
 # Set custom variables, policies, etc. ...
 
-set(ZMQ_BUILD_TESTS
-    OFF
-    CACHE INTERNAL ""
-)
-set(ENABLE_CURVE
-    OFF
-    CACHE INTERNAL ""
-)
-set(ENABLE_DRAFTS
-    OFF
-    CACHE INTERNAL ""
-)
-set(WITH_DOCS
-    OFF
-    CACHE INTERNAL ""
-)
-set(${PROJECT_NAME}_ZMQ_LOCAL_BUILD
-    ON
-    CACHE INTERNAL ""
-)
-set(LIBZMQ_PEDANTIC
-    OFF
-    CACHE INTERNAL ""
-)
-set(WITH_PERF_TOOL
-    OFF
-    CACHE INTERNAL ""
-)
-set(ENABLE_CPACK
-    OFF
-    CACHE INTERNAL ""
-)
-set(BUILD_STATIC
-    ${zmq_static_build}
-    CACHE INTERNAL ""
-)
-set(BUILD_SHARED
-    ${zmq_shared_build}
-    CACHE INTERNAL ""
-)
-set(ENABLE_CPACK
-    OFF
-    CACHE INTERNAL ""
-)
+set(ZMQ_BUILD_TESTS OFF CACHE INTERNAL "")
+set(ENABLE_CURVE OFF CACHE INTERNAL "")
+set(ENABLE_DRAFTS OFF CACHE INTERNAL "")
+set(WITH_DOCS OFF CACHE INTERNAL "")
+set(${PROJECT_NAME}_ZMQ_LOCAL_BUILD ON CACHE INTERNAL "")
+set(LIBZMQ_PEDANTIC OFF CACHE INTERNAL "")
+set(WITH_PERF_TOOL OFF CACHE INTERNAL "")
+set(ENABLE_CPACK OFF CACHE INTERNAL "")
+set(BUILD_STATIC ${zmq_static_build} CACHE INTERNAL "")
+set(BUILD_SHARED ${zmq_shared_build} CACHE INTERNAL "")
+set(ENABLE_CPACK OFF CACHE INTERNAL "")
 
-set(ZEROMQ_CMAKECONFIG_INSTALL_DIR
-    ${CMAKE_INSTALL_LIBDIR}/cmake/ZeroMQ
-    CACHE INTERNAL ""
-)
+set(ZEROMQ_CMAKECONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/ZeroMQ CACHE INTERNAL "")
 # Bring the populated content into the build
 set(COMPILER_SUPPORTS_CXX11 ON)
 set(ZMQ_HAVE_NOEXCEPT ON)
@@ -123,9 +85,7 @@ set(ZeroMQ_FOUND TRUE)
 
 if(${PROJECT_NAME}_USE_ZMQ_STATIC_LIBRARY)
     set_target_properties(libzmq-static PROPERTIES FOLDER "Extern")
-    target_compile_options(
-        libzmq-static PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fPIC>
-    )
+    target_compile_options(libzmq-static PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fPIC>)
 
 else()
     set_target_properties(libzmq PROPERTIES FOLDER "Extern")
@@ -168,10 +128,7 @@ if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIB OR NOT ${PROJECT_NAME}_DISABLE_C_SHARED_
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             FRAMEWORK DESTINATION "Library/Frameworks"
         )
-        if(MSVC
-           AND NOT EMBEDDED_DEBUG_INFO
-           AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL
-        )
+        if(MSVC AND NOT EMBEDDED_DEBUG_INFO AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
             install(
                 FILES $<TARGET_PDB_FILE:${zmq_target_output}>
                 DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -180,10 +137,8 @@ if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIB OR NOT ${PROJECT_NAME}_DISABLE_C_SHARED_
             )
         endif()
         if(MSVC AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
-            install(
-                FILES $<TARGET_LINKER_FILE:${zmq_target_output}>
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                COMPONENT libs
+            install(FILES $<TARGET_LINKER_FILE:${zmq_target_output}>
+                    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
             )
         endif()
 

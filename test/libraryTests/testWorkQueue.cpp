@@ -13,9 +13,8 @@
 #include "../gtestHelper.h"
 #include "utilities/workQueue.h"
 #include <chrono>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 #ifdef ENABLE_MULTITHREADING
 TEST(WorkQueueTests, WorkQueueTest1)

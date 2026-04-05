@@ -132,12 +132,30 @@ namespace braid {
         bos->deltaT = deltaT;
     }
 
-    double* braidSolver::state_data() noexcept { return state.data(); }
-    double* braidSolver::deriv_data() noexcept { return deriv.data(); }
-    double* braidSolver::type_data() noexcept { return type.data(); }
-    const double* braidSolver::state_data() const noexcept { return state.data(); }
-    const double* braidSolver::deriv_data() const noexcept { return deriv.data(); }
-    const double* braidSolver::type_data() const noexcept { return type.data(); }
+    double* braidSolver::state_data() noexcept
+    {
+        return state.data();
+    }
+    double* braidSolver::deriv_data() noexcept
+    {
+        return deriv.data();
+    }
+    double* braidSolver::type_data() noexcept
+    {
+        return type.data();
+    }
+    const double* braidSolver::state_data() const noexcept
+    {
+        return state.data();
+    }
+    const double* braidSolver::deriv_data() const noexcept
+    {
+        return deriv.data();
+    }
+    const double* braidSolver::type_data() const noexcept
+    {
+        return type.data();
+    }
 
     void braidSolver::allocate(count_t stateCount, count_t numRoots)
     {

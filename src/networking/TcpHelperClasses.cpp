@@ -225,8 +225,8 @@ namespace tcpLib {
                                  const std::string& connection,
                                  const std::string& port,
                                  size_t bufferSize):
-        socket_(io_context),
-        context_(io_context), data(bufferSize), connecting(true), idcode(idcounter++)
+        socket_(io_context), context_(io_context), data(bufferSize), connecting(true),
+        idcode(idcounter++)
     {
         tcp::resolver resolver(io_context);
         tcp::resolver::query query(tcp::v4(), connection, port);
@@ -458,8 +458,7 @@ namespace tcpLib {
                          uint16_t portNum,
                          bool port_reuse,
                          int nominalBufferSize):
-        ioctx(io_context),
-        bufferSize(nominalBufferSize), reuse_address(port_reuse)
+        ioctx(io_context), bufferSize(nominalBufferSize), reuse_address(port_reuse)
     {
         if ((address == "*") || (address == "tcp://*")) {
             endpoints.emplace_back(asio::ip::address_v4::any(), portNum);
@@ -492,8 +491,7 @@ namespace tcpLib {
                          const std::string& port,
                          bool port_reuse,
                          int nominalBufferSize):
-        ioctx(io_context),
-        bufferSize(nominalBufferSize), reuse_address(port_reuse)
+        ioctx(io_context), bufferSize(nominalBufferSize), reuse_address(port_reuse)
     {
         tcp::resolver resolver(io_context);
         tcp::resolver::query query(tcp::v4(), address, port, tcp::resolver::query::canonical_name);

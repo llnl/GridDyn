@@ -1390,7 +1390,7 @@ void Area::getTols(double tols[], const solverMode& sMode)
     // next do any internal area states
 }
 
-//#define DEBUG_PRINT
+// #define DEBUG_PRINT
 void Area::rootTest(const IOdata& inputs,
                     const stateData& sD,
                     double roots[],

@@ -9,7 +9,6 @@
 #include "griddyn/links/acLine.h"
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/simulation/diagnostics.h"
-
 #include <gtest/gtest.h>
 // testP case for coreObject object
 
@@ -17,8 +16,7 @@
 
 using namespace griddyn;
 
-class AdjustableTransformerTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class AdjustableTransformerTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(AdjustableTransformerTests, AdjTestSimple)
 {

@@ -372,7 +372,10 @@ namespace solvers {
         flags.set(initialized_flag);
     }
 
-    void cvodeInterface::sparseReInit(sparse_reinit_modes reInitMode) { KLUReInit(reInitMode); }
+    void cvodeInterface::sparseReInit(sparse_reinit_modes reInitMode)
+    {
+        KLUReInit(reInitMode);
+    }
 
     void cvodeInterface::setRootFinding(count_t numRoots)
     {

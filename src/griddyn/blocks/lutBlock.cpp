@@ -15,7 +15,10 @@
 
 namespace griddyn {
 namespace blocks {
-    lutBlock::lutBlock(const std::string& objName): Block(objName) { opFlags.set(use_state); }
+    lutBlock::lutBlock(const std::string& objName): Block(objName)
+    {
+        opFlags.set(use_state);
+    }
     coreObject* lutBlock::clone(coreObject* obj) const
     {
         auto nobj = cloneBase<lutBlock, Block>(this, obj);

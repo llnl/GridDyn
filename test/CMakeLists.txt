@@ -10,8 +10,7 @@
 include(AddGoogletest)
 
 set(gtestMain_headers gtestHelper.h)
-set(
-    extra_gtest_sources
+set(extra_gtest_sources
     gtestHelperFunctions.cpp
     extraTests/testExtra.cpp
     extraTests/performanceTests.cpp
@@ -24,8 +23,7 @@ if(GRIDDYN_ENABLE_FMI)
     list(APPEND extra_gtest_sources extraTests/extraFMUtests.cpp)
 endif()
 
-set(
-    library_gtest_sources
+set(library_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/gtestLibrarySmokeTests.cpp
     libraryTests/testCore.cpp
@@ -36,8 +34,7 @@ set(
     libraryTests/testValuePredictors.cpp
 )
 
-set(
-    file_reader_gtest_sources
+set(file_reader_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/testReaderInfo.cpp
     libraryTests/testXML.cpp
@@ -46,17 +43,12 @@ set(
     libraryTests/testGridDynRunner.cpp
 )
 
-set(
-    network_component_gtest_sources
-    gtestHelperFunctions.cpp
-    componentTests/testLoads.cpp
-    componentTests/testdcLinks.cpp
-    componentTests/testLinks.cpp
-    componentTests/testAdjustableTX.cpp
+set(network_component_gtest_sources
+    gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
+    componentTests/testLinks.cpp componentTests/testAdjustableTX.cpp
 )
 
-set(
-    generator_component_gtest_sources
+set(generator_component_gtest_sources
     gtestHelperFunctions.cpp
     componentTests/testBlocks.cpp
     componentTests/testGovernors.cpp
@@ -65,8 +57,7 @@ set(
     componentTests/testExciters.cpp
 )
 
-set(
-    event_component_gtest_sources
+set(event_component_gtest_sources
     gtestHelperFunctions.cpp
     componentTests/testSource.cpp
     componentTests/testRelays.cpp
@@ -75,18 +66,11 @@ set(
     componentTests/testRecorders.cpp
 )
 
-set(
-    system_component_gtest_sources
-    gtestHelperFunctions.cpp
-    componentTests/testArea.cpp
-    componentTests/simulationTests.cpp
+set(system_component_gtest_sources gtestHelperFunctions.cpp componentTests/testArea.cpp
+                                   componentTests/simulationTests.cpp
 )
 
-set(
-    optional_component_gtest_sources
-    gtestHelperFunctions.cpp
-    componentTests/testExtraModels.cpp
-)
+set(optional_component_gtest_sources gtestHelperFunctions.cpp componentTests/testExtraModels.cpp)
 if(NOT GRIDDYN_ENABLE_MPI)
     list(APPEND optional_component_gtest_sources componentTests/testGridLab.cpp)
 endif()
@@ -104,15 +88,11 @@ if(GRIDDYN_ENABLE_FMI_EXPORT)
     list(APPEND optional_component_gtest_sources ../src/fmi_export/testFMIExport.cpp)
 endif()
 
-set(
-    powerflow_system_gtest_sources
-    gtestHelperFunctions.cpp
-    systemTests/testpFlow.cpp
-    systemTests/validationTests.cpp
+set(powerflow_system_gtest_sources gtestHelperFunctions.cpp systemTests/testpFlow.cpp
+                                   systemTests/validationTests.cpp
 )
 
-set(
-    workflow_system_gtest_sources
+set(workflow_system_gtest_sources
     gtestHelperFunctions.cpp
     systemTests/testConstraints.cpp
     systemTests/testOutputs.cpp
@@ -121,15 +101,11 @@ set(
     systemTests/testInputs.cpp
 )
 
-set(
-    executable_system_gtest_sources
-    systemTests/testMainExe.cpp
-    systemTests/testGridDynRunner.cpp
-    exeTestHelper.cpp
+set(executable_system_gtest_sources systemTests/testMainExe.cpp systemTests/testGridDynRunner.cpp
+                                    exeTestHelper.cpp
 )
 
-set(
-    dynamic_system_gtest_sources
+set(dynamic_system_gtest_sources
     gtestHelperFunctions.cpp
     systemTests/testSolverModes.cpp
     systemTests/testDyn1.cpp
@@ -167,88 +143,44 @@ target_compile_definitions(
 add_executable(ExtraTests ${extra_gtest_sources} ${gtestMain_headers})
 add_executable(LibraryTests ${library_gtest_sources} ${gtestMain_headers})
 add_executable(FileReaderTests ${file_reader_gtest_sources} ${gtestMain_headers})
-add_executable(
-    NetworkComponentTests ${network_component_gtest_sources} ${gtestMain_headers}
-)
-add_executable(
-    GeneratorComponentTests ${generator_component_gtest_sources} ${gtestMain_headers}
-)
+add_executable(NetworkComponentTests ${network_component_gtest_sources} ${gtestMain_headers})
+add_executable(GeneratorComponentTests ${generator_component_gtest_sources} ${gtestMain_headers})
 add_executable(EventComponentTests ${event_component_gtest_sources} ${gtestMain_headers})
 add_executable(SystemComponentTests ${system_component_gtest_sources} ${gtestMain_headers})
 add_executable(PowerflowSystemTests ${powerflow_system_gtest_sources} ${gtestMain_headers})
 add_executable(WorkflowSystemTests ${workflow_system_gtest_sources} ${gtestMain_headers})
 add_executable(DynamicSystemTests ${dynamic_system_gtest_sources} ${gtestMain_headers})
 add_executable(
-    ExecutableSystemTests
-    ${executable_system_gtest_sources}
-    gtestHelper.h
-    exeTestHelper.h
+    ExecutableSystemTests ${executable_system_gtest_sources} gtestHelper.h exeTestHelper.h
 )
-add_executable(
-    OptionalComponentTests ${optional_component_gtest_sources} ${gtestMain_headers}
-)
+add_executable(OptionalComponentTests ${optional_component_gtest_sources} ${gtestMain_headers})
 
 target_link_libraries(ExtraTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(FileReaderTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(
-    NetworkComponentTests
-    PRIVATE
-    griddyn_optional
-    fileInput
-    griddyn_gtest_base
-    ${optional_component_test_linkages}
+    NetworkComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                  ${optional_component_test_linkages}
 )
 target_link_libraries(
-    GeneratorComponentTests
-    PRIVATE
-    griddyn_optional
-    fileInput
-    griddyn_gtest_base
-    ${optional_component_test_linkages}
+    GeneratorComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                    ${optional_component_test_linkages}
 )
 target_link_libraries(
-    EventComponentTests
-    PRIVATE
-    griddyn_optional
-    fileInput
-    griddyn_gtest_base
-    ${optional_component_test_linkages}
+    EventComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                ${optional_component_test_linkages}
 )
 target_link_libraries(
-    SystemComponentTests
-    PRIVATE
-    griddyn_optional
-    fileInput
-    griddyn_gtest_base
-    ${optional_component_test_linkages}
+    SystemComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                 ${optional_component_test_linkages}
 )
-target_link_libraries(
-    PowerflowSystemTests
-    PRIVATE
-    fileInput
-    griddyn_gtest_base
-)
-target_link_libraries(
-    WorkflowSystemTests
-    PRIVATE
-    fileInput
-    griddyn_gtest_base
-)
-target_link_libraries(
-    DynamicSystemTests
-    PRIVATE
-    fileInput
-    griddyn_gtest_base
-)
+target_link_libraries(PowerflowSystemTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(WorkflowSystemTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(DynamicSystemTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(ExecutableSystemTests PRIVATE griddyn_gtest_base)
 target_link_libraries(
-    OptionalComponentTests
-    PRIVATE
-    griddyn_optional
-    fileInput
-    griddyn_gtest_base
-    ${optional_component_test_linkages}
+    OptionalComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                   ${optional_component_test_linkages}
 )
 add_gtest(LibraryTests)
 add_gtest(ExtraTests)

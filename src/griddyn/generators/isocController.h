@@ -43,7 +43,7 @@ class isocController: public gridSubModel {
         set(const std::string& param, double val, units::unit unitType = units::defunit) override;
     /** set the upper and lower limits usable for the isocController
     @param[in] maxV  the upper limit on the value
-    @parma[in] minV  the lower limit on the value
+    @param[in] minV  the lower limit on the value
     */
     virtual void setLimits(double minV, double maxV);
     /** set a new target level for the controller

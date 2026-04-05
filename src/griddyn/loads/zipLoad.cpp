@@ -246,7 +246,7 @@ void zipLoad::set(const std::string& param, double val, unit unitType)
                 setx(convert(val, unitType, puOhm, systemBasePower, localBaseVoltage));
                 break;
             case 'g':
-                setYp(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
+                setup(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             case 'b':
                 setYq(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
@@ -309,7 +309,7 @@ void zipLoad::set(const std::string& param, double val, unit unitType)
     } else if (param == "load q") {
         setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
     } else if ((param == "yp") || (param == "shunt g") || (param == "zr")) {
-        setYp(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
+        setup(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
     } else if ((param == "yq") || (param == "shunt b") || (param == "zq")) {
         setYq(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
     } else if ((param == "ir") || (param == "ip")) {
@@ -368,7 +368,7 @@ void zipLoad::set(const std::string& param, double val, unit unitType)
     }
 }
 
-void zipLoad::setYp(double newYp)
+void zipLoad::setup(double newYp)
 {
     Yp = newYp;
     checkFaultChange();

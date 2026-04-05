@@ -15,10 +15,9 @@
 #include "utilities/matrixDataSparse.hpp"
 #include "utilities/matrixDataSparseSM.hpp"
 #include "utilities/matrixOps.h"
+#include <gtest/gtest.h>
 #include <iostream>
 #include <random>
-
-#include <gtest/gtest.h>
 
 TEST(MatrixDataTests, BlockCompute)
 {

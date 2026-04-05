@@ -11,18 +11,16 @@
 #include "griddyn/relays/controlRelay.h"
 #include "griddyn/relays/pmu.h"
 #include "griddyn/relays/zonalRelay.h"
-
 #include <gtest/gtest.h>
 
-//#include <crtdbg.h>
-// test case for link objects
+// #include <crtdbg.h>
+//  test case for link objects
 
 #define RELAY_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/relay_tests/"
 
 using namespace griddyn;
 
-class RelayTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class RelayTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(RelayTests, RelayTest1)
 {
@@ -186,8 +184,7 @@ TEST_F(RelayTests, PmuTest1)
     EXPECT_TRUE(isSameObject(bus3, pmu->find("target")));
     EXPECT_NEAR(bus3->getVoltage(), pmu->getOutput(0), std::abs(pmu->getOutput(0)) * 1e-6 + 1e-12);
 
-    EXPECT_NEAR(
-        pmu->get("voltage"), pmu->getOutput(0), std::abs(pmu->getOutput(0)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(pmu->get("voltage"), pmu->getOutput(0), std::abs(pmu->getOutput(0)) * 1e-6 + 1e-12);
 
     double val = pmu->get("voltage");
     double ang = pmu->get("angle");

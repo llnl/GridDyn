@@ -9,8 +9,7 @@
 fmi2Object::fmi2Object(fmi2Component cmp,
                        std::shared_ptr<const fmiInfo> keyInfo,
                        std::shared_ptr<const fmiCommonFunctions> comFunc):
-    comp(cmp),
-    info(std::move(keyInfo)), commonFunctions(std::move(comFunc))
+    comp(cmp), info(std::move(keyInfo)), commonFunctions(std::move(comFunc))
 {
 }
 

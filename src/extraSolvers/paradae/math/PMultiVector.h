@@ -18,10 +18,10 @@ namespace paradae {
         int ns;
 
       public:
-        PMultiVector(): PVector(), nx(1), ns(0){};
+        PMultiVector(): PVector(), nx(1), ns(0) {};
         PMultiVector(const SMultiVector& v);
         PMultiVector(const Vector& v, int ns_, int nx_);
-        virtual ~PMultiVector(){};
+        virtual ~PMultiVector() {};
         PMultiVector& operator=(const SMultiVector& v);
         PMultiVector& operator=(const PMultiVector& v);
         void GetPVector(int i, PVector& v) const;

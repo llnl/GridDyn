@@ -9,13 +9,11 @@
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 #define HVDC_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dcLink_tests/"
 
-class HvdcTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class HvdcTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
 TEST_F(HvdcTests, HvdcTest1)

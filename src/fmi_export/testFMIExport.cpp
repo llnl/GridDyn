@@ -4,33 +4,32 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../../test/gtestHelper.h"
+#include "core/coreOwningPtr.hpp"
 #include "fileInput/readerInfo.h"
 #include "fmi/fmi_import/fmiImport.h"
+#include "fmi/fmi_import/fmiObjects.h"
 #include "fmi_export/fmiCollector.h"
 #include "fmi_export/fmiCoordinator.h"
 #include "fmi_export/fmiEvent.h"
+#include "fmi_export/fmiRunner.h"
 #include "fmi_export/fmuBuilder.h"
 #include "fmi_export/loadFMIExportObjects.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/simulation/diagnostics.h"
+#include <gtest/gtest.h>
+#include <set>
 
 #include <boost/filesystem.hpp>
-#include <gtest/gtest.h>
-
-#include "../../test/gtestHelper.h"
-#include "core/coreOwningPtr.hpp"
-#include "fmi/fmi_import/fmiObjects.h"
-#include "fmi_export/fmiRunner.h"
-#include <set>
 
 static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/");
 
 using namespace griddyn;
 using namespace boost::filesystem;
 
-class FmiExportTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(FmiExportTests, TestFmiEvents)
 {

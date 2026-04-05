@@ -13,17 +13,16 @@
 #include <chrono>
 #include <cstdio>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <set>
 #include <utility>
 
-#include <gtest/gtest.h>
-
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class ExtraPerformanceTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExtraPerformanceTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 

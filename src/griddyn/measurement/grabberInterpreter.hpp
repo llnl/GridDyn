@@ -31,8 +31,7 @@ class grabberInterpreter {
 
   public:
     explicit grabberInterpreter(
-        std::function<std::unique_ptr<baseX>(const std::string&, coreObject*)> fc):
-        createX(fc)
+        std::function<std::unique_ptr<baseX>(const std::string&, coreObject*)> fc): createX(fc)
     {
     }
     std::unique_ptr<baseX> interpretGrabberBlock(const std::string& command, coreObject* obj)

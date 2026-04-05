@@ -27,7 +27,7 @@ class matrixDataCustomWriteOnly: public matrixData<ValueT> {
   public:
     matrixDataCustomWriteOnly() = default;
 
-    void clear() override{};
+    void clear() override {};
     void assign(index_t row, index_t col, ValueT num) override { insertFunction(row, col, num); }
 
     count_t size() const override { return 0; };

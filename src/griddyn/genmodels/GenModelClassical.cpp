@@ -205,7 +205,7 @@ namespace genmodels {
         double omega{1.0};
 
         if (isLocal(sMode)) {
-            if (m_state.size()>3) {
+            if (m_state.size() > 3) {
                 omega = m_state[3];
             }
             if (freqOffset != nullptr) {
@@ -435,7 +435,10 @@ namespace genmodels {
 
     static const stringVec genModelClassicStateNames{"id", "iq", "delta", "freq"};
 
-    stringVec GenModelClassical::localStateNames() const { return genModelClassicStateNames; }
+    stringVec GenModelClassical::localStateNames() const
+    {
+        return genModelClassicStateNames;
+    }
     // set parameters
     void GenModelClassical::set(const std::string& param, const std::string& val)
     {

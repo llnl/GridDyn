@@ -188,8 +188,7 @@ class typeFactory: public objectFactory {
     }
     typeFactory(const std::string& component,
                 const stringVec& typeNames,
-                const std::string& defType):
-        objectFactory(component, typeNames)
+                const std::string& defType): objectFactory(component, typeNames)
     {
         auto tF = coreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
@@ -263,8 +262,7 @@ class childTypeFactory: public typeFactory<Btype> {
     }
     childTypeFactory(const std::string& component,
                      const stringVec& typeNames,
-                     const std::string& defType):
-        typeFactory<Btype>(component, typeNames, defType)
+                     const std::string& defType): typeFactory<Btype>(component, typeNames, defType)
     {
     }
     coreObject* makeObject() override

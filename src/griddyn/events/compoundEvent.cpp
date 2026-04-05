@@ -60,7 +60,10 @@ namespace events {
         }
     }
 
-    coreObject* compoundEvent::getObject() const { return targetObjects[0]; }
+    coreObject* compoundEvent::getObject() const
+    {
+        return targetObjects[0];
+    }
 
     void compoundEvent::getObjects(std::vector<coreObject*>& objects) const
     {
@@ -96,7 +99,10 @@ namespace events {
         }
     }
 
-    void compoundEvent::setValue(const std::vector<double>& val) { values = val; }
+    void compoundEvent::setValue(const std::vector<double>& val)
+    {
+        values = val;
+    }
 
     std::string compoundEvent::to_string()
     {

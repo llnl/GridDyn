@@ -43,7 +43,7 @@ typedef struct linkPartialDerivatives {
 } linkPart;
 
 /** @brief the class that links multiple nodes(buses) together
-*  the base class for objects which connect other obects mainly buses
+*  the base class for objects which connect other objects mainly buses
 it implements the basic transmission model
 
 Each link has a disconnect switch at the from bus and the to bus

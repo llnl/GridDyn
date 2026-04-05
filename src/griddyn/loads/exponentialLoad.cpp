@@ -68,8 +68,14 @@ namespace loads {
         }
     }
 
-    double exponentialLoad::getRealPower() const { return getRealPower(bus->getVoltage()); }
-    double exponentialLoad::getReactivePower() const { return getReactivePower(bus->getVoltage()); }
+    double exponentialLoad::getRealPower() const
+    {
+        return getRealPower(bus->getVoltage());
+    }
+    double exponentialLoad::getReactivePower() const
+    {
+        return getReactivePower(bus->getVoltage());
+    }
     double exponentialLoad::getRealPower(const IOdata& inputs,
                                          const stateData& /*sD*/,
                                          const solverMode& /*sMode*/) const

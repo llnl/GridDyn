@@ -8,14 +8,13 @@
 #include "griddyn/simulation/diagnostics.h"
 #include "gtestHelper.h"
 #include <cmath>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace griddyn;
 
 namespace {
-class GriddynGlobalEnvironment final : public ::testing::Environment {
+class GriddynGlobalEnvironment final: public ::testing::Environment {
   public:
     void TearDown() override
     {
@@ -310,8 +309,7 @@ void printBusResultDeviations(const std::vector<double>& V1,
         if ((std::abs(V1[kk] - V2[kk]) > 0.0001) || (std::abs(A1[kk] - A2[kk]) > 0.0001)) {
             std::cout << "Bus " << kk + 1 << "::" << V1[kk] << "vs." << V2[kk]
                       << "::" << A1[kk] * 180.0 / kPI << "vs." << A2[kk] * 180.0 / kPI
-                      << "::" << V1[kk] - V2[kk] << ',' << (A1[kk] - A2[kk]) * 180.0 / kPI
-                      << "\n";
+                      << "::" << V1[kk] - V2[kk] << ',' << (A1[kk] - A2[kk]) * 180.0 / kPI << "\n";
         }
     }
 }

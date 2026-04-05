@@ -39,7 +39,10 @@ namespace events {
         }
     }
 
-    void compoundEventPlayer::setTime(coreTime time) { triggerTime = time; }
+    void compoundEventPlayer::setTime(coreTime time)
+    {
+        triggerTime = time;
+    }
 
     void compoundEventPlayer::setTimeValue(coreTime time, double val)
     {

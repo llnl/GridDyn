@@ -7,31 +7,29 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-IF (MSVC)
-    set(HELICS_PATH_HINTS
-        C:/local/helics_2_5_0
-		C:/local/helics_2_5_1
-		C:/local/helics_2_5_2
-		C:/local/helics_2_6_0
-        )
-ENDIF(MSVC)
-
-SHOW_VARIABLE(HELICS_INSTALL_PATH PATH "path to the helics installation" "${CMAKE_BINARY_OUTPUT_DIR}")
-
-
-set(HELICS_CMAKE_SUFFIXES
-    lib/cmake/HELICS/
-            cmake/HELICS/)
-
-find_package(HELICS 2.5
-    HINTS
-        ${HELICS_INSTALL_PATH}
-        $ENV{HELICS_INSTALL_PATH}
-        ${HELICS_PATH_HINTS}
-    PATH_SUFFIXES ${HELICS_CMAKE_SUFFIXES}
+if(MSVC)
+    set(HELICS_PATH_HINTS C:/local/helics_2_5_0 C:/local/helics_2_5_1 C:/local/helics_2_5_2
+                          C:/local/helics_2_6_0
     )
+endif(MSVC)
 
-if (NOT HELICS_FOUND)
-        message(FATAL_ERROR "unable to locate HELICS for linking")
+show_variable(
+    HELICS_INSTALL_PATH PATH "path to the helics installation" "${CMAKE_BINARY_OUTPUT_DIR}"
+)
+
+set(HELICS_CMAKE_SUFFIXES lib/cmake/HELICS/ cmake/HELICS/)
+
+find_package(
+    HELICS
+    2.5
+    HINTS
+    ${HELICS_INSTALL_PATH}
+    $ENV{HELICS_INSTALL_PATH}
+    ${HELICS_PATH_HINTS}
+    PATH_SUFFIXES
+    ${HELICS_CMAKE_SUFFIXES}
+)
+
+if(NOT HELICS_FOUND)
+    message(FATAL_ERROR "unable to locate HELICS for linking")
 endif()

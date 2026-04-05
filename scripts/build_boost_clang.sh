@@ -4,7 +4,6 @@ localdir=$(pwd)
 #change to wherever boost was downloaded
 cd ~/boost_1_66_0/
 
-
 #add mpi if building with mpi
 ./bootstrap.sh --with-toolset=clang --prefix=$localdir/boost --with-libraries=test
 

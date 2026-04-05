@@ -8,8 +8,8 @@
 # For details, see the LICENSE file.
 # LLNS Copyright End
 
-# With C++20 and modern compiler minimums (GCC 13+/Clang 18+), these standard
-# library/compiler features are baseline and no longer need compile-probing.
+# With C++20 and modern compiler minimums (GCC 13+/Clang 18+), these standard library/compiler
+# features are baseline and no longer need compile-probing.
 set(HAVE_OPTIONAL ON)
 set(HAVE_VARIANT ON)
 set(HAVE_STRING_VIEW ON)
@@ -23,10 +23,15 @@ set(HAVE_SHARED_MUTEX ON)
 set(HAVE_SHARED_TIMED_MUTEX ON)
 set(HAVE_EXP_STRING_VIEW ON)
 
-if (NOT NO_CONFIG_GENERATION)
-    if (CONFIGURE_TARGET_LOCATION)
-        CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/compiler-config.h.in ${CONFIGURE_TARGET_LOCATION}/compiler-config.h)
+if(NOT NO_CONFIG_GENERATION)
+    if(CONFIGURE_TARGET_LOCATION)
+        configure_file(
+            ${CMAKE_CURRENT_LIST_DIR}/compiler-config.h.in
+            ${CONFIGURE_TARGET_LOCATION}/compiler-config.h
+        )
     else()
-        CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/compiler-config.h.in ${PROJECT_BINARY_DIR}/compiler-config.h)
+        configure_file(
+            ${CMAKE_CURRENT_LIST_DIR}/compiler-config.h.in ${PROJECT_BINARY_DIR}/compiler-config.h
+        )
     endif()
 endif(NOT NO_CONFIG_GENERATION)

@@ -230,7 +230,10 @@ namespace genmodels {
 
     static const stringVec genModel3Names{"id", "iq", "delta", "freq", "eqp"};
 
-    stringVec GenModel3::localStateNames() const { return genModel3Names; }
+    stringVec GenModel3::localStateNames() const
+    {
+        return genModel3Names;
+    }
     // set parameters
     void GenModel3::set(const std::string& param, const std::string& val)
     {

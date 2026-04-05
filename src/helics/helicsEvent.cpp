@@ -22,7 +22,10 @@ namespace helicsLib {
         initRequired = true;
     }
 
-    helicsEvent::helicsEvent(helicsEventType type): eventType(type) { initRequired = true; }
+    helicsEvent::helicsEvent(helicsEventType type): eventType(type)
+    {
+        initRequired = true;
+    }
 
     helicsEvent::helicsEvent(const EventInfo& gdEI, coreObject* rootObject):
         reversibleEvent(gdEI, rootObject)
@@ -111,7 +114,10 @@ namespace helicsLib {
         return ret;
     }
 
-    coreObject* helicsEvent::getOwner() const { return coord; }
+    coreObject* helicsEvent::getOwner() const
+    {
+        return coord;
+    }
 
     void helicsEvent::initialize()
     {

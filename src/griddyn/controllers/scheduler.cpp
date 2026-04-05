@@ -111,9 +111,9 @@ void scheduler::setTarget(std::vector<double>& time, std::vector<double>& target
     auto tm = time.begin();
     auto tg = target.begin();
     auto tme = time.end();
-    auto tge = target.end();
+    auto the = target.end();
     std::list<tsched> flist;
-    while ((tm != tme) && (tg != tge)) {
+    while ((tm != tme) && (tg != the)) {
         // pTarget.push_back (tsched (*tm, *tg));
         pTarget.emplace_back(*tm, *tg);
         ++tm;

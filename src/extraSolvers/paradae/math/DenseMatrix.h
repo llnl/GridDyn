@@ -22,10 +22,10 @@ namespace paradae {
         lapack_int* f_ipiv;
 
       private:
-        void operator=(const DenseMatrix& mat){};
+        void operator=(const DenseMatrix& mat) {};
 
       public:
-        DenseMatrix(): Matrix(), data(NULL), f_data(NULL), f_ipiv(NULL){};
+        DenseMatrix(): Matrix(), data(NULL), f_data(NULL), f_ipiv(NULL) {};
         DenseMatrix(int m_, Real fill_ = 0);
         DenseMatrix(const DenseMatrix& mat);
         virtual ~DenseMatrix();

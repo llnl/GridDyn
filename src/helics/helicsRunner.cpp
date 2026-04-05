@@ -134,6 +134,9 @@ namespace helicsLib {
         return m_gds->getSimulationTime();
     }
 
-    void helicsRunner::Finalize() { fed_->finalize(); }
+    void helicsRunner::Finalize()
+    {
+        fed_->finalize();
+    }
 }  // namespace helicsLib
 }  // namespace griddyn

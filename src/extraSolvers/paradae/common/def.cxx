@@ -32,7 +32,10 @@ namespace paradae {
 #endif
     int debug_int = 0;
 
-    string& SSS_debug(const char* s) { return *(new string(s)); }
+    string& SSS_debug(const char* s)
+    {
+        return *(new string(s));
+    }
 
 #ifdef CHECK_MEM_ALLOC
     size_t total_mem = 0;

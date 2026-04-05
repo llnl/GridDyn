@@ -20,8 +20,7 @@ tinyxml2ReaderElement::tinyxml2ReaderElement(const std::string& fileName)
 }
 tinyxml2ReaderElement::tinyxml2ReaderElement(const XMLElement* xmlElement,
                                              const XMLElement* xmlParent):
-    element(xmlElement),
-    parent(xmlParent)
+    element(xmlElement), parent(xmlParent)
 {
 }
 

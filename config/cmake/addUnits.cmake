@@ -18,11 +18,10 @@ set(UNITS_BUILD_OBJECT_LIBRARY OFF CACHE INTERNAL "")
 set(UNITS_BUILD_STATIC_LIBRARY ON CACHE INTERNAL "")
 set(UNITS_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "")
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/ThirdParty/units"
-                 "${PROJECT_BINARY_DIR}/ThirdParty/units")
+add_subdirectory("${PROJECT_SOURCE_DIR}/ThirdParty/units" "${PROJECT_BINARY_DIR}/ThirdParty/units")
 
-# Upstream units target naming changed (`units`/`units::units`), while GridDyn
-# still expects `units-static`. Create a compatibility target as needed.
+# Upstream units target naming changed (`units`/`units::units`), while GridDyn still expects
+# `units-static`. Create a compatibility target as needed.
 if(NOT TARGET units-static)
     if(TARGET units)
         add_library(units-static INTERFACE)

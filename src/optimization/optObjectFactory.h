@@ -139,8 +139,7 @@ class optObjectFactory: public optFactory {
     optObjectFactory(const std::string& component,
                      const std::string& objName,
                      int level = 0,
-                     bool makeDefault = false):
-        optFactory(component, objName, level)
+                     bool makeDefault = false): optFactory(component, objName, level)
     {
         auto coof = coreOptObjectFactory::instance();
         auto fac = coof->getFactory(component);
@@ -153,8 +152,7 @@ class optObjectFactory: public optFactory {
     optObjectFactory(const stringVec& components,
                      const std::string& objName,
                      int level = 0,
-                     bool makeDefault = false):
-        optFactory(components[0], objName, level)
+                     bool makeDefault = false): optFactory(components[0], objName, level)
     {
         auto coof = coreOptObjectFactory::instance();
         for (auto& tname : components) {

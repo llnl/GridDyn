@@ -12,11 +12,10 @@
 #include <array>
 #include <cstdio>
 #include <functional>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <utility>
-
-#include <gtest/gtest.h>
 
 #include <boost/filesystem.hpp>
 // test case for coreObject object
@@ -26,8 +25,7 @@
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class InputTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class InputTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::vector<std::pair<std::string, std::array<int, 2>>> baseCDFcase{
     {"ieee14_act.cdf", {{14, 20}}},
@@ -97,9 +95,9 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
 
         std::function<void(size_t, double, double)> afunc =
             [=](size_t index, double v1, double v2) {
-                std::cout << mp.first << " Angle difference bus " << index + 1 << "::"
-                          << v1 * 180.0 / kPI << " vs. " << v2 * 180.0 / kPI << "::"
-                          << (v1 - v2) * 180.0 / kPI << '\n';
+                std::cout << mp.first << " Angle difference bus " << index + 1
+                          << "::" << v1 * 180.0 / kPI << " vs. " << v2 * 180.0 / kPI
+                          << "::" << (v1 - v2) * 180.0 / kPI << '\n';
             };
         auto adiff = countDiffsCallback(ang1, ang2, 0.0009, afunc);
 
@@ -244,16 +242,16 @@ TEST_F(InputTests, DISABLED_CompareCases)
 
             for (size_t kk = 0; kk < volts1.size(); ++kk) {
                 if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
-                    std::cout << caseSet[0] << " vs. " << nf << " Voltage difference bus "
-                              << kk + 1 << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
+                    std::cout << caseSet[0] << " vs. " << nf << " Voltage difference bus " << kk + 1
+                              << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
                     vdiff++;
                 }
 
                 if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
-                    std::cout << caseSet[0] << " vs. " << nf << " Angle difference-- bus "
-                              << kk + 1 << "::" << ang1[kk] * 180.0 / kPI << " vs. "
-                              << ang2[kk] * 180.0 / kPI << "::"
-                              << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg" << '\n';
+                    std::cout << caseSet[0] << " vs. " << nf << " Angle difference-- bus " << kk + 1
+                              << "::" << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
+                              << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg"
+                              << '\n';
                     adiff++;
                 }
             }

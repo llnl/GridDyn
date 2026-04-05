@@ -8,18 +8,16 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #
-# Build GoogleTest from the tracked submodule and provide a helper macro for
-# registering GridDyn tests.
+# Build GoogleTest from the tracked submodule and provide a helper macro for registering GridDyn
+# tests.
 #
 
 set(gtest_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/googletest")
 set(gtest_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/googletest")
 
 if(NOT EXISTS "${gtest_SOURCE_DIR}/CMakeLists.txt")
-    message(
-        FATAL_ERROR
-            "The googletest submodule was not found at ${gtest_SOURCE_DIR}. "
-            "Initialize/update submodules before enabling GoogleTest builds."
+    message(FATAL_ERROR "The googletest submodule was not found at ${gtest_SOURCE_DIR}. "
+                        "Initialize/update submodules before enabling GoogleTest builds."
     )
 endif()
 
@@ -41,14 +39,7 @@ macro(add_gtest TESTNAME)
     target_link_libraries(${TESTNAME} PUBLIC gtest gmock gtest_main)
 
     if(GOOGLE_TEST_INDIVIDUAL)
-        gtest_discover_tests(
-            ${TESTNAME}
-            TEST_PREFIX
-            "${TESTNAME}."
-            PROPERTIES
-            FOLDER
-            "Tests"
-        )
+        gtest_discover_tests(${TESTNAME} TEST_PREFIX "${TESTNAME}." PROPERTIES FOLDER "Tests")
     else()
         add_test(${TESTNAME} ${TESTNAME})
         set_target_properties(${TESTNAME} PROPERTIES FOLDER "Tests")

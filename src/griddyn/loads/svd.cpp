@@ -64,7 +64,7 @@ namespace loads {
 
     void svd::setLoad(double Plevel, double Qlevel, unit unitType)
     {
-        setYp(convert(Plevel, unitType, puMW, systemBasePower));
+        setup(convert(Plevel, unitType, puMW, systemBasePower));
         double dlevel = convert(Qlevel, unitType, puMW, systemBasePower);
         int setLevel = checkSetting(dlevel);
         if (setLevel >= 0) {

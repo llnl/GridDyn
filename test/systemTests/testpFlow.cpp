@@ -9,17 +9,15 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/solvers/solverInterface.h"
 #include <cstdio>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
 static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
 
-class PowerflowSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class PowerflowSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 /** test to make sure the basic power flow loads and runs*/
 TEST_F(PowerflowSystemTests, PFlowTest1)

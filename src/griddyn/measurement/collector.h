@@ -60,8 +60,8 @@ class collector: public helperObject, public eventInterface, public objectOperat
                        int ncol = -1,
                        int ccnt = 1,
                        const std::string& cname = ""):
-            dataGrabber(std::move(dg)),
-            dataGrabberSt(std::move(sg)), column(ncol), columnCount(ccnt), colname(cname)
+            dataGrabber(std::move(dg)), dataGrabberSt(std::move(sg)), column(ncol),
+            columnCount(ccnt), colname(cname)
         {
         }
     };

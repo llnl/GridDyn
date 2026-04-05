@@ -8,9 +8,8 @@
 
 #include "../exeTestHelper.h"
 #include <cstdlib>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
 

@@ -29,8 +29,7 @@ fmi2CoSimObject::fmi2CoSimObject(fmi2Component cmp,
                                  std::shared_ptr<const fmiInfo> keyInfo,
                                  std::shared_ptr<const fmiCommonFunctions> comFunc,
                                  std::shared_ptr<const fmiCoSimFunctions> csFunc):
-    fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)),
-    CoSimFunctions(std::move(csFunc))
+    fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc))
 {
 }
 

@@ -87,7 +87,10 @@ namespace events {
         }
     }
 
-    void Player::setTime(coreTime time) { triggerTime = time; }
+    void Player::setTime(coreTime time)
+    {
+        triggerTime = time;
+    }
 
     void Player::setTimeValue(coreTime time, double val)
     {

@@ -15,7 +15,10 @@ namespace blocks {
         minRamp = nmin;
         maxRamp = nmax;
     }
-    void rampLimiter::setResetLevel(double newReset) { resetLevel = newReset; }
+    void rampLimiter::setResetLevel(double newReset)
+    {
+        resetLevel = newReset;
+    }
     double rampLimiter::limitCheck(double currentVal, double input, double dIdt) const
     {
         double val;
@@ -76,7 +79,10 @@ namespace blocks {
         return dIdt;
     }
 
-    double rampLimiter::DoutDin() const { return (limiterEngaged) ? 0.0 : 1.0; }
+    double rampLimiter::DoutDin() const
+    {
+        return (limiterEngaged) ? 0.0 : 1.0;
+    }
     double rampLimiter::clampOutputRamp(double dIdt) const
     {
         if (dIdt > maxRamp) {

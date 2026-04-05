@@ -23,7 +23,9 @@ endforeach()
 
 # Fall back to imported namespaces when available.
 if(NOT _griddyn_klu_link_targets)
-    foreach(_klu_tgt IN ITEMS Suitesparse::klu Suitesparse::btf Suitesparse::amd Suitesparse::colamd Suitesparse::suitesparseconfig)
+    foreach(_klu_tgt IN ITEMS Suitesparse::klu Suitesparse::btf Suitesparse::amd
+                              Suitesparse::colamd Suitesparse::suitesparseconfig
+    )
         if(TARGET ${_klu_tgt})
             list(APPEND _griddyn_klu_link_targets ${_klu_tgt})
         endif()
@@ -41,24 +43,23 @@ endif()
 
 if(_griddyn_klu_link_targets)
     list(REMOVE_DUPLICATES _griddyn_klu_link_targets)
-    set_target_properties(SUNDIALS::KLU PROPERTIES
-        INTERFACE_LINK_LIBRARIES "${_griddyn_klu_link_targets}"
+    set_target_properties(
+        SUNDIALS::KLU PROPERTIES INTERFACE_LINK_LIBRARIES "${_griddyn_klu_link_targets}"
     )
 else()
-    message(FATAL_ERROR
-        "GridDyn SUNDIALS KLU shim could not locate KLU link targets. "
-        "Ensure KLU/SuiteSparse is configured before addSundials."
+    message(FATAL_ERROR "GridDyn SUNDIALS KLU shim could not locate KLU link targets. "
+                        "Ensure KLU/SuiteSparse is configured before addSundials."
     )
 endif()
 
 if(KLU_INCLUDE_DIR)
-    set_target_properties(SUNDIALS::KLU PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${KLU_INCLUDE_DIR}"
+    set_target_properties(
+        SUNDIALS::KLU PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${KLU_INCLUDE_DIR}"
     )
 endif()
 
-# SUNDIALS' KLU module also uses KLU_LIBRARIES/KLU_INCLUDE_DIR variables in
-# status output and some checks.
+# SUNDIALS' KLU module also uses KLU_LIBRARIES/KLU_INCLUDE_DIR variables in status output and some
+# checks.
 if(NOT KLU_LIBRARIES AND _griddyn_klu_link_targets)
     set(KLU_LIBRARIES "${_griddyn_klu_link_targets}")
 endif()

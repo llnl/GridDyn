@@ -7,14 +7,12 @@
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstdio>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <set>
 #include <utility>
 
-#include <gtest/gtest.h>
-
-class SimulationTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class SimulationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 

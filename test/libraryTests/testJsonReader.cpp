@@ -8,9 +8,8 @@
 
 #include "../gtestHelper.h"
 #include "formatInterpreters/jsonReaderElement.h"
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
                                                     "/element_reader_tests/");

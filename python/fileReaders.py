@@ -13,7 +13,7 @@ import struct
 
 
 class timeSeries2(object):
-    """ an object to hold a hand of cards """
+    """an object to hold a hand of cards"""
 
     def __init__(self, filename=None, rows=1, columns=1):
         self.description = ""

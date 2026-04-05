@@ -9,7 +9,6 @@
 #include "griddyn/Generator.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
-
 #include <gtest/gtest.h>
 // test case for coreObject object
 
@@ -17,8 +16,7 @@
 
 using namespace griddyn;
 
-class GovernorTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class GovernorTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GovernorTests, GovStabilityTest)
 {

@@ -362,15 +362,13 @@ class Parse:
 
 
 class createFile:
-    """Create AutoGen.cpp file for a specific ".h" if AUTOGEN macros are present.
-
-    """
+    """Create AutoGen.cpp file for a specific ".h" if AUTOGEN macros are present."""
 
     def __init__(self):
         self.tab = 0
 
     def printHeader(self, namespace, autogen, allClass):
-        """ Print header file
+        """Print header file
 
         Arguments:
             namespaceList {list} -- list of namespace to use
@@ -440,7 +438,7 @@ class createFile:
                     if len(GetCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomParamGet" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(GetCustomParam.keys()):
+                        for j, param in enumerate(GetCustomParam.keys()):
                             allcustomLocNum.append(
                                 GetCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -453,7 +451,7 @@ class createFile:
                     if len(SetCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomParamSet" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(SetCustomParam.keys()):
+                        for j, param in enumerate(SetCustomParam.keys()):
                             allcustomLocNum.append(
                                 SetCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -465,7 +463,7 @@ class createFile:
                     if len(GetFlagCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomFlagGet" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(GetFlagCustomParam.keys()):
+                        for j, param in enumerate(GetFlagCustomParam.keys()):
                             allcustomLocFlags.append(
                                 GetFlagCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -477,7 +475,7 @@ class createFile:
                     if len(SetFlagCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomFlagSet" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(SetFlagCustomParam.keys()):
+                        for j, param in enumerate(SetFlagCustomParam.keys()):
                             allcustomLocFlags.append(
                                 SetFlagCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -489,7 +487,7 @@ class createFile:
                     if len(GetStringCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomParamGetString" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(GetStringCustomParam.keys()):
+                        for j, param in enumerate(GetStringCustomParam.keys()):
                             allcustomLocString.append(
                                 GetStringCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -501,7 +499,7 @@ class createFile:
                     if len(SetStringCustomParam) > 0:
                         print(tab * " ", "static const set<string> ", end=" ")
                         print("CustomParamSetString" + allClass[i] + "{", end=" ")
-                        for (j, param) in enumerate(SetStringCustomParam.keys()):
+                        for j, param in enumerate(SetStringCustomParam.keys()):
                             allcustomLocString.append(
                                 SetStringCustomParam[param].replace('"', "").replace(",", "")
                             )
@@ -697,7 +695,7 @@ class createFile:
                 print(tab * " ", "{")
                 tab = tab + tabsize
                 # Set every parameters for this class
-                for (j, param) in enumerate(Parameters.keys()):
+                for j, param in enumerate(Parameters.keys()):
                     print(tab * " ", "case " + curClass + "Params::" + stringKeys[j].upper() + ":")
                     print(tab * " ", "    " + stringParam[param] + " = val;")
                     print(tab * " ", "    break;")
@@ -727,8 +725,7 @@ class createFile:
         self.tab = tab
 
     def printGetString(self, autogen, allClass, parentClass):
-        """
-        """
+        """ """
         tab = self.tab
         for i in range(len(allClass)):
             curClass = allClass[i]
@@ -790,8 +787,7 @@ class createFile:
             print()
 
     def printSetString(self, autogen, allClass, parentClass):
-        """
-        """
+        """ """
         tab = self.tab
         for i in range(len(allClass)):
             curClass = allClass[i]
@@ -925,7 +921,7 @@ class createFile:
                 print(tab * " ", "switch (it->second)")
                 print(tab * " ", "{")
                 tab = tab + tabsize
-                for (j, flag) in enumerate(Flags.keys()):
+                for j, flag in enumerate(Flags.keys()):
                     print(tab * " ", "case " + flag + ": ")
                     print(tab * " ", "    " + "opFlags.set(" + flag + ", val);")
                     print(tab * " ", "    break;")
@@ -1011,7 +1007,7 @@ class createFile:
                 print(tab * " ", "switch (it->second)")
                 print(tab * " ", "{")
                 tab = tab + tabsize
-                for (j, flag) in enumerate(Flags.keys()):
+                for j, flag in enumerate(Flags.keys()):
                     print(tab * " ", "case " + flag + ": ")
                     print(tab * " ", "    " + "return opFlags[" + flag + "];")
                     print(tab * " ", "    break;")
@@ -1026,8 +1022,7 @@ class createFile:
                 print()
 
     def printGetFunction(self, autogen, allClass, parentClass):
-        """
-        """
+        """ """
         tab = self.tab
         for i in range(len(allClass)):
             curClass = allClass[i]
@@ -1106,7 +1101,7 @@ class createFile:
                 print(tab * " ", "{")
                 tab = tab + tabsize
                 # Create each parameter and get value;
-                for (j, param) in enumerate(Parameters.keys()):
+                for j, param in enumerate(Parameters.keys()):
                     print(tab * " ", "case " + curClass + "Params::" + stringKeys[j].upper() + ":")
                     if param == "custom":
                         print(tab * " ", "    val = custom_get(param, unitType);")
@@ -1134,8 +1129,7 @@ class createFile:
                 print()
 
     def printGetPString(self, autogen, allClass, parentClass):
-        """
-        """
+        """ """
 
         tab = self.tab
         for i in range(len(allClass)):

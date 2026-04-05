@@ -17,8 +17,8 @@ namespace paradae {
         Real* data;
 
       public:
-        Vector(): m(0), data(nullptr){};
-        virtual ~Vector(){};
+        Vector(): m(0), data(nullptr) {};
+        virtual ~Vector() {};
         void Fill(Real fill_ = 0);
 
         Real operator()(int i) const;

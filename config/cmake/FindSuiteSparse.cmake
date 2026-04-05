@@ -116,10 +116,10 @@ macro(SuiteSparse_FIND_COMPONENTS )
     ## special check for suitesparse component (allow to find on windows but not on linux because doesn't exist)
     list(FIND SuiteSparse_FIND_COMPONENTS "suitesparse" ss_index)
     if(${ss_index} MATCHES "-1")
-        ## do nothing, the user didn't provide the suitesparse componnent
+        ## do nothing, the user didn't provide the suitesparse component
     else()
         if(WIN32)
-            ## do nothing, the user provide the suitesparse componnent we will try to find
+            ## do nothing, the user provide the suitesparse component we will try to find
         else()
             list(REMOVE_AT SuiteSparse_FIND_COMPONENTS ${ss_index})
             if(SuiteSparse_VERBOSE)

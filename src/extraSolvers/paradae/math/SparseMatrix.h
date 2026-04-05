@@ -20,10 +20,10 @@ namespace paradae {
         Real& InsertVal(int i, int j, Real val);
 
       private:
-        void operator=(const SparseMatrix& mat){};
+        void operator=(const SparseMatrix& mat) {};
 
       public:
-        SparseMatrix(): Matrix(), nnz(0), rowptr(NULL), col(NULL), data(NULL), numeric(NULL){};
+        SparseMatrix(): Matrix(), nnz(0), rowptr(NULL), col(NULL), data(NULL), numeric(NULL) {};
         SparseMatrix(int m_, int nnz_ = 0);
         SparseMatrix(const SparseMatrix& mat);
         virtual ~SparseMatrix();

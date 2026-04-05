@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iostream>
 
-//#define SGS_DEBUG
+// #define SGS_DEBUG
 namespace griddyn {
 namespace loads {
     static typeFactory<gridLabDLoad> gfgld("load", stringVec{"gridlabd", "gridlab"});
@@ -28,7 +28,10 @@ namespace loads {
 
 #define CONJUGATE 1
 
-    gridLabDLoad::gridLabDLoad(const std::string& objName): rampLoad(objName) { enable_updates(); }
+    gridLabDLoad::gridLabDLoad(const std::string& objName): rampLoad(objName)
+    {
+        enable_updates();
+    }
     gridLabDLoad::~gridLabDLoad() = default;
 
     void gridLabDLoad::gridLabDInitialize()
@@ -153,7 +156,10 @@ namespace loads {
         rampLoad::pFlowObjectInitializeA(time0, flags);
     }
 
-    void gridLabDLoad::pFlowObjectInitializeB() { updateB(); }
+    void gridLabDLoad::pFlowObjectInitializeB()
+    {
+        updateB();
+    }
     void gridLabDLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
         switch (dynCoupling) {
@@ -305,7 +311,7 @@ namespace loads {
                 setQ(LV[1]);
                 setIp(LV[2]);
                 setIq(LV[3]);
-                setYp(LV[4]);
+                setup(LV[4]);
                 setYq(LV[5]);
 
                 if (LV.size() == 12) {

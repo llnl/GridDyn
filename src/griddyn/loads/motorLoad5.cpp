@@ -18,7 +18,10 @@ namespace loads {
 
     // setup the load object factories
 
-    motorLoad5::motorLoad5(const std::string& objName): motorLoad3(objName) { H = 4; }
+    motorLoad5::motorLoad5(const std::string& objName): motorLoad3(objName)
+    {
+        H = 4;
+    }
     coreObject* motorLoad5::clone(coreObject* obj) const
     {
         auto* ld = cloneBase<motorLoad5, motorLoad3>(this, obj);

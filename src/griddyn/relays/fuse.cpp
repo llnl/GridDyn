@@ -309,7 +309,10 @@ namespace relays {
         prevTime = time;
     }
 
-    double fuse::I2Tequation(double current) { return (current * current - limit * limit); }
+    double fuse::I2Tequation(double current)
+    {
+        return (current * current - limit * limit);
+    }
 
     void fuse::residual(const IOdata& /*inputs*/,
                         const stateData& sD,

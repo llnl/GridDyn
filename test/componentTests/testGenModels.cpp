@@ -9,7 +9,6 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include <cmath>
-
 #include <gtest/gtest.h>
 // test case for coreObject object
 
@@ -17,8 +16,7 @@
 
 using namespace griddyn;
 
-class GenModelTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class GenModelTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GenModelTests, ModelTest1)
 {

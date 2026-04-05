@@ -364,7 +364,10 @@ namespace links {
         return val;
     }
 
-    void adjustableTransformer::setControlBus(gridBus* cBus) { controlBus = cBus; }
+    void adjustableTransformer::setControlBus(gridBus* cBus)
+    {
+        controlBus = cBus;
+    }
     void adjustableTransformer::setControlBus(index_t busNumber)
     {
         if ((busNumber == 1) || (busNumber == B1->getID())) {
@@ -949,7 +952,10 @@ namespace links {
         return acLine::dynObjectInitializeA(time0, flags);
     }
 
-    void adjustableTransformer::updateLocalCache() { acLine::updateLocalCache(); }
+    void adjustableTransformer::updateLocalCache()
+    {
+        acLine::updateLocalCache();
+    }
     void adjustableTransformer::updateLocalCache(const IOdata& inputs,
                                                  const stateData& sD,
                                                  const solverMode& sMode)

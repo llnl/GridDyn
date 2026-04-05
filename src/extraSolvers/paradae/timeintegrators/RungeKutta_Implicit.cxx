@@ -82,8 +82,7 @@ namespace paradae {
                                    Real tn_,
                                    Real dt_,
                                    const Vector& x0_,
-                                   RungeKutta_Implicit* rk_):
-        Solver_App_RK(rtol_, atol_, x0_, rk_)
+                                   RungeKutta_Implicit* rk_): Solver_App_RK(rtol_, atol_, x0_, rk_)
     {
         tn = tn_;
         dt = dt_;
@@ -96,7 +95,10 @@ namespace paradae {
         dense_mat = rk_->UseDenseMatrix();
     }
 
-    void Solver_App_IRK::dump() const { cout << tn << " " << dt << " "; }
+    void Solver_App_IRK::dump() const
+    {
+        cout << tn << " " << dt << " ";
+    }
 
     Solver_App_IRK::~Solver_App_IRK() {}
 
@@ -149,7 +151,7 @@ namespace paradae {
                 } else {
                     equation->jacobian_ypcdy(
                         t + rk_c(i) * this->dt, xi, Ki, pstate, 1.0 / (this->dt * rk_A(i, i)), *Ji);
-                    Ji->operator*=(this->dt* rk_A(i, i));
+                    Ji->operator*=(this->dt * rk_A(i, i));
                 }
                 jacmat->SetSubMat(i * size_x, i * size_x, *Ji);
                 delete Ji;

@@ -9,8 +9,7 @@
 #include "../gtestHelper.h"
 #include "runner/gridDynRunner.h"
 #include <cstdlib>
-#include <iostream>
-
 #include <gtest/gtest.h>
+#include <iostream>
 
 TEST(RunnerTests, RunnerTest1) {}

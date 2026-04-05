@@ -13,16 +13,15 @@
 #include "griddyn/solvers/solverInterface.h"
 #include <chrono>
 #include <cstdio>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <set>
 #include <utility>
 
-#include <gtest/gtest.h>
-
 using namespace griddyn;
 
-class ExtraFmuTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExtraFmuTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ExtraFmuTests, LoadFmu)
 {

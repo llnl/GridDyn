@@ -90,7 +90,7 @@ namespace paradae {
             dense_mat = true;
             nb_steps_done = 0;
         };
-        virtual ~TimeIntegrator(){};
+        virtual ~TimeIntegrator() {};
         virtual RCODE AdvanceStep(DATA_Struct& val, int iter_ref = 0) = 0;
         inline int GetSizeX() const { return size_x; };
         inline int GetNbSteps() const { return nb_steps; };

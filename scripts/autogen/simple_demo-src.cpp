@@ -1,5 +1,4 @@
-class Person {
-};
+class Person {};
 
 class Room {
   public:
@@ -13,8 +12,7 @@ class Room {
 };
 
 template<class T, int N>
-class Bag<T, N> {
-};
+class Bag<T, N> {};
 
 int main()
 {

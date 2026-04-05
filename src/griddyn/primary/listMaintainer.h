@@ -36,7 +36,7 @@ class listMaintainer {
 
   public:
     listMaintainer();
-    /** generte a list of the object that requires a preEx call*/
+    /** generate a list of the object that requires a preEx call*/
     void makePreList(const std::vector<gridPrimary*>& possObjs);
     /** make the list of objects for a certain mode*/
     void makeList(const solverMode& sMode, const std::vector<gridPrimary*>& possObjs);

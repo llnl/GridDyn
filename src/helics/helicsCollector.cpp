@@ -136,7 +136,10 @@ namespace helicsLib {
         return out;
     }
 
-    void helicsCollector::set(const std::string& param, double val) { collector::set(param, val); }
+    void helicsCollector::set(const std::string& param, double val)
+    {
+        collector::set(param, val);
+    }
 
     void helicsCollector::set(const std::string& param, const std::string& val)
     {
@@ -195,7 +198,10 @@ namespace helicsLib {
 
     const std::string helicsName("helics");
 
-    const std::string& helicsCollector::getSinkName() const { return helicsName; }
+    const std::string& helicsCollector::getSinkName() const
+    {
+        return helicsName;
+    }
 
 }  // namespace helicsLib
 }  // namespace griddyn

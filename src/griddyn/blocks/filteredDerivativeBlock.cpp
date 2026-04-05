@@ -24,8 +24,7 @@ namespace blocks {
     filteredDerivativeBlock::filteredDerivativeBlock(double t1,
                                                      double t2,
                                                      const std::string& objName):
-        Block(objName),
-        m_T1(t1), m_T2(t2)
+        Block(objName), m_T1(t1), m_T2(t2)
     {
         opFlags.set(use_state);
         opFlags.set(differential_output);

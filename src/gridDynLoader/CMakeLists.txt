@@ -8,8 +8,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set(GRIDDYN_LIBRARY_LOADER_CPP ${CMAKE_CURRENT_BINARY_DIR}/libraryLoader.cpp)
 
-set(
-    GRIDDYN_LIBRARY_LOADER_CONTENT
+set(GRIDDYN_LIBRARY_LOADER_CONTENT
     [=[/*
 * Copyright (c) 2014-2020, Lawrence Livermore National Security
 * See the top-level NOTICE for additional details. All rights reserved.

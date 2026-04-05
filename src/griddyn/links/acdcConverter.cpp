@@ -56,7 +56,10 @@ namespace links {
         }
         buildSubsystem();
     }
-    acdcConverter::acdcConverter(const std::string& objName): Link(objName) { buildSubsystem(); }
+    acdcConverter::acdcConverter(const std::string& objName): Link(objName)
+    {
+        buildSubsystem();
+    }
     void acdcConverter::buildSubsystem()
     {
         tap = kBigNum;

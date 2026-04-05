@@ -158,7 +158,7 @@ see gridComponent::dynInitializeA for more details
     /** check if the parameter being get is for a subobject, determine which sub object and perform
     the setFlag operation
     @param[in] param the subobject string to query the value of
-    @parma[in] unitType the type of units to convert the output to
+    @param[in] unitType the type of units to convert the output to
     @return a value corresponding to the request or a null value
     */
     double subObjectGet(const std::string& param, units::unit unitType) const;

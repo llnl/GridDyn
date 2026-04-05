@@ -12,14 +12,13 @@
 #include "griddyn/solvers/solverInterface.h"
 #include <chrono>
 #include <cstdio>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <set>
 #include <utility>
 
-#include <gtest/gtest.h>
-
-class LargeValidationTests : public gridDynSimulationTestFixture, public ::testing::Test {};
+class LargeValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 using namespace griddyn;

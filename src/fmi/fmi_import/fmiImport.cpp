@@ -269,32 +269,29 @@ path fmiLibrary::findSoPath(fmutype_t type)
             }
             break;
     }
-    if
-        IF_CONSTEXPR(sizeof(void*) == 8)
-        {
+    if IF_CONSTEXPR (sizeof(void*) == 8) {
 #ifdef _WIN32
-            sopath /= "win64";
-            sopath /= identifier + ".dll";
+        sopath /= "win64";
+        sopath /= identifier + ".dll";
 #else
 #    ifdef MACOS
-            sopath /= "darwin64";
-            sopath /= identifier + ".dylib";
+        sopath /= "darwin64";
+        sopath /= identifier + ".dylib";
 #    else
-            sopath /= "linux64";
-            sopath /= identifier + ".so";
+        sopath /= "linux64";
+        sopath /= identifier + ".so";
 #    endif
 #endif
 
-            if (exists(sopath)) {
-                return sopath;
-            }
-            printf("checking %s but doesn't exist\n", sopath.string().c_str());  // NOLINT
-#ifdef MACOS
-            sopath /= "darwin64";
-            sopath /= identifier + ".so";
-#endif
+        if (exists(sopath)) {
+            return sopath;
         }
-    else {  // NOLINT
+        printf("checking %s but doesn't exist\n", sopath.string().c_str());  // NOLINT
+#ifdef MACOS
+        sopath /= "darwin64";
+        sopath /= identifier + ".so";
+#endif
+    } else {  // NOLINT
 #ifdef _WIN32
         sopath /= "win32";
         sopath /= identifier + ".dll";

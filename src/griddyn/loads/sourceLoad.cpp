@@ -14,7 +14,10 @@
 
 namespace griddyn {
 namespace loads {
-    sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName) { sourceLink.fill(-1); }
+    sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName)
+    {
+        sourceLink.fill(-1);
+    }
     sourceLoad::sourceLoad(sourceType type, const std::string& objName): sourceLoad(objName)
     {
         sType = type;
@@ -316,7 +319,7 @@ namespace loads {
             setQ(sources[sourceLink[q_source]]->getOutput());
         }
         if (sourceLink[yp_source] >= 0) {
-            setYp(sources[sourceLink[yp_source]]->getOutput());
+            setup(sources[sourceLink[yp_source]]->getOutput());
         }
         if (sourceLink[yq_source] >= 0) {
             setYq(sources[sourceLink[yq_source]]->getOutput());

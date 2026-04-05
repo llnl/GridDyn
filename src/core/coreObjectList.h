@@ -18,12 +18,9 @@ namespace griddyn {
 using namespace boost::multi_index;
 using boost::multi_index_container;
 
-struct name {
-};
-struct id {
-};
-struct uid {
-};
+struct name {};
+struct id {};
+struct uid {};
 // define a multi-index container based on the object id, which should be unique, and the name which
 // also should be unique, and the user id, which isn't necessarily unique.
 using objectIndex = multi_index_container<

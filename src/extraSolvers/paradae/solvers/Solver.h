@@ -15,7 +15,7 @@ namespace paradae {
       public:
         bool update_jacobian;
         Solver_App() { CurrentJacobian = NULL; };
-        virtual ~Solver_App(){};
+        virtual ~Solver_App() {};
         virtual void
             EvaluateFunAndJac(const Vector& x, Vector& fx, bool require_jac, bool factorize) = 0;
         virtual Real XNorm(const Vector& dx, const Vector& x) const { return dx.Norm2() / tol; };
@@ -48,7 +48,7 @@ namespace paradae {
         int max_iter;
 
       public:
-        virtual ~Solver(){};
+        virtual ~Solver() {};
         virtual int Solve(Solver_App* app, Vector& x) = 0;
     };
 }  // namespace paradae

@@ -176,7 +176,7 @@ class acBus: public gridBus {
     attempt to move them to a more valid state mode controls how this is done  0- does a single
     iteration loop mode=1 tries to iterate until convergence based on tol mode=2  tries harder
     mode=3 does it with voltage only
-    @pararm[in] time  the time of the corresponding states
+    @param[in] time  the time of the corresponding states
     @param[in,out]  state the states of the system at present and shifted to match the updates
     @param[in,out] dstate_dt  the derivatives of the state that get updated
     @param[in] sMode the solvemode matching the states

@@ -18,7 +18,6 @@
 #include "griddyn/relays/fuse.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
-
 #include <gtest/gtest.h>
 
 /** these test cases test out the various generator components ability to handle faults
@@ -28,8 +27,7 @@ using namespace griddyn;
 
 static const std::string fault_test_directory(GRIDDYN_TEST_DIRECTORY "/fault_tests/");
 
-class FaultTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class FaultTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(FaultTests, FaultTest1)
 {
@@ -126,7 +124,7 @@ TEST_F(FaultTests, FaultTest2)
         EXPECT_GT(volts[1], 0.96) << "Model " << gname << " voltage issue v=" << volts[1];
     }
 }
-//#endif
+// #endif
 
 // testing with a governor added
 TEST_F(FaultTests, FaultTest3)

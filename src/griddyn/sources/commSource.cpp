@@ -15,7 +15,10 @@
 
 namespace griddyn {
 namespace sources {
-    commSource::commSource(const std::string& objName): rampSource(objName) { enable_updates(); }
+    commSource::commSource(const std::string& objName): rampSource(objName)
+    {
+        enable_updates();
+    }
     coreObject* commSource::clone(coreObject* obj) const
     {
         auto cs = cloneBase<commSource, rampSource>(this, obj);

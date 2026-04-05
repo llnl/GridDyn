@@ -6,15 +6,13 @@
 
 #include "../gtestHelper.h"
 #include <cstdio>
-
 #include <gtest/gtest.h>
 
 using namespace griddyn;
 
 #define CONSTRAINT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/constraint_tests/"
 
-class ConstraintTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class ConstraintTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ConstraintTests, ConstraintTest1)
 {

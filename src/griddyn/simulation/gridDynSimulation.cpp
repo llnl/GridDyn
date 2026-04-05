@@ -682,7 +682,7 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
     if (param == "powerflowfile") {
         powerFlowFile = val;
         controlFlags.set(save_power_flow_data);
-    }else if (param == "powerflowinputfile") {
+    } else if (param == "powerflowinputfile") {
         powerFlowInputFile = val;
         controlFlags.set(save_power_flow_input_data);
     } else if (param == "defpowerflow") {

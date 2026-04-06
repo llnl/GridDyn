@@ -27,7 +27,7 @@
 #include "zonalRelay.h"
 #include <stdexcept>
 
-#include <boost/format.hpp>
+#include <format>
 
 namespace griddyn {
 using namespace units;
@@ -864,28 +864,33 @@ void Relay::actionTaken(index_t ActionNum,
                         change_code actionReturn,
                         coreTime /*actionTime*/)
 {
-    LOG_DEBUG((boost::format("action %d taken based on condition %d  with return code %d") %
-               ActionNum % conditionNum % static_cast<int>(actionReturn))
-                  .str());
+    LOG_DEBUG(std::format("action {} taken based on condition {}  with return code {}",
+                          ActionNum,
+                          conditionNum,
+                          static_cast<int>(actionReturn)));
 }
 void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
 {
     if (conditionTriggerTimes[conditionNum] > timeZero) {
-        LOG_DEBUG(
-            (boost::format("condition %d triggered again at %f") % conditionNum % timeTriggered)
-                .str())
+        LOG_DEBUG(std::format("condition {} triggered again at {:f}",
+                              conditionNum,
+                              static_cast<double>(timeTriggered)))
     } else {
-        LOG_DEBUG(
-            (boost::format("condition %d triggered at %f") % conditionNum % timeTriggered).str());
+        LOG_DEBUG(std::format("condition {} triggered at {:f}",
+                              conditionNum,
+                              static_cast<double>(timeTriggered)));
     }
 }
 void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)
 {
     if (conditionTriggerTimes[conditionNum] > timeZero) {
-        LOG_DEBUG(
-            (boost::format("condition %d cleared again at %f") % conditionNum % timeCleared).str());
+        LOG_DEBUG(std::format("condition {} cleared again at {:f}",
+                              conditionNum,
+                              static_cast<double>(timeCleared)));
     } else {
-        LOG_DEBUG((boost::format("condition %d cleared at %f") % conditionNum % timeCleared).str());
+        LOG_DEBUG(std::format("condition {} cleared at {:f}",
+                              conditionNum,
+                              static_cast<double>(timeCleared)));
     }
 }
 

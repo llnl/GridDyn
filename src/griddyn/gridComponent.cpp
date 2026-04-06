@@ -13,7 +13,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
 #include <cassert>
-#include <fmt/format.h>
+#include <format>
 #include <iostream>
 #include <map>
 
@@ -928,13 +928,13 @@ void gridComponent::guessState(coreTime time,
                       dstate_dt + so.diffOffset);
         } else {
             if (so.diffOffset == kNullLocation) {
-                fmt::print("{}::{} in mode {} {} ds={}, do={}\n",
-                           getParent()->getName(),
-                           getName(),
-                           static_cast<int>(isLocal(sMode)),
-                           static_cast<int>(isDAE(sMode)),
-                           static_cast<int>(so.total.diffSize),
-                           static_cast<int>(so.diffOffset));
+                std::cout << std::format("{}::{} in mode {} {} ds={}, do={}\n",
+                                         getParent()->getName(),
+                                         getName(),
+                                         static_cast<int>(isLocal(sMode)),
+                                         static_cast<int>(isDAE(sMode)),
+                                         static_cast<int>(so.total.diffSize),
+                                         static_cast<int>(so.diffOffset));
                 // printStackTrace ();
             }
             assert(so.diffOffset != kNullLocation);

@@ -16,7 +16,6 @@
 #include "readElement.h"
 #include "readElementFile.h"
 
-#include <boost/date_time/gregorian/gregorian.hpp>
 #include <filesystem>
 namespace griddyn {
 

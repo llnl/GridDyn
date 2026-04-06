@@ -372,12 +372,15 @@ install(
 # BOOST  find the boost libraries
 # ------------------------------------------------------------
 # TODO check if boost works (e.g. libstdc++ vs libc++)
-set(BOOST_REQUIRED_LIBRARIES system date_time)
+set(BOOST_REQUIRED_LIBRARIES)
 
 include(addBoost)
 
-target_link_libraries(griddyn_base INTERFACE Boostlibs::core)
+target_link_libraries(griddyn_base INTERFACE Boost::boost)
 target_link_libraries(griddyn_base INTERFACE compile_flags_target)
+target_compile_definitions(
+    griddyn_base INTERFACE BOOST_SYSTEM_NO_LIB BOOST_ERROR_CODE_HEADER_ONLY
+)
 
 set(GRIDDYN_BOOST_VERSION_LEVEL ${BOOST_VERSION_LEVEL})
 
@@ -460,10 +463,6 @@ endif(GRIDDYN_ENABLE_MULTITHREADING)
 # Update git submodules
 # -------------------------------------------------------------
 include(updateGitSubmodules)
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/fmtlib/CMakeLists.txt")
-    submod_update(ThirdParty/fmtlib)
-endif()
-
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp_new/CMakeLists.txt")
     submod_update(ThirdParty/jsoncpp_new)
 endif()
@@ -590,11 +589,6 @@ target_include_directories(
 target_include_directories(
     griddyn_base SYSTEM INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )
-
-# -----------------------------------------------------------------------------
-# create the fmt header only targets
-# -----------------------------------------------------------------------------
-include(addfmt)
 
 # --------------------------------------------------------------
 # Create the target for jsoncpp

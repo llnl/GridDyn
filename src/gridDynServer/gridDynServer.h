@@ -15,19 +15,16 @@
 #include <string>
 #include <vector>
 
-#include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/date_time.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+#include <mutex>
+#include <thread>
 
 // class for creating a udp socket for data transmission
 class pmu_udp_socket {
   public:
     int index;
     // PMU not allowed to have multiple packets in flight at the same time
-    boost::mutex send_lock;
+    std::mutex send_lock;
     boost::asio::ip::udp::socket socket_;
     pmu_udp_socket(boost::asio::io_service& ios, boost::asio::ip::udp::endpoint ep):
         socket_(ios, ep)
@@ -56,7 +53,7 @@ class pmu_tcp_session {
     session_state_t cstate;
     boost::asio::ip::tcp::socket socket_;
     // PMU not allowed to have multiple packets in flight at the same time
-    boost::try_mutex send_lock;
+    std::mutex send_lock;
 
     std::vector<unsigned char> recv_buffer_;
     pmu_tcp_session(boost::asio::io_service& ios): socket_(ios)
@@ -89,7 +86,7 @@ class gridDynServer {
     // PMU unit itself
 
     // thread for the send data loop
-    boost::thread send_thread;
+    std::thread send_thread;
 
     // network connection information
     pmu_udp_socket* udpsock;
@@ -101,7 +98,7 @@ class gridDynServer {
     boost::asio::ip::udp::endpoint local_endpoint_udp;
 
     boost::asio::ip::tcp::endpoint local_endpoint_tcp;
-    boost::mutex session_lock;
+    std::mutex session_lock;
     std::vector<pmu_tcp_session*> active_tcp_sessions;
 
     // command frame buffer

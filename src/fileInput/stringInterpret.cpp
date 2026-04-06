@@ -11,7 +11,8 @@
 #include "utilities/functionInterpreter.h"
 #include <cctype>
 #include <cmath>
-#include <fmtlib/include/fmt/format.h>
+#include <format>
+#include <iostream>
 #include <string_view>
 
 namespace griddyn {
@@ -90,7 +91,8 @@ double interpretString_sv(string_view command, readerInfo& ri)
                             val = InterpretFunction(std::string{cmdBlock}, v1, ri);
                         }
                     } else {
-                        fmt::print("invalid arguments to function {}\n", std::string{cmdBlock});
+                        std::cout << std::format("invalid arguments to function {}\n",
+                                                 std::string{cmdBlock});
                     }
                 } else {
                     if (cmdBlock == "query") {

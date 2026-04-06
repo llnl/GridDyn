@@ -11,7 +11,7 @@
 #include "griddyn/griddyn-config.h"
 #include "runner/gridDynRunner.h"
 
-#include <boost/format.hpp>
+#include <format>
 #ifdef ENABLE_HELICS_EXECUTABLE
 #    include "helics/helicsRunner.h"
 #endif
@@ -167,21 +167,26 @@ int main(int argc, char* argv[])
     if (pState >= gridDynSimulation::gridState_t::DYNAMIC_COMPLETE) {
         auto ssize = gds->getInt("dynstatesize");
         auto jsize = gds->getInt("dynnonzeros");
-        auto res =
-            boost::format(
-                "Simulation Final Dynamic Statesize =%d (%d V, %d angle, %d alg, %d differential), %d non zero elements in the the Jacobian\n") %
-            ssize % gds->getInt("vcount") % gds->getInt("account") % gds->getInt("algcount") %
-            gds->getInt("diffcount") % jsize;
-        gds->log(nullptr, print_level::summary, res.str());
+        auto res = std::format(
+            "Simulation Final Dynamic Statesize ={} ({} V, {} angle, {} alg, {} differential), {} non zero elements in the the Jacobian\n",
+            ssize,
+            gds->getInt("vcount"),
+            gds->getInt("account"),
+            gds->getInt("algcount"),
+            gds->getInt("diffcount"),
+            jsize);
+        gds->log(nullptr, print_level::summary, res);
     } else {
         // if (pState <= gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED)
         auto ssize = gds->getInt("pflowstatesize");
         auto jsize = gds->getInt("pflownonzeros");
-        auto res =
-            boost::format(
-                "Simulation Final Powerflow Statesize =%d (%d V, %d angle), %d non zero elements in the the Jacobian\n") %
-            ssize % gds->getInt("vcount") % gds->getInt("account") % jsize;
-        gds->log(nullptr, print_level::summary, res.str());
+        auto res = std::format(
+            "Simulation Final Powerflow Statesize ={} ({} V, {} angle), {} non zero elements in the the Jacobian\n",
+            ssize,
+            gds->getInt("vcount"),
+            gds->getInt("account"),
+            jsize);
+        gds->log(nullptr, print_level::summary, res);
     }
 
     return 0;

@@ -16,7 +16,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
 
-#include <boost/format.hpp>
+#include <format>
 
 namespace griddyn {
 namespace relays {
@@ -202,9 +202,8 @@ std::string commType;
                                  change_code /*actionReturn*/,
                                  coreTime /*actionTime*/)
     {
-        LOG_NORMAL((boost::format("condition %d action %d taken terminal %d") % conditionNum %
-                    ActionNum % m_terminal)
-                       .str());
+        LOG_NORMAL(std::format(
+            "condition {} action {} taken terminal {}", conditionNum, ActionNum, m_terminal));
 
         if (opFlags[use_commLink]) {
             if (ActionNum == 0) {
@@ -222,8 +221,9 @@ std::string commType;
 
     void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
     {
-        LOG_NORMAL((boost::format("condition %d triggered terminal %d") % conditionNum % m_terminal)
-                       .str());
+        LOG_NORMAL(std::format("condition {} triggered terminal {}",
+                               conditionNum,
+                               m_terminal));
         if (conditionNum < m_condition_level) {
             m_condition_level = conditionNum;
         }
@@ -246,8 +246,7 @@ std::string commType;
 
     void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
     {
-        LOG_NORMAL(
-            (boost::format("condition %d cleared terminal %d ") % conditionNum % m_terminal).str());
+        LOG_NORMAL(std::format("condition {} cleared terminal {}", conditionNum, m_terminal));
         for (index_t kk = 0; kk < m_zones; ++kk) {
             if (getConditionStatus(kk) == condition_status_t::active) {
                 m_condition_level = kk + 1;

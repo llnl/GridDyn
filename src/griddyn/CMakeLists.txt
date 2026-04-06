@@ -512,7 +512,6 @@ target_link_libraries(griddyn PUBLIC coreObjects)
 
 target_link_libraries(griddyn PUBLIC SUNDIALS::SUNDIALS)
 target_link_libraries(griddyn PUBLIC coupling_static_lib)
-target_link_libraries(griddyn PRIVATE fmt::fmt)
 if(GRIDDYN_ENABLE_KLU)
     if(GRIDDYN_SUITESPARSE_LOCAL_BUILD)
         target_link_libraries(griddyn PUBLIC klu)

@@ -24,10 +24,6 @@
 #include <memory>
 
 #include <filesystem>
-#include <boost/program_options.hpp>
-
-// using namespace boost;
-namespace po = boost::program_options;
 
 // main
 int main(int argc, char* argv[])
@@ -48,12 +44,6 @@ int main(int argc, char* argv[])
         if (!strcmp("--mpicount", argv[ii])) {
             isMpiCountMode = true;
         }
-    }
-
-    po::variables_map vm;
-    int ret = argumentParser(argc, argv, vm);
-    if (ret) {
-        return ret;
     }
 
     // create the simulation

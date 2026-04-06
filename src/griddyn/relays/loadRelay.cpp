@@ -10,7 +10,7 @@
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
 
-#include <boost/format.hpp>
+#include <format>
 
 namespace griddyn {
 namespace relays {
@@ -107,7 +107,7 @@ std::string commType;
                                 change_code /*actionReturn*/,
                                 coreTime /*actionTime*/)
     {
-        LOG_NORMAL((boost::format("condition %d action %d") % conditionNum % ActionNum).str());
+        LOG_NORMAL(std::format("condition {} action {}", conditionNum, ActionNum));
         ((void)(ActionNum));
         ((void)(conditionNum));
         /*
@@ -142,7 +142,7 @@ std::string commType;
 
     void loadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
     {
-        LOG_NORMAL((boost::format("condition %d triggered") % conditionNum).str());
+        LOG_NORMAL(std::format("condition {} triggered", conditionNum));
         ((void)(conditionNum));
         /*
     if (conditionNum < m_condition_level)
@@ -183,7 +183,7 @@ std::string commType;
 
     void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
     {
-        LOG_NORMAL((boost::format("condition %d cleared") % conditionNum).str());
+        LOG_NORMAL(std::format("condition {} cleared", conditionNum));
         ((void)(conditionNum));
         /*for (size_t kk = 0; kk < m_zones; ++kk)
    {

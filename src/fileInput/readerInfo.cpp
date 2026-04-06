@@ -13,11 +13,45 @@
 #include "readerHelper.h"
 #include <cmath>
 
-#include <boost/date_time.hpp>
-#include <boost/date_time/gregorian/gregorian.hpp>
+#include <chrono>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
+#include <sstream>
 namespace griddyn {
 using namespace readerConfig;
+
+namespace {
+std::tm makeUtcTm(std::time_t timeValue)
+{
+    std::tm timeInfo{};
+#ifdef _WIN32
+    gmtime_s(&timeInfo, &timeValue);
+#else
+    gmtime_r(&timeValue, &timeInfo);
+#endif
+    return timeInfo;
+}
+
+std::tm makeLocalTm(std::time_t timeValue)
+{
+    std::tm timeInfo{};
+#ifdef _WIN32
+    localtime_s(&timeInfo, &timeValue);
+#else
+    localtime_r(&timeValue, &timeInfo);
+#endif
+    return timeInfo;
+}
+
+template<class Duration>
+long long fractionalMicros(const Duration& timePointDuration)
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+               timePointDuration % std::chrono::seconds(1))
+        .count();
+}
+}  // namespace
 
 void basicReaderInfo::setFlag(int flagID)
 {
@@ -256,23 +290,26 @@ coreObject* readerInfo::makeLibraryObject(const std::string& objName, coreObject
 
 void readerInfo::loadDefaultDefines()
 {
-    namespace bg = boost::gregorian;
-
     std::ostringstream ss1, ss2, ss3;
-    // assumes std::cout's locale has been set appropriately for the entire app
-    ss1.imbue(std::locale(std::cout.getloc(), new bg::date_facet("%Y%m%d")));
-    ss1 << bg::day_clock::universal_day();
+    const auto now = std::chrono::system_clock::now();
+    const auto nowTime = std::chrono::system_clock::to_time_t(now);
+    const auto utcTime = makeUtcTm(nowTime);
+    const auto localTime = makeLocalTm(nowTime);
+
+    ss1.imbue(std::cout.getloc());
+    ss1 << std::put_time(&utcTime, "%Y%m%d");
 
     addDefinition("%date", ss1.str());
 
-    ss2.imbue(
-        std::locale(std::cout.getloc(), new boost::posix_time::time_facet("%Y%m%dT%H%M%S%F%q")));
-    ss2 << boost::posix_time::second_clock::universal_time();
+    ss2.imbue(std::cout.getloc());
+    ss2 << std::put_time(&utcTime, "%Y%m%dT%H%M%S") << '.' << std::setw(6) << std::setfill('0')
+        << fractionalMicros(now.time_since_epoch());
 
     addDefinition("%datetime", ss2.str());
 
-    ss3.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet("%H%M%S%F")));
-    ss3 << boost::posix_time::microsec_clock::local_time();
+    ss3.imbue(std::cout.getloc());
+    ss3 << std::put_time(&localTime, "%H%M%S") << '.' << std::setw(6) << std::setfill('0')
+        << fractionalMicros(now.time_since_epoch());
 
     addDefinition("%time", ss3.str());
     addDefinition("inf", std::to_string(kBigNum));

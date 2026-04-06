@@ -21,7 +21,7 @@
 #include "utilities/matrixDataCompact.hpp"
 #include <cmath>
 #include <complex>
-#include <fmt/printf.h>
+#include <cstdio>
 
 namespace griddyn {
 using namespace units;
@@ -801,26 +801,26 @@ bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus, bool printDiff)
     }
     if (typeid(lnk1) != typeid(lnk2)) {
         if (printDiff) {
-            fmt::printf("Links are of different types\n");
+            std::printf("Links are of different types\n");
         }
         return false;
     }
     if ((dynamic_cast<acLine*>(lnk1) != nullptr) && (dynamic_cast<acLine*>(lnk2) != nullptr)) {
         if (std::abs(lnk1->get("r") - lnk2->get("r")) > 0.0001) {
             if (printDiff) {
-                fmt::printf("Links have different r\n");
+                std::printf("Links have different r\n");
             }
             return false;
         }
         if (std::abs(lnk1->get("x") - lnk2->get("x")) > 0.0001) {
             if (printDiff) {
-                fmt::printf("Links have different x\n");
+                std::printf("Links have different x\n");
             }
             return false;
         }
         if (std::abs(lnk1->get("b") - lnk2->get("b")) > 0.0001) {
             if (printDiff) {
-                fmt::printf("Links have different b\n");
+                std::printf("Links have different b\n");
             }
             return false;
         }

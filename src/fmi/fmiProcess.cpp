@@ -14,21 +14,87 @@
 // libraries
 
 #include "fmi_importGD.h"
+#include "CLI11/CLI11.hpp"
 
 #include <filesystem>
-#include <boost/program_options.hpp>
 // headers
 
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 
 #define VERSION_STRING "FMIprocess version 0.1 2015-4-30"
-// using namespace boost;
-namespace po = boost::program_options;
 
-int argumentParser(int argc, char* argv[], po::variables_map& vm_map);
+namespace {
+struct FmiProcessOptions {
+    std::string configFile;
+    std::string configFileOutput;
+    std::string powerflowOutput;
+    std::vector<std::string> params;
+    std::vector<std::string> directories;
+    std::string input;
+};
+
+int argumentParser(int argc, char* argv[], FmiProcessOptions& options)
+{
+    CLI::App app{"FMI process command line utility"};
+    app.set_help_flag("--help,-h,-?", "produce help message");
+    app.add_flag_callback("--version", []() {
+        std::cout << VERSION_STRING << '\n';
+        throw CLI::Success();
+    });
+    app.set_config("--config_file", "", "specify a config file to use");
+    app.add_option("--config_file_output",
+                   options.configFileOutput,
+                   "file to store current config options");
+    app.add_option("--powerflow-output",
+                   options.powerflowOutput,
+                   "file output for the powerflow solution");
+    app.add_option("--param,-P",
+                   options.params,
+                   "override simulation file parameters -param ParamName=<val>");
+    app.add_option("--dir,-D", options.directories, "add search directory for input files");
+    app.add_option("input", options.input, "input file");
+
+    std::vector<std::string> args;
+    args.reserve(static_cast<size_t>(std::max(argc - 1, 0)) + 2);
+    bool hasExplicitConfigFile = false;
+    for (int ii = 1; ii < argc; ++ii) {
+        std::string_view arg{argv[ii]};
+        if ((arg == "--config_file") || (arg == "--config-file") ||
+            (arg.rfind("--config_file=", 0) == 0) || (arg.rfind("--config-file=", 0) == 0)) {
+            hasExplicitConfigFile = true;
+        }
+        args.emplace_back(argv[ii]);
+    }
+    if ((!hasExplicitConfigFile) && std::filesystem::exists("fmiProcess.ini")) {
+        args.emplace_back("--config_file");
+        args.emplace_back("fmiProcess.ini");
+    }
+
+    try {
+        app.parse(args);
+    }
+    catch (const CLI::ParseError& e) {
+        return app.exit(e);
+    }
+
+    options.configFile = app.get_config_ptr()->as<std::string>();
+    if ((!options.configFile.empty()) && (!std::filesystem::exists(options.configFile))) {
+        std::cerr << "config file " << options.configFile << " does not exist\n";
+        return -1;
+    }
+
+    if (!options.configFileOutput.empty()) {
+        std::ofstream out(options.configFileOutput.c_str());
+        out << app.config_to_str(true, true);
+    }
+
+    return 0;
+}
+}  // namespace
 
 void importlogger(jm_callbacks* c,
                   jm_string module,
@@ -41,8 +107,8 @@ void importlogger(jm_callbacks* c,
 // main
 int main(int argc, char* argv[])
 {
-    po::variables_map vm;
-    int ret = argumentParser(argc, argv, vm);
+    FmiProcessOptions options;
+    int ret = argumentParser(argc, argv, options);
     if (ret) {
         return ret;
     }
@@ -77,84 +143,6 @@ int main(int argc, char* argv[])
     }
 
     fmi_import_free_context(context);
-
-    return 0;
-}
-
-int argumentParser(int argc, char* argv[], po::variables_map& vm_map)
-{
-    po::options_description cmd_only("command line only");
-    po::options_description config("configuration");
-    po::options_description hidden("hidden");
-
-    // input boost controls
-    cmd_only.add_options()("help", "produce help message")("config_file",
-                                                           po::value<std::string>(),
-                                                           "specify a config file to use")(
-        "config_file_output",
-        po::value<std::string>(),
-        "file to store current config options")("version", "print version string");
-
-    config.add_options()("powerflow-output",
-                         po::value<std::string>(),
-                         "file output for the powerflow solution")(
-        "param,P",
-        po::value<std::vector<std::string>>(),
-        "override simulation file parameters -param ParamName=<val>")(
-        "dir,D", po::value<std::vector<std::string>>(), "add search directory for input files");
-
-    hidden.add_options()("input", po::value<std::string>(), "input file");
-
-    po::options_description cmd_line("command line options");
-    po::options_description config_file("config file options");
-    po::options_description visible("allowed options");
-
-    cmd_line.add(cmd_only).add(config).add(hidden);
-    config_file.add(config).add(hidden);
-    visible.add(cmd_only).add(config);
-
-    po::positional_options_description p;
-    p.add("input", -1);
-
-    po::variables_map cmd_vm;
-    po::store(po::command_line_parser(argc, argv).options(cmd_line).positional(p).run(), cmd_vm);
-    po::notify(cmd_vm);
-
-    // objects/pointers/variables/constants
-
-    // program options control
-    if (cmd_vm.count("help")) {
-        std::cout << visible << '\n';
-        return 1;
-    }
-
-    if (cmd_vm.count("version")) {
-        std::cout << VERSION_STRING << '\n';
-        return 1;
-    }
-
-    po::store(po::command_line_parser(argc, argv).options(cmd_line).positional(p).run(), vm_map);
-
-    std::string config_file_name;
-    if (cmd_vm.count("config_file")) {
-        config_file_name = cmd_vm["config_file"].as<std::string>();
-        if (!std::filesystem::exists(config_file_name)) {
-            std::cerr << "config file " << config_file_name << " does not exist\n";
-            return -1;
-        } else {
-            std::ifstream fstr;
-            fstr.open(config_file_name.c_str());
-            po::store(po::parse_config_file(fstr, config_file), vm_map);
-            fstr.close();
-        }
-    }
-    if (std::filesystem::exists("fmiProcess.ini")) {
-        std::ifstream fstr;
-        fstr.open("fmiProcess.ini");
-        po::store(po::parse_config_file(fstr, config_file), vm_map);
-        fstr.close();
-    }
-    po::notify(vm_map);
 
     return 0;
 }

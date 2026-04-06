@@ -15,7 +15,6 @@
 #include <cmath>
 
 #include <boost/container/small_vector.hpp>
-#include <boost/program_options.hpp>
 
 namespace griddyn {
 namespace paradae {

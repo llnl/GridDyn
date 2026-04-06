@@ -64,6 +64,7 @@ source_group("FMUImport" FILES ${fmiImport_sources} ${fmiImport_headers})
 set_target_properties(fmiGDLibrary PROPERTIES FOLDER fmi)
 
 target_link_libraries(fmiGDLibrary PRIVATE griddyn formatInterpreter)
+target_compile_definitions(fmiGDLibrary PRIVATE BOOST_DLL_USE_STD_FS)
 if(UNIX)
     target_link_libraries(fmiGDLibrary PRIVATE dl)
 endif()

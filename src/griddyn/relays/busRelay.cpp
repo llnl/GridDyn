@@ -11,7 +11,6 @@
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
 
-#include <boost/format.hpp>
 
 namespace griddyn {
 namespace relays {

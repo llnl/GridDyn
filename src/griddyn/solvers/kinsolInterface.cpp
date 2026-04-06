@@ -11,7 +11,6 @@
 #include "sundialsMatrixData.h"
 // #include "matrixDataBoost.h"
 #include "core/coreExceptions.h"
-#include "fmtlib/include/fmt/format.h"
 #include "utilities/matrixCreation.h"
 #include <kinsol/kinsol.h>
 #include <kinsol/kinsol_ls.h>
@@ -26,6 +25,8 @@
 #endif
 
 #include <cassert>
+#include <format>
+#include <iostream>
 #include <map>
 
 namespace griddyn {
@@ -130,7 +131,7 @@ namespace solvers {
         if (m_gds != nullptr) {
             m_gds->log(m_gds, logLevel, logstr);
         } else {
-            fmt::print("\n{}", logstr);
+            std::cout << std::format("\n{}", logstr);
         }
     }
 
@@ -310,10 +311,10 @@ namespace solvers {
         auto stop_t = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_t = stop_t - start_t;
         kinTime += elapsed_t.count();
-        fmt::print("total solve time {}, {:5.3f}% in resid {:5.3f}%  in Jacobian\n",
-                   kinTime,
-                   residTime / kinTime * 100.0,
-                   jacTime / kinTime * 100);
+        std::cout << std::format("total solve time {}, {:5.3f}% in resid {:5.3f}%  in Jacobian\n",
+                                 kinTime,
+                                 residTime / kinTime * 100.0,
+                                 jacTime / kinTime * 100);
 #else
         int retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
 #endif
@@ -325,7 +326,7 @@ namespace solvers {
                 stringVec sL;
                 m_gds->getStateName(sL, mode);
                 for (auto mv : mvec) {
-                    fmt::format("state[{}]{} following state {} is singular\n",
+                    std::format("state[{}]{} following state {} is singular\n",
                                 mv,
                                 sL[mv].c_str(),
                                 sL[mv - 1].c_str());
@@ -387,14 +388,15 @@ namespace solvers {
             KINGetNumNonlinSolvIters(sd->solverMem, &val);
             double* residuals = NVECTOR_DATA(sd->use_omp, resid);
             double* values = NVECTOR_DATA(sd->use_omp, state);
-            fmt::print("Residual for {} at time ={} iteration %{}\n",
-                       sd->getName(),
-                       static_cast<double>(sd->solveTime),
-                       val);
+            std::cout << std::format("Residual for {} at time ={} iteration %{}\n",
+                                     sd->getName(),
+                                     static_cast<double>(sd->solveTime),
+                                     val);
             for (int kk = 0; kk < static_cast<int>(sd->svsize); ++kk) {
-                fmt::print("value[{}] = {}, resid[{}]={}\n", kk, values[kk], kk, residuals[kk]);
+                std::cout << std::format(
+                    "value[{}] = {}, resid[{}]={}\n", kk, values[kk], kk, residuals[kk]);
             }
-            fmt::print("---------------------------------\n");
+            std::cout << "---------------------------------\n";
         }
         if (sd->flags[fileCapture_flag]) {
             if (!sd->stateFile.empty()) {

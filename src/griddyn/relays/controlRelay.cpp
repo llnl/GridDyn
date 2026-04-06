@@ -17,7 +17,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 
-#include <boost/format.hpp>
+#include <format>
 
 namespace griddyn {
 namespace relays {
@@ -125,8 +125,7 @@ std::string commType;
                                    change_code /*actionReturn*/,
                                    coreTime /*actionTime*/)
     {
-        LOG_NORMAL(
-            (boost::format("condition %d-> action %d taken") % conditionNum % ActionNum).str());
+        LOG_NORMAL(std::format("condition {}-> action {} taken", conditionNum, ActionNum));
         (void)(ActionNum);
         (void)(conditionNum);
     }

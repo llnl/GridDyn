@@ -27,13 +27,12 @@
 #include "helics/helicsSource.h"
 #include "helics/helicsSupport.h"
 #include <complex>
+#include <filesystem>
 #include <fstream>
 #include <future>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
-
-#include <filesystem>
 
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 

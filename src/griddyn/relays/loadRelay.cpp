@@ -9,7 +9,6 @@
 #include "../events/Event.h"
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
-
 #include <format>
 
 namespace griddyn {

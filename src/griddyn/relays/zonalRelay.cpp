@@ -15,7 +15,6 @@
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
-
 #include <format>
 
 namespace griddyn {
@@ -221,9 +220,7 @@ std::string commType;
 
     void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
     {
-        LOG_NORMAL(std::format("condition {} triggered terminal {}",
-                               conditionNum,
-                               m_terminal));
+        LOG_NORMAL(std::format("condition {} triggered terminal {}", conditionNum, m_terminal));
         if (conditionNum < m_condition_level) {
             m_condition_level = conditionNum;
         }

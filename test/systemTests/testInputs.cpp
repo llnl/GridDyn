@@ -11,13 +11,12 @@
 #include "griddyn/links/adjustableTransformer.h"
 #include <array>
 #include <cstdio>
+#include <filesystem>
 #include <functional>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <utility>
-
-#include <filesystem>
 // test case for coreObject object
 
 #define INPUT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/input_tests/"

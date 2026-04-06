@@ -5,9 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include <gtest/gtest.h>
-
 #include <filesystem>
+#include <gtest/gtest.h>
 
 using namespace griddyn;
 /** these test cases test out the contingency capabilities in GridDyn

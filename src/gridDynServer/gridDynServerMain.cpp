@@ -21,9 +21,8 @@
 #include "libraryLoader.h"
 #include <chrono>
 #include <cstdio>
-#include <memory>
-
 #include <filesystem>
+#include <memory>
 
 // main
 int main(int argc, char* argv[])

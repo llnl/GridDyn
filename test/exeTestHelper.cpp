@@ -7,10 +7,9 @@
 #include "exeTestHelper.h"
 
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <streambuf>
-
-#include <filesystem>
 
 int exeTestRunner::counter = 1;
 

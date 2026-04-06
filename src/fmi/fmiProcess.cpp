@@ -13,9 +13,8 @@
 
 // libraries
 
-#include "fmi_importGD.h"
 #include "CLI11/CLI11.hpp"
-
+#include "fmi_importGD.h"
 #include <filesystem>
 // headers
 

@@ -18,7 +18,6 @@
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 
-
 namespace griddyn {
 namespace relays {
     using namespace units;

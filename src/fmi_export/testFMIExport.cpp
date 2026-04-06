@@ -19,10 +19,9 @@
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/simulation/diagnostics.h"
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <set>
-
-#include <filesystem>
 
 static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/");
 

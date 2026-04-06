@@ -29,9 +29,8 @@
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 #include <cstdio>
-#include <fstream>
-
 #include <filesystem>
+#include <fstream>
 
 namespace griddyn {
 using gmlc::utilities::convertToLowerCase;

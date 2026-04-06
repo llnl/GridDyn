@@ -10,9 +10,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/gridDynSimulationFileOps.h"
 #include <cstdlib>
-#include <gtest/gtest.h>
-
 #include <filesystem>
+#include <gtest/gtest.h>
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;

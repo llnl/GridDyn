@@ -12,12 +12,12 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <mutex>
-#include <thread>
 
 // class for creating a udp socket for data transmission
 class pmu_udp_socket {

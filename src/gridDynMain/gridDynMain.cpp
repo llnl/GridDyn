@@ -10,7 +10,6 @@
 #include "griddyn/gridDynSimulation.h"
 #include "griddyn/griddyn-config.h"
 #include "runner/gridDynRunner.h"
-
 #include <format>
 #ifdef ENABLE_HELICS_EXECUTABLE
 #    include "helics/helicsRunner.h"

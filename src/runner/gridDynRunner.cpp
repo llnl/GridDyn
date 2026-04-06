@@ -19,11 +19,10 @@
 #include "utilities/GlobalWorkQueue.hpp"
 #include <chrono>
 #include <cstdio>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <memory>
-
-#include <filesystem>
 
 namespace filesystem = std::filesystem;
 

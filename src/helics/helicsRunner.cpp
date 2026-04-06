@@ -28,10 +28,9 @@
 #include <chrono>
 #include <cstdio>
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <memory>
-
-#include <filesystem>
 
 namespace griddyn {
 namespace helicsLib {

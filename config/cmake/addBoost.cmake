@@ -162,6 +162,11 @@ if(NOT BOOST_REQUIRED_LIBRARIES)
     set(BOOST_REQUIRED_LIBRARIES system date_time timer chrono)
 endif()
 
+# Boost.Filesystem is no longer required now that project code uses std::filesystem.
+# Strip it defensively in case an older cache or parent scope still injects it.
+list(REMOVE_ITEM BOOST_REQUIRED_LIBRARIES filesystem)
+list(REMOVE_DUPLICATES BOOST_REQUIRED_LIBRARIES)
+
 # Minimum version of Boost required for building GridDyn.
 set(BOOST_MINIMUM_VERSION 1.73)
 

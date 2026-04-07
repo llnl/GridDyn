@@ -12,7 +12,6 @@
 
 #include <Minizip/miniunz.h>
 #include <Minizip/minizip.h>
-
 #include <filesystem>
 
 namespace utilities {

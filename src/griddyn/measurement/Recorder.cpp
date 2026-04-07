@@ -9,7 +9,6 @@
 #include "core/coreExceptions.h"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
-
 #include <filesystem>
 
 namespace griddyn {

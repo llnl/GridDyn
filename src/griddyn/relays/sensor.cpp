@@ -20,7 +20,6 @@
 #include "utilities/matrixDataSparse.hpp"
 #include "utilities/matrixDataTranslate.hpp"
 
-
 namespace griddyn {
 using namespace units;
 using namespace gmlc::utilities::stringOps;

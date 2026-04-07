@@ -7,7 +7,6 @@
 #include "readerHelper.h"
 
 #include "fileInput.h"
-
 #include <filesystem>
 
 // library for printf debug statements

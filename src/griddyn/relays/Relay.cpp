@@ -25,9 +25,8 @@
 #include "loadRelay.h"
 #include "pmu.h"
 #include "zonalRelay.h"
-#include <stdexcept>
-
 #include <format>
+#include <stdexcept>
 
 namespace griddyn {
 using namespace units;

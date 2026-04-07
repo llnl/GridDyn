@@ -13,9 +13,9 @@
 #include "gridDynServer.h"
 
 #include <algorithm>
-#include <cstdint>
 #include <cctype>
 #include <chrono>
+#include <cstdint>
 
 using namespace boost::asio::ip;
 
@@ -63,10 +63,9 @@ void gridDynServer::stop_server()
 
 void gridDynServer::set(std::string param, int val)
 {
-    std::transform(param.begin(),
-                   param.end(),
-                   param.begin(),
-                   [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    std::transform(param.begin(), param.end(), param.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
     if (param.compare("port") == 0) {
         port = val;
     } else if (param.compare("ip_protocol") == 0) {
@@ -96,12 +95,10 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
         udpsock = new pmu_udp_socket(ios, local_endpoint_udp);
 
         // start to receive on this port
-        udpsock->socket_.async_receive_from(
-            boost::asio::buffer(recv_buffer_),
-            remote_endpoint_udp,
-            [this](const boost::system::error_code& error, std::size_t size) {
-                pmu_udp(error, size);
-            });
+        udpsock->socket_.async_receive_from(boost::asio::buffer(recv_buffer_),
+                                            remote_endpoint_udp,
+                                            [this](const boost::system::error_code& error,
+                                                   std::size_t size) { pmu_udp(error, size); });
         /* end of UDP protocol */
     } else {
         printf("\n\t\t|-------------------------------------------------------|\n");
@@ -119,9 +116,10 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
         active_tcp_sessions.push_back(sess);
         session_lock.unlock();
 
-        tcpacc->acceptor_.async_accept(
-            sess->socket_,
-            [this, sess](const boost::system::error_code& error) { tcp_accept(sess, error); });
+        tcpacc->acceptor_.async_accept(sess->socket_,
+                                       [this, sess](const boost::system::error_code& error) {
+                                           tcp_accept(sess, error);
+                                       });
 
 #ifdef ENABLE_TCP
         printf("\n\t\t|-------------------------------------------------------|\n");
@@ -217,12 +215,13 @@ void gridDynServer::send_data()
 
         if (ip_protocol == udp) {
             udpsock->send_lock.lock();
-            udpsock->socket_.async_send_to(
-                boost::asio::buffer(dataFrame),
-                remote_endpoint_udp_send,
-                [socket = udpsock](const boost::system::error_code& error, std::size_t size) {
-                    socket->data_sent(error, size);
-                });
+            udpsock->socket_.async_send_to(boost::asio::buffer(dataFrame),
+                                           remote_endpoint_udp_send,
+                                           [socket =
+                                                udpsock](const boost::system::error_code& error,
+                                                         std::size_t size) {
+                                               socket->data_sent(error, size);
+                                           });
         } else if (ip_protocol == tcp) {
             skipped_some = false;
             data_sent = false;
@@ -316,19 +315,19 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
         active_session->cstate = pmu_tcp_session::waiting;
         active_session->socket_.async_read_some(
             boost::asio::buffer(active_session->recv_buffer_),
-            [this, active_session](const boost::system::error_code& readError,
-                                   std::size_t size) { pmu_tcp(active_session, readError, size); });
+            [this, active_session](const boost::system::error_code& readError, std::size_t size) {
+                pmu_tcp(active_session, readError, size);
+            });
         // reset to accept connections on a new socket
         pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_service_);
         session_lock.lock();
         sess->index = active_tcp_sessions.size();
         active_tcp_sessions.push_back(sess);
         session_lock.unlock();
-        tcpacc->acceptor_.async_accept(
-            sess->socket_,
-            [this, sess](const boost::system::error_code& acceptError) {
-                tcp_accept(sess, acceptError);
-            });
+        tcpacc->acceptor_.async_accept(sess->socket_,
+                                       [this, sess](const boost::system::error_code& acceptError) {
+                                           tcp_accept(sess, acceptError);
+                                       });
 
     } else {
         session_lock.lock();

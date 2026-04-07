@@ -16,7 +16,6 @@
 #include "../simulation/gridSimulation.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-
 #include <format>
 
 namespace griddyn {

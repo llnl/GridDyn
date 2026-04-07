@@ -11,7 +11,6 @@
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
 
-
 namespace griddyn {
 namespace relays {
     busRelay::busRelay(const std::string& objName): Relay(objName)

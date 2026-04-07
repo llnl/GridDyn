@@ -15,7 +15,6 @@
 #include "griddyn/gridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
-
 #include <filesystem>
 namespace griddyn {
 

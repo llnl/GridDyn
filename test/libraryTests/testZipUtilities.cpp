@@ -8,10 +8,9 @@
 
 #include "../gtestHelper.h"
 #include "utilities/zipUtilities.h"
+#include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-
-#include <filesystem>
 
 static const std::string zip_test_directory(GRIDDYN_TEST_DIRECTORY "/zip_tests/");
 

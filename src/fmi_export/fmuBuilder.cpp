@@ -16,10 +16,9 @@
 #include "loadFMIExportObjects.h"
 #include "tinyxml2/tinyxml2.h"
 #include "utilities/zipUtilities.h"
+#include <filesystem>
 #include <iostream>
 #include <set>
-
-#include <filesystem>
 
 #ifndef GRIDDYNFMILIBRARY_BINARY_LOC
 #    define GRIDDYNFMILIBRARY_BINARY_LOC ""

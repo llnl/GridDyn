@@ -12,10 +12,9 @@
 #include "readElementFile.h"
 #include "readerHelper.h"
 #include <cstdio>
+#include <filesystem>
 #include <sstream>
 #include <utility>
-
-#include <filesystem>
 
 namespace griddyn {
 using namespace readerConfig;

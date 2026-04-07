@@ -13,7 +13,6 @@
 #include "gridDynLoader/libraryLoader.h"
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
-
 #include <filesystem>
 
 namespace griddyn {

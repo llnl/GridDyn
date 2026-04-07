@@ -11,9 +11,8 @@
 #include "formatInterpreters/readerElement.h"
 #include "griddyn/measurement/collector.h"
 #include "readerHelper.h"
-#include <cmath>
-
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
@@ -22,35 +21,35 @@ namespace griddyn {
 using namespace readerConfig;
 
 namespace {
-std::tm makeUtcTm(std::time_t timeValue)
-{
-    std::tm timeInfo{};
+    std::tm makeUtcTm(std::time_t timeValue)
+    {
+        std::tm timeInfo{};
 #ifdef _WIN32
-    gmtime_s(&timeInfo, &timeValue);
+        gmtime_s(&timeInfo, &timeValue);
 #else
-    gmtime_r(&timeValue, &timeInfo);
+        gmtime_r(&timeValue, &timeInfo);
 #endif
-    return timeInfo;
-}
+        return timeInfo;
+    }
 
-std::tm makeLocalTm(std::time_t timeValue)
-{
-    std::tm timeInfo{};
+    std::tm makeLocalTm(std::time_t timeValue)
+    {
+        std::tm timeInfo{};
 #ifdef _WIN32
-    localtime_s(&timeInfo, &timeValue);
+        localtime_s(&timeInfo, &timeValue);
 #else
-    localtime_r(&timeValue, &timeInfo);
+        localtime_r(&timeValue, &timeInfo);
 #endif
-    return timeInfo;
-}
+        return timeInfo;
+    }
 
-template<class Duration>
-long long fractionalMicros(const Duration& timePointDuration)
-{
-    return std::chrono::duration_cast<std::chrono::microseconds>(
-               timePointDuration % std::chrono::seconds(1))
-        .count();
-}
+    template<class Duration>
+    long long fractionalMicros(const Duration& timePointDuration)
+    {
+        return std::chrono::duration_cast<std::chrono::microseconds>(timePointDuration %
+                                                                     std::chrono::seconds(1))
+            .count();
+    }
 }  // namespace
 
 void basicReaderInfo::setFlag(int flagID)

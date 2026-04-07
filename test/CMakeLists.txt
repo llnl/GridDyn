@@ -210,7 +210,7 @@ set_target_properties(
     PROPERTIES FOLDER tests
 )
 set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
-set_tests_properties(ExtraTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(ExtraTests PROPERTIES LABELS "Nightly")
 set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(NetworkComponentTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(GeneratorComponentTests PROPERTIES LABELS "Quick;Continuous")

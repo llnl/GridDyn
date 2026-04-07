@@ -23,13 +23,14 @@ class gridDynSimulation;
 /** error class for throwing solver exceptions*/
 class solverException: public std::exception {
   protected:
-    int errorCode;  //<!* the actual solver Error Code
+    int errorCode;  ///< the actual solver Error Code
+    std::string message;
   public:
-    explicit solverException(int ecode = 0): errorCode(ecode) {}
-    virtual const char* what() const noexcept override
+    explicit solverException(int ecode = 0):
+        errorCode(ecode), message("solver Exception:error code=" + std::to_string(errorCode))
     {
-        return (std::string("solver Exception:error code=") + std::to_string(errorCode)).c_str();
     }
+    virtual const char* what() const noexcept override { return message.c_str(); }
     /** return the full name of the object that threw the exception*/
     int code() const noexcept { return errorCode; }
 };
@@ -39,12 +40,11 @@ class solverException: public std::exception {
 class InvalidSolverOperation: public solverException {
   protected:
   public:
-    explicit InvalidSolverOperation(int ecode = 0): solverException(ecode) {}
-    virtual const char* what() const noexcept override
+    explicit InvalidSolverOperation(int ecode = 0): solverException(ecode)
     {
-        return (std::string("invalid solver operation:error code=") + std::to_string(errorCode))
-            .c_str();
+        message = "invalid solver operation:error code=" + std::to_string(errorCode);
     }
+    virtual const char* what() const noexcept override { return message.c_str(); }
 };
 
 // solver return codes from the solve and initIC functions
@@ -188,19 +188,16 @@ class SolverInterface: public helperObject {
     /** @brief allocate the memory for the solver
     @param[in] size  the size of the state vector
     @param[in] numRoots  the number of root functions in the solution
-    @return the function status
     */
     virtual void allocate(count_t size, count_t numRoots = 0);
 
     /** @brief initialize the solver to time t0
     @param[in] t0  the time for the initialization
-    @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
     virtual void initialize(coreTime t0);
 
     /** @brief reinitialize the sparse components
     @param[in] mode the reinitialization mode
-    @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
     virtual void sparseReInit(sparse_reinit_modes mode);
 
@@ -217,15 +214,12 @@ class SolverInterface: public helperObject {
     virtual int calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints);
     /** @brief get the current solution
      usually called after a call to CalcIC to get the calculated conditions
-    @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
     virtual void getCurrentData();
     /** @brief get the locations of any found roots
-    @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
     virtual void getRoots();
     /** @brief update the number of roots to find
-    @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
     virtual void setRootFinding(index_t numRoots);
 

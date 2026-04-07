@@ -192,14 +192,14 @@ double gridRandom::generate()
 std::vector<double> gridRandom::getNewValues(size_t count)
 {
     std::vector<double> rv(count);
-    std::generate(rv.begin(), rv.end(), [=]() { return (*dobj)(); });
+    std::generate(rv.begin(), rv.end(), [this]() { return (*dobj)(); });
     return rv;
 }
 
 void gridRandom::getNewValues(std::vector<double>& rvec, size_t count)
 {
     gmlc::utilities::ensureSizeAtLeast(rvec, count);
-    std::generate(rvec.begin(), rvec.begin() + count - 1, [=]() { return (*dobj)(); });
+    std::generate(rvec.begin(), rvec.begin() + count - 1, [this]() { return (*dobj)(); });
 }
 
 std::pair<double, double> gridRandom::getPair()

@@ -81,16 +81,15 @@ using model_parameter = double;
 
 /* define the basic vector types*/
 }  // namespace griddyn
-#include <boost/version.hpp>
-#if BOOST_VERSION / 100 % 1000 >= 58
-#    ifdef __GNUC__
-#        pragma GCC diagnostic push
-#        pragma GCC diagnostic ignored "-Wshadow"
-#        include <boost/container/small_vector.hpp>
-#        pragma GCC diagnostic pop
-#    else
-#        include <boost/container/small_vector.hpp>
-#    endif
+
+#ifdef __GNUC__
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wshadow"
+#    include <boost/container/small_vector.hpp>
+#    pragma GCC diagnostic pop
+#else
+#    include <boost/container/small_vector.hpp>
+#endif
 
 namespace griddyn {
 using IOdata = boost::container::small_vector<double, 4>;
@@ -100,16 +99,6 @@ template<typename X>
 using objVector = std::vector<X>;
 // template<typename X>
 // using objVector = boost::container::small_vector<X,4>;
-
-#else
-namespace griddyn {
-using IOdata = std::vector<double>;
-using IOlocs = std::vector<index_t>;
-
-template<typename X>
-using objVector = std::vector<X>;
-
-#endif
 
 const IOdata noInputs{};
 const IOlocs noInputLocs{};

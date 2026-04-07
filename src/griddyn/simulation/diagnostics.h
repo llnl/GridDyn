@@ -100,7 +100,7 @@ void dynamicSolverConvergenceTest(gridDynSimulation* gds,
 /** @brief print out the structure and count of the Jacobian entries and counts
 @param[in] md the matrix data object to analyze
 @param[in] gds the gridDynSimulation object to work with
-@param[in] the solver mode in use
+@param[in] sMode the solver mode in use
 */
 void jacobianAnalysis(matrixData<double>& md,
                       gridDynSimulation* gds,
@@ -122,7 +122,7 @@ bool checkObjectEquivalence(const coreObject* obj1,
 /** @brief check the state sizes and print out state size information in a nice format for each
 object in a hierarchy
 @param[in] comp the component to print the state sizes for
-@param[in] the solver mode of the states to print
+@param[in] sMode the solver mode of the states to print
 */
 void printStateSizes(const gridComponent* comp, const solverMode& sMode);
 }  // namespace griddyn

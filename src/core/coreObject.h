@@ -146,8 +146,7 @@ class coreObject {
     /**
      * @brief remove an object from the calling object
      * @param[in] obj the object to remove
-     * @return value indicating success or failure 0 success -1 (object not found) -2(removal
-     * failure)
+     * Throws an exception if the object cannot be removed.
      */
     virtual void remove(coreObject* obj);
     /**
@@ -166,11 +165,10 @@ class coreObject {
     /** @brief get flags
     @param flag -the name of the flag to be queried
     @param val the value to the set the flag ;
-    @return int a value representing whether the set operation was successful or not
     */
     virtual void setFlag(const std::string& flag, bool val = true);
     /** @brief get flags
-    @param param the name of the flag to query.
+    @param flag the name of the flag to query.
     @return the value of the flag queried
     */
     virtual bool getFlag(const std::string& flag) const;

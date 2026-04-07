@@ -56,7 +56,7 @@ class coreObjectList {
     bool remove(coreObject* obj);
     /** @brief remove an object by name
      * function to remove an object from the container
-     * @param[in] obj the object to insert
+     * @param[in] objName the name of the object to remove
      * @return a bool indicating successful removal (0 on success, -1 on failure) const
      */
     bool remove(const std::string& objName);
@@ -70,7 +70,7 @@ class coreObjectList {
 
     /** @brief find object by id
      * function to find an object by user id code
-     * @param[in] objName the name of the object to search for
+     * @param[in] searchID the user id of the object to search for
      * @return a vector of objects with the appropriate searchID
      */
     std::vector<coreObject*> find(index_t searchID) const;

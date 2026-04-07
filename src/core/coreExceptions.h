@@ -14,7 +14,7 @@ namespace griddyn {
 /** exception class for use in griddyn*/
 class coreObjectException: public std::exception {
   protected:
-    const coreObject* throwingObject;  //<!* the object that threw the exception
+    const coreObject* throwingObject;  ///< the object that threw the exception
   public:
     explicit coreObjectException(const coreObject* obj) noexcept;
     virtual const char* what() const noexcept override { return "core object exception"; }

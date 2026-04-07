@@ -28,7 +28,7 @@ class objectFactory {
     objectFactory(const std::string& component, std::string typeName);
 
     /** @brief constructor B
-    @param[in] componetName  the name of component this factory is a constructor for
+    @param[in] component  the name of component this factory is a constructor for
     @param[in] typeNames  the names of the specific types of objects this factor builds
     */
     objectFactory(const std::string& component, const stringVec& typeNames);
@@ -45,8 +45,7 @@ class objectFactory {
 
     virtual coreObject* makeObject(const std::string& objectName) = 0;
     /** @brief prepare to make a certain number of objects
-    *@param[in] count  the number of object to prepare for
-    @param[in] obj a parent to assign the object to
+    The parameters are intentionally unnamed in the interface because they are optional to use.
     */
     virtual void prepObjects(count_t /*count*/, coreObject* /*obj*/);
     /** @brief get the number of unused prepped objects

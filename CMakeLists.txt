@@ -483,6 +483,18 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/units/units/units.hpp")
     submod_update(ThirdParty/units)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/sundials/CMakeLists.txt")
+    submod_update(ThirdParty/sundials)
+endif()
+
+if(GRIDDYN_ENABLE_KLU)
+    if(NOT DEFINED GRIDDYN_USE_SYSTEM_SUITESPARSE_ONLY OR NOT GRIDDYN_USE_SYSTEM_SUITESPARSE_ONLY)
+        if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/suitesparse-cmake/CMakeLists.txt")
+            submod_update(ThirdParty/suitesparse-cmake)
+        endif()
+    endif()
+endif()
+
 # ------------------------------------------------------------
 # finding MPI
 # ------------------------------------------------------------

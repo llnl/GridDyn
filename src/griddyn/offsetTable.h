@@ -48,7 +48,7 @@ class offsetTable {
     bool isJacobianCountLoaded(const solverMode& sMode) const;
     /** @brief set the offsets for a solverMode
      *@param[in] sMode the solverMode we are interested in
-     *@return a pointer to the
+     *@param[in] newOffsets the offsets to assign
      */
     void setOffsets(const solverOffsets& newOffsets, const solverMode& sMode);
 
@@ -156,8 +156,8 @@ class offsetTable {
     /** @brief get the locations for the data from a stateData pointer and output array
     *@param[in] sMode the solverMode we are interested in
     *@param[in] sD the stateData object to fill the Lp from
-    *@param[in] d the destination location for the calculations
-    @param[in] obj  the object to use if local information is required
+    *@param[in] dest the destination location for the calculations
+    @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
     Lp getLocations(const stateData& sD,
@@ -168,7 +168,7 @@ class offsetTable {
     /** @brief get the locations for the data from a stateData pointer
     *@param[in] sMode the solverMode we are interested in
     *@param[in] sD the stateData object to fill the Lp from
-    @param[in] obj  the object to use if local information is required
+    @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
     Lp getLocations(const stateData& sD, const solverMode& sMode, const gridComponent* comp) const;
@@ -176,7 +176,6 @@ class offsetTable {
     /** @brief get the locations offsets for the data
     *@param[in] sMode the solverMode we are interested in
     @param[in] Loc the location pointer to store the data
-    *@return the angle offset
     */
     void getLocations(const solverMode& sMode, Lp* Loc) const;
     /** @brief unload all the solverOffset objects

@@ -25,6 +25,7 @@ class solverException: public std::exception {
   protected:
     int errorCode;  ///< the actual solver Error Code
     std::string message;
+
   public:
     explicit solverException(int ecode = 0):
         errorCode(ecode), message("solver Exception:error code=" + std::to_string(errorCode))
@@ -217,10 +218,10 @@ class SolverInterface: public helperObject {
     */
     virtual void getCurrentData();
     /** @brief get the locations of any found roots
-    */
+     */
     virtual void getRoots();
     /** @brief update the number of roots to find
-    */
+     */
     virtual void setRootFinding(index_t numRoots);
 
     /** @brief get a parameter from the solver

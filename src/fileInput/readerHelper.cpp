@@ -13,7 +13,6 @@
 
 #include <cmath>
 namespace griddyn {
-using namespace readerConfig;
 
 void paramStringProcess(gridParameter& param, readerInfo& ri)
 {

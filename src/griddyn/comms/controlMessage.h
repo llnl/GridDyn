@@ -11,6 +11,8 @@
 #include "commMessage.h"
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
+#include <string>
+#include <vector>
 
 #define BASE_CONTROL_MESSAGE_NUMBER 500
 

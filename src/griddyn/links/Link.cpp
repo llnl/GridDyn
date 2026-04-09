@@ -19,12 +19,18 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixDataCompact.hpp"
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <cstdio>
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
+using units::puMW;
+using units::unit;
 
 // make the object factory types
 

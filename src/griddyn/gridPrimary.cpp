@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
+#include <string>
 
 namespace griddyn {
 gridPrimary::gridPrimary(const std::string& objName): gridComponent(objName) {}

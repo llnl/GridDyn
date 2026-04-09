@@ -7,6 +7,8 @@
 
 #include "coreObject.h"
 
+#include <string>
+
 namespace griddyn {
 /** @brief class for constructing some info about an object
  generally used for interpreting an object string with object and field references and possibly

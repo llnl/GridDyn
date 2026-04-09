@@ -6,6 +6,7 @@
 #include "nullObject.h"
 
 #include <cassert>
+#include <string>
 namespace griddyn {
 nullObject::nullObject(std::uint64_t nullCode) noexcept: coreObject(nullCode)
 {

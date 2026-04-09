@@ -24,7 +24,9 @@ Livermore National Security, LLC.
 #include "../cppzmq/zmq.hpp"
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <string>
 
 namespace zmqlib {
 /** a storage system for the available core objects allowing references by name to the core

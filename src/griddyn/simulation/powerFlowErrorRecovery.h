@@ -1,3 +1,6 @@
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_POWERFLOWERRORRECOVERY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_POWERFLOWERRORRECOVERY_H_
+
 /*
  * Copyright (c) 2014-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
@@ -64,3 +67,5 @@ class powerFlowErrorRecovery {
 };
 
 }  // namespace griddyn
+
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_POWERFLOWERRORRECOVERY_H_

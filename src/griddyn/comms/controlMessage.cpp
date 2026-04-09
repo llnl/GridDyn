@@ -7,6 +7,7 @@
 
 #include "../gridDynDefinitions.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include <string>
 
 namespace griddyn {
 namespace comms {
@@ -29,8 +30,6 @@ namespace comms {
     REGISTER_MESSAGE_TYPE(m12, "CANCEL", controlMessagePayload::CANCEL);
     REGISTER_MESSAGE_TYPE(m13, "CANCEL SUCCESS", controlMessagePayload::CANCEL_SUCCESS);
     REGISTER_MESSAGE_TYPE(m14, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
-    using namespace gmlc::utilities::stringOps;
-    using namespace gmlc::utilities;
     std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
     {
         std::string temp;
@@ -130,66 +129,67 @@ namespace comms {
 
         switch (type) {
             case SET: {
-                auto svec = splitline(vstring, "=@");
-                auto psep = splitline(svec[0], "()");
+                auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+                auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
                 if (psep.size() > 1) {
                     m_units = psep[1];
                 }
                 m_field = psep[0];
-                m_value = numeric_conversion(svec[1], kNullVal);
+                m_value = gmlc::utilities::numeric_conversion(svec[1], kNullVal);
                 if (svec.size() > 2) {
-                    m_time = numeric_conversion(svec[2], kNullVal);
+                    m_time = gmlc::utilities::numeric_conversion(svec[2], kNullVal);
                 }
             } break;
             case GET: {
-                auto svec = splitline(vstring, '@');
-                auto psep = splitline(svec[0], "()");
+                auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
+                auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
                 if (psep.size() > 1) {
                     m_units = psep[1];
                 }
                 m_field = psep[0];
 
                 if (svec.size() > 1) {
-                    m_time = numeric_conversion(svec[1], kNullVal);
+                    m_time = gmlc::utilities::numeric_conversion(svec[1], kNullVal);
                 }
             } break;
             case GET_PERIODIC: {
-                auto svec = splitline(vstring, '@');
-                auto psep = splitline(vstring, ',');
+                auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
+                auto psep = gmlc::utilities::stringOps::splitline(vstring, ',');
                 if (psep.size() > 1) {
                     m_units = psep[1];
                 }
                 m_field = psep[0];
 
                 if (svec.size() > 1) {
-                    m_time = numeric_conversion(svec[1], kNullVal);
+                    m_time = gmlc::utilities::numeric_conversion(svec[1], kNullVal);
                 }
             } break;
             case GET_MULTIPLE: {
-                multiFields = splitline(vstring, ',');
+                multiFields = gmlc::utilities::stringOps::splitline(vstring, ',');
             } break;
             case GET_RESULT_MULTIPLE: {
-                auto mf = splitline(vstring, ',');
+                auto mf = gmlc::utilities::stringOps::splitline(vstring, ',');
                 multiFields.resize(0);
                 multiValues.resize(0);
                 for (auto& mfl : mf) {
-                    auto fsep = splitline(mfl, '=');
+                    auto fsep = gmlc::utilities::stringOps::splitline(mfl, '=');
                     if (fsep.size() == 2) {
                         multiFields.push_back(fsep[0]);
-                        multiValues.push_back(numeric_conversion(fsep[1], kNullVal));
+                        multiValues.push_back(
+                            gmlc::utilities::numeric_conversion(fsep[1], kNullVal));
                     }
                 }
             } break;
             case GET_RESULT: {
-                auto svec = splitline(vstring, "=@");
-                auto psep = splitline(svec[0], "()");
+                auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+                auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
                 if (psep.size() > 1) {
                     m_units = psep[1];
                 }
                 m_field = psep[0];
-                m_value = numeric_conversion(svec[1], kNullVal);
+                m_value = gmlc::utilities::numeric_conversion(svec[1], kNullVal);
                 if (svec.size() > 2) {
-                    m_time = numeric_conversion(svec[2], kNullVal);
+                    m_time = gmlc::utilities::numeric_conversion(svec[2], kNullVal);
                 }
             } break;
             default:

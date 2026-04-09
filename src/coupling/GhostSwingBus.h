@@ -19,12 +19,12 @@
  *      Author: banks12
  */
 
-#ifndef GHOSTSWINGBUS_H_
-#define GHOSTSWINGBUS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_
 
 class GhostSwingBus {
   private:
   public:
 };
 
-#endif /* GHOSTSWINGBUS_H_ */
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_

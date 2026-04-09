@@ -9,6 +9,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <ctime>
+#include <string>
 
 namespace griddyn {
 namespace sources {

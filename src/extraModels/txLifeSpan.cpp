@@ -15,6 +15,9 @@
 #include "griddyn/measurement/grabberSet.h"
 #include "griddyn/measurement/gridGrabbers.h"
 #include <cmath>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace extra {
@@ -65,14 +68,12 @@ namespace extra {
         }
     }
 
-    using namespace units;
-
-    void txLifeSpan::set(const std::string& param, double val, unit unitType)
+    void txLifeSpan::set(const std::string& param, double val, units::unit unitType)
     {
         if ((param == "initial") || (param == "initiallife")) {
-            initialLife = convert(val, unitType, hr);
+            initialLife = units::convert(val, unitType, units::hr);
         } else if (param == "basetemp") {
-            baseTemp = convert(val, unitType, degC);
+            baseTemp = units::convert(val, unitType, units::degC);
         } else if ((param == "agingrate") || (param == "agingconstant")) {
             agingConstant = val;
         } else {

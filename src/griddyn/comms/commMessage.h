@@ -16,6 +16,7 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 // #include <cereal/archives/json.hpp>
 
@@ -280,7 +281,7 @@ class payloadFactory {
     }  // return a very big range but leave a little room for special message codes
 };
 
-// TODO:: merge with the coreTypeFactory and other templates May not be able to with the extra
+// TODO(phlpt): Merge with the coreTypeFactory and related templates if the extra message-specific
 // functions required create a high level object factory for the coreMessageFactory class
 typedef std::unordered_map<std::string, payloadFactory*> mfMap;
 /** core message factory class for building messages of a specified type

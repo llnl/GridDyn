@@ -10,6 +10,8 @@
 #include "blocks/deadbandBlock.h"
 #include "blocks/delayBlock.h"
 #include "gridSubModel.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 const int govOmegaInLocation = 0;

@@ -12,17 +12,20 @@
 #include <cstdlib>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
-static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
+static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
 class OutputTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(OutputTests, OutputTest1)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b2.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
 
     simpleStageCheck(fileName, gridSimulation::gridState_t::POWERFLOW_COMPLETE);
     savePowerFlowCdf(gds.get(), "testout.cdf");

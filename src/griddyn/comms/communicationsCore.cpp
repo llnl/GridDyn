@@ -8,6 +8,9 @@
 
 #include "Communicator.h"
 #include "gmlc/containers/mapOps.hpp"
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 std::shared_ptr<communicationsCore> communicationsCore::instance()

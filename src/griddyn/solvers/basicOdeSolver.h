@@ -9,6 +9,9 @@
 #pragma once
 
 #include "solverInterface.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace solvers {

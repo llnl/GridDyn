@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FUNCTION_SOURCE_H_
-#define FUNCTION_SOURCE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_
 
 #include "../Source.h"
 #include <functional>
+#include <string>
 
 namespace griddyn {
 namespace sources {
@@ -50,4 +51,4 @@ time is not necessarily unidirectional
 }  // namespace sources
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_

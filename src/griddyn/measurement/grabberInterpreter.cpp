@@ -15,10 +15,11 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridGrabbers.h"
 #include "objectGrabbers.h"
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities;
 
 void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v);
 void allGrabbers(const std::string& mode,
@@ -50,14 +51,14 @@ bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& block
 std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& command, coreObject* obj)
 {
     std::vector<std::unique_ptr<gridGrabber>> v;
-    auto gstr = stringOps::splitlineBracket(command);
-    stringOps::trim(gstr);
+    auto gstr = gmlc::utilities::stringOps::splitlineBracket(command);
+    gmlc::utilities::stringOps::trim(gstr);
     for (auto& cmd : gstr) {
         auto renameloc = cmd.find(" as ");  // spaces are important
         // extract out a rename
         std::string rname;
         if (renameloc != std::string::npos) {
-            rname = stringOps::trim(cmd.substr(renameloc + 4));
+            rname = gmlc::utilities::stringOps::trim(cmd.substr(renameloc + 4));
             cmd.erase(renameloc, std::string::npos);
         }
         if (cmd.find_first_of(R"(:(+-/*\^?)") != std::string::npos) {
@@ -80,7 +81,7 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& comman
                 }
             }
         } else {
-            std::string cmdlc = convertToLowerCase(cmd);
+            std::string cmdlc = gmlc::utilities::convertToLowerCase(cmd);
             if (cmdlc.compare(0, 3, "all") == 0) {
                 allGrabbers(cmd, obj, v);
             } else if (cmdlc == "auto") {

@@ -12,6 +12,10 @@
 #include "core/coreOwningPtr.hpp"
 #include "objectFactory.hpp"
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace griddyn {
 /** @brief template class for object ownership*/
 template<class Ntype>

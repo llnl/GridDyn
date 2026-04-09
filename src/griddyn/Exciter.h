@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYNEXCITER_H_
-#define GRIDDYNEXCITER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_
 
 #include "gridSubModel.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 class Generator;
 /** @brief the exciter class defines the interface for power grid exciters and implements a very
@@ -90,4 +92,4 @@ class Exciter: public gridSubModel {
 
 }  // namespace griddyn
 
-#endif  // GRIDDYNEXCITER_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_

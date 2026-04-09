@@ -12,6 +12,10 @@
 #include "../gridComponent.h"
 #include "core/objectOperatorInterface.hpp"
 #include <functional>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 /** @file
 @brief define a state Grabber object to retrieve data from a state information
 */

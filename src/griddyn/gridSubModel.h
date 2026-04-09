@@ -6,6 +6,7 @@
 #pragma once
 
 #include "gridComponent.h"
+#include <string>
 
 namespace griddyn {
 /** @brief base class for any model can act as a component of another model

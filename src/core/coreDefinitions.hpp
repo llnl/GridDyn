@@ -8,6 +8,7 @@
 
 #include "../utilities/indexTypes.hpp"
 #include "gmlc/utilities/timeRepresentation.hpp"
+#include <limits>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -72,7 +73,7 @@ constexpr coreTime operator"" _t(long double val)
 template<class VX>
 inline bool isValidIndex(index_t index, const std::vector<VX>& vector_obj)
 {
-    return (index < static_cast<count_t>(vector_obj.size());
+    return (index < static_cast<count_t>(vector_obj.size()));
 }
 #else
 template<class VX>

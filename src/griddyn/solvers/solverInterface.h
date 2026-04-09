@@ -10,6 +10,7 @@
 #include "griddyn/gridComponentHelperClasses.h"
 #include <exception>
 #include <memory>
+#include <string>
 #include <vector>
 namespace griddyn {
 enum class solver_print_level {

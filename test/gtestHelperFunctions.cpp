@@ -10,6 +10,8 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <string>
+#include <vector>
 
 using namespace griddyn;
 
@@ -67,36 +69,45 @@ void requireStates(griddyn::gridDynSimulation::gridState_t state1,
     ASSERT_EQ(to_string(state1), to_string(state2));
 }
 
-static const std::string startupString("startup");
-static const std::string initializedString("initialized");
-static const std::string pflowString("powerflow_complete");
-static const std::string dinitString("dynamic init");
-static const std::string dcompString("dynamic complete");
-static const std::string dpartString("dynamic partial");
-static const std::string errorString("error");
-static const std::string haltedString("halted");
-static const std::string ukString("unknown");
+static const char startupString[] = "startup";
+static const char initializedString[] = "initialized";
+static const char pflowString[] = "powerflow_complete";
+static const char dinitString[] = "dynamic init";
+static const char dcompString[] = "dynamic complete";
+static const char dpartString[] = "dynamic partial";
+static const char errorString[] = "error";
+static const char haltedString[] = "halted";
+static const char ukString[] = "unknown";
+static const std::string startupStringRef(startupString);
+static const std::string initializedStringRef(initializedString);
+static const std::string pflowStringRef(pflowString);
+static const std::string dinitStringRef(dinitString);
+static const std::string dcompStringRef(dcompString);
+static const std::string dpartStringRef(dpartString);
+static const std::string errorStringRef(errorString);
+static const std::string haltedStringRef(haltedString);
+static const std::string ukStringRef(ukString);
 const std::string& to_string(griddyn::gridDynSimulation::gridState_t state)
 {
     switch (state) {
         case gridDynSimulation::gridState_t::STARTUP:
-            return startupString;
+            return startupStringRef;
         case gridDynSimulation::gridState_t::INITIALIZED:
-            return initializedString;
+            return initializedStringRef;
         case gridDynSimulation::gridState_t::POWERFLOW_COMPLETE:
-            return pflowString;
+            return pflowStringRef;
         case gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED:
-            return dinitString;
+            return dinitStringRef;
         case gridDynSimulation::gridState_t::DYNAMIC_PARTIAL:
-            return dpartString;
+            return dpartStringRef;
         case gridDynSimulation::gridState_t::DYNAMIC_COMPLETE:
-            return dcompString;
+            return dcompStringRef;
         case gridDynSimulation::gridState_t::GD_ERROR:
-            return errorString;
+            return errorStringRef;
         case gridDynSimulation::gridState_t::HALTED:
-            return haltedString;
+            return haltedStringRef;
         default:
-            return ukString;
+            return ukStringRef;
     }
 }
 std::ostream& operator<<(std::ostream& os, griddyn::gridDynSimulation::gridState_t state)

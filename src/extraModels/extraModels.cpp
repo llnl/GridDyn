@@ -10,6 +10,8 @@
 #include "txLifeSpan.h"
 #include "txThermalModel.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 static std::vector<std::shared_ptr<objectFactory>> extraFactories;

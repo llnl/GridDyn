@@ -21,15 +21,17 @@ Livermore National Security, LLC.
  * LLNS Copyright End
  */
 
-#ifndef ZMQPROXYHUB_H_
-#define ZMQPROXYHUB_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_
 
 #include "zmqContextManager.h"
 #include "zmqSocketDescriptor.h"
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <string>
 #include <thread>
+#include <vector>
 
 namespace zmqlib {
 /** class building and managing a zmq proxy
@@ -77,4 +79,4 @@ class zmqProxyHub {
 };
 
 }  // namespace zmqlib
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_

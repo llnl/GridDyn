@@ -23,9 +23,21 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::Hz;
+using units::convert;
+using units::defunit;
+using units::puA;
+using units::puHz;
+using units::puMW;
+using units::puOhm;
+using units::puV;
+using units::rad;
 gridGrabber::gridGrabber(const std::string& fld)
 {
     gridGrabber::updateField(fld);

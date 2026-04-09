@@ -9,9 +9,10 @@
 #include "griddyn/measurement/collector.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
+using readerConfig::defMatchType;
 
 void loadDefaultObjectTranslations(readerInfo& ri);
 
@@ -19,7 +20,7 @@ static const IgnoreListType simIgnoreFields{"version", "basepower"};
 
 bool isMasterObject(const coreObject* searchObject, const gridSimulation* gs);
 
-static const std::string libstring("library");
+static const char libstring[] = "library";
 // read XML file
 // coreObject * readSimXMLFile(const std::string &fileName, coreObject *gco, const std::string
 // prefix, readerInfo *ri) const

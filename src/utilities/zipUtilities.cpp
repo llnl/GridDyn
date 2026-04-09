@@ -13,6 +13,8 @@
 #include <Minizip/miniunz.h>
 #include <Minizip/minizip.h>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 namespace utilities {
 static const char* zipname = "minizip";
@@ -20,8 +22,6 @@ static const char* ziparg_overwrite = "-o";
 static const char* ziparg_append = "-a";
 static const char* ziparg2 = "-3";
 static const char* ziparg3 = "-j";
-
-using namespace std::filesystem;
 
 int zip(const std::string& file, const std::vector<std::string>& filesToZip, zipMode mode)
 {
@@ -59,23 +59,24 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
         argv[NUMBER_FIXED_ARGS + kk] = filez[kk].data();
     }
     /* minizip may change the current working directory */
-    auto cpath = current_path();
+    auto cpath = std::filesystem::current_path();
     /* Zip */
     int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
-    current_path(cpath);
+    std::filesystem::current_path(cpath);
 
     return status;
 }
 
-void addToFileList(std::vector<path>& files, const path& startpath)
+void addToFileList(std::vector<std::filesystem::path>& files,
+                   const std::filesystem::path& startpath)
 {
-    if (is_directory(startpath)) {
-        for (const auto& entry : directory_iterator(startpath)) {
-            if (is_regular_file(entry)) {
+    if (std::filesystem::is_directory(startpath)) {
+        for (const auto& entry : std::filesystem::directory_iterator(startpath)) {
+            if (std::filesystem::is_regular_file(entry)) {
                 files.push_back(entry.path());
-            } else if (is_directory(entry)) {
+            } else if (std::filesystem::is_directory(entry)) {
                 addToFileList(files, entry.path());
             }
         }
@@ -84,22 +85,22 @@ void addToFileList(std::vector<path>& files, const path& startpath)
 
 int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mode)
 {
-    path dpath(folderLoc);
-    if (!is_directory(dpath)) {
+    std::filesystem::path dpath(folderLoc);
+    if (!std::filesystem::is_directory(dpath)) {
         return -2;
     }
     /* we are changing the working directory */
-    auto cpath = current_path();
+    auto cpath = std::filesystem::current_path();
 
-    current_path(dpath);
+    std::filesystem::current_path(dpath);
 
     /** get all the files to add*/
-    std::vector<path> zfiles;
+    std::vector<std::filesystem::path> zfiles;
 
-    addToFileList(zfiles, current_path());
+    addToFileList(zfiles, std::filesystem::current_path());
 
     for (auto& pth : zfiles) {
-        pth = relative(pth, dpath);
+        pth = std::filesystem::relative(pth, dpath);
     }
 
     std::vector<char> fileV(file.c_str(),
@@ -126,7 +127,7 @@ int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mod
     int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
-    current_path(cpath);
+    std::filesystem::current_path(cpath);
     return status;
 }
 
@@ -161,22 +162,22 @@ int unzip(const std::string& file, const std::string& directory)
         argv[4] = unziparg4;
         argv[5] = dirV.data();
 
-        if (!exists(directory)) {
-            create_directories(directory);
-            if (!exists(directory)) {
+        if (!std::filesystem::exists(directory)) {
+            std::filesystem::create_directories(directory);
+            if (!std::filesystem::exists(directory)) {
                 return (-3);
             }
         }
     }
 
     /* minunz may change the current working directory */
-    auto cpath = current_path();
+    auto cpath = std::filesystem::current_path();
 
     /* Unzip */
     int status = miniunz(argc, argv.data());
 
     /* Reset the current directory */
-    current_path(cpath);
+    std::filesystem::current_path(cpath);
 
     return status;
 }

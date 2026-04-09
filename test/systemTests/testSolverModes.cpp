@@ -10,9 +10,9 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <string>
 
 using namespace griddyn;
-static std::string solverMode_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/solvermode_tests/");
+static const char solverMode_test_directory[] = GRIDDYN_TEST_DIRECTORY "/solvermode_tests/";
 
 class SolverModeTests: public gridDynSimulationTestFixture, public ::testing::Test {};

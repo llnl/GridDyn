@@ -9,6 +9,8 @@
 #pragma once
 
 #include "gridSubModel.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 constexpr index_t genModelEftInLocation = 2;
 constexpr index_t genModelPmechInLocation = 3;
@@ -72,7 +74,7 @@ class GenModel: public gridSubModel {
                                       const solverMode& sMode) override;
 
     virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
-    // TODO:: PT split these into separate functions for getting the value and getting the offset
+    // TODO(phlpt): Split these into separate value and offset accessors.
     virtual double
         getFreq(const stateData& sD, const solverMode& sMode, index_t* freqOffset = nullptr) const;
     virtual double getAngle(const stateData& sD,

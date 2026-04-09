@@ -22,6 +22,8 @@ Livermore National Security, LLC.
 
 #include "zmqSocketDescriptor.h"
 
+#include <memory>
+
 namespace zmqlib {
 zmq::socket_t zmqSocketDescriptor::makeSocket(zmq::context_t& ctx) const
 {

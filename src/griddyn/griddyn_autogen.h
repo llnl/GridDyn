@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <string>
+
 #define AUTOGEN_GET /*autogen:get*/                                                                \
     virtual double get(const std::string& param, units::unit unitType = units::defunit) const;
 

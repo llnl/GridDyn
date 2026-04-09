@@ -4,12 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_CONDITION_H_
-#define GRIDDYN_CONDITION_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_
 
 #include "../gridComponent.h"
 #include "core/objectOperatorInterface.hpp"
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class grabberSet;
@@ -220,4 +223,4 @@ class compoundCondition: public Condition {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_

@@ -11,6 +11,7 @@
 #include "../gridDynDefinitions.hpp"
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 namespace griddyn {

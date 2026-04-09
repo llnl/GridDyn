@@ -11,6 +11,7 @@
 #include "matrixCreation.h"
 
 #include "matrixDataSparseSM.hpp"
+#include <memory>
 
 std::unique_ptr<matrixData<double>> makeSparseMatrix(count_t size, count_t maxElements)
 {

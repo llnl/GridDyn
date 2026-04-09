@@ -7,6 +7,10 @@
 #pragma once
 // headers
 #include "gridPrimary.h"
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 // forward classes
@@ -160,7 +164,7 @@ class Area: public gridPrimary {
   public:
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
-    // TODO:: Pt make this do something
+    // TODO(phlpt): Implement this or remove it if angle updates are no longer used.
     /** @brief update the angles may be deprecated
     @param[in] time the time to update to
     */

@@ -5,6 +5,9 @@
  */
 
 #include "coreObjectList.h"
+
+#include <string>
+#include <vector>
 namespace griddyn {
 bool coreObjectList::insert(coreObject* obj, bool replace)
 {

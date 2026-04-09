@@ -6,6 +6,8 @@
 #pragma once
 
 #include "rampSource.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 class grabberSet;

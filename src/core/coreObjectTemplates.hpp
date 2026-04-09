@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef COREOBJECTTEMPLATES_H_
-#define COREOBJECTTEMPLATES_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREOBJECTTEMPLATES_HPP_
+#define ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREOBJECTTEMPLATES_HPP_
 
 #include "coreObject.h"
 #include <type_traits>
@@ -105,4 +105,4 @@ void getParamString(const A* cobj,
 }
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREOBJECTTEMPLATES_HPP_

@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef VARIABLEGENERATOR_H_
-#define VARIABLEGENERATOR_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_VARIABLEGENERATOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_VARIABLEGENERATOR_H_
 
 #include "DynamicGenerator.h"
+#include <string>
 
 namespace griddyn {
 class gridBus;
@@ -78,4 +79,4 @@ class variableGenerator: public DynamicGenerator {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_VARIABLEGENERATOR_H_

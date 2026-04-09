@@ -14,6 +14,9 @@
 
 #include <mpi.h>
 
+#include <memory>
+#include <utility>
+
 namespace griddyn {
 namespace mpi {
     std::unique_ptr<MpiService> MpiService::m_pInstance;

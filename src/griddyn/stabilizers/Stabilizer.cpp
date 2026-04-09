@@ -11,6 +11,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 static const typeFactory<Stabilizer> gf("pss", stringVec{"basic"});

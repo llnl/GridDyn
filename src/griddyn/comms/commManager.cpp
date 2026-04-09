@@ -7,6 +7,9 @@
 
 #include "Communicator.h"
 #include "core/propertyBuffer.h"
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace comms {

@@ -12,6 +12,7 @@
 
 #include "matrixDataSparse_impl.hpp"
 #include <complex>
+#include <vector>
 
 template class matrixDataSparse<int>;
 // template class matrixDataSparse<float>;

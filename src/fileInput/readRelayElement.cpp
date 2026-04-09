@@ -11,11 +11,12 @@
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/zipLoad.h"
 #include "readElement.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
+using readerConfig::defMatchType;
 static const IgnoreListType relayIgnoreElements{"area", "sink", "source", "target"};
-static const std::string relayComponentName = "relay";
+static const char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,

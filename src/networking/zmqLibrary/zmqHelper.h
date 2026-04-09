@@ -21,8 +21,8 @@ Livermore National Security, LLC.
  * LLNS Copyright End
  */
 
-#ifndef ZMQ_HELPER_HEADER_
-#define ZMQ_HELPER_HEADER_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_
 
 #include <string>
 
@@ -33,4 +33,4 @@ enum class socket_type : int;
 namespace zmqlib {
 zmq::socket_type socketTypeFromString(const std::string& socketType);
 }
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_

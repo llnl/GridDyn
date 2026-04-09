@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "gridSubModel.h"
+#include <string>
 
 namespace griddyn {
 /** Source is a signal generator in GridDyn.

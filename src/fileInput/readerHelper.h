@@ -7,6 +7,8 @@
 #include "griddyn/gridDynDefinitions.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #define READER_DEFAULT_PRINT READER_NO_PRINT
 

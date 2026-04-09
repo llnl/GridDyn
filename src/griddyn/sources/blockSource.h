@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BLOCK_SOURCE_H_
-#define BLOCK_SOURCE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_
 
 #include "../Source.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class Block;
@@ -110,4 +112,4 @@ namespace sources {
 }  // namespace sources
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_

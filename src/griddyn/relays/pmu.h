@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_PMU_H_
-#define GRIDDYN_PMU_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_
 
 #include "sensor.h"
+#include <string>
 
 namespace griddyn {
 namespace relays {
@@ -65,4 +66,4 @@ namespace relays {
 
 }  // namespace relays
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_

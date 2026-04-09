@@ -22,9 +22,9 @@ Livermore National Security, LLC.
 #include "zmqHelper.h"
 
 #include "../cppzmq/zmq.hpp"
+#include <algorithm>
 #include <cctype>
 #include <map>
-using namespace zmq;
 /*
 req = ZMQ_REQ,
 rep = ZMQ_REP,
@@ -45,25 +45,25 @@ pull = ZMQ_PULL,
 
 /* *INDENT-OFF* */
 namespace zmqlib {
-static const std::map<std::string, zmq::socket_type> socketMap{{"req", socket_type::req},
-                                                               {"request", socket_type::req},
-                                                               {"rep", socket_type::rep},
-                                                               {"reply", socket_type::rep},
-                                                               {"dealer", socket_type::dealer},
-                                                               {"router", socket_type::router},
-                                                               {"pub", socket_type::pub},
-                                                               {"publish", socket_type::pub},
-                                                               {"sub", socket_type::sub},
-                                                               {"subscribe", socket_type::sub},
-                                                               {"xpub", socket_type::xpub},
-                                                               {"xsub", socket_type::xsub},
-                                                               {"push", socket_type::push},
-                                                               {"pull", socket_type::pull},
-                                                               {"pair", socket_type::pair},
-                                                               {"stream", socket_type::stream}};
+static const std::map<std::string, zmq::socket_type> socketMap{{"req", zmq::socket_type::req},
+                                                               {"request", zmq::socket_type::req},
+                                                               {"rep", zmq::socket_type::rep},
+                                                               {"reply", zmq::socket_type::rep},
+                                                               {"dealer", zmq::socket_type::dealer},
+                                                               {"router", zmq::socket_type::router},
+                                                               {"pub", zmq::socket_type::pub},
+                                                               {"publish", zmq::socket_type::pub},
+                                                               {"sub", zmq::socket_type::sub},
+                                                               {"subscribe", zmq::socket_type::sub},
+                                                               {"xpub", zmq::socket_type::xpub},
+                                                               {"xsub", zmq::socket_type::xsub},
+                                                               {"push", zmq::socket_type::push},
+                                                               {"pull", zmq::socket_type::pull},
+                                                               {"pair", zmq::socket_type::pair},
+                                                               {"stream", zmq::socket_type::stream}};
 /* *INDENT-ON* */
 
-socket_type socketTypeFromString(const std::string& socketType)
+zmq::socket_type socketTypeFromString(const std::string& socketType)
 {
     auto fnd = socketMap.find(socketType);
     if (fnd != socketMap.end()) {
@@ -78,7 +78,7 @@ socket_type socketTypeFromString(const std::string& socketType)
         return fnd->second;
     }
     assert(false);  // NEED to make this a throw operation instead once exceptions are integrated
-    return socket_type::req;
+    return zmq::socket_type::req;
 }
 
 }  // namespace zmqlib

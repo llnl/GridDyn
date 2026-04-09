@@ -10,6 +10,10 @@
 #include "core/coreExceptions.h"
 #include "core/objectInterpreter.h"
 #include "gridGrabbers.h"
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 class gridSubModel;
@@ -44,7 +48,7 @@ using descVecFunc = std::function<void(coreObject*, stringVec&)>;
 descVecFunc getObjectVectorDescFunction(const gridComponent* comp, const std::string& field);
 descVecFunc getObjectVectorDescFunction(const Area* area, const std::string& field);
 
-const std::string objEmptyString("");
+const char objEmptyString[] = "";
 
 template<class X>
 class objectGrabber: public gridGrabber {

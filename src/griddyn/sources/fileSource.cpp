@@ -7,6 +7,7 @@
 #include "fileSource.h"
 
 #include "core/coreObjectTemplates.hpp"
+#include <string>
 
 namespace griddyn {
 namespace sources {
@@ -136,7 +137,7 @@ namespace sources {
     int fileSource::loadFile()
     {
         auto stl = fileName_.length();
-        // TODO:: use filesystem library to check extension instead of this
+        // TODO(phlpt): Use the filesystem library to check the extension instead of this.
         if ((stl > 4) && ((fileName_[stl - 3] == 'c') || (fileName_[stl - 3] == 't'))) {
             schedLoad.loadTextFile(fileName_, m_column);
         } else {

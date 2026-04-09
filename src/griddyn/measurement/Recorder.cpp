@@ -10,8 +10,12 @@
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include <filesystem>
+#include <memory>
+#include <string>
 
 namespace griddyn {
+using gmlc::utilities::fsize_t;
+
 Recorder::Recorder(coreTime time0, coreTime period): collector(time0, period) {}
 Recorder::Recorder(const std::string& name): collector(name) {}
 Recorder::~Recorder()
@@ -49,8 +53,6 @@ void Recorder::cloneTo(collector* col) const
     nrec->autosave = autosave;
 }
 
-using namespace gmlc::utilities;
-
 void Recorder::set(const std::string& param, double val)
 {
     if (param == "precision") {
@@ -69,7 +71,7 @@ void Recorder::set(const std::string& param, const std::string& val)
     if ((param == "file") || (param == "fileName")) {
         fileName_ = val;
         std::filesystem::path filePath(fileName_);
-        std::string ext = convertToLowerCase(filePath.extension().string());
+        std::string ext = gmlc::utilities::convertToLowerCase(filePath.extension().string());
         binaryFile = ((ext != ".csv") && (ext != ".txt"));
     } else if (param == "directory") {
         directory_ = val;
@@ -85,7 +87,8 @@ void Recorder::saveFile(const std::string& fileName)
     if (!fileName.empty()) {
         savefileName = std::filesystem::path(fileName);
 
-        std::string ext = convertToLowerCase(savefileName.extension().string());
+        std::string ext =
+            gmlc::utilities::convertToLowerCase(savefileName.extension().string());
         bFile = ((ext != ".csv") && (ext != ".txt"));
     } else {
         if (triggerTime == lastSaveTime) {

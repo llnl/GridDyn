@@ -11,11 +11,13 @@
 #include "units/units.hpp"
 #include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class gridCore;
 
-// TODO:: PT make more of the parameters protected
+// TODO(phlpt): Make more of the parameters protected.
 /* class that grabs data from another object directly
 @details there is a target object and a functional object that actually can extract data from that
 object it also includes a gain and bias to do a linear shift and scale on the object
@@ -23,7 +25,7 @@ object it also includes a gain and bias to do a linear shift and scale on the ob
 class gridGrabber: public objectOperatorInterface {
   public:
     std::string field;  //!< the target field that is being grabbed
-    // TODO:: convert to a bitset
+    // TODO(phlpt): Convert this flag group to a bitset.
     bool loaded = false;  //!< flag if the grabber is loaded
     bool vectorGrab = false;  //!< flag if the grabber is meant to grab a vector of data
     bool clonable = true;  //!< flag indicating if the grabber is clonable

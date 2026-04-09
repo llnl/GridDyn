@@ -11,6 +11,8 @@
 #include "griddyn/gridBus.h"
 #include <cmath>
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
 // testP case for coreObject object
 
 #define AREA_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/area_tests/"

@@ -17,6 +17,7 @@
 #include <cassert>
 #include <iterator>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 /** @brief simple class for compute the keyIndex from a row and column and inverting it*/

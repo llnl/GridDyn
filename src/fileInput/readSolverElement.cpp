@@ -10,9 +10,11 @@
 #include "griddyn/gridDynSimulation.h"
 #include "griddyn/solvers/solverInterface.h"
 #include "readElement.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
+using readerConfig::defMatchType;
 // aP is the link element
 
 static const IgnoreListType solverIgnoreFields{"flags", "name", "type", "index"};

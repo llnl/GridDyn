@@ -17,7 +17,7 @@ grabberSet::grabberSet(const std::string& fld, coreObject* obj, bool step_only)
     if (!ggb.empty()) {
         grab = std::move(ggb[0]);
     } else {
-        grab = nullptr;  // TODO:: make this into a default grabber so it grabs something
+        grab = nullptr;  // TODO(phlpt): Consider a default grabber here.
     }
     if (!step_only) {
         auto ggbst = makeStateGrabbers(fld, obj);

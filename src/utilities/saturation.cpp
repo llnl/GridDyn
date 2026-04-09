@@ -10,6 +10,7 @@
 #include "saturation.h"
 
 #include <cmath>
+#include <string>
 
 namespace utilities {
 saturation::saturation(satType_t sT): type(sT)

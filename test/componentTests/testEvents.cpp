@@ -10,16 +10,17 @@
 #include <cmath>
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
 
 // test case for coreObject object
 
-static std::string event_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/event_tests/");
+static const char event_test_directory[] = GRIDDYN_TEST_DIRECTORY "/event_tests/";
 
 class EventTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(EventTests, EventTestLoadstring)
 {
-    std::string fileName = event_test_directory + "event_test_loadstring.xml";
+    std::string fileName = std::string(event_test_directory) + "event_test_loadstring.xml";
     gds = griddyn::readSimXMLFile(fileName);
 
     griddyn::EventInfo gdEI;

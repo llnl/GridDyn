@@ -7,6 +7,9 @@
 
 #include "collector.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 /** class to store and save data from the grid, based on a collector */

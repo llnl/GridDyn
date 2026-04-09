@@ -12,6 +12,8 @@
 #include "utilities/gridRandom.h"
 #include <cassert>
 #include <iostream>
+#include <memory>
+#include <string>
 
 using gmlc::utilities::convertToLowerCase;
 
@@ -50,19 +52,18 @@ namespace sources {
     // set properties
     void randomSource::set(const std::string& param, const std::string& val)
     {
-        using namespace utilities;
         if ((param == "trigger_dist") || (param == "time_dist")) {
             timeDistribution = convertToLowerCase(val);
             if (opFlags[dyn_initialized]) {
-                timeGenerator->setDistribution(getDist(timeDistribution));
+                timeGenerator->setDistribution(utilities::getDist(timeDistribution));
             }
         } else if ((param == "size_dist") || (param == "change_dist")) {
             valDistribution = convertToLowerCase(val);
             if (opFlags[dyn_initialized]) {
-                valGenerator->setDistribution(getDist(valDistribution));
+                valGenerator->setDistribution(utilities::getDist(valDistribution));
             }
         } else if (param == "seed") {
-            gridRandom::setSeed();
+            utilities::gridRandom::setSeed();
         } else {
             Source::set(param, val);
         }
@@ -266,20 +267,19 @@ namespace sources {
 
     double randomSource::computeBiasAdjust()
     {
-        using namespace utilities;
         if (zbias == 0.0) {
             return 0.0;
         }
         double bias = 0.0;
         switch (valGenerator->getDistribution()) {
-            case gridRandom::dist_type_t::uniform:
+            case utilities::gridRandom::dist_type_t::uniform:
                 bias = -(param2_L - param1_L) * zbias * (offset);
                 break;
-            case gridRandom::dist_type_t::exponential:  // load varies in a biexponential pattern
+            case utilities::gridRandom::dist_type_t::exponential:  // load varies in a biexponential pattern
                 bias = offset / param1_L * zbias - 0.5;
 
                 break;
-            case gridRandom::dist_type_t::normal:
+            case utilities::gridRandom::dist_type_t::normal:
                 bias = -param2_L * zbias * (offset);
                 break;
             default:

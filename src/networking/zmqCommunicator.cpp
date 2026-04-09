@@ -18,12 +18,12 @@
 #include "zmqLibrary/zmqHelper.h"
 #include "zmqLibrary/zmqProxyHub.h"
 #include "zmqLibrary/zmqReactor.h"
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace zmqInterface {
-
-    using namespace zmq;
-    using namespace zmqlib;
 
     zmqCommunicator::zmqCommunicator(const std::string& name):
         Communicator(name), txDescriptor(name + "_tx"), rxDescriptor(name + "_rx")
@@ -107,52 +107,54 @@ namespace zmqInterface {
         // set up transmission sockets and information
 
         if (flags[use_tx_proxy]) {
-            auto localProxy = zmqProxyHub::getProxy(proxyName);
+            auto localProxy = zmqlib::zmqProxyHub::getProxy(proxyName);
             if (!localProxy->isRunning()) {
                 localProxy->startProxy();
             }
-            txDescriptor.addOperation(socket_ops::connect, localProxy->getIncomingConnection());
+            txDescriptor.addOperation(zmqlib::socket_ops::connect,
+                                      localProxy->getIncomingConnection());
         }
 
         if (flags[use_rx_proxy]) {
-            auto localProxy = zmqProxyHub::getProxy(proxyName);
+            auto localProxy = zmqlib::zmqProxyHub::getProxy(proxyName);
             if (!localProxy->isRunning()) {
                 localProxy->startProxy();
             }
-            rxDescriptor.addOperation(socket_ops::connect, localProxy->getIncomingConnection());
+            rxDescriptor.addOperation(zmqlib::socket_ops::connect,
+                                      localProxy->getIncomingConnection());
         }
 
-        txDescriptor.addOperation(socket_ops::subscribe, getName());
-        rxDescriptor.addOperation(socket_ops::subscribe, getName());
+        txDescriptor.addOperation(zmqlib::socket_ops::subscribe, getName());
+        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, getName());
 
         auto id = getID();
-        txDescriptor.addOperation(socket_ops::subscribe,
+        txDescriptor.addOperation(zmqlib::socket_ops::subscribe,
                                   std::string(reinterpret_cast<char*>(&id),
                                               sizeof(id)));  // I know this is ugly
-        rxDescriptor.addOperation(socket_ops::subscribe,
+        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe,
                                   std::string(reinterpret_cast<char*>(&id),
                                               sizeof(id)));  // I know this is ugly
         decltype(id) broadcastId = 0;
-        txDescriptor.addOperation(socket_ops::subscribe,
+        txDescriptor.addOperation(zmqlib::socket_ops::subscribe,
                                   std::string(reinterpret_cast<char*>(&broadcastId),
                                               sizeof(broadcastId)));  // I know this is ugly
-        rxDescriptor.addOperation(socket_ops::subscribe,
+        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe,
                                   std::string(reinterpret_cast<char*>(&broadcastId),
                                               sizeof(broadcastId)));  // I know this is ugly
 
-        rxDescriptor.callback = [this](const multipart_t& msg) { messageHandler(msg); };
+        rxDescriptor.callback = [this](const zmq::multipart_t& msg) { messageHandler(msg); };
         // set up the rx socket reactor
         if (!flags[transmit_only]) {
-            zmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
+            zmqlib::zmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
         }
 
-        txSocket = txDescriptor.makeSocketPtr(zmqContextManager::getContext(contextName));
+        txSocket = txDescriptor.makeSocketPtr(zmqlib::zmqContextManager::getContext(contextName));
     }
 
     void zmqCommunicator::disconnect()
     {
         if (!flags[transmit_only]) {
-            zmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
+            zmqlib::zmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
         }
         txSocket = nullptr;
     }
@@ -160,20 +162,20 @@ namespace zmqInterface {
     void zmqCommunicator::set(const std::string& param, const std::string& val)
     {
         if (param == "txconnection") {
-            txDescriptor.addOperation(socket_ops::connect, val);
+            txDescriptor.addOperation(zmqlib::socket_ops::connect, val);
         } else if (param == "rxconnection") {
-            rxDescriptor.addOperation(socket_ops::connect, val);
+            rxDescriptor.addOperation(zmqlib::socket_ops::connect, val);
         } else if (param == "rxsubscription") {
-            rxDescriptor.addOperation(socket_ops::subscribe, val);
+            rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, val);
         } else if (param == "txsubscription") {
-            txDescriptor.addOperation(socket_ops::subscribe, val);
+            txDescriptor.addOperation(zmqlib::socket_ops::subscribe, val);
         } else if ((param == "proxy") || (param == "proxyname")) {
             proxyName = val;
             setFlag("useproxy", true);
         } else if ((param == "txtype") || (param == "sockettype")) {
-            txDescriptor.type = socketTypeFromString(val);
+            txDescriptor.type = zmqlib::socketTypeFromString(val);
         } else if (param == "rxtype") {
-            rxDescriptor.type = socketTypeFromString(val);
+            rxDescriptor.type = zmqlib::socketTypeFromString(val);
         } else {
             Communicator::set(param, val);
         }
@@ -208,14 +210,14 @@ namespace zmqInterface {
         }
     }
 
-    void zmqCommunicator::messageHandler(const multipart_t& msg)
+    void zmqCommunicator::messageHandler(const zmq::multipart_t& msg)
     {
         auto sz = msg.size();
         // size should be either 2 or 3
         auto msgBody = (sz == 2) ? msg.peek(1) : msg.peek(2);
 
         std::string msgString(static_cast<const char*>(msgBody->data()), msgBody->size());
-        std::shared_ptr<commMessage> gdMsg;
+        auto gdMsg = std::make_shared<commMessage>();
         gdMsg->from_datastring(msgString);
 
         // call the lower level receive function

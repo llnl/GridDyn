@@ -11,18 +11,22 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
-static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
+static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
 class PowerflowSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 /** test to make sure the basic power flow loads and runs*/
 TEST_F(PowerflowSystemTests, PFlowTest1)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
 
@@ -45,7 +49,7 @@ TEST_F(PowerflowSystemTests, PFlowTest1)
 // testcase for power flow from initial start
 TEST_F(PowerflowSystemTests, PFlowTest2)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b2.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
     gds->pFlowInitialize();
@@ -75,13 +79,13 @@ TEST_F(PowerflowSystemTests, PFlowTest2)
 // testcase for power flow from zeros start
 TEST_F(PowerflowSystemTests, PFlowTest3)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b.xml";
     gds = readSimXMLFile(fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
     gds->pFlowInitialize();
     requireState(gridDynSimulation::gridState_t::INITIALIZED);
 
-    std::string fname2 = pFlow_test_directory + "test_powerflow3m9b2.xml";
+    std::string fname2 = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
     gds2 = readSimXMLFile(fname2);
     requireState2(gridDynSimulation::gridState_t::STARTUP);
     gds2->pFlowInitialize();
@@ -114,7 +118,7 @@ TEST_F(PowerflowSystemTests, PFlowTest3)
 TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
 {
     gds = std::make_unique<gridDynSimulation>();
-    std::string fileName = ieee_test_directory + "ieee30_no_shunt_cap_tap_limit.cdf";
+    std::string fileName = std::string(ieee_test_directory) + "ieee30_no_shunt_cap_tap_limit.cdf";
 
     loadCDF(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -174,7 +178,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
 TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
 {
     gds = std::make_unique<gridDynSimulation>();
-    std::string fileName = ieee_test_directory + "ieee30_no_limit.cdf";
+    std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
     loadCDF(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -232,7 +236,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
 // test case for power flow automatic adjustment
 TEST_F(PowerflowSystemTests, TestPFlowPadjust)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b_Padjust.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b_Padjust.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -258,7 +262,7 @@ TEST_F(PowerflowSystemTests, TestPFlowPadjust)
 TEST_F(PowerflowSystemTests, PflowTestDcflow)
 {
     gds = std::make_unique<gridDynSimulation>();
-    std::string fileName = ieee_test_directory + "ieee30_no_limit.cdf";
+    std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
     loadCDF(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -295,7 +299,7 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
 // iterated power flow test case
 TEST_F(PowerflowSystemTests, DISABLED_TestIteratedPflow)
 {
-    std::string fileName = pFlow_test_directory + "iterated_test_case.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "iterated_test_case.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -308,7 +312,7 @@ TEST_F(PowerflowSystemTests, DISABLED_TestIteratedPflow)
 /** test case for a floating bus ie a bus off a line with no load*/
 TEST_F(PowerflowSystemTests, PFlowTestFloatingBus)
 {
-    std::string fileName = pFlow_test_directory + "test_powerflow3m9b_float.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b_float.xml";
     gds = readSimXMLFile(fileName);
 
     gds->pFlowInitialize();
@@ -323,7 +327,7 @@ TEST_F(PowerflowSystemTests, PFlowTestFloatingBus)
 /** test case for a single line breaker trip*/
 TEST_F(PowerflowSystemTests, PflowTestSingleBreaker)
 {
-    std::string fileName = pFlow_test_directory + "line_single_breaker_trip.xml";
+    std::string fileName = std::string(pFlow_test_directory) + "line_single_breaker_trip.xml";
     gds = readSimXMLFile(fileName);
 
     gds->run(5.0);
@@ -349,7 +353,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
     for (const auto& approx : approx_modes) {
         SCOPED_TRACE(approx);
         gds = std::make_unique<gridDynSimulation>();
-        std::string fileName = ieee_test_directory + "ieee30_no_limit.cdf";
+        std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
         loadCDF(gds.get(), fileName);
 

@@ -8,6 +8,9 @@
 #include "comms/commManager.h"
 #include "core/objectOperatorInterface.hpp"
 #include "gridPrimary.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class stateGrabber;

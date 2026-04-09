@@ -17,6 +17,10 @@ SPDX-License-Identifier: BSD-3-Clause
 #include "loggerCore.hpp"
 
 #include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 DECLARE_TRIPLINE();
 

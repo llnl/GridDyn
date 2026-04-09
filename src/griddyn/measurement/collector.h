@@ -10,6 +10,9 @@
 #include "core/objectOperatorInterface.hpp"
 #include "units/units.hpp"
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 /** @file
 @brief define a classes and information related to data retrieval in griddyn
 */

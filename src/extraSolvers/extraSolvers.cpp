@@ -12,6 +12,8 @@
 #    include "braid/braidInterface.h"
 #endif
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 static std::vector<std::shared_ptr<classFactory<SolverInterface>>> extraFactories;

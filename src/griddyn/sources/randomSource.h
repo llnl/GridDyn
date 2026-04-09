@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef RANDOM_SOURCE_H_
-#define RANDOM_SOURCE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_
 
 #include "rampSource.h"
+#include <memory>
+#include <string>
 namespace utilities {
 class gridRandom;
 }
@@ -85,4 +87,4 @@ namespace sources {
 }  // namespace sources
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_

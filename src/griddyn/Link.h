@@ -7,6 +7,7 @@
 
 #include "gridPrimary.h"
 #include <queue>
+#include <string>
 
 namespace griddyn {
 class gridBus;  // forward class definition

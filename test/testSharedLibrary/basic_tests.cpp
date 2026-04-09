@@ -15,13 +15,12 @@
 /** these test cases test out the value converters
  */
 #include "griddyn.h"
+#include <string>
+#include <vector>
 
-static const std::string ieee_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/IEEE_test_cases/");
-static const std::string matlab_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/matlab_test_files/");
-static const std::string other_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/other_test_cases/");
+static const char ieee_test_directory[] = GRIDDYN_TEST_DIRECTORY "/IEEE_test_cases/";
+static const char matlab_test_directory[] = GRIDDYN_TEST_DIRECTORY "/matlab_test_files/";
+static const char other_test_directory[] = GRIDDYN_TEST_DIRECTORY "/other_test_cases/";
 
 /** just a check that in the simple case we do actually get the time back we requested*/
 TEST(SharedLibraryBasicTests, SimpleLoadTest)
@@ -29,7 +28,7 @@ TEST(SharedLibraryBasicTests, SimpleLoadTest)
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
-    std::string file = ieee_test_directory + "ieee14.cdf";
+    std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationRun(sim, &err);
@@ -49,7 +48,7 @@ TEST(SharedLibraryBasicTests, GetResultTest)
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
-    std::string file = ieee_test_directory + "ieee14.cdf";
+    std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationPowerflow(sim, &err);
@@ -79,7 +78,7 @@ TEST(SharedLibraryBasicTests, GetObjectTests)
     GridDynError err = gridDynErrorInitialize();
     GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
-    std::string file = ieee_test_directory + "ieee14.cdf";
+    std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
     gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
     gridDynSimulationPowerflow(sim, &err);

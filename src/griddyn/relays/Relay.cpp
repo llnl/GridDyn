@@ -25,11 +25,16 @@
 #include "loadRelay.h"
 #include "pmu.h"
 #include "zonalRelay.h"
+#include <algorithm>
 #include <format>
+#include <memory>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
 
 static typeFactory<Relay> gbf("relay", stringVec{"basic"}, "basic");
 static typeFactory<sensor> snsr("relay", "sensor");
@@ -689,11 +694,11 @@ void Relay::clearCondChecks(index_t conditionNumber)
 
 std::unique_ptr<eventAdapter> Relay::make_alarm(const std::string& val)
 {
-    using namespace gmlc::utilities;
-    auto lc = convertToLowerCase(val);
+    auto lc = gmlc::utilities::convertToLowerCase(val);
     if (lc.compare(0, 5, "alarm") == 0) {
         auto codeStr = lc.substr(6);
-        auto code = numeric_conversion<std::uint32_t>(codeStr, std::uint32_t(-1));
+        auto code =
+            gmlc::utilities::numeric_conversion<std::uint32_t>(codeStr, std::uint32_t(-1));
         if (code == std::uint32_t(-1)) {
             code = getAlarmCode(codeStr);
         }

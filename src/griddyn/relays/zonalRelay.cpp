@@ -16,10 +16,13 @@
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
 #include <format>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {
-    using namespace gmlc::utilities;
+    using gmlc::utilities::ensureSizeAtLeast;
 
     zonalRelay::zonalRelay(const std::string& objName): Relay(objName)
     {
@@ -58,9 +61,8 @@ std::string commType;
 */
     void zonalRelay::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities;
         if (param == "levels") {
-            auto dvals = str2vector<double>(val, kNullVal);
+            auto dvals = gmlc::utilities::str2vector<double>(val, kNullVal);
             // check to make sure all the levels are valid
             for (auto level : dvals) {
                 if (level < -0.00001) {
@@ -70,7 +72,7 @@ std::string commType;
             set("zones", static_cast<double>(dvals.size()));
             m_zoneLevels = std::move(dvals);
         } else if (param == "delay") {
-            auto dvals = str2vector<coreTime>(val, negTime);
+            auto dvals = gmlc::utilities::str2vector<coreTime>(val, negTime);
             if (dvals.size() != m_zoneDelays.size()) {
                 throw(invalidParameterValue(param));
             }
@@ -88,7 +90,6 @@ std::string commType;
 
     void zonalRelay::set(const std::string& param, double val, units::unit unitType)
     {
-        using namespace gmlc::utilities;
         index_t zn;
         if (param == "zones") {
             m_zones = static_cast<count_t>(val);
@@ -194,8 +195,6 @@ std::string commType;
         return Relay::dynObjectInitializeA(time0, flags);
     }
 
-    using namespace comms;
-
     void zonalRelay::actionTaken(index_t ActionNum,
                                  index_t conditionNum,
                                  change_code /*actionReturn*/,
@@ -206,7 +205,8 @@ std::string commType;
 
         if (opFlags[use_commLink]) {
             if (ActionNum == 0) {
-                auto P = std::make_shared<relayMessage>(relayMessage::BREAKER_TRIP_EVENT);
+                auto P = std::make_shared<comms::relayMessage>(
+                    comms::relayMessage::BREAKER_TRIP_EVENT);
                 cManager.send(P);
             }
         }
@@ -252,11 +252,11 @@ std::string commType;
             }
         }
         if (opFlags[use_commLink]) {
-            auto P = std::make_shared<relayMessage>();
+            auto P = std::make_shared<comms::relayMessage>();
             if (conditionNum == 0) {
-                P->setMessageType(relayMessage::LOCAL_FAULT_CLEARED);
+                P->setMessageType(comms::relayMessage::LOCAL_FAULT_CLEARED);
             } else {
-                P->setMessageType(relayMessage::REMOTE_FAULT_CLEARED);
+                P->setMessageType(comms::relayMessage::REMOTE_FAULT_CLEARED);
             }
             cManager.send(P);
         }
@@ -266,15 +266,15 @@ std::string commType;
                                     std::shared_ptr<commMessage> message)
     {
         switch (message->getMessageType()) {
-            case relayMessage::BREAKER_TRIP_COMMAND:
+            case comms::relayMessage::BREAKER_TRIP_COMMAND:
                 triggerAction(0);
                 break;
-            case relayMessage::BREAKER_CLOSE_COMMAND:
+            case comms::relayMessage::BREAKER_CLOSE_COMMAND:
                 if (m_sinkObject != nullptr) {
                     m_sinkObject->set("switch" + std::to_string(m_terminal), 0);
                 }
                 break;
-            case relayMessage::BREAKER_OOS_COMMAND:
+            case comms::relayMessage::BREAKER_OOS_COMMAND:
                 for (index_t kk = 0; kk < m_zones; ++kk) {
                     setConditionStatus(kk, condition_status_t::disabled);
                 }

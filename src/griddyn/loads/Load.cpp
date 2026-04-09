@@ -14,9 +14,12 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
+using units::puMW;
+using units::unit;
 
 std::atomic<count_t> Load::loadCount(0);
 Load::Load(const std::string& objName): gridSecondary(objName)

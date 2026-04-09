@@ -9,7 +9,11 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include <cmath>
+#include <cstdio>
 #include <gtest/gtest.h>
+#include <map>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
 #define EXCITER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/exciter_tests/"
@@ -187,7 +191,7 @@ TEST_F(ExciterTests, BasicStabilityTest3)
             continue;
         }
         if (excname == "dc1a") {
-            // TODO: this doesn't work for now (unknown)
+            // TODO(phlpt): Figure out why this still fails.
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -256,7 +260,7 @@ TEST_F(ExciterTests, BasicStabilityTest4)
             continue;
         }
         if (excname == "dc1a") {
-            // TODO: this doesn't work for now (unknown)
+            // TODO(phlpt): Figure out why this still fails.
             continue;
         }
         gds = readSimXMLFile(fileName);

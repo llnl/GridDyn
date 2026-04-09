@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ISOCCONTROLLER_H_
-#define ISOCCONTROLLER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_ISOCCONTROLLER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_ISOCCONTROLLER_H_
 
 #include "../gridSubModel.h"
+#include <string>
 namespace griddyn {
 class Generator;
 
@@ -57,4 +58,4 @@ class isocController: public gridSubModel {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENERATORS_ISOCCONTROLLER_H_

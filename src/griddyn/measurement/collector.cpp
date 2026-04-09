@@ -15,10 +15,15 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridGrabbers.h"
 #include "stateGrabber.h"
+#include <algorithm>
 #include <cmath>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace gmlc::utilities;
+using gmlc::utilities::fsize_t;
 
 static classFactory<collector> collFac("collector");
 
@@ -297,7 +302,7 @@ void collector::updateColumns(int requestedColumn)
     }
 }
 
-// TODO(PT):: a lot of repeated code here try to merge them
+// TODO(phlpt): Merge the repeated add-path code.
 void collector::add(std::shared_ptr<gridGrabber> ggb, int requestedColumn)  // NOLINT
 {
     int newColumn = getColumn(requestedColumn);
@@ -382,7 +387,7 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
     if (gdRI.field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
         // if multiple fields were specified by comma or semicolon separation
-        auto v = stringOps::splitlineBracket(gdRI.field, ",;");
+        auto v = gmlc::utilities::stringOps::splitlineBracket(gdRI.field, ",;");
         if (v.size() > 1) {
             int ccol = gdRI.column;
             auto tempInfo = gdRI;
@@ -434,7 +439,7 @@ void collector::add(const std::string& field, coreObject* obj)
     if (field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
         // if multiple fields were delimited by comma or semicolon
-        auto grabberStrings = stringOps::splitlineBracket(field, ",;");
+        auto grabberStrings = gmlc::utilities::stringOps::splitlineBracket(field, ",;");
         for (const auto& fld : grabberStrings) {
             add(fld, obj);
         }
@@ -461,9 +466,9 @@ void collector::reset()
 }
 
 void collector::flush() {}
-static const std::string emptyString;
 const std::string& collector::getSinkName() const
 {
+    static const std::string emptyString;
     return emptyString;
 }
 std::unique_ptr<collector> makeCollector(const std::string& type, const std::string& name)

@@ -13,8 +13,8 @@
 #include "utilities/dataDictionary.h"
 #include <cassert>
 #include <cmath>
-
-using namespace gmlc::utilities;
+#include <string>
+#include <unordered_map>
 
 namespace griddyn {
 // start at 101 since there are some objects that use low numbers as a check for interface number
@@ -27,7 +27,7 @@ coreObject::coreObject(const std::string& objName): m_refCount(0), m_oid(s_obcnt
     // not using updateName since in many cases the id has not been set yet
     if (!name.empty() && (name.back() == '#')) {
         name.pop_back();
-        stringOps::appendInteger(name, m_oid);
+        gmlc::utilities::stringOps::appendInteger(name, m_oid);
     }
     parent = &nullObject0;
 }
@@ -69,15 +69,15 @@ void coreObject::updateName()
     switch (name.back()) {
         case '$':
             name.pop_back();
-            stringOps::appendInteger(name, id);
+            gmlc::utilities::stringOps::appendInteger(name, id);
             break;
         case '#':
             name.pop_back();
-            stringOps::appendInteger(name, m_oid);
+            gmlc::utilities::stringOps::appendInteger(name, m_oid);
             break;
         case '@':
             name.pop_back();
-            stringOps::appendInteger(name, locIndex);
+            gmlc::utilities::stringOps::appendInteger(name, locIndex);
             break;
         default:
             break;
@@ -162,7 +162,7 @@ void coreObject::set(const std::string& param, const std::string& val)
         } else if (val == "false") {
             setFlag(param, false);
         } else {
-            auto lower = convertToLowerCase(param);
+            auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val);
                 LOG_WARNING(std::string("parameters should be lower case \"") + param +
@@ -250,7 +250,7 @@ void coreObject::setFlag(const std::string& flag, bool val)
     } else if ((flag.empty()) || (flag.front() == '#')) {
         // comment parameter meant to do nothing
     } else {
-        auto lower = convertToLowerCase(flag);
+        auto lower = gmlc::utilities::convertToLowerCase(flag);
         if (lower != flag) {
             setFlag(lower, val);
             LOG_WARNING(std::string("flags should be lower case \"") + flag + "\" is not");
@@ -310,7 +310,7 @@ void coreObject::set(const std::string& param, double val, units::unit unitType)
             setFlag(param, (val > 0.1));
         }
         catch (const unrecognizedParameter&) {
-            auto lower = convertToLowerCase(param);
+            auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val, unitType);
                 LOG_WARNING(std::string("parameters should be lower case \"") + param +
@@ -445,10 +445,9 @@ void removeReference(coreObject* objToDelete, const coreObject* parent)
 
 void setMultipleFlags(coreObject* obj, const std::string& flags)
 {
-    using namespace gmlc::utilities;
-    auto lcflags = convertToLowerCase(flags);
-    auto flgs = string_viewOps::split(lcflags);
-    string_viewOps::trim(flgs);
+    auto lcflags = gmlc::utilities::convertToLowerCase(flags);
+    auto flgs = gmlc::utilities::string_viewOps::split(lcflags);
+    gmlc::utilities::string_viewOps::trim(flgs);
     for (const auto& flag : flgs) {
         if (flag.empty()) {
             continue;

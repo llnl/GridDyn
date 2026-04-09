@@ -4,10 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef SENSOR_RELAY_H_
-#define SENSOR_RELAY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_
 
 #include "../Relay.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class Block;
@@ -206,4 +209,4 @@ class sensor: public Relay {
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;
 };
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_

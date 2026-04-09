@@ -5,6 +5,9 @@
  */
 #pragma once
 #include "gridSecondary.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace utilities {
 class OperatingBoundary;

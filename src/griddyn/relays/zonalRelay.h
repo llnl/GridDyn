@@ -1,3 +1,6 @@
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_
+
 /*
  * Copyright (c) 2014-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
@@ -5,6 +8,9 @@
  */
 
 #include "../Relay.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace relays {
@@ -61,3 +67,4 @@ comparing to specific thresholds. This zonal relays runs off a single impedance 
     };
 }  // namespace relays
 }  // namespace griddyn
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_

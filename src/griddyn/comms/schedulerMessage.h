@@ -7,6 +7,8 @@
 #pragma once
 #include "commMessage.h"
 #include <cereal/types/vector.hpp>
+#include <string>
+#include <vector>
 
 #define BASE_SCHEDULER_MESSAGE_NUMBER 800
 namespace griddyn {

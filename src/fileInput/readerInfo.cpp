@@ -16,9 +16,13 @@
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
+#include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 namespace griddyn {
-using namespace readerConfig;
 
 namespace {
     std::tm makeUtcTm(std::time_t timeValue)
@@ -44,7 +48,7 @@ namespace {
     }
 
     template<class Duration>
-    long long fractionalMicros(const Duration& timePointDuration)
+    std::int64_t fractionalMicros(const Duration& timePointDuration)
     {
         return std::chrono::duration_cast<std::chrono::microseconds>(timePointDuration %
                                                                      std::chrono::seconds(1))
@@ -269,7 +273,7 @@ coreObject* readerInfo::findLibraryObject(const std::string& objName) const
     return nullptr;
 }
 
-const std::string libraryLabel = "library";
+const char libraryLabel[] = "library";
 coreObject* readerInfo::makeLibraryObject(const std::string& objName, coreObject* mobj)
 {
     auto objloc = library.find(objName);

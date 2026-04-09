@@ -13,11 +13,13 @@
 #include "readerHelper.h"
 #include <cstdio>
 #include <filesystem>
+#include <memory>
 #include <sstream>
+#include <string>
 #include <utility>
 
 namespace griddyn {
-using namespace readerConfig;
+using readerConfig::default_xml_reader;
 
 std::unique_ptr<gridDynSimulation>
     readSimXMLFile(const std::string& fileName, readerInfo* ri, xmlreader rtype)

@@ -8,8 +8,8 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef _SPARSE_VECTOR_DATA_H_
-#define _SPARSE_VECTOR_DATA_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_
+#define ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_
 
 #include "indexTypes.hpp"
 #include <algorithm>
@@ -147,4 +147,4 @@ class vectData {
     }
 };
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_

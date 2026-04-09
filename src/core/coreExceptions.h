@@ -9,6 +9,7 @@
 #include "coreObject.h"
 #include <exception>
 #include <stdexcept>
+#include <string>
 
 namespace griddyn {
 /** exception class for use in griddyn*/

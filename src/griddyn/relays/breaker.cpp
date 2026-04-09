@@ -17,10 +17,14 @@
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {
-    using namespace units;
+    using units::convert;
+    using units::puA;
     breaker::breaker(const std::string& objName): Relay(objName), useCTI(extra_bool)
     {
         opFlags.set(continuous_flag);

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gridComponent.h"
+#include <string>
 
 namespace griddyn {
 class gridBus;

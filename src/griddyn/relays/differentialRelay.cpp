@@ -14,6 +14,9 @@
 #include "../gridBus.h"
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {
@@ -158,8 +161,6 @@ namespace relays {
         Relay::pFlowObjectInitializeA(time0, flags);
     }
 
-    using namespace comms;
-
     void differentialRelay::actionTaken(index_t ActionNum,
                                         index_t /*conditionNum*/,
                                         change_code /*actionReturn*/,
@@ -169,7 +170,8 @@ namespace relays {
 
         if (opFlags[use_commLink]) {
             if (ActionNum == 0) {
-                auto P = std::make_shared<relayMessage>(relayMessage::BREAKER_TRIP_EVENT);
+                auto P = std::make_shared<comms::relayMessage>(
+                    comms::relayMessage::BREAKER_TRIP_EVENT);
                 cManager.send(std::move(P));
             }
         }
@@ -180,7 +182,8 @@ namespace relays {
         LOG_NORMAL("differential condition met");
         if (opFlags.test(use_commLink)) {
             // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
-            auto P = std::make_shared<relayMessage>(relayMessage::LOCAL_FAULT_EVENT);
+            auto P =
+                std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
             cManager.send(P);
         }
     }
@@ -190,7 +193,8 @@ namespace relays {
         LOG_NORMAL("differential condition cleared");
 
         if (opFlags.test(use_commLink)) {
-            auto P = std::make_shared<relayMessage>(relayMessage::LOCAL_FAULT_CLEARED);
+            auto P =
+                std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_CLEARED);
             cManager.send(P);
         }
     }
@@ -199,15 +203,15 @@ namespace relays {
                                            std::shared_ptr<commMessage> message)
     {
         switch (message->getMessageType()) {
-            case relayMessage::BREAKER_TRIP_COMMAND:
+            case comms::relayMessage::BREAKER_TRIP_COMMAND:
                 triggerAction(0);
                 break;
-            case relayMessage::BREAKER_CLOSE_COMMAND:
+            case comms::relayMessage::BREAKER_CLOSE_COMMAND:
                 if (m_sinkObject != nullptr) {
                     m_sinkObject->set("enable", 1);
                 }
                 break;
-            case relayMessage::BREAKER_OOS_COMMAND:
+            case comms::relayMessage::BREAKER_OOS_COMMAND:
 
                 setConditionStatus(0, condition_status_t::disabled);
                 break;

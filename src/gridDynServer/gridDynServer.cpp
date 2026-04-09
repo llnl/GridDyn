@@ -16,8 +16,13 @@
 #include <cctype>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <vector>
 
-using namespace boost::asio::ip;
+using boost::asio::ip::tcp;
+using boost::asio::ip::udp;
 
 gridDynServer::gridDynServer()
 {

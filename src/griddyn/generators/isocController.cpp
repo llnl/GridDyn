@@ -11,6 +11,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
+#include <string>
 
 namespace griddyn {
 isocController::isocController(const std::string& objName): gridSubModel(objName) {}

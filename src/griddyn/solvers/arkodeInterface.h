@@ -10,10 +10,13 @@
  * LLNS Copyright End
  */
 
-#ifndef _ARKODE_SOLVER_INTERFACE_H_
-#define _ARKODE_SOLVER_INTERFACE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_
 
 #include "sundialsInterface.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace solvers {
@@ -83,4 +86,4 @@ namespace solvers {
 }  // namespace solvers
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_

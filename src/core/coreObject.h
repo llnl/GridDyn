@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <memory>
+#include <string>
 
 // disable a funny warning (bug in visual studio 2015)
 #ifdef _MSC_VER

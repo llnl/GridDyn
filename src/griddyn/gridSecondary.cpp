@@ -11,6 +11,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridBus.h"
 #include "gridSubModel.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 static gridBus defBus(1.0, 0);

@@ -13,6 +13,8 @@
 #include "griddyn/comms/Communicator.h"
 #include "zmqLibrary/zmqSocketDescriptor.h"
 #include <bitset>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 /** namespace containing zmq specific interface objects*/

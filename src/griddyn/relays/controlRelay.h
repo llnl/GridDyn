@@ -3,12 +3,15 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef CONTROL_RELAY_H_
-#define CONTROL_RELAY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_
 
 #include "../Link.h"  //some special features for links
 #include "../Relay.h"
+#include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace griddyn {
 class commMessage;
@@ -114,4 +117,4 @@ namespace relays {
 }  // namespace relays
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_

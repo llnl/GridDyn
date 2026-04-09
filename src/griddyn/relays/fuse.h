@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FUSE_RELAY_H_
-#define FUSE_RELAY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_
 
 #include "../Relay.h"
 #include <cstdint>
+#include <string>
 namespace griddyn {
 namespace relays {
     /** fuse implements a standard power system fuse which can blow on time or using and I^2t
@@ -95,4 +96,4 @@ namespace relays {
     };
 }  // namespace relays
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_

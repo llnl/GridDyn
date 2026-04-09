@@ -8,11 +8,12 @@
 
 #include "gmlc/utilities/stringConversion.h"
 #include <cstring>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace comms {
-    using namespace gmlc::utilities;
-
     static dPayloadFactory<schedulerMessagePayload,
                            BASE_SCHEDULER_MESSAGE_NUMBER,
                            BASE_SCHEDULER_MESSAGE_NUMBER + 16>
@@ -80,7 +81,7 @@ namespace comms {
     {
         std::vector<double> targets;
         if (fromString.size() - offset > 1) {
-            targets = str2vector(fromString.substr(offset), kNullVal, "@ ");
+            targets = gmlc::utilities::str2vector(fromString.substr(offset), kNullVal, "@ ");
         }
 
         auto loadtargets = [this](std::vector<double> newTargets) {

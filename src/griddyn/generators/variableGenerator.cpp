@@ -10,9 +10,12 @@
 #include "../Source.h"
 #include "../gridBus.h"
 #include "core/coreObjectTemplates.hpp"
+#include <string>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
+using units::puV;
+using units::unit;
 
 variableGenerator::variableGenerator(const std::string& objName): DynamicGenerator(objName)
 {

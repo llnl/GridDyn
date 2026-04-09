@@ -9,15 +9,18 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "grabberInterpreter.hpp"
 #include "grabberSet.h"
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace griddyn {
-using namespace gmlc::utilities;
 
 std::unique_ptr<Condition> make_condition(const std::string& condString, coreObject* rootObject)
 {
-    auto cString = stringOps::xmlCharacterCodeReplace(condString);
+    auto cString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(condString);
     // size_t posA = condString.find_first_of("&|");
-    // TODO:PT: deal with parenthesis and &| conditions
+    // TODO(phlpt): Handle parenthesized and &| conditions.
 
     size_t pos = cString.find_first_of("><=!");
     if (pos == std::string::npos) {
@@ -26,10 +29,10 @@ std::unique_ptr<Condition> make_condition(const std::string& condString, coreObj
 
     char A = cString[pos];
     char B = cString[pos + 1];
-    std::string BlockA = stringOps::trim(cString.substr(0, pos - 1));
+    std::string BlockA = gmlc::utilities::stringOps::trim(cString.substr(0, pos - 1));
     std::string BlockB = (B == '=') ? cString.substr(pos + 2) : cString.substr(pos + 1);
 
-    stringOps::trimString(BlockB);
+    gmlc::utilities::stringOps::trimString(BlockB);
     auto gc = std::make_unique<Condition>();
 
     // get the state grabbers part

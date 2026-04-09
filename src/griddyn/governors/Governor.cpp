@@ -11,6 +11,8 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 // Create the component factories for the various governors
@@ -32,7 +34,12 @@ namespace governors {
     static childTypeFactory<GovernorTgov1, Governor> gfgov5("governor", stringVec{"tgov1"});
 
 }  // namespace governors
-using namespace units;
+using units::convert;
+using units::puHz;
+using units::puMW;
+using units::rad;
+using units::second;
+using units::unit;
 
 Governor::Governor(const std::string& objName):
     gridSubModel(objName), dbb("deadband"), cb(T1, "filter"), delay(T3, "outFilter")
@@ -287,7 +294,7 @@ void Governor::set(const std::string& param, double val, unit unitType)
         delay.set("t1", val);
     } else if ((param == "omegaref") || (param == "wref")) {
         Wref = convert(val, unitType, rad / second);
-        // TODO:PT deal with changing reference frequency
+        // TODO(phlpt): Decide how to handle changes to the reference frequency after init.
     } else if (param == "pmax") {
         Pmax = convert(val, unitType, puMW, systemBasePower);
         delay.set("max", Pmax);

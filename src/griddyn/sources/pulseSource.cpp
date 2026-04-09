@@ -10,6 +10,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace sources {
@@ -21,7 +22,7 @@ double period;
 double duty_cylce;
 double A;
 double nextCycleTime;*/
-    using namespace units;
+    using units::unit;
 
     pulseSource::pulseSource(const std::string& objName, double startVal):
         Source(objName, startVal), baseValue(startVal)

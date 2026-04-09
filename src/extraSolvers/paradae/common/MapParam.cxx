@@ -17,8 +17,15 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <utility>
 
-using namespace std;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::pair;
+using std::string;
 
 namespace griddyn {
 namespace paradae {

@@ -15,7 +15,10 @@
 // libraries
 #include "griddyn/griddyn-config.h"
 #include <functional>
+#include <memory>
 #include <queue>
+#include <string>
+#include <vector>
 namespace griddyn {
 #define SINGLE (1)
 #define MULTICORE (2)

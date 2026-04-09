@@ -13,8 +13,9 @@
 #include <cstddef>
 #include <cstring>
 #include <iostream>
-
-using namespace std;
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 
@@ -91,7 +92,7 @@ GhostSwingBusManager::~GhostSwingBusManager()
 }
 
 // for Transmission
-int GhostSwingBusManager::createGridlabDInstance(const string& arguments)
+int GhostSwingBusManager::createGridlabDInstance(const std::string& arguments)
 {
     assert(arguments.size() <=
            PATH_MAX * 4);  // there is a bug in Visual studio where the sizeof doesn't
@@ -99,8 +100,8 @@ int GhostSwingBusManager::createGridlabDInstance(const string& arguments)
 
     int taskId = m_nextTaskId++;
     if (g_printStuff) {
-        cout << "Task: " << taskId << " creating new GridLAB-D instance with args " << arguments
-             << endl;
+        std::cout << "Task: " << taskId << " creating new GridLAB-D instance with args "
+                  << arguments << std::endl;
     }
 
 #ifdef GRIDDYN_ENABLE_MPI
@@ -132,8 +133,8 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 {
     // populate message structure
     if (g_printStuff) {
-        cout << "taskId: " << taskId << " voltage[0]: " << endl
-             << "** LEB: vector size = " << voltage.size() << endl;
+        std::cout << "taskId: " << taskId << " voltage[0]: " << std::endl
+                  << "** LEB: vector size = " << voltage.size() << std::endl;
     }
 
     // calculate number of ThreePhaseVoltages in voltage
@@ -149,7 +150,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
             if (g_printStuff) {
                 std::cout << "\tvoltage[" << i << "][" << j << "] = " << voltage[(i * 3) + j]
                           << " abs = " << std::abs(voltage[(i * 3) + j])
-                          << " arg = " << std::arg(voltage[(i * 3) + j]) << endl;
+                          << " arg = " << std::arg(voltage[(i * 3) + j]) << std::endl;
             }
             m_voltSendMessage[taskId].voltage[i].real[j] = voltage[(i * 3) + j].real();
             m_voltSendMessage[taskId].voltage[i].imag[j] = voltage[(i * 3) + j].imag();
@@ -201,7 +202,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 void GhostSwingBusManager::sendStopMessage(int taskId)
 {
     if (g_printStuff) {
-        cout << "Sending STOP message to Distribution task " << taskId << endl;
+        std::cout << "Sending STOP message to Distribution task " << taskId << std::endl;
     }
 #ifdef GRIDDYN_ENABLE_MPI
     // Blocking send to gridlabd task
@@ -215,7 +216,7 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
 {
     int numThreePhaseCurrent;
     if (g_printStuff) {
-        cout << "Transmission *waiting* to get current from Task: " << taskId << endl;
+        std::cout << "Transmission *waiting* to get current from Task: " << taskId << std::endl;
     }
 
 #ifdef GRIDDYN_ENABLE_MPI
@@ -232,8 +233,8 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
 
     numThreePhaseCurrent = m_currReceiveMessage[taskId].numThreePhaseCurrent;
     if (g_printStuff) {
-        cout << "Current received from Task:" << taskId
-             << ", numThreePhaseCurrent = " << numThreePhaseCurrent << endl;
+        std::cout << "Current received from Task:" << taskId
+                  << ", numThreePhaseCurrent = " << numThreePhaseCurrent << std::endl;
     }
     current.resize(numThreePhaseCurrent *
                    3);  // resize vector to number of three phase currents received.
@@ -242,10 +243,10 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
             current[(i * 3) + j].real(m_currReceiveMessage[taskId].current[i].real[j]);
             current[(i * 3) + j].imag(m_currReceiveMessage[taskId].current[i].imag[j]);
             if (g_printStuff) {
-                cout << "\tcurrReceiveMessage, current[" << (i * 3) + j
-                     << "] = " << current[(i * 3) + j]
-                     << " abs = " << std::abs(current[(i * 3) + j])
-                     << " arg = " << std::arg(current[(i * 3) + j]) << endl;
+                std::cout << "\tcurrReceiveMessage, current[" << (i * 3) + j
+                          << "] = " << current[(i * 3) + j]
+                          << " abs = " << std::abs(current[(i * 3) + j])
+                          << " arg = " << std::arg(current[(i * 3) + j]) << std::endl;
             }
         }
     }
@@ -261,7 +262,7 @@ void GhostSwingBusManager::endSimulation()
 #ifdef GRIDDYN_ENABLE_MPI
 
     if (g_printStuff) {
-        cout << "end task : " << m_taskId << endl;
+        std::cout << "end task : " << m_taskId << std::endl;
     }
 #endif
     // clear the shared_ptr, the object will probably get deleted at this point and will be unable

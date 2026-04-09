@@ -10,6 +10,7 @@
 #include "core/objectFactoryTemplates.hpp"
 #include "otherSources.h"
 #include "sourceTypes.h"
+#include <string>
 
 namespace griddyn {
 // setup the load object factories

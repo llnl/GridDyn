@@ -22,11 +22,12 @@ Livermore National Security, LLC.
 #include "zmqReactor.h"
 
 #include "zmqContextManager.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace zmqlib {
 std::vector<std::shared_ptr<zmqReactor>> zmqReactor::reactors;
-
-using namespace zmq;
 
 static std::mutex reactorCreationLock;
 
@@ -34,7 +35,8 @@ zmqReactor::zmqReactor(const std::string& reactorName, const std::string& contex
     name(reactorName)
 {
     contextManager = zmqContextManager::getContextPointer(context);
-    notifier = std::make_unique<socket_t>(contextManager->getContext(), socket_type::pair);
+    notifier =
+        std::make_unique<zmq::socket_t>(contextManager->getContext(), zmq::socket_type::pair);
     std::string constring = "inproc://reactor_" + name;
     notifier->bind(constring.c_str());
 
@@ -141,10 +143,10 @@ void zmqReactor::reactorLoop()
 {
     // make the signaling socket
     // use mostly local variables
-    std::vector<socket_t> sockets;
+    std::vector<zmq::socket_t> sockets;
     unsigned int messageCode = 0;
 
-    sockets.emplace_back(contextManager->getContext(), socket_type::pair);
+    sockets.emplace_back(contextManager->getContext(), zmq::socket_type::pair);
     sockets[0].connect(std::string("inproc://reactor_" + name).c_str());
 
     std::vector<zmq_pollitem_t> socketPolls;
@@ -160,12 +162,12 @@ void zmqReactor::reactorLoop()
     socketPolls[0].revents = 0;
     reactorLoopRunning = true;
     while (true) {
-        int val = poll(socketPolls);
+        int val = zmq::poll(socketPolls);
         if (val > 0) {
             // do the callbacks for any socket with a message received
             for (int kk = 1; kk < socketCount; ++kk) {
                 if ((socketPolls[kk].revents & ZMQ_POLLIN) != 0) {
-                    socketCallbacks[kk](multipart_t(sockets[kk]));
+                    socketCallbacks[kk](zmq::multipart_t(sockets[kk]));
                 }
             }
             // deal with any socket updates as triggered by a message on socket 0

@@ -7,8 +7,7 @@
 #include "objectInterpreter.h"
 
 #include "gmlc/utilities/stringConversion.h"
-
-using namespace gmlc::utilities;
+#include <string>
 
 namespace griddyn {
 objInfo::objInfo(const std::string& Istring, const coreObject* obj)
@@ -33,12 +32,12 @@ void objInfo::LoadInfo(const std::string& Istring, const coreObject* obj)
         size_t rlc2 = m_field.find_last_of(')');
         m_unitType =
             units::unit_cast(units::unit_from_string(m_field.substr(rlc + 1, rlc2 - rlc - 1)));
-        m_field = convertToLowerCase(m_field.substr(0, rlc));
+        m_field = gmlc::utilities::convertToLowerCase(m_field.substr(0, rlc));
     } else {
-        m_field = convertToLowerCase(m_field);
+        m_field = gmlc::utilities::convertToLowerCase(m_field);
     }
 
-    stringOps::trimString(m_field);
+    gmlc::utilities::stringOps::trimString(m_field);
 }
 
 // TODO(PT):: convert to using stringView
@@ -75,12 +74,12 @@ coreObject* locateObject(const std::string& Istring,
         if (obj == nullptr) {
             auto rlc2 = mname.find_last_of("#$!");
             if (rlc2 != std::string::npos) {
-                auto type = convertToLowerCase(mname.substr(0, rlc2));
+                auto type = gmlc::utilities::convertToLowerCase(mname.substr(0, rlc2));
                 if (type.empty()) {
                     type = "subobject";
                 }
                 auto num = mname.substr(rlc2 + 1);
-                auto onum = numeric_conversion<int>(num, -1);
+                auto onum = gmlc::utilities::numeric_conversion<int>(num, -1);
                 if (onum >= 0) {
                     switch (mname[rlc2]) {
                         case '$':  //$ means get by id

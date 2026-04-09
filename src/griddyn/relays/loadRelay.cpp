@@ -10,6 +10,9 @@
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
 #include <format>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {

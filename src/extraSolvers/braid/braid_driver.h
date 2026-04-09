@@ -9,8 +9,8 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#ifndef braid_driver_h
-#define braid_driver_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_
 
 #include "../paradae/math/SMultiVector.h"
 #include "../paradae/math/Vector.h"
@@ -132,4 +132,4 @@ namespace braid {
 
 }  // namespace braid
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_

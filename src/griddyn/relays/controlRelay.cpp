@@ -17,6 +17,9 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <format>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {

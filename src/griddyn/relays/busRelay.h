@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Relay.h"
+#include <string>
 namespace griddyn {
 namespace relays {
     /** relay object for bus protection can isolate a bus based on voltage or frequency

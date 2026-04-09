@@ -11,6 +11,7 @@
 #include "../gridDynDefinitions.hpp"
 #include "core/objectOperatorInterface.hpp"
 #include <memory>
+#include <string>
 
 template<class Y>
 class matrixData;

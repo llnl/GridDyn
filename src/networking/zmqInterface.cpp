@@ -17,6 +17,7 @@
 #include "dimeCollector.h"
 #include "dimeCommunicator.h"
 #include "zmqCommunicator.h"
+#include <string>
 
 namespace griddyn {
 

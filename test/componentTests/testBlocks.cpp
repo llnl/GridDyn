@@ -14,10 +14,13 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #define BLOCK_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/block_tests/"
 
-static const std::string block_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/block_tests/");
+static const char block_test_directory[] = GRIDDYN_TEST_DIRECTORY "/block_tests/";
 using namespace griddyn;
 using namespace griddyn::blocks;
 using namespace gmlc::utilities;
@@ -30,7 +33,7 @@ class BlockCompareTests:
 
 TEST_F(BlockTests, TestGainBlock)
 {
-    std::string fileName = block_test_directory + "block_tests1.xml";
+    std::string fileName = std::string(block_test_directory) + "block_tests1.xml";
 
     gds = readSimXMLFile(fileName);
 

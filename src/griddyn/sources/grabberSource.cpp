@@ -9,6 +9,8 @@
 #include "../measurement/grabberSet.h"
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectInterpreter.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace sources {

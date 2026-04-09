@@ -8,10 +8,12 @@
 
 #include "../exeTestHelper.h"
 #include <cstdlib>
+#include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <string>
 
-static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
+static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
 TEST(MainExeTests, MainExeTest1)
 {
@@ -33,7 +35,7 @@ TEST(MainExeTests, CdfReadwriteTest)
 {
     exeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
     if (mainExeRunner.isActive()) {
-        std::string fileName = pFlow_test_directory + "test_powerflow3m9b2.xml";
+        std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
         auto out = mainExeRunner.runCaptureOutput(
             fileName + " --powerflow-only --powerflow-output testout.cdf");
         std::cout << out;

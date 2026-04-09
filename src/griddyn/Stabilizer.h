@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYNSTABILIZER_H_
-#define GRIDDYNSTABILIZER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_STABILIZER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_STABILIZER_H_
 
 #include "gridSubModel.h"
+#include <string>
 
 namespace griddyn {
 class Stabilizer: public gridSubModel {
@@ -53,4 +54,4 @@ class Stabilizer: public gridSubModel {
 
 }  // namespace griddyn
 
-#endif  // GRIDDYNPSS_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_STABILIZER_H_

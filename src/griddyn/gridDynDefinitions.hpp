@@ -6,6 +6,8 @@
 
 #pragma once
 #include "../core/coreDefinitions.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 constexpr double kPI(3.1415926535897931);  // defining a Pi constant

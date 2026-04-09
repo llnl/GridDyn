@@ -7,6 +7,7 @@
 #include "gridSubModel.h"
 
 #include "measurement/objectGrabbers.h"
+#include <string>
 
 namespace griddyn {
 gridSubModel::gridSubModel(const std::string& objName): gridComponent(objName)

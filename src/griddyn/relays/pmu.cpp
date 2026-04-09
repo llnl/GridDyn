@@ -19,6 +19,9 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {
@@ -65,7 +68,8 @@ namespace relays {
         }
     }
 
-    using namespace units;
+    using units::convert;
+    using units::unit;
 
     void pmu::set(const std::string& param, double val, unit unitType)
     {

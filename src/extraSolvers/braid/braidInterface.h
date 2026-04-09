@@ -16,10 +16,16 @@
 #include "../paradae/math/paradaeArrayData.h"
 #include "../paradae/problems/ODEProblem.h"
 #include "griddyn/solvers/solverInterface.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace braid {
-    using namespace paradae;
+    using griddyn::paradae::Equation;
+    using griddyn::paradae::MapParam;
+    using griddyn::paradae::ODEProblem;
+    using griddyn::paradae::Real;
 
     /** @brief class implementing XBraid algorithms for power system DAEs
      */

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ALL_GD_OBJECTS
-#define ALL_GD_OBJECTS
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_
 
 #include "Block.h"
 #include "Exciter.h"
@@ -26,4 +26,4 @@
 #include "measurement/collector.h"
 #include "relays/zonalRelay.h"
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_

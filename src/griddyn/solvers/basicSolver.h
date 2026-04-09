@@ -7,6 +7,9 @@
 #pragma once
 
 #include "solverInterface.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 /** namespace containing the various types of solvers that can be used with GridDyn*/

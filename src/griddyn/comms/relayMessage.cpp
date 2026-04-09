@@ -13,6 +13,7 @@
 
 #include "utilities/stringOps.h"
 #include <map>
+#include <string>
 
 namespace griddyn {
 namespace comms {

@@ -9,6 +9,9 @@
 #include "../gridDynSimulation.h"
 #include "../solvers/solverInterface.h"
 #include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 powerFlowErrorRecovery::powerFlowErrorRecovery(gridDynSimulation* gds,

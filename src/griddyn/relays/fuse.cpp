@@ -18,11 +18,17 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace relays {
-    using namespace units;
+    using units::convert;
+    using units::puA;
     fuse::fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
     {
         opFlags.set(continuous_flag);
@@ -247,7 +253,7 @@ namespace relays {
                                 const IOlocs& /*inputLocs*/,
                                 const solverMode& sMode)
     {
-        // TODO don't use matrixDataSparse here use a translation matrix
+        // TODO(phlpt): Replace matrixDataSparse here with a translation matrix.
         if (useI2T) {
             matrixDataSparse<double> d;
             IOdata out;

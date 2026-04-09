@@ -8,6 +8,8 @@
 
 #include "coreObject.h"
 
+#include <string>
+
 namespace griddyn {
 /** @brief      a nullObject class
 pretty much does nothing it absorbs logs and alerts (its parent is itself)

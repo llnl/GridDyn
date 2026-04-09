@@ -9,8 +9,8 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#ifndef timer_h
-#define timer_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
 
 #include "../math/SVector.h"
 #include "def.h"
@@ -31,7 +31,7 @@ namespace paradae {
 #        undef TIMER_INTRUSION
 #        define TIMER_INTRUSION 1
 #    endif
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
 
 #ifdef TIMER_GRIDDYN
 #    if TIMER_INTRUSION < 1

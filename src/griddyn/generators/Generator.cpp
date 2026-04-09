@@ -16,6 +16,9 @@
 #include "utilities/OperatingBoundary.h"
 #include "utilities/matrixData.hpp"
 #include "variableGenerator.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 // #include <set>
 /*
@@ -38,7 +41,15 @@ static childTypeFactory<DynamicGenerator, Generator>
     dgf("generator", stringVec{"dynamic", "spinning"}, "dynamic");
 static childTypeFactory<variableGenerator, Generator> vgf("generator",
                                                           stringVec{"variable", "renewable"});
-using namespace units;
+using units::convert;
+using units::MVAR;
+using units::MW;
+using units::puHz;
+using units::puMW;
+using units::puV;
+using units::rad;
+using units::second;
+using units::unit;
 
 std::atomic<count_t> Generator::genCount(0);
 // default bus object

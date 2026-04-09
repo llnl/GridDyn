@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <string>
+
 #define AUTOGEN_SET /*autogen:set*/                                                                \
     virtual void set(const std::string& param,                                                     \
                      double val,                                                                   \

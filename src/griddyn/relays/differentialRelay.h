@@ -3,8 +3,15 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_
+
 #include "../Relay.h"
 #include "../comms/commMessage.h"
+#include <memory>
+#include <string>
+
 namespace griddyn {
 namespace relays {
     /** relay implementing differential relay protection scheme
@@ -51,3 +58,5 @@ namespace relays {
 
 }  // namespace relays
 }  // namespace griddyn
+
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_

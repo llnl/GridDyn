@@ -13,14 +13,17 @@
 #include "griddyn/simulation/gridSimulation.h"
 #include "runner/gridDynRunner.h"
 #include <cmath>
+#include <iostream>
+#include <vector>
 
 #include <boost/container/small_vector.hpp>
 
 namespace griddyn {
 namespace paradae {
 
-    using namespace std;
-    using namespace griddyn;
+    using std::cerr;
+    using std::endl;
+    using std::vector;
 
     EquationGridDyn::EquationGridDyn(Real t0_,
                                      Real Tmax_,

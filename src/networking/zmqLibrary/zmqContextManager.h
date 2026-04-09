@@ -20,8 +20,8 @@ Livermore National Security, LLC.
  * LLNS Copyright End
  */
 
-#ifndef ZMQ_CONTEXT_MANAGER_HEADER_
-#define ZMQ_CONTEXT_MANAGER_HEADER_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQCONTEXTMANAGER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQCONTEXTMANAGER_H_
 
 #include <map>
 #include <memory>
@@ -66,4 +66,4 @@ class zmqContextManager {
 };
 
 }  // namespace zmqlib
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQCONTEXTMANAGER_H_

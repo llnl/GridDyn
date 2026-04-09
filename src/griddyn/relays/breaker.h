@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BREAKER_RELAY_H_
-#define BREAKER_RELAY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_BREAKER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_BREAKER_H_
 
 #include "../Relay.h"
+#include <string>
 namespace griddyn {
 namespace relays {
     /** relay implementing a overcurrent breaker for a transmission line
@@ -99,4 +100,4 @@ namespace relays {
 
 }  // namespace relays
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_BREAKER_H_

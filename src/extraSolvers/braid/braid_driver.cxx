@@ -15,21 +15,46 @@
 #include "../paradae/math/IVander.h"
 #include "../paradae/math/IVanderExt.h"
 #include "../paradae/timeintegrators/BackwardDiff.h"
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
+#include <utility>
 
 #ifdef STATS_NEWTON
 #    include "solvers/NewtonStats.h"
 #endif
 
-using namespace std;
-using namespace griddyn::paradae;
+using griddyn::paradae::BackwardDiff;
+using griddyn::paradae::DATA_Struct;
+using griddyn::paradae::ODE;
+using griddyn::paradae::PVector;
+using griddyn::paradae::RCODE;
+using griddyn::paradae::Real;
+using griddyn::paradae::SMultiVector;
+using griddyn::paradae::SVector;
+using std::abort;
+using std::abs;
+using std::ceil;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::map;
+using std::max;
+using std::memcpy;
+using std::min;
+using std::ofstream;
+using std::ostringstream;
+using std::pair;
+using std::round;
+using std::setprecision;
 
 _braid_App_struct::_braid_App_struct(ODEProblem* ode_):
     ode(ode_), nb_multisteps(ode->GetTI()->GetType() == BDF ? ode->GetTI()->GetOrder() : 1),
     size_x(ode->GetEq()->GetM()), size_state(ode->GetEq()->GetNState()), prevlvl(-1),
-    solution_tfinal(NULL), alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state)
+        solution_tfinal(nullptr),
+        alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state)
 {
 }
 

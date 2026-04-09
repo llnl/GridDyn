@@ -8,10 +8,12 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef TX_THERMAL_MODEL_H_
-#define TX_THERMAL_MODEL_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_
 
 #include "griddyn/relays/sensor.h"
+
+#include <string>
 
 namespace griddyn {
 namespace extra {
@@ -71,4 +73,4 @@ namespace extra {
 
 }  // namespace extra
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_

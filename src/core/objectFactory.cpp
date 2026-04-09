@@ -5,6 +5,10 @@
  */
 
 #include "objectFactory.hpp"
+
+#include <memory>
+#include <string>
+#include <utility>
 namespace griddyn {
 objectFactory::objectFactory(const std::string& /*component*/, std::string typeName):
     name(std::move(typeName))

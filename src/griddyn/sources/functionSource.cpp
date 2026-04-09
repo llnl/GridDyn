@@ -7,6 +7,8 @@
 #include "functionSource.h"
 
 #include "core/coreObjectTemplates.hpp"
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace sources {

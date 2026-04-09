@@ -8,6 +8,7 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/gridDynSimulation.h"
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,12 +31,9 @@
 #define MATLAB_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/matlab_test_files/"
 #define OTHER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/other_test_cases/"
 
-static const std::string ieee_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/IEEE_test_cases/");
-static const std::string matlab_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/matlab_test_files/");
-static const std::string other_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/other_test_cases/");
+static const char ieee_test_directory[] = GRIDDYN_TEST_DIRECTORY "/IEEE_test_cases/";
+static const char matlab_test_directory[] = GRIDDYN_TEST_DIRECTORY "/matlab_test_files/";
+static const char other_test_directory[] = GRIDDYN_TEST_DIRECTORY "/other_test_cases/";
 
 #define ENABLE_IN_DEVELOPMENT_CASES
 

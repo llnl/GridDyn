@@ -4,7 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_
+
 #include "../Relay.h"
+#include <string>
+
 namespace griddyn {
 namespace relays {
     /** class implementing a protective relay for load objects
@@ -46,3 +51,5 @@ automatically recovers
     };
 }  // namespace relays
 }  // namespace griddyn
+
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_

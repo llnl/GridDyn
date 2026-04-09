@@ -11,8 +11,9 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
-
-using namespace gmlc::utilities;
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace blocks {
@@ -216,9 +217,9 @@ namespace blocks {
     void transferFunctionBlock::set(const std::string& param, const std::string& val)
     {
         if (param == "a") {
-            a = str2vector<double>(val, 0);
+            a = gmlc::utilities::str2vector<double>(val, 0);
         } else if (param == "b") {
-            b = str2vector<double>(val, 0);
+            b = gmlc::utilities::str2vector<double>(val, 0);
         } else {
             Block::set(param, val);
         }
@@ -228,7 +229,7 @@ namespace blocks {
     {
         // param   = gridDynSimulation::toLower(param);
         std::string pstr;
-        int num = stringOps::trailingStringInt(param, pstr, -1);
+        int num = gmlc::utilities::stringOps::trailingStringInt(param, pstr, -1);
         if (pstr.length() == 1) {
             switch (pstr[0]) {
                 case '#':

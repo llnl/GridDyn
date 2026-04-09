@@ -24,6 +24,9 @@ Livermore National Security, LLC.
 #include "zmqProxyHub.h"
 
 #include <mutex>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace zmqlib {
 std::vector<std::shared_ptr<zmqProxyHub>> zmqProxyHub::proxies;

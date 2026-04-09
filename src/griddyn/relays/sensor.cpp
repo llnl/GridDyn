@@ -19,11 +19,15 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "utilities/matrixDataSparse.hpp"
 #include "utilities/matrixDataTranslate.hpp"
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::stringOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::ensureSizeAtLeast;
+using units::unit_cast_from_string;
 
 sensor::sensor(const std::string& objName): Relay(objName)
 {
@@ -157,10 +161,10 @@ void sensor::setFlag(const std::string& flag, bool val)
 void sensor::set(const std::string& param, const std::string& val)
 {
     std::string iparam;
-    int num = trailingStringInt(param, iparam);
+    int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam);
     if (iparam == "input") {
-        auto sp = splitline(val);
-        trim(sp);
+        auto sp = gmlc::utilities::stringOps::splitline(val);
+        gmlc::utilities::stringOps::trim(sp);
         if (num >= 0) {
             if (num + sp.size() - 1 >= inputStrings.size()) {
                 inputStrings.resize(num + sp.size());
@@ -180,13 +184,14 @@ void sensor::set(const std::string& param, const std::string& val)
                 ensureSizeAtLeast(outputStrings, num + sp.size());
 
                 for (auto& istr : sp) {
-                    outputStrings[num] = {getTailString(istr, ':')};
+                    outputStrings[num] = {gmlc::utilities::stringOps::getTailString(istr, ':')};
                     ++num;
                 }
             } else {
                 outputStrings.reserve(outputStrings.size() + sp.size());
                 for (auto& istr : sp) {
-                    outputStrings.push_back({getTailString(istr, ':')});
+                    outputStrings.push_back(
+                        {gmlc::utilities::stringOps::getTailString(istr, ':')});
                 }
             }
             m_outputSize = static_cast<count_t>(outputStrings.size());
@@ -209,20 +214,20 @@ void sensor::set(const std::string& param, const std::string& val)
             if (num >= static_cast<int>(outputs.size())) {
                 outputStrings.resize(static_cast<size_t>(num) + 1);
             }
-            outputStrings[num] = splitline(val);
+            outputStrings[num] = gmlc::utilities::stringOps::splitline(val);
         } else {
-            auto sep = splitlineQuotes(val);
-            trim(sep);
+            auto sep = gmlc::utilities::stringOps::splitlineQuotes(val);
+            gmlc::utilities::stringOps::trim(sep);
 
             for (auto& outputStr : sep) {
-                outputStrings.push_back(splitline(outputStr));
+                outputStrings.push_back(gmlc::utilities::stringOps::splitline(outputStr));
             }
         }
         m_outputSize = static_cast<count_t>(outputStrings.size());
     } else if ((iparam == "output") || (param == "outputs")) {
         setupOutput(num, val);
     } else if ((iparam == "blockinput") || (iparam == "process")) {
-        auto seq = str2vector<int>(val, -1, ",: ");
+        auto seq = gmlc::utilities::str2vector<int>(val, -1, ",: ");
         if (num >= 0) {
             if (seq.size() == 2u) {
                 ensureSizeAtLeast(blockInputs, static_cast<size_t>(seq[1]) + 1, -1);
@@ -255,12 +260,12 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
         if (!sval.empty()) {
             outputStrings[num] = {sval};
         }
-        auto outputValue = numeric_conversionComplete<int>(v2, -1);
+        auto outputValue = gmlc::utilities::numeric_conversionComplete<int>(v2, -1);
         if (outputValue >= 0) {
             outputs[num] = outputValue;
             outputMode[num] = outputMode_t::block;
         } else {
-            int knum = trailingStringInt(v2, sval, 0);
+            int knum = gmlc::utilities::stringOps::trailingStringInt(v2, sval, 0);
             if (sval == "input") {
                 outputs[num] = knum;
                 outputMode[num] = outputMode_t::direct;
@@ -277,8 +282,8 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
             }
         }
     } else {
-        auto sep = splitline(outputString);
-        trim(sep);
+        auto sep = gmlc::utilities::stringOps::splitline(outputString);
+        gmlc::utilities::stringOps::trim(sep);
         for (auto& v : sep) {
             setupOutput(static_cast<index_t>(outputs.size()), v);
         }
@@ -288,7 +293,7 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
 void sensor::set(const std::string& param, double val, units::unit unitType)
 {
     std::string iparam;
-    int num = trailingStringInt(param, iparam, -1);
+    int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
     if (param == "terminal") {
         m_terminal = static_cast<int>(val);
     } else if ((iparam == "blockinput") || (iparam == "process")) {
@@ -369,7 +374,7 @@ void sensor::generateInputGrabbers()
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
             if ((opFlags[link_type_source]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
-                    appendInteger(istr, m_terminal);
+                    gmlc::utilities::stringOps::appendInteger(istr, m_terminal);
                 }
             }
         }
@@ -381,7 +386,6 @@ void sensor::generateInputGrabbers()
 using cm = comms::controlMessagePayload;
 void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
 {
-    using namespace comms;
     auto* payload = message->getPayload<cm>();
 
     double val;
@@ -390,7 +394,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
         case cm::SET:
             // only local set
             try {
-                set(convertToLowerCase(payload->m_field),
+                set(gmlc::utilities::convertToLowerCase(payload->m_field),
                     payload->m_value,
                     units::unit_cast_from_string(payload->m_units));
                 if (!opFlags[no_message_reply])  // unless told not to respond return with the
@@ -415,7 +419,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
 
             break;
         case cm::GET: {
-            val = get(convertToLowerCase(payload->m_field),
+            val = get(gmlc::utilities::convertToLowerCase(payload->m_field),
                       units::unit_cast_from_string(payload->m_units));
             auto reply = std::make_shared<commMessage>(cm::GET_RESULT);
             auto rep = reply->getPayload<cm>();
@@ -437,13 +441,13 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
         case cm::GET_RESULT_MULTIPLE:
         case cm::CANCEL:
             break;
-        case controlMessagePayload::GET_MULTIPLE: {
+        case cm::GET_MULTIPLE: {
             auto reply = std::make_shared<commMessage>(cm::GET_RESULT_MULTIPLE);
             auto rep = reply->getPayload<cm>();
             rep->multiValues.resize(0);
             rep->multiFields = payload->multiFields;
             for (const auto& fieldName : payload->multiFields) {
-                val = get(convertToLowerCase(fieldName),
+                val = get(gmlc::utilities::convertToLowerCase(fieldName),
                           units::unit_cast_from_string(payload->m_units));
                 payload->multiValues.push_back(val);
             }
@@ -522,7 +526,7 @@ void sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (opFlags[continuous_flag]) {
         for (auto& dgs : dataSources) {
             if ((dgs) && (!dgs->stateCapable())) {
-                // TODO::PT Make it so it can partially support continuous sensors
+                // TODO(phlpt): Support partially continuous sensors.
                 opFlags.set(continuous_flag, false);
                 LOG_WARNING(
                     "not all data sources support continuous operation , reverting to sampled mode");
@@ -748,7 +752,7 @@ double sensor::getBlockInput(index_t blockNum, const IOdata& /*inputs*/) const
 const std::vector<stringVec>& sensor::outputNames() const
 {
     if (static_cast<count_t>(outputStrings.size()) < m_outputSize) {
-        // TODO:: this should be corrected before it gets here
+        // TODO(phlpt): Correct this before outputNames is reached.
         return gridComponent::outputNames();
     }
     return outputStrings;
@@ -827,7 +831,7 @@ index_t sensor::getOutputLoc(const solverMode& sMode, index_t outNum) const
     }
 }
 
-// TODO:: PT This is a somewhat complicated function still need to work on it
+// TODO(phlpt): Simplify this output-partial-derivatives path.
 void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const stateData& sD,
                                       matrixData<double>& md,

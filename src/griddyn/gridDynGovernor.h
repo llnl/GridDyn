@@ -18,6 +18,7 @@
 #include "submodels/controlBlocks/controlBlock.h"
 #include "submodels/controlBlocks/deadbandBlock.h"
 #include "submodels/controlBlocks/delayBlock.h"
+#include <string>
 
 namespace griddyn {
 const int govOmegaInLocation = 0;

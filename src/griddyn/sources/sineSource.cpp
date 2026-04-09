@@ -8,6 +8,7 @@
 
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace sources {

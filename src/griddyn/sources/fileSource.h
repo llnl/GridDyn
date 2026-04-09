@@ -8,6 +8,7 @@
 
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "rampSource.h"
+#include <string>
 
 namespace griddyn {
 namespace sources {

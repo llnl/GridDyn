@@ -9,14 +9,19 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "utilities/functionInterpreter.h"
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <format>
 #include <iostream>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace griddyn {
-using namespace gmlc::utilities::string_viewOps;
+using gmlc::utilities::string_viewOps::split;
+using gmlc::utilities::string_viewOps::splitlineBracket;
+using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
 
 double interpretStringBlock(string_view command, readerInfo& ri);

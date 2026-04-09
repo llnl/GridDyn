@@ -15,6 +15,7 @@
 
 #include <complex>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace griddyn {

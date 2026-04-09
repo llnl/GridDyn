@@ -10,8 +10,8 @@
  * LLNS Copyright End
  */
 
-#ifndef OTHERSOURCES_H_
-#define OTHERSOURCES_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_
 
 #include "../comms/commManager.h"
 #include "sourceTypes.h"
@@ -20,4 +20,4 @@
 namespace griddyn {
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_

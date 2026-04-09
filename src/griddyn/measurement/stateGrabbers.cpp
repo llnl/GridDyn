@@ -17,24 +17,28 @@
 #include "utilities/matrixDataScale.hpp"
 #include "utilities/matrixDataTranslate.hpp"
 #include <algorithm>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace gmlc::utilities;
 
 static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>
     sgInterpret([](const std::string& fld, coreObject* obj) {
         return std::make_unique<stateGrabber>(fld, obj);
     });
 
-static const std::string specialChars(R"(:(+-/*\^?)");
-static const std::string sepChars(",;");
+static const char specialChars[] = R"(:(+-/*\^?)";
+static const char sepChars[] = ",;";
 
 std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(const std::string& command,
                                                              coreObject* obj)
 {
     std::vector<std::unique_ptr<stateGrabber>> v;
-    auto gsplit = stringOps::splitlineBracket(command, sepChars);
-    stringOps::trim(gsplit);
+    auto gsplit = gmlc::utilities::stringOps::splitlineBracket(command, sepChars);
+    gmlc::utilities::stringOps::trim(gsplit);
     for (auto& cmd : gsplit) {
         if (cmd.find_first_of(specialChars) != std::string::npos) {
             auto sgb = sgInterpret.interpretGrabberBlock(cmd, obj);
@@ -88,7 +92,7 @@ void stateGrabber::cloneTo(stateGrabber* ggb) const
 void stateGrabber::updateField(const std::string& fld)
 {
     field = fld;
-    auto fd = convertToLowerCase(fld);
+    auto fd = gmlc::utilities::convertToLowerCase(fld);
     loaded = true;
     if (dynamic_cast<gridBus*>(cobj) != nullptr) {
         busLoadInfo(fd);
@@ -103,7 +107,13 @@ void stateGrabber::updateField(const std::string& fld)
     }
 }
 
-using namespace units;
+using units::defunit;
+using units::puA;
+using units::puHz;
+using units::puMW;
+using units::puOhm;
+using units::puV;
+using units::rad;
 
 /** map of all the alternate strings that can be used*/
 static const std::map<std::string, std::string> stringTranslate{
@@ -329,7 +339,7 @@ void stateGrabber::objectLoadInfo(const std::string& fld)
         fptr = funcfind->second.first;
     } else {
         std::string fieldStr;
-        int num = stringOps::trailingStringInt(fld, fieldStr, 0);
+        int num = gmlc::utilities::stringOps::trailingStringInt(fld, fieldStr, 0);
         if ((fieldStr == "value") || (fieldStr == "output") || (fieldStr == "o")) {
             fptr = [num](gridComponent* comp, const stateData& sD, const solverMode& sMode) {
                 return comp->getOutput(noInputs, sD, sMode, static_cast<index_t>(num));
@@ -396,7 +406,7 @@ void stateGrabber::linkLoadInfo(const std::string& fld)
 void stateGrabber::relayLoadInfo(const std::string& fld)
 {
     std::string fieldStr;
-    int num = stringOps::trailingStringInt(fld, fieldStr, 0);
+    int num = gmlc::utilities::stringOps::trailingStringInt(fld, fieldStr, 0);
     if ((fieldStr == "block") || (fieldStr == "b")) {
         if (dynamic_cast<sensor*>(cobj) != nullptr) {
             fptr = [num](gridComponent* comp, const stateData& sD, const solverMode& sMode) {

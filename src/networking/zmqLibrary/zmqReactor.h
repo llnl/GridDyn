@@ -25,7 +25,9 @@ Livermore National Security, LLC.
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <string>
 #include <thread>
+#include <vector>
 
 namespace zmqlib {
 class zmqContextManager;

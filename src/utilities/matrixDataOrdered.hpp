@@ -12,6 +12,7 @@
 
 #include "matrixDataOrdering.hpp"
 #include "utilities/matrixData.hpp"
+#include <utility>
 #include <vector>
 
 /** @brief class implementing an expandable sparse matrix with an expandable data vector for each

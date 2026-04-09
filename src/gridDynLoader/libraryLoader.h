@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef LIBRARY_LOADER_H_
-#define LIBRARY_LOADER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYNLOADER_LIBRARYLOADER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYNLOADER_LIBRARYLOADER_H_
 
 namespace griddyn {
 void loadLibraries();
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYNLOADER_LIBRARYLOADER_H_

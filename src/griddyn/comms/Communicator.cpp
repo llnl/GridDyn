@@ -9,7 +9,9 @@
 #include "communicationsCore.h"
 #include "core/factoryTemplates.hpp"
 #include "griddyn/griddyn-config.h"
+#include <memory>
 #include <string>
+#include <utility>
 
 namespace griddyn {
 static classFactory<Communicator> commFac(std::vector<std::string>{"comm", "simple", "basic"},

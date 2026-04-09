@@ -5,6 +5,8 @@
  */
 #pragma once
 #include "../Generator.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class GenModel;

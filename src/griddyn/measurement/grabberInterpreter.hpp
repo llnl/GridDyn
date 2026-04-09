@@ -11,12 +11,15 @@
 #include <cmath>
 #include <functional>
 #include <memory>
+#include <string>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-const std::string mdiv1String = "*/^";
-const std::string mdiv2String = "*%^";
-const std::string psubString = "+-";
+const char mdiv1String[] = "*/^";
+const char mdiv2String[] = "*%^";
+const char psubString[] = "+-";
 
 bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& blocks, size_t loc);
 template<class baseX, class opX, class funcX>
@@ -151,20 +154,18 @@ class grabberInterpreter {
     std::unique_ptr<baseX>
         addSubGrabberBlocks(const std::string& command, coreObject* obj, size_t rlc)
     {
-        using namespace gmlc::utilities::stringOps;
-        using namespace gmlc::utilities;
         std::unique_ptr<baseX> ggb = nullptr;
         std::string Ablock = command.substr(0, rlc);
-        trimString(Ablock);
+        gmlc::utilities::stringOps::trimString(Ablock);
         char op = command[rlc];
         std::string Bblock = command.substr(rlc + 1, std::string::npos);
-        trimString(Bblock);
+        gmlc::utilities::stringOps::trimString(Bblock);
         // check if either Ablock or Bblock is a constant
-        double valA = numeric_conversionComplete(Ablock, kNullVal);
+        double valA = gmlc::utilities::numeric_conversionComplete(Ablock, kNullVal);
         std::unique_ptr<baseX> ggbA =
             (valA == kNullVal) ? interpretGrabberBlock(Ablock, obj) : nullptr;
 
-        double valB = numeric_conversionComplete(Bblock, kNullVal);
+        double valB = gmlc::utilities::numeric_conversionComplete(Bblock, kNullVal);
         std::unique_ptr<baseX> ggbB =
             (valB == kNullVal) ? interpretGrabberBlock(Bblock, obj) : nullptr;
 
@@ -212,21 +213,19 @@ class grabberInterpreter {
     std::unique_ptr<baseX>
         multDivGrabberBlocks(const std::string& command, coreObject* obj, size_t rlc)
     {
-        using namespace gmlc::utilities::stringOps;
-        using namespace gmlc::utilities;
         std::unique_ptr<baseX> ggb = nullptr;
 
         std::string Ablock = command.substr(0, rlc);
-        trimString(Ablock);
+        gmlc::utilities::stringOps::trimString(Ablock);
         char op = command[rlc];
         std::string Bblock = command.substr(rlc + 1, std::string::npos);
-        trimString(Bblock);
+        gmlc::utilities::stringOps::trimString(Bblock);
         // check if either Ablock or Bblock is a constant
-        double valA = numeric_conversionComplete(Ablock, kNullVal);
+        double valA = gmlc::utilities::numeric_conversionComplete(Ablock, kNullVal);
         std::unique_ptr<baseX> ggbA =
             (valA == kNullVal) ? interpretGrabberBlock(Ablock, obj) : nullptr;
 
-        double valB = numeric_conversionComplete(Bblock, kNullVal);
+        double valB = gmlc::utilities::numeric_conversionComplete(Bblock, kNullVal);
         std::unique_ptr<baseX> ggbB =
             (valB == kNullVal) ? interpretGrabberBlock(Bblock, obj) : nullptr;
 
@@ -291,7 +290,7 @@ class grabberInterpreter {
         return ggb;
     }
 
-    // TODO: merge this function with a version in the stringOps library
+    // TODO(phlpt): Merge this helper with the stringOps-library version.
     size_t pChunckEnd(const std::string& cmd, size_t start)
     {
         int open = 1;

@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CORE_PROPERTIES_H_
-#define CORE_PROPERTIES_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_
+#define ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_
 
 #include "coreObject.h"
 #include "utilities/dataDictionary.h"
+#include <string>
 
 /** these objects are intended to capture extra properties about a coreObject that are not in the
 common definition such as position information, metadata, etc
@@ -31,4 +32,4 @@ class coreObjectProperty {
 */
 // void loadPosition (std::shared_ptr<gridPositionInfo> npos);
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_

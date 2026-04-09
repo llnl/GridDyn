@@ -18,16 +18,26 @@
 #include "../solvers/solverMode.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
 #include <iterator>
 #include <map>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::defunit;
+using units::Hz;
+using units::puA;
+using units::puHz;
+using units::puMW;
+using units::puOhm;
+using units::puV;
+using units::rad;
 
 static const fobjectPair nullPair{nullptr, defunit};
 static const fvecPair nullVecPair{nullptr, defunit};
 
-// TODO:: merge this map with the one in stateGrabber
+// TODO(phlpt): Merge this map with the one in stateGrabber.
 /** map of all the alternate strings that can be used*/
 static const std::map<std::string, std::string> stringTranslate{
     {"v", "voltage"},

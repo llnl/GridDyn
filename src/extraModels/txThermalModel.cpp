@@ -16,6 +16,9 @@
 #include "griddyn/measurement/grabberSet.h"
 #include "griddyn/measurement/gridGrabbers.h"
 #include <cmath>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace extra {
@@ -120,24 +123,22 @@ namespace extra {
         }
     }
 
-    using namespace units;
-
-    void txThermalModel::set(const std::string& param, double val, unit unitType)
+    void txThermalModel::set(const std::string& param, double val, units::unit unitType)
     {
         if ((param == "ambient") || (param == "ambienttemp")) {
-            ambientTemp = convert(val, unitType, degC);
+            ambientTemp = units::convert(val, unitType, units::degC);
         } else if ((param == "dtempdt") || (param == "temp_rate_of_change")) {
-            dTempdt = convert(val, unitType, degC);
+            dTempdt = units::convert(val, unitType, units::degC);
         } else if ((param == "dths") || (param == "rated_hot_spot_rise") || (param == "dthsr")) {
-            DThs = convert(val, unitType, degC);
+            DThs = units::convert(val, unitType, units::degC);
         } else if ((param == "dttor") || (param == "rated_top_oil_rise") || (param == "dtto")) {
-            DTtor = convert(val, unitType, degC);
+            DTtor = units::convert(val, unitType, units::degC);
         } else if ((param == "ttor") || (param == "oil_time_constant")) {
-            Ttor = convert(val, unitType, second);
+            Ttor = units::convert(val, unitType, units::second);
         } else if ((param == "tgr") || (param == "winding_time_constant")) {
-            Tgr = convert(val, unitType, second);
+            Tgr = units::convert(val, unitType, units::second);
         } else if ((param == "alarmtemp") || (param == "alarmtemp1")) {
-            alarmTemp1 = convert(val, unitType, degC);
+            alarmTemp1 = units::convert(val, unitType, units::degC);
             if (opFlags[dyn_initialized]) {
                 getCondition(0)->setConditionRHS(alarmTemp1);
                 setConditionStatus(0,
@@ -145,7 +146,7 @@ namespace extra {
                                                         condition_status_t::disabled);
             }
         } else if (param == "alarmtemp2") {
-            alarmTemp2 = convert(val, unitType, degC);
+            alarmTemp2 = units::convert(val, unitType, units::degC);
             if (opFlags[dyn_initialized]) {
                 getCondition(1)->setConditionRHS(alarmTemp1);
                 setConditionStatus(1,
@@ -153,7 +154,7 @@ namespace extra {
                                                         condition_status_t::disabled);
             }
         } else if (param == "cutouttemp") {
-            cutoutTemp = convert(val, unitType, degC);
+            cutoutTemp = units::convert(val, unitType, units::degC);
             if (opFlags[dyn_initialized]) {
                 getCondition(2)->setConditionRHS(alarmTemp1);
                 setConditionStatus(2,
@@ -161,7 +162,7 @@ namespace extra {
                                                         condition_status_t::disabled);
             }
         } else if (param == "alarmdelay") {
-            alarmDelay = convert(val, unitType, second);
+            alarmDelay = units::convert(val, unitType, units::second);
             if (opFlags[dyn_initialized]) {
                 setActionTrigger(0, 0, alarmDelay);
                 setActionTrigger(1, 1, alarmDelay);

@@ -28,13 +28,40 @@
 #include "mpi.h"
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <iostream>
+#include <list>
+#include <memory>
 #include <sstream>
-
-using namespace std;
 
 namespace griddyn {
 namespace braid {
-    using namespace paradae;
+    using griddyn::paradae::BDF;
+    using griddyn::paradae::BackwardDiff;
+    using griddyn::paradae::Equation;
+    using griddyn::paradae::EquationGridDyn;
+    using griddyn::paradae::MapParam;
+    using griddyn::paradae::ODE;
+    using griddyn::paradae::ODEProblem;
+    using griddyn::paradae::PVector;
+    using griddyn::paradae::RCODE;
+    using griddyn::paradae::Real;
+    using griddyn::paradae::SVector;
+    using griddyn::paradae::SparseMatrix;
+    using griddyn::paradae::TimeIntegrator;
+    using std::abort;
+    using std::ceil;
+    using std::cerr;
+    using std::cout;
+    using std::endl;
+    using std::ifstream;
+    using std::istringstream;
+    using std::list;
+    using std::make_unique;
+    using std::max;
+    using std::memcpy;
+    using std::sort;
+    using std::string;
     //-------------------------------------------------------------------
     //-------------------------------------------------------------------
     // Functions taken from Matt's paradae/src/programs/rk_braid.cxx
@@ -102,7 +129,7 @@ namespace braid {
     //-------------------------------------------------------------------
     //-------------------------------------------------------------------
 
-    // TODO: was it enough to just switch mode.algebraic to true ?
+    // TODO(phlpt): Confirm whether setting mode.algebraic is sufficient here.
     braidSolver::braidSolver(const std::string& objName): SolverInterface(objName)
     {
         mode.dynamic = true;

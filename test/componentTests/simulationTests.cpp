@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <set>
+#include <string>
 #include <utility>
 
 class SimulationTests: public gridDynSimulationTestFixture, public ::testing::Test {};

@@ -22,6 +22,9 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "isocController.h"
 #include "utilities/matrixDataScale.hpp"
+#include <map>
+#include <string>
+#include <vector>
 
 // #include <set>
 /*
@@ -41,7 +44,14 @@ governor --- Pm(t0) = Pset is stored externally as well
 namespace griddyn {
 static typeFactory<DynamicGenerator> gf("generator", stringVec{"local_dynamic"});
 
-using namespace units;
+using units::convert;
+using units::MVAR;
+using units::MW;
+using units::puMW;
+using units::puV;
+using units::rad;
+using units::s;
+using units::unit;
 
 // default bus object
 

@@ -7,6 +7,8 @@
 // headers
 #include "gridPrimary.h"
 #include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 // forward classes

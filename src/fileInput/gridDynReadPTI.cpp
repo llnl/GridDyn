@@ -14,14 +14,20 @@
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/loads/zipLoad.h"
 #include "readerHelper.h"
+#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::stringOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::stringOps::removeQuotes;
+using gmlc::utilities::stringOps::trim;
+using units::MVAR;
+using units::MW;
+using units::deg;
 
 void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
 void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
@@ -116,7 +122,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             // get the index
             pos = line.find_first_of(',');
             temp1 = trim(line.substr(0, pos));
-            index = numeric_conversion<index_t>(temp1, 0);
+            index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
             if (index >= static_cast<index_t>(busList.size())) {
                 if (index < 100000000) {
@@ -153,7 +159,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             // get the bus index
             pos = line.find_first_of(',');
             temp1 = trim(line.substr(0, pos));
-            index = numeric_conversion<index_t>(temp1, 0);
+            index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
             if (index >= static_cast<index_t>(busList.size())) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
@@ -180,7 +186,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             // get the bus index
             pos = line.find_first_of(',');
             temp1 = trim(line.substr(0, pos));
-            index = numeric_conversion<index_t>(temp1, 0);
+            index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
             if (index >= static_cast<index_t>(busList.size())) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
@@ -207,7 +213,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             // get the bus index
             pos = line.find_first_of(',');
             temp1 = trim(line.substr(0, pos));
-            index = numeric_conversion<index_t>(temp1, 0);
+            index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
             if (index >= static_cast<index_t>(busList.size())) {
                 std::cerr << "Invalid bus number for generator " << index << '\n';
@@ -280,10 +286,10 @@ void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
     double va;
     int type;
 
-    auto strvec = splitline(line);
+    auto strvec = gmlc::utilities::stringOps::splitline(line);
     // get the bus name
     temp = strvec[0];
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     temp2 = strvec[1];
     // check for quotes on the name
     removeQuotes(temp2);
@@ -351,11 +357,11 @@ void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*opt*/)
     double q;
     int status;
 
-    auto strvec = splitline(line);
+    auto strvec = gmlc::utilities::stringOps::splitline(line);
 
     // get the load index and name
     temp = strvec[1];
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     prefix = ld->getParent()->getName() + "_load_" + temp;
     ld->setName(prefix);
 
@@ -405,11 +411,11 @@ void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*opt
     double q;
     int status;
 
-    auto strvec = splitline(line);
+    auto strvec = gmlc::utilities::stringOps::splitline(line);
 
     // get the load index and name
     temp = strvec[1];
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     prefix = ld->getParent()->getName() + "_shunt_" + temp;
     ld->setName(prefix);
 
@@ -435,7 +441,7 @@ void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*
 {
     int rbus;
 
-    auto strvec = splitline(line);
+    auto strvec = gmlc::utilities::stringOps::splitline(line);
 
     // get the load index and name
     std::string temp = trim(strvec[1]);
@@ -472,9 +478,9 @@ void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*
     rbus = numeric_conversion<int>(strvec[7], 0);
 
     if (rbus != 0) {
-        // TODO something tricky as it is a remote controlled bus
+        // TODO(phlpt): Handle the remote-controlled bus case.
     }
-    // TODO  get the impedance fields and other data
+    // TODO(phlpt): Get the impedance fields and other data.
 }
 
 void ptiReadBranch(coreObject* parentObject,
@@ -490,7 +496,7 @@ void ptiReadBranch(coreObject* parentObject,
     double val;
     int status;
 
-    auto strvec = splitline(line);
+    auto strvec = gmlc::utilities::stringOps::splitline(line);
 
     temp = strvec[0];
     ind1 = std::stoi(temp);
@@ -532,7 +538,7 @@ void ptiReadBranch(coreObject* parentObject,
     val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
 
-    // TODO get the other parameters (not critical for power flow)
+    // TODO(phlpt): Get the other parameters; not critical for power flow.
 }
 
 int ptiReadTX(coreObject* parentObject,
@@ -552,11 +558,11 @@ int ptiReadTX(coreObject* parentObject,
     int status;
 
     stringVec strvec, strvec2, strvec3, strvec4, strvec5;
-    strvec = splitline(txlines[0]);
+    strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
 
-    strvec2 = splitline(txlines[1]);
-    strvec3 = splitline(txlines[2]);
-    strvec4 = splitline(txlines[3]);
+    strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
+    strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
+    strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
 
     temp = strvec[0];
     ind1 = std::stoi(temp);
@@ -565,8 +571,8 @@ int ptiReadTX(coreObject* parentObject,
     ind3 = std::stoi(temp);
     if (ind3 != 0) {
         tline = 5;
-        strvec5 = splitline(txlines[4]);
-        // TODO handle 3 way transformers(complicated)
+        strvec5 = gmlc::utilities::stringOps::splitline(txlines[4]);
+        // TODO(phlpt): Handle three-way transformers.
         std::cout << "3 winding transformers not supported at this time\n";
         return tline;
     }
@@ -632,10 +638,10 @@ int ptiReadTX(coreObject* parentObject,
     if (status == 0) {
         lnk->disable();
     } else if (status > 1) {
-        // TODO:  other conditions for 3 way transformers
+        // TODO(phlpt): Handle the other conditions for three-way transformers.
     }
 
-    // TODO get the other parameters (not critical for power flow)
+    // TODO(phlpt): Get the other parameters; not critical for power flow.
 
     val = numeric_conversion<double>(strvec3[0], 0.0);
     if (val != 0) {

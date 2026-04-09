@@ -9,6 +9,7 @@
 #include "griddyn/loads/approximatingLoad.h"
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
 
 #define GRIDLAB_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/"
 

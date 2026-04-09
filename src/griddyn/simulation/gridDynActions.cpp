@@ -8,9 +8,10 @@
 
 #include "core/coreExceptions.h"
 #include "gmlc/utilities/stringConversion.h"
+#include <string>
 
 namespace griddyn {
-using namespace gmlc::utilities;
+using gmlc::utilities::makeLowerCase;
 
 gridDynAction::gridDynAction(gd_action_t action) noexcept: command(action) {}
 
@@ -32,7 +33,8 @@ void gridDynAction::reset()
 void gridDynAction::process(const std::string& operation)
 {
     /* (s) string,  (d) double,  (i) int, (X)* optional, (s|d|i), string or double or int*/
-    auto ssep = stringOps::splitline(operation, " ", stringOps::delimiter_compression::on);
+    auto ssep = gmlc::utilities::stringOps::splitline(
+        operation, " ", gmlc::utilities::stringOps::delimiter_compression::on);
     size_t sz = ssep.size();
     for (size_t kk = 0; kk < sz; ++kk) {
         if (ssep[kk][0] == '#')  // clear all the comments
@@ -45,7 +47,7 @@ void gridDynAction::process(const std::string& operation)
         // check if there was no command
         return;
     }
-    std::string cmd = convertToLowerCase(ssep[0]);
+    std::string cmd = gmlc::utilities::convertToLowerCase(ssep[0]);
 
     if (cmd == "ignore") {
         // ignore XXXXXX
@@ -55,7 +57,7 @@ void gridDynAction::process(const std::string& operation)
         if (sz >= 3) {
             command = gd_action_t::set;
             string1 = ssep[1];
-            val_double = numeric_conversion(ssep[2], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             if (val_double == kNullVal) {
                 string2 = ssep[2];
             }
@@ -66,7 +68,7 @@ void gridDynAction::process(const std::string& operation)
         // setall  objecttype(s) parameter(s) value(d)
         command = gd_action_t::setall;
         if (sz >= 4) {
-            double test = numeric_conversion(ssep[3], kNullVal);
+            double test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
             if (test == kNullVal) {
                 throw(invalidParameterValue(cmd));
             }
@@ -81,7 +83,7 @@ void gridDynAction::process(const std::string& operation)
         command = gd_action_t::setsolver;
         if (sz >= 3) {
             string1 = ssep[1];
-            val_int = numeric_conversion<int>(
+            val_int = gmlc::utilities::numeric_conversion<int>(
                 ssep[2],
                 -435);  //-435 is some random number with no meaning outside this call
             if (val_int == -435) {
@@ -112,9 +114,9 @@ void gridDynAction::process(const std::string& operation)
         // eventmode tstop*  tstep*
         command = gd_action_t::eventmode;
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (sz > 2) {
-                val_double2 = numeric_conversion(ssep[2], kNullVal);
+                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
     } else if (cmd == "initialize") {
@@ -129,32 +131,32 @@ void gridDynAction::process(const std::string& operation)
             if (ssep[1] == "dae") {
                 command = gd_action_t::dynamicDAE;
                 if (sz > 2) {
-                    val_double = numeric_conversion(ssep[2], kNullVal);
+                    val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
             } else if ((ssep[1] == "part") || (ssep[1] == "partitioned")) {
                 command = gd_action_t::dynamicPart;
                 if (sz > 2) {
-                    val_double = numeric_conversion(ssep[2], kNullVal);
+                    val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
                 if (sz > 3) {
-                    val_double2 = numeric_conversion(ssep[3], kNullVal);
+                    val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
             } else if (ssep[1] == "decoupled") {
                 command = gd_action_t::dynamicDecoupled;
                 if (sz > 2) {
-                    val_double = numeric_conversion(ssep[2], kNullVal);
+                    val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
                 if (sz > 3) {
-                    val_double2 = numeric_conversion(ssep[3], kNullVal);
+                    val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
             } else {
-                double test = numeric_conversion(ssep[2], kNullVal);
+                double test = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 if (test == kNullVal) {
                     throw(invalidParameterValue(cmd));
                 }
                 if (sz > 2) {
                     val_double = test;
-                    val_double2 = numeric_conversion(ssep[3], kNullVal);
+                    val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
                 command = gd_action_t::dynamicDAE;
             }
@@ -164,16 +166,16 @@ void gridDynAction::process(const std::string& operation)
         command = gd_action_t::dynamicDAE;
 
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
         }
     } else if (cmd == "dynamicpart") {
         // dynamicpart stoptime(d)* steptime(d)*
         command = gd_action_t::dynamicPart;
 
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (sz > 2) {
-                val_double2 = numeric_conversion(ssep[2], kNullVal);
+                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
     } else if (cmd == "dynamicdecoupled") {
@@ -181,15 +183,15 @@ void gridDynAction::process(const std::string& operation)
         command = gd_action_t::dynamicPart;
 
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (sz > 2) {
-                val_double2 = numeric_conversion(ssep[2], kNullVal);
+                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
     } else if (cmd == "reset") {
         // reset level(i)
         if (sz > 1) {
-            auto test_int = numeric_conversion<int>(ssep[1], -435);
+            auto test_int = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
             if (test_int == -435) {
                 throw(invalidParameterValue(cmd));
             }
@@ -202,9 +204,9 @@ void gridDynAction::process(const std::string& operation)
         // iterate interval(d)* stoptime(d)*
         command = gd_action_t::iterate;
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (sz > 2) {
-                val_double2 = numeric_conversion(ssep[2], kNullVal);
+                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
     } else if (cmd == "check") {
@@ -219,7 +221,7 @@ void gridDynAction::process(const std::string& operation)
     } else if (cmd == "run") {
         // run time(d)*
         if (sz > 1) {
-            double test = numeric_conversion(ssep[1], kNullVal);
+            double test = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (test == kNullVal) {
                 throw(invalidParameterValue("time"));
             }
@@ -261,7 +263,7 @@ void gridDynAction::process(const std::string& operation)
         // rollback point(s|d)
         command = gd_action_t::rollback;
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
                 string1 = ssep[1];
             }
@@ -272,7 +274,7 @@ void gridDynAction::process(const std::string& operation)
         // checkpoint name(s)
         command = gd_action_t::checkpoint;
         if (sz > 1) {
-            val_double = numeric_conversion(ssep[1], kNullVal);
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
                 string1 = ssep[1];
             }

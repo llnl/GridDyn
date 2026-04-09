@@ -22,15 +22,30 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <string>
+#include <vector>
 #include <string_view>
 
 namespace griddyn {
 static constexpr bool unimplemented = false;
 
-using namespace units;
-using namespace gmlc::utilities::string_viewOps;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::string_viewVector;
+using gmlc::utilities::stringOps::trimString;
+using gmlc::utilities::string_viewOps::default_bracket_chars;
+using gmlc::utilities::string_viewOps::delimiter_compression;
+using gmlc::utilities::string_viewOps::removeQuotes;
+using gmlc::utilities::string_viewOps::split;
+using gmlc::utilities::string_viewOps::splitlineBracket;
+using gmlc::utilities::string_viewOps::toIntSimple;
+using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
-using namespace gmlc::utilities;
+using units::MW;
+using units::MVAR;
+using units::deg;
+using units::km;
+using units::pu;
+using units::puMW;
 
 void epcReadBus(gridBus* bus, string_view line, double base, const basicReaderInfo& bri);
 void epcReadDCBus(dcBus* bus, string_view line, double base, const basicReaderInfo& bri);
@@ -65,7 +80,7 @@ bool nextLine(std::ifstream& file, std::string& line)
             {
                 continue;
             }
-            stringOps::trimString(line);
+            trimString(line);
             if (line.empty())  // continue over empty lines
             {
                 continue;
@@ -101,7 +116,7 @@ int getSectionCount(string_view line)
 
 int getLineIndex(string_view line)
 {
-    trimString(line);
+    gmlc::utilities::string_viewOps::trimString(line);
     auto pos = line.find_first_not_of("0123456789");
     return numeric_conversion<int>(line.substr(0, pos), -1);
 }
@@ -195,7 +210,7 @@ void loadEPC(coreObject* parentObject, const std::string& fileName, const basicR
     std::string line;  // line storage
     while (nextLine(file, line)) {
         auto tokens = split(line, " \t");
-        trimString(tokens[0]);
+        gmlc::utilities::string_viewOps::trimString(tokens[0]);
         if (tokens[0] == "title") {
             std::string title;
             while (std::getline(file, temp1)) {
@@ -205,7 +220,7 @@ void loadEPC(coreObject* parentObject, const std::string& fileName, const basicR
                 title += temp1;
             }
             if (title.size() > 50) {
-                parentObject->setName(stringOps::trim(title.substr(0, 50)));
+                parentObject->setName(std::string{trim(title.substr(0, 50))});
                 parentObject->setDescription(title);
             } else {
                 parentObject->setName(title);
@@ -218,7 +233,7 @@ void loadEPC(coreObject* parentObject, const std::string& fileName, const basicR
                 }
                 comments += temp1;
             }
-            stringOps::trimString(comments);
+            trimString(comments);
             if (!comments.empty()) {
                 parentObject->set("description", parentObject->getDescription() + comments);
             }
@@ -729,7 +744,7 @@ void epcReadSwitchShunt(loads::svd* ld, string_view line, double /*base*/)
             if (rbus != nullptr) {
                 ld->setControlBus(rbus);
             }
-            // TODO: PT load target object note:unusual condition
+            // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         case 5:
             ld->set("mode", "stepped");
@@ -748,7 +763,7 @@ void epcReadSwitchShunt(loads::svd* ld, string_view line, double /*base*/)
             if (rbus != nullptr) {
                 ld->setControlBus(rbus);
             }
-            // TODO: PT load target object note:unusual condition
+            // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         default:
             ld->set("mode", "manual");
@@ -840,9 +855,9 @@ void epcReadGen(Generator* gen, string_view line, double /*base*/)
     auto rbus = numeric_conversion<int>(strvec[6], 0);
 
     if (rbus != 0) {
-        // TODO something tricky as it is a remote controlled bus
+        // TODO(phlpt): Handle the remote-controlled bus case.
     }
-    // TODO  get the impedance fields and other data
+    // TODO(phlpt): Get the impedance fields and other data.
 }
 
 /** function to generate a name for a line based on the input data*/

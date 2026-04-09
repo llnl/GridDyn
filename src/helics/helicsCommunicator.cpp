@@ -18,7 +18,9 @@
 #include "griddyn/comms/schedulerMessage.h"
 #include "griddyn/gridDynSimulation.h"
 #include "helicsCoordinator.h"
+#include <memory>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace helicsLib {

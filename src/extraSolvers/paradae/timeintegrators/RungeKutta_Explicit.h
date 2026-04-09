@@ -3,8 +3,8 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef RungeKutta_Explicit_h
-#define RungeKutta_Explicit_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_EXPLICIT_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_EXPLICIT_H_
 
 #include "RungeKutta.h"
 namespace griddyn {
@@ -18,4 +18,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_EXPLICIT_H_

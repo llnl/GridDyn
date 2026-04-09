@@ -17,8 +17,8 @@
 /** @defgroup GridDyn_api the group of function defining the C api to gridDyn
  *  @{
  */
-#ifndef GRIDDYN_IMPORT_C_H_
-#define GRIDDYN_IMPORT_C_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_H_
 
 #if defined _WIN32 || defined __CYGWIN__
 /* Note: both gcc & MSVC on Windows support this syntax. */
@@ -29,4 +29,4 @@
 #include "griddyn_export.h"
 #include "griddyn_export_advanced.h"
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_H_

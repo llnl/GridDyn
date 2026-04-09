@@ -8,6 +8,7 @@
 #include "../math/DBlockTriMatrix.h"
 #include "../math/PMultiVector.h"
 #include "../solvers/Newton.h"
+#include <iostream>
 namespace griddyn {
 namespace paradae {
     using namespace std;

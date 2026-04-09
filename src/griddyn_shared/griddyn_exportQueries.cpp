@@ -17,7 +17,11 @@
 #include <memory>
 #include <vector>
 
-using namespace griddyn;
+using griddyn::collector;
+using griddyn::createGrabber;
+using griddyn::gridComponent;
+using griddyn::gridGrabber;
+using griddyn::kNullVal;
 
 static constexpr char invalidQuery[] = "the Query object is not valid";
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";

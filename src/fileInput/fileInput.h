@@ -13,6 +13,8 @@ define some functions and operations for configuring file reader operations and 
 
 #include "../griddyn/gridDynDefinitions.hpp"
 #include "readerInfo.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 class Event;

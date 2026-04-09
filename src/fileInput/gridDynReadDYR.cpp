@@ -12,13 +12,13 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/gridBus.h"
+#include <memory>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
-using namespace gmlc::utilities;
-
 static std::shared_ptr<coreObjectFactory> cof = coreObjectFactory::instance();
 
 void loadGENROU(coreObject* parentObject, stringVec& tokens);
@@ -38,20 +38,20 @@ void loadDYR(coreObject* parentObject, const std::string& fileName, const basicR
         //    return;
     }
     while (std::getline(file, line)) {
-        stringOps::trimString(line);
+        gmlc::utilities::stringOps::trimString(line);
         if (line.empty()) {
             continue;
         }
         while (line.back() != '/') {
             if (std::getline(file, line2)) {
-                stringOps::trimString(line2);
+                gmlc::utilities::stringOps::trimString(line2);
                 line += ' ' + line2;
             } else {
                 break;
             }
         }
-        auto lineTokens =
-            stringOps::splitline(line, " \t\n,", stringOps::delimiter_compression::on);
+        auto lineTokens = gmlc::utilities::stringOps::splitline(
+            line, " \t\n,", gmlc::utilities::stringOps::delimiter_compression::on);
         // get rid of the '/' at the end of the last string
         auto lstr = lineTokens.back();
         lineTokens.pop_back();
@@ -60,7 +60,7 @@ void loadDYR(coreObject* parentObject, const std::string& fileName, const basicR
             lineTokens.push_back(lstr);
         }
         auto type = lineTokens[1];
-        stringOps::trimString(type);
+        gmlc::utilities::stringOps::trimString(type);
         if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
@@ -84,7 +84,7 @@ void loadGENROU(coreObject* parentObject, stringVec& tokens)
     id = std::stoi(tokens[2]);
     Generator* gen = bus->getGen(id - 1);
 
-    auto params = str2vector(tokens, kNullVal);
+    auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
     GenModel* sm = static_cast<GenModel*>(cof->createObject("genmodel", "6"));
     sm->set("tdop", params[3]);
@@ -113,7 +113,7 @@ void loadESDC1A(coreObject* parentObject, stringVec& tokens)
     id = std::stoi(tokens[2]);
     Generator* gen = bus->getGen(id - 1);
 
-    auto params = str2vector(tokens, kNullVal);
+    auto params = gmlc::utilities::str2vector(tokens, kNullVal);
     Exciter* sm;
     if (params[6] > 0.0)  // dc1a model must have tb>0 otherwise revert to type1
     {
@@ -121,7 +121,7 @@ void loadESDC1A(coreObject* parentObject, stringVec& tokens)
     } else {
         sm = static_cast<Exciter*>(cof->createObject("exciter", "type1"));
     }
-    // TODO:: TR not implemented yet, no voltage compensation implemented
+    // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
     // sm->set("tr", params[3]);
     sm->set("ka", params[4]);
     sm->set("ta", params[5]);
@@ -135,7 +135,7 @@ void loadESDC1A(coreObject* parentObject, stringVec& tokens)
     sm->set("te", params[11]);
     sm->set("kf", params[12]);
     sm->set("tf", params[13]);
-    // TODO I need to compute the saturation coefficients to translate appropriately
+    // TODO(phlpt): Compute the saturation coefficients to translate appropriately.
 
     gen->add(sm);
 }
@@ -147,10 +147,10 @@ void loadEXDC2(coreObject* parentObject, stringVec& tokens)
     id = std::stoi(tokens[2]);
     Generator* gen = bus->getGen(id - 1);
 
-    auto params = str2vector(tokens, kNullVal);
+    auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
     Exciter* sm = static_cast<Exciter*>(cof->createObject("exciter", "dc2a"));
-    // TODO:: TR not implemented yet, no voltage compensation implemented
+    // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
     // sm->set("tr", params[3]);
     sm->set("ka", params[4]);
     sm->set("ta", params[5]);
@@ -162,7 +162,7 @@ void loadEXDC2(coreObject* parentObject, stringVec& tokens)
     sm->set("te", params[11]);
     sm->set("kf", params[12]);
     sm->set("tf", params[13]);
-    // TODO I need to compute the saturation coefficients to translate appropriately
+    // TODO(phlpt): Compute the saturation coefficients to translate appropriately.
 
     gen->add(sm);
 }
@@ -174,7 +174,7 @@ void loadSEXS(coreObject* parentObject, stringVec& tokens)
     id = std::stoi(tokens[2]);
     Generator* gen = bus->getGen(id - 1);
 
-    auto params = str2vector(tokens, kNullVal);
+    auto params = gmlc::utilities::str2vector(tokens, kNullVal);
     Exciter* sm;
 
     sm = static_cast<Exciter*>(cof->createObject("exciter", "dc1a"));
@@ -202,10 +202,10 @@ void loadTGOV1(coreObject* parentObject, stringVec& tokens)
     id = std::stoi(tokens[2]);
     Generator* gen = bus->getGen(id - 1);
 
-    auto params = str2vector(tokens, kNullVal);
+    auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
     Governor* sm = static_cast<Governor*>(cof->createObject("governor", "tgov1"));
-    // TODO:: TR not implemented yet, no voltage compensation implemented
+    // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
     // sm->set("tr", params[3]);
     sm->set("r", params[3]);
     sm->set("t1", params[4]);

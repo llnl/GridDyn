@@ -19,7 +19,11 @@
 #include <memory>
 #include <vector>
 
-using namespace griddyn;
+using griddyn::Event;
+using griddyn::GriddynRunner;
+using griddyn::change_code;
+using griddyn::make_event;
+using griddyn::object_update_mode;
 
 static constexpr char invalidEvent[] = "the Event object is not valid";
 

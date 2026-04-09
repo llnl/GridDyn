@@ -15,6 +15,7 @@
 #include "helics/application_api.hpp"
 #include <complex>
 #include <future>
+#include <string>
 
 namespace griddyn {
 namespace helicsLib {

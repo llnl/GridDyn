@@ -17,27 +17,44 @@
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include "runner/gridDynRunner.h"
+#include <memory>
+#include <string>
+#include <utility>
 
-using namespace griddyn;
+using griddyn::GriddynRunner;
+using griddyn::buildFlags;
+using griddyn::compiler;
+using griddyn::coreTime;
+using griddyn::executionFailure;
+using griddyn::fileOperationError;
+using griddyn::gridDynAction;
+using griddyn::invalidParameterValue;
+using griddyn::kNullVal;
+using griddyn::loadFile;
+using griddyn::objectAddFailure;
+using griddyn::objectRemoveFailure;
+using griddyn::unrecognizedObjectException;
+using griddyn::unrecognizedParameter;
+using griddyn::versionString;
 
 const char* gridDynGetVersion(void)
 {
-    return griddyn::versionString;
+    return versionString;
 }
 
 const char* gridDynGetBuildFlags(void)
 {
-    return griddyn::buildFlags;
+    return buildFlags;
 }
 
 const char* gridDynGetCompilerVersion(void)
 {
-    return griddyn::compiler;
+    return compiler;
 }
 
 static constexpr const char* nullstrPtr = "";
 
-const std::string emptyStr;
+const char emptyStr[] = "";
 
 GridDynError gridDynErrorInitialize(void)
 {

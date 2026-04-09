@@ -9,6 +9,11 @@
 #include "../gridDynSimulation.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 using namespace gmlc::utilities;

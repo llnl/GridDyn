@@ -6,6 +6,7 @@
 #include "LineSearch.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace griddyn {
 namespace paradae {

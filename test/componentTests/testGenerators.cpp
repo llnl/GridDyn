@@ -9,6 +9,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/gridBus.h"
 #include <gtest/gtest.h>
+#include <string>
 
 #define GEN_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gen_tests/"
 

@@ -10,6 +10,7 @@
 #include "../solvers/solverInterface.h"
 #include "diagnostics.h"
 #include <algorithm>
+#include <vector>
 
 namespace griddyn {
 dynamicInitialConditionRecovery::dynamicInitialConditionRecovery(

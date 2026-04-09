@@ -3,8 +3,8 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef TimeIntegrator_h
-#define TimeIntegrator_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_
 
 #include "../common/def.h"
 #include "../equations/Equation.h"
@@ -12,6 +12,7 @@
 #include "../math/SMultiVector.h"
 #include "../solvers/Newton.h"
 #include <list>
+#include <string>
 
 namespace griddyn {
 namespace paradae {
@@ -128,4 +129,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_

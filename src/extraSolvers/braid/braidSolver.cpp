@@ -33,6 +33,7 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <string>
 
 namespace griddyn {
 namespace braid {

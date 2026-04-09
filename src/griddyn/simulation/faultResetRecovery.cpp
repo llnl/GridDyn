@@ -9,6 +9,9 @@
 #include "../gridDynSimulation.h"
 #include "../solvers/solverInterface.h"
 #include "diagnostics.h"
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);

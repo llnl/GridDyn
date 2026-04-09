@@ -16,6 +16,7 @@
 #include "../timeintegrators/TimeIntegrator.h"
 #include "mpi.h"
 #include <fstream>
+#include <string>
 
 enum ODE_error { ODE_FAILED };
 namespace griddyn {

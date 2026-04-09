@@ -13,6 +13,7 @@
 
 #include "../griddyn/sources/rampSource.h"
 #include "helicsSupport.h"
+#include <string>
 namespace griddyn {
 namespace helicsLib {
     class helicsCoordinator;

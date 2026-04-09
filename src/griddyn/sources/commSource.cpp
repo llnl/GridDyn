@@ -12,6 +12,8 @@
 #include "../gridDynSimulation.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cassert>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace sources {

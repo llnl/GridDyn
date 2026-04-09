@@ -3,8 +3,8 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef SBlockTriMatrix_h
-#define SBlockTriMatrix_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_
 
 #include "DBlockTriMatrix.h"
 
@@ -38,4 +38,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_

@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <memory>
+#include <vector>
 // #include <fstream>
 // #include <iostream>
 namespace griddyn {
@@ -62,7 +64,7 @@ int gridDynSimulation::dynInitialize(coreTime tStart)
     count_t ssize = stateSize(sm);
     if (ssize == 0) {
         LOG_WARNING("State size==0 stopping computation\n");
-        return 0;  // TODO::  add a positive return code when state size is 0
+        return 0;  // TODO(phlpt): Add a positive return code when state size is 0.
     }
     updateOffsets(sm);
     // check for objects with roots
@@ -602,7 +604,7 @@ int gridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
             // CSW Changed this from 2e-3 to 1e-7: need to rethink this in light of rootfinding
             if (timeReturn < lastTimeStop + tols.timeTol) {
                 timeActual = currentTime;
-                return (retval);  // TODO:: PT replace this with a constant
+                return (retval);  // TODO(phlpt): Replace this with a constant.
             }
         }
         currentTime = tStop;

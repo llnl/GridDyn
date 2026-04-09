@@ -33,14 +33,28 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
+#include <string>
+#include <vector>
 
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using namespace griddyn;
-using namespace griddyn::helicsLib;
+using griddyn::Generator;
+using griddyn::Source;
+using griddyn::coreObject;
+using griddyn::coreObjectFactory;
+using griddyn::coreTime;
+using griddyn::gridDynSimulationTestFixture;
+using griddyn::helicsLib::gd2helicsTime;
+using griddyn::helicsLib::helics2gdTime;
+using griddyn::helicsLib::helicsCoordinator;
+using griddyn::helicsLib::helicsLoad;
+using griddyn::helicsLib::helicsRunner;
+using griddyn::helicsLib::helicsSource;
+using griddyn::helicsLib::runBroker;
+using griddyn::helicsLib::runPlayer;
+using griddyn::helicsLib::runRecorder;
 
-static const std::string helics_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/helics_tests/");
+static const char helics_test_directory[] = GRIDDYN_TEST_DIRECTORY "/helics_tests/";
 
 TEST_F(HelicsTests, TimeConversionTest)
 {
@@ -161,7 +175,8 @@ TEST_F(HelicsTests, LoadHelicsXml)
     auto pubid = vFed->registerGlobalPublication<double>("sourceValue");
 
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "helics_test1.xml --core_type=inproc");
+    hR->InitializeFromString(std::string(helics_test_directory) +
+                             "helics_test1.xml --core_type=inproc");
 
     coreObject* obj =
         coreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
@@ -218,7 +233,7 @@ TEST_F(HelicsTests, HelicsXmlWithLoad)
     auto& pubid = vFed->registerGlobalPublication<std::complex<double>>("load3val");
 
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory +
+    hR->InitializeFromString(std::string(helics_test_directory) +
                              "helics_test2.xml --core_type=inproc --core_name=test2");
 
     auto sim = hR->getSim();
@@ -267,10 +282,10 @@ TEST_F(HelicsTests, HelicsXmlWithLoad)
 TEST_F(HelicsTests, TestRecorderPlayer)
 {
     auto brk = runBroker("2");
-    auto play = runPlayer(helics_test_directory +
+    auto play = runPlayer(std::string(helics_test_directory) +
                           "source_player.txt --name=player --stop=25 2> playerout.txt");
     auto rec = runRecorder(
-        helics_test_directory +
+        std::string(helics_test_directory) +
         "recorder_capture_list.txt --name=rec --stop=25 --output=rec_capture.txt 2> recout.txt");
 
     EXPECT_EQ(play.get(), 0);
@@ -284,8 +299,10 @@ TEST_F(HelicsTests, TestRecorderPlayer)
     std::getline(inFile, line);
     std::getline(inFile, line);
     EXPECT_FALSE(line.empty());
-    using namespace gmlc::utilities::string_viewOps;
-    auto lineEle = split(line, whiteSpaceCharacters, delimiter_compression::on);
+    auto lineEle = gmlc::utilities::string_viewOps::split(
+        line,
+        gmlc::utilities::string_viewOps::whiteSpaceCharacters,
+        gmlc::utilities::string_viewOps::delimiter_compression::on);
     ASSERT_GE(lineEle.size(), 3U);
     EXPECT_EQ(lineEle[0], "3");
     EXPECT_EQ(lineEle[1], "gen");
@@ -295,7 +312,10 @@ TEST_F(HelicsTests, TestRecorderPlayer)
     std::getline(inFile, line);
     EXPECT_FALSE(line.empty());
 
-    lineEle = split(line, whiteSpaceCharacters, delimiter_compression::on);
+    lineEle = gmlc::utilities::string_viewOps::split(
+        line,
+        gmlc::utilities::string_viewOps::whiteSpaceCharacters,
+        gmlc::utilities::string_viewOps::delimiter_compression::on);
     ASSERT_GE(lineEle.size(), 3U);
     EXPECT_EQ(lineEle[0], "11");
     EXPECT_EQ(lineEle[1], "gen");
@@ -307,7 +327,7 @@ TEST_F(HelicsTests, TestRecorderPlayer)
 TEST_F(HelicsTests, TestZmqCore)
 {
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "helics_test3.xml");
+    hR->InitializeFromString(std::string(helics_test_directory) + "helics_test3.xml");
 
     auto sim = hR->getSim();
 
@@ -316,7 +336,8 @@ TEST_F(HelicsTests, TestZmqCore)
     auto src = static_cast<Source*>(genObj->find("source"));
     ASSERT_NE(src, nullptr);
     auto brk = runBroker("2");
-    auto play = runPlayer(helics_test_directory + "source_player.txt --name=player --stop=24");
+    auto play =
+        runPlayer(std::string(helics_test_directory) + "source_player.txt --name=player --stop=24");
 
     hR->simInitialize();
 
@@ -343,7 +364,7 @@ TEST_F(HelicsTests, TestZmqCore)
 TEST_F(HelicsTests, TestCollector)
 {
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "simple_bus_test1.xml");
+    hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test1.xml");
 
     auto sim = hR->getSim();
 
@@ -370,7 +391,8 @@ TEST_F(HelicsTests, TestCollector)
 TEST_F(HelicsTests, TestCollectorVector)
 {
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "simple_bus_test_collector_vec.xml");
+    hR->InitializeFromString(std::string(helics_test_directory) +
+                             "simple_bus_test_collector_vec.xml");
 
     auto sim = hR->getSim();
 
@@ -401,7 +423,7 @@ TEST_F(HelicsTests, TestCollectorVector)
 TEST_F(HelicsTests, TestEvent)
 {
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "simple_bus_test1_event.xml");
+    hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test1_event.xml");
 
     auto sim = hR->getSim();
 
@@ -436,7 +458,7 @@ TEST_F(HelicsTests, TestEvent)
 TEST_F(HelicsTests, TestVectorEvent)
 {
     auto hR = std::make_unique<helicsRunner>();
-    hR->InitializeFromString(helics_test_directory + "simple_bus_test2_event.xml");
+    hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test2_event.xml");
 
     auto sim = hR->getSim();
 
@@ -473,9 +495,11 @@ TEST_F(HelicsTests, TestMainExe)
     exeTestRunner mainExeRunner(GRIDDYNINSTALL_LOCATION, GRIDDYNMAIN_LOCATION, "gridDynMain");
     if (mainExeRunner.isActive()) {
         auto brk = runBroker("2");
-        auto play = runPlayer(helics_test_directory + "source_player.txt --name=player --stop=24");
+        auto play = runPlayer(std::string(helics_test_directory) +
+                              "source_player.txt --name=player --stop=24");
         auto out =
-            mainExeRunner.runCaptureOutput(helics_test_directory + "helics_test3.xml --helics");
+            mainExeRunner.runCaptureOutput(std::string(helics_test_directory) +
+                                           "helics_test3.xml --helics");
         auto res = out.find("HELICS");
         EXPECT_NE(res, std::string::npos);
         EXPECT_EQ(play.get(), 0);

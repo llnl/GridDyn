@@ -8,6 +8,8 @@
 #include "core/coreExceptions.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/gridDynDefinitions.hpp"
+#include <string>
+#include <utility>
 #include <string_view>
 
 namespace griddyn {
@@ -33,7 +35,7 @@ void gridParameter::reset()
 
 void gridParameter::fromString(const std::string& str)
 {
-    using namespace gmlc::utilities::string_viewOps;
+    using gmlc::utilities::string_viewOps::trim;
     using std::string_view;
     string_view strv(str);
     valid = false;

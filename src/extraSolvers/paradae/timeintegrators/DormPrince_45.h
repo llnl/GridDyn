@@ -3,10 +3,11 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef DormPrince_45_h
-#define DormPrince_45_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_DORMPRINCE_45_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_DORMPRINCE_45_H_
 
 #include "RungeKutta_Explicit.h"
+#include <string>
 namespace griddyn {
 namespace paradae {
     /*!
@@ -32,4 +33,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_DORMPRINCE_45_H_

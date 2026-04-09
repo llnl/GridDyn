@@ -12,7 +12,10 @@
 #pragma once
 
 #include "../griddyn/measurement/collector.h"
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace helicsLib {

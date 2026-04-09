@@ -21,16 +21,38 @@
 #include "griddyn/Governor.h"
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
+#include "griddyn/Relay.h"
 #include "griddyn/Source.h"
 #include "griddyn/controllers/scheduler.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/gridDynSimulation.h"
+#include "griddyn/gridSubModel.h"
 #include "griddyn/relays/sensor.h"
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include <cstring>
 #include <map>
-using namespace griddyn;
+
+using griddyn::Area;
+using griddyn::Block;
+using griddyn::Exciter;
+using griddyn::GenModel;
+using griddyn::Generator;
+using griddyn::Governor;
+using griddyn::Link;
+using griddyn::Load;
+using griddyn::Source;
+using griddyn::coreOwningPtr;
+using griddyn::coreObject;
+using griddyn::coreObjectFactory;
+using griddyn::Relay;
+using griddyn::gridBus;
+using griddyn::gridComponent;
+using griddyn::gridDynSimulation;
+using griddyn::gridSubModel;
+using griddyn::kNullVal;
+using griddyn::sensor;
+using griddyn::scheduler;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
 

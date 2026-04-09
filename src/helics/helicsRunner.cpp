@@ -25,6 +25,7 @@
 #include "helicsLibrary.h"
 #include "helicsSupport.h"
 #include "test/helicsTest.h"
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <exception>
@@ -78,7 +79,7 @@ namespace helicsLib {
             throw(executionFailure(m_gds.get(), "power flow initialize failure"));
         }
 
-        GriddynRunner::simInitialize();  // TODO this will need to be unpacked for co-iteration on
+        GriddynRunner::simInitialize();  // TODO(phlpt): Unpack this for co-iteration on
                                          // the power flow
         // solution
         if (!fed_) {

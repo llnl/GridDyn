@@ -26,8 +26,11 @@
 
 #include <cassert>
 #include <format>
+#include <cstdio>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace solvers {

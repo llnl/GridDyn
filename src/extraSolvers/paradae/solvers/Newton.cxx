@@ -8,6 +8,7 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 
 #ifdef DEBUG_NEWTON
 #    include <math/PVector.h>

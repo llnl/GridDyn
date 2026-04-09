@@ -8,7 +8,9 @@
 #include "../equations/AllEquations.h"
 #include "../timeintegrators/AllTimeIntegrators.h"
 #include <iomanip>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 using namespace std;
 namespace griddyn {

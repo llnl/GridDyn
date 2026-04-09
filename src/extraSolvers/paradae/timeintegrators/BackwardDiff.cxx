@@ -16,6 +16,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 namespace griddyn {
 namespace paradae {

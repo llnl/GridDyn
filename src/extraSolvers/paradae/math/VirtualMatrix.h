@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace paradae {

@@ -24,7 +24,7 @@ namespace paradae {
 
 #ifndef TIMER_INTRUSION  // 0->global 1->init,run,out 2->feval,jaceval,facto,solve
 #    define TIMER_INTRUSION 1
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
 
 #ifdef TIMER_BRAID
 #    if TIMER_INTRUSION < 1
@@ -38,7 +38,7 @@ namespace paradae {
 #        undef TIMER_INTRUSION
 #        define TIMER_INTRUSION 1
 #    endif
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
 
     const int MAX_NTIME = 100;
 

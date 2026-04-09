@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_ACTIONS_H_
-#define GRIDDYN_ACTIONS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_
 
 #include "../gridDynDefinitions.hpp"
+#include <string>
 
 namespace griddyn {
-// TODO:: use variant and string_view
+// TODO(phlpt): Use variant and string_view.
 
 /** @brief class to define action and parameters for GridDyn operations
  */
@@ -70,4 +71,4 @@ class gridDynAction {
 };
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_

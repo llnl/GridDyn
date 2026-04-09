@@ -10,6 +10,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <cmath>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace solvers {

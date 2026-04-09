@@ -12,6 +12,7 @@
 #pragma once
 #include "../core/coreOwningPtr.hpp"
 #include "../runner/gridDynRunner.h"
+#include <memory>
 
 namespace helics {
 class Federate;

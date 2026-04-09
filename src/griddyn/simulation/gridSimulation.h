@@ -9,6 +9,9 @@
 #include "../Area.h"
 #include "griddyn/griddyn-config.h"
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace helics {
 class Logger;
@@ -158,7 +161,7 @@ class gridSimulation: public Area {
     */
     virtual void add(std::shared_ptr<eventAdapter> eA);
 
-    // TODO::PT recheck if I really need this function
+    // TODO(phlpt): Recheck whether this function is actually needed.
     /** @brief reset all object counters to 0*/
     static void resetObjectCounters();
 

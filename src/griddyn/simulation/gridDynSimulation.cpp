@@ -25,7 +25,13 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <queue>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 static typeFactory<gridDynSimulation>
@@ -678,7 +684,6 @@ count_t gridDynSimulation::nonZeros(const solverMode& sMode) const
 // --------------- set properties ---------------
 void gridDynSimulation::set(const std::string& param, const std::string& val)
 {
-    using namespace gmlc::utilities;
     if (param == "powerflowfile") {
         powerFlowFile = val;
         controlFlags.set(save_power_flow_data);
@@ -694,13 +699,13 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
     } else if (param == "defdyndiff") {
         setDefaultMode(solution_modes_t::differential_mode, getSolverMode(val));
     } else if (param == "action") {
-        auto v = stringOps::splitline(val, ';');
-        stringOps::trim(v);
+        auto v = gmlc::utilities::stringOps::splitline(val, ';');
+        gmlc::utilities::stringOps::trim(v);
         for (auto& actionString : v) {
             add(actionString);
         }
     } else if (param == "ordering") {
-        auto order = convertToLowerCase(val);
+        auto order = gmlc::utilities::convertToLowerCase(val);
         if (order == "mixed") {
             default_ordering = offset_ordering::mixed;
         } else if (order == "grouped") {
@@ -717,7 +722,7 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
             throw(invalidParameterValue(val));
         }
     } else if (param == "dynamicsolvermethod") {
-        auto method = convertToLowerCase(val);
+        auto method = gmlc::utilities::convertToLowerCase(val);
         if (method == "dae") {
             defaultDynamicSolverMethod = dynamic_solver_methods::dae;
         } else if (method == "partitioned") {
@@ -852,7 +857,7 @@ void gridDynSimulation::setFlag(const std::string& flag, bool val)
         controlFlags.set(parallel_residual_enabled, val);
         controlFlags.set(parallel_contingency_enabled, val);
         controlFlags.set(parallel_jacobian_enabled, val);
-        // TODO:: PT add some more options controls here
+        // TODO(phlpt): Add some more option controls here.
     } else {
         gridSimulation::setFlag(flag, val);
     }
@@ -860,24 +865,24 @@ void gridDynSimulation::setFlag(const std::string& flag, bool val)
 
 void gridDynSimulation::set(const std::string& param, double val, units::unit unitType)
 {
-    using namespace units;
-
     if ((param == "tolerance") || (param == "rtol")) {
         tols.rtol = val;
     } else if (param == "voltagetolerance") {
-        tols.voltageTolerance = convert(val, unitType, puV, systemBasePower);
+        tols.voltageTolerance =
+            units::convert(val, unitType, units::puV, systemBasePower);
     } else if (param == "angletolerance") {
-        tols.angleTolerance = convert(val, unitType, rad);
+        tols.angleTolerance = units::convert(val, unitType, units::rad);
     } else if (param == "defaulttolerance") {
         tols.defaultTolerance = val;
     } else if (param == "tolerancerelaxation") {
         tols.toleranceRelaxationFactor = val;
     } else if (param == "powerflowstarttime") {
-        powerFlowStartTime = convert(val, unitType, second);
+        powerFlowStartTime = units::convert(val, unitType, units::second);
     } else if (param == "timetolerance") {
-        tols.timeTol = convert(val, unitType, second);
+        tols.timeTol = units::convert(val, unitType, units::second);
     } else if (param == "poweradjustthreshold") {
-        powerAdjustThreshold = convert(val, unitType, puMW, systemBasePower);
+        powerAdjustThreshold =
+            units::convert(val, unitType, units::puMW, systemBasePower);
     } else if (param == "maxpoweradjustiterations") {
         max_Padjust_iterations = static_cast<count_t>(val);
     } else if (param == "defpowerflow") {

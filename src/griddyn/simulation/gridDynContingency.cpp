@@ -15,6 +15,10 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridDynSimulationFileOps.h"
 #include "utilities/GlobalWorkQueue.hpp"
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 void buildBusContingencies(gridDynSimulation* gds,

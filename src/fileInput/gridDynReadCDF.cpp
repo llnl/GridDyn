@@ -16,11 +16,15 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::stringOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::stringOps::removeQuotes;
+using gmlc::utilities::stringOps::trim;
+using units::MW;
+using units::deg;
 
 void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
 void cdfReadBranch(coreObject* parentObject,
@@ -66,7 +70,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
         base = std::stod(temp1);
         parentObject->set("basepower", base);
         temp1 = line.substr(45, 27);
-        trimString(temp1);
+        gmlc::utilities::stringOps::trimString(temp1);
         if (bri.prefix.empty()) {
             parentObject->setName(temp1);
         }
@@ -172,8 +176,8 @@ void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const ba
     std::string temp = trim(line.substr(5, 12));
     std::string temp2 = (temp.length() >= 11) ? trim(temp.substr(9, 3)) : "";
 
-    removeQuotes(temp);
-    trim(temp);
+    temp = removeQuotes(temp);
+    temp = trim(temp);
     if (!(bri.prefix.empty())) {
         if (temp.empty()) {
             temp = bri.prefix + "_BUS_" + std::to_string(bus->getUserID());
@@ -487,20 +491,20 @@ void cdfReadBranch(coreObject* parentObject,
     lnk->set("x", X);
     // get line capacitance
     temp = line.substr(40, 11);
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     val = std::stod(temp);
     lnk->set("b", val);
 
     // turns ratio
     temp = line.substr(76, 6);
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     val = std::stod(temp);
     if (val > 0) {
         lnk->set("tap", val);
     }
     // tapStepSize
     temp = line.substr(105, 6);
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     val = std::stod(temp);
     if (val != 0) {
         if (code == 4) {
@@ -512,7 +516,7 @@ void cdfReadBranch(coreObject* parentObject,
 
     // tapAngle
     temp = line.substr(83, 7);
-    trimString(temp);
+    gmlc::utilities::stringOps::trimString(temp);
     val = std::stod(temp);
     if (val != 0) {
         lnk->set("tapangle", val, deg);
@@ -522,7 +526,7 @@ void cdfReadBranch(coreObject* parentObject,
 double convertBV(std::string& bv)
 {
     double val = 0.0;
-    trimString(bv);
+    gmlc::utilities::stringOps::trimString(bv);
     if (bv == "V1") {
         val = 345;
     } else if (bv == "V2") {

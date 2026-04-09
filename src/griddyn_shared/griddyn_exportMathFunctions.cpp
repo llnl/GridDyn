@@ -16,8 +16,11 @@
 #include "internal/griddyn_export_internal.h"
 #include "runner/gridDynRunner.h"
 #include "utilities/matrixDataCustomWriteOnly.hpp"
+#include <vector>
 
-using namespace griddyn;
+using griddyn::Area;
+using griddyn::GriddynRunner;
+using griddyn::getObjectVectorFunction;
 
 static constexpr char invalidSimulation[] = "the simulation object is not valid";
 static constexpr char invalidSolver[] = "the given solver key was not valid";

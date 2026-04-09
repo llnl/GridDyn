@@ -12,6 +12,9 @@
 #include "griddyn/relays/pmu.h"
 #include "griddyn/relays/zonalRelay.h"
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 // #include <crtdbg.h>
 //  test case for link objects

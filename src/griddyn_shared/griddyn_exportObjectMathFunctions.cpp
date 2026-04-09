@@ -14,11 +14,20 @@
 #include "core/coreOwningPtr.hpp"
 #include "core/objectFactory.hpp"
 #include "griddyn/gridDynSimulation.h"
+#include "griddyn/gridComponentHelperClasses.h"
 #include "griddyn_export_advanced.h"
 #include "internal/griddyn_export_internal.h"
 #include "utilities/matrixDataCustomWriteOnly.hpp"
+#include <vector>
 
-using namespace griddyn;
+using griddyn::IOdata;
+using griddyn::IOlocs;
+using griddyn::dyn_initialized;
+using griddyn::emptyStateData;
+using griddyn::gridComponent;
+using griddyn::gridDynSimulation;
+using griddyn::solverMode;
+using griddyn::stateData;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
 static constexpr char invalidSolver[] = "the given solver key was not valid";

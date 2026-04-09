@@ -30,6 +30,9 @@
 #include "utilities/matrixDataFilter.hpp"
 #include <cassert>
 #include <cstdio>
+#include <algorithm>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace solvers {

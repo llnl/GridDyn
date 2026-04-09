@@ -18,6 +18,9 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 using namespace griddyn;
 using namespace griddyn::loads;

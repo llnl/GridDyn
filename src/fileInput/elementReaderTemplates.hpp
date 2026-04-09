@@ -14,6 +14,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
 const IgnoreListType emptyIgnoreList{};
@@ -69,10 +70,9 @@ COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
                                    readerInfo& ri,
                                    coreObject* searchObject)
 {
-    using namespace readerConfig;
     coreObject* obj;
     // try to locate the object if it exists already
-    std::string ename = getElementField(element, "name", defMatchType);
+    std::string ename = getElementField(element, "name", readerConfig::defMatchType);
     if (!ename.empty()) {
         // check if the object can be found in the current search object
         ename = ri.checkDefines(ename);
@@ -81,7 +81,7 @@ COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
         }
     }
 
-    ename = getElementFieldOptions(element, NumandIndexNames, defMatchType);
+    ename = getElementFieldOptions(element, NumandIndexNames, readerConfig::defMatchType);
     if (!ename.empty()) {
         // check if the object can be found in the current search object
         double val = interpretString(ename, ri);
@@ -91,7 +91,7 @@ COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
         }
     }
 
-    ename = getElementField(element, "id", defMatchType);
+    ename = getElementField(element, "id", readerConfig::defMatchType);
     if (!ename.empty()) {
         // check if the object can be found in the current search object
         double val = interpretString(ename, ri);
@@ -115,14 +115,14 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
                        readerInfo& ri,
                        coreObject* searchObject)
 {
-    using namespace readerConfig;
     auto cof = coreObjectFactory::instance();
     auto tf = cof->getFactory(component);
     auto objectName = getObjectName(element, ri);
     bool preexist = (mobj != nullptr);
     if (mobj == nullptr) {
         // check if type is explicit
-        std::string valType = getElementFieldOptions(element, typeandRetype, defMatchType);
+        std::string valType =
+            getElementFieldOptions(element, typeandRetype, readerConfig::defMatchType);
         if (!valType.empty()) {
             valType = ri.checkDefines(valType);
             gmlc::utilities::makeLowerCase(valType);
@@ -156,7 +156,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
     } else {
         // if we need to do a type override
 
-        std::string valType = getElementField(element, "retype", defMatchType);
+        std::string valType = getElementField(element, "retype", readerConfig::defMatchType);
         if (!valType.empty()) {
             valType = ri.checkDefines(valType);
             gmlc::utilities::makeLowerCase(valType);
@@ -187,7 +187,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
     }
 
     if (!preexist) {  // check for library references if the object didn't exist before
-        std::string ename = getElementField(element, "ref", defMatchType);
+        std::string ename = getElementField(element, "ref", readerConfig::defMatchType);
         if (!ename.empty()) {
             ename = ri.checkDefines(ename);
             auto obj = ri.makeLibraryObject(ename, mobj);
@@ -231,8 +231,6 @@ COMPONENT* ElementReaderSetup(std::shared_ptr<readerElement>& element,
                               readerInfo& ri,
                               coreObject* searchObject)
 {
-    using namespace readerConfig;
-
     loadDefines(element, ri);
     loadDirectories(element, ri);
     searchObject = updateSearchObject<COMPONENT>(element, ri, searchObject);
@@ -256,7 +254,6 @@ COMPONENT* ElementReader(std::shared_ptr<readerElement>& element,
                          readerInfo& ri,
                          coreObject* searchObject)
 {
-    using namespace readerConfig;
     auto riScope = ri.newScope();
 
     mobj = ElementReaderSetup(element, mobj, component, ri, searchObject);

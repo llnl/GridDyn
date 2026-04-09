@@ -10,13 +10,16 @@
  * LLNS Copyright End
  */
 
-#ifndef GRIDDYN_EXPORT_INTERNAL_H_
-#define GRIDDYN_EXPORT_INTERNAL_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
 #include "gmlc/concurrency/TripWire.hpp"
 #include "gmlc/libguarded/guarded.hpp"
 #include "griddyn/gridComponent.h"
 #include "griddyn/solvers/solverMode.hpp"
 #include <deque>
+#include <memory>
+#include <string>
+#include <vector>
 
 typedef void* GridDynObject;
 /** make a GridDynObject wrapper out of an actual component pointer*/
@@ -69,9 +72,9 @@ inline void assignError(GridDynError* err, int errorCode, const char* string)
     }
 }
 
-extern const std::string emptyStr;
+extern const char emptyStr[];
 extern const std::string nullStringArgument;
-#define AS_STRING(str) ((str) != nullptr) ? std::string(str) : emptyStr
+#define AS_STRING(str) ((str) != nullptr) ? std::string(str) : std::string(emptyStr)
 
 #define CHECK_NULL_STRING(str, retval)                                                             \
     do {                                                                                           \
@@ -101,4 +104,4 @@ class MasterObjectHolder {
 };
 
 std::shared_ptr<MasterObjectHolder> getMasterHolder();
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_

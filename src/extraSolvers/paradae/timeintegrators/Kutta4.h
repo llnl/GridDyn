@@ -6,6 +6,7 @@
 #pragma once
 
 #include "RungeKutta_Explicit.h"
+#include <string>
 namespace griddyn {
 namespace paradae {
     /*!

@@ -20,7 +20,10 @@
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/logger.h"
 #include <map>
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 gridSimulation::gridSimulation(const std::string& objName): Area(objName), simulationTime(timeZero)
@@ -138,10 +141,9 @@ void gridSimulation::saveRecorders()
     }
 }
 
-static const std::string consoleprint("consoleprintlevel");
+static const char consoleprint[] = "consoleprintlevel";
 void gridSimulation::set(const std::string& param, const std::string& val)
 {
-    using namespace gmlc::utilities;
     std::string temp;
     if ((param == "recorddirectory") || (param == "outputdirectory")) {
         recordDirectory = val;
@@ -149,15 +151,15 @@ void gridSimulation::set(const std::string& param, const std::string& val)
             col->set("directory", recordDirectory);
         }
     } else if (param == "logprintlevel") {
-        temp = convertToLowerCase(val);
+        temp = gmlc::utilities::convertToLowerCase(val);
         logPrintLevel = stringToPrintLevel(temp);
     } else if (param == consoleprint) {
-        temp = convertToLowerCase(val);
+        temp = gmlc::utilities::convertToLowerCase(val);
         consolePrintLevel = stringToPrintLevel(temp);
     } else if (param == "version") {
         version = val;
     } else if (param == "printlevel") {
-        temp = convertToLowerCase(val);
+        temp = gmlc::utilities::convertToLowerCase(val);
         consolePrintLevel = stringToPrintLevel(temp);
         logPrintLevel = consolePrintLevel;
     } else if (param == "logfile") {

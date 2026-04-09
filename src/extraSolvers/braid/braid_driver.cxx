@@ -499,7 +499,7 @@ namespace braid {
             }
             (*fu_ptr)->xprev.CopyData(new_xprev);
             (*fu_ptr)->dxprev.CopyData(dx);
-            // TODO : change the state
+            // TODO(phlpt): Change the state.
         }
 
 #ifdef TIMER_BRAID
@@ -642,7 +642,7 @@ namespace braid {
             }
             (*cu_ptr)->xprev.CopyData(new_xprev);
             (*cu_ptr)->dxprev.CopyData(dx);
-            // TODO : change the state
+            // TODO(phlpt): Change the state.
         }
 
 #ifdef TIMER_BRAID

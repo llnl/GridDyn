@@ -10,6 +10,7 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
 
 #define HVDC_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dcLink_tests/"
 

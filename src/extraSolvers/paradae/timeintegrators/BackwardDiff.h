@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BackwardDiff_h
-#define BackwardDiff_h
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_
 
 #include "../equations/Equation.h"
 #include "../math/PMultiVector.h"
@@ -16,6 +16,7 @@
 #include "../solvers/Solver.h"
 #include "TimeIntegrator.h"
 #include <list>
+#include <string>
 
 namespace griddyn {
 namespace paradae {
@@ -119,4 +120,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_

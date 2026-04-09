@@ -31,6 +31,9 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
@@ -67,7 +70,6 @@ void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
 
 void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
 {
-    using namespace units;
     FILE* fp = fopen(fileName.c_str(), "w");
     if (fp == nullptr) {
         throw(fileOperationError("unable to open file " + fileName));
@@ -91,7 +93,7 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
                     bus->getUserID(),
                     bus->getName().c_str(),
                     bus->getVoltage(),
-                    convert(bus->getAngle(), rad, deg),
+                    units::convert(bus->getAngle(), units::rad, units::deg),
                     bus->getGenerationReal() * basePower,
                     bus->getGenerationReactive() * basePower,
                     bus->getLoadReal() * basePower,
@@ -115,7 +117,7 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
                 bus->locIndex + 1,
                 bus->getName().c_str(),
                 bus->getVoltage(),
-                convert(bus->getAngle(), rad, deg),
+                units::convert(bus->getAngle(), units::rad, units::deg),
                 bus->getGenerationReal() * basePower,
                 bus->getGenerationReactive() * basePower,
                 bus->getLoadReal() * basePower,
@@ -132,7 +134,6 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
 
 void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 {
-    using namespace units;
     FILE* fp = fopen(fileName.c_str(), "w");
     if (fp == nullptr) {
         throw(fileOperationError("unable to open file " + fileName));
@@ -165,7 +166,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
                 bus->getUserID(),
                 bus->getName().c_str(),
                 bus->getVoltage(),
-                convert(bus->getAngle(), rad, deg),
+                units::convert(bus->getAngle(), units::rad, units::deg),
                 bus->getGenerationReal() * basePower,
                 bus->getGenerationReactive() * basePower,
                 bus->getLoadReal() * basePower,
@@ -190,7 +191,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
             bus->getUserID(),
             bus->getName().c_str(),
             bus->getVoltage(),
-            convert(bus->getAngle(), rad, deg),
+            units::convert(bus->getAngle(), units::rad, units::deg),
             bus->getGenerationReal() * basePower,
             bus->getGenerationReactive() * basePower,
             bus->getLoadReal() * basePower,
@@ -954,7 +955,7 @@ void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const 
             return;
         }
     }
-    // TODO:: PT this index should be checked at some point, just not sure what to do with it now,
+    // TODO(phlpt): Check this index at some point; the right handling is still unclear,
     // might be used for automatic solverMode location  instead of what is done currently.
     unsigned int oi;
     bFile.read(reinterpret_cast<char*>(&(oi)), sizeof(int));

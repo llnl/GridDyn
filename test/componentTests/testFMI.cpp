@@ -10,8 +10,12 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/gridBus.h"
 #include "griddyn/simulation/diagnostics.h"
+#include <algorithm>
+#include <cstdio>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 // test case for coreObject object
 

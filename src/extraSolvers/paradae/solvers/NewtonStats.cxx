@@ -5,8 +5,12 @@
  */
 #include "NewtonStats.h"
 
+#include <cstdio>
 #include <climits>
 #include <fstream>
+#include <iostream>
+#include <list>
+#include <utility>
 
 namespace griddyn {
 namespace paradae {

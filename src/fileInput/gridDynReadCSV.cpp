@@ -18,12 +18,14 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace readerConfig;
-using namespace gmlc::utilities::string_viewOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::makeLowerCase;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::string_viewOps::split;
+using gmlc::utilities::string_viewOps::trim;
 
 enum mode_state { read_header, read_data };
 
@@ -42,7 +44,7 @@ void loadCSV(coreObject* parentObject,
     int lineNumber = 0;
     stringVec headers;
     std::vector<int> skipToken;
-    std::vector<unit> units;
+    std::vector<units::unit> units;
     std::string ObjectMode;
     int typekey = -1;
     int refkey = -1;
@@ -60,8 +62,8 @@ void loadCSV(coreObject* parentObject,
             continue;
         }
         if (mState == read_header) {
-            headers = stringOps::splitline(line);
-            stringOps::trim(headers);
+            headers = gmlc::utilities::stringOps::splitline(line);
+            gmlc::utilities::stringOps::trim(headers);
             ObjectMode = headers[0];
             makeLowerCase(ObjectMode);
             // translate a few mode possibilities
@@ -84,12 +86,12 @@ void loadCSV(coreObject* parentObject,
                 }
             }
 
-            units = std::vector<unit>(headers.size(), defunit);
+            units = std::vector<units::unit>(headers.size(), units::defunit);
             skipToken.resize(headers.size(), 0);
             typekey = -1;
             int nn = 0;
             for (auto& tk : headers) {
-                stringOps::trimString(tk);
+                gmlc::utilities::stringOps::trimString(tk);
 
                 if (tk.empty()) {
                     continue;
@@ -109,8 +111,8 @@ void loadCSV(coreObject* parentObject,
                     auto p = tk.find_first_of('(');
                     if (p != std::string::npos) {
                         std::string uname = tk.substr(p + 1, tk.length() - 2 - p);
-                        units[nn] = unit_cast_from_string(uname);
-                        tk = stringOps::trim(tk.substr(0, p));
+                        units[nn] = units::unit_cast_from_string(uname);
+                        tk = gmlc::utilities::stringOps::trim(tk.substr(0, p));
                     }
                 }
                 ++nn;

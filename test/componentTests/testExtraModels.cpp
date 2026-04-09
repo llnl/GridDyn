@@ -8,6 +8,7 @@
 #include "gridDynLoader/libraryLoader.h"
 #include "griddyn/measurement/collector.h"
 #include <gtest/gtest.h>
+#include <string>
 
 #define EXTRAMODEL_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/extraModel_tests/"
 

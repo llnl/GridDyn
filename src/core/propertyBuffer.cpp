@@ -9,6 +9,8 @@
 #include "coreObject.h"
 #include "helperObject.h"
 #include <algorithm>
+#include <string>
+#include <utility>
 namespace griddyn {
 void propertyBuffer::set(const std::string& param, const std::string& val)
 {

@@ -24,11 +24,22 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::stringOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToUpperCase;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::stringVector;
+using gmlc::utilities::stringOps::removeQuotes;
+using gmlc::utilities::stringOps::splitlineQuotes;
+using gmlc::utilities::stringOps::splitline;
+using gmlc::utilities::stringOps::trim;
+using gmlc::utilities::stringOps::trimString;
+using units::MVAR;
+using units::MW;
+using units::deg;
 
 int getPSSversion(const std::string& line);
 void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
@@ -846,7 +857,7 @@ void rawReadBranch(coreObject* parentObject,
 
     // get the branch impedance
 
-    // TODO get the other parameters (not critical for power flow)
+    // TODO(phlpt): Get the other parameters; not critical for power flow.
 }
 
 void rawReadTXadj(coreObject* parentObject,
@@ -1029,7 +1040,7 @@ int rawReadTX_v33(coreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        // TODO handle 3 way transformers(complicated)
+        // TODO(phlpt): Handle three-way transformers.
         std::cout << "3 winding transformers not supported at this time\n";
         return tline;
     }
@@ -1099,10 +1110,10 @@ int rawReadTX_v33(coreObject* parentObject,
     if (status == 0) {
         lnk->disable();
     } else if (status > 1) {
-        // TODO:  other conditions for 3 way transformers
+        // TODO(phlpt): Handle the other conditions for three-way transformers.
     }
 
-    // TODO:PT get the other parameters (not critical for power flow)
+    // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
     auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
@@ -1207,7 +1218,7 @@ int rawReadTX(coreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        // TODO handle 3 way transformers(complicated)
+        // TODO(phlpt): Handle three-way transformers.
         std::cout << "3 winding transformers not supported at this time\n";
         return tline;
     }
@@ -1277,10 +1288,10 @@ int rawReadTX(coreObject* parentObject,
     if (status == 0) {
         lnk->disable();
     } else if (status > 1) {
-        // TODO:  other conditions for 3 way transformers
+        // TODO(phlpt): Handle the other conditions for three-way transformers.
     }
 
-    // TODO:PT get the other parameters (not critical for power flow)
+    // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto val = numeric_conversion<double>(strvec3[0], 0.0);
     if (val != 0) {
         lnk->set("tap", val);
@@ -1375,7 +1386,7 @@ void rawReadSwitchedShunt(coreObject* parentObject,
 
     auto mode = numeric_conversion<int>(strvec[1], 0);
     int shift = 0;
-    // TODO:  this may not be totally correct right now
+    // TODO(phlpt): Verify this logic; it may not be totally correct right now.
     // VERSION 32 has some ambiguity in the interpretation
     if (opt.version >= 32) {
         shift = 2;
@@ -1449,7 +1460,7 @@ void rawReadSwitchedShunt(coreObject* parentObject,
             if (cbus != static_cast<int>(index)) {
                 ld->setControlBus(rbus);
             }
-            // TODO: PT load target object note:unusual condition
+            // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         case 5:
             ld->set("mode", "stepped");
@@ -1468,7 +1479,7 @@ void rawReadSwitchedShunt(coreObject* parentObject,
             if (cbus != static_cast<int>(index)) {
                 ld->setControlBus(rbus);
             }
-            // TODO: PT load target object note:unusual condition
+            // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         default:
             ld->set("mode", "manual");

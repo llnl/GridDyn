@@ -13,6 +13,10 @@
 #include "griddyn/links/acLine.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 // #include <crtdbg.h>
 //  test case for link objects

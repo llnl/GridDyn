@@ -18,9 +18,12 @@
 #include "helicsSupport.h"
 #include <complex>
 #include <deque>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <vector>
 
 namespace griddyn {
 namespace helicsLib {

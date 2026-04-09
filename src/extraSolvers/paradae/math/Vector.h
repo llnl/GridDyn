@@ -8,6 +8,7 @@
 #include "../common/def.h"
 #include <cstring>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace paradae {

@@ -7,6 +7,8 @@
 
 #include "../solvers/solverMode.hpp"
 #include <memory>
+#include <string>
+#include <vector>
 template<class Y>
 class matrixData;
 

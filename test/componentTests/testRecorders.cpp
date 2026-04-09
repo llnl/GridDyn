@@ -13,12 +13,13 @@
 #include <cmath>
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 // test case for coreObject object
 
 #define RECORDER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/recorder_tests/"
-static const std::string collector_test_directory =
-    std::string(GRIDDYN_TEST_DIRECTORY "/recorder_tests/");
+static const char collector_test_directory[] = GRIDDYN_TEST_DIRECTORY "/recorder_tests/";
 
 using namespace griddyn;
 using namespace gmlc::utilities;
@@ -486,14 +487,14 @@ TEST_F(RecorderTests, RecorderTest12)
 // test and invalid input
 TEST_F(RecorderTests, RecorderTestBadInput)
 {
-    std::string fileName = collector_test_directory + "recorder_test_invalid_field1.xml";
+    std::string fileName = std::string(collector_test_directory) + "recorder_test_invalid_field1.xml";
     printf("NOTE:  this should produce some warning messages\n");
     gds = readSimXMLFile(fileName);
 
     EXPECT_GT(readerConfig::warnCount, 0);
     readerConfig::warnCount = 0;
 
-    fileName = collector_test_directory + "recorder_test_invalid_field2.xml";
+    fileName = std::string(collector_test_directory) + "recorder_test_invalid_field2.xml";
     gds = readSimXMLFile(fileName);
 
     EXPECT_GT(readerConfig::warnCount, 0);
@@ -504,7 +505,7 @@ TEST_F(RecorderTests, RecorderTestBadInput)
 // testing if the recorders have any material impact on the results
 TEST_F(RecorderTests, RecorderTestPeriod)
 {
-    std::string fileName = collector_test_directory + "recorder_test_sineA.xml";
+    std::string fileName = std::string(collector_test_directory) + "recorder_test_sineA.xml";
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
     gds->consolePrintLevel = print_level::no_print;
@@ -517,7 +518,7 @@ TEST_F(RecorderTests, RecorderTestPeriod)
     std::string recname = std::string(RECORDER_TEST_DIRECTORY "recorder_dataA.dat");
     TimeSeriesMulti<> tsA(recname);
 
-    std::string fname2 = collector_test_directory + "recorder_test_sineB.xml";
+    std::string fname2 = std::string(collector_test_directory) + "recorder_test_sineB.xml";
     gds2 = readSimXMLFile(fname2);
     EXPECT_EQ(readerConfig::warnCount, 0);
     gds2->consolePrintLevel = print_level::no_print;

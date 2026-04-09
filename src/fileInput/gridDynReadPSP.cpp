@@ -16,11 +16,16 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::stringOps;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::stringOps::removeQuotes;
+using gmlc::utilities::stringOps::trim;
+using gmlc::utilities::stringOps::trimString;
+using units::MW;
+using units::deg;
 
 void pspReadBus(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
 void pspReadBranch(coreObject* parentObject,
@@ -66,7 +71,7 @@ void loadPSP(coreObject* parentObject, const std::string& fileName, const basicR
     // loop over the sections
     while (std::getline(file, line)) {
         temp = line.substr(0, 3);
-        trimString(temp);
+        gmlc::utilities::stringOps::trimString(temp);
         if (temp.empty()) {
             continue;
         }
@@ -212,17 +217,17 @@ void pspReadBus(gridBus* bus, const std::string& line, double base, const basicR
     double P, Q;
     double val;
     temp = line.substr(9, 12);
-    removeQuotes(temp);
+    temp = removeQuotes(temp);
     if (bri.prefix.empty()) {
         if (temp.empty()) {
             temp = line.substr(0, 4);
-            trimString(temp);
+            gmlc::utilities::stringOps::trimString(temp);
             temp = "BUS_" + temp;
         }
     } else {
         if (temp.empty()) {
             temp = line.substr(0, 4);
-            trimString(temp);
+            gmlc::utilities::stringOps::trimString(temp);
             temp = bri.prefix + "BUS_" + temp;
         } else {
             temp = bri.prefix + '_' + temp;
@@ -422,7 +427,7 @@ void pspReadBranch(coreObject* parentObject,
     if (line[6] == 'C') {
         istransformer = true;
         temp = line2.substr(66, 4);
-        trimString(temp);
+        gmlc::utilities::stringOps::trimString(temp);
         if (temp.empty()) {
             lnk = new acLine();
             // lnk->set ("type", "transformer");

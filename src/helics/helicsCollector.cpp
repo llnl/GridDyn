@@ -18,6 +18,9 @@
 #include "helicsCoordinator.h"
 #include "helicsLibrary.h"
 #include "helicsSupport.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace helicsLib {
@@ -87,7 +90,7 @@ namespace helicsLib {
                     pubs.emplace_back(cp.colname, -1, false);
                 }
             } else {
-                // TODO:: deal with output vectors later
+                // TODO(phlpt): Deal with output vectors later.
             }
         }
     }
@@ -143,13 +146,13 @@ namespace helicsLib {
 
     void helicsCollector::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities::stringOps;
         if (param == "complex") {
             auto asLoc = val.find("as");
-            cnames.push_back(trim(val.substr(asLoc + 2)));
+            cnames.push_back(gmlc::utilities::stringOps::trim(val.substr(asLoc + 2)));
             auto commaLoc = val.find_first_of(',');
-            complexPairs.emplace_back(trim(val.substr(0, commaLoc)),
-                                      trim(val.substr(commaLoc + 1, asLoc - 1 - commaLoc)));
+            complexPairs.emplace_back(
+                gmlc::utilities::stringOps::trim(val.substr(0, commaLoc)),
+                gmlc::utilities::stringOps::trim(val.substr(commaLoc + 1, asLoc - 1 - commaLoc)));
             // helicsRegister::instance()->registerPublication(cnames.back(),
             // helicsRegister::dataType::helicsComplex);
         } else if (param == "pubtype") {

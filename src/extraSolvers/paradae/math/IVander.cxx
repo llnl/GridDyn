@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "IVander.h"
+#include <iostream>
 
 #include "PVector.h"
 #include "SVector.h"

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FAULT_RESET_RECOVERY_H_
-#define FAULT_RESET_RECOVERY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_FAULTRESETRECOVERY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_FAULTRESETRECOVERY_H_
 
 #include <memory>
 #include <vector>
@@ -70,4 +70,4 @@ class faultResetRecovery {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_FAULTRESETRECOVERY_H_

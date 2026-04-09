@@ -15,8 +15,14 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "idaInterface.h"
 #include "kinsolInterface.h"
+#include <algorithm>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <new>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace solvers {
@@ -445,7 +451,7 @@ void SolverInterface::check_flag(void* flagvalue,
                                  int opt,
                                  bool printError) const
 {
-    // TODO delete either this or optimizerInterface::check_flag
+    // TODO(phlpt): Delete either this or optimizerInterface::check_flag.
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
@@ -465,7 +471,7 @@ void SolverInterface::check_flag(void* flagvalue,
             throw(solverException(*errflag));
         }
     }
-    // TODO missing if (opt == 2 and flagvalue == nullptr)?
+    // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.
 }
 
 int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, step_mode /* stepMode */)
@@ -493,7 +499,7 @@ void SolverInterface::setMaxNonZeros(count_t nonZeroCount)
     nnz = nonZeroCount;
 }
 
-// TODO:: change this function so the defaults can be something other than sundials solvers
+// TODO(phlpt): Change this so the defaults can be something other than sundials solvers.
 std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solverMode& sMode)
 {
     std::unique_ptr<SolverInterface> sd = nullptr;

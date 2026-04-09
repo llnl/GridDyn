@@ -22,6 +22,9 @@
 #include "helics/application_api/typeOperations.hpp"
 #include "helics/helicsEvent.h"
 #include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace helicsLib {

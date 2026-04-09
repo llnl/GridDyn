@@ -16,6 +16,9 @@
 #include "readElement.h"
 #include "readElementFile.h"
 #include <filesystem>
+#include <map>
+#include <memory>
+#include <string>
 namespace griddyn {
 
 namespace readerConfig {
@@ -94,8 +97,6 @@ namespace readerConfig {
     }
 }  // namespace readerConfig
 
-using namespace readerConfig;
-
 int objectParameterSet(const std::string& label, coreObject* obj, gridParameter& param) noexcept
 {
     try {
@@ -141,11 +142,10 @@ static const std::map<std::string, int> flagStringMap{
 
 void addflags(basicReaderInfo& bri, const std::string& flags)
 {
-    using namespace gmlc::utilities;
-    auto flagsep = stringOps::splitline(flags);
-    stringOps::trim(flagsep);
+    auto flagsep = gmlc::utilities::stringOps::splitline(flags);
+    gmlc::utilities::stringOps::trim(flagsep);
     for (auto& flag : flagsep) {
-        auto fnd = flagStringMap.find(convertToLowerCase(flag));
+        auto fnd = flagStringMap.find(gmlc::utilities::convertToLowerCase(flag));
         if (fnd != flagStringMap.end()) {
             bri.setFlag(fnd->second);
         }
@@ -181,7 +181,7 @@ void loadFile(coreObject* parentObject,
     // get rid of the . on the extension if it has one
 
     if (ext == "xml") {
-        switch (default_xml_reader) {
+        switch (readerConfig::default_xml_reader) {
             case xmlreader::tinyxml:
             default:
                 loadElementFile<tinyxmlReaderElement>(parentObject, fileName, ri);

@@ -19,6 +19,7 @@
 #include "helics/helicsCoordinator.h"
 #include "helicsLibrary.h"
 #include "helicsSupport.h"
+#include <string>
 
 namespace griddyn {
 namespace helicsLib {

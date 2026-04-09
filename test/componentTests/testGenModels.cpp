@@ -10,6 +10,8 @@
 #include "griddyn/Generator.h"
 #include <cmath>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
 #define GENMODEL_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/genmodel_tests/"

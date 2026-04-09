@@ -18,6 +18,9 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 // --------------- power flow program ---------------
@@ -311,7 +314,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-// TODO::PT  this really should be done by areas instead of globally
+// TODO(phlpt): This really should be done by areas instead of globally.
 bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
 {
     double cPower = 0.0;
@@ -336,7 +339,7 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
         // just let the residual error go to the swing bus.
         return false;
     }
-    // TODO:: PT  this makes a really big assumptions about the location (in the simulation) of the
+    // TODO(phlpt): This makes a really big assumption about the location (in the simulation) of the
     // buses really need to put some thought into working this through the areas
     if (cPower > 0.0) {
         for (auto& bus : gbusses) {

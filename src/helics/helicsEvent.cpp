@@ -14,6 +14,9 @@
 
 #include "helics/application_api/Subscriptions.hpp"
 #include "helicsCoordinator.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace helicsLib {

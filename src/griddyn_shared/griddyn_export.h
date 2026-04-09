@@ -18,8 +18,8 @@
 /** @defgroup GridDyn_api the group of function defining the C api to gridDyn
  *  @{
  */
-#ifndef GRIDDYN_EXPORT_C_H_
-#define GRIDDYN_EXPORT_C_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_
 
 #include "griddyn_shared_export.h"
 
@@ -745,4 +745,4 @@ GRIDDYN_EXPORT void gridDynEventSetTarget(GridDynEvent evnt, GridDynObject obj, 
 } /* end of extern "C" { */
 #endif
 
-#endif  // GRIDDYN_EXPORT_C_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_

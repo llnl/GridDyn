@@ -9,7 +9,10 @@
 #include "griddyn/Generator.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
+#include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
 #define GOVERNOR_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/governor_tests/"

@@ -10,8 +10,8 @@
  * LLNS Copyright End
  */
 
-#ifndef _HELICS_TEST_HEADER
-#define _HELICS_TEST_HEADER
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_
 namespace griddyn {
 namespace helicsLib {
     /** run tests of the HELICS code
@@ -19,4 +19,4 @@ namespace helicsLib {
     bool runHELICStests();
 }  // namespace helicsLib
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_

@@ -10,6 +10,8 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <algorithm>
+#include <string>
+#include <vector>
 namespace griddyn {
 namespace sources {
     blockSource::blockSource(const std::string& objName): Source(objName) {}

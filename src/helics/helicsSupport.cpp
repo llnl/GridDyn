@@ -14,6 +14,7 @@
 
 #include <regex>
 #include <sstream>
+#include <string>
 
 namespace griddyn {
 namespace helicsLib {

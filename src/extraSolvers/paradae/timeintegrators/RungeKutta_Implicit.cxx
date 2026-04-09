@@ -11,6 +11,7 @@
 #include "../solvers/LineSearch.h"
 #include "../solvers/Newton.h"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 namespace griddyn {

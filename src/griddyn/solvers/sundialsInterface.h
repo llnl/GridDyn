@@ -27,12 +27,12 @@
 #    define NVECTOR_DATA(omp, vec) NV_DATA_S(vec)
 #endif
 
-#include <sundials/sundials_linearsolver.h>
-#include <sundials/sundials_types.h>
-#include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix */
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <sundials/sundials_linearsolver.h>
+#include <sundials/sundials_types.h>
+#include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix */
 
 #define ONE RCONST(1.0)
 #define ZERO RCONST(0.0)

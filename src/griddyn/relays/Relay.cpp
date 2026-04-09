@@ -697,8 +697,7 @@ std::unique_ptr<eventAdapter> Relay::make_alarm(const std::string& val)
     auto lc = gmlc::utilities::convertToLowerCase(val);
     if (lc.compare(0, 5, "alarm") == 0) {
         auto codeStr = lc.substr(6);
-        auto code =
-            gmlc::utilities::numeric_conversion<std::uint32_t>(codeStr, std::uint32_t(-1));
+        auto code = gmlc::utilities::numeric_conversion<std::uint32_t>(codeStr, std::uint32_t(-1));
         if (code == std::uint32_t(-1)) {
             code = getAlarmCode(codeStr);
         }

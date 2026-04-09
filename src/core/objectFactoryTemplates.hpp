@@ -11,7 +11,6 @@
 #include "core/coreExceptions.h"
 #include "core/coreOwningPtr.hpp"
 #include "objectFactory.hpp"
-
 #include <memory>
 #include <string>
 #include <vector>

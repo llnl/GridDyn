@@ -60,7 +60,8 @@ static const std::map<std::string, zmq::socket_type> socketMap{{"req", zmq::sock
                                                                {"push", zmq::socket_type::push},
                                                                {"pull", zmq::socket_type::pull},
                                                                {"pair", zmq::socket_type::pair},
-                                                               {"stream", zmq::socket_type::stream}};
+                                                               {"stream",
+                                                                zmq::socket_type::stream}};
 /* *INDENT-ON* */
 
 zmq::socket_type socketTypeFromString(const std::string& socketType)

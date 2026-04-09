@@ -23,8 +23,8 @@ Livermore National Security, LLC.
 
 #include "zmqProxyHub.h"
 
-#include <mutex>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 

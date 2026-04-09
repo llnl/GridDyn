@@ -53,8 +53,8 @@ using std::setprecision;
 _braid_App_struct::_braid_App_struct(ODEProblem* ode_):
     ode(ode_), nb_multisteps(ode->GetTI()->GetType() == BDF ? ode->GetTI()->GetOrder() : 1),
     size_x(ode->GetEq()->GetM()), size_state(ode->GetEq()->GetNState()), prevlvl(-1),
-        solution_tfinal(nullptr),
-        alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state)
+    solution_tfinal(nullptr),
+    alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state)
 {
 }
 

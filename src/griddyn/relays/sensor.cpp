@@ -190,8 +190,7 @@ void sensor::set(const std::string& param, const std::string& val)
             } else {
                 outputStrings.reserve(outputStrings.size() + sp.size());
                 for (auto& istr : sp) {
-                    outputStrings.push_back(
-                        {gmlc::utilities::stringOps::getTailString(istr, ':')});
+                    outputStrings.push_back({gmlc::utilities::stringOps::getTailString(istr, ':')});
                 }
             }
             m_outputSize = static_cast<count_t>(outputStrings.size());

@@ -205,8 +205,8 @@ std::string commType;
 
         if (opFlags[use_commLink]) {
             if (ActionNum == 0) {
-                auto P = std::make_shared<comms::relayMessage>(
-                    comms::relayMessage::BREAKER_TRIP_EVENT);
+                auto P =
+                    std::make_shared<comms::relayMessage>(comms::relayMessage::BREAKER_TRIP_EVENT);
                 cManager.send(P);
             }
         }

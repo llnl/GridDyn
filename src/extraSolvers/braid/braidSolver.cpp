@@ -37,8 +37,8 @@
 
 namespace griddyn {
 namespace braid {
-    using griddyn::paradae::BDF;
     using griddyn::paradae::BackwardDiff;
+    using griddyn::paradae::BDF;
     using griddyn::paradae::Equation;
     using griddyn::paradae::EquationGridDyn;
     using griddyn::paradae::MapParam;
@@ -47,8 +47,8 @@ namespace braid {
     using griddyn::paradae::PVector;
     using griddyn::paradae::RCODE;
     using griddyn::paradae::Real;
-    using griddyn::paradae::SVector;
     using griddyn::paradae::SparseMatrix;
+    using griddyn::paradae::SVector;
     using griddyn::paradae::TimeIntegrator;
     using std::abort;
     using std::ceil;

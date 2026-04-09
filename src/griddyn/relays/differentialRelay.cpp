@@ -170,8 +170,8 @@ namespace relays {
 
         if (opFlags[use_commLink]) {
             if (ActionNum == 0) {
-                auto P = std::make_shared<comms::relayMessage>(
-                    comms::relayMessage::BREAKER_TRIP_EVENT);
+                auto P =
+                    std::make_shared<comms::relayMessage>(comms::relayMessage::BREAKER_TRIP_EVENT);
                 cManager.send(std::move(P));
             }
         }
@@ -182,8 +182,7 @@ namespace relays {
         LOG_NORMAL("differential condition met");
         if (opFlags.test(use_commLink)) {
             // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
-            auto P =
-                std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
+            auto P = std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
             cManager.send(P);
         }
     }

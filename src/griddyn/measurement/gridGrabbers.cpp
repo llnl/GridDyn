@@ -29,9 +29,9 @@
 #include <vector>
 
 namespace griddyn {
-using units::Hz;
 using units::convert;
 using units::defunit;
+using units::Hz;
 using units::puA;
 using units::puHz;
 using units::puMW;

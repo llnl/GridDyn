@@ -7,8 +7,8 @@
 // test cases for the main executable
 
 #include "../exeTestHelper.h"
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>

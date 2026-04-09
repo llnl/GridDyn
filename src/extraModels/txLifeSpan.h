@@ -12,7 +12,6 @@
 #define ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXLIFESPAN_H_
 
 #include "griddyn/relays/sensor.h"
-
 #include <string>
 
 namespace griddyn {

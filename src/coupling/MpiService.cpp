@@ -12,9 +12,8 @@
 
 #include "MpiService.h"
 
-#include <mpi.h>
-
 #include <memory>
+#include <mpi.h>
 #include <utility>
 
 namespace griddyn {

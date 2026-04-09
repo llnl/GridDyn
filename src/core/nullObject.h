@@ -7,7 +7,6 @@
 #pragma once
 
 #include "coreObject.h"
-
 #include <string>
 
 namespace griddyn {

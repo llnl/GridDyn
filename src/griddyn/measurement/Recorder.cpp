@@ -87,8 +87,7 @@ void Recorder::saveFile(const std::string& fileName)
     if (!fileName.empty()) {
         savefileName = std::filesystem::path(fileName);
 
-        std::string ext =
-            gmlc::utilities::convertToLowerCase(savefileName.extension().string());
+        std::string ext = gmlc::utilities::convertToLowerCase(savefileName.extension().string());
         bFile = ((ext != ".csv") && (ext != ".txt"));
     } else {
         if (triggerTime == lastSaveTime) {

@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
     auto gds = std::make_shared<griddyn::gridDynSimulation>();
 
     // Store the simulation pointer somewhere so that it can be accessed in other modules.
-    griddyn::gridDynSimulation::setInstance(gds.get());  // peer to gridDynSimulation::GetInstance ();
+    griddyn::gridDynSimulation::setInstance(
+        gds.get());  // peer to gridDynSimulation::GetInstance ();
 
     // TODO(phlpt): Restore a configurable mechanism for loading extra models in gridDynMain.
     // executable. If always loading them when available isn't desired, alternate mechanism is
@@ -122,9 +123,9 @@ int main(int argc, char* argv[])
         case execMode_t::helics: {
 #ifdef ENABLE_HELICS_EXECUTABLE
             auto runner = std::make_unique<helicsLib::helicsRunner>(gds);
-                gds->log(nullptr,
-                         griddyn::print_level::summary,
-                         std::string("Executing through HELICS runner"));
+            gds->log(nullptr,
+                     griddyn::print_level::summary,
+                     std::string("Executing through HELICS runner"));
             auto ret = runner->Initialize(argc, argv);
             if (ret > 0) {
                 return 0;

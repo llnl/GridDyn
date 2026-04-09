@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "PMultiVector.h"
-#include <iostream>
 
 #include "SMultiVector.h"
 #include "SVector.h"
+#include <iostream>
 
 namespace griddyn {
 namespace paradae {

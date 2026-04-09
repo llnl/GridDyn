@@ -23,15 +23,14 @@
 #include <functional>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <string_view>
+#include <vector>
 
 namespace griddyn {
 static constexpr bool unimplemented = false;
 
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewVector;
-using gmlc::utilities::stringOps::trimString;
 using gmlc::utilities::string_viewOps::default_bracket_chars;
 using gmlc::utilities::string_viewOps::delimiter_compression;
 using gmlc::utilities::string_viewOps::removeQuotes;
@@ -39,11 +38,12 @@ using gmlc::utilities::string_viewOps::split;
 using gmlc::utilities::string_viewOps::splitlineBracket;
 using gmlc::utilities::string_viewOps::toIntSimple;
 using gmlc::utilities::string_viewOps::trim;
+using gmlc::utilities::stringOps::trimString;
 using std::string_view;
-using units::MW;
-using units::MVAR;
 using units::deg;
 using units::km;
+using units::MVAR;
+using units::MW;
 using units::pu;
 using units::puMW;
 

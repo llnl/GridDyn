@@ -487,7 +487,8 @@ TEST_F(RecorderTests, RecorderTest12)
 // test and invalid input
 TEST_F(RecorderTests, RecorderTestBadInput)
 {
-    std::string fileName = std::string(collector_test_directory) + "recorder_test_invalid_field1.xml";
+    std::string fileName =
+        std::string(collector_test_directory) + "recorder_test_invalid_field1.xml";
     printf("NOTE:  this should produce some warning messages\n");
     gds = readSimXMLFile(fileName);
 

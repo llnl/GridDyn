@@ -35,24 +35,24 @@
 
 using griddyn::Area;
 using griddyn::Block;
-using griddyn::Exciter;
-using griddyn::GenModel;
-using griddyn::Generator;
-using griddyn::Governor;
-using griddyn::Link;
-using griddyn::Load;
-using griddyn::Source;
-using griddyn::coreOwningPtr;
 using griddyn::coreObject;
 using griddyn::coreObjectFactory;
-using griddyn::Relay;
+using griddyn::coreOwningPtr;
+using griddyn::Exciter;
+using griddyn::Generator;
+using griddyn::GenModel;
+using griddyn::Governor;
 using griddyn::gridBus;
 using griddyn::gridComponent;
 using griddyn::gridDynSimulation;
 using griddyn::gridSubModel;
 using griddyn::kNullVal;
-using griddyn::sensor;
+using griddyn::Link;
+using griddyn::Load;
+using griddyn::Relay;
 using griddyn::scheduler;
+using griddyn::sensor;
+using griddyn::Source;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
 

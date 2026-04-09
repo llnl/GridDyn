@@ -5,8 +5,8 @@
  */
 #include "NewtonStats.h"
 
-#include <cstdio>
 #include <climits>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <list>

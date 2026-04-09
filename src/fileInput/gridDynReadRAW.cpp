@@ -33,13 +33,13 @@ using gmlc::utilities::convertToUpperCase;
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringVector;
 using gmlc::utilities::stringOps::removeQuotes;
-using gmlc::utilities::stringOps::splitlineQuotes;
 using gmlc::utilities::stringOps::splitline;
+using gmlc::utilities::stringOps::splitlineQuotes;
 using gmlc::utilities::stringOps::trim;
 using gmlc::utilities::stringOps::trimString;
+using units::deg;
 using units::MVAR;
 using units::MW;
-using units::deg;
 
 int getPSSversion(const std::string& line);
 void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);

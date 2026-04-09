@@ -12,10 +12,10 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/gridBus.h"
-#include <memory>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace griddyn {

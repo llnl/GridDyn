@@ -25,8 +25,8 @@
 #endif
 
 #include <cassert>
-#include <format>
 #include <cstdio>
+#include <format>
 #include <iostream>
 #include <map>
 #include <memory>

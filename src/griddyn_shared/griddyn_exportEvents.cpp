@@ -19,9 +19,9 @@
 #include <memory>
 #include <vector>
 
+using griddyn::change_code;
 using griddyn::Event;
 using griddyn::GriddynRunner;
-using griddyn::change_code;
 using griddyn::make_event;
 using griddyn::object_update_mode;
 

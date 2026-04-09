@@ -13,19 +13,19 @@
 #include "core/coreExceptions.h"
 #include "core/coreOwningPtr.hpp"
 #include "core/objectFactory.hpp"
-#include "griddyn/gridDynSimulation.h"
 #include "griddyn/gridComponentHelperClasses.h"
+#include "griddyn/gridDynSimulation.h"
 #include "griddyn_export_advanced.h"
 #include "internal/griddyn_export_internal.h"
 #include "utilities/matrixDataCustomWriteOnly.hpp"
 #include <vector>
 
-using griddyn::IOdata;
-using griddyn::IOlocs;
 using griddyn::dyn_initialized;
 using griddyn::emptyStateData;
 using griddyn::gridComponent;
 using griddyn::gridDynSimulation;
+using griddyn::IOdata;
+using griddyn::IOlocs;
 using griddyn::solverMode;
 using griddyn::stateData;
 

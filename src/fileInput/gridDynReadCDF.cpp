@@ -23,8 +23,8 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
-using units::MW;
 using units::deg;
+using units::MW;
 
 void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
 void cdfReadBranch(coreObject* parentObject,

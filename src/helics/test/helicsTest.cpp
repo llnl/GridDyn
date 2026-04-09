@@ -38,12 +38,12 @@
 
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using griddyn::Generator;
-using griddyn::Source;
 using griddyn::coreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreTime;
+using griddyn::Generator;
 using griddyn::gridDynSimulationTestFixture;
+using griddyn::Source;
 using griddyn::helicsLib::gd2helicsTime;
 using griddyn::helicsLib::helics2gdTime;
 using griddyn::helicsLib::helicsCoordinator;
@@ -497,9 +497,8 @@ TEST_F(HelicsTests, TestMainExe)
         auto brk = runBroker("2");
         auto play = runPlayer(std::string(helics_test_directory) +
                               "source_player.txt --name=player --stop=24");
-        auto out =
-            mainExeRunner.runCaptureOutput(std::string(helics_test_directory) +
-                                           "helics_test3.xml --helics");
+        auto out = mainExeRunner.runCaptureOutput(std::string(helics_test_directory) +
+                                                  "helics_test3.xml --helics");
         auto res = out.find("HELICS");
         EXPECT_NE(res, std::string::npos);
         EXPECT_EQ(play.get(), 0);

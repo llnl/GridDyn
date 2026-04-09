@@ -28,9 +28,9 @@
 #include "sundialsMatrixData.h"
 #include "utilities/matrixCreation.h"
 #include "utilities/matrixDataFilter.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include <algorithm>
 #include <memory>
 #include <string>
 

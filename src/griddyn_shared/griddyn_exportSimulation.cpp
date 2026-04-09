@@ -21,13 +21,13 @@
 #include <string>
 #include <utility>
 
-using griddyn::GriddynRunner;
 using griddyn::buildFlags;
 using griddyn::compiler;
 using griddyn::coreTime;
 using griddyn::executionFailure;
 using griddyn::fileOperationError;
 using griddyn::gridDynAction;
+using griddyn::GriddynRunner;
 using griddyn::invalidParameterValue;
 using griddyn::kNullVal;
 using griddyn::loadFile;

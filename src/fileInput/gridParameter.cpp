@@ -9,8 +9,8 @@
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/gridDynDefinitions.hpp"
 #include <string>
-#include <utility>
 #include <string_view>
+#include <utility>
 
 namespace griddyn {
 gridParameter::gridParameter() = default;

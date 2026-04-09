@@ -868,8 +868,7 @@ void gridDynSimulation::set(const std::string& param, double val, units::unit un
     if ((param == "tolerance") || (param == "rtol")) {
         tols.rtol = val;
     } else if (param == "voltagetolerance") {
-        tols.voltageTolerance =
-            units::convert(val, unitType, units::puV, systemBasePower);
+        tols.voltageTolerance = units::convert(val, unitType, units::puV, systemBasePower);
     } else if (param == "angletolerance") {
         tols.angleTolerance = units::convert(val, unitType, units::rad);
     } else if (param == "defaulttolerance") {
@@ -881,8 +880,7 @@ void gridDynSimulation::set(const std::string& param, double val, units::unit un
     } else if (param == "timetolerance") {
         tols.timeTol = units::convert(val, unitType, units::second);
     } else if (param == "poweradjustthreshold") {
-        powerAdjustThreshold =
-            units::convert(val, unitType, units::puMW, systemBasePower);
+        powerAdjustThreshold = units::convert(val, unitType, units::puMW, systemBasePower);
     } else if (param == "maxpoweradjustiterations") {
         max_Padjust_iterations = static_cast<count_t>(val);
     } else if (param == "defpowerflow") {

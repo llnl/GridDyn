@@ -25,9 +25,9 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
+using units::deg;
 using units::MVAR;
 using units::MW;
-using units::deg;
 
 void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
 void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);

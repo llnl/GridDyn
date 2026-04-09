@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "IPoly.h"
-#include <iostream>
 
 #include "DenseMatrix.h"
 #include "PMultiVector.h"
@@ -12,6 +11,7 @@
 #include "SVector.h"
 #include <cfloat>
 #include <cmath>
+#include <iostream>
 
 namespace griddyn {
 namespace paradae {

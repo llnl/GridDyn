@@ -6,8 +6,8 @@
 
 #include "fileInput.h"
 #include "utilities/zipUtilities.h"
-#include <string>
 #include <filesystem>
+#include <string>
 
 namespace griddyn {
 void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& ri)

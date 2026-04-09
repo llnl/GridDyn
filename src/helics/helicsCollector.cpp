@@ -150,9 +150,9 @@ namespace helicsLib {
             auto asLoc = val.find("as");
             cnames.push_back(gmlc::utilities::stringOps::trim(val.substr(asLoc + 2)));
             auto commaLoc = val.find_first_of(',');
-            complexPairs.emplace_back(
-                gmlc::utilities::stringOps::trim(val.substr(0, commaLoc)),
-                gmlc::utilities::stringOps::trim(val.substr(commaLoc + 1, asLoc - 1 - commaLoc)));
+            complexPairs.emplace_back(gmlc::utilities::stringOps::trim(val.substr(0, commaLoc)),
+                                      gmlc::utilities::stringOps::trim(
+                                          val.substr(commaLoc + 1, asLoc - 1 - commaLoc)));
             // helicsRegister::instance()->registerPublication(cnames.back(),
             // helicsRegister::dataType::helicsComplex);
         } else if (param == "pubtype") {

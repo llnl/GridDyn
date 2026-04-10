@@ -8,8 +8,11 @@
 #include "core/coreExceptions.h"
 #include "fmiRunner.h"
 #include "griddyn/gridDynSimulation.h"
+#include <cstdio>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <utility>
 #include <vector>
 
 const char* fmi2GetTypesPlatform(void)
@@ -21,12 +24,14 @@ const char* fmi2GetVersion(void)
     return "2.0";
 }
 
-using namespace griddyn;
+using griddyn::coreObjectException;
+using griddyn::fmi::fmiRunner;
+using griddyn::id_type_t;
 
-using runner_t = fmi::fmiRunner*;
+using runner_t = fmiRunner*;
 static std::mutex fmiLock;  //!< lock for allowing multi-threaded access
 
-static std::vector<std::unique_ptr<fmi::fmiRunner>>
+static std::vector<std::unique_ptr<fmiRunner>>
     fmiRunnerInstances(1);  // vector of fmiRunner Instances
 
 using compID = std::pair<unsigned int, id_type_t>;

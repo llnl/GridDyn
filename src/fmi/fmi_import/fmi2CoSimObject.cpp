@@ -10,6 +10,9 @@
 #define MAX_IO 1000
 
 #include <array>
+#include <memory>
+#include <string>
+#include <utility>
 /**the co-simulation functions need an array of the derivative order, which for the primary function
 calls will be all identical, so there was no need to have to reconstruct this every time so this
 function just builds a common case to handle a large majority of cases without any additional

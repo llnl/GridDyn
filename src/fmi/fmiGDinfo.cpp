@@ -32,6 +32,8 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 #include "fmi_models/fmiMELoad3phase.h"
 #include "plugins/gridDynPluginApi.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <boost/dll/alias.hpp>  // for BOOST_DLL_ALIAS
 
@@ -68,9 +70,8 @@ void loadFmiLibrary()
 
 // Someday I will get plugins to work
 namespace fmi_plugin_namespace {
-using namespace griddyn;
 class fmiPlugin: public gridDynPlugInApi {
-    static std::vector<std::shared_ptr<objectFactory>> fmiFactories;
+    static std::vector<std::shared_ptr<griddyn::objectFactory>> fmiFactories;
     fmiPlugin() = default;
 
   public:
@@ -79,8 +80,9 @@ class fmiPlugin: public gridDynPlugInApi {
     void load() override
     {
         auto b =
-            std::make_shared<childTypeFactory<fmi::fmiMELoad, Load>>("load",
-                                                                     stringVec{"fmiload", "fmi"});
+            std::make_shared<griddyn::childTypeFactory<griddyn::fmi::fmiMELoad, griddyn::Load>>(
+                "load",
+                griddyn::stringVec{"fmiload", "fmi"});
         fmiFactories.push_back(b);
     }
 
@@ -91,6 +93,8 @@ class fmiPlugin: public gridDynPlugInApi {
         return std::shared_ptr<fmiPlugin>(new fmiPlugin());
     }
 };
+
+std::vector<std::shared_ptr<griddyn::objectFactory>> fmiPlugin::fmiFactories;
 
 /*BOOST_DLL_ALIAS(
     fmi_plugin_namespace::fmiPlugin::create, // <-- this function is exported with...

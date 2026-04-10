@@ -88,4 +88,4 @@ namespace paradae {
 }  // namespace paradae
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_

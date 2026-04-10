@@ -12,6 +12,8 @@
 #include "fmiCollector.h"
 #include "fmiCoordinator.h"
 #include "fmiEvent.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 static childClassFactory<fmi::fmiCollector, collector>

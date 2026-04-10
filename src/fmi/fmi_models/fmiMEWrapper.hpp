@@ -7,6 +7,8 @@
 
 #include "../fmi_models/fmiMESubModel.h"
 #include "fmiWrapper.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

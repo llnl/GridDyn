@@ -7,6 +7,8 @@
 
 #include "fmiMELoad3phase.h"
 
+#include <string>
+
 namespace griddyn {
 namespace fmi {
     class CymeDistLoadME: public fmiMELoad3phase {

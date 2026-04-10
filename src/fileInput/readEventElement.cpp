@@ -12,11 +12,12 @@
 #include "readerHelper.h"
 #include "units/units.hpp"
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
-using namespace readerConfig;
-
-static const std::string eventNameString("event");
+static const char eventNameString[] = "event";
 
 static const IgnoreListType eventIgnoreStrings{"file",
                                                "name",
@@ -41,7 +42,6 @@ void readEventElement(std::shared_ptr<readerElement>& aP,
                       readerInfo& ri,
                       coreObject* obj)
 {
-    using namespace gmlc::utilities;
     if (aP->getName() != "event") {
         gdEI.type = aP->getName();
     }
@@ -52,60 +52,60 @@ void readEventElement(std::shared_ptr<readerElement>& aP,
     }
 
     // check for the field attributes
-    std::string name = getElementField(aP, "name", defMatchType);
+    std::string name = getElementField(aP, "name", readerConfig::defMatchType);
     if (!name.empty()) {
         name = ri.checkDefines(name);
         gdEI.name = name;
     }
 
     // check for the field attributes
-    std::string type = getElementField(aP, "type", defMatchType);
+    std::string type = getElementField(aP, "type", readerConfig::defMatchType);
     if (!type.empty()) {
         gdEI.type = ri.checkDefines(type);
     }
 
     // check for the field attributes
-    auto targetList = getElementFieldMultiple(aP, "target", defMatchType);
+    auto targetList = getElementFieldMultiple(aP, "target", readerConfig::defMatchType);
     for (auto& ss : targetList) {
         ss = ri.checkDefines(ss);
         gdEI.targetObjs.push_back(locateObject(ss, obj));
     }
 
-    auto fieldList = getElementFieldMultiple(aP, "field", defMatchType);
+    auto fieldList = getElementFieldMultiple(aP, "field", readerConfig::defMatchType);
     for (auto& ss : fieldList) {
         ss = ri.checkDefines(ss);
         gdEI.fieldList.push_back(ss);
     }
-    auto unitList = getElementFieldMultiple(aP, "units", defMatchType);
+    auto unitList = getElementFieldMultiple(aP, "units", readerConfig::defMatchType);
     for (auto& ss : unitList) {
         ss = ri.checkDefines(ss);
         gdEI.units.push_back(units::unit_cast_from_string(ss));
     }
 
-    gdEI.description = getElementField(aP, "description", defMatchType);
+    gdEI.description = getElementField(aP, "description", readerConfig::defMatchType);
 
-    std::string field = getElementField(aP, "period", defMatchType);
+    std::string field = getElementField(aP, "period", readerConfig::defMatchType);
     if (!field.empty()) {
         gdEI.period = interpretString(field, ri);
     }
 
-    field = getElementFieldOptions(aP, {"t", "time"}, defMatchType);
+    field = getElementFieldOptions(aP, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
-        gdEI.time = str2vector<coreTime>(ri.checkDefines(field), negTime);
+        gdEI.time = gmlc::utilities::str2vector<coreTime>(ri.checkDefines(field), negTime);
     }
 
-    field = getElementFieldOptions(aP, {"value", "val"}, defMatchType);
+    field = getElementFieldOptions(aP, {"value", "val"}, readerConfig::defMatchType);
     if (!field.empty()) {
-        gdEI.value = str2vector(ri.checkDefines(field), kNullVal);
+        gdEI.value = gmlc::utilities::str2vector(ri.checkDefines(field), kNullVal);
     }
 
-    name = getElementField(aP, "file", defMatchType);
+    name = getElementField(aP, "file", readerConfig::defMatchType);
     if (!name.empty()) {
         ri.checkFileParam(name);
         gdEI.file = name;
     }
 
-    field = getElementField(aP, "column", defMatchType);
+    field = getElementField(aP, "column", readerConfig::defMatchType);
     if (!field.empty()) {
         gdEI.columns.push_back(static_cast<int>(interpretString(field, ri)));
     }

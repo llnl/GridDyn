@@ -18,7 +18,11 @@
 #include "utilities/zipUtilities.h"
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #ifndef GRIDDYNFMILIBRARY_BINARY_LOC
 #    define GRIDDYNFMILIBRARY_BINARY_LOC ""
@@ -30,6 +34,15 @@
 
 namespace griddyn {
 namespace fmi {
+    using std::filesystem::copy_file;
+    using std::filesystem::copy_options;
+    using std::filesystem::create_directory;
+    using std::filesystem::current_path;
+    using std::filesystem::exists;
+    using std::filesystem::filesystem_error;
+    using std::filesystem::path;
+    using std::filesystem::temp_directory_path;
+
     fmuBuilder::fmuBuilder()
     {
         loadComponents();
@@ -82,7 +95,6 @@ namespace fmi {
         return app;
     }
 
-    using namespace std::filesystem;
     /** helper function to copy a file and overwrite if requested*/
     bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
     {
@@ -433,7 +445,8 @@ namespace fmi {
 
     void fmuBuilder::generateXML(const std::string& xmlfile)
     {
-        using namespace tinyxml2;
+        using tinyxml2::XML_SUCCESS;
+        using tinyxml2::XMLDocument;
         XMLDocument doc;
         int index = 1;
         // add the standard xml declaration
@@ -574,7 +587,7 @@ namespace fmi {
             sVariable->SetAttribute("valueReference", out.first);
             sVariable->SetAttribute("causality", "output");
             sVariable->SetAttribute("variability", "continuous");
-            // TODO:: figure out how to generate descriptions
+            // TODO(phlpt): Figure out how to generate descriptions.
             auto rType = doc.NewElement("Real");
             sVariable->InsertEndChild(rType);
 
@@ -605,7 +618,7 @@ namespace fmi {
         pRoot->InsertEndChild(pElement);
 
         auto res = doc.SaveFile(xmlfile.c_str());
-        if (res != XMLError::XML_SUCCESS) {
+        if (res != XML_SUCCESS) {
             throw(std::runtime_error("unable to write file"));
         }
     }

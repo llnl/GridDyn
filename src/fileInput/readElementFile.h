@@ -12,6 +12,7 @@
 #include "readElement.h"
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <type_traits>
 
 namespace griddyn {
@@ -20,7 +21,6 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& ri
 template<class RX>
 coreObject* loadElementFile(coreObject* parentObject, const std::string& fileName, readerInfo* ri)
 {
-    using namespace readerConfig;
     static_assert(std::is_base_of<readerElement, RX>::value,
                   "classes must be inherited from coreObject");
     // pointers
@@ -38,7 +38,7 @@ coreObject* loadElementFile(coreObject* parentObject, const std::string& fileNam
         }
     } else {
         // set the warn count to 0 for the readerConfig namespace
-        warnCount = 0;
+        readerConfig::warnCount = 0;
     }
 
     // May need to create a readerInfo object this to ensure it gets deleted even under exception

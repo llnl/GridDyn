@@ -3,12 +3,15 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef FMI_COSIMSUBMODEL_H_
-#define FMI_COSIMSUBMODEL_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMSUBMODEL_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMSUBMODEL_H_
 
 #include "fmiSupport.h"
 #include "griddyn/gridSubModel.h"
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 class fmi2CoSimObject;
 class outputEstimator;
@@ -96,4 +99,4 @@ namespace fmi {
 
 }  // namespace fmi
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMSUBMODEL_H_

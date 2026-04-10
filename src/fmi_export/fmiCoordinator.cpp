@@ -10,6 +10,9 @@
 #include "fmiEvent.h"
 #include "gmlc/containers/mapOps.hpp"
 #include <algorithm>
+#include <cstdio>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace fmi {

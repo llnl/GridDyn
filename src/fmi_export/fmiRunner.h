@@ -10,6 +10,7 @@
 #include "runner/gridDynRunner.h"
 #include <bitset>
 #include <future>
+#include <string>
 
 namespace griddyn {
 class readerInfo;

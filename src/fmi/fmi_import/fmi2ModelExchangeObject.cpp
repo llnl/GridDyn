@@ -6,6 +6,12 @@
 
 #include "fmiObjects.h"
 
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 fmi2ModelExchangeObject::fmi2ModelExchangeObject(
     fmi2Component cmp,
     std::shared_ptr<const fmiInfo> keyInfo,

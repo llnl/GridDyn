@@ -7,6 +7,7 @@
 #pragma once
 
 #include "json/json.h"
+#include <string>
 
 class jsonElement {
   public:

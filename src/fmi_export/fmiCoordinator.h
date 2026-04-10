@@ -8,6 +8,9 @@
 #include "core/coreObject.h"
 #include <map>
 #include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

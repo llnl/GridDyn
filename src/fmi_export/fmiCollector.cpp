@@ -8,6 +8,8 @@
 
 #include "fmiCoordinator.h"
 #include "griddyn/measurement/gridGrabbers.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace fmi {
@@ -89,7 +91,7 @@ namespace fmi {
             if (cp.columnCount == 1) {
                 coord->registerOutput(cp.colname, cp.column, this);
             } else {
-                // TODO:: deal with output vectors later
+                // TODO(phlpt): Deal with output vectors later.
             }
         }
     }

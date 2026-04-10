@@ -12,10 +12,11 @@
 #include "griddyn/gridDynDefinitions.hpp"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
 static const stringVec indexAndNumber = {"index", "number"};
-static const std::string nameString = "name";
+static const char nameString[] = "name";
 
 std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& ri)
 {

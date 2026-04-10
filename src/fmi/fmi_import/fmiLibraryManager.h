@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <string>
 
 class fmiLibrary;
 class fmi2ModelExchangeObject;

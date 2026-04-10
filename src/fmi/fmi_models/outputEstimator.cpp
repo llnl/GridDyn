@@ -8,6 +8,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

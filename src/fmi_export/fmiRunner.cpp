@@ -14,6 +14,8 @@
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 #include <filesystem>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace fmi {

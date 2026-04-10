@@ -16,8 +16,11 @@
 #endif
 
 #include "gmlc/utilities/stringConversion.h"
+#include <iostream>
+#include <memory>
+#include <string>
 
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversionComplete;
 
 tinyxmlReaderElement::tinyxmlReaderElement() = default;
 tinyxmlReaderElement::tinyxmlReaderElement(const std::string& fileName)

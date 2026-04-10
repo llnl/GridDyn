@@ -6,6 +6,7 @@
 #pragma once
 
 #include "griddyn/gridDynDefinitions.hpp"
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

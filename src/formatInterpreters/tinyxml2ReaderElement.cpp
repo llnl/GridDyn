@@ -7,10 +7,16 @@
 #include "tinyxml2ReaderElement.h"
 
 #include "gmlc/utilities/string_viewConversion.h"
+#include <memory>
+#include <string>
 #include <tinyxml2/tinyxml2.h>
 
-using namespace tinyxml2;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversionComplete;
+using tinyxml2::COLLAPSE_WHITESPACE;
+using tinyxml2::XML_SUCCESS;
+using tinyxml2::XMLDocument;
+using tinyxml2::XMLElement;
+using tinyxml2::XMLError;
 
 // this is not using default for gcc 4.9 compatibility
 tinyxml2ReaderElement::tinyxml2ReaderElement() = default;

@@ -15,6 +15,9 @@
 #include "outputEstimator.h"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace fmi {
@@ -238,7 +241,8 @@ namespace fmi {
 
     void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities;
+        using gmlc::utilities::stringOps::splitline;
+        using gmlc::utilities::stringOps::trim;
 
         if ((param == "fmu") || (param == "file")) {
             if (!(cs)) {
@@ -248,13 +252,13 @@ namespace fmi {
                 return;
             }
         } else if (param == "outputs") {
-            auto ssep = stringOps::splitline(val);
-            stringOps::trim(ssep);
+            auto ssep = splitline(val);
+            trim(ssep);
             cs->setOutputVariables(ssep);
             m_outputSize = cs->outputSize();
         } else if (param == inputString) {
-            auto ssep = stringOps::splitline(val);
-            stringOps::trim(ssep);
+            auto ssep = splitline(val);
+            trim(ssep);
             cs->setInputVariables(ssep);
             m_inputSize = cs->inputSize();
             //    updateDependencyInfo();

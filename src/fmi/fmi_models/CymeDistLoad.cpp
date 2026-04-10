@@ -11,8 +11,10 @@
 #include "gmlc/utilities/stringOps.h"
 #include "json/reader.h"
 #include "json/value.h"
+#include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace fmi {

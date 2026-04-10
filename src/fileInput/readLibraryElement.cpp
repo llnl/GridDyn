@@ -12,6 +12,8 @@
 #include <cassert>
 #include <functional>
 #include <map>
+#include <string>
+#include <vector>
 
 // A bunch of includes to load these kinds of objects
 #include "griddyn/Area.h"
@@ -31,7 +33,6 @@
 #include "griddyn/loads/zipLoad.h"
 
 namespace griddyn {
-using namespace readerConfig;
 #define READSIGNATURE [](std::shared_ptr<readerElement> & cd, readerInfo & ri)
 
 static const std::map<std::string,
@@ -107,7 +108,7 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& ri)
     ri.closeScope(riScope);
 }
 
-static const std::string defineString("define");
+static const char defineString[] = "define";
 
 void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
 {
@@ -172,7 +173,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
     element->moveToParent();
 }
 
-static const std::string directoryString("directory");
+static const char directoryString[] = "directory";
 
 void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& ri)
 {
@@ -191,7 +192,7 @@ void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& ri)
     element->moveToParent();
 }
 
-static const std::string customString("custom");
+static const char customString[] = "custom";
 void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& ri)
 {
     if (!element->hasElement(customString)) {
@@ -213,7 +214,7 @@ void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& ri)
     element->moveToParent();
 }
 
-static const std::string translateString("translate");
+static const char translateString[] = "translate";
 void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
 {
     if (!element->hasElement(translateString)) {

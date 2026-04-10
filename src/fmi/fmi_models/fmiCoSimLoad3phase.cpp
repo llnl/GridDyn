@@ -12,6 +12,8 @@
 #include "fmiCoSimSubModel.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridBus.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

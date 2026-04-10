@@ -11,11 +11,12 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace griddyn {
-
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
 
 void loadMFile(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
 {
@@ -37,7 +38,8 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
             func = 0;
         }
         size_t A = filetext.find_first_of('=', func + 9);
-        std::string bname = stringOps::trim(filetext.substr(func + 9, A - func - 9));
+        std::string bname =
+            gmlc::utilities::stringOps::trim(filetext.substr(func + 9, A - func - 9));
 
         size_t B = filetext.find(bname + ".bus");
         if (B != std::string::npos) {
@@ -101,7 +103,6 @@ bool readMatlabArray(const std::string& Name, const std::string& text, mArray& m
 
 void readMatlabArray(const std::string& text, size_t start, mArray& matA)
 {
-    using namespace gmlc::utilities::string_viewOps;
     using std::string_view;
 
     string_view svtext = text;
@@ -115,13 +116,16 @@ void readMatlabArray(const std::string& text, size_t start, mArray& matA)
     size_t C = Adat.find_first_of("];");
     while (C != std::string_view::npos) {
         auto line = Adat.substr(D, C - D);
-        string_viewOps::trimString(line);
+        gmlc::utilities::string_viewOps::trimString(line);
         if (line.empty()) {
             D = C + 1;
             C = Adat.find_first_of(";]", D);
             continue;
         }
-        auto Tline = split(line, whiteSpaceCharacters, delimiter_compression::on);
+        auto Tline = gmlc::utilities::stringOps::splitline(
+            line,
+            gmlc::utilities::stringOps::whiteSpaceCharacters,
+            gmlc::utilities::stringOps::delimiter_compression::on);
         M.resize(Tline.size());
         size_t offset = 0;
         for (size_t kk = 0; kk < Tline.size(); ++kk) {
@@ -154,10 +158,10 @@ stringVec readMatlabCellArray(const std::string& text, size_t start)
         size_t D = Adat.find_first_of(";,}", C + 1);
         if (D != std::string::npos) {
             auto line = Adat.substr(C, D - C);
-            stringOps::trimString(line);
+            gmlc::utilities::stringOps::trimString(line);
             if (line[0] == '\'') {
                 line = line.substr(1, line.size() - 2);
-                stringOps::trimString(line);
+                gmlc::utilities::stringOps::trimString(line);
             }
             cell.push_back(line);
         }

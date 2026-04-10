@@ -10,11 +10,12 @@
  * LLNS Copyright End
  */
 
-#ifndef YAMLREADERELEMENT_H_
-#define YAMLREADERELEMENT_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_
 
 #include "readerElement.h"
 #include <memory>
+#include <string>
 #include <vector>
 namespace YAML {
 class Node;
@@ -80,4 +81,4 @@ class yamlReaderElement: public readerElement {
     std::vector<std::shared_ptr<yamlReaderElement>> bookmarks;
 };
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_

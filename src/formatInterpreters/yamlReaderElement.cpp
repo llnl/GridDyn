@@ -17,8 +17,10 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
 
-static const std::string nullStr = std::string("");
+static const char nullStr[] = "";
 
 yamlReaderElement::yamlReaderElement() {}
 yamlReaderElement::yamlReaderElement(const std::string& filename)

@@ -11,6 +11,7 @@
 #include <functional>
 #include <iterator>
 #include <map>
+#include <string>
 
 // A bunch of includes to load these kinds of objects
 #include "griddyn/Area.h"
@@ -30,8 +31,6 @@
 #include "griddyn/loads/zipLoad.h"
 
 namespace griddyn {
-using namespace readerConfig;
-
 // clang-format off
 #define READERSIGNATURE [](std::shared_ptr<readerElement> & cd, readerInfo & ri, coreObject * parent)
 
@@ -107,7 +106,11 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                    // in loops to add
         // stacked parameters and imports
         {
-            loadElementInformation(parentObject, element, fieldName, ri, emptyIgnoreList);
+            loadElementInformation(parentObject,
+                                   element,
+                                   fieldName,
+                                   ri,
+                                   IgnoreListType{});
         } else {
             // std::cout<<"library model :"<<fieldName<<":\n";
             auto obname = ri.objectNameTranslate(fieldName);

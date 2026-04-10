@@ -8,7 +8,10 @@
 
 #include "fmiImport.h"
 #include <exception>
+#include <memory>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 /** base fmiException*/
 class fmiException: public std::exception {

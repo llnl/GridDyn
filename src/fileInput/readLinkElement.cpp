@@ -13,12 +13,11 @@
 #include "griddyn/gridBus.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-
 static const IgnoreListType linkIgnoreElements{"to", "from"};
-static const std::string linkComponentName = "link";
+static const char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
                       readerInfo& ri,
@@ -32,7 +31,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
         element, static_cast<Link*>(nullptr), linkComponentName, ri, searchObject);
 
     // from bus
-    std::string busname = getElementField(element, "from", defMatchType);
+    std::string busname = getElementField(element, "from", readerConfig::defMatchType);
     if (busname.empty()) {
         if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'from' bus");
@@ -55,7 +54,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     }
 
     // to bus
-    busname = getElementField(element, "to", defMatchType);
+    busname = getElementField(element, "to", readerConfig::defMatchType);
     if (busname.empty()) {
         if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'to' bus");

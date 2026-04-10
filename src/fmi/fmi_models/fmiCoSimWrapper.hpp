@@ -7,6 +7,10 @@
 
 #include "../fmi_models/fmiCoSimSubModel.h"
 #include "fmiWrapper.hpp"
+
+#include <string>
+#include <vector>
+
 namespace griddyn {
 namespace fmi {
     template<class BaseObj>

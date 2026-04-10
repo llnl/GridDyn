@@ -11,8 +11,10 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
 
-static const std::string nullStr{};
+static const char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
 
 bool isElement(const toml::Value& testValue);

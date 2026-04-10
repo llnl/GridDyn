@@ -13,11 +13,14 @@
 #include "readerHelper.h"
 #include "utilities/gridRandom.h"
 #include <filesystem>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <utility>
 
 namespace griddyn {
-using namespace readerConfig;
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToLowerCase;
+using gmlc::utilities::numeric_conversion;
 
 void loadElementInformation(coreObject* obj,
                             std::shared_ptr<readerElement>& element,
@@ -37,7 +40,7 @@ void loadElementInformation(coreObject* obj,
 
 void checkForEndUnits(gridParameter& param, const std::string& paramStr);
 
-static const std::string importString("import");
+static const char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
                  readerInfo& ri,
                  coreObject* parentObject,
@@ -53,7 +56,7 @@ void readImports(std::shared_ptr<readerElement>& element,
     element->moveToFirstChild(importString);
     while (element->isValid()) {
         bool finalMode = false;
-        std::string fstring = getElementField(element, "final", defMatchType);
+        std::string fstring = getElementField(element, "final", readerConfig::defMatchType);
 
         if ((fstring == "true") || (fstring == "1")) {
             finalMode = true;
@@ -64,11 +67,11 @@ void readImports(std::shared_ptr<readerElement>& element,
             continue;
         }
 
-        std::string flags = getElementField(element, "flags", defMatchType);
+        std::string flags = getElementField(element, "flags", readerConfig::defMatchType);
         if (!flags.empty()) {
             addflags(ri, flags);
         }
-        std::string sourceFile = getElementField(element, "file", defMatchType);
+        std::string sourceFile = getElementField(element, "file", readerConfig::defMatchType);
         if (sourceFile.empty()) {
             // if we don't find a field named file, just use the text in the source element
             sourceFile = element->getText();
@@ -78,7 +81,8 @@ void readImports(std::shared_ptr<readerElement>& element,
         ri.checkFileParam(sourceFile, true);
 
         std::filesystem::path sourcePath(sourceFile);
-        std::string prefix = getElementField(element, "prefix", match_type::capital_case_match);
+        std::string prefix = getElementField(
+            element, "prefix", readerConfig::match_type::capital_case_match);
         // get the prefix if any
         if (prefix.empty()) {
             prefix = ri.prefix;
@@ -91,7 +95,7 @@ void readImports(std::shared_ptr<readerElement>& element,
 
         // check for type override
         const std::string ext =
-            convertToLowerCase(getElementField(element, "filetype", defMatchType));
+            convertToLowerCase(getElementField(element, "filetype", readerConfig::defMatchType));
 
         std::swap(prefix, ri.prefix);
         if (ext.empty()) {
@@ -107,8 +111,8 @@ void readImports(std::shared_ptr<readerElement>& element,
     element->restore();
 }
 
-static const std::string unitString1("units");
-static const std::string unitString2("unit");
+static const char unitString1[] = "units";
+static const char unitString2[] = "unit";
 
 units::unit readUnits(const std::shared_ptr<readerElement>& element, const std::string& field)
 {
@@ -139,7 +143,7 @@ units::unit readUnits(const std::shared_ptr<readerElement>& element, const std::
     return units::defunit;
 }
 
-static const std::string valueString("value");
+static const char valueString[] = "value";
 
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element)
 {
@@ -416,7 +420,6 @@ void setAttributes(helperObject* obj,
                    readerInfo& ri,
                    const IgnoreListType& ignoreList)
 {
-    using namespace readerConfig;
     auto att = element->getFirstAttribute();
 
     while (att.isValid()) {
@@ -474,8 +477,6 @@ void setParams(helperObject* obj,
                readerInfo& ri,
                const IgnoreListType& ignoreList)
 {
-    using namespace readerConfig;
-
     element->moveToFirstChild();
     while (element->isValid()) {
         std::string fieldName = convertToLowerCase(element->getName());

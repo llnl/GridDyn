@@ -7,10 +7,11 @@
 #include "formatInterpreters/readerElement.h"
 #include "gmlc/utilities/stringOps.h"
 #include "readElement.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToLowerCase;
+using gmlc::utilities::makeUpperCase;
 std::string findElementName(std::shared_ptr<readerElement>& element,
                             const std::string& ename,
                             readerConfig::match_type matching)
@@ -20,7 +21,7 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
         return fieldName;
     }
     switch (matching) {
-        case match_type::capital_case_match:
+        case readerConfig::match_type::capital_case_match:
 
             // check lower case
             fieldName = convertToLowerCase(fieldName);
@@ -32,7 +33,7 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
                 return fieldName;
             }
             break;
-        case match_type::any_case_match:
+        case readerConfig::match_type::any_case_match:
             fieldName = convertToLowerCase(fieldName);
 
             element->moveToFirstChild();
@@ -47,7 +48,7 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
             }
             element->moveToParent();
             break;
-        case match_type::strict_case_match:
+        case readerConfig::match_type::strict_case_match:
         default:
             break;
     }
@@ -56,13 +57,13 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
 
 std::string getElementAttribute(std::shared_ptr<readerElement>& element,
                                 const std::string& ename,
-                                match_type matching)
+                                readerConfig::match_type matching)
 {
     if (element->hasAttribute(ename)) {
         return element->getAttributeText(ename);
     }
     switch (matching) {
-        case match_type::capital_case_match: {
+        case readerConfig::match_type::capital_case_match: {
             auto tempName = convertToLowerCase(ename);
             if (element->hasAttribute(tempName)) {
                 return element->getAttributeText(tempName);
@@ -72,7 +73,7 @@ std::string getElementAttribute(std::shared_ptr<readerElement>& element,
                 return element->getAttributeText(tempName);
             }
         } break;
-        case match_type::any_case_match: {
+        case readerConfig::match_type::any_case_match: {
             auto tempName = convertToLowerCase(ename);
             auto att = element->getFirstAttribute();
             while (att.isValid()) {
@@ -83,7 +84,7 @@ std::string getElementAttribute(std::shared_ptr<readerElement>& element,
                 att = element->getNextAttribute();
             }
         } break;
-        case match_type::strict_case_match:
+        case readerConfig::match_type::strict_case_match:
         default:
             break;
     }
@@ -92,7 +93,7 @@ std::string getElementAttribute(std::shared_ptr<readerElement>& element,
 
 std::string getElementField(std::shared_ptr<readerElement>& element,
                             const std::string& ename,
-                            match_type matching)
+                            readerConfig::match_type matching)
 {
     auto ret = getElementAttribute(element, ename, matching);
     // an element can override an attribute
@@ -108,7 +109,7 @@ std::string getElementField(std::shared_ptr<readerElement>& element,
 
 std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
                                    const stringVec& names,
-                                   match_type matching)
+                                   readerConfig::match_type matching)
 {
     for (const auto& str : names) {
         auto ret = getElementField(element, str, matching);
@@ -121,7 +122,7 @@ std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
 
 stringVec getElementFieldMultiple(std::shared_ptr<readerElement>& element,
                                   const std::string& ename,
-                                  match_type matching)
+                                  readerConfig::match_type matching)
 {
     stringVec val;
     std::string elname_act;

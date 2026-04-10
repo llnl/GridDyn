@@ -8,6 +8,7 @@
 
 #include "fmiCoSimWrapper.hpp"
 #include "griddyn/Load.h"
+#include <string>
 
 namespace griddyn {
 namespace fmi {

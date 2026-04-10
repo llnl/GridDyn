@@ -13,6 +13,7 @@
 #include <cassert>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {
@@ -73,8 +74,9 @@ namespace fmi {
         /** function to help match the IO of the fmi to the IO of the component*/
         void setupFmiIo()
         {
-            using namespace gmlc::utilities::stringOps;
-            using namespace gmlc::utilities;
+            using gmlc::utilities::ensureSizeAtLeast;
+            using gmlc::utilities::stringOps::findCloseStringMatch;
+            using gmlc::utilities::stringOps::string_match_type;
 
             auto ostrings = fmisub->getOutputNames();
             auto istrings = fmisub->getInputNames();
@@ -230,8 +232,10 @@ namespace fmi {
 
         void set(const std::string& param, const std::string& val) override
         {
-            using namespace gmlc::utilities;
-            using namespace gmlc::utilities::stringOps;
+            using gmlc::utilities::convertToLowerCase;
+            using gmlc::utilities::stringOps::findCloseStringMatch;
+            using gmlc::utilities::stringOps::string_match_type;
+            using gmlc::utilities::stringOps::trailingStringInt;
             auto param2 = convertToLowerCase(param);
             if ((param2 == "fmu") || (param2 == "fmu_dir") || (param2 == "file")) {
                 if (fmisub != nullptr) {
@@ -262,12 +266,12 @@ namespace fmi {
                     }
                 }
             } else if (param2.compare(0, 2, "in") == 0) {
-                int num = stringOps::trailingStringInt(param2);
+                int num = trailingStringInt(param2);
                 if (num < BaseObj::m_inputSize) {
                     inputNames_specified[num] = val;
                 }
             } else if (param2.compare(0, 2, "out") == 0) {
-                int num = stringOps::trailingStringInt(param2);
+                int num = trailingStringInt(param2);
                 if (num < BaseObj::m_outputSize) {
                     outputNames_specified[num] = val;
                 }

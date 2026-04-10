@@ -6,7 +6,10 @@
 
 #include "tomlElement.h"
 
-static const std::string nullStr{};
+#include <string>
+#include <utility>
+
+static const char nullStr[] = "";
 
 tomlElement::tomlElement(toml::Value vElement, std::string newName):
     name(std::move(newName)), element(std::move(vElement))

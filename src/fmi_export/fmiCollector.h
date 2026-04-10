@@ -8,6 +8,8 @@
 
 #include "griddyn/measurement/collector.h"
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {

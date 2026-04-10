@@ -9,12 +9,11 @@
 #include "readElement.h"
 #include "readerHelper.h"
 #include <cstdio>
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-
 static const IgnoreListType areaIgnoreElements{"agc", "reserve", "reservedispatch", "dispatch"};
-static const std::string areaComponentName("area");
+static const char areaComponentName[] = "area";
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
                       readerInfo& ri,
                       coreObject* searchObject)

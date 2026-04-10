@@ -13,12 +13,11 @@
 #include "griddyn/gridBus.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-
 static const IgnoreListType busIgnore{"area"};
-static const std::string busComponentName = "bus";
+static const char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& ri,
@@ -33,7 +32,7 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
     gridBus* bus = ElementReaderSetup(
         element, static_cast<gridBus*>(nullptr), busComponentName, ri, searchObject);
 
-    std::string valType = getElementField(element, "type", defMatchType);
+    std::string valType = getElementField(element, "type", readerConfig::defMatchType);
     if (!valType.empty()) {
         valType = ri.checkDefines(valType);
         auto cloc = valType.find_first_of(",;");

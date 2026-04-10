@@ -11,8 +11,10 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
 
-static const std::string nullStr;
+static const char nullStr[] = "";
 
 iniReaderElement::iniReaderElement() = default;
 iniReaderElement::iniReaderElement(const std::string& fileName)
@@ -24,7 +26,7 @@ void iniReaderElement::clear()
     currentSection.clear();
 }
 
-static const std::string invalidString = ";";
+static const char invalidString[] = ";";
 
 bool iniReaderElement::isValid() const
 {

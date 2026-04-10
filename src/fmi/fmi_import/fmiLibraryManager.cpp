@@ -9,6 +9,9 @@
 #include "fmiImport.h"
 #include "fmiObjects.h"
 
+#include <memory>
+#include <string>
+
 std::shared_ptr<fmiLibrary> fmiLibraryManager::getLibrary(const std::string& libFile)
 {
     std::unique_lock<std::mutex> lock(libraryLock);
@@ -49,7 +52,7 @@ std::unique_ptr<fmi2CoSimObject>
 
 void fmiLibraryManager::loadBookMarkFile(const std::string& /*bookmarksFile*/)
 {
-    // TODO:: loading a bookmarks file
+    // TODO(phlpt): Load a bookmarks file.
 }
 
 void fmiLibraryManager::addShortCut(const std::string& name, const std::string& fmuLocation)

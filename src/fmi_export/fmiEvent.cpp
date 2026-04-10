@@ -7,6 +7,8 @@
 #include "fmiEvent.h"
 
 #include "fmiCoordinator.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace fmi {

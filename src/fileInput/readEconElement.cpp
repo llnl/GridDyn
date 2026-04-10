@@ -18,10 +18,9 @@
 #endif
 
 #include "gmlc/utilities/stringOps.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-
 static const IgnoreListType econIgnoreElements{"mode", "objecttype", "retype", "parent"};
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
@@ -48,7 +47,6 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     auto riScope = ri.newScope();
     // run the boilerplate code to setup the object
     // lnk = XMLReaderSetup(aP, lnk, "econ", ri, searchObject);
-    using namespace readerConfig;
     std::string objectType;
     std::string ename;
     auto coof = coreOptObjectFactory::instance();
@@ -59,7 +57,8 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     loadDefines(element, ri);
     loadDirectories(element, ri);
     if (searchObject != nullptr) {
-        targetname = getElementFieldOptions(element, {"target", "source"}, defMatchType);
+        targetname =
+            getElementFieldOptions(element, {"target", "source"}, readerConfig::defMatchType);
         if (targetname.empty()) {
             targetObject = searchObject;
         } else {
@@ -70,7 +69,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         if (oo != nullptr)  // check for retyping
         {
             // if we need to do a type override
-            auto ooMode = getElementField(element, "retype", defMatchType);
+            auto ooMode = getElementField(element, "retype", readerConfig::defMatchType);
             if (!ooMode.empty()) {
                 ooMode = ri.checkDefines(ooMode);
                 makeLowerCase(ooMode);
@@ -78,7 +77,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                 if (rtObj == nullptr) {
                     WARNPRINT(READER_WARN_IMPORTANT, "unknown economic retype " << ooMode);
                 } else {
-                    // TODO: this isn't quite right yet
+                    // TODO(phlpt): This isn't quite right yet.
                     oo->clone(rtObj);
                     oo->getParent()->remove(oo);
                     delete oo;
@@ -89,7 +88,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
     } else {
         std::string objecttype =
-            getElementFieldOptions(element, {"objecttype", "type"}, defMatchType);
+            getElementFieldOptions(element, {"objecttype", "type"}, readerConfig::defMatchType);
         if (!objecttype.empty()) {
             objectType = ri.checkDefines(objectType);
             makeLowerCase(objectType);
@@ -97,7 +96,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
             WARNPRINT(READER_WARN_IMPORTANT, "economic object type must be specified ");
             return nullptr;
         }
-        std::string mode = getElementField(element, "mode", defMatchType);
+        std::string mode = getElementField(element, "mode", readerConfig::defMatchType);
         if (mode.empty()) {
             oo = coof->createObject(objectType);
         } else {
@@ -111,7 +110,8 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     }
 
     if (oo == nullptr) {
-        std::string ooMode = getElementFieldOptions(element, {"mode", "retype"}, defMatchType);
+        std::string ooMode =
+            getElementFieldOptions(element, {"mode", "retype"}, readerConfig::defMatchType);
         if (!ooMode.empty()) {
             ooMode = ri.checkDefines(ooMode);
             makeLowerCase(ooMode);
@@ -120,7 +120,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                 WARNPRINT(READER_WARN_IMPORTANT, "unknown economic mode " << ooMode);
             }
         }
-        std::string refName = getElementField(element, "ref", defMatchType);
+        std::string refName = getElementField(element, "ref", readerConfig::defMatchType);
         if (!refName.empty()) {
             ename = ri.checkDefines(ename);
             obj = ri.makeLibraryObject(ename, oo);
@@ -147,7 +147,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
             return nullptr;
         }
     }
-    ename = getElementField(element, "name", defMatchType);
+    ename = getElementField(element, "name", readerConfig::defMatchType);
     if (!ename.empty()) {
         ename = ri.checkDefines(ename);
         if (ri.prefix.empty()) {
@@ -157,7 +157,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
     }
     // locate a parent if any
-    ename = getElementField(element, "parent", defMatchType);
+    ename = getElementField(element, "parent", readerConfig::defMatchType);
     if (!ename.empty()) {
         ename = ri.checkDefines(ename);
         if (oo->isRoot()) {

@@ -11,6 +11,10 @@
 #include "fmiSupport.h"
 #include "griddyn/gridSubModel.h"
 #include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 class fmi2ModelExchangeObject;
 

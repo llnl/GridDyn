@@ -6,7 +6,10 @@
 
 #include "jsonElement.h"
 
-static const std::string nullStr = std::string("");
+#include <string>
+#include <utility>
+
+static const char nullStr[] = "";
 
 jsonElement::jsonElement(Json::Value vElement, std::string newName):
     name(std::move(newName)), element(std::move(vElement))

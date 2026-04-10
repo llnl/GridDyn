@@ -12,7 +12,9 @@
 
 #include "yamlElement.h"
 
-static const std::string nullStr;
+#include <string>
+
+static const char nullStr[] = "";
 
 yamlElement::yamlElement(const YAML::Node& vElement, std::string newName):
     name(newName), element(vElement)

@@ -11,7 +11,7 @@
  * LLNS Copyright End
  */
 
-#ifndef FMI_IMPORT_GD_H_
-#define FMI_IMPORT_GD_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_IMPORTGD_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_IMPORTGD_H_
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_IMPORTGD_H_

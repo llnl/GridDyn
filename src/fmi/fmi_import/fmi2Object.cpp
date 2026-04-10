@@ -6,6 +6,12 @@
 
 #include "fmiObjects.h"
 
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 fmi2Object::fmi2Object(fmi2Component cmp,
                        std::shared_ptr<const fmiInfo> keyInfo,
                        std::shared_ptr<const fmiCommonFunctions> comFunc):
@@ -298,7 +304,7 @@ void fmi2Object::setOutputVariables(const std::vector<std::string>& outNames)
             activeOutputs.push(vI.valueRef);
             activeOutputIndices.push_back(vI.index);
         }
-        // TODO:: what to do if this condition is not valid?
+        // TODO(phlpt): Decide what to do if this condition is not valid.
     }
 }
 

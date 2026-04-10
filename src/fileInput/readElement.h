@@ -10,6 +10,7 @@
 #include "fileInput.h"
 #include "readerHelper.h"
 #include <memory>
+#include <string>
 #include <unordered_set>
 
 // forward declarations
@@ -161,22 +162,25 @@ coreObject* getParent(std::shared_ptr<readerElement>& element,
 
 // This set of constants and functions is to allow templating of the object type but getting an
 // alternative string for the parent type
-const std::string emptyString = "";
-const std::string areaTypeString = "area";
-const std::string busTypeString = "bus";
+static const char emptyString[] = "";
+static const char areaTypeString[] = "area";
+static const char busTypeString[] = "bus";
 
 inline const std::string& parentSearchComponent(coreObject*)
 {
-    return emptyString;
+    static const std::string emptyStringRef{emptyString};
+    return emptyStringRef;
 }
 
 inline const std::string& parentSearchComponent(gridPrimary*)
 {
-    return areaTypeString;
+    static const std::string areaTypeStringRef{areaTypeString};
+    return areaTypeStringRef;
 }
 
 inline const std::string& parentSearchComponent(gridSecondary*)
 {
-    return busTypeString;
+    static const std::string busTypeStringRef{busTypeString};
+    return busTypeStringRef;
 }
 }  // namespace griddyn

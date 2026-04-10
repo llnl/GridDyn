@@ -12,6 +12,7 @@
 #include "fmiMESubModel.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridBus.h"
+#include <string>
 
 namespace griddyn {
 namespace fmi {

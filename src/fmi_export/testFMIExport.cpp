@@ -21,12 +21,27 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <memory>
 #include <set>
+#include <string>
 
 static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/");
 
-using namespace griddyn;
-using namespace std::filesystem;
+using griddyn::coreTime;
+using griddyn::fmi::fmiLibrary;
+using griddyn::fmi::fmuMode;
+using griddyn::gridBus;
+using griddyn::gridDynSimulation;
+using griddyn::gridDynSimulationTestFixture;
+using griddyn::kNullLocation;
+using griddyn::loadFile;
+using griddyn::loads::ThreePhaseLoad;
+using griddyn::make_owningPtr;
+using griddyn::readerInfo;
+using std::filesystem::exists;
+using std::filesystem::path;
+using std::filesystem::remove;
+using std::filesystem::remove_all;
 
 class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 

@@ -8,8 +8,14 @@
 
 #include "formatInterpreters/tinyxml2ReaderElement.h"
 #include "gmlc/utilities/stringConversion.h"
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToLowerCase;
+using gmlc::utilities::str2vector;
+using gmlc::utilities::stringVector;
 
 fmiInfo::fmiInfo() = default;
 
@@ -90,15 +96,16 @@ int fmiInfo::getCounts(const std::string& countType) const
     return static_cast<int>(cnt);
 }
 
-static const std::string emptyString;
+static const char emptyString[] = "";
 
 const std::string& fmiInfo::getString(const std::string& field) const
 {
+    static const std::string emptyStringValue{emptyString};
     auto fnd = headerInfo.find(field);
     if (fnd != headerInfo.end()) {
         return fnd->second;
     }
-    return emptyString;
+    return emptyStringValue;
 }
 
 double fmiInfo::getReal(const std::string& field) const
@@ -392,7 +399,7 @@ description="Constant output value"
 variability="tunable"
 */
 
-const std::string ScalarVString("ScalarVariable");
+static const char ScalarVString[] = "ScalarVariable";
 void fmiInfo::loadVariables(std::shared_ptr<readerElement>& rd)
 {
     rd->bookmark();
@@ -541,14 +548,17 @@ auto depkindNum(const std::string& depknd)
     return 6;
 }
 
-const std::string unknownString("Unknown");
-const std::string depString("dependencies");
-const std::string depKindString("dependenciesKind");
+static const char unknownString[] = "Unknown";
+static const char depString[] = "dependencies";
+static const char depKindString[] = "dependenciesKind";
 
 void loadDependencies(std::shared_ptr<readerElement>& rd,
                       std::vector<int>& store,
                       matrixData<int>& depData)
 {
+    using gmlc::utilities::stringOps::delimiter_compression;
+    using gmlc::utilities::stringOps::splitline;
+
     rd->moveToFirstChild(unknownString);
     while (rd->isValid()) {
         auto att = rd->getAttribute("index");
@@ -557,7 +567,7 @@ void loadDependencies(std::shared_ptr<readerElement>& rd,
         auto row = static_cast<index_t>(att.getValue());
         auto dep = str2vector<int>(attDep.getText(), 0, " ");
         auto depknd = (attDepKind.isValid()) ?
-            stringOps::splitline(attDepKind.getText(), " ", stringOps::delimiter_compression::on) :
+            splitline(attDepKind.getText(), " ", delimiter_compression::on) :
             stringVector();
         store.push_back(row - 1);
         auto validdepkind = !depknd.empty();

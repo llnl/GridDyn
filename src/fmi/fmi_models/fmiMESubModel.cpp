@@ -16,10 +16,14 @@
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <filesystem>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {
-    using namespace gmlc::utilities;
+    using gmlc::utilities::vectorMultAdd;
 
     fmiMESubModel::fmiMESubModel(const std::string& newName,
                                  std::shared_ptr<fmi2ModelExchangeObject> fmi):
@@ -239,6 +243,9 @@ namespace fmi {
 
     void fmiMESubModel::set(const std::string& param, const std::string& val)
     {
+        using gmlc::utilities::stringOps::splitline;
+        using gmlc::utilities::stringOps::trim;
+
         if ((param == "fmu") || (param == "file")) {
             if (!(me)) {
                 try {
@@ -260,13 +267,13 @@ namespace fmi {
                 throw(invalidParameterValue(param));
             }
         } else if (param == "outputs") {
-            auto ssep = stringOps::splitline(val);
-            stringOps::trim(ssep);
+            auto ssep = splitline(val);
+            trim(ssep);
             me->setOutputVariables(ssep);
             m_outputSize = me->outputSize();
         } else if (param == "inputs") {
-            auto ssep = stringOps::splitline(val);
-            stringOps::trim(ssep);
+            auto ssep = splitline(val);
+            trim(ssep);
             me->setInputVariables(ssep);
             m_inputSize = me->inputSize();
             // updateDependencyInfo();

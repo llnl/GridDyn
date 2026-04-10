@@ -7,8 +7,10 @@
 #include "readerElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include <string>
+#include <utility>
 
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
 
 readerAttribute::readerAttribute() = default;
 readerAttribute::readerAttribute(std::string attName, std::string attText):

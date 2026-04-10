@@ -13,6 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridBus.h"
 #include <complex>
+#include <string>
 
 namespace griddyn {
 namespace fmi {

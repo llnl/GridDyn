@@ -7,6 +7,7 @@
 
 #include "readerElement.h"
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace toml {

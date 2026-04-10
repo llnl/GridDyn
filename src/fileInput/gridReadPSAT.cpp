@@ -31,6 +31,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 // using namespace units;
@@ -710,7 +714,13 @@ void loadPSATSynArray(coreObject* /*parentObject*/,
                       const mArray& syn,
                       const std::vector<gridBus*>& busList)
 {
-    using namespace genmodels;
+    using genmodels::GenModel3;
+    using genmodels::GenModel4;
+    using genmodels::GenModel5;
+    using genmodels::GenModel5type2;
+    using genmodels::GenModel5type3;
+    using genmodels::GenModel6type2;
+    using genmodels::GenModel8;
 
     int index = 1;
     for (auto genData : syn) {
@@ -988,7 +998,7 @@ void loadPsatMotorArray(coreObject* /*parentObject*/,
 
         auto motor = new loads::motorLoad();
         bus1->add(motor);
-        // TODO:PT add parameters
+        // TODO(phlpt): Add parameters.
     }
 }
 

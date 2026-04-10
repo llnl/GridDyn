@@ -19,13 +19,20 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities::string_viewOps;
 using std::string_view;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::string_viewOps::delimiter_compression;
+using gmlc::utilities::string_viewOps::split;
+using gmlc::utilities::string_viewOps::trimString;
+using units::MVAR;
+using units::MW;
+using units::deg;
 
 void loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
 void loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);

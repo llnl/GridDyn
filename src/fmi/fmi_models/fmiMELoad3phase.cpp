@@ -13,6 +13,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridBus.h"
 #include "utilities/ThreePhaseFunctions.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {
@@ -89,7 +91,7 @@ namespace fmi {
         auto I = fmisub->getOutputs(V, sD, sMode);
         // printf("V[%f,%f,%f,%f,%f,%f], I[%f,%f,%f,%f,%f,%f]\n", V[0], V[1], V[2], V[3], V[4],
         // V[5], I[0], I[1], I[2], I[3], I[4], I[5]);
-        auto PQ = ThreePhasePowerPolar(V, I);  // TODO:: make this a conditional
+        auto PQ = ThreePhasePowerPolar(V, I);  // TODO(phlpt): Make this conditional.
         setPa(PQ[0]);
         setPb(PQ[2]);
         setPc(PQ[4]);

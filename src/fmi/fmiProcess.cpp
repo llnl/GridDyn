@@ -21,8 +21,11 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #define VERSION_STRING "FMIprocess version 0.1 2015-4-30"
 

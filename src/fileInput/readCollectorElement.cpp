@@ -10,11 +10,10 @@
 #include "griddyn/measurement/collector.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <string>
 
 namespace griddyn {
-using namespace readerConfig;
-
-static const std::string nameString("name");
+static const char nameString[] = "name";
 
 static const IgnoreListType collectorIgnoreStrings{"file",
                                                    "name",
@@ -27,15 +26,18 @@ static const IgnoreListType collectorIgnoreStrings{"file",
                                                    "target",
                                                    "type"};
 
-static const std::string collectorNameString("collector");
+static const char collectorNameString[] = "collector";
 
 int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri)
 {
     int ret = FUNCTION_EXECUTION_SUCCESS;
-    std::string name = ri.checkDefines(getElementField(element, nameString, defMatchType));
+    std::string name =
+        ri.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
     std::string fileName =
-        ri.checkDefines(getElementFieldOptions(element, {"file", "sink"}, defMatchType));
-    std::string type = ri.checkDefines(getElementField(element, "type", defMatchType));
+        ri.checkDefines(
+            getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
+    std::string type =
+        ri.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
 
     auto col = ri.findCollector(name, fileName);
     if ((!type.empty()) && (name.empty()) && (fileName.empty())) {
@@ -57,12 +59,12 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
     }
 
     gridGrabberInfo gdRI;
-    name = getElementField(element, "target", defMatchType);
+    name = getElementField(element, "target", readerConfig::defMatchType);
     if (!name.empty()) {
         name = ri.checkDefines(name);
         gdRI.m_target = name;
     }
-    auto fieldList = getElementFieldMultiple(element, "field", defMatchType);
+    auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
 
     if (!(fieldList.empty())) {
         gdRI.field = "";
@@ -76,24 +78,25 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
         }
     }
 
-    std::string elementText = getElementField(element, "bias", defMatchType);
+    std::string elementText = getElementField(element, "bias", readerConfig::defMatchType);
     if (!elementText.empty()) {
         gdRI.bias = interpretString(elementText, ri);
     }
-    elementText = getElementField(element, "gain", defMatchType);
+    elementText = getElementField(element, "gain", readerConfig::defMatchType);
     if (!elementText.empty()) {
         gdRI.gain = interpretString(elementText, ri);
     }
-    elementText = getElementFieldOptions(element, {"units", "unit"}, defMatchType);
+    elementText =
+        getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
     if (!elementText.empty()) {
         elementText = ri.checkDefines(elementText);
         gdRI.outputUnits = units::unit_cast_from_string(elementText);
     }
-    elementText = getElementField(element, "column", defMatchType);
+    elementText = getElementField(element, "column", readerConfig::defMatchType);
     if (!elementText.empty()) {
         gdRI.column = static_cast<int>(interpretString(elementText, ri));
     }
-    elementText = getElementField(element, "offset", defMatchType);
+    elementText = getElementField(element, "offset", readerConfig::defMatchType);
     if (!elementText.empty()) {
         gdRI.offset = static_cast<int>(interpretString(elementText, ri));
         if (!(gdRI.field.empty())) {

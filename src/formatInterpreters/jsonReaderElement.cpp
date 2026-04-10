@@ -11,10 +11,12 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <string>
 // default initialized empty string
-static const std::string nullStr;
+static const char nullStr[] = "";
 
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversionComplete;
 
 bool isElement(const Json::Value& testValue);
 bool isAttribute(const Json::Value& testValue);

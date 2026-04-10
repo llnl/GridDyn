@@ -4,11 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FMI_COSIMLOADMODEL_3PHASE_H_
-#define FMI_COSIMLOADMODEL_3PHASE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_
 
 #include "fmiCoSimWrapper.hpp"
 #include "griddyn/loads/ThreePhaseLoad.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace fmi {
@@ -45,4 +47,4 @@ namespace fmi {
 
 }  // namespace fmi
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_

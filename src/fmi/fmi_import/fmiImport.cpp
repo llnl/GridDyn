@@ -13,11 +13,15 @@
 #include <array>
 #include <cstdarg>
 #include <map>
+#include <memory>
 
 #include <boost/dll/import.hpp>
 #include <boost/dll/shared_library.hpp>
 
-using namespace std::filesystem;
+using std::filesystem::create_directories;
+using std::filesystem::exists;
+using std::filesystem::is_directory;
+using std::filesystem::path;
 
 fmiLibrary::fmiLibrary()
 {

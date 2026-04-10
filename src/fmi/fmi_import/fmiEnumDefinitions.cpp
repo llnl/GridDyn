@@ -10,6 +10,9 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 
+#include <string>
+#include <unordered_map>
+
 fmi_variability::fmi_variability(const std::string& vstring)
 {
     if (vstring == "continuous") {

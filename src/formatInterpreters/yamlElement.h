@@ -15,6 +15,9 @@
 
 #pragma once
 #include "yaml-cpp/yaml.h"
+
+#include <string>
+
 class yamlElement {
   public:
     std::string name;  //!< the name of the element

@@ -9,12 +9,10 @@
 #include "readElement.h"
 #include "readerHelper.h"
 #include <cmath>
+#include <string>
 #include <string_view>
 
 namespace griddyn {
-using namespace readerConfig;
-using namespace gmlc::utilities;
-
 using std::string_view;
 
 static const IgnoreListType ignoreConditionVariables{"condition"};
@@ -30,11 +28,11 @@ void loadConditionElement(std::shared_ptr<readerElement>& element,
     loadDirectories(element, ri);
 
     bool eval = false;
-    std::string condString = getElementField(element, "condition", defMatchType);
+    std::string condString = getElementField(element, "condition", readerConfig::defMatchType);
 
     if (!condString.empty()) {
         // deal with &gt for > and &lt for < if necessary
-        condString = stringOps::xmlCharacterCodeReplace(condString);
+        condString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(condString);
         eval = checkCondition(condString, ri, parentObject);
     } else {
         WARNPRINT(READER_WARN_IMPORTANT, "no condition specified");
@@ -72,8 +70,7 @@ bool compare(const X& val1, const X& val2, char op1, char op2)
 
 bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
 {
-    using namespace gmlc::utilities::string_viewOps;
-    trim(cond);
+    gmlc::utilities::string_viewOps::trim(cond);
     bool rev = false;
     if ((cond[0] == '!') || (cond[0] == '~')) {
         rev = true;
@@ -87,7 +84,7 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
     if (pos == std::string_view::npos) {
         A = '!';
         B = '=';
-        BlockA = trim(cond);
+        BlockA = gmlc::utilities::string_viewOps::trim(cond);
         BlockB = "0";
         if (BlockA.compare(0, 6, "exists") == 0) {
             auto a1 = BlockA.find_first_of('(', 6);
@@ -99,8 +96,9 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
     } else {
         A = cond[pos];
         B = cond[pos + 1];
-        BlockA = trim(cond.substr(0, pos));
-        BlockB = (B == '=') ? trim(cond.substr(pos + 2)) : trim(cond.substr(pos + 1));
+        BlockA = gmlc::utilities::string_viewOps::trim(cond.substr(0, pos));
+        BlockB = (B == '=') ? gmlc::utilities::string_viewOps::trim(cond.substr(pos + 2)) :
+                              gmlc::utilities::string_viewOps::trim(cond.substr(pos + 1));
     }
 
     ri.setKeyObject(parentObject);

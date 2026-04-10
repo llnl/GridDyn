@@ -6,6 +6,7 @@
 #pragma once
 
 #include "toml/toml.h"
+#include <string>
 
 class tomlElement {
   public:

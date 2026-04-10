@@ -10,10 +10,10 @@
 #include "readElement.h"
 #include "readerHelper.h"
 #include <numeric>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace readerConfig;
-
 int readElementInteger(std::shared_ptr<readerElement>& element,
                        const std::string& name,
                        readerInfo& ri,
@@ -36,7 +36,7 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     loadDirectories(element, ri);
     // loop through the other children
     //  cd = aP->FirstChildElement (false);
-    std::string lvar = getElementField(element, "loopvariable", defMatchType);
+    std::string lvar = getElementField(element, "loopvariable", readerConfig::defMatchType);
     if (lvar.empty()) {
         lvar = "#index";
     }
@@ -87,7 +87,7 @@ int readElementInteger(std::shared_ptr<readerElement>& element,
                        int defValue)
 {
     int ret = defValue;
-    auto strVal = getElementField(element, name, defMatchType);
+    auto strVal = getElementField(element, name, readerConfig::defMatchType);
     if (strVal.empty()) {
         return ret;
     }

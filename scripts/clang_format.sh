@@ -4,12 +4,12 @@
 # TODO parallelize this?
 files=$(cat ../tidy/files.txt)
 for f in $files; do
-    echo $f
-    clang-format -i $f
+	echo $f
+	clang-format -i $f
 done
 
 files=$(cat ../tidy/headers.txt)
 for f in $files; do
-    echo $f
-    clang-format -i $f
+	echo $f
+	clang-format -i $f
 done

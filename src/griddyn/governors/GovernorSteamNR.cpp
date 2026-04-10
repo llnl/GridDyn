@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../gridBus.h"
 #include "utilities/matrixData.hpp"
+#include <string>
 
 namespace griddyn {
 namespace governors {

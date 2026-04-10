@@ -12,10 +12,11 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <string>
 
 namespace griddyn {
 namespace links {
-    using namespace units;
+    using units::unit;
 
     static typeFactory<zBreaker> glf("link", stringVec{"zbreaker", "zline", "busbreaker"});
 
@@ -63,7 +64,7 @@ namespace links {
     }
     void zBreaker::switchMode(index_t /*num*/, bool mode)
     {
-        // TODO:PT: this shouldn't cause enable disable, I need to replace this with some of the
+        // TODO(phlpt): This shouldn't cause enable/disable. Replace this with some of the
         // checks for enabled disable
         if (mode == opFlags[switch1_open_flag]) {
             return;

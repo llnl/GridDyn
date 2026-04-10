@@ -13,6 +13,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "scheduler.h"
+#include <string>
 
 namespace griddyn {
 /*

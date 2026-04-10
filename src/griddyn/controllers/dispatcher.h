@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../gridSubModel.h"
+#include <string>
 #include <vector>
 
 namespace griddyn {

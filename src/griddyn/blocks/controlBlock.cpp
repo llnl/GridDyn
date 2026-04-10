@@ -9,6 +9,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <string>
 
 namespace griddyn {
 namespace blocks {

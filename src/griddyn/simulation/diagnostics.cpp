@@ -11,8 +11,14 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/gridRandom.h"
 #include "utilities/matrixDataSparse.hpp"
+#include <algorithm>
 #include <cassert>
+#include <cstdio>
 #include <fstream>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 std::pair<double, int> checkResid(gridDynSimulation* gds, coreTime time, const solverMode& sMode)

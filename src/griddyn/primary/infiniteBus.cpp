@@ -10,9 +10,13 @@
 #include "../Link.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
+#include <string>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
+using units::puHz;
+using units::puV;
+using units::unit;
 
 infiniteBus::infiniteBus(const std::string& objName): gridBus(objName)
 {

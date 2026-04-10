@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Block.h"
+#include <string>
 
 namespace griddyn {
 namespace blocks {

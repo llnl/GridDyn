@@ -11,6 +11,7 @@
 #include "core/objectFactory.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace blocks {

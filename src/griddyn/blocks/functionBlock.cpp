@@ -11,6 +11,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/functionInterpreter.h"
 #include "utilities/matrixData.hpp"
+#include <string>
 
 namespace griddyn {
 namespace blocks {

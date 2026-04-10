@@ -19,10 +19,23 @@
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "listMaintainer.h"
+#include <algorithm>
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities;
+using gmlc::utilities::ensureSizeAtLeast;
+using gmlc::utilities::vecFindne;
+using units::Hz;
+using units::MW;
+using units::convert;
+using units::defunit;
+using units::rad;
+using units::s;
+using units::unit;
 
 std::atomic<count_t> Area::areaCounter{0};
 

@@ -9,7 +9,9 @@
 #include "../Generator.h"
 #include "../gridBus.h"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
 #include <cmath>
+#include <string>
 namespace griddyn {
 namespace exciters {
     ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)

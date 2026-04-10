@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef LONG_LINE_H_
-#define LONG_LINE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_LONGLINE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_LONGLINE_H_
 
 #include "acLine.h"
 #include "subsystem.h"
+#include <string>
 
 namespace griddyn {
 namespace links {
@@ -53,4 +54,4 @@ namespace links {
 
 }  // namespace links
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_LONGLINE_H_

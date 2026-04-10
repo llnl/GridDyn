@@ -6,6 +6,8 @@
 #pragma once
 
 #include "Event.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 class gridGrabber;

@@ -18,6 +18,7 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 namespace griddyn {
 // template<class T>
@@ -91,7 +92,7 @@ class eventAdapter {
 bool compareEventAdapters(const std::shared_ptr<eventAdapter>& e1,
                           const std::shared_ptr<eventAdapter>& e2);
 
-// TODO:: PT try to merge this adapter with the shared_ptr one
+// TODO(pt): try to merge this adapter with the shared_ptr one
 template<class Y>
 class eventTypeAdapter: public eventAdapter {
     static_assert(std::is_base_of<eventInterface, Y>::value,

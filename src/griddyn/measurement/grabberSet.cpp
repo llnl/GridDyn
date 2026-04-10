@@ -9,6 +9,9 @@
 #include "gridGrabbers.h"
 #include "stateGrabber.h"
 #include "utilities/valuePredictor.hpp"
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 grabberSet::grabberSet(const std::string& fld, coreObject* obj, bool step_only)

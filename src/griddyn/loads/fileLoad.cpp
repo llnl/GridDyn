@@ -10,10 +10,16 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <string>
+#include <utility>
 
 namespace griddyn {
 namespace loads {
-    using namespace gmlc::utilities;
+    using gmlc::utilities::convertToLowerCase;
+    using gmlc::utilities::numeric_conversion;
+    using gmlc::utilities::stringOps::splitline;
+    using gmlc::utilities::stringOps::trailingStringInt;
+    using gmlc::utilities::stringOps::trim;
 
     fileLoad::fileLoad(const std::string& objName): rampLoad(objName) {}
 
@@ -205,9 +211,9 @@ namespace loads {
                 count = loadFile();
             }
         } else if (param.compare(0, 6, "column") == 0) {
-            int col = stringOps::trailingStringInt(param, -1);
-            auto sp = stringOps::splitline(val);
-            stringOps::trim(sp);
+            int col = trailingStringInt(param, -1);
+            auto sp = splitline(val);
+            trim(sp);
             if (col >= 0) {
                 if (columnkey.size() < col + sp.size()) {
                     columnkey.resize(col + sp.size(), -1);

@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FREQSENSITIVELOAD_H_
-#define FREQSENSITIVELOAD_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_
 
 #include "../Load.h"
+#include <string>
 namespace griddyn {
 namespace loads {
     /** primary load class supports 3 main types of loads  constant power, constant impedance,
@@ -79,4 +80,4 @@ model Z-constant impedance, I-constant current, P- constant Power
 
 }  // namespace loads
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_

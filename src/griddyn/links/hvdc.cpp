@@ -16,10 +16,11 @@
 #include "dcLink.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <string>
 
 namespace griddyn {
 namespace links {
-    using namespace units;
+    using units::unit;
 
     static typeFactory<hvdc> gf("link", stringVec{"hvdc"});
 

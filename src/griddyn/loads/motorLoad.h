@@ -7,6 +7,9 @@
 
 #include "../Load.h"
 #include "../griddyn_autogen.h"
+#include <string>
+#include <utility>
+#include <vector>
 namespace griddyn {
 namespace loads {
     /** @brief class defining operations and equations for an induction motor load

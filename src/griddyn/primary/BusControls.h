@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
+#include <vector>
 
 namespace griddyn {
 

@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef EXPONENTIALLOAD_H_
-#define EXPONENTIALLOAD_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_EXPONENTIALLOAD_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_EXPONENTIALLOAD_H_
 
 #include "../Load.h"
+#include <string>
 
 namespace griddyn {
 namespace loads {
@@ -54,4 +55,4 @@ namespace loads {
 }  // namespace loads
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_EXPONENTIALLOAD_H_

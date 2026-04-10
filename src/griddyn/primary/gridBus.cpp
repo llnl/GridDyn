@@ -21,9 +21,13 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
 #include "infiniteBus.h"
+#include <cstdio>
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 std::atomic<count_t> gridBus::busCount(0);
@@ -33,7 +37,14 @@ static childTypeFactory<acBus, gridBus>
 static childTypeFactory<dcBus, gridBus> gbfdc("bus", stringVec{"dc", "hvdc"});
 static childTypeFactory<infiniteBus, gridBus> igbc("bus", stringVec{"inf", "infinite"});
 
-using namespace units;
+using units::convert;
+using units::defunit;
+using units::kV;
+using units::puHz;
+using units::puMW;
+using units::puV;
+using units::rad;
+using units::unit;
 
 gridBus::gridBus(const std::string& objName): gridPrimary(objName), outputs(3), outLocs(3)
 {
@@ -400,7 +411,7 @@ void gridBus::dynObjectInitializeB(const IOdata& /*inputs*/,
     for (auto& load : attachedLoads) {
         load->dynInitializeB(inputs, noInputs, pc);
     }
-    // TODO:: actually us the pc outputs
+    // TODO(phlpt): Actually use the pc outputs.
 }
 
 void gridBus::generationAdjust(double /*adjustment*/)
@@ -856,7 +867,7 @@ int gridBus::propogatePower(bool /*makeSlack*/)
                 }
             }
         } else {
-            // TODO::PT:deal with multiple adjustable controls
+            // TODO(phlpt): Deal with multiple adjustable controls.
             return 0;
         }
     }

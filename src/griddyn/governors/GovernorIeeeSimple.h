@@ -12,6 +12,8 @@
 #include "../blocks/controlBlock.h"
 #include "../blocks/deadbandBlock.h"
 #include "../blocks/delayBlock.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace governors {

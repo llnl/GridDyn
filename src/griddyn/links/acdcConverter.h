@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRID_ACDCCONVERTER_H_
-#define GRID_ACDCCONVERTER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
 
 #include "../Link.h"
 #include "core/coreOwningPtr.hpp"
+#include <string>
 
 namespace griddyn {
 namespace blocks {
@@ -148,4 +149,4 @@ namespace links {
 
 }  // namespace links
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_

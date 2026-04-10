@@ -8,6 +8,7 @@
 #define FILTERED_DERIVATIVE_BLOCK_H_
 #pragma once
 #include "../Block.h"
+#include <string>
 
 namespace griddyn {
 namespace blocks {

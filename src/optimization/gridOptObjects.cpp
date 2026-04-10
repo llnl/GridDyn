@@ -10,6 +10,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include <cstdio>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 gridOptObject::gridOptObject(const std::string& objName): coreObject(objName) {}

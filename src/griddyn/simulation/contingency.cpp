@@ -9,8 +9,12 @@
 #include "../events/Event.h"
 #include "../gridDynSimulation.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <algorithm>
 #include <map>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <utility>
 
 namespace griddyn {
 static const std::map<int, std::string> violation_map{
@@ -172,7 +176,7 @@ std::string Contingency::generateHeader() const
     return ss.str();
 }
 
-const std::string commaQuote = R"(, ")";
+const char commaQuote[] = R"(, ")";
 std::string Contingency::generateFullOutputLine() const
 {
     std::stringstream ss;

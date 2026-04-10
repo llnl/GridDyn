@@ -17,13 +17,15 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixDataCompact.hpp"
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 static typeFactory<dcBus> gbf("bus",
                               stringVec{"dc"
                                         "hvdc"});
 
-using namespace units;
+using units::convert;
+using units::unit;
 
 dcBus::dcBus(const std::string& objName): gridBus(objName), busController(this) {}
 
@@ -113,7 +115,7 @@ change_code
                     if (attachedGens.size() == 1) {
                         attachedGens[0]->set("p", S.genP);
                     } else {
-                        // TODO:: PT figure out what to do here
+                        // TODO(phlpt): Figure out what to do here.
                         // for (auto &gen : attachedGens)
                         //  {
                         // gen->set ("p", gen->getGeneration);
@@ -131,7 +133,7 @@ change_code
                     if (attachedGens.size() == 1) {
                         attachedGens[0]->set("p", S.genP);
                     } else {
-                        // TODO::PT figure out what to do in this case
+                        // TODO(phlpt): Figure out what to do in this case.
                         // for (auto &gen : attachedGens)
                         //  {
                         // gen->set ("p", gen->Pmax);
@@ -449,7 +451,7 @@ index_t dcBus::getOutputLoc(const solverMode& sMode, index_t num) const
     return kNullLocation;
 }
 
-// TODO:: PT write this function
+// TODO(phlpt): Write this function.
 void dcBus::converge(coreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],

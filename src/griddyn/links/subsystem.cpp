@@ -18,10 +18,15 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
 #include <complex>
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities;
+using gmlc::utilities::numeric_conversion;
+using gmlc::utilities::signn;
+using gmlc::utilities::sum;
+using units::unit;
 
 static typeFactory<subsystem> gf("link", std::vector<std::string>{"subsystem", "simple"});
 
@@ -60,7 +65,7 @@ coreObject* subsystem::clone(coreObject* obj) const
     sub->resize(m_terminals);
     sub->cterm = cterm;
 
-    // TODO:: find and copy the terminalLink information appropriately
+    // TODO(phlpt): Find and copy the terminalLink information appropriately.
 
     return sub;
 }
@@ -185,7 +190,7 @@ void subsystem::set(const std::string& param, const std::string& val)
 
 {
     std::string iparam;
-    int num = stringOps::trailingStringInt(param, iparam, -1);
+    int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
     if (iparam == "bus") {
         auto bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
         if (bus != nullptr) {

@@ -13,10 +13,17 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace loads {
-    using namespace units;
+    using units::convert;
+    using units::puA;
+    using units::puMW;
+    using units::puV;
+    using units::rad;
+    using units::unit;
 
     ThreePhaseLoad::ThreePhaseLoad(const std::string& objName): Load(objName) {}
     ThreePhaseLoad::ThreePhaseLoad(double rP, double rQ, const std::string& objName):

@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDLOAD3PHASE_H_
-#define GRIDLOAD3PHASE_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_THREEPHASELOAD_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_THREEPHASELOAD_H_
 
 #include "../Load.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 class gridBus;
 namespace loads {
@@ -102,4 +104,4 @@ conversions to positive sequence values.
     };
 }  // namespace loads
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_THREEPHASELOAD_H_

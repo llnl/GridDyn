@@ -11,6 +11,9 @@
 #include "core/objectOperatorInterface.hpp"
 #include "eventInterface.hpp"
 #include "units/units.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 /** helper data class for holding information about an event during construction

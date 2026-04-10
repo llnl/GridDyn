@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef MOTOR_LOAD3_H_
-#define MOTOR_LOAD3_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_
 
 #include "motorLoad.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 namespace loads {
     /** @brief class implementing a model of a 3rd order induction motor
@@ -117,4 +119,4 @@ namespace loads {
 
 }  // namespace loads
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_

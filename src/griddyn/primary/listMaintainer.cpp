@@ -8,6 +8,7 @@
 
 #include "../Area.h"
 #include "griddyn/griddyn-config.h"
+#include <vector>
 
 namespace griddyn {
 void fillList(const solverMode& sMode,

@@ -10,13 +10,20 @@
 #include "core/objectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace loads {
     static typeFactory<svd> svdld("load",
                                   stringVec{"svd", "switched shunt", "switchedshunt", "ssd"});
 
-    using namespace units;
+    using gmlc::utilities::convertToLowerCase;
+    using gmlc::utilities::numeric_conversion;
+    using units::convert;
+    using units::puMW;
+    using units::puV;
+    using units::unit;
 
     svd::svd(const std::string& objName): rampLoad(objName) {}
     svd::svd(double rP, double rQ, const std::string& objName): rampLoad(rP, rQ, objName)
@@ -221,9 +228,8 @@ namespace loads {
     void svd::getVariableType(double /*sdata*/[], const solverMode& /*sMode*/) {}
     void svd::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities;
         if ((param == "blocks") || (param == "block")) {
-            auto bin = stringOps::splitline(val);
+            auto bin = gmlc::utilities::stringOps::splitline(val);
             for (size_t kk = 0; kk < bin.size() - 1; ++kk) {
                 auto cnt = numeric_conversion<int>(bin[kk], 0);
                 double bsize = numeric_conversion(bin[kk + 1], 0.0);

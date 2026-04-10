@@ -13,6 +13,7 @@
 #include "utilities/matrixData.hpp"
 #include <cassert>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace genmodels {

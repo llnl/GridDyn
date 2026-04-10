@@ -14,9 +14,15 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
 namespace griddyn {
 namespace loads {
-    using namespace units;
+    using units::MVAR;
+    using units::convert;
+    using units::puMW;
+    using units::puV;
 
     // setup the load object factories
     static typeFactory<motorLoad> mlf1("load", stringVec{"motor", "motor1"});

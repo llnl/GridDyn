@@ -15,6 +15,9 @@
 #include "GridDynFederatedSimulator.h"
 
 #include <limits>
+#include <memory>
+#include <string>
+#include <tuple>
 
 GriddynFederatedSimulator::GriddynFederatedSimulator(
     std::string name,

@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRID_SUBSYSTEM_H_
-#define GRID_SUBSYSTEM_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_
 
 #include "../Area.h"
 #include "../Link.h"
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 /** @brief class defining a subsystem which is a set of components which link other components
@@ -184,7 +187,7 @@ class subsystem: public Link {
                               const solverMode& sMode) const override;
     virtual IOdata
         getOutputs(id_type_t busId, const stateData& sD, const solverMode& sMode) const override;
-    // TODO:: PT add the other getOutput functions
+    // TODO(phlpt): Add the other getOutput functions.
   protected:
     /** @brief get a vector with pointers to all the buses
    wrapper around the corresponding area function
@@ -199,4 +202,4 @@ class subsystem: public Link {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_

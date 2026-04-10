@@ -10,6 +10,9 @@
 
 #include "compoundEvent.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace events {

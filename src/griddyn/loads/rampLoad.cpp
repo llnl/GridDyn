@@ -10,11 +10,16 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <string>
 
 // #include <ctime>
 namespace griddyn {
 namespace loads {
-    using namespace units;
+    using units::convert;
+    using units::puA;
+    using units::puMW;
+    using units::puOhm;
+    using units::unit;
     rampLoad::rampLoad(const std::string& objName): zipLoad(objName) {}
     rampLoad::rampLoad(double rP, double qP, const std::string& objName): zipLoad(rP, qP, objName)
     {

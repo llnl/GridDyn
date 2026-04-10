@@ -14,6 +14,8 @@
 
 #include "rampLoad.h"
 #include <future>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class GhostSwingBusManager;

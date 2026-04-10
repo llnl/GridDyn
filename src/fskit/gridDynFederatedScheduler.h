@@ -12,8 +12,8 @@
  * LLNS Copyright End
  * -----------------------------------------------------------------
  */
-#ifndef GRIDDYN_FEDERATED_SCHEDULER_H_
-#define GRIDDYN_FEDERATED_SCHEDULER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_
 
 #include <cassert>
 #include <memory>
@@ -62,11 +62,11 @@ class GriddynFederatedScheduler {
      */
     static void Initialize(std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler)
     {
-        // TODO:: make this thread safe probably with a mutex lock
+        // TODO(pt): make this thread safe probably with a mutex lock
         g_scheduler = scheduler;
     }
 
     static std::shared_ptr<fskit::GrantedTimeWindowScheduler> g_scheduler;
 };
 
-#endif  // GRIDDYN_FEDERATED_SCHEDULER_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_

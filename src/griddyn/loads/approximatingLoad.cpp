@@ -17,6 +17,9 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using gmlc::utilities::convertToLowerCase;
 
@@ -302,7 +305,7 @@ namespace loads {
 
     void approximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
     {
-        using namespace gmlc::containers;
+        using gmlc::containers::make_workBlock;
         assert(!opFlags[waiting_flag]);  // this should not happen;
 
         // auto dt = time - m_lastCallTime;
@@ -326,7 +329,7 @@ namespace loads {
 
     void approximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
     {
-        using namespace gmlc::containers;
+        using gmlc::containers::make_workBlock;
         assert(!opFlags[waiting_flag]);  // this should not happen;
 
         // auto dt = time - m_lastCallTime;
@@ -365,7 +368,7 @@ namespace loads {
 
     void approximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
     {
-        using namespace gmlc::containers;
+        using gmlc::containers::make_workBlock;
         assert(!opFlags[waiting_flag]);  // this should not happen;
 
         // auto dt = time - m_lastCallTime;
@@ -529,7 +532,7 @@ namespace loads {
 
     void approximatingLoad::set(const std::string& param, double val, units::unit unitType)
     {
-        // TODO:: PT convert some to a setFlags function
+        // TODO(phlpt): Convert some of these to a setFlags function.
         if ((param == "spread") || (param == "band")) {
             if (std::abs(val) > kMin_Res) {
                 spread = val;

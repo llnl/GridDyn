@@ -14,10 +14,13 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
 #include <cstring>
+#include <string>
 
 namespace griddyn {
 namespace links {
-    using namespace units;
+    using units::convert;
+    using units::puMW;
+    using units::unit;
     dcLink::dcLink(const std::string& objName): Link(objName)
     {
         opFlags.set(dc_only);

@@ -12,9 +12,16 @@
 #include "dispatcher.h"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/griddyn-config.h"
+#include <list>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::MW;
+using units::convert;
+using units::puMW;
+using units::unit;
 
 // operator overloads for Tsched object
 bool operator<(const tsched& td1, const tsched& td2)
@@ -307,7 +314,7 @@ void scheduler::insertTarget(tsched ts)
 
 void scheduler::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
 {
-    using namespace comms;
+    using comms::schedulerMessagePayload;
     auto sm = message->getPayload<schedulerMessagePayload>();
     switch (message->getMessageType()) {
         case schedulerMessagePayload::CLEAR_TARGETS:

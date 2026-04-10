@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef EXCITERDC2A_H_
-#define EXCITERDC2A_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_
 
 #include "ExciterDC1A.h"
+#include <string>
 namespace griddyn {
 namespace exciters {
     /** @brief DC2A exciter
@@ -46,4 +47,4 @@ namespace exciters {
 }  // namespace exciters
 }  // namespace griddyn
 
-#endif  // EXCITERDC2A_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_

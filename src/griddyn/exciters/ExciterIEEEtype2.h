@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef EXCITER_IEEE_TYPE2_H_
-#define EXCITER_IEEE_TYPE2_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERIEEETYPE2_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERIEEETYPE2_H_
 
 #include "ExciterIEEEtype1.h"
+#include <string>
 namespace griddyn {
 
 namespace exciters {
@@ -60,4 +61,4 @@ namespace exciters {
 }  // namespace exciters
 }  // namespace griddyn
 
-#endif  // GRIDDYNEXCITER_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERIEEETYPE2_H_

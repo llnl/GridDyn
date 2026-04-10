@@ -10,6 +10,7 @@
 #include "../gridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
+#include <string>
 
 namespace griddyn {
 namespace governors {

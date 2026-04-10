@@ -19,6 +19,8 @@
 #include "gridDynFederatedScheduler.h"
 #include "griddyn-tracer.h"
 #include "griddyn/gridDynSimulation.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 static childClassFactory<FskitCommunicator, griddyn::Communicator>

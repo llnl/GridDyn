@@ -12,6 +12,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
 #include "utilities/matrixData.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 static typeFactory<GenModel> gdm("genmodel", stringVec{"trivial"});

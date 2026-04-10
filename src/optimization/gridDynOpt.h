@@ -19,6 +19,8 @@
 #include <cstdio>
 #include <fstream>
 #include <list>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 // definitions for defining solution mode

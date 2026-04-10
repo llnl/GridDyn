@@ -4,10 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ADJUSTABLE_LINKS_H_
-#define ADJUSTABLE_LINKS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_
 
 #include "acLine.h"
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace links {
@@ -230,4 +233,4 @@ the only one that adjusts the angle.  available control include stepped and cont
 
 }  // namespace links
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_

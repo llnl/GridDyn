@@ -9,7 +9,10 @@
 #include "core/coreExceptions.h"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
+#include <memory>
 #include <sstream>
+#include <string>
 
 namespace griddyn {
 namespace events {

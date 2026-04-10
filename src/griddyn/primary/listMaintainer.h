@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef LISTMAINTAINER_H_
-#define LISTMAINTAINER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_LISTMAINTAINER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_LISTMAINTAINER_H_
 
 #include "../gridComponentHelperClasses.h"
 #include <functional>
@@ -105,4 +105,4 @@ class listMaintainer {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_LISTMAINTAINER_H_

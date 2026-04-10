@@ -9,6 +9,9 @@
 #pragma once
 
 #include "Event.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace events {

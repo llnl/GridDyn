@@ -12,8 +12,8 @@
  * LLNS Copyright End
  */
 
-#ifndef GRIDDYN_FEDERATED_SIMULATOR_H
-#define GRIDDYN_FEDERATED_SIMULATOR_H
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_
 
 #include "fskit/fskitRunner.h"
 #include <fskit/discrete-event-federated-simulator.h>
@@ -21,7 +21,10 @@
 #include <fskit/time.h>
 #include <fskit/variable-step-size-federated-simulator.h>
 #include <iostream>
+#include <memory>
 #include <random>
+#include <string>
+#include <tuple>
 
 namespace griddyn {
 class fskitRunner;
@@ -67,4 +70,4 @@ class GriddynFederatedSimulator:
     std::shared_ptr<griddyn::fskitRunner> m_griddyn;
 };
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_

@@ -14,6 +14,8 @@
 #include "core/helperObject.h"
 #include "core/objectOperatorInterface.hpp"
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class gridComponent;

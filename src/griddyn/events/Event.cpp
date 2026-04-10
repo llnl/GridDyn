@@ -14,12 +14,17 @@
 #include "core/factoryTemplates.hpp"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include <memory>
 #include "interpolatingPlayer.h"
 #include "reversibleEvent.h"
 #include <sstream>
+#include <string>
 
 namespace griddyn {
-using namespace gmlc::utilities;
+using gmlc::utilities::stringOps::trailingStringInt;
+using gmlc::utilities::stringOps::trim;
+using gmlc::utilities::stringOps::trimString;
+using gmlc::utilities::str2vector;
 
 static classFactory<Event> evntFac(std::vector<std::string>{"event", "simple", "single"}, "event");
 namespace events {
@@ -98,7 +103,7 @@ void Event::loadField(coreObject* searchObj, const std::string& newField)
 
     objInfo fdata;
     if (renameloc != std::string::npos) {
-        setName(stringOps::trim(newField.substr(renameloc + 4)));
+        setName(trim(newField.substr(renameloc + 4)));
         fdata = objInfo(newField.substr(0, renameloc), searchObj);
     } else {
         fdata = objInfo(newField, searchObj);
@@ -360,7 +365,7 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
         std::string tstring = (posT != std::string::npos) ?
             eventString.substr(posA + 1, posT - posA - 1) :
             eventString.substr(posA + 1, std::string::npos);
-        stringOps::trimString(tstring);
+        trimString(tstring);
         auto cstr = tstring.find_first_of(',');
         if (cstr == std::string::npos) {
             cstr = tstring.find_first_of('+');
@@ -376,10 +381,10 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
         objString = (posA > 2) ? eventString.substr(0, posA - 1) :
                                  eventString.substr(posT + 1, std::string::npos);
     }
-    stringOps::trimString(objString);
+    trimString(objString);
     auto posE = objString.find_first_of('=');
     std::string vstring = objString.substr(posE + 1, std::string::npos);
-    stringOps::trimString(vstring);
+    trimString(vstring);
     objString = objString.substr(0, posE);
     // break down the object specification
     objInfo fdata(objString, rootObj);
@@ -393,7 +398,7 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
         auto posEndFile = vstring.find_first_of('}', posFile);
         file = vstring.substr(posE + 1, posEndFile - posFile - 1);
 
-        int col = stringOps::trailingStringInt(file, file, 0);
+        int col = trailingStringInt(file, file, 0);
         columns.push_back(col);
         auto posPlus = vstring.find_first_of('+', posEndFile);
         if (posPlus != std::string::npos) {
@@ -438,24 +443,23 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, coreObject* rootObject)
     auto evType = findEventType(gdEI);
 
     switch (evType) {
-        using namespace events;
         case event_types::basic:
             ev = std::make_unique<Event>(gdEI, rootObject);
             break;
         case event_types::compound:
-            ev = std::make_unique<compoundEvent>(gdEI, rootObject);
+            ev = std::make_unique<events::compoundEvent>(gdEI, rootObject);
             break;
         case event_types::player:
-            ev = std::make_unique<Player>(gdEI, rootObject);
+            ev = std::make_unique<events::Player>(gdEI, rootObject);
             break;
         case event_types::compoundplayer:
-            ev = std::make_unique<compoundEventPlayer>(gdEI, rootObject);
+            ev = std::make_unique<events::compoundEventPlayer>(gdEI, rootObject);
             break;
         case event_types::interpolating:
-            ev = std::make_unique<interpolatingPlayer>(gdEI, rootObject);
+            ev = std::make_unique<events::interpolatingPlayer>(gdEI, rootObject);
             break;
         case event_types::reversible:
-            ev = std::make_unique<reversibleEvent>(gdEI, rootObject);
+            ev = std::make_unique<events::reversibleEvent>(gdEI, rootObject);
             break;
         case event_types::toggle:
             break;

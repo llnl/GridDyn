@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../Load.h"
+#include <string>
 
 namespace griddyn {
 /** primary load class supports 3 main types of loads  constant power, constant impedance, constant

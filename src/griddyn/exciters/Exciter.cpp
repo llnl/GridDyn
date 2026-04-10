@@ -11,7 +11,10 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
 #include <cmath>
+#include <string>
+#include <vector>
 
 // note that there is only 1 dynamic state since V_R = E_f
 

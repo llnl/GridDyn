@@ -11,11 +11,14 @@
 #include "core/objectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
+#include <string>
 namespace griddyn {
 namespace loads {
     static typeFactory<aggregateLoad> glfld("load", stringVec{"composite", "cluster", "group"});
 
-    using namespace gmlc::utilities::stringOps;
+    using gmlc::utilities::stringOps::splitline;
+    using gmlc::utilities::stringOps::trailingStringInt;
+    using gmlc::utilities::stringOps::trim;
     aggregateLoad::aggregateLoad(const std::string& objName): zipLoad(objName)
     {
         aggregateLoad::add(new zipLoad(getName() + "sub"));
@@ -65,7 +68,7 @@ namespace loads {
 
     void aggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
-        // TODO::Need to rethink this objects
+        // TODO(phlpt): Need to rethink this object.
         zipLoad::pFlowInitializeA(time0, flags);
         if (consumeSimpleLoad) {
             int nLoads = bus->getInt("loadcount");

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Exciter.h"
+#include <string>
 namespace griddyn {
 namespace exciters {
 

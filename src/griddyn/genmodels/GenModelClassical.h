@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GENMODELCLASSICAL_H_
-#define GENMODELCLASSICAL_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_
 
 #include "../GenModel.h"
+#include <string>
 
 namespace griddyn {
 namespace genmodels {
@@ -102,4 +103,4 @@ namespace genmodels {
 
 }  // namespace genmodels
 }  // namespace griddyn
-#endif  // GENMODELCLASSICAL_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_

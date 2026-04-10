@@ -7,6 +7,7 @@
 
 #include "GenModel3.h"
 #include "utilities/saturation.h"
+#include <string>
 namespace griddyn {
 namespace genmodels {
     class GenModel4: public GenModel3 {

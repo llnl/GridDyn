@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRID_HVDC_H_
-#define GRID_HVDC_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_
 
 #include "subsystem.h"
+#include <string>
 
 namespace griddyn {
 namespace links {
@@ -44,4 +45,4 @@ namespace links {
     };
 }  // namespace links
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_

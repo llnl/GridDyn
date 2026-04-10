@@ -13,6 +13,9 @@
 #include "rampLimiter.h"
 #include "utilities/matrixData.hpp"
 #include "valueLimiter.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 // object factory statements
@@ -815,12 +818,14 @@ stringVec Block::localStateNames() const
 
 std::unique_ptr<Block> make_block(const std::string& blockstr)
 {
-    using namespace gmlc::utilities::string_viewOps;
-    using namespace gmlc::utilities;
-    using namespace blocks;
-    using std::string_view;
+    using gmlc::utilities::convertToLowerCase;
+    using gmlc::utilities::numeric_conversion;
+    using gmlc::utilities::numeric_conversionComplete;
+    using gmlc::utilities::str2vector;
+    using gmlc::utilities::string_viewOps::split;
+    using gmlc::utilities::string_viewOps::trim;
 
-    string_view blockstrv(blockstr);
+    std::string_view blockstrv(blockstr);
     auto posp1 = blockstrv.find_first_of('(');
     auto posp2 = blockstrv.find_last_of(')');
     auto blockNameStr = blockstrv.substr(0, posp1 - 1);
@@ -846,40 +851,40 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
         ret = std::make_unique<Block>(gain);
     } else if ((fstr == "der") || (fstr == "derivative")) {
         if (inputs.empty()) {
-            ret = std::make_unique<derivativeBlock>();
+            ret = std::make_unique<blocks::derivativeBlock>();
         } else {
-            ret = std::make_unique<derivativeBlock>(inputs[0]);
+            ret = std::make_unique<blocks::derivativeBlock>(inputs[0]);
         }
         if (gain != 1.0) {
             ret->set("gain", gain);
         }
     } else if ((fstr == "integral") || (fstr == "integrator")) {
-        ret = std::make_unique<integralBlock>(gain);
+        ret = std::make_unique<blocks::integralBlock>(gain);
     } else if (fstr == "control") {
         if (inputs.empty()) {
-            ret = std::make_unique<controlBlock>();
+            ret = std::make_unique<blocks::controlBlock>();
         } else if (inputs.size() == 1) {
-            ret = std::make_unique<controlBlock>(inputs[0]);
+            ret = std::make_unique<blocks::controlBlock>(inputs[0]);
         } else {
-            ret = std::make_unique<controlBlock>(inputs[0], inputs[1]);
+            ret = std::make_unique<blocks::controlBlock>(inputs[0], inputs[1]);
         }
         if (gain != 1.0) {
             ret->set("gain", gain);
         }
     } else if (fstr == "delay") {
         if (inputs.empty()) {
-            ret = std::make_unique<delayBlock>();
+            ret = std::make_unique<blocks::delayBlock>();
         } else {
-            ret = std::make_unique<delayBlock>(inputs[0]);
+            ret = std::make_unique<blocks::delayBlock>(inputs[0]);
         }
         if (gain != 1.0) {
             ret->set("gain", gain);
         }
     } else if (fstr == "deadband") {
         if (inputs.empty()) {
-            ret = std::make_unique<deadbandBlock>();
+            ret = std::make_unique<blocks::deadbandBlock>();
         } else {
-            ret = std::make_unique<deadbandBlock>(inputs[0]);
+            ret = std::make_unique<blocks::deadbandBlock>(inputs[0]);
         }
         if (gain != 1.0) {
             ret->set("gain", gain);
@@ -896,15 +901,15 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
             d = inputs[2];
         }
 
-        ret = std::make_unique<pidBlock>(p, i, d);
+        ret = std::make_unique<blocks::pidBlock>(p, i, d);
         if (gain != 1.0) {
             ret->set("gain", gain);
         }
     } else if (fstr == "function") {
         if (argstr.empty()) {
-            ret = std::make_unique<functionBlock>();
+            ret = std::make_unique<blocks::functionBlock>();
         } else {
-            ret = std::make_unique<functionBlock>(std::string{argstr});
+            ret = std::make_unique<blocks::functionBlock>(std::string{argstr});
         }
         if (gain != 1.0) {
             ret->set("gain", gain);

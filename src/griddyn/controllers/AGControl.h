@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef AGCONTROL_H_
-#define AGCONTROL_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
 
 #include "core/coreOwningPtr.hpp"
 #include "griddyn/gridSubModel.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class Area;
@@ -130,4 +133,4 @@ protected:
 
 */
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_

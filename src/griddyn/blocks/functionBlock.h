@@ -8,6 +8,7 @@
 
 #include "../Block.h"
 #include <functional>
+#include <string>
 
 namespace griddyn {
 namespace blocks {

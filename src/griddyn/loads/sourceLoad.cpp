@@ -11,6 +11,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
 #include <map>
+#include <string>
 
 namespace griddyn {
 namespace loads {

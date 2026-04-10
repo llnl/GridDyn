@@ -7,6 +7,8 @@
 
 #include "zipLoad.h"
 #include <array>
+#include <string>
+#include <vector>
 namespace griddyn {
 class Source;
 namespace loads {

@@ -9,6 +9,9 @@
 #include "gridComponentHelperClasses.h"
 #include "offsetTable.h"
 #include <bitset>
+#include <string>
+#include <utility>
+#include <vector>
 
 template<class Y>
 class matrixData;

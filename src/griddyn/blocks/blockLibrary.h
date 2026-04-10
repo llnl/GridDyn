@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BLOCKLIBRARY_H_
-#define BLOCKLIBRARY_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_
 /** @file
 @brief helper header file defining all the different block types
 */
@@ -22,4 +22,4 @@
 #include "pidBlock.h"
 #include "transferFunctionBlock.h"
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_

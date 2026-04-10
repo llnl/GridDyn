@@ -11,10 +11,11 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactory.hpp"
 #include "utilities/matrixData.hpp"
+#include <string>
 
 namespace griddyn {
 namespace governors {
-    using namespace units;
+    using units::unit;
 
     GovernorReheat::GovernorReheat(const std::string& objName): Governor(objName)
     {

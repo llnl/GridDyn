@@ -10,10 +10,13 @@
 #include "../gridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace governors {
-    using namespace units;
+    using units::unit;
 
     GovernorTgov1::GovernorTgov1(const std::string& objName): GovernorIeeeSimple(objName)
     {

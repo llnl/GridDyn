@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GENMODELINVERTER_H_
-#define GENMODELINVERTER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELINVERTER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELINVERTER_H_
 
 #include "../GenModel.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace genmodels {
@@ -119,4 +121,4 @@ with very fast angle adjustments to keep the mechanical input power balanced
 
 }  // namespace genmodels
 }  // namespace griddyn
-#endif  // GRIDDYNGENMODEL_H_
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELINVERTER_H_

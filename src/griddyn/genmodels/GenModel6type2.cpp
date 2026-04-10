@@ -12,6 +12,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace genmodels {

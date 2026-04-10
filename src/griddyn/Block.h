@@ -7,6 +7,9 @@
 
 #pragma once
 #include "gridSubModel.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace blocks {

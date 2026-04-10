@@ -10,6 +10,8 @@
 #include "../solvers/solverInterface.h"
 #include "diagnostics.h"
 #include <algorithm>
+#include <memory>
+#include <utility>
 #include <vector>
 
 namespace griddyn {

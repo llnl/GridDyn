@@ -16,9 +16,13 @@
 #include "griddyn/griddyn-config.h"
 #include "utilities/matrixData.hpp"
 #include "utilities/matrixDataTranslate.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <queue>
+#include <string>
+#include <vector>
 
 /*
 enum control_mode_t{ manual_control=0, voltage_control=1, MW_control=2, MVar_control=3};
@@ -26,8 +30,12 @@ enum change_mode_t{ stepped = 0, continuous = 1 };
 */
 namespace griddyn {
 namespace links {
-    using namespace gmlc::utilities;
-    using namespace units;
+    using gmlc::utilities::convertToLowerCase;
+    using gmlc::utilities::signn;
+    using units::convert;
+    using units::puMW;
+    using units::rad;
+    using units::unit;
     adjustableTransformer::adjustableTransformer(const std::string& objName): acLine(objName) {}
     adjustableTransformer::adjustableTransformer(double rP, double xP, const std::string& objName):
         acLine(rP, xP, objName)

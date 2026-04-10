@@ -11,6 +11,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/matrixData.hpp"
 #include <cmath>
+#include <string>
 namespace griddyn {
 namespace loads {
     fDepLoad::fDepLoad(const std::string& objName): exponentialLoad(objName) {}

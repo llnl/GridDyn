@@ -10,6 +10,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
+#include <string>
 namespace griddyn {
 namespace blocks {
     delayBlock::delayBlock(const std::string& objName): Block(objName)

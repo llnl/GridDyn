@@ -12,10 +12,10 @@
  * LLNS Copyright End
  */
 
-#ifndef GRIDDYN_TRACER_H
-#define GRIDDYN_TRACER_H
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_
 
 #include <fskit/tracer.h>
 #define GRIDDYN_TRACER(arg) FSKIT_TRACER(arg)
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_

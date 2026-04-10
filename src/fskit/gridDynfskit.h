@@ -12,8 +12,8 @@
  * LLNS Copyright End
  */
 
-#ifndef GRIDDYN_LOAD_FSKIT_H_
-#define GRIDDYN_LOAD_FSKIT_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_
 
 #include <string>
 /** @brief load the fskit components specified by the subset indicator into the object factory
@@ -23,4 +23,4 @@ others will be added as the library grows
 */
 void loadFskit(const std::string& subset = "");
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_

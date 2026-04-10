@@ -10,7 +10,9 @@
 #include "../gridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
 #include <cmath>
+#include <string>
 
 // only differences from dc1a are gains and voltage limit is a function of
 // terminal voltage

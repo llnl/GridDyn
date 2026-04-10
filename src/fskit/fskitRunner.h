@@ -16,6 +16,7 @@
 #    define _FSKIT_RUNNER_H_
 
 #    include "fileInput/gridDynRunner.h"
+#    include <memory>
 
 namespace fskit {
 class GrantedTimeWindowScheduler;

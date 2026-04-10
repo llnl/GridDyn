@@ -8,6 +8,8 @@
 
 #include "../gridSubModel.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class Area;

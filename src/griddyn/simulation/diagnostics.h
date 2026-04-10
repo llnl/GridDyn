@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_DIAGNOSTICS_H_
-#define GRIDDYN_DIAGNOSTICS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DIAGNOSTICS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DIAGNOSTICS_H_
 
 #include "core/coreDefinitions.hpp"
 #include <memory>
 #include <string>
+#include <utility>
 
 template<class X>
 class matrixData;
@@ -126,4 +127,4 @@ object in a hierarchy
 */
 void printStateSizes(const gridComponent* comp, const solverMode& sMode);
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DIAGNOSTICS_H_

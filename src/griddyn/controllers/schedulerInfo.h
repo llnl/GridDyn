@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef SCHEDULERINFO_H_
-#define SCHEDULERINFO_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_
 
 #include "../gridDynDefinitions.hpp"
 
@@ -47,4 +47,4 @@ bool operator!=(const tsched& td1, coreTime timeC);
 
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_

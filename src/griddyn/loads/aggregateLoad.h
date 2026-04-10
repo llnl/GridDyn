@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef COMPOSITELOAD_H_
-#define COMPOSITELOAD_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_
 
 #include "zipLoad.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 namespace loads {
     /** @brief class implementing a generic composite load
@@ -82,4 +84,4 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_

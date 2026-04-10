@@ -16,12 +16,15 @@
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 #include <cstring>
+#include <string>
 namespace griddyn {
 namespace links {
     static const double k3sq2 = (3.0 * sqrt(2.0) / kPI);
     static const double k3sq2sq = k3sq2 * k3sq2;
 
-    using namespace units;
+    using units::convert;
+    using units::puMW;
+    using units::unit;
     const std::string rect = "rectifier_$";
     const std::string inv = "inverter_$";
     const std::string bidir = "acdcConveter_$";
@@ -108,7 +111,7 @@ namespace links {
                                  const IOdata& /*inputs*/,
                                  const solverMode& /*sMode*/)
     {
-        // TODO: this function is incorrect
+        // TODO(phlpt): This function is incorrect.
         if (!isEnabled()) {
             return;
         }

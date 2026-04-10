@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef INFINITEBUS_H_
-#define INFINITEBUS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_
 
 #include "../gridBus.h"
+#include <string>
 namespace griddyn {
 /** @brief an infinite bus object with fixed voltage and angle
   this type of bus can set a voltage, angle and frequency on the system and maintain it regardless
@@ -58,4 +59,4 @@ class infiniteBus: public gridBus {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_

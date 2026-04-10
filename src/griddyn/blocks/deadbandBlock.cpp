@@ -10,6 +10,9 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace blocks {

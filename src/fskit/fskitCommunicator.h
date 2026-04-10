@@ -10,8 +10,8 @@
  * LLNS Copyright End
  */
 
-#ifndef FSKIT_COMMUNICATOR_H
-#define FSKIT_COMMUNICATOR_H
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_
 
 #include "griddyn/comms/Communicator.h"
 #include <cstdint>
@@ -57,4 +57,4 @@ class FskitCommunicator: public griddyn::Communicator, public fskit::LogicalProc
     void doTransmit(std::shared_ptr<griddyn::commMessage> message);
 };
 
-#endif /* FSKIT_COMMUNICATOR_H */
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_

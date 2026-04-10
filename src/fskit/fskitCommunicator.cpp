@@ -22,6 +22,9 @@
 #include "griddyn/griddyn-config.h"
 #include <fskit/granted-time-window-scheduler.h>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
 
 #define GRIDDYN_RANK 0
 #define NS3_RANK 1

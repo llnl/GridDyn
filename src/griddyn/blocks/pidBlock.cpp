@@ -9,6 +9,8 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
+#include <string>
 namespace griddyn {
 namespace blocks {
     pidBlock::pidBlock(const std::string& objName): Block(objName), no_D(extra_bool)

@@ -14,10 +14,11 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
 namespace loads {
-    using namespace units;
+    using units::unit;
 
     frequencySensitiveLoad::frequencySensitiveLoad(const std::string& objName): Load(objName) {}
 

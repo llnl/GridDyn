@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Link.h"
+#include <string>
 namespace griddyn {
 #define APPROXIMATION_LEVELS (9)
 

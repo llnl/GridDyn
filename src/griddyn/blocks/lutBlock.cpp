@@ -11,6 +11,8 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
+#include <string>
 #include <utility>
 
 namespace griddyn {
@@ -43,7 +45,7 @@ namespace blocks {
             m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
             Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         } else {
-            // TODO:: PT figure out how to invert the lookup table
+            // TODO(pt): figure out how to invert the lookup table
             Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         }
     }
@@ -80,7 +82,7 @@ namespace blocks {
     // set parameters
     void lutBlock::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities;
+        using gmlc::utilities::str2vector;
         if (param == "lut") {
             auto v2 = str2vector(val, -kBigNum, ";,:");
             lut.clear();
@@ -89,7 +91,7 @@ namespace blocks {
             for (size_t mm = 0; mm < v2.size(); mm += 2) {
                 lut.emplace_back(v2[mm], v2[mm + 1]);
             }
-            sort(lut.begin(), lut.end());
+            std::sort(lut.begin(), lut.end());
             lut[0].second = lut[1].second;
             (*lut.end()).second = (*(lut.end() - 1)).second;
         } else if (param == "element") {
@@ -97,11 +99,11 @@ namespace blocks {
             for (size_t mm = 0; mm < v2.size(); mm += 2) {
                 lut.emplace_back(v2[mm], v2[mm + 1]);
             }
-            sort(lut.begin(), lut.end());
+            std::sort(lut.begin(), lut.end());
             lut[0].second = lut[1].second;
             (*lut.end()).second = (*(lut.end() - 1)).second;
         } else if (param == "file") {
-            TimeSeries<> ts(val);
+            gmlc::utilities::TimeSeries<double, double> ts(val);
 
             lut.clear();
             lut.emplace_back(-kBigNum, 0.0);
@@ -109,7 +111,7 @@ namespace blocks {
             for (index_t pp = 0; pp < static_cast<index_t>(ts.size()); ++pp) {
                 lut.emplace_back(ts.time(pp), ts.data(pp));
             }
-            sort(lut.begin(), lut.end());
+            std::sort(lut.begin(), lut.end());
             lut[0].second = lut[1].second;
             (*lut.end()).second = (*(lut.end() - 1)).second;
         } else {

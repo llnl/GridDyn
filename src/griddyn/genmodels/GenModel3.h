@@ -6,6 +6,7 @@
 #pragma once
 
 #include "GenModelClassical.h"
+#include <string>
 
 namespace griddyn {
 namespace genmodels {

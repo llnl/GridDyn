@@ -7,6 +7,8 @@
 #include "nullBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace blocks {

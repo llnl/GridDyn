@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Governor.h"
+#include <string>
 
 namespace griddyn {
 namespace governors {

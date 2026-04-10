@@ -9,6 +9,7 @@
 #pragma once
 
 #include "zipLoad.h"
+#include <string>
 namespace griddyn {
 /** contains the different types of loads that can be used in griddyn*/
 namespace loads {

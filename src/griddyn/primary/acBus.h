@@ -11,6 +11,7 @@
 #include "core/coreOwningPtr.hpp"
 #include "utilities/matrixDataCompact.hpp"
 #include "utilities/matrixDataTranslate.hpp"
+#include <string>
 
 namespace griddyn {
 class Block;

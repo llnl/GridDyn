@@ -7,6 +7,8 @@
 
 #include "../events/Event.h"
 #include "../measurement/collector.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 class gridDynSimulation;

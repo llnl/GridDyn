@@ -19,6 +19,7 @@
 #include "fskitRunner.h"
 #include "griddyn-tracer.h"
 #include <memory>
+#include <string>
 // static std::vector<std::shared_ptr<objectFactory>> fskitFactories;
 
 static griddyn::childClassFactory<FskitCommunicator, griddyn::Communicator>

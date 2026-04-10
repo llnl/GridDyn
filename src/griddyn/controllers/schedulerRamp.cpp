@@ -11,6 +11,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "reserveDispatcher.h"
 #include "scheduler.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 schedulerRamp::schedulerRamp(const std::string& objName): scheduler(objName) {}
@@ -470,7 +472,7 @@ double schedulerRamp::get(const std::string& param, units::unit unitType) const
 
 void schedulerRamp::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
 {
-    using namespace comms;
+    using comms::schedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);
     switch (message->getMessageType()) {
         case schedulerMessagePayload::CLEAR_TARGETS:

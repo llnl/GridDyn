@@ -11,6 +11,7 @@
 #include "AGControl.h"
 #include "core/coreExceptions.h"
 #include "scheduler.h"
+#include <string>
 
 namespace griddyn {
 /*

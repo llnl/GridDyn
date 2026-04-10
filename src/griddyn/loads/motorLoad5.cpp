@@ -12,10 +12,10 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
 #include <iostream>
+#include <string>
+#include <vector>
 namespace griddyn {
 namespace loads {
-    using namespace units;
-
     // setup the load object factories
 
     motorLoad5::motorLoad5(const std::string& objName): motorLoad3(objName)

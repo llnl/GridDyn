@@ -6,6 +6,8 @@
 #pragma once
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "rampLoad.h"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace loads {

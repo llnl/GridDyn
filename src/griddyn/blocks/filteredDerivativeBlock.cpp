@@ -12,6 +12,7 @@
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace blocks {

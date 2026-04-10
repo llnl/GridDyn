@@ -13,6 +13,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <string>
 namespace griddyn {
 namespace blocks {
     integralBlock::integralBlock(const std::string& objName): Block(objName)

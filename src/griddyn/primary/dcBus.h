@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef DCBUS_H_
-#define DCBUS_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_DCBUS_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_DCBUS_H_
 
 // headers
 #include "../gridBus.h"
 #include "DcBusControls.h"
 #include "utilities/matrixDataTranslate.hpp"
+#include <string>
 
 namespace griddyn {
 // forward classes
@@ -126,4 +127,4 @@ class dcBus: public gridBus {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_DCBUS_H_

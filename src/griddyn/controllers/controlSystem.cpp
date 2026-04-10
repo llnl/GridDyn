@@ -9,6 +9,8 @@
 #include "../Block.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
 controlSystem::controlSystem(const std::string& objName): gridSubModel(objName) {}

@@ -7,6 +7,7 @@
 #include "dispatcher.h"
 
 #include "core/coreExceptions.h"
+#include <string>
 
 namespace griddyn {
 dispatcher::dispatcher(const std::string& objName): coreObject(objName) {}

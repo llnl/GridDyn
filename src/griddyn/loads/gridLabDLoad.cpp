@@ -17,6 +17,9 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 // #define SGS_DEBUG
 namespace griddyn {
@@ -856,12 +859,13 @@ namespace loads {
 
     void gridLabDLoad::set(const std::string& param, const std::string& val)
     {
-        using namespace gmlc::utilities;
+        using gmlc::utilities::convertToLowerCase;
+        using gmlc::utilities::numeric_conversion;
         std::string numstr;
         int num;
 
         if (param.compare(0, 4, "file") == 0) {
-            num = stringOps::trailingStringInt(param, numstr, -1);
+            num = gmlc::utilities::stringOps::trailingStringInt(param, numstr, -1);
             if (num >= 0) {
                 if (num > static_cast<int>(gridlabDfile.size())) {
                     gridlabDfile.resize(num);
@@ -941,7 +945,7 @@ namespace loads {
 
     void gridLabDLoad::set(const std::string& param, double val, units::unit unitType)
     {
-        // TODO:: PT convert some to a setFlags function
+        // TODO(phlpt): Convert some of these to a setFlags function.
         if ((param == "spread") || (param == "band")) {
             if (std::abs(val) > kMin_Res) {
                 spread = val;

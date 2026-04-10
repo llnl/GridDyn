@@ -10,6 +10,9 @@
 #include "Event.h"
 #include "core/coreExceptions.h"
 #include "core/coreObject.h"
+#include <algorithm>
+#include <memory>
+#include <string>
 #include <typeinfo>
 
 namespace griddyn {

@@ -8,6 +8,7 @@
 
 #include "gridComponent.h"
 #include "utilities/matrixData.hpp"
+#include <vector>
 
 namespace griddyn {
 // work in progress

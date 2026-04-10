@@ -21,9 +21,15 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
 
 namespace griddyn {
-using namespace units;
+using units::convert;
+using units::puA;
+using units::puMW;
+using units::puOhm;
+using units::puV;
+using units::unit;
 
 // setup the load object factories
 static typeFactory<Load> glf("load", stringVec{"simple", "constant"});

@@ -666,7 +666,7 @@ void sensor::jacobianElements(const IOdata& inputs,
         matrixDataSparse<double> d2, dp;
         auto blks = static_cast<index_t>(filterBlocks.size());
         for (index_t kk = 0; kk < blks; ++kk) {
-            // TODO::this needs some help for performance and organization
+            // TODO(phlpt): This needs some help for performance and organization.
             double inputFB = getBlockInput(kk, inputs, sD, sMode);
             d2.clear();
             if (dataSources[blockInputs[kk]]->hasJacobian()) {

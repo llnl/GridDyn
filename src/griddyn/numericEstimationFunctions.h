@@ -9,6 +9,7 @@
 #pragma once
 
 #include "gridDynDefinitions.hpp"
+#include <vector>
 
 template<class X>
 class matrixData;

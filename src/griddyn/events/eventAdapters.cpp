@@ -10,7 +10,9 @@
 #include "Event.h"
 #include "core/coreObject.h"
 #include <cmath>
+#include <memory>
 #include <typeinfo>
+#include <utility>
 
 namespace griddyn {
 std::atomic<id_type_t> eventAdapter::eventCounter(0);

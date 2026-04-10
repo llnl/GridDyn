@@ -8,6 +8,7 @@
 
 #include "acLine.h"
 #include "subsystem.h"
+#include <string>
 
 namespace griddyn {
 namespace links {

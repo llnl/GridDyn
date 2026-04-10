@@ -32,8 +32,8 @@
  * Author: Brian M. Kelley <kelley35@llnl.gov>
  */
 
-#ifndef PROTECTION_MESSAGE_H
-#define PROTECTION_MESSAGE_H
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_PROTECTION_MESSAGE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_PROTECTION_MESSAGE_H_
 
 #include "griddyn/griddyn-config.h"
 #include <fskit/event-message.h>
@@ -71,4 +71,4 @@ class ProtectionMessage: public fskit::EventMessage {
     MESSAGE_TYPE m_messageType;
 };
 
-#endif  // PROTECTION_MESSAGE_H
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_PROTECTION_MESSAGE_H_

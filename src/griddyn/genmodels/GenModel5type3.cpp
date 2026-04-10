@@ -11,6 +11,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
+#include <string>
 namespace griddyn {
 namespace genmodels {
     GenModel5type3::GenModel5type3(const std::string& objName): GenModel3(objName) {}

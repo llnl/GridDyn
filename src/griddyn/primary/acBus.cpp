@@ -24,13 +24,20 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <string>
 
 namespace griddyn {
 // factory is for the cloning function
 static childTypeFactory<acBus, gridBus> gbfac("bus", stringVec{"psystem"});
 
-using namespace units;
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToLowerCase;
+using gmlc::utilities::solve2x2;
+using units::convert;
+using units::puMW;
+using units::puV;
+using units::rad;
+using units::s;
+using units::unit;
 
 acBus::acBus(const std::string& objName): gridBus(objName), busController(this)
 {

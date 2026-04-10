@@ -12,14 +12,18 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
 #include <cassert>
 #include <format>
 #include <iostream>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
-
-using namespace gmlc::utilities;
+using gmlc::utilities::convertToLowerCase;
+using gmlc::utilities::ensureSizeAtLeast;
 
 gridComponent::gridComponent(const std::string& objName): coreObject(objName)
 {
@@ -1372,7 +1376,8 @@ index_t gridComponent::findIndex(const std::string& field, const solverMode& sMo
 {
     const auto& so = offsets.getOffsets(sMode);
     if (field.compare(0, 5, "state") == 0) {
-        auto num = static_cast<index_t>(stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
         if (stateSize(sMode) > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1382,7 +1387,8 @@ index_t gridComponent::findIndex(const std::string& field, const solverMode& sMo
         return kInvalidLocation;
     }
     if (field.compare(0, 3, "alg") == 0) {
-        auto num = static_cast<index_t>(stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
         if (so.total.algSize > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1395,7 +1401,8 @@ index_t gridComponent::findIndex(const std::string& field, const solverMode& sMo
         return kInvalidLocation;
     }
     if (field.compare(0, 4, "diff") == 0) {
-        auto num = static_cast<index_t>(stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
         if (so.total.diffSize > num) {
             if (so.diffOffset != kNullLocation) {
                 return so.diffOffset + num;

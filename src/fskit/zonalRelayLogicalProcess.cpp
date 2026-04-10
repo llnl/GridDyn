@@ -15,6 +15,7 @@
 #include "zonalRelayLogicalProcess.h"
 
 #include <iostream>
+#include <string>
 
 #define GRIDDYN_RANK 0
 

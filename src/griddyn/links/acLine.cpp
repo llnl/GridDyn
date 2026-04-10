@@ -20,9 +20,15 @@
 #include <cmath>
 #include <complex>
 #include <cstring>
+#include <string>
 namespace griddyn {
-using namespace units;
-using namespace gmlc::utilities;
+using gmlc::utilities::solve2x2;
+using units::convert;
+using units::defunit;
+using units::km;
+using units::puMW;
+using units::rad;
+using units::unit;
 // make the object factory types
 
 // helper defines to have things make more sense
@@ -254,7 +260,7 @@ void acLine::set(const std::string& param, double val, unit unitType)
         return;
     }
     std::string outparam;
-    stringOps::trailingStringInt(param, outparam, 1);
+    gmlc::utilities::stringOps::trailingStringInt(param, outparam, 1);
     if (outparam == "length") {
         length = convert(val, unitType, km);
     } else if ((outparam == "tap") || (param == "ratio")) {
@@ -321,7 +327,7 @@ double acLine::get(const std::string& param, unit unitType) const
         return val;
     }
     std::string outparam;
-    stringOps::trailingStringInt(param, outparam, 1);
+    gmlc::utilities::stringOps::trailingStringInt(param, outparam, 1);
     if (outparam == "impedance") {
         val = std::hypot(r, x);
     } else if (outparam == "tap") {

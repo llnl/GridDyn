@@ -51,7 +51,7 @@ double BusControls::getAdjustableCapacityUp(coreTime time) const
     for (auto& adj : pControlObjects) {
         cap += adj->getAdjustableCapacityUp(time);
     }
-    // TODO:: links do not have this function yet
+    // TODO(phlpt): Links do not have this function yet.
     /*
     for (auto &adj : pControlLinks)
     {
@@ -69,7 +69,7 @@ double BusControls::getAdjustableCapacityDown(coreTime time) const
     for (auto& adj : pControlObjects) {
         cap += adj->getAdjustableCapacityDown(time);
     }
-    // TODO:: links do not have this function yet
+    // TODO(phlpt): Links do not have this function yet.
     /*
     for (auto &adj : pControlLinks)
     {
@@ -283,7 +283,7 @@ void BusControls::updatePowerControls()
         Pmax += pco->get("pmax");
         Pmin += pco->get("pmin");
         if (pco->checkFlag(remote_power_control)) {
-            // TODO:: PT what to do in this case?
+            // TODO(phlpt): Figure out what to do in this case.
         }
     }
     // override bus participation with generator participation

@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ZBREAKER_H_
-#define ZBREAKER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_
 
 #include "../Link.h"
+#include <string>
 
 namespace griddyn {
 namespace links {
@@ -62,4 +63,4 @@ few other types of linkages
 
 }  // namespace links
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_

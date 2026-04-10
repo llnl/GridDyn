@@ -8,7 +8,11 @@
 #include "eventAdapters.h"
 #include <algorithm>
 #include <cstdint>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
 namespace griddyn {
 class coreObject;
 

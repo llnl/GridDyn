@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef MOTOR_LOAD5_H_
-#define MOTOR_LOAD5_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD5_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD5_H_
 
 #include "motorLoad3.h"
+#include <string>
+#include <vector>
 namespace griddyn {
 namespace loads {
     /** @brief class implementing a model of a 3rd order induction motor
@@ -84,7 +86,7 @@ namespace loads {
         virtual void
             timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
-        // TODO:: change to algebraic update
+        // TODO(phlpt): Change to algebraic update.
         virtual void updateCurrents(const IOdata& inputs,
                                     const stateData& sD,
                                     const solverMode& sMode) override;
@@ -96,4 +98,4 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD5_H_

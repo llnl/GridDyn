@@ -9,6 +9,9 @@
 #include "Event.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include <future>
+#include <memory>
+#include <string>
+#include <vector>
 namespace griddyn {
 /** namespace to contain different event types that can be used in the griddyn system*/
 namespace events {

@@ -10,7 +10,10 @@
 #include "../comms/commManager.h"
 #include "schedulerInfo.h"
 #include <list>
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 class AGControl;

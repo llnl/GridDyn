@@ -9,6 +9,8 @@
 #include "core/coreObjectTemplates.hpp"
 #include "scheduler.h"
 #include <cstdio>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 schedulerReg::schedulerReg(const std::string& objName):
@@ -337,7 +339,7 @@ double schedulerReg::get(const std::string& param, units::unit unitType) const
 
 void schedulerReg::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
 {
-    using namespace comms;
+    using comms::schedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);
     switch (message->getMessageType()) {
         case schedulerMessagePayload::CLEAR_TARGETS:

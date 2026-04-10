@@ -10,7 +10,9 @@
 #include "../gridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
+#include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace exciters {

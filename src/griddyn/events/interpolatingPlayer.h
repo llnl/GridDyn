@@ -11,6 +11,8 @@
 // #include "gridDynSimulation.h"
 
 #    include "Player.h"
+#    include <memory>
+#    include <string>
 namespace griddyn {
 namespace events {
     /** event player allowing a timeSeries of events to occur over numerous time points on a single

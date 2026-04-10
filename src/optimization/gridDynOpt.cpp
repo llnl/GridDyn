@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <string>
 
 namespace griddyn {
 static typeFactory<gridDynOptimization> gfo("simulation", stringVec{"optimization", "optim"});

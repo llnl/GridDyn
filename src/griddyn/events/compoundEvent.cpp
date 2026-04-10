@@ -9,7 +9,10 @@
 #include "core/coreExceptions.h"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
+#include <memory>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace events {
@@ -44,7 +47,7 @@ namespace events {
 
     void compoundEvent::updateObject(coreObject* gco, object_update_mode mode)
     {
-        // TODO:  more thinking on exception safety
+        // TODO(pt): more thinking on exception safety
         if (mode == object_update_mode::direct) {
             setTarget(gco);
         } else if (mode == object_update_mode::match) {
@@ -74,7 +77,7 @@ namespace events {
 
     void compoundEvent::setValue(double val, units::unit newUnits)
     {
-        // TODO(pt):: THIS has issues
+        // TODO(pt): this has issues
         for (auto& vv : values) {
             vv = val;
         }

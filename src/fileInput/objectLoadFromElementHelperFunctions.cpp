@@ -24,8 +24,7 @@ coreObject* getParent(std::shared_ptr<readerElement>& element,
         return locateObject(parentName, parentObject);
     }
     if (!alternateName.empty()) {
-        parentName =
-            getElementAttribute(element, alternateName, readerConfig::defMatchType);
+        parentName = getElementAttribute(element, alternateName, readerConfig::defMatchType);
         if (!parentName.empty()) {
             parentName = ri.checkDefines(parentName);
             return locateObject(parentName, parentObject);

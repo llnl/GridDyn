@@ -6,7 +6,6 @@
 #pragma once
 
 #include "fmiMELoad3phase.h"
-
 #include <string>
 
 namespace griddyn {

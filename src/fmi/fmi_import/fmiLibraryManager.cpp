@@ -8,7 +8,6 @@
 
 #include "fmiImport.h"
 #include "fmiObjects.h"
-
 #include <memory>
 #include <string>
 

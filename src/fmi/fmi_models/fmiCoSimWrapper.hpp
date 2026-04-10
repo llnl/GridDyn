@@ -7,7 +7,6 @@
 
 #include "../fmi_models/fmiCoSimSubModel.h"
 #include "fmiWrapper.hpp"
-
 #include <string>
 #include <vector>
 

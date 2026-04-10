@@ -81,8 +81,7 @@ class fmiPlugin: public gridDynPlugInApi {
     {
         auto b =
             std::make_shared<griddyn::childTypeFactory<griddyn::fmi::fmiMELoad, griddyn::Load>>(
-                "load",
-                griddyn::stringVec{"fmiload", "fmi"});
+                "load", griddyn::stringVec{"fmiload", "fmi"});
         fmiFactories.push_back(b);
     }
 

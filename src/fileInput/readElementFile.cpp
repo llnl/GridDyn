@@ -81,8 +81,8 @@ void readImports(std::shared_ptr<readerElement>& element,
         ri.checkFileParam(sourceFile, true);
 
         std::filesystem::path sourcePath(sourceFile);
-        std::string prefix = getElementField(
-            element, "prefix", readerConfig::match_type::capital_case_match);
+        std::string prefix =
+            getElementField(element, "prefix", readerConfig::match_type::capital_case_match);
         // get the prefix if any
         if (prefix.empty()) {
             prefix = ri.prefix;

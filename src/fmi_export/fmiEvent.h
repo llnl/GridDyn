@@ -5,7 +5,6 @@
  */
 #pragma once
 #include "griddyn/events/reversibleEvent.h"
-
 #include <memory>
 #include <string>
 

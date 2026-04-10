@@ -25,8 +25,8 @@ const char* fmi2GetVersion(void)
 }
 
 using griddyn::coreObjectException;
-using griddyn::fmi::fmiRunner;
 using griddyn::id_type_t;
+using griddyn::fmi::fmiRunner;
 
 using runner_t = fmiRunner*;
 static std::mutex fmiLock;  //!< lock for allowing multi-threaded access

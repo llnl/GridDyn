@@ -33,9 +33,8 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
     int ret = FUNCTION_EXECUTION_SUCCESS;
     std::string name =
         ri.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
-    std::string fileName =
-        ri.checkDefines(
-            getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
+    std::string fileName = ri.checkDefines(
+        getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
     std::string type =
         ri.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
 
@@ -86,8 +85,7 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
     if (!elementText.empty()) {
         gdRI.gain = interpretString(elementText, ri);
     }
-    elementText =
-        getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
+    elementText = getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
     if (!elementText.empty()) {
         elementText = ri.checkDefines(elementText);
         gdRI.outputUnits = units::unit_cast_from_string(elementText);

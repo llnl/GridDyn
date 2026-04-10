@@ -9,7 +9,6 @@
 #include "fmiInfo.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-
 #include <string>
 #include <unordered_map>
 

@@ -18,10 +18,10 @@
 #include <filesystem>
 // headers
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>

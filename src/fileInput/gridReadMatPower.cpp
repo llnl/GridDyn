@@ -28,9 +28,9 @@
 
 namespace griddyn {
 using gmlc::utilities::numeric_conversion;
+using units::deg;
 using units::MVAR;
 using units::MW;
-using units::deg;
 using units::rad;
 using units::s;
 

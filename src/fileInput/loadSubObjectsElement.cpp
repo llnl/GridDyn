@@ -106,11 +106,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                    // in loops to add
         // stacked parameters and imports
         {
-            loadElementInformation(parentObject,
-                                   element,
-                                   fieldName,
-                                   ri,
-                                   IgnoreListType{});
+            loadElementInformation(parentObject, element, fieldName, ri, IgnoreListType{});
         } else {
             // std::cout<<"library model :"<<fieldName<<":\n";
             auto obname = ri.objectNameTranslate(fieldName);

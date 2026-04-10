@@ -25,14 +25,14 @@
 #include <vector>
 
 namespace griddyn {
-using std::string_view;
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewOps::delimiter_compression;
 using gmlc::utilities::string_viewOps::split;
 using gmlc::utilities::string_viewOps::trimString;
+using std::string_view;
+using units::deg;
 using units::MVAR;
 using units::MW;
-using units::deg;
 
 void loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
 void loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);

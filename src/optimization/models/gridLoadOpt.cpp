@@ -14,10 +14,11 @@
 #include "griddyn/loads/zipLoad.h"
 #include "utilities/vectData.hpp"
 #include <cmath>
+#include <string>
 #include <utility>
 
 namespace griddyn {
-using namespace units;
+using units::unit;
 
 static optObjectFactory<gridLoadOpt, zipLoad> opLoad("basic", "load");
 

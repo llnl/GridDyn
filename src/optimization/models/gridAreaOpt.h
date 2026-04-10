@@ -10,6 +10,8 @@
 
 #include "../gridOptObjects.h"
 #include "core/coreObjectList.h"
+#include <string>
+#include <vector>
 // forward classes
 
 namespace griddyn {

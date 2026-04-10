@@ -9,6 +9,8 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
 #define DYN2_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests2/"

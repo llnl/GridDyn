@@ -9,6 +9,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
 // test case for coreObject object
 
 using namespace griddyn;

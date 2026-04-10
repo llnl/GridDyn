@@ -11,6 +11,8 @@
 #include <chrono>
 #include <future>
 #include <memory>
+#include <string>
+#include <utility>
 
 #ifndef GRIDDYN_PENDING
 #    define GRIDDYN_PENDING (25)

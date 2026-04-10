@@ -11,8 +11,11 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <utility>
+#include <string>
+#include <vector>
 
 #define COMPUTE_TIMES 1
 

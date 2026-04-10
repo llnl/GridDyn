@@ -12,7 +12,9 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
 
 #ifdef ENABLE_THIS_CASE
 TEST(GridDynRunnerTests, RunnerTest1)

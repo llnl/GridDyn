@@ -14,6 +14,8 @@
 #include "griddyn/loads/sourceLoad.h"
 #include "griddyn/loads/zipLoad.h"
 #include <gtest/gtest.h>
+#include <iostream>
+#include <string>
 
 // test case for coreObject object
 

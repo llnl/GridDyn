@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDLOADOPT_H_
-#define GRIDLOADOPT_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_MODELS_GRIDLOADOPT_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_MODELS_GRIDLOADOPT_H_
 
 // headers
 #include "../gridOptObjects.h"
+#include <string>
 // forward classes
 
 namespace griddyn {
@@ -88,4 +89,4 @@ class gridLoadOpt: public gridOptObject {
 };
 
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_MODELS_GRIDLOADOPT_H_

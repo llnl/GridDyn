@@ -23,12 +23,13 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace filesystem = std::filesystem;
 
 namespace griddyn {
-using namespace gmlc::utilities::stringOps;
-
 GriddynRunner::GriddynRunner() = default;
 
 GriddynRunner::GriddynRunner(std::shared_ptr<gridDynSimulation> sim): m_gds(std::move(sim)) {}
@@ -75,7 +76,7 @@ int GriddynRunner::Initialize(int argc, char* argv[], readerInfo& ri, bool allow
         // ();
     }
     m_gds->log(nullptr, print_level::summary, "GridDyn version:" GRIDDYN_VERSION_STRING);
-    // TODO:: do something different with this
+    // TODO(phlpt): Do something different with this.
     GhostSwingBusManager::initialize(&argc, &argv);
 
     argv_vals = argv;
@@ -456,16 +457,16 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
         ->type_size(-1)
         ->each([&ri](const std::string& defstr) {
             auto N = defstr.find_first_of('=');
-            auto def = trim(defstr.substr(0, N));
-            auto rep = trim(defstr.substr(N + 1));
+            auto def = gmlc::utilities::stringOps::trim(defstr.substr(0, N));
+            auto rep = gmlc::utilities::stringOps::trim(defstr.substr(N + 1));
             ri.addLockedDefinition(def, rep);
         });
     readerGroup->add_option("--translate,-T", "translation strings for the element file readers")
         ->type_size(-1)
         ->each([&ri](const std::string& transstr) {
             auto N = transstr.find_first_of('=');
-            auto tran = trim(transstr.substr(0, N));
-            auto rep = trim(transstr.substr(N + 1));
+            auto tran = gmlc::utilities::stringOps::trim(transstr.substr(0, N));
+            auto rep = gmlc::utilities::stringOps::trim(transstr.substr(N + 1));
             ri.addTranslate(tran, rep);
         });
 

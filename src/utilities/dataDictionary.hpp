@@ -13,7 +13,10 @@
 #pragma once
 
 #include "mapOps.hpp"
+#include <algorithm>
 #include <mutex>
+#include <unordered_map>
+#include <utility>
 
 namespace utilities {
 /** class to contain a dictionary in a thread safe manner

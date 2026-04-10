@@ -20,12 +20,14 @@
 #include "griddyn/loads/zipLoad.h"
 #include "utilities/vectData.hpp"
 #include <cmath>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 static optObjectFactory<gridBusOpt, gridBus> opbus("basic", "bus");
 
-using namespace units;
+using units::unit;
 
 gridBusOpt::gridBusOpt(const std::string& objName): gridOptObject(objName) {}
 

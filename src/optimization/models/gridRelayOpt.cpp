@@ -14,12 +14,13 @@
 #include "griddyn/Relay.h"
 #include "utilities/vectData.hpp"
 #include <cmath>
+#include <string>
 #include <utility>
 
 namespace griddyn {
 static optObjectFactory<gridRelayOpt, Relay> opRelay("basic", "relay");
 
-using namespace units;
+using units::unit;
 
 gridRelayOpt::gridRelayOpt(const std::string& objName): gridOptObject(objName) {}
 

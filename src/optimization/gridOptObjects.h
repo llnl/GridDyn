@@ -11,6 +11,7 @@
 #include <array>
 #include <bitset>
 #include <map>
+#include <string>
 
 template<class Y>
 class vectData;

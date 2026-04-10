@@ -10,6 +10,8 @@
 #include "griddyn/primary/infiniteBus.h"
 #include "griddyn/simulation/diagnostics.h"
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
 using namespace griddyn;

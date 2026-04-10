@@ -14,6 +14,10 @@
 #include "griddyn/loads/zipLoad.h"
 #include <gtest/gtest.h>
 #include <iostream>
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <vector>
 
 // test case for coreObject object
 
@@ -462,7 +466,7 @@ TEST_F(XmlTests, TestParamSpecs)
     EXPECT_NEAR(ld2->get("q", units::MVAR), 14.8, 1e-4);
     EXPECT_NEAR(ld2->get("yp"), 1.27, 1e-4);
     EXPECT_NEAR(ld2->get("yq"), 0.74, 1e-4);
-    // TODO:: PT this capability is not enabled yet
+    // TODO(phlpt): This capability is not enabled yet.
     // EXPECT_NEAR(ld2->get("ip"), 0.145, 0.0001);
     // EXPECT_NEAR(ld2->get("iq"), 0.064, 0.0001);
 }

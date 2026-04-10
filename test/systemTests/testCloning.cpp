@@ -9,9 +9,12 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
+#include <vector>
 // test case for coreObject object
 
-static const std::string clone_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/clone_tests/");
+static const char clone_test_directory[] = GRIDDYN_TEST_DIRECTORY "/clone_tests/";
 
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
@@ -20,7 +23,7 @@ class CloneTests: public gridDynSimulationTestFixture, public ::testing::Test {}
 
 TEST_F(CloneTests, CloningTest1)
 {
-    std::string fileName = clone_test_directory + "clone_test1.xml";
+    std::string fileName = std::string(clone_test_directory) + "clone_test1.xml";
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::no_print;
 
@@ -40,7 +43,7 @@ TEST_F(CloneTests, CloningTest1)
 
 TEST_F(CloneTests, CloningTest2)
 {
-    std::string fileName = clone_test_directory + "clone_test2.xml";
+    std::string fileName = std::string(clone_test_directory) + "clone_test2.xml";
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::no_print;
 
@@ -61,7 +64,7 @@ TEST_F(CloneTests, CloningTest2)
 /* clone test 3 has an approximation in the solver that should get cloned over to powerflow 2*/
 TEST_F(CloneTests, CloningTestSolverApprox)
 {
-    std::string fileName = clone_test_directory + "clone_test3.xml";
+    std::string fileName = std::string(clone_test_directory) + "clone_test3.xml";
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::no_print;
 
@@ -103,7 +106,7 @@ TEST_F(CloneTests, CloningTestSolverApprox)
 
 TEST_F(CloneTests, CloningTestEvents)
 {
-    std::string fileName = clone_test_directory + "test_griddyn39_events.xml";
+    std::string fileName = std::string(clone_test_directory) + "test_griddyn39_events.xml";
     gds = readSimXMLFile(fileName);
 
     gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));

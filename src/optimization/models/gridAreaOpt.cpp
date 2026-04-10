@@ -19,9 +19,11 @@
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include "utilities/vectData.hpp"
+#include <string>
+#include <vector>
 
 namespace griddyn {
-using namespace units;
+using units::unit;
 
 static optObjectFactory<gridAreaOpt, Area> opa("basic", "area");
 
@@ -416,7 +418,7 @@ void gridAreaOpt::remove(coreObject* obj)
     throw(unrecognizedObjectException(this));
 }
 
-// TODO:: make this work like Area
+// TODO(phlpt): Make this work like Area.
 void gridAreaOpt::add(gridBusOpt* bus)
 {
     if (!isMember(bus)) {

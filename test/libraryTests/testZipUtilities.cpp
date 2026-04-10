@@ -11,6 +11,8 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 static const std::string zip_test_directory(GRIDDYN_TEST_DIRECTORY "/zip_tests/");
 

@@ -23,6 +23,9 @@
 #    include "json/json.h"
 #endif
 
+#include <memory>
+#include <string>
+
 dimeClientInterface::dimeClientInterface(const std::string& dimeName,
                                          const std::string& dimeAddress):
     name(dimeName), address(dimeAddress)
@@ -134,7 +137,7 @@ void dimeClientInterface::send_var(const std::string& varName,
 
     char buffer[3];
     auto sz = socket->recv(buffer, 3, 0);
-    // TODO check recv value
+    // TODO(phlpt): Check recv value.
 
     Json::Value outgoingData;
     outgoingData["command"] = "response";
@@ -156,7 +159,7 @@ void dimeClientInterface::send_var(const std::string& varName,
     socket->send(ss.str());
 
     sz = socket->recv(buffer, 3, 0);
-    if (sz != 2)  // TODO check for "OK"
+    if (sz != 2)  // TODO(phlpt): Check for "OK".
     {
         throw(sendFailure());
     }

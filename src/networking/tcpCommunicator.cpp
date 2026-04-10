@@ -9,6 +9,8 @@
 #include "AsioServiceManager.h"
 #include "TcpHelperClasses.h"
 #include "griddyn/comms/commMessage.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace tcpLib {

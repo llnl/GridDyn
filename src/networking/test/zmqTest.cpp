@@ -19,15 +19,21 @@
 #include "networking/zmqLibrary/zmqSocketDescriptor.h"
 #include <chrono>
 #include <gtest/gtest.h>
+#include <string>
 #include <thread>
 
-static const std::string zmq_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/zmq_tests/");
+static const char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
 class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using namespace zmq;
-using namespace zmqlib;
-using namespace griddyn;
+using griddyn::gridDynSimulationTestFixture;
+using zmq::message_t;
+using zmq::socket_type;
+using zmqlib::socket_ops;
+using zmqlib::socketTypeFromString;
+using zmqlib::zmqContextManager;
+using zmqlib::zmqReactor;
+using zmqlib::zmqSocketDescriptor;
 
 TEST_F(ZmqTests, LoadZmqContextManager)
 {

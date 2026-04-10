@@ -7,6 +7,8 @@
 
 #include "griddyn/comms/Communicator.h"
 #include <bitset>
+#include <memory>
+#include <string>
 
 namespace griddyn {
 /** namespace containing zmq specific interface objects*/

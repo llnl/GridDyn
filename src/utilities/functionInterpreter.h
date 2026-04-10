@@ -8,8 +8,8 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef FUNCTION_INTERPRETER_H_
-#define FUNCTION_INTERPRETER_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_FUNCTIONINTERPRETER_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_FUNCTIONINTERPRETER_H_
 
 #include <functional>
 #include <string>
@@ -119,4 +119,4 @@ function
 std::function<double(const std::vector<double>&, const std::vector<double>&)>
     get2ArrayFunction(const std::string& functionName);
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_FUNCTIONINTERPRETER_H_

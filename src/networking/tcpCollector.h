@@ -6,6 +6,8 @@
 #pragma once
 
 #include "griddyn/measurement/collector.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace tcpLib {

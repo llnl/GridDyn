@@ -24,6 +24,10 @@
 #include "griddyn/griddyn-config.h"
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 static constexpr double local_pi = 3.141592653589793;
 static const double local_nan = std::nan("0");
@@ -31,8 +35,14 @@ static constexpr double local_inf = 1e48;
 static const double log2val = log(2.0);
 static const double log10val = log(10.0);
 
-using namespace gmlc::utilities;
-using namespace utilities;
+using gmlc::utilities::absMax;
+using gmlc::utilities::absMin;
+using gmlc::utilities::median;
+using gmlc::utilities::mult_sum;
+using gmlc::utilities::product;
+using gmlc::utilities::stdev;
+using gmlc::utilities::sum;
+using utilities::gridRandom;
 
 static const std::map<std::string, std::function<double()>> FuncList0{
     std::make_pair("inf", []() { return local_inf; }),
@@ -324,39 +334,37 @@ bool isFunctionName(const std::string& functionName, function_type ftype)
     return false;
 }
 
-using namespace stringOps;
-
 double evalFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     auto fret = FuncList0.find(temp);
     return (fret != FuncList0.end()) ? fret->second() : local_nan;
 }
 
 double evalFunction(const std::string& functionName, double val)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     auto fret = FuncList1.find(temp);
     return (fret != FuncList1.end()) ? fret->second(val) : local_nan;
 }
 
 double evalFunction(const std::string& functionName, double val1, double val2)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     auto fret = FuncList2.find(temp);
     return (fret != FuncList2.end()) ? fret->second(val1, val2) : local_nan;
 }
 
 double evalFunction(const std::string& functionName, double val1, double val2, double val3)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     auto fret = FuncList3.find(temp);
     return (fret != FuncList3.end()) ? fret->second(val1, val2, val3) : local_nan;
 }
 
 double evalFunction(const std::string& functionName, const std::vector<double>& arr)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
 
     auto fret = ArrFuncList1.find(temp);
     return (fret != ArrFuncList1.end()) ? fret->second(arr) : local_nan;
@@ -366,7 +374,7 @@ double evalFunction(const std::string& functionName,
                     const std::vector<double>& arr1,
                     const std::vector<double>& arr2)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
 
     auto fret = ArrFuncList2.find(temp);
     return (fret != ArrFuncList2.end()) ? fret->second(arr1, arr2) : local_nan;
@@ -374,7 +382,7 @@ double evalFunction(const std::string& functionName,
 
 std::function<double()> get0ArgFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
 
     auto fret = FuncList0.find(temp);
     return (fret != FuncList0.end()) ? fret->second : nullptr;
@@ -382,32 +390,32 @@ std::function<double()> get0ArgFunction(const std::string& functionName)
 
 std::function<double(double)> get1ArgFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     return mapFind(FuncList1, temp, std::function<double(double)>(nullptr));
 }
 
 std::function<double(double, double)> get2ArgFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     return mapFind(FuncList2, temp, std::function<double(double, double)>(nullptr));
 }
 
 std::function<double(double, double, double)> get3ArgFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     return mapFind(FuncList3, temp, std::function<double(double, double, double)>(nullptr));
 }
 
 std::function<double(const std::vector<double>&)> getArrayFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     return mapFind(ArrFuncList1, temp, std::function<double(const std::vector<double>&)>(nullptr));
 }
 
 std::function<double(const std::vector<double>&, const std::vector<double>&)>
     get2ArrayFunction(const std::string& functionName)
 {
-    std::string temp = convertToLowerCase(functionName);
+    std::string temp = gmlc::utilities::convertToLowerCase(functionName);
     return mapFind(ArrFuncList2,
                    temp,
                    std::function<double(const std::vector<double>&, const std::vector<double>&)>(

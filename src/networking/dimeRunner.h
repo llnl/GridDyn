@@ -13,6 +13,7 @@
 
 #include "core/coreOwningPtr.hpp"
 #include "runner/gridDynRunner.h"
+#include <memory>
 
 namespace griddyn {
 class readerInfo;

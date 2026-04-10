@@ -8,6 +8,8 @@
 
 #include "core/factoryTemplates.hpp"
 #include "gridDynOpt.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 static childClassFactory<basicOptimizer, optimizerInterface>

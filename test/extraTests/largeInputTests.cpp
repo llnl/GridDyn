@@ -15,8 +15,11 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 class LargeValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 

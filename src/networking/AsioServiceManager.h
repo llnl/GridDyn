@@ -18,6 +18,7 @@ Energy, LLC All rights reserved. See LICENSE file and DISCLAIMER for more detail
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <boost/asio/io_service.hpp>

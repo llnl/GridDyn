@@ -25,6 +25,7 @@ Livermore National Security, LLC.
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <string>
 /*
 req = ZMQ_REQ,
 rep = ZMQ_REP,

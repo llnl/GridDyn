@@ -13,6 +13,8 @@
 #include "dimeCollector.h"
 
 #include "dimeClientInterface.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace dimeLib {

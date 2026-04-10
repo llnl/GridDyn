@@ -10,10 +10,12 @@
  * LLNS Copyright End
  */
 
-#ifndef DIME_COLLECTOR_HEADER_
-#define DIME_COLLECTOR_HEADER_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_
 
 #include "griddyn/measurement/collector.h"
+#include <memory>
+#include <string>
 
 class dimeClientInterface;
 
@@ -43,4 +45,4 @@ namespace dimeLib {
 
 }  // namespace dimeLib
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_

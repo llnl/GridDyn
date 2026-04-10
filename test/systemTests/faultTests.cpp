@@ -19,6 +19,8 @@
 #include "griddyn/simulation/diagnostics.h"
 #include <cmath>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 /** these test cases test out the various generator components ability to handle faults
  */

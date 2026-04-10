@@ -5,6 +5,10 @@
  */
 
 #include "optObjectFactory.h"
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 optComponentFactory::optComponentFactory(const std::string& typeName): name(typeName) {}

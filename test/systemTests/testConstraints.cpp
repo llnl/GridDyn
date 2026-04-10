@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include <cstdio>
 #include <gtest/gtest.h>
+#include <string>
 
 using namespace griddyn;
 

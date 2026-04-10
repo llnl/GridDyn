@@ -11,6 +11,7 @@
 #include "GlobalWorkQueue.hpp"
 
 #include "griddyn/griddyn-config.h"
+#include <memory>
 
 namespace griddyn {
 const std::shared_ptr<gmlc::containers::WorkQueue>& getGlobalWorkQueue(int threads)

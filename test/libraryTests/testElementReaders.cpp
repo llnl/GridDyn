@@ -11,6 +11,8 @@
 #include "formatInterpreters/tinyxmlReaderElement.h"
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
+#include <string>
 
 static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
                                                     "/element_reader_tests/");

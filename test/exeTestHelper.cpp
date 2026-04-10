@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <streambuf>
 
 int exeTestRunner::counter = 1;

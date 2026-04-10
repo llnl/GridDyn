@@ -16,8 +16,11 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 using namespace griddyn;
 using namespace gmlc::utilities;

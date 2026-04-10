@@ -16,7 +16,10 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 // test case for coreObject object
 
 #define INPUT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/input_tests/"

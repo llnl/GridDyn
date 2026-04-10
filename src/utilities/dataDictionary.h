@@ -13,7 +13,10 @@
 #pragma once
 
 #include "gmlc/containers/mapOps.hpp"
+#include <algorithm>
 #include <mutex>
+#include <unordered_map>
+#include <utility>
 /** creating a thread safe database object
 @tparam keyType the lookup key type
 @tparam dataType the type of data to store dataType must be copyable*/

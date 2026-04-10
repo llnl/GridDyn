@@ -11,6 +11,9 @@
 
 #include <memory>
 #include <random>
+#include <string>
+#include <utility>
+#include <vector>
 /** abstract class defining a random distribution*/
 
 namespace utilities {
@@ -34,7 +37,7 @@ class distributionObject {
         updateParameter(param1);
     };
 };
-// TODO: rework this so it functions across threads as the current generator is not thread safe
+// TODO(phlpt): Rework this so it functions across threads as the current generator is not thread safe.
 
 /** class defining random number generation*/
 class gridRandom {

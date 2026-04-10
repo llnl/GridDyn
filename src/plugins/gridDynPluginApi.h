@@ -12,9 +12,8 @@
  * LLNS Copyright End
  */
 
-#ifndef GRIDDYN_PLUGIN_API_H_
-
-#define GRIDDYN_PLUGIN_API_H_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_
 
 #include <string>
 
@@ -27,4 +26,4 @@ class gridDynPlugInApi {
     virtual ~gridDynPlugInApi() {}
 };
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_

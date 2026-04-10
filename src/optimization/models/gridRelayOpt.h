@@ -8,6 +8,7 @@
 
 // headers
 #include "../gridOptObjects.h"
+#include <string>
 // forward classes
 
 namespace griddyn {

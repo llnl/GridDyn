@@ -10,6 +10,7 @@
 #include "core/objectFactory.hpp"
 #include "tcpCollector.h"
 #include "tcpCommunicator.h"
+#include <string>
 
 namespace griddyn {
 

@@ -6,8 +6,10 @@
 
 #include "../gtestHelper.h"
 #include <chrono>
+#include <cstdio>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <string>
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 

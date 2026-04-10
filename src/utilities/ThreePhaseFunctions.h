@@ -37,7 +37,7 @@ static const std::complex<double> alpha2 = alpha * alpha;
 static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
 static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
-// TODO::PT add enable if statements
+// TODO(phlpt): Add enable-if statements.
 template<class X>
 X generate3PhaseVector(const X& val)
 {
@@ -56,7 +56,7 @@ X generate3PhaseVector(const X& val)
     return vvals;
 }
 
-// TODO::PT add enable if statements
+// TODO(phlpt): Add enable-if statements.
 template<class X>
 X generate3PhasePolarVector(const X& val)
 {

@@ -24,6 +24,7 @@ Livermore National Security, LLC.
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace zmqlib {

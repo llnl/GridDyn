@@ -15,8 +15,11 @@
 #include "griddyn/Generator.h"
 #include "utilities/matrixData.hpp"
 #include "utilities/vectData.hpp"
+#include <algorithm>
 #include <cmath>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 static optObjectFactory<gridGenOpt, Generator> opgen("basic", "gen", 0, true);
@@ -332,7 +335,10 @@ void gridGenOpt::set(const std::string& param, const std::string& val)
 
 void gridGenOpt::set(const std::string& param, double val, units::unit unitType)
 {
-    using namespace units;
+    using units::convert;
+    using units::currency;
+    using units::hr;
+    using units::puMW;
     if (param[0] == 'p') {
         try {
             auto num = std::stoul(param.substr(1));

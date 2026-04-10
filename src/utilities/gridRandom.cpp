@@ -14,6 +14,11 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <ctime>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace utilities {
 std::mt19937 gridRandom::s_gen;

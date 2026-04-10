@@ -10,8 +10,8 @@
  * LLNS Copyright End
  */
 
-#ifndef DIME_INTERFACE_HEADER_
-#define DIME_INTERFACE_HEADER_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_
 
 namespace griddyn {
 class readerInfo;
@@ -21,4 +21,4 @@ void loadDimeLibrary();
 void loadDimeReaderInfoDefinitions(readerInfo& ri);
 }  // namespace griddyn
 
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_

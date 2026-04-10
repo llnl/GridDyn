@@ -15,12 +15,13 @@
 #include "griddyn/Link.h"
 #include "utilities/vectData.hpp"
 #include <cmath>
+#include <string>
 #include <utility>
 
 namespace griddyn {
 static optObjectFactory<gridLinkOpt, Link> opLink("basic", "link");
 
-using namespace units;
+using units::unit;
 
 gridLinkOpt::gridLinkOpt(const std::string& objName): gridOptObject(objName) {}
 

@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 namespace utilities {
 auto compareOp = [](const auto& p1, const auto& p2) { return (p1.ind < p2.ind); };

@@ -9,6 +9,7 @@
 #include "fileInput/gridParameter.h"
 #include "griddyn/gridDynDefinitions.hpp"
 #include <gtest/gtest.h>
+#include <string>
 
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
 

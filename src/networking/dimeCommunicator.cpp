@@ -14,6 +14,8 @@
 
 #include "cppzmq/zmq_addon.hpp"
 #include "zmqLibrary/zmqHelper.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace dimeLib {

@@ -8,6 +8,8 @@
 
 #include "AsioServiceManager.h"
 #include "TcpHelperClasses.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace tcpLib {

@@ -17,6 +17,7 @@
 #include "dimeCollector.h"
 #include "dimeCommunicator.h"
 #include "fileInput/readerInfo.h"
+#include <string>
 
 namespace griddyn {
 static childClassFactory<dimeLib::dimeCollector, collector>

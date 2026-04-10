@@ -13,8 +13,10 @@ Energy, LLC All rights reserved. See LICENSE file and DISCLAIMER for more detail
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
 
 /** a storage system for the available core objects allowing references by name to the core
  */

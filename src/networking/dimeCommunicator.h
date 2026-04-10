@@ -10,10 +10,12 @@
  * LLNS Copyright End
  */
 
-#ifndef DIME_COMMUNICATOR_HEADER_
-#define DIME_COMMUNICATOR_HEADER_
+#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_
+#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_
 
 #include "zmqCommunicator.h"
+#include <memory>
+#include <string>
 
 namespace griddyn {
 namespace dimeLib {
@@ -45,4 +47,4 @@ namespace dimeLib {
 
 }  // namespace dimeLib
 }  // namespace griddyn
-#endif
+#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_

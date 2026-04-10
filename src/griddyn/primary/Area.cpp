@@ -29,10 +29,10 @@
 namespace griddyn {
 using gmlc::utilities::ensureSizeAtLeast;
 using gmlc::utilities::vecFindne;
-using units::Hz;
-using units::MW;
 using units::convert;
 using units::defunit;
+using units::Hz;
+using units::MW;
 using units::rad;
 using units::s;
 using units::unit;

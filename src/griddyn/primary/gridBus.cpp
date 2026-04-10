@@ -21,9 +21,9 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
 #include "infiniteBus.h"
-#include <cstdio>
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <queue>
 #include <string>

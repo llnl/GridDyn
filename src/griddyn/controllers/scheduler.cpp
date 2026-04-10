@@ -18,8 +18,8 @@
 #include <vector>
 
 namespace griddyn {
-using units::MW;
 using units::convert;
+using units::MW;
 using units::puMW;
 using units::unit;
 

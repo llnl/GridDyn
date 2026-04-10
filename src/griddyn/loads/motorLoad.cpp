@@ -19,8 +19,8 @@
 #include <vector>
 namespace griddyn {
 namespace loads {
-    using units::MVAR;
     using units::convert;
+    using units::MVAR;
     using units::puMW;
     using units::puV;
 

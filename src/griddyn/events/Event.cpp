@@ -14,17 +14,17 @@
 #include "core/factoryTemplates.hpp"
 #include "core/objectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
-#include <memory>
 #include "interpolatingPlayer.h"
 #include "reversibleEvent.h"
+#include <memory>
 #include <sstream>
 #include <string>
 
 namespace griddyn {
+using gmlc::utilities::str2vector;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
 using gmlc::utilities::stringOps::trimString;
-using gmlc::utilities::str2vector;
 
 static classFactory<Event> evntFac(std::vector<std::string>{"event", "simple", "single"}, "event");
 namespace events {

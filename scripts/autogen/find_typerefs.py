@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-""" Usage: call with <filename> <typename>
-"""
+"""Usage: call with <filename> <typename>"""
 
 import sys
 import clang.cindex
@@ -9,8 +8,7 @@ import pdb
 
 
 def find_typerefs(node, typename):
-    """ Find all references to the type named 'typename'
-    """
+    """Find all references to the type named 'typename'"""
     print(node.spelling)
     print(node.kind)
     print(node.location)

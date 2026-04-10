@@ -11,5 +11,5 @@
 import gridDynViewer
 
 ty = gridDynViewer.gridDynViewer(
-    startdir="E:\My_Documents\Code_projects\\transmission_git\\test\\test_files\\test_dat_files"
+    startdir=r"E:\My_Documents\Code_projects\transmission_git\test\test_files\test_dat_files"
 )

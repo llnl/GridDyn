@@ -75,7 +75,7 @@ def main():
     index = clang.cindex.Index.create()
 
     #    tu = index.parse(myargs, args=["-I/software/griddyn/src/griddyn -I/software/griddyn/src/  -I/software/griddyn/src/utilities -I/software/griddyn/gridDyn -I/software/anaconda2/envs/matlabDyn/include/boost/ -I/software/anaconda2/envs/matlabDyn/gcc/include/c++/ -I/software/anaconda2/envs/matlabDyn/gcc/include/c++/x86_64-pc-linux-gnu/ -I/software/anaconda2/envs/matlabDyn/include","-std=std++11"])
-    print myargs
+    print(myargs)
     # tu = index.parse(myargs[0], args=[])
     # includes= "-I/software/griddyn/src/griddyn -I/software/griddyn/src/  -I/software/griddyn/src/utilities -I/software/griddyn/gridDyn -I/software/anaconda2/envs/matlabDyn/include/boost/ -I/software/anaconda2/envs/matlabDyn/gcc/include/c++/ -I/software/anaconda2/envs/matlabDyn/gcc/include/c++/x86_64-pc-linux-gnu/ -I/software/anaconda2/envs/matlabDyn/include".split()
     includes = "-I/software/griddyn/src/griddyn -I/software/griddyn/src/  -I/software/griddyn/src/utilities -I/software/griddyn/gridDyn".split()
@@ -84,7 +84,7 @@ def main():
     if not tu:
         parser.error("unable to load input")
 
-    pprint(("diags", map(get_diag_info, tu.diagnostics)))
+    pprint(("diags", list(map(get_diag_info, tu.diagnostics))))
     pprint(("nodes", get_info(tu.cursor)))
 
 

@@ -6,7 +6,7 @@ def find_decl_ref_expr(node):
     for c in node.get_children():
         #        if c.kind == clang.cindex.CursorKind.UNEXPOSED_EXPR:
         if c.kind == clang.cindex.CursorKind.DECL_REF_EXPR:
-            print "Member function call via", c.spelling, c.type.spelling, c.displayname
+            print("Member function call via", c.spelling, c.type.spelling, c.displayname)
         else:
             find_decl_ref_expr(c)
 
@@ -21,7 +21,7 @@ def called_from(node):
 def walk(node):
     if node.kind == clang.cindex.CursorKind.CALL_EXPR:
         #    if node.kind == clang.cindex.CursorKind.FIELD_DECL:
-        print "name: %s, type: %s" % (node.spelling or node.displayname, node.type.spelling)
+        print("name: %s, type: %s" % (node.spelling or node.displayname, node.type.spelling))
     called_from(node)
 
     for c in node.get_children():
@@ -31,7 +31,7 @@ def walk(node):
 def dump_children(node):
 
     for c in node.get_children():
-        print c.kind, c.spelling, c.type.spelling
+        print(c.kind, c.spelling, c.type.spelling)
         dump_children(c)
 
 

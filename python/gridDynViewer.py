@@ -146,7 +146,7 @@ class gridDynViewer(Tk.Frame):
     def getFiles(self):
         self.dirLoc = self.dirEntry.get()
         if platform.system() == "Windows":
-            dlist = glob.glob(self.dirLoc + "\*.dat")
+            dlist = glob.glob(self.dirLoc + r"\*.dat")
         else:
             dlist = glob.glob(self.dirLoc + "/*.dat")
         self.lb_files.delete(0, Tk.END)

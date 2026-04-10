@@ -1,7 +1,6 @@
 name: Static Analyzers
 
 on:
-  push:
   pull_request:
 
 jobs:
@@ -15,7 +14,6 @@ jobs:
       run: cpplint --counting=detailed --recursive examples benchmarks src test
 
   clang-tidy:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     container: helics/buildenv:clang-extra-tools
 

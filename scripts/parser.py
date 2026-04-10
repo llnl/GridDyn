@@ -47,7 +47,7 @@ class Chunk(object):
     TYPE = r"(\S+)"
 
     REGEX = re.compile(
-        "{}:{}:{}: {} {} \[{}\]".format(
+        r"{}:{}:{}: {} {} \[{}\]".format(
             #                    1  2  3      4    5
             FILE,
             NUM,

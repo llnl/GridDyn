@@ -12,9 +12,9 @@
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/zipLoad.h"
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <iostream>
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>

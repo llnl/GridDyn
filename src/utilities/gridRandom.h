@@ -37,7 +37,8 @@ class distributionObject {
         updateParameter(param1);
     };
 };
-// TODO(phlpt): Rework this so it functions across threads as the current generator is not thread safe.
+// TODO(phlpt): Rework this so it functions across threads as the current generator is not thread
+// safe.
 
 /** class defining random number generation*/
 class gridRandom {

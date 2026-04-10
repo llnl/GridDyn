@@ -5,6 +5,7 @@
  */
 
 #include "optObjectFactory.h"
+
 #include <memory>
 #include <string>
 #include <utility>

@@ -106,7 +106,7 @@ jobs:
       vmImage: $(imageName)
     variables:
       BOOST_ROOT: $(Pipeline.Workspace)/ci-libs/boost
-      BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.bz2/download
+      BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.85.0/boost_1_85_0.tar.bz2/download
 
     steps:
       # -----------------------
@@ -134,7 +134,7 @@ jobs:
 
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: "3.5"
+          versionSpec: "3.13"
           addToPath: true
           architecture: $(langArch)
 

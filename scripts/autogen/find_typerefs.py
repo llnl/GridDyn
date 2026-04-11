@@ -4,15 +4,12 @@
 import sys
 import clang.cindex
 
-import pdb
-
 
 def find_typerefs(node, typename):
     """Find all references to the type named 'typename'"""
     print(node.spelling)
     print(node.kind)
     print(node.location)
-    pdb.set_trace()
     if node.kind.is_reference():
         ref_node = node.referenced
         if ref_node.spelling == typename:

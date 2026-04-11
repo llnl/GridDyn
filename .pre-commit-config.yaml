@@ -43,7 +43,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        exclude: ^(docs/user-guide/examples/user_guide_examples)
+        exclude: ^(docs/user-guide/examples/user_guide_examples|\.clang-tidy$)
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:
@@ -51,6 +51,7 @@ repos:
         args: [-s, ./config/.markdownlintrc]
         exclude: "mac.md"
       - id: script-must-have-extension
+        exclude: ^bin/setenv\.csh$
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:

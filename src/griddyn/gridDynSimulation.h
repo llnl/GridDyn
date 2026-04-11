@@ -212,13 +212,13 @@ class gridDynSimulation: public gridSimulation {
 
     /** @brief perform a sensitivity analysis
      this function will likely be changing as the sensitivity analysis is more developed
-    @return in indicating success (0) or failure (non-zero)*/
+    */
     void pFlowSensitivityAnalysis();
 
     /** @brief perform a continuation power flow analysis
     @param[in] contName the name of the continuation analysis to perform
     @details this function will likely be changing as the continuation analysis develops further
-    @return int indicating success (0) or failure (non-zero)*/
+    */
     void continuationPowerFlow(const std::string& contName);
 
     /** @brief function to get the system constraints

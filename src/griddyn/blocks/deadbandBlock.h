@@ -99,12 +99,12 @@ namespace blocks {
     */
         deadbandstate_t getDBState() const { return dbstate; }
         /** @brief get the output of the deadband portion {not including the gain and limiters
-    @param[in] the input value
+    @param[in] input the input value
     @return the computed output value
     */
         double computeValue(double input) const;
         /** @brief compute the partial derivative of the output with respect to the input
-    @param[in] the input value
+    @param[in] input the input value
     @return the computed derivative
     */
         double computeDoutDin(double input) const;

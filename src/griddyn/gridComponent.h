@@ -152,7 +152,7 @@ see gridComponent::dynInitializeA for more details
     allows that to take place
     @param[in] flagID  the numerical location of the flag
     @param[in] val the value to set the flag too
-    @param[in] parent the identifier of the parent, it must match the objects parent
+    @param[in] checkParent the identifier of the parent, it must match the objects parent
     */
     void parentSetFlag(index_t flagID, bool val, coreObject* checkParent);
     virtual bool getFlag(const std::string& flag) const override;
@@ -166,9 +166,9 @@ see gridComponent::dynInitializeA for more details
     */
     double subObjectGet(const std::string& param, units::unit unitType) const;
     /** add a grid object to the subObject container
-    @param[in] comp the component to add
+    @param[in] obj the component to add
     */
-    void addSubObject(gridComponent* comp);
+    void addSubObject(gridComponent* obj);
     /** remove a grid object to the subObject container
     @param[in] comp the component to add
     */
@@ -198,7 +198,7 @@ see gridComponent::dynInitializeA for more details
     virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
 
     /** @brief set the offsets of an object for a particular solver mode using a single offset.
-    @param[in] offset the offset index all variables are sequential.
+    @param[in] newOffset the offset index all variables are sequential.
     @param sMode the solver mode to use.
     */
     virtual void setOffset(index_t newOffset, const solverMode& sMode);
@@ -415,7 +415,7 @@ see gridComponent::dynInitializeA for more details
     };
     /** @brief compute the sizes of the subObject and store them in the offsetTables.
     @param sMode the solver mode to use.
-    @param dynOnly set to true if only the dynamic conditions are of concern
+    @param category set to the type of size data being loaded
     */
     void loadSizesSub(const solverMode& sMode, sizeCategory category);
 
@@ -470,7 +470,7 @@ see gridComponent::dynInitializeA for more details
     */
     virtual void getConstraints(double constraints[], const solverMode& sMode);
     /** @brief update cascading flag information
-    @param[in] dynamics  if true only do so for flags corresponding to dynamic solution
+    @param[in] dynamicsFlags if true only do so for flags corresponding to dynamic solution
     */
     virtual void updateFlags(bool dynamicsFlags = true);
 
@@ -503,7 +503,7 @@ see gridComponent::dynInitializeA for more details
      *@brief set all the values of particular type of object to some value
      * @param[in] type the type of unit to set
      * @param[in] param the parameter to set
-     * @param[in] val, the value to set it to
+     * @param[in] val the value to set it to
      * @param[in] unitType the units of the val
      */
     virtual void setAll(const std::string& type,
@@ -621,7 +621,7 @@ see gridComponent::dynInitializeA for more details
                                           const solverMode& sMode);
     /**
     @brief return the count of output dependencies on internal states
-    @param[in] num  the index of the output to query
+    @param[in] outputNum  the index of the output to query
     @param[in] sMode the solver mode to consider
     @return the count of the output Dependencies
     */
@@ -671,8 +671,6 @@ see gridComponent::dynInitializeA for more details
     * @param[in] time the simulation time the root evaluation takes place
     @param[in] rootMask a vector of integers representing a rootMask  (only object having a value of
     1 in their root locations should actually trigger
-    * @param[in] rootMask an integer array the same size as roots where a 1 indicates a root has
-    been found
     * @param[in] sMode the mode the solver is in
     **/
     virtual void rootTrigger(coreTime time,
@@ -683,7 +681,6 @@ see gridComponent::dynInitializeA for more details
     /**
     *evaluate the root functions and execute trigger from a static state for operation after an
     initial condition check
-    * @param[in] time the simulation time the root evaluation takes place
     @param[in] inputs the inputs for the secondary object
     * @param[in] sD the state of the system
     * @param[in] sMode the mode the solver is in
@@ -749,7 +746,7 @@ see gridComponent::dynInitializeA for more details
     @ details used in cases where the state of one object is used int the computation of another for
     computation of the Jacobian
     * @param[in] sMode the mode the solver is in
-    @param[in] num the number of the state being requested
+    @param[in] outputNum the number of the state being requested
     @return the value of the state requested
     **/
     virtual index_t getOutputLoc(const solverMode& sMode, index_t outputNum = 0) const;

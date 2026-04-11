@@ -45,12 +45,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install SuiteSparse
-        shell: bash
-        run: |
-          apt update
-          apt install -y libsuitesparse-dev
-
       - name: Configure
         shell: bash
         run: |

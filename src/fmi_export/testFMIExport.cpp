@@ -30,13 +30,9 @@ static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_
 using griddyn::coreTime;
 using griddyn::gridBus;
 using griddyn::gridDynSimulation;
-using griddyn::gridDynSimulationTestFixture;
-using griddyn::kNullLocation;
 using griddyn::loadFile;
 using griddyn::make_owningPtr;
 using griddyn::readerInfo;
-using griddyn::fmi::fmiLibrary;
-using griddyn::fmi::fmuMode;
 using griddyn::loads::ThreePhaseLoad;
 using std::filesystem::exists;
 using std::filesystem::path;
@@ -47,7 +43,7 @@ class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Tes
 
 TEST_F(FmiExportTests, TestFmiEvents)
 {
-    auto fmiCon = make_owningPtr<fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -69,7 +65,7 @@ TEST_F(FmiExportTests, TestFmiEvents)
 
 TEST_F(FmiExportTests, TestFmiOutput)
 {
-    auto fmiCon = make_owningPtr<fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -91,7 +87,7 @@ TEST_F(FmiExportTests, TestFmiOutput)
 
 TEST_F(FmiExportTests, TestFmiSimulation)
 {
-    auto fmiCon = make_owningPtr<fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -121,7 +117,8 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 
 TEST_F(FmiExportTests, TestFmiRunner)
 {
-    auto runner = std::make_unique<fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
+    auto runner =
+        std::make_unique<griddyn::fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
 
     runner->simInitialize();
     runner->UpdateOutputs();
@@ -145,7 +142,7 @@ TEST_F(FmiExportTests, TestFmiRunner)
 namespace {
 void generateFMU(const std::string& target, const std::string& inputfile)
 {
-    auto builder = std::make_unique<fmi::fmuBuilder>();
+    auto builder = std::make_unique<griddyn::fmi::fmuBuilder>();
 
     builder->InitializeFromString("--buildfmu=\"" + target + "\" \"" + inputfile + "\"");
 
@@ -169,7 +166,7 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     }
     ASSERT_TRUE(exists(fmu)) << "unable to generate FMU";
     path gdDir(fmi_test_directory + "griddyn");
-    fmiLibrary gdFmu(fmu);
+    ::fmiLibrary gdFmu(fmu);
     gdFmu.loadSharedLibrary();
     ASSERT_TRUE(gdFmu.isSoLoaded());
 
@@ -185,10 +182,10 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     EXPECT_TRUE(static_cast<bool>(b));
     EXPECT_TRUE(static_cast<bool>(b2));
 
-    b->setMode(fmuMode::initializationMode);
-    b2->setMode(fmuMode::initializationMode);
+    b->setMode(::fmuMode::initializationMode);
+    b2->setMode(::fmuMode::initializationMode);
 
-    EXPECT_EQ(b->getCurrentMode(), fmuMode::initializationMode);
+    EXPECT_EQ(b->getCurrentMode(), ::fmuMode::initializationMode);
     ASSERT_EQ(b->inputSize(), 1);
     ASSERT_EQ(b->outputSize(), 1);
 
@@ -198,9 +195,9 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     ASSERT_EQ(inputName[0], "power");
     auto outputName = b->getOutputNames();
     ASSERT_EQ(outputName[0], "load");
-    b->setMode(fmuMode::stepMode);
-    b2->setMode(fmuMode::stepMode);
-    EXPECT_EQ(b2->getCurrentMode(), fmuMode::stepMode);
+    b->setMode(::fmuMode::stepMode);
+    b2->setMode(::fmuMode::stepMode);
+    EXPECT_EQ(b2->getCurrentMode(), ::fmuMode::stepMode);
 
     auto val = b->getOutput(0);
     auto val2 = b2->getOutput(0);
@@ -250,15 +247,14 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
 
 TEST_F(FmiExportTests, TestFmiRunner2)
 {
-    auto runner = std::make_unique<fmi::fmiRunner>("testsim",
-                                                   fmi_test_directory + "/three_phase_fmu",
-                                                   nullptr);
+    auto runner = std::make_unique<griddyn::fmi::fmiRunner>(
+        "testsim", fmi_test_directory + "/three_phase_fmu", nullptr);
     runner->simInitialize();
     runner->UpdateOutputs();
 
     auto bus = static_cast<gridBus*>(runner->getSim()->getSubObject("bus", 11));
 
-    auto ld = dynamic_cast<loads::ThreePhaseLoad*>(bus->getLoad(0));
+    auto ld = dynamic_cast<griddyn::loads::ThreePhaseLoad*>(bus->getLoad(0));
     ASSERT_NE(ld, nullptr);
 
     auto ret = runner->Step(10.0);

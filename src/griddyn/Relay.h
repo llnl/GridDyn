@@ -177,19 +177,19 @@ class Relay: public gridPrimary, objectOperatorInterface {
     std::shared_ptr<eventAdapter> getAction(index_t actionNumber);
     /**
     @brief get the status of one of the relays conditions
-    @param[in] the index of the condition
+    @param[in] conditionNumber the index of the condition
     @return an enumeration of the condition status (active, triggered, or disabled)
     */
     condition_status_t getConditionStatus(index_t conditionNumber);
     /**
     @brief get the value associated with a condition
-    @param[in] the index of the condition
+    @param[in] conditionNumber the index of the condition
     @return the value used in determining the status of a condition
     */
     double getConditionValue(index_t conditionNumber) const;
     /**
     @brief get the value associated with a condition from state data
-    @param[in] the index of the condition
+    @param[in] conditionNumber the index of the condition
     @return the value used in determining the status of a condition
     */
     double getConditionValue(index_t conditionNumber,

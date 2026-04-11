@@ -26,12 +26,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install braid dependencies
-        shell: bash
-        run: |
-          apt update
-          apt install -y libopenmpi-dev liblapacke-dev
-
       - name: Build XBraID
         shell: bash
         run: ./scripts/xbraid_build.sh

@@ -140,7 +140,7 @@ class gridPrimary: public gridComponent {
     /** @brief do a check on the power flow results
      * checks for an violations of recommended power flow levels such as voltage, power limits,
      * transfer capacity, angle limits, etc
-     * @param[out] Violation_vector, a storage location for any detected violations
+     * @param[out] Violation_vector a storage location for any detected violations
      */
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector);
 

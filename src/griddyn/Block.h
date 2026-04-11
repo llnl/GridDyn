@@ -131,7 +131,6 @@ class Block: public gridSubModel {
     @param[in] sD the state data
     @param[out] deriv the location to store the derivative elements
     @param[in] sMode the solverMode that corresponds to the state data
-    @return the output
     */
     virtual void blockDerivative(double input,
                                  double didt,
@@ -147,9 +146,8 @@ class Block: public gridSubModel {
     input/output
     @param[in] input  the block input
     @param[in] sD the state data
-    @param[out] deriv the location to store the derivative elements
+    @param[out] update the location to store the algebraic update elements
     @param[in] sMode the solverMode that corresponds to the state data
-    @return the output
     */
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& sD,

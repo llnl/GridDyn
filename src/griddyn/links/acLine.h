@@ -120,7 +120,7 @@ class acLine: public Link {
      performs the calculations necessary to get the power at the measureTerminal to be a certain
     value
     @param[in] rPower  the desired real power flow as measured by measureTerminal
-    @param[in] rPower  the desired reactive power flow as measured by measureTerminal
+    @param[in] qPower  the desired reactive power flow as measured by measureTerminal
     @param[in] measureTerminal  the measure terminal-either a terminal number (1 or higher) or a
     busID,  1 by default
     @param[in] fixedTerminal -the terminal that doesn't change (terminal number or busID) if 0 both

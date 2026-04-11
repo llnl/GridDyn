@@ -19,7 +19,7 @@ jobs:
   build-xbraid:
     name: XBraID
     runs-on: ubuntu-latest
-    container: helics/buildenv:gcc8-builder
+    container: helics/buildenv:gcc15-builder
 
     steps:
       - uses: actions/checkout@v6

@@ -24,17 +24,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: GCC 8
-            container: helics/buildenv:gcc8-builder
+          - name: GCC 14
+            container: helics/buildenv:gcc14-builder
             cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
-          - name: GCC 7
-            container: helics/buildenv:gcc7-builder
+          - name: GCC 15
+            container: helics/buildenv:gcc15-builder
             cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON
-          - name: GCC 9
-            container: helics/buildenv:gcc9-builder
+          - name: Clang 19
+            container: helics/buildenv:clang19-builder
             cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_ZMQ=ON -DGRIDDYN_ENABLE_NETWORKING_LIBRARY=ON -DGRIDDYN_ENABLE_TCP=ON
-          - name: Clang 9
-            container: helics/buildenv:clang9-builder
+          - name: Clang 20
+            container: helics/buildenv:clang20-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+          - name: Clang 21
+            container: helics/buildenv:clang21-builder
             cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
 
     steps:

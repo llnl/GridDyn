@@ -40,7 +40,7 @@ jobs:
 
   - job: macOS_mojave
     pool:
-      vmImage: "macOS-10.14"
+      vmImage: "macOS-14"
     steps:
       # -----------------------
       # Install dependencies
@@ -88,18 +88,20 @@ jobs:
   - job: Windows
     strategy:
       matrix:
-        VS2017-32bit:
-          imageName: "vs2017-win2016"
+        VS2022-32bit:
+          imageName: "windows-2022"
           langArch: "x86"
           vsArch: "Win32"
-        VS2017-64bit:
-          imageName: "vs2017-win2016"
+        VSlatest-64bit:
+          imageName: "windows-latest"
           langArch: "x64"
           vsArch: "x64"
-        VS2019-64bit:
-          imageName: "windows-2019"
+          extraFlags: "-DCMAKE_CXX_STANDARD=23"
+        VS2022-64bit:
+          imageName: "windows-2022"
           langArch: "x64"
           vsArch: "x64"
+          extraFlags: "-DCMAKE_CXX_STANDARD=20"
     pool:
       vmImage: $(imageName)
 
@@ -124,10 +126,10 @@ jobs:
       # Configure GRIDDYN
       # -----------------------
       - bash: |
-          echo "##vso[task.setvariable variable=BOOST_ROOT]$BOOST_ROOT_1_72_0"
+          echo "##vso[task.setvariable variable=BOOST_ROOT"
       - task: CMake@1
         inputs:
-          cmakeArgs: -A $(vsArch) -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON ..
+          cmakeArgs: -A $(vsArch) -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON $(extraFlags) ..
         displayName: "Configure GridDyn"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 

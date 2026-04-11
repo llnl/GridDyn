@@ -66,7 +66,7 @@ namespace loads {
                         dummy_load[kk]->set("iq", -0.087);
                     }
                     gsm->setDummyLoadFunction(task_id[kk],
-                                              [=](VoltageMessage* vm, CurrentMessage* cm) {
+                                              [=,this](VoltageMessage* vm, CurrentMessage* cm) {
                                                   run_dummy_load(static_cast<index_t>(kk), vm, cm);
                                               });
                     if (opFlags[dual_mode_flag]) {

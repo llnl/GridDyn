@@ -101,7 +101,7 @@ int gridDynSimulation::dynInitialize(coreTime tStart)
     if (state_record_period > timeZero) {
         if (!(stateRecorder)) {
             stateRecorder = std::make_shared<functionEventAdapter>(
-                [=,this]() {
+                [=, this]() {
                     saveStateBinary(this, stateFile, sm);
                     return change_code::no_change;
                 },

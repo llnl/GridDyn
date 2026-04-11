@@ -128,46 +128,63 @@ option(BUILD_BRAID_SOLVER "enable the braid parallel in time solver integration"
 option(BUILD_SUPERLUMT_SOLVER "enable a superLU solver" OFF)
 option(BUILD_PARADAE_SOLVERS "enable inclusion of PARADAE solvers" OFF)
 
-if(BUILD_BRAID_SOLVER)
-    find_package(Braid)
-    list(APPEND extra_solver_sources ${paradae_sources} braid/braidSolver.cpp
-         braid/braid_driver.cxx
-    )
-    list(APPEND extra_solver_headers ${paradae_headers} braid/braidInterface.h braid/braid_driver.h)
-elseif(BUILD_PARADAE_SOLVERS)
-    list(APPEND extra_solver_sources ${paradae_sources})
-    list(APPEND extra_solver_headers ${paradae_headers})
+set(GRIDDYN_ENABLE_PARADAE_SOLVERS OFF)
+set(GRIDDYN_ENABLE_BRAID_SOLVER OFF)
+
+if(BUILD_PARADAE_SOLVERS OR BUILD_BRAID_SOLVER)
+    find_package(LAPACKE QUIET)
+    if(NOT LAPACKE_FOUND)
+        message(WARNING "PARADAE and Braid solvers require LAPACKE; extra solver support will be limited")
+    endif()
 endif()
 
-if(GRIDDYN_ENABLE_MPI)
+if(BUILD_PARADAE_SOLVERS AND LAPACKE_FOUND)
+    list(APPEND extra_solver_sources ${paradae_sources})
+    list(APPEND extra_solver_headers ${paradae_headers})
+    set(GRIDDYN_ENABLE_PARADAE_SOLVERS ON)
+elseif(BUILD_PARADAE_SOLVERS)
+    message(WARNING "PARADAE solvers requested but LAPACKE was not found; skipping PARADAE solvers")
+endif()
+
+if(BUILD_BRAID_SOLVER)
+    find_package(Braid QUIET)
+    if(NOT GRIDDYN_ENABLE_MPI)
+        message(WARNING "Braid requires MPI support; skipping Braid solver")
+    elseif(NOT BRAID_FOUND)
+        message(WARNING "Braid solver requested but Braid was not found; skipping Braid solver")
+    elseif(NOT LAPACKE_FOUND)
+        message(WARNING "Braid solver requested but LAPACKE was not found; skipping Braid solver")
+    else()
+        if(NOT GRIDDYN_ENABLE_PARADAE_SOLVERS)
+            list(APPEND extra_solver_sources ${paradae_sources})
+            list(APPEND extra_solver_headers ${paradae_headers})
+            set(GRIDDYN_ENABLE_PARADAE_SOLVERS ON)
+        endif()
+        list(APPEND extra_solver_sources braid/braidSolver.cpp braid/braid_driver.cxx)
+        list(APPEND extra_solver_headers braid/braidInterface.h braid/braid_driver.h)
+        set(GRIDDYN_ENABLE_BRAID_SOLVER ON)
+    endif()
+endif()
+
+if(GRIDDYN_ENABLE_MPI AND GRIDDYN_ENABLE_PARADAE_SOLVERS)
     list(APPEND extra_solver_sources paradae/common/MapParam.cxx paradae/common/Timer.cxx)
     list(APPEND extra_solver_headers paradae/common/def_mpi.h paradae/common/MapParam.h
          paradae/common/Timer.h
     )
-elseif(BUILD_BRAID_SOLVER)
-    message(WARNING "Braid requires MPI to function")
 endif()
-
-# find_library(UMFPACK_LIBRARY umfpack HINTS ${SuiteSparse_DIRECT_LIBRARY_DIR})
-
-# find_package(LAPACKE) if (LAPACKE_FOUND) INCLUDE_DIRECTORIES(${LAPACKE_INCLUDE_DIRS}) endif()
 
 add_library(extraSolverLibrary STATIC ${extra_solver_sources} ${extra_solver_headers})
 set_target_properties(extraSolverLibrary PROPERTIES FOLDER libraries)
 
-if(WIN32)
-
-else(WIN32)
-    find_library(LAPACKE_LIBRARY lapacke HINTS /lib64 PATHS ${AUTOBUILD_INSTALL_PATH}/lib)
-    target_link_libraries(extraSolverLibrary PUBLIC ${LAPACKE_LIBRARY})
-    include_directories(/usr/include/lapacke)
-endif(WIN32)
-
 target_link_libraries(extraSolverLibrary PUBLIC griddyn)
-target_link_libraries(extraSolverLibrary PUBLIC ${LAPACKE_LIBRARIES})
 target_link_libraries(extraSolverLibrary PUBLIC ${SuiteSparse_UMFPACK_LIBRARY_RELEASE})
 
-if(BUILD_PARADAE_SOLVERS OR BUILD_BRAID_SOLVER)
+if(LAPACKE_FOUND)
+    target_link_libraries(extraSolverLibrary PUBLIC ${LAPACKE_LIBRARIES})
+    target_include_directories(extraSolverLibrary PRIVATE ${LAPACKE_INCLUDE_DIRS})
+endif()
+
+if(GRIDDYN_ENABLE_PARADAE_SOLVERS)
     # source_group("paradae" FILES ${paradae_sources} ${paradae_headers})
     source_group("paradae\\timeIntegrators" REGULAR_EXPRESSION "paradae/timeintegrators/.*")
     source_group("paradae\\math" REGULAR_EXPRESSION "paradae/math/.*")
@@ -176,15 +193,15 @@ if(BUILD_PARADAE_SOLVERS OR BUILD_BRAID_SOLVER)
     source_group("paradae\\equations" REGULAR_EXPRESSION "paradae/equations/.*")
 endif()
 
-if(BUILD_BRAID_SOLVER)
+if(GRIDDYN_ENABLE_BRAID_SOLVER)
     target_link_libraries(extraSolverLibrary PUBLIC braid::braid)
     source_group("braid" REGULAR_EXPRESSION "braid/.*")
     target_compile_definitions(extraSolverLibrary PUBLIC "-DENABLE_BRAID")
 endif()
 
-if(GRIDDYN_ENABLE_MPI)
+if(GRIDDYN_ENABLE_MPI AND GRIDDYN_ENABLE_BRAID_SOLVER)
     target_link_libraries(extraSolverLibrary PUBLIC MPI::MPI_C)
-endif(GRIDDYN_ENABLE_MPI)
+endif()
 
 target_include_directories(extraSolverLibrary PRIVATE ${SuiteSparse_DIRECT_INCLUDE_DIR})
 

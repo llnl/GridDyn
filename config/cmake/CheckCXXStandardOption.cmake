@@ -8,10 +8,8 @@
 # For details, see the LICENSE file.
 # LLNS Copyright End
 
-
-
-# Legacy fallback helper retained for compatibility with old include sites.
-# With current GridDyn policy, both GCC and Clang builds require C++20.
-if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  set(VERSION_OPTION -std=c++20)
+# Legacy fallback helper retained for compatibility with old include sites. With current GridDyn
+# policy, both GCC and Clang builds require C++20.
+if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+    set(VERSION_OPTION -std=c++20)
 endif()

@@ -8,41 +8,46 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # file to include KLU
-cmake_dependent_advanced_option(${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY
-       "only search for system suitesparse libraries, bypass local build options" OFF "${PROJECT_NAME}_ENABLE_KLU"
-        OFF)
+cmake_dependent_advanced_option(
+    ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY
+    "only search for system suitesparse libraries, bypass local build options" OFF
+    "${PROJECT_NAME}_ENABLE_KLU" OFF
+)
 
 if(MSVC)
     cmake_dependent_advanced_option(
         ${PROJECT_NAME}_SUITESPARSE_SUBPROJECT
-        "enable Suitesparse to automatically download and include as a subproject"
-        ON
-        "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY"
-        OFF
+        "enable Suitesparse to automatically download and include as a subproject" ON
+        "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY" OFF
     )
 else()
     cmake_dependent_advanced_option(
         ${PROJECT_NAME}_SUITESPARSE_SUBPROJECT
-        "enable Suitesparse to automatically download and include as a subproject"
-        OFF
-        "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY"
-        OFF
+        "enable Suitesparse to automatically download and include as a subproject" OFF
+        "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY" OFF
     )
 endif()
 cmake_dependent_advanced_option(
     ${PROJECT_NAME}_SUITESPARSE_FORCE_SUBPROJECT
-    "force SUITESPARSE to automatically download and include as a subproject"
-    OFF
-    "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY"
-    OFF
+    "force SUITESPARSE to automatically download and include as a subproject" OFF
+    "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY" OFF
 )
 
 set(SuiteSparseNameSpace Suitesparse)
 
-cmake_dependent_advanced_option(${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY "use the suitesparse static library" OFF  "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY"
-        OFF)
+cmake_dependent_advanced_option(
+    ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY "use the suitesparse static library" OFF
+    "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY" OFF
+)
 
-set (SUITESPARSE_COMPONENTS klu btf amd colamd umfpack suitesparseconfig)
+set(SUITESPARSE_COMPONENTS
+    klu
+    btf
+    amd
+    colamd
+    umfpack
+    suitesparseconfig
+)
 if(${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY)
     find_package(SuiteSparse COMPONENTS ${SUITESPARSE_COMPONENTS})
     set(${PROJECT_NAME}_SUITESPARSE_LOCAL_BUILD OFF CACHE INTERNAL "")
@@ -88,17 +93,13 @@ else()
             if(${PROJECT_NAME}_SUITESPARSE_SUBPROJECT)
                 include(addlibSuiteSparse)
             else()
-                show_variable(KLU_DEBUG_LIBRARY FILEPATH
-                              "path to the KLU debug library" "")
+                show_variable(KLU_DEBUG_LIBRARY FILEPATH "path to the KLU debug library" "")
                 show_variable(KLU_LIBRARY FILEPATH "path to the KLU library" "")
-                show_variable(KLU_ROOT_DIR PATH "path to the KLU root directory"
-                              "")
+                show_variable(KLU_ROOT_DIR PATH "path to the KLU root directory" "")
                 if(${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
-                    show_variable(KLU_STATIC_LIBRARY FILEPATH
-                                  "path to the KLU static library" "")
+                    show_variable(KLU_STATIC_LIBRARY FILEPATH "path to the KLU static library" "")
                 endif()
-                show_variable(KLU_INCLUDE_DIR PATH
-                              "path to the KLU include directory" "")
+                show_variable(KLU_INCLUDE_DIR PATH "path to the KLU include directory" "")
             endif()
         else()
             set(${PROJECT_NAME}_SUITESPARSE_LOCAL_BUILD OFF CACHE INTERNAL "")
@@ -107,7 +108,7 @@ else()
 
 endif() # ${PROJECT_NAME}_USE_SYSTEM_SUTIESPARSE_ONLY
 
-if (SuiteSparse_FOUND)
+if(SuiteSparse_FOUND)
     set(KLU_INCLUDE_DIR ${SuiteSparse_INCLUDE_DIRS})
 endif()
 

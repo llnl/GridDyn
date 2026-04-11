@@ -69,12 +69,24 @@ else()
     set(GRIDDYN_ZLIB_TARGET zlib::zlib)
 endif()
 
+if(TARGET MINIZIP::minizip)
+    set(GRIDDYN_MINIZIP_TARGET MINIZIP::minizip)
+else()
+    set(GRIDDYN_MINIZIP_TARGET minizip::minizip)
+endif()
+
 target_link_libraries(
-    utilities PUBLIC minizip::minizip ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
+    utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET}
+                     gmlc_utilities griddyn_base
 )
 
 set_target_properties(utilities PROPERTIES FOLDER libraries)
-set_target_properties(minizip zlib PROPERTIES FOLDER Extern)
+foreach(griddyn_external_target IN ITEMS minizip libminizip libminizipstatic zlib
+                                       zlibstatic)
+    if(TARGET ${griddyn_external_target})
+        set_target_properties(${griddyn_external_target} PROPERTIES FOLDER Extern)
+    endif()
+endforeach()
 if(ENABLE_64_BIT_INDEXING)
     target_compile_definitions(utilities PUBLIC -DENABLE_64_BIT_INDEXING)
 endif(ENABLE_64_BIT_INDEXING)

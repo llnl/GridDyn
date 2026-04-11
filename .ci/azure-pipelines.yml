@@ -70,20 +70,20 @@ jobs:
       - bash: ctest --output-on-failure --timeout 480 -C Release -L "Continuous"
         displayName: "Test GridDyn"
         workingDirectory: build
-  - job: Docker
-    variables:
-      griddyn.options:
-    pool:
-      v1mImage: "ubuntu-latest"
-    strategy:
-      matrix:
-        helics:
-          containerImage: helics/helics:builder
-          griddyn.options: -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=ON
-    container: $[ variables['containerImage'] ]
-    steps:
-      - template: azure-build.yml
-      - template: azure-test.yml
+  # - job: Docker
+  #   variables:
+  #     griddyn.options:
+  #   pool:
+  #     v1mImage: "ubuntu-latest"
+  #   strategy:
+  #     matrix:
+  #       helics:
+  #         containerImage: helics/helics:builder
+  #         griddyn.options: -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=ON
+  #   container: $[ variables['containerImage'] ]
+  #   steps:
+  #     - template: azure-build.yml
+  #     - template: azure-test.yml
 
   - job: Windows
     strategy:

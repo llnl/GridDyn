@@ -33,7 +33,7 @@ install_swig() {
     local swig_version_str=swig-${swig_version}
     local install_path=$2
     fetch_and_untar "${swig_version_str}.tar.gz" \
-        https://sourceforge.net/projects/swig/files/swig/${swig_version_str}/${swig_version_str}.tar.gz/download
+        "https://sourceforge.net/projects/swig/files/swig/${swig_version_str}/${swig_version_str}.tar.gz/download"
     cd "${swig_version_str}" || exit
     ./configure --prefix "${install_path}"
     make
@@ -67,7 +67,7 @@ install_mpich() {
     local mpich_version_str=mpich-${mpich_version}
     local install_path=$2
     fetch_and_untar "${mpich_version_str}.tar.gz" \
-        http://www.mpich.org/static/downloads/${mpich_version}/${mpich_version_str}.tar.gz
+        "http://www.mpich.org/static/downloads/${mpich_version}/${mpich_version_str}.tar.gz"
     cd "${mpich_version_str}/" || exit
     ./configure --prefix="${install_path}" \
         --disable-dependency-tracking \
@@ -94,7 +94,7 @@ install_openmpi() {
     local openmpi_version_str=openmpi-${openmpi_version}
     local install_path=$2
     fetch_and_untar "${openmpi_version_str}.tar.gz" \
-        https://www.open-mpi.org/software/ompi/${openmpi_short_ver}/downloads/${openmpi_version_str}.tar.gz
+        "https://www.open-mpi.org/software/ompi/${openmpi_short_ver}/downloads/${openmpi_version_str}.tar.gz"
     cd "${openmpi_version_str}/" || exit
     ./configure --prefix="${install_path}" \
         --disable-dependency-tracking \
@@ -116,38 +116,38 @@ install_boost() {
     local boost_version=$1
     local boost_version_str=boost_${ver[0]}_${ver[1]}_${ver[2]}
     local install_path=$2
-    local boost_toolset=""
+    local -a boost_toolset_args=()
     if [[ "$3" ]]; then
-        local boost_toolset="toolset=$3"
+        boost_toolset_args=("toolset=$3")
     fi
 
-    local b2_extra_options=""
+    local -a b2_extra_options=()
     local b2_link_type=shared
     if [[ "${BOOST_USE_STATIC}" ]]; then
         b2_link_type=static
-        BOOST_CXX_FLAGS="'-fPIC ${BOOST_CXX_FLAGS}'"
-        BOOST_C_FLAGS="'-fPIC ${BOOST_C_FLAGS}'"
-        b2_extra_options="cxxflags=${BOOST_CXX_FLAGS} cflags=${BOOST_C_FLAGS}"
+        BOOST_CXX_FLAGS="-fPIC ${BOOST_CXX_FLAGS}"
+        BOOST_C_FLAGS="-fPIC ${BOOST_C_FLAGS}"
+        b2_extra_options=("cxxflags=${BOOST_CXX_FLAGS}" "cflags=${BOOST_C_FLAGS}")
     else
         if [[ "${BOOST_CXX_FLAGS}" ]]; then
-            b2_extra_options="cxxflags=${BOOST_CXX_FLAGS}"
+            b2_extra_options+=("cxxflags=${BOOST_CXX_FLAGS}")
         fi
         if [[ "${BOOST_C_FLAGS}" ]]; then
-            b2_extra_options="cflags=${BOOST_C_FLAGS} ${b2_extra_options}"
+            b2_extra_options+=("cflags=${BOOST_C_FLAGS}")
         fi
     fi
 
     fetch_and_untar "${boost_version_str}.tar.gz" \
-        http://sourceforge.net/projects/boost/files/boost/${boost_version}/${boost_version_str}.tar.gz/download
+        "http://sourceforge.net/projects/boost/files/boost/${boost_version}/${boost_version_str}.tar.gz/download"
     cd "${boost_version_str}/" || exit
     ./bootstrap.sh --with-libraries=date_time,filesystem,program_options,system,chrono,timer,test
     ./b2 -j2 \
         link=${b2_link_type} \
         threading=multi \
         variant=release \
-        ${boost_toolset} \
-        ${b2_extra_options} >/dev/null
-    ./b2 install --prefix=${install_path} >/dev/null
+        "${boost_toolset_args[@]}" \
+        "${b2_extra_options[@]}" >/dev/null
+    ./b2 install --prefix="${install_path}" >/dev/null
 }
 
 install_cmake() {
@@ -157,12 +157,13 @@ install_cmake() {
 
     # Download cmake
     # uname for Linux/Darwin
-    local os_name="$(uname -s)"
+    local os_name
+    os_name="$(uname -s)"
     local cmake_version=$1
     local cmake_version_str=cmake-${cmake_version}-${os_name}-x86_64
     local install_path=$2
     fetch_and_untar "${cmake_version_str}.tar.gz" \
-        http://cmake.org/files/v${ver[0]}.${ver[1]}/${cmake_version_str}.tar.gz
+        "http://cmake.org/files/v${ver[0]}.${ver[1]}/${cmake_version_str}.tar.gz"
 
     # Move cmake to "install" location
     mv "${cmake_version_str}" "${install_path}"

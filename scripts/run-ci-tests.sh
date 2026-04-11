@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CTEST_OPTIONS=()
+
 #TEST_CONFIG="Continuous"
 for i in "$@"; do
     case $i in
@@ -22,7 +24,7 @@ for i in "$@"; do
     --ubsan)
         echo "Tests using undefined behavior sanitizer"
         export UBSAN_OPTIONS=print_stacktrace=1
-        CTEST_OPTIONS+=" --verbose"
+        CTEST_OPTIONS+=(--verbose)
         ;;
     --no-ctest)
         echo "Disable tests using ctest as a runner"
@@ -32,7 +34,7 @@ for i in "$@"; do
         DISABLE_UNIT_TESTS=true
         ;;
     --ctest-xml-output)
-        CTEST_OPTIONS+=" -T Test"
+        CTEST_OPTIONS+=(-T Test)
         ;;
     *)
         TEST_CONFIG=$i
@@ -59,7 +61,7 @@ else
 
     TEST_CONFIG="Continuous"
     if [[ "$TEST_CONFIG_GIVEN" == "true" ]]; then
-        test_label=$(tr '[:upper:]' '[:lower:]' <<<$TEST_CONFIG)
+        test_label=$(tr '[:upper:]' '[:lower:]' <<<"$TEST_CONFIG")
         case "${test_label}" in
         *quick*)
             TEST_CONFIG="Quick"
@@ -101,6 +103,6 @@ else
     # Run the CI tests last so that the execution status is used for the pass/fail status shown
     if [[ "$DISABLE_UNIT_TESTS" != "true" ]]; then
         echo "Running ${TEST_CONFIG} tests"
-        ctest -L ${TEST_CONFIG} ${CTEST_OPTIONS}
+        ctest -L "${TEST_CONFIG}" "${CTEST_OPTIONS[@]}"
     fi
 fi

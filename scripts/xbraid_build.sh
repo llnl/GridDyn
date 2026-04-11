@@ -1,9 +1,8 @@
 #!/bin/bash
-pushd .
+pushd . >/dev/null || exit
 cd ..
 git clone https://github.com/XBraid/xbraid.git xbraid
-cd xbraid
-CC=mpicc
+cd xbraid || exit
 
-make -j4
-popd
+make -j4 CC=mpicc
+popd >/dev/null || exit

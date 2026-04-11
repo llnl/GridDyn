@@ -402,7 +402,7 @@ namespace paradae {
     /*!
   This method computes the coefficient of the variable-step BDF method. If all time steps are equal,
   this reduces to the initial constant step method. We can use fully variable coefficient
-  (`bdf_fixedleading=false` and `varstep=false` and \f$\alpha_{q+1}=0\f$) or fixe leading
+  (`bdf_fixedleading=false` and `varstep=false` and \f$\alpha_{q+1}=0\f$) or fixed leading
   coefficient (`bdf_fixedleading=true` or `varstep=true` and \f$\alpha_{q+1}\neq 0\f$) \f[
   h_n\,\dot{y}_{n}=\sum_{i=0}^q \alpha_i y_{n-i}+\alpha_{q+1}\dot{y}_{n-1}
   \f]

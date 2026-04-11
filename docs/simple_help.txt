@@ -73,7 +73,7 @@ nonzeros -the number of non-zeros in the jacobian
 dynnonzeros- the number of non zeros in the dae solution
 pflownonzeros - the number of nonzeros in the pflow solution
 residcount -- the number of times the residual function was called
-stepcount -- the number of steps taked in ida
+stepcount -- the number of steps taken in ida
  recordercount --the number of recorders
  alertcount -- the number of alerts that occurred
  eventcount -- the number of events used in the system

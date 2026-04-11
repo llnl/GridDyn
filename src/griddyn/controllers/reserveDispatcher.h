@@ -30,7 +30,7 @@ class reserveDispatcher: public coreObject {
     count_t schedCount;
     std::vector<schedulerRamp*> schedList;
     std::vector<double> resAvailable;
-    std::vector<double> resUsed;
+    std::vector<double> reserveUsed;
 
   public:
     explicit reserveDispatcher(const std::string& objName = "reserveDispatch_#");

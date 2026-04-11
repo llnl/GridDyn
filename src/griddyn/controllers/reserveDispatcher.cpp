@@ -32,7 +32,7 @@ protected:
 
         std::vector<scheduler *> schedList;
         std::vector<double> resAvailable;
-        std::vector<double> resUsed;
+        std::vector<double> reserveUsed;
 
 public:
         reserveDispatcher();
@@ -54,7 +54,7 @@ public:
         virtual void set (const std::string &param, double val,unit unitType=defunit){return
 set(param,&val, unitType);};
 
-        double getAvailable(){return sum(&resAvailable)-sum(&resUsed);};
+        double getAvailable(){return sum(&resAvailable)-sum(&reserveUsed);};
 
         virtual void schedChange();
 protected:
@@ -97,7 +97,7 @@ void reserveDispatcher::moveSchedulers(reserveDispatcher* rD)
 {
     index_t kk;
     schedList.resize(this->schedCount + rD->schedCount);
-    resUsed.resize(this->schedCount + rD->schedCount);
+    reserveUsed.resize(this->schedCount + rD->schedCount);
     resAvailable.resize(this->schedCount + rD->schedCount);
 
     for (kk = 0; kk < rD->schedCount; kk++) {
@@ -187,7 +187,7 @@ void reserveDispatcher::add(schedulerRamp* sched)
 {
     schedCount++;
     schedList.push_back(sched);
-    resUsed.resize(schedCount);
+    reserveUsed.resize(schedCount);
     resAvailable.resize(schedCount);
     //    sched->reserveDispatcherLink(this);
     checkGen();
@@ -233,7 +233,7 @@ void reserveDispatcher::checkGen()
         resAvailable[kk] = schedList[kk]->getReserveTarget();
         reserveAvailable += resAvailable[kk];
 
-        resUsed[kk] = schedList[kk]->getReserveTarget();
+        reserveUsed[kk] = schedList[kk]->getReserveTarget();
     }
 }
 
@@ -244,7 +244,7 @@ void reserveDispatcher::dispatch(double level)
     // if the dispatch is too low
     while (currDispatch < level) {
         for (decltype(schedCount) kk = 0; kk < schedCount; kk++) {
-            auto tempAvail = resAvailable[kk] - resUsed[kk];
+            auto tempAvail = resAvailable[kk] - reserveUsed[kk];
             if (tempAvail > avail) {
                 ind = kk;
                 avail = tempAvail;
@@ -254,13 +254,13 @@ void reserveDispatcher::dispatch(double level)
             break;
         }
         if (avail <= (level - currDispatch)) {
-            schedList[ind]->setReserveTarget(resUsed[ind] + avail);
-            resUsed[ind] = resUsed[ind] + avail;
+            schedList[ind]->setReserveTarget(reserveUsed[ind] + avail);
+            reserveUsed[ind] = reserveUsed[ind] + avail;
             currDispatch += avail;
         } else {
             auto tempAvail = level - currDispatch;
-            schedList[ind]->setReserveTarget(resUsed[ind] + tempAvail);
-            resUsed[ind] = resUsed[ind] + tempAvail;
+            schedList[ind]->setReserveTarget(reserveUsed[ind] + tempAvail);
+            reserveUsed[ind] = reserveUsed[ind] + tempAvail;
             currDispatch += tempAvail;
         }
     }
@@ -268,7 +268,7 @@ void reserveDispatcher::dispatch(double level)
     // if the dispatch is too high
     while (currDispatch > level) {
         for (decltype(schedCount) kk = 0; kk < schedCount; kk++) {
-            auto tempAvail = resUsed[kk];
+            auto tempAvail = reserveUsed[kk];
             if (tempAvail > avail) {
                 ind = kk;
                 avail = tempAvail;
@@ -279,12 +279,12 @@ void reserveDispatcher::dispatch(double level)
         }
         if (avail < (currDispatch - level)) {
             schedList[ind]->setReserveTarget(0);
-            resUsed[ind] = 0;
+            reserveUsed[ind] = 0;
             currDispatch -= avail;
         } else {
             auto tempAvail = currDispatch - level;
-            schedList[ind]->setReserveTarget(resUsed[ind] - tempAvail);
-            resUsed[ind] = resUsed[ind] - tempAvail;
+            schedList[ind]->setReserveTarget(reserveUsed[ind] - tempAvail);
+            reserveUsed[ind] = reserveUsed[ind] - tempAvail;
             currDispatch -= tempAvail;
         }
     }

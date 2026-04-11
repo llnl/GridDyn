@@ -131,7 +131,7 @@ class commMessage {
     /** convert to a data string
     @details a data string is a string containing raw data*/
     std::string to_datastring() const;
-    /** covert to a byte vector using a reference*/
+    /** convert to a byte vector using a reference*/
     void to_vector(std::vector<char>& data) const;
     /** convert a command to a byte vector*/
     std::vector<char> to_vector() const;

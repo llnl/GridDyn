@@ -191,7 +191,7 @@ class subsystem: public Link {
   protected:
     /** @brief get a vector with pointers to all the buses
    wrapper around the corresponding area function
-  @param[out] busList  a vector of all the buses
+  @param[out] busVector a vector of all the buses
   @param[in] start the index where to start placing the buses
   */
     count_t getBusVector(std::vector<gridBus*>& busVector, index_t start = 0);

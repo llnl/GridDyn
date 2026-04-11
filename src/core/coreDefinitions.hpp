@@ -63,7 +63,7 @@ constexpr coreTime kDayLength(86400.0f);
 constexpr coreTime kSmallTime(1e-7);
 constexpr coreTime kShortTime(1e-6);
 
-constexpr coreTime operator"" _t(long double val)
+constexpr coreTime operator""_t(long double val)
 {
     return coreTime(val);
 }

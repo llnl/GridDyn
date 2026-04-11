@@ -153,7 +153,7 @@ void loadPSAT(coreObject* parentObject, const std::string& filetext, const basic
     if (nmfnd) {
         if (!(bri.prefix.empty())) {
             for (auto& vk : Vnames) {
-                bri.prefix + '_' + vk;
+                vk = bri.prefix + '_' + vk;
             }
         }
     }

@@ -78,8 +78,8 @@ class acBus: public gridBus {
     /** @brief default constructor*/
     explicit acBus(const std::string& objName = "bus_$");
     /** @brief alternate constructor to specify voltage and angle
-    @param[in] voltage  the initial voltage
-    @param[in] angle the initial angle
+    @param[in] vStart the initial voltage
+    @param[in] angleStart the initial angle
     */
     acBus(double vStart, double angleStart, const std::string& objName = "bus_$");
 
@@ -368,8 +368,8 @@ class acBus: public gridBus {
     virtual void checkMerge() override;
 
   protected:
-    /** @brief
-    @param[in] sD stateData the stateData from which to compute the Error
+    /** @brief compute the current power-balance error
+    @param[in] sD stateData the stateData from which to compute the error
     @param[in] sMode the solverMode corresponding to the stateData
     @return the error in the power balance equations
     */

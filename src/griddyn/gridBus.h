@@ -464,8 +464,8 @@ class gridBus: public gridPrimary {
     units::unit outputUnits(index_t outputNum) const override;
 
   protected:
-    /** @brief
-    @param[in] sD  the statDdata to compute the Error for
+    /** @brief compute the current power-balance error
+    @param[in] sD  the stateData to compute the error for
     @param[in] sMode the solverMode corresponding to the stateData
     @return the error in the power balance equations
     */
@@ -481,7 +481,7 @@ class gridBus: public gridPrimary {
 more ,but it was useful during development
 @param[in] bus1  bus1
 @param[in] bus2 bus2
-@param[in] cmpLink  whether to compare links or not  (deep comparison of links)
+@param[in] cmpValues whether to compare values or not
 @param[in] printDiff  true if the diffs are to be printed
 @return true if match
 */

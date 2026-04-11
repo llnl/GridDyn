@@ -6,15 +6,25 @@ set(BUILD_SHARED_LIBS OFF)
 
 cmake_policy(VERSION 3.10)
 
-if (TARGET zlib::zlib)
+if (TARGET ZLIB::ZLIB)
+	set(ZLIB_LINK ZLIB::ZLIB)
+elseif (TARGET zlib::zlib)
 	set(ZLIB_LINK zlib::zlib)
 elseif (EXISTS ${ZLIB_LOCATION}/cmake/zlib-targets.cmake)
     include (${ZLIB_LOCATION}/cmake/zlib-targets.cmake)
-	set(ZLIB_LINK zlib::zlib)
+	if (TARGET ZLIB::ZLIB)
+		set(ZLIB_LINK ZLIB::ZLIB)
+	else()
+		set(ZLIB_LINK zlib::zlib)
+	endif()
 
 else()
     find_package(ZLIB)
-    set(ZLIB_LINK zlib::zlib)
+    if (TARGET ZLIB::ZLIB)
+        set(ZLIB_LINK ZLIB::ZLIB)
+    else()
+        set(ZLIB_LINK zlib::zlib)
+    endif()
 endif()
 
 set(SOURCES

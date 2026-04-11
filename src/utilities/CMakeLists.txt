@@ -56,14 +56,22 @@ set(utilities_headers
 add_library(utilities STATIC ${utilities_sources} ${utilities_headers})
 set(SKIP_INSTALL_LIBRARIES ON)
 add_subdirectory(
-    ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.2.6 ${PROJECT_BINARY_DIR}/Zlib EXCLUDE_FROM_ALL
+    ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.3.2 ${PROJECT_BINARY_DIR}/Zlib EXCLUDE_FROM_ALL
 )
 
 add_subdirectory(
     ${PROJECT_SOURCE_DIR}/ThirdParty/Minizip ${PROJECT_BINARY_DIR}/Minizip EXCLUDE_FROM_ALL
 )
 
-target_link_libraries(utilities PUBLIC minizip::minizip zlib::zlib gmlc_utilities griddyn_base)
+if(TARGET ZLIB::ZLIB)
+    set(GRIDDYN_ZLIB_TARGET ZLIB::ZLIB)
+else()
+    set(GRIDDYN_ZLIB_TARGET zlib::zlib)
+endif()
+
+target_link_libraries(
+    utilities PUBLIC minizip::minizip ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
+)
 
 set_target_properties(utilities PROPERTIES FOLDER libraries)
 set_target_properties(minizip zlib PROPERTIES FOLDER Extern)

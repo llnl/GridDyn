@@ -33,7 +33,7 @@ function(build_zlib)
 
     include(ExternalProject)
     ExternalProject_Add(zlib
-        SOURCE_DIR ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.2.6
+        SOURCE_DIR ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.3.2
         DOWNLOAD_COMMAND "
         "
         UPDATE_COMMAND "

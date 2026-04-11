@@ -46,12 +46,12 @@ A* cloneBase(const A* originalObject, coreObject* obj)
 
 /**
  * @brief template helper function for the getParameter String function
- * @param[in] gridCOreObject
- * @param[out] return list of available parameter strings  that match the requested type
- * @param[in] list of parameter strings that take numbers as arguments
- * @param[in] list of parameter strings that take strings as arguments
- * @param[in] list of flags
- * @param[in] paramStringType to determine which parameter strings to return
+ * @param[in] cobj object to query for inherited parameter strings
+ * @param[out] pstr list of available parameter strings matching the requested type
+ * @param[in] numStr local parameter strings that take numeric arguments
+ * @param[in] strStr local parameter strings that take string arguments
+ * @param[in] flagStr local flag strings
+ * @param[in] pstype requested parameter string category to return
  */
 template<class A, class B>
 void getParamString(const A* cobj,

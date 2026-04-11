@@ -75,14 +75,16 @@ class matrixData {
 
     /**
      *  @brief add a new Jacobian element
-     *  @param[in] row,col the row  and column of the element
+     *  @param[in] row the row of the element
+     *  @param[in] col the column of the element
      *  @param[in] num the value of the element
      */
     virtual void assign(index_t row, index_t col, value_t num) = 0;
 
     /** @brief assign with a check on the row
      *  add a new Jacobian element if the arguments are valid (row<rowNum)
-     *  @param[in] row,col the row and column of the element
+     *  @param[in] row the row of the element
+     *  @param[in] col the column of the element
      *  @param[in] num the value of the element
      */
     void assignCheckRow(index_t row, index_t col, value_t num)
@@ -94,7 +96,8 @@ class matrixData {
 
     /** @brief assign with a check on the col
      *  add a new Jacobian element if the arguments are valid (col<colLim)
-     *  @param[in] row,col the row  and column of the element
+     *  @param[in] row the row of the element
+     *  @param[in] col the column of the element
      *  @param[in] num the value of the element
      */
     void assignCheckCol(index_t row, index_t col, value_t num)
@@ -135,8 +138,8 @@ class matrixData {
   private:
     /**
      *  @brief private function for derived classes to notify of a limitUpdate
-     *  @param[rowLimit] the new rowLimit
-     * @param[colLimit] the new colLimit
+     *  @param[in] newRowLimit the new row limit
+     *  @param[in] newColLimit the new column limit
      */
     virtual void limitUpdate(index_t newRowLimit, index_t newColLimit)
     {

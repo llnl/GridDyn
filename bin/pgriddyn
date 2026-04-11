@@ -15,12 +15,12 @@
 
 # Compute path to the install directory
 if [ -h "$0" ]; then
-    BINPATH=$(readlink "$0")
-    if [ "${BINPATH:0:1}" != "/" ]; then
-        BINPATH="$(dirname "$0")/$BINPATH"
-    fi
+	BINPATH=$(readlink "$0")
+	if [ "${BINPATH:0:1}" != "/" ]; then
+		BINPATH="$(dirname "$0")/$BINPATH"
+	fi
 else
-    BINPATH="$0"
+	BINPATH="$0"
 fi
 CURDIR=$(dirname "$BINPATH")
 
@@ -41,51 +41,51 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GRIDDYN_DIR}/lib
 # > export GRIDDYN_PROFILER="valgrind --leak-check=full"
 
 if [ -z "${PARGRID_TIMER}" ]; then
-    PARGRID_TIMER='/usr/bin/time -f TIME,mpirun,%e'
+	PARGRID_TIMER='/usr/bin/time -f TIME,mpirun,%e'
 fi
 
 function mpirun-wrapper {
 
-    args=("$@")
+	args=("$@")
 
-    numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
-    returnCode=$?
+	numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
+	returnCode=$?
 
-    if [ $returnCode -ne 0 ]; then
-        echo "Error: could not compute number of GridlabD instances"
-        echo "Likely a parsing error in the xml input file"
-        echo ""
-        # SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
-        "$GRIDDYN_EXE" --mpicount "${args[@]}"
-        return 1
-    fi
+	if [ $returnCode -ne 0 ]; then
+		echo "Error: could not compute number of GridlabD instances"
+		echo "Likely a parsing error in the xml input file"
+		echo ""
+		# SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
+		"$GRIDDYN_EXE" --mpicount "${args[@]}"
+		return 1
+	fi
 
-    echo "Number of GridlabD instances : $numberOfGridLABDInstances"
+	echo "Number of GridlabD instances : $numberOfGridLABDInstances"
 
-    numberOfMPITasks=$((numberOfGridLABDInstances + 1))
+	numberOfMPITasks=$((numberOfGridLABDInstances + 1))
 
-    echo "Number of MPI tasks : $numberOfMPITasks"
+	echo "Number of MPI tasks : $numberOfMPITasks"
 
-    case $(uname -a) in
-    *chaos*)
-        # if not running under SLURM assume user wants to run interactively on debug node
-        if [ -z "${SLURM_JOB_ID}" ]; then
-            echo "Running interactive"
-            # shellcheck disable=SC2086
-            ${PARGRID_TIMER} srun -p pdebug --output stdout.$$.%t -n$((numberOfMPITasks)) \
-                ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
-        else
-            # shellcheck disable=SC2086
-            ${PARGRID_TIMER} srun --overcommit --output stdout.$$.%t -n$((numberOfMPITasks)) \
-                ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
-        fi
-        ;;
-    *)
-        # shellcheck disable=SC2086
-        ${PARGRID_TIMER} mpirun --output-filename stdout.$$ -n $((numberOfMPITasks)) \
-            ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
-        ;;
-    esac
+	case $(uname -a) in
+	*chaos*)
+		# if not running under SLURM assume user wants to run interactively on debug node
+		if [ -z "${SLURM_JOB_ID}" ]; then
+			echo "Running interactive"
+			# shellcheck disable=SC2086
+			${PARGRID_TIMER} srun -p pdebug --output stdout.$$.%t -n$((numberOfMPITasks)) \
+				${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+		else
+			# shellcheck disable=SC2086
+			${PARGRID_TIMER} srun --overcommit --output stdout.$$.%t -n$((numberOfMPITasks)) \
+				${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+		fi
+		;;
+	*)
+		# shellcheck disable=SC2086
+		${PARGRID_TIMER} mpirun --output-filename stdout.$$ -n $((numberOfMPITasks)) \
+			${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+		;;
+	esac
 
 }
 

@@ -15,12 +15,12 @@
 
 # Compute path to the install directory
 if [ -h "$0" ]; then
-	BINPATH=$(readlink "$0")
-	if [ "${BINPATH:0:1}" != "/" ]; then
-		BINPATH="$(dirname "$0")/$BINPATH"
-	fi
+    BINPATH=$(readlink "$0")
+    if [ "${BINPATH:0:1}" != "/" ]; then
+        BINPATH="$(dirname "$0")/$BINPATH"
+    fi
 else
-	BINPATH="$0"
+    BINPATH="$0"
 fi
 CURDIR=$(dirname "$BINPATH")
 
@@ -42,43 +42,43 @@ GRIDDYN_TIMER=
 
 function mpirun-wrapper {
 
-	args=("$@")
-	args_string="$*"
+    args=("$@")
+    args_string="$*"
 
-	numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
-	returnCode=$?
+    numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
+    returnCode=$?
 
-	if [ $returnCode -ne 0 ]; then
-		echo "Error: could not compute number of GridlabD instances"
-		echo "Likely a parsing error in the xml input file"
-		echo ""
-		# SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
-		"$GRIDDYN_EXE" --mpicount "${args[@]}"
-		return 1
-	fi
+    if [ $returnCode -ne 0 ]; then
+        echo "Error: could not compute number of GridlabD instances"
+        echo "Likely a parsing error in the xml input file"
+        echo ""
+        # SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
+        "$GRIDDYN_EXE" --mpicount "${args[@]}"
+        return 1
+    fi
 
-	echo "Number of GridlabD instances : $numberOfGridLABDInstances"
+    echo "Number of GridlabD instances : $numberOfGridLABDInstances"
 
-	numberOfMPITasks=$((numberOfGridLABDInstances + 1))
+    numberOfMPITasks=$((numberOfGridLABDInstances + 1))
 
-	echo "Number of MPI tasks : $numberOfMPITasks"
+    echo "Number of MPI tasks : $numberOfMPITasks"
 
-	case $(uname -a) in
-	*chaos*)
-		echo "0 $GRIDDYN_PROFILER $GRIDDYN_EXE $args_string" >mpirunner.$$.conf
-		echo "1-$((numberOfMPITasks - 1)) $GRIDDYN_PROFILER $GRIDDYN_GRIDLABD_EXE --llnlmpi" >>mpirunner.$$.conf
-		# shellcheck disable=SC2086
-		$GRIDDYN_TIMER srun --overcommit --output="stdout.$$.%t" -n$((numberOfMPITasks)) --multi-prog mpirunner.$$.conf
-		rm mpirunner.$$.conf
-		;;
-	*)
-		# shellcheck disable=SC2086
-		mpirun --output-filename stdout.$$ \
-			-np 1 ${GRIDDYN_PROFILER} "$GRIDDYN_EXE" "${args[@]}" \
-			: \
-			-np $((numberOfMPITasks - 1)) ${GRIDDYN_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --llnlmpi
-		;;
-	esac
+    case $(uname -a) in
+    *chaos*)
+        echo "0 $GRIDDYN_PROFILER $GRIDDYN_EXE $args_string" >mpirunner.$$.conf
+        echo "1-$((numberOfMPITasks - 1)) $GRIDDYN_PROFILER $GRIDDYN_GRIDLABD_EXE --llnlmpi" >>mpirunner.$$.conf
+        # shellcheck disable=SC2086
+        $GRIDDYN_TIMER srun --overcommit --output="stdout.$$.%t" -n$((numberOfMPITasks)) --multi-prog mpirunner.$$.conf
+        rm mpirunner.$$.conf
+        ;;
+    *)
+        # shellcheck disable=SC2086
+        mpirun --output-filename stdout.$$ \
+            -np 1 ${GRIDDYN_PROFILER} "$GRIDDYN_EXE" "${args[@]}" \
+            : \
+            -np $((numberOfMPITasks - 1)) ${GRIDDYN_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --llnlmpi
+        ;;
+    esac
 
 }
 

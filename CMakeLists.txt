@@ -477,6 +477,12 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/utilities/gmlc/utilities/demangl
     submod_update(ThirdParty/utilities)
 endif()
 
+if(GRIDDYN_BUILD_TESTS AND BUILD_TESTING)
+    if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/googletest/CMakeLists.txt")
+        submod_update(ThirdParty/googletest)
+    endif()
+endif()
+
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/units/units/units.hpp")
     submod_update(ThirdParty/units)
 endif()

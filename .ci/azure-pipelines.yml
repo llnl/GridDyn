@@ -38,7 +38,7 @@ jobs:
         displayName: "Test GridDyn"
         workingDirectory: build
 
-  - job: macOS_mojave
+  - job: macOS_14
     pool:
       vmImage: "macOS-14"
     steps:
@@ -78,7 +78,7 @@ jobs:
     strategy:
       matrix:
         helics:
-          containerImage: helics/helics:helics-builder
+          containerImage: helics/helics:builder
           griddyn.options: -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=ON
     container: $[ variables['containerImage'] ]
     steps:
@@ -131,6 +131,10 @@ jobs:
       - bash: choco install swig --yes --limit-output
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Install swig
+
+      - bash: choco install nsis --yes --limit-output
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+        displayName: Install NSIS
 
       - task: UsePythonVersion@0
         inputs:

@@ -1,5 +1,0 @@
-src:*/libzmq/*
-src:*/*/badInputTests*
-fun:*getMessageObj*
-[undefined]
-fun:*helicsFederateRegister*

@@ -1,0 +1,60 @@
+name: Compiler Tests
+
+on:
+  push:
+    branches:
+      - develop
+      - modernization
+  pull_request:
+    branches:
+      - develop
+      - modernization
+  workflow_dispatch:
+
+concurrency:
+  group: circleci-migrated-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GCC 8
+            container: helics/buildenv:gcc8-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+          - name: GCC 7
+            container: helics/buildenv:gcc7-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON
+          - name: GCC 9
+            container: helics/buildenv:gcc9-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_ZMQ=ON -DGRIDDYN_ENABLE_NETWORKING_LIBRARY=ON -DGRIDDYN_ENABLE_TCP=ON
+          - name: Clang 9
+            container: helics/buildenv:clang9-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir -p build
+          cd build
+          eval cmake .. ${CMAKE_FLAGS}
+        env:
+          CMAKE_FLAGS: ${{ matrix.cmake_flags }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel 4
+
+      - name: Run migrated CircleCI tests
+        shell: bash
+        run: ./scripts/run-circleci-tests.sh

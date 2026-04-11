@@ -1,0 +1,54 @@
+name: Braid Build
+
+on:
+  push:
+    branches:
+      - develop
+      - modernization
+  pull_request:
+    branches:
+      - develop
+      - modernization
+  workflow_dispatch:
+
+concurrency:
+  group: circleci-braid-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-xbraid:
+    name: XBraID
+    runs-on: ubuntu-latest
+    container: helics/buildenv:gcc8-builder
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install braid dependencies
+        shell: bash
+        run: |
+          apt update
+          apt install -y libopenmpi-dev liblapacke-dev
+
+      - name: Build XBraID
+        shell: bash
+        run: ./scripts/xbraid_build.sh
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir -p build
+          cd build
+          eval cmake .. ${CMAKE_FLAGS}
+        env:
+          CMAKE_FLAGS: -DGRIDDYN_ENABLE_MPI=ON -DGRIDDYN_ENABLE_OPENMP=OFF -DGRIDDYN_ENABLE_EXTRA_SOLVERS=ON -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_BRAID_SOLVER=ON -DBRAID_INSTALL_DIR=${{ github.workspace }}/../xbraid/braid
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel 4
+
+      - name: Test braid example
+        shell: bash
+        run: build/bin/gridDynMain examples/braid_examples/179busDynamicTest_BraidNoEvents.xml

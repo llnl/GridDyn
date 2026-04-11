@@ -1,8 +1,10 @@
 #!/bin/bash
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd "${SCRIPT_DIR}/.." && pwd)
 tests=(
-    /root/project/build/bin/testLibrary
-    /root/project/build/bin/testComponents
-    /root/project/build/bin/testSystem
+    "${REPO_ROOT}/build/bin/testLibrary"
+    "${REPO_ROOT}/build/bin/testComponents"
+    "${REPO_ROOT}/build/bin/testSystem"
 )
 
 SUMRESULT=0

@@ -24,11 +24,11 @@ else
 fi
 CURDIR=$(dirname "$BINPATH")
 
-pushd "$CURDIR" >/dev/null
+pushd "$CURDIR" >/dev/null || exit
 export GRIDDYN_BIN_DIR="$PWD"
 cd ..
 export GRIDDYN_DIR="$PWD"
-popd >/dev/null
+popd >/dev/null || exit
 
 GRIDDYN_EXE=$GRIDDYN_BIN_DIR/griddynMain
 GRIDDYN_GRIDLABD_EXE=$GRIDDYN_BIN_DIR/gridlabd.bin
@@ -42,9 +42,9 @@ GRIDDYN_TIMER=
 
 function mpirun-wrapper {
 
-	args=$*
+	args=("$@")
 
-	numberOfGridLABDInstances=$($GRIDDYN_EXE --mpicount $args | grep "NumberOfGridLABDInstances" | awk '{print $3}')
+	numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
 	returnCode=$?
 
 	if [ $returnCode -ne 0 ]; then
@@ -52,7 +52,7 @@ function mpirun-wrapper {
 		echo "Likely a parsing error in the xml input file"
 		echo ""
 		# SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
-		$GRIDDYN_EXE --mpicount $args
+		"$GRIDDYN_EXE" --mpicount "${args[@]}"
 		return 1
 	fi
 
@@ -64,19 +64,20 @@ function mpirun-wrapper {
 
 	case $(uname -a) in
 	*chaos*)
-		totalview srun -a -n $((numberOfMPITasks)) $GRIDDYN_GRIDLABD_EXE --pargrid $args
+		totalview srun -a -n $((numberOfMPITasks)) "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
 		;;
 	*)
 		GRIDDYN_PROFILER="gdbserver :2000"
+		# shellcheck disable=SC2086
 		$GRIDDYN_TIMER mpirun \
 			-n 1 \
-			$GRIDDYN_PROFILER $GRIDDYN_GRIDLABD_EXE --pargrid $args \
+			$GRIDDYN_PROFILER "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}" \
 			: \
 			-n $((numberOfMPITasks - 1)) \
-			$GRIDDYN_GRIDLABD_EXE --pargrid $args
+			"$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
 		;;
 	esac
 
 }
 
-mpirun-wrapper $*
+mpirun-wrapper "$@"

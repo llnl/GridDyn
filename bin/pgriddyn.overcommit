@@ -72,6 +72,7 @@ function mpirun-wrapper {
 		rm mpirunner.$$.conf
 		;;
 	*)
+		# shellcheck disable=SC2086
 		mpirun --output-filename stdout.$$ \
 			-np 1 ${GRIDDYN_PROFILER} "$GRIDDYN_EXE" "${args[@]}" \
 			: \

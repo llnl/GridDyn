@@ -9,14 +9,14 @@ echo compiling griddyn
 
 swig -I/software/griddyn/src/griddyn_shared -python griddyn.i
 
-echo ${INC}
-echo ${CONFIGH}
-echo ${INCPYTHON}
+echo "${INC}"
+echo "${CONFIGH}"
+echo "${INCPYTHON}"
 #g++ -fPIC -DBUILD_DLL ${FILELIST} griddyn_wrap.c  -I${INCPYTHON} -I. -I../src -I../src/griddyn -I../src/griddyn_shared -I${CONFIGH} -I${INC}/boost -I${INC}/boost/containers  -I${INC} -shared -o _griddyn.so -L/software/anaconda2/envs/gridDyn/lib/ -lgriddyn -lcoreObjects -lutilities -lminizip -lz  -lboost_filesystem -lboost_program_options -lsundials_ida -lsundials_cvode -lsundials_arkode -lsundials_kinsol -lcoupling_static_lib -lsundials_nvecserial -lgridDynCombined -lextraModelLibrary -lformatInterpreter -ltinyxml2 -lticpp  -lfileInput
-g++ -fPIC -DBUILD_DLL griddyn_wrap.c -I../src/griddyn_shared -I${INCPYTHON} -I${CONFIGH} -I${INC} -shared -o _griddyn.so -L/software/anaconda2/envs/gridDyn/lib/ -lgriddyn_shared_lib
+g++ -fPIC -DBUILD_DLL griddyn_wrap.c -I../src/griddyn_shared -I"${INCPYTHON}" -I"${CONFIGH}" -I"${INC}" -shared -o _griddyn.so -L/software/anaconda2/envs/gridDyn/lib/ -lgriddyn_shared_lib
 cp griddyn.py /software/anaconda2/envs/gridDyn/lib/python2.7/site-packages/griddyn/
 cp _griddyn.so /software/anaconda2/envs/gridDyn/lib/python2.7/site-packages/griddyn/
 
 swig -I/software/griddyn/src/griddyn_shared -matlab griddyn.i
-g++ -shared -fPIC -DBUILD_DLL griddyn_wrap.cxx -I /export/software/matlab/R2017b/extern/include/ -I../src/griddyn_shared -I${INCPYTHON} -I${CONFIGH} -I${INC} -shared -o griddynMEX.mexa64 -L/software/anaconda2/envs/gridDyn/lib/ -lgriddyn_shared_lib -L/export/software/matlab/R2017b/bin/glnxa64 -lmx -lmex
+g++ -shared -fPIC -DBUILD_DLL griddyn_wrap.cxx -I /export/software/matlab/R2017b/extern/include/ -I../src/griddyn_shared -I"${INCPYTHON}" -I"${CONFIGH}" -I"${INC}" -shared -o griddynMEX.mexa64 -L/software/anaconda2/envs/gridDyn/lib/ -lgriddyn_shared_lib -L/export/software/matlab/R2017b/bin/glnxa64 -lmx -lmex
 # export LD_LIBRARY_PATH=/software/anaconda2/envs/gridDyn/lib:/export/software/matlab/R2017b/bin/glnxa64

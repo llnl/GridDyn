@@ -51,18 +51,16 @@ class helperObject {
     /** @brief get flags
     @param flag -the name of the flag to be queried
     @param val the value to the set the flag ;
-    @return int a value representing whether the set operation was successful or not
     */
     virtual void setFlag(const std::string& flag, bool val = true);
     /** @brief get flags
-    @param param the name of the flag to query.
+    @param flag the name of the flag to query.
     @return the value of the flag queried
     */
     virtual bool getFlag(const std::string& flag) const;
     /**
      * @brief get a parameter from the object
      * @param[in] param the name of the parameter to get
-     * @param[in] unitType a type indicating the units of the val a defunit default value
      * @return val the value of the parameter returns kNullVal if no property is found
      */
     virtual double get(const std::string& param) const;

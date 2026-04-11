@@ -26,7 +26,6 @@ static const char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
 class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using griddyn::gridDynSimulationTestFixture;
 using zmq::message_t;
 using zmq::socket_type;
 using zmqlib::socket_ops;

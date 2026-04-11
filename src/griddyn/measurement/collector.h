@@ -85,7 +85,7 @@ class collector: public helperObject, public eventInterface, public objectOperat
     */
     virtual std::unique_ptr<collector> clone() const;
     /** duplicate the collector to a valid event
-    @param a pointer to a collector object
+    @param col a pointer to a collector object
     */
     virtual void cloneTo(collector* col) const;
 
@@ -93,7 +93,7 @@ class collector: public helperObject, public eventInterface, public objectOperat
                               object_update_mode mode = object_update_mode::direct) override;
 
     /** function to grab the data to specific location
-    @param[out] data the location to place the captured values
+    @param[out] outputData the location to place the captured values
     @param[in] N the size of the data storage location
     @return the number of data points stored
     */

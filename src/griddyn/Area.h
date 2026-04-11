@@ -185,7 +185,7 @@ class Area: public gridPrimary {
     virtual double get(const std::string& param,
                        units::unit unitType = units::defunit) const override;
     /** @brief determine if an object is already a member of the area
-    @param[in] obj  the object to check
+    @param[in] object  the object to check
     @return true if the object is a member false if not
     */
     virtual bool isMember(const coreObject* object) const;
@@ -258,8 +258,8 @@ class Area: public gridPrimary {
     /** @brief try to do a local converge on the solution
      to be replaced by the algebraic update function soon
     @param[in] time the time
-    @param[in/out] state the system state
-    @param[in/out] dstate_dt the system state derivative
+    @param[in,out] state the system state
+    @param[in,out] dstate_dt the system state derivative
     @param[in] sMode  the solverMode corresponding to the state
     @param[in]  mode the mode to do the convergence
     @param[in] tol  the tolerance to converge to
@@ -293,7 +293,7 @@ class Area: public gridPrimary {
                                   check_level_t level) override;
     // grab information
     /** @brief get a vector of voltage from the attached buses
-    @param[out] V the vector to put the bus  voltages
+    @param[out] voltages the vector to put the bus voltages
     @param[in] start  the index into the vector V to start the voltage states from this area
     @return an index where the last value was placed
     */
@@ -324,7 +324,7 @@ class Area: public gridPrimary {
     count_t getFreq(std::vector<double>& frequencies, index_t start = 0) const;
 
     /** @brief get a vector of angles from the attached buses
-    @param[out] V the vector to put the bus  angles
+    @param[out] angles the vector to put the bus angles
     @param[in] state  the system state
     @param[in] sMode the solverMode corresponding to the states
     @param[in] start  the index into the vector V to start the angle states from this area
@@ -464,14 +464,14 @@ class Area: public gridPrimary {
     double getMasterAngle(const stateData& sD, const solverMode& sMode) const;
     virtual void updateFlags(bool dynOnly = false) override;
     /** @brief  get a vector of all the buses of the area
-    @param[out] busList  a vector of buses
+    @param[out] busVector  a vector of buses
     @param[in] start  the index to start placing the bus pointers
     @return the total number of buses placed start+busCount
     */
     count_t getBusVector(std::vector<gridBus*>& busVector, index_t start = 0) const;
 
     /** @brief  get a vector of all the links of the area
-    @param[out] linkList  a vector of buses
+    @param[out] linkVector  a vector of links
     @param[in] start  the index to start placing the link pointers
     @return the total number of links placed start+busCount
     */

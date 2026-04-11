@@ -170,7 +170,7 @@ see gridComponent::dynInitializeA for more details
     */
     void addSubObject(gridComponent* obj);
     /** remove a grid object to the subObject container
-    @param[in] comp the component to add
+    @param[in] obj the component to remove
     */
     void removeSubObject(gridComponent* obj);
     /** replace a grid object to the subObject container

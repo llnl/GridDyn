@@ -19,7 +19,7 @@
   - **Contrib/Graphics**: Contains all of the graphics used in the installer, plus some alternates not currently in use.
   - **Docs/GridDyn**: Contains the licenses for GridDyn and KLU (Suitesparse).
 - **CMakeLists.txt**: for main GridDyn directory.
-- **GridDyn-0.6-win32.exe**: most recent version of the installer built from CPack (PACKAGE project in GridDyn Visual Studio solution).
+- **GridDyn-0.6-win64.exe**: most recent version of the installer built from CPack (PACKAGE project in GridDyn Visual Studio solution).
 - **GridDyn_NSIS_Format_Test.nsi**: allows GUI testing/previews without actually installing anything.
 - **NSIS.template.in**: GridDyn-formatted NSIS template for use by CMake and CPack. Stored in _..\CMake\share\cmake-3.8\Modules_.
 - **NSIS.template.nsi**: Syntax-aware copy of GridDyn-formatted NSIS template for editing purposes. Updates to this file should be followed by a copy and renaming of this file to **NSIS.template.in**.

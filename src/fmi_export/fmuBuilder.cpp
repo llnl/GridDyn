@@ -74,11 +74,8 @@ namespace fmi {
                                                        "linux",
                                                        "macos",
                                                        "darwin",
-                                                       "win32",
                                                        "win64",
-                                                       "linux32",
                                                        "linux64",
-                                                       "darwin32",
                                                        "darwin64"};
 
     std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& ri)
@@ -217,23 +214,6 @@ namespace fmi {
             }
         }
 
-        if ((platform == "all") || (platform == "windows") || (platform == "win32")) {
-            auto source = execDir / "win32" / "fmiGridDynSharedLib.dll";
-            if (exists(source)) {
-                create_directory(binary_dir / "win32");
-                auto dest = binary_dir / "win32" / "fmiGridDynSharedLib.dll";
-                testCopyFile(source, dest);
-                copySome = true;
-            } else {
-                source = execDir / "win32" / "libfmiGridDynSharedLib.dll";
-                if (exists(source)) {
-                    create_directory(binary_dir / "win32");
-                    auto dest = binary_dir / "win32" / "fmiGridDynSharedLib.dll";
-                    testCopyFile(source, dest);
-                    copySome = true;
-                }
-            }
-        }
         if ((platform == "all") || (platform == "linux") || (platform == "linux64")) {
             auto source = execDir / "linux64" / "fmiGridDynSharedLib.so";
             if (exists(source)) {
@@ -246,23 +226,6 @@ namespace fmi {
                 if (exists(source)) {
                     create_directory(binary_dir / "linux64");
                     auto dest = binary_dir / "linux64" / "fmiGridDynSharedLib.so";
-                    testCopyFile(source, dest);
-                    copySome = true;
-                }
-            }
-        }
-        if ((platform == "all") || (platform == "linux") || (platform == "linux32")) {
-            auto source = execDir / "linux32" / "fmiGridDynSharedLib.so";
-            if (exists(source)) {
-                create_directory(binary_dir / "linux32");
-                auto dest = binary_dir / "linux32" / "fmiGridDynSharedLib.so";
-                testCopyFile(source, dest);
-                copySome = true;
-            } else {
-                source = execDir / "linux32" / "libfmiGridDynSharedLib.so";
-                if (exists(source)) {
-                    create_directory(binary_dir / "linux32");
-                    auto dest = binary_dir / "linux32" / "fmiGridDynSharedLib.so";
                     testCopyFile(source, dest);
                     copySome = true;
                 }
@@ -296,35 +259,6 @@ namespace fmi {
                 copySome = true;
             }
         }
-        if ((platform == "all") || (platform == "macos") || (platform == "darwin") ||
-            (platform == "darwin32")) {
-            auto source = execDir / "darwin32" / "fmiGridDynSharedLib.so";
-            if (exists(source)) {
-                create_directory(binary_dir / "darwin32");
-                auto dest = binary_dir / "darwin32" / "fmiGridDynSharedLib.so";
-                testCopyFile(source, dest);
-                copySome = true;
-            } else if (exists(execDir / "darwin32" / "fmiGridDynSharedLib.dylib")) {
-                source = execDir / "darwin32" / "fmiGridDynSharedLib.dylib";
-                create_directory(binary_dir / "darwin32");
-                auto dest = binary_dir / "darwin32" / "fmiGridDynSharedLib.dylib";
-                testCopyFile(source, dest);
-                copySome = true;
-            } else if (exists(execDir / "darwin32" / "libfmiGridDynSharedLib.dylib")) {
-                source = execDir / "darwin32" / "libfmiGridDynSharedLib.dylib";
-                create_directory(binary_dir / "darwin32");
-                auto dest = binary_dir / "darwin32" / "fmiGridDynSharedLib.dylib";
-                testCopyFile(source, dest);
-                copySome = true;
-            } else if (exists(execDir / "darwin32" / "libfmiGridDynSharedLib.so")) {
-                source = execDir / "darwin32" / "libfmiGridDynSharedLib.so";
-                create_directory(binary_dir / "darwin32");
-                auto dest = binary_dir / "darwin32" / "fmiGridDynSharedLib.so";
-                testCopyFile(source, dest);
-                copySome = true;
-            }
-        }
-
         auto binaryLocPath = path(GRIDDYNFMILIBRARY_LOC);
         if (exists(binaryLocPath / GRIDDYNFMILIBRARY_NAME)) {
             create_directory(binary_dir / FMILIBRARY_TYPE);

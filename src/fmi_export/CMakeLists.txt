@@ -69,44 +69,21 @@ install(FILES $<TARGET_LINKER_FILE:fmiGridDynSharedLib> DESTINATION ${CMAKE_INST
         COMPONENT libraries
 )
 if(WIN32)
-    if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-        install(TARGETS fmiGridDynSharedLib RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/win64/
-                                                    COMPONENT RUNTIME
-        )
-        set(FMILIBRARY_TYPE win64)
-    else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-        install(TARGETS fmiGridDynSharedLib RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/win32/
-                                                    COMPONENT RUNTIME
-        )
-        set(FMILIBRARY_TYPE win32)
-    endif("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-else(WIN32)
-    if(UNIX)
-        if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-            install(TARGETS fmiGridDynSharedLib LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/linux64/
-                                                        COMPONENT RUNTIME
-            )
-            set(FMILIBRARY_TYPE linux64)
-        else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-            install(TARGETS fmiGridDynSharedLib LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/linux32/
-                                                        COMPONENT RUNTIME
-            )
-            set(FMILIBRARY_TYPE linux32)
-        endif("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    else(UNIX)
-        if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-            install(TARGETS fmiGridDynSharedLib
-                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/darwin64/ COMPONENT RUNTIME
-            )
-            set(FMILIBRARY_TYPE darwin64)
-        else("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-            install(TARGETS fmiGridDynSharedLib
-                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/darwin32/ COMPONENT RUNTIME
-            )
-            set(FMILIBRARY_TYPE darwin32)
-        endif("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    endif(UNIX)
-endif(WIN32)
+    install(TARGETS fmiGridDynSharedLib RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/win64/
+                                                COMPONENT RUNTIME
+    )
+    set(FMILIBRARY_TYPE win64)
+elseif(APPLE)
+    install(TARGETS fmiGridDynSharedLib RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/darwin64/
+                                                COMPONENT RUNTIME
+    )
+    set(FMILIBRARY_TYPE darwin64)
+elseif(UNIX)
+    install(TARGETS fmiGridDynSharedLib LIBRARY DESTINATION ${CMAKE_INSTALL_BINDIR}/linux64/
+                                                COMPONENT RUNTIME
+    )
+    set(FMILIBRARY_TYPE linux64)
+endif()
 
 target_compile_definitions(
     fmiBuilder PRIVATE -DGRIDDYNFMILIBRARY_LOC="$<TARGET_FILE_DIR:fmiGridDynSharedLib>"

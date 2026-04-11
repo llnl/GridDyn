@@ -13,6 +13,10 @@ cmake_policy(VERSION 3.28)
 
 project(GRIDDYN VERSION 0.10.0)
 
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "GridDyn requires a 64-bit target platform")
+endif()
+
 # Require C++20 (or newer) across the project.
 if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)

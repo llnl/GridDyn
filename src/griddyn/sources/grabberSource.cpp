@@ -60,7 +60,7 @@ namespace sources {
 
     void grabberSource::set(const std::string& param, double val, units::unit unitType)
     {
-        if ((param == "gain") || (param == "multipler")) {
+        if ((param == "gain") || (param == "multiplier")) {
             multiplier = val;
             if (gset) {
                 gset->setGain(multiplier);

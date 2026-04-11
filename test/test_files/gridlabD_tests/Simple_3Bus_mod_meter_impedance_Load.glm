@@ -1,8 +1,8 @@
 // $Id: Distribution Simple model.
 // For verification purposes on gridDyn we are also going to need a very simple model, which consists of a swing bus, and 3
-// other buses.  All the other buses should be connected to the swing bus via lossless 3 phase transmission lines and have a
+// other buses.  All the other buses should be connected to the swing bus via lossless 3 phase transmission lines and have a
 // single load object with a constant power load of 3 MW and 0.9 MVar. So 1 MW and 0.3 Mvar reactive power per phase per
-// object. So in total the model has a load of 9 MW real power and 2.7 MW reactive power. 
+// object. So in total the model has a load of 9 MW real power and 2.7 MW reactive power. 
 
 // Yining Qin; qin3@LLNL.GOV
 

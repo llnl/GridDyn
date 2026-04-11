@@ -651,48 +651,48 @@ void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
     nn = 0;
     auto lnk = gds->getLink(nn);
     while (lnk != nullptr) {
-        auto linkE = new ticpp::Element("link");
+        auto linkElement = new ticpp::Element("link");
         prop = new ticpp::Element("name");
         propval = new ticpp::Text(lnk->getName());
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("index");
         propval = new ticpp::Text(nn);
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("Bus1");
         propval = new ticpp::Text(lnk->getBus(1)->getUserID());
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("Bus2");
         propval = new ticpp::Text(lnk->getBus(2)->getUserID());
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("RealImpedance");
         propval = new ticpp::Text(lnk->get("r"));
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("ImagImpedance");
         propval = new ticpp::Text(lnk->get("x"));
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("RealIn");
         propval = new ticpp::Text(lnk->getRealPower());
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
         prop = new ticpp::Element("RealOut");
         propval = new ticpp::Text(lnk->getRealPower(2));
         prop->LinkEndChild(propval);
-        linkE->LinkEndChild(prop);
+        linkElement->LinkEndChild(prop);
 
-        links->LinkEndChild(linkE);
+        links->LinkEndChild(linkElement);
         ++nn;
         lnk = gds->getLink(nn);
     }

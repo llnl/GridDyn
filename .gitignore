@@ -60,4 +60,4 @@ fmus
 /test/test_files/zip_tests/rectifier/sources
 /test/test_files/fmi_export_tests/griddyn
 /Default/
-.pre-commit-cache-2
+/.pre-commit-cache-2/

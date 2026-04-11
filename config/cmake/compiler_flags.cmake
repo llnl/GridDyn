@@ -173,7 +173,7 @@ endif()
 # -------------------------------------------------------------
 include(CheckLatestCXXStandardOption)
 
-message(STATUS "setting helics C++ standard build option to \"${CXX_STANDARD_FLAG}\"")
+message(STATUS "setting ${PROJECT_NAME} C++ standard build option to \"${CXX_STANDARD_FLAG}\"")
 if(CXX_STANDARD_FLAG)
     if(MSVC)
         add_compile_options(${CXX_STANDARD_FLAG})

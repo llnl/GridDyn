@@ -117,8 +117,7 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 
 TEST_F(FmiExportTests, TestFmiRunner)
 {
-    auto runner =
-        std::make_unique<griddyn::fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
+    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
 
     runner->simInitialize();
     runner->UpdateOutputs();
@@ -247,8 +246,9 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
 
 TEST_F(FmiExportTests, TestFmiRunner2)
 {
-    auto runner = std::make_unique<griddyn::fmi::fmiRunner>(
-        "testsim", fmi_test_directory + "/three_phase_fmu", nullptr);
+    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim",
+                                                            fmi_test_directory + "/three_phase_fmu",
+                                                            nullptr);
     runner->simInitialize();
     runner->UpdateOutputs();
 

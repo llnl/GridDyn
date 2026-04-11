@@ -194,7 +194,7 @@ namespace fmi {
 
     void fmuBuilder::copySharedLibrary(const std::string& tempdir)
     {
-        path binary_dir = tempdir / "binaries";
+        path binary_dir = path(tempdir) / "binaries";
         create_directory(binary_dir);
         bool copySome = false;
         path executable(execPath);

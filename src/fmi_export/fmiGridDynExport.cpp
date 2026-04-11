@@ -106,10 +106,8 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
             }
         }
         try {
-            auto fmiM = std::make_unique<fmi::fmiRunner>(instanceName,
-                                                         locString,
-                                                         functions,
-                                                         (fmuType == fmi2Type::fmi2ModelExchange));
+            auto fmiM = std::make_unique<fmiRunner>(
+                instanceName, locString, functions, (fmuType == fmi2Type::fmi2ModelExchange));
             auto rv = new compID;
             rv->second = fmiM->GetID();
             fmiM->fmiComp = static_cast<fmi2Component>(rv);

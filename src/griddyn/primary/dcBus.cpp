@@ -265,10 +265,10 @@ void dcBus::getStateName(stringVec& stNames,
         auto Voffset = offsets.getVOffset(sMode);
 
         count_t bst = 0;
-        if (static_cast<index_t>(stNames.size()) < Voffset + 1) {
-            stNames.resize(Voffset + 1);
-        }
         if (Voffset != kNullLocation) {
+            if (static_cast<index_t>(stNames.size()) <= Voffset) {
+                stNames.resize(static_cast<stringVec::size_type>(Voffset) + 1U);
+            }
             stNames[Voffset] = getName() + ":voltage";
             ++bst;
         }

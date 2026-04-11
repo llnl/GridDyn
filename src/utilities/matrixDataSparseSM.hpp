@@ -249,34 +249,30 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     auto end() const { return matrixIteratorSM(this, size()); }
     void start() override
     {
+        constexpr int bucketCount = (1 << K);
         ci = 0;
-        while (dVec[ci].empty()) {
+        while ((ci < bucketCount) && dVec[ci].empty()) {
             ++ci;
-            if (ci == (1 << K)) {
-                --ci;
-                break;
-            }
         }
-        cptr = dVec[ci].cbegin();
-        iend = dVec[ci].cend();
+        if (ci < bucketCount) {
+            cptr = dVec[ci].cbegin();
+            iend = dVec[ci].cend();
+        }
     }
 
     matrixElement<ValueT> next() override
     {
+        constexpr int bucketCount = (1 << K);
         matrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
         if (cptr == iend) {
             ++ci;
-            if (ci < (1 << K)) {
-                while (dVec[ci].empty()) {
-                    ++ci;
-                    if (ci >= (1 << K)) {
-                        --ci;
-                        break;
-                    }
-                }
+            while ((ci < bucketCount) && dVec[ci].empty()) {
+                ++ci;
+            }
+            if (ci < bucketCount) {
                 cptr = dVec[ci].cbegin();
                 iend = dVec[ci].cend();
             }
@@ -284,7 +280,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         return tp;
     }
 
-    bool moreData() override { return (ci < (1 << K)); }
+    bool moreData() override { return (ci < (1 << K)) && (cptr != iend); }
     /** @brief check if the sparse array is sorted
     @return bool indicating sorted status
     */

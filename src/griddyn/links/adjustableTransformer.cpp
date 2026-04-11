@@ -1295,10 +1295,10 @@ namespace links {
                 } else {
                     shift = -stepSize * round(-shift / stepSize);
                 }
-                while (tap + shift > maxTap) {
+                while (shift > maxTap - tap) {
                     shift = shift - stepSize;
                 }
-                while (tap + shift < minTap) {
+                while (shift < minTap - tap) {
                     shift = shift + stepSize;
                 }
                 tap = tap + shift;

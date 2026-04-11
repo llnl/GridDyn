@@ -76,13 +76,11 @@ else()
 endif()
 
 target_link_libraries(
-    utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET}
-                     gmlc_utilities griddyn_base
+    utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
 )
 
 set_target_properties(utilities PROPERTIES FOLDER libraries)
-foreach(griddyn_external_target IN ITEMS minizip libminizip libminizipstatic zlib
-                                       zlibstatic)
+foreach(griddyn_external_target IN ITEMS minizip libminizip libminizipstatic zlib zlibstatic)
     if(TARGET ${griddyn_external_target})
         set_target_properties(${griddyn_external_target} PROPERTIES FOLDER Extern)
     endif()

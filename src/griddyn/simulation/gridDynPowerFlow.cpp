@@ -385,7 +385,7 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
     return true;
 }
 
-// TODO::PT  this really should be done by areas instead of globally
+// TODO(PT) this really should be done by areas instead of globally
 bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
 {
     double cPower = 0.0;

@@ -98,7 +98,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 buildContingencyList(gds, contingency_mode_t::N_1, contList, build, contIndex);
             }
             if (skip > 0) {
-                if (skip >= contList.size()) {
+                if (static_cast<size_t>(skip) >= contList.size()) {
                     contList.clear();
                 } else {
                     contList.erase(contList.begin(), contList.begin() + skip);
@@ -118,7 +118,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 buildLineContingencies(gds, contList, build, contIndex);
             }
             if (skip > 0) {
-                if (skip >= contList.size()) {
+                if (static_cast<size_t>(skip) >= contList.size()) {
                     contList.clear();
                 } else {
                     contList.erase(contList.begin(), contList.begin() + skip);
@@ -138,7 +138,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 }
             }
             if (skip > 0) {
-                if (skip >= contList.size()) {
+                if (static_cast<size_t>(skip) >= contList.size()) {
                     contList.clear();
                 } else {
                     contList.erase(contList.begin(), contList.begin() + skip);

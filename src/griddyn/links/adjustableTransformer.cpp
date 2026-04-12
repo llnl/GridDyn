@@ -1026,7 +1026,7 @@ namespace links {
                                             const std::vector<int>& /*rootMask*/,
                                             const solverMode& /*sMode*/)
     {
-        double v1;
+        [[maybe_unused]] double v1;
         switch (cMode) {
             case control_mode_t::voltage_control:
                 //       v1 = controlBus->getVoltage();

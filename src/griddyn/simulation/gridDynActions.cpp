@@ -285,7 +285,7 @@ void gridDynAction::process(const std::string& operation)
     } else if (cmd == "contingency") {
         // contingency mode|fileName output_file|method start count
         command = gd_action_t::contingency;
-        int nindex{1};
+        size_t nindex{1};
         if (ssep[1] == "simplified") {
             flag = 1;
             ++nindex;

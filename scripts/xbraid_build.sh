@@ -20,6 +20,6 @@ else
     exit 1
 fi
 
-make -j4 braid CC="${mpi_cc}" MPICC="${mpi_cc}"
+make -C braid -j4 CC="${mpi_cc}" MPICC="${mpi_cc}"
 
 popd >/dev/null || exit

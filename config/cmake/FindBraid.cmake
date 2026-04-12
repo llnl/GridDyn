@@ -30,13 +30,13 @@ if(BRAID_DIR)
     if(BRAID_LIBRARY AND NOT TARGET braid::braid)
         add_library(braid::braid STATIC IMPORTED)
         set_property(TARGET braid::braid PROPERTY IMPORTED_LOCATION ${BRAID_LIBRARY})
-        set_property(TARGET braid::braid PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BRAID_INCLUDE_DIR})
+        set_property(
+            TARGET braid::braid PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BRAID_INCLUDE_DIR}
+        )
     endif()
 endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
-    Braid
-    FOUND_VAR BRAID_FOUND
-    REQUIRED_VARS BRAID_LIBRARY BRAID_INCLUDE_DIR
+    Braid FOUND_VAR BRAID_FOUND REQUIRED_VARS BRAID_LIBRARY BRAID_INCLUDE_DIR
 )

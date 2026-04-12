@@ -115,7 +115,7 @@ namespace events {
 
     void compoundEventPlayer::initialize() {}
 
-    std::string compoundEventPlayer::to_string()
+    std::string compoundEventPlayer::to_string() const
     {
         // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
         std::stringstream ss;

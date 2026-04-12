@@ -39,7 +39,7 @@ namespace events {
 
         virtual void setValue(double val, units::unit newUnits = units::defunit) override;
         virtual void setValue(const std::vector<double>& val);
-        virtual std::string to_string() override;
+        virtual std::string to_string() const override;
 
         virtual bool setTarget(coreObject* gdo, const std::string& var = "") override;
         virtual void updateObject(coreObject* gco,

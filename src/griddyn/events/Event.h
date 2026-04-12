@@ -103,7 +103,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     */
     virtual void setValue(double val, units::unit newUnits = units::defunit);
     /** generate a string description of the event*/
-    virtual std::string to_string();
+    virtual std::string to_string() const;
     /** update the event target
     @param[in] obj the new target object for the event
     @param[in] field the new target field for the event
@@ -146,5 +146,11 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, coreObject* rootObject);
 @return a unique ptr to the created event
 */
 std::unique_ptr<Event> make_event(const std::string& eventString, coreObject* rootObject);
+
+/** equality operator*/
+inline bool operator==(const Event& event1, const Event& event2)
+{
+    return event1.to_string() == event2.to_string();
+}
 
 }  // namespace griddyn

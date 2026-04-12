@@ -39,11 +39,9 @@
 
 #define MEASURE_TIMINGS 0
 
-#define _unused(x) ((void)(x))
-
 namespace griddyn {
 namespace solvers {
-    inline double* nvecdata(bool omp, N_Vector data)
+    inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
     {
         return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;
     }

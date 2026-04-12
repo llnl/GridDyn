@@ -199,7 +199,7 @@ void Event::setValue(double val, units::unit newUnits)
     }
 }
 
-std::string Event::to_string()
+std::string Event::to_string() const
 {
     // [@time1 | ]rootobj::obj:field[(units)] = val1
     std::stringstream ss;
@@ -355,8 +355,18 @@ EventInfo::EventInfo(const std::string& eventString, coreObject* rootObj)
 // [rootobj::obj:]field(units) = val1,[val2,val3,...] @time1[,time2,time3,...|+ period] or
 void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
 {
+    if (eventString.find_first_of(';') != std::string::npos) {
+        auto svector = gmlc::utilities::stringOps::splitlineBracket(eventString, ";");
+        if (svector.size() > 1) {
+            for (const auto& estring : svector) {
+                if (!estring.empty()) {
+                    loadString(estring, rootObj);
+                }
+            }
+            return;
+        }
+    }
     std::string objString;
-
     auto posA = eventString.find_first_of('@');
     if (posA == std::string::npos) {
         objString = eventString;

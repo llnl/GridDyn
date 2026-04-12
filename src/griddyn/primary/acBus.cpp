@@ -195,13 +195,13 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     for (auto& gen : attachedGens) {
         gen->pFlowInitializeA(time0, flags);
-        if (gen->isConnected()) {
+        if (gen->isConnected() && gen->isEnabled()) {
             ++activeSecondary;
         }
     }
     for (auto& load : attachedLoads) {
         load->pFlowInitializeA(time0, flags);
-        if (load->isConnected()) {
+        if (load->isConnected() && load->isEnabled()) {
             ++activeSecondary;
         }
     }
@@ -2066,6 +2066,7 @@ void acBus::converge(coreTime time,
             }
             double minV = -kBigNum;
             double pcerr = 120000;
+            int forceCount{0};
             while (not_converged) {
                 if (iteration > 1) {
                     v1 = uV ? state[Voffset] : voltage;
@@ -2083,6 +2084,9 @@ void acBus::converge(coreTime time,
                 computeDerivatives(sD, sMode);
                 double DP = S.sumP();
                 double DQ = S.sumQ();
+                if (v1 <= 0.0 && iteration == 6) {
+                    break;
+                }
                 double cerr1 = DP / v1;
                 double cerr2 = DQ / v1;
 
@@ -2099,7 +2103,10 @@ void acBus::converge(coreTime time,
                             if ((forceUp) || (iteration == 1)) {
                                 dV = -0.1;
                                 forceUp = true;
-                                iteration = (iteration > 5) ? 5 : iteration;
+                                ++forceCount;
+                                if (forceCount < 8) {
+                                    iteration = (iteration > 5) ? 5 : iteration;
+                                }
                             } else {
                                 dV = DQ / Qvii + DP / Pvii;
                                 if ((!std::isfinite(dV)) ||

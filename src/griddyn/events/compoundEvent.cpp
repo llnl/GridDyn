@@ -23,6 +23,10 @@ namespace events {
     compoundEvent::compoundEvent(const EventInfo& gdEI, coreObject* rootObject):
         Event(gdEI, rootObject)
     {
+        targetObjects = gdEI.targetObjs;
+        values = gdEI.value;
+        units = gdEI.units;
+        fields = gdEI.fieldList;
     }
 
     std::unique_ptr<Event> compoundEvent::clone() const
@@ -107,7 +111,7 @@ namespace events {
         values = val;
     }
 
-    std::string compoundEvent::to_string()
+    std::string compoundEvent::to_string() const
     {
         // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
         std::stringstream ss;
@@ -131,7 +135,15 @@ namespace events {
     change_code compoundEvent::trigger()
     {
         try {
-            m_obj->set(field, value, unitType);
+            if (targetObjects.empty()) {
+                m_obj->set(field, value, unitType);
+            } else {
+                int index = 0;
+                for (auto& to : targetObjects) {
+                    to->set(fields[index], values[index], units[index]);
+                    ++index;
+                }
+            }
             return change_code::parameter_change;
         }
         catch (const std::invalid_argument&) {
@@ -144,12 +156,21 @@ namespace events {
         change_code ret = change_code::not_triggered;
         if (time >= triggerTime) {
             try {
-                m_obj->set(field, value, unitType);
+                if (targetObjects.empty()) {
+                    m_obj->set(field, value, unitType);
+                } else {
+                    int index = 0;
+                    for (auto& to : targetObjects) {
+                        to->set(fields[index], values[index], units[index]);
+                        ++index;
+                    }
+                }
                 ret = change_code::parameter_change;
             }
             catch (const std::invalid_argument&) {
                 ret = change_code::execution_failure;
             }
+            armed = false;
         }
         return ret;
     }

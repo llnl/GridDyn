@@ -703,7 +703,14 @@ count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& s
         }
         return 0;
     }
-    return 1 + genModel->outputDependencyCount(num, sMode);
+    if (genModel != nullptr) {
+        return 1 + genModel->outputDependencyCount(num, sMode);
+    } else {
+        if (stateSize(sMode) > 0) {
+            return Generator::outputDependencyCount(num, sMode);
+        }
+        return 0;
+    }
 }
 
 void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,

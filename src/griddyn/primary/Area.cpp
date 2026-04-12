@@ -942,7 +942,7 @@ count_t Area::getLinkVector(std::vector<Link*>& linkVector, index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Links.size());
     if (cnt > 0) {
-        ensureSizeAtLeast(linkVector, start + cnt);
+        ensureSizeAtLeast(linkVector, static_cast<std::size_t>(start) + cnt);
         std::copy(m_Links.begin(), m_Links.end(), linkVector.begin() + start);
     }
     for (auto* area : m_Areas) {
@@ -961,7 +961,7 @@ count_t Area::getVoltage(std::vector<double>& voltages, index_t start) const
     auto bsize = static_cast<index_t>(m_Buses.size());
     ensureSizeAtLeast(voltages, start + m_Buses.size());
     for (index_t kk = 0; kk < bsize; ++kk) {
-        voltages[start + cnt + kk] = m_Buses[kk]->getVoltage();
+        voltages[static_cast<std::size_t>(start) + cnt + kk] = m_Buses[kk]->getVoltage();
     }
     cnt += bsize;
     return cnt;
@@ -1186,10 +1186,10 @@ count_t Area::getLinkName(stringVec& names, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_Areas) {
-        cnt += area->getLinkName(names, start + cnt);
+        cnt += area->getLinkName(names, static_cast<std::size_t>(start) + cnt);
     }
     auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, start + Lsize);
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         *nmloc = link->getName();
@@ -1206,7 +1206,7 @@ count_t Area::getLinkBus(stringVec& names, index_t start, int busNumber) const
         cnt += area->getLinkBus(names, start + cnt, busNumber);
     }
     auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, start + Lsize);
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         auto* bus = link->getBus(busNumber);

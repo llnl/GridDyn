@@ -550,6 +550,10 @@ void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
 
 void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
 {
+    // version 32:
+    //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
+    // Bus, Id, Status, Area, Zone, PL(MW), QL (MW), IP, IQ, YP, YQ, OWNER
+
     auto strvec = splitline(line);
 
     // get the load index and name
@@ -597,6 +601,8 @@ void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
 
 void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
 {
+    // 0,    1,      2,      3,      4
+    // Bus, name, Status, g (MW), b (Mvar)
     auto strvec = splitline(line);
 
     // get the load index and name
@@ -624,6 +630,8 @@ void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri
 
 void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
 {
+    // 0, 1, 2, 3, 4, 5, 6, 7,    8,   9,10,11, 12, 13, 14,   15, 16,17,18,19
+    //  I,ID,PG,QG,QT,QB,VS,IREG,MBASE,ZR,ZX,RT,XT,GTAP,STAT,RMPCT,PT,PB,O1,F1
     auto strvec = splitline(line);
 
     // get the load index and name
@@ -636,6 +644,9 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
     if (status == 0) {
         gen->disable();
     }
+
+    auto mb = numeric_conversion<double>(strvec[8], 0.0);
+    gen->set("mbase", mb);
 
     // get the power generation
     auto p = numeric_conversion<double>(strvec[2], 0.0);
@@ -677,9 +688,6 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
             static_cast<gridBus*>(gen->getParent()->getParent()->findByUserID("bus", rbus));
         gen->add(remoteBus);
     }
-
-    auto mb = numeric_conversion<double>(strvec[8], 0.0);
-    gen->set("mbase", mb);
 
     auto r = numeric_conversion<double>(strvec[9], 0.0);
     gen->set("rs", r);
@@ -764,6 +772,8 @@ auto generateBranchName(const stringVector& strvec,
     std::string name;
     if (prefix.empty()) {
         name = busList[ind1]->getName() + "_to_" + busList[ind2]->getName();
+    } else if (prefix.back() == '_') {
+        name = prefix + busList[ind1]->getName() + "_to_" + busList[ind2]->getName();
     } else {
         name = prefix + '_' + busList[ind1]->getName() + "_to_" + busList[ind2]->getName();
     }
@@ -784,6 +794,9 @@ void rawReadBranch(coreObject* parentObject,
                    std::vector<gridBus*>& busList,
                    basicReaderInfo& opt)
 {
+    //
+    // I,J,CKT,R,X,B,RATEA,RATEB,RATEC,GI,BI,GJ,BJ,ST,LEN,O1,F1,...,O4,F4
+    //
     auto strvec = splitline(line);
 
     std::string name;
@@ -828,7 +841,21 @@ void rawReadBranch(coreObject* parentObject,
     // get line capacitance
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
+    // get the line ratings
+    // get the ratings
+    auto ratA = numeric_conversion<double>(strvec[6], 0.0);
+    auto ratB = numeric_conversion<double>(strvec[7], 0.0);
+    auto ratC = numeric_conversion<double>(strvec[8], 0.0);
 
+    if (ratA != 0.0) {
+        lnk->set("ratinga", ratA, MW);
+    }
+    if (ratB != 0.0 && ratB != ratA) {
+        lnk->set("ratingb", ratB, MW);
+    }
+    if (ratC != 0.0 && ratC != ratA && ratC != ratB) {
+        lnk->set("ratingc", ratC, MW);
+    }
     int status;
     if (opt.version >= 29) {
         status = std::stoi(strvec[13]);
@@ -1019,6 +1046,11 @@ int rawReadTX_v33(coreObject* parentObject,
     #
     # """
 
+    110, 70401,     0,'1 ',1,2,1, 0.00000E+00, 0.00000E+00,2,'            ',1,   1,1.0000, 0,1.0000,
+    0,1.0000,   0,1.0000,'            ' 0.00000E+0, 8.00000E-2,   100.00 1.00000,   0.000,   0.000,
+    0.00,     0.00,     0.00, 0,      0, 1.10000, 0.90000, 1.10000, 0.90000,  33, 0, 0.00000,
+    0.00000,  0.000 1.00000,   0.000
+
     */
     // gridBus *bus3;
     acLine* lnk = nullptr;
@@ -1047,6 +1079,9 @@ int rawReadTX_v33(coreObject* parentObject,
 
     auto bus1 = busList[ind1];
     auto bus2 = busList[ind2];
+    if (ind1 == 110) {
+        ind1 = 110;
+    }
     int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
         case 0:
@@ -1054,14 +1089,23 @@ int rawReadTX_v33(coreObject* parentObject,
             lnk = linkfactory->makeDirectObject(name);
             break;
         case 1:
+            if (opt.prefix.empty()) {
+                name.insert(0, "vadj");
+            }
             lnk = new links::adjustableTransformer(name);
             lnk->set("mode", "voltage");
             break;
         case 2:
+            if (opt.prefix.empty()) {
+                name.insert(0, "qadj");
+            }
             lnk = new links::adjustableTransformer(name);
             lnk->set("mode", "mvar");
             break;
         case 3:
+            if (opt.prefix.empty()) {
+                name.insert(0, "padj");
+            }
             lnk = new links::adjustableTransformer(name);
             lnk->set("mode", "mw");
             break;
@@ -1099,11 +1143,39 @@ int rawReadTX_v33(coreObject* parentObject,
 
     // get the branch impedance
 
+    auto Itype = numeric_conversion<int>(strvec[5], 1);
+
     auto R = numeric_conversion<double>(strvec2[0], 0.0);
     auto X = numeric_conversion<double>(strvec2[1], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
+    auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
+
+    auto bv1 = bus1->get("basevoltage");
+    auto bv2 = bus2->get("basevoltage");
+
+    auto base = numeric_conversion<double>(strvec2[2], 0.0);
+
+    if (Itype == 1) {
+        lnk->set("r", R);
+        lnk->set("x", X);
+    } else if (Itype == 2) {
+        if (vn2 != 0.0) {
+            auto r1 = R * opt.base / base * (vn1 / bv1) * (vn1 / bv1);
+            [[maybe_unused]] auto x1 = X * opt.base / base * (vn1 / bv1) * (vn1 / bv1);
+            auto r2 = R * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
+            auto x2 = X * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
+            if (ind2 == 2005) {
+                r1 = r2;
+            }
+            lnk->set("r", r2);
+            lnk->set("x", x2);
+        }
+
+        // lnk->set("r", R*base/opt.base*(vn2/bv2)*(vn2/bv2));
+        // lnk->set("x", X*base/opt.base*(vn2/bv2)*(vn2/bv2));
+    } else {
+    }
     // get line capacitance
 
     auto status = std::stoi(strvec[11]);
@@ -1116,21 +1188,18 @@ int rawReadTX_v33(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
-    auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
-
     int tapcode = std::stoi(strvec[4]);
     if (tapcode == 2) {
         auto wv2 = numeric_conversion<double>(strvec4[0], 0.0);
-        tap = (tap / bus1->get("basevoltage") / (wv2 / bus2->get("basevoltage")));
+        tap = (tap / bv1 / (wv2 / bv2));
     } else if (tapcode == 3) {
         if (vn1 == 0.0) {
-            vn1 = bus1->get("basevoltage");
+            vn1 = bv1;
         }
         if (vn2 == 0.0) {
-            vn2 = bus2->get("basevoltage");
+            vn2 = bv2;
         }
-        tap = tap * (vn1 / bus1->get("basevoltage")) / (vn2 / bus2->get("basevoltage"));
+        tap = tap * (vn1 / bv1) / (vn2 / bv2);
     }
 
     if (tap != 0) {
@@ -1141,23 +1210,53 @@ int rawReadTX_v33(coreObject* parentObject,
     if (angle != 0) {
         lnk->set("tapangle", angle, deg);
     }
+
+    // get the ratings
+    auto ratA = numeric_conversion<double>(strvec3[3], 0.0);
+    auto ratB = numeric_conversion<double>(strvec3[4], 0.0);
+    auto ratC = numeric_conversion<double>(strvec3[5], 0.0);
+
+    if (ratA != 0.0) {
+        lnk->set("ratinga", ratA, MW);
+    }
+    if (ratB != 0.0 && ratB != ratA) {
+        lnk->set("ratingb", ratB, MW);
+    }
+    if (ratC != 0.0 && ratC != ratB && ratC != ratA) {
+        lnk->set("ratingc", ratC, MW);
+    }
     // now get the stuff for the adjustable transformers
     // SGS set this for adjustable transformers....is this correct?
     if (abs(code) > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
-            /*if (abs(cbus) == ind1)
-            {
-            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
-            }
-            else if (abs(cbus) == ind2)
-            {
-            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+            if (abs(cbus) == ind1) {
+                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+            } else if (abs(cbus) == ind2) {
+                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
             }
 
-            else */
-            {
-                //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+            else {
+                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+            }
+
+            if (tapcode == 2) {
+                if (abs(cbus) == ind1) {
+                    auto tap1 = (bus1->getVoltage() / bus2->getVoltage());
+                    [[maybe_unused]] auto tap2 = (bus1->getVoltage() / (vn1 / bv1));
+                    auto tap3 = (bus1->getVoltage() / (vn2 / bv2));
+                    [[maybe_unused]] auto tap4 = ((vn1 / bv1) / bus2->getVoltage());
+
+                    [[maybe_unused]] auto tap5 = (bus2->getVoltage() / bus1->getVoltage());
+                    [[maybe_unused]] auto tap6 = (bus2->getVoltage() / (vn2 / bv2));
+                    [[maybe_unused]] auto tap7 = (bus2->getVoltage() / (vn1 / bv1));
+                    [[maybe_unused]] auto tap8 = ((vn2 / bv2) / bus1->getVoltage());
+
+                    auto tap9 = (tap1 + tap3) / 2;
+                    if (tap9 != 0) {
+                        lnk->set("tap", tap9);
+                    }
+                }
             }
         }
 
@@ -1168,8 +1267,13 @@ int rawReadTX_v33(coreObject* parentObject,
             lnk->set("maxtapangle", R, deg);
             lnk->set("mintapangle", X, deg);
         } else {
-            lnk->set("maxtap", R / vn1);
-            lnk->set("mintap", X / vn1);
+            if (X < 1.0) {
+                lnk->set("maxtap", R);
+                lnk->set("mintap", X);
+            } else {
+                lnk->set("maxtap", R / vn1);
+                lnk->set("mintap", X / vn1);
+            }
         }
 
         R = numeric_conversion<double>(strvec3[10], 0.0);

@@ -56,6 +56,7 @@ class Link: public gridPrimary {
         fixed_target_power = object_flag3,  //!< flag indicating if the power flow was fixed
         network_connected =
             object_flag4,  //!< indicates if a link ties the buses together in connected network
+
     };
 
   protected:
@@ -282,6 +283,8 @@ class Link: public gridPrimary {
 
     coreObject* getSubObject(const std::string& typeName, index_t num) const override;
 
+    // test for various conditions of overload and automatically trip the line if needed
+    virtual bool testAndTrip(int tripLevel);
     // dynInitializeB power flow
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

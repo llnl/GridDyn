@@ -93,7 +93,7 @@ coreObject* Generator::clone(coreObject* obj) const
 
 void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if (isConnected()) {
+    if (isConnected() && isEnabled()) {
         if (opFlags[local_voltage_control]) {
             if (bus->getType() != gridBus::busType::PQ) {
                 bus->registerVoltageControl(this);

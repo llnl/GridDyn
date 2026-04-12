@@ -151,6 +151,7 @@ void loadDefaultObjectTranslations(readerInfo& ri)
     ri.addTranslate("gov", "governor");
     ri.addTranslate("recorder", "collector");
     ri.addTranslate("player", "event");
+    ri.addTranslate("scenario", "event");
     ri.addTranslate("loop", "array");
 }
 

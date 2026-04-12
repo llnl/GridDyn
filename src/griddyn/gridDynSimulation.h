@@ -44,8 +44,8 @@ enum gd_flags {
     no_reset = 39,
     voltage_constraints_flag = 40,
     record_on_halt_flag = 41,
-    no_auto_slack_bus = 42,
-    no_auto_disconnect = 43,
+    disable_auto_slack_bus = 42,
+    disable_auto_disconnect = 43,
     single_step_mode = 44,
     dc_mode = 45,
     force_power_flow = 46,
@@ -58,6 +58,7 @@ enum gd_flags {
     droop_power_flow = 53,
     save_power_flow_input_data = 54,
     power_flow_input_saved = 55,
+    disable_automatic_load_loss = 56,
 };
 
 // for the status flags bitset
@@ -150,6 +151,7 @@ class gridDynSimulation: public gridSimulation {
     count_t rootCount = 0;  //!< counter for the number of roots
     count_t busCount = 0;  //!< counter for the number of buses
     count_t linkCount = 0;  //!< counter for the number of links
+    count_t networkCount{0};  //!< number of islanded networks in the simulation
     coreTime probeStepTime = coreTime(1e-3);  //!< initial step size
     double powerAdjustThreshold = 0.01;  //!< tolerance on the power adjust step
     coreTime powerFlowStartTime =
@@ -202,9 +204,22 @@ class gridDynSimulation: public gridSimulation {
     @param[in] checkType  the type of network check to perform
     @return in indicating success (0) or failure (non-zero)
     */
-    int checkNetwork(
-        network_check_type checkType);  // function to do a check on the network and potentially
-    // reorder a few things and make sure it is solvable
+    int checkNetwork(network_check_type checkType);
+
+    /** @brief check for any lines that have slipped angle and trip them
+    @return int indicating the number of lines that were tripped
+    */
+    int tripSlippedLines();
+
+    /** @brief do a rebalance operation on networks potentially do automatic load shedding
+    @return in indicating success (0) or failure (non-zero)
+    */
+    int rebalanceLoadGen();
+
+    /** @brief do a rebalance operation on networks potentially do automatic load shedding
+    @return true if some loadLoss was performed
+    */
+    bool doAutomaticLoadLoss();
 
     /** @brief perform a power flow calculation
   @return in indicating success (0) or failure (non-zero)*/
@@ -589,6 +604,12 @@ class gridDynSimulation: public gridSimulation {
     @param[in] change the adjustment mode
     */
     void reInitpFlow(const solverMode& sMode, change_code change = change_code::no_change);
+
+    /** @brief perform a global generator adjustment operation
+    @param[in] adjustment the amount of power to distribute to the allowed generators
+    @return true if any changes were made
+    */
+    virtual bool generatorAdjust(double adjustment);
 
     /** @brief perform a load balance operation on the power system
     @param[in] prevPower the previous total power output from slack bus generators

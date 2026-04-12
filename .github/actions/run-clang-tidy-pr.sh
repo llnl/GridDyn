@@ -14,12 +14,16 @@ if ((filecount > 0 && filecount <= 20)); then
     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON ..
     cd ..
     echo "====Run clang-tidy===="
-    if command -v clang-tidy >/dev/null 2>&1; then
+    if [[ -x /usr/bin/run-clang-tidy ]]; then
+        TIDY_CMD=(/usr/bin/run-clang-tidy)
+    elif command -v run-clang-tidy >/dev/null 2>&1; then
+        TIDY_CMD=(run-clang-tidy)
+    elif command -v clang-tidy >/dev/null 2>&1; then
         TIDY_CMD=(clang-tidy)
     elif [[ -f /usr/share/clang/run-clang-tidy.py ]]; then
         TIDY_CMD=(python3 /usr/share/clang/run-clang-tidy.py)
     else
-        echo "clang-tidy not found in PATH and /usr/share/clang/run-clang-tidy.py is unavailable"
+        echo "clang-tidy helper not found in PATH and /usr/share/clang/run-clang-tidy.py is unavailable"
         exit 2
     fi
     while read -r line; do

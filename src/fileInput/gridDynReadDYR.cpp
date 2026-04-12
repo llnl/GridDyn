@@ -175,23 +175,15 @@ void loadSEXS(coreObject* parentObject, stringVec& tokens)
     Generator* gen = bus->getGen(id - 1);
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-    Exciter* sm;
-
-    sm = static_cast<Exciter*>(cof->createObject("exciter", "dc1a"));
+    auto* sm = static_cast<Exciter*>(cof->createObject("exciter", "sexs"));
 
     // sm->set("tr", params[3]);
     sm->set("ka", params[5]);
-    sm->set("ta", params[6]);
-    // if (params[6] > 0) {
     sm->set("tb", params[4]);
-    sm->set("tc", params[3] * params[4]);
-    //}
+    sm->set("ta", params[3] * params[4]);
+    sm->set("te", params[6]);
     sm->set("vrmax", params[8]);
     sm->set("vrmin", params[7]);
-    sm->set("ke", 1.0);
-    sm->set("te", 0.0001);
-    sm->set("kf", 0.0);
-    sm->set("tf", 1.0);
 
     gen->add(sm);
 }

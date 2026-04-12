@@ -8,6 +8,7 @@
 #include "../gridBus.h"
 #include "ExciterDC2A.h"
 #include "ExciterIEEEtype2.h"
+#include "ExciterSEXS.h"
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "utilities/matrixData.hpp"
@@ -28,6 +29,7 @@ namespace exciters {
                                    stringVec{"basic", "fast"},
                                    "type1");  // setup type 1 as the default
     static childTypeFactory<ExciterIEEEtype2, Exciter> gfet2("exciter", "type2");
+    static childTypeFactory<ExciterSEXS, Exciter> gfesxs("exciter", "sexs");
 
 }  // namespace exciters
 

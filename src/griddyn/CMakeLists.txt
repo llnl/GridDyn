@@ -83,6 +83,7 @@ set(exciter_headers
     exciters/ExciterDC2A.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
+    exciters/ExciterSEXS.h
 )
 
 set(exciter_sources
@@ -92,6 +93,7 @@ set(exciter_sources
     exciters/ExciterDC2A.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
+    exciters/ExciterSEXS.cpp
     stabilizers/Stabilizer.cpp
 )
 

@@ -4,16 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../Exciter.h"
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../gridPrimary.h"
+#include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
+#include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
 #include "ExciterSEXS.h"
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
-#include <cmath>
 #include <string>
 #include <vector>
 
@@ -21,16 +23,18 @@
 
 namespace griddyn {
 namespace exciters {
+namespace {
     // setup the object factories
-    static childTypeFactory<ExciterDC1A, Exciter> gfe1("exciter", "dc1a");
-    static childTypeFactory<ExciterDC2A, Exciter> gfe2("exciter", "dc2a");
-    static childTypeFactory<ExciterIEEEtype1, Exciter> gfet1("exciter", "type1");
-    static typeFactory<Exciter> gf("exciter",
-                                   stringVec{"basic", "fast"},
-                                   "type1");  // setup type 1 as the default
-    static childTypeFactory<ExciterIEEEtype2, Exciter> gfet2("exciter", "type2");
-    static childTypeFactory<ExciterSEXS, Exciter> gfesxs("exciter", "sexs");
-
+    static childTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
+    static childTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+    static childTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
+    static typeFactory<Exciter> gfeDefault(  // NOLINT
+        "exciter",
+        stringVec{"basic", "fast"},
+        "type1");  // setup type 1 as the default
+    static childTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
+    static childTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
+}  // namespace
 }  // namespace exciters
 
 Exciter::Exciter(const std::string& objName): gridSubModel(objName)

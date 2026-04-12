@@ -88,8 +88,8 @@ coreObject* gridBus::clone(coreObject* obj) const
 
 bool gridBus::checkCapable()
 {
-    double remainingCapacity{ 0.0 };
-    double excessCapacity{ 0.0 };
+    double remainingCapacity{0.0};
+    double excessCapacity{0.0};
     if (!opFlags[pFlow_initialized]) {
         return true;
     }
@@ -108,10 +108,10 @@ bool gridBus::checkCapable()
     for (auto& link : attachedLinks) {
         if (link->isConnected()) {
             remainingCapacity += link->getMaxTransfer();
-            excessCapacity-=link->getMaxTransfer();
+            excessCapacity -= link->getMaxTransfer();
         }
     }
-    if (remainingCapacity >= 0.0 ) {
+    if (remainingCapacity >= 0.0) {
         return true;
     }
 

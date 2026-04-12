@@ -23,10 +23,10 @@ namespace events {
     compoundEvent::compoundEvent(const EventInfo& gdEI, coreObject* rootObject):
         Event(gdEI, rootObject)
     {
-            targetObjects=gdEI.targetObjs;
-            values=gdEI.value;
-            units=gdEI.units;
-            fields=gdEI.fieldList;
+        targetObjects = gdEI.targetObjs;
+        values = gdEI.value;
+        units = gdEI.units;
+        fields = gdEI.fieldList;
     }
 
     std::unique_ptr<Event> compoundEvent::clone() const
@@ -135,16 +135,12 @@ namespace events {
     change_code compoundEvent::trigger()
     {
         try {
-            if (targetObjects.empty())
-            {
+            if (targetObjects.empty()) {
                 m_obj->set(field, value, unitType);
-            }
-            else
-            {
-                int index=0;
-                for (auto& to : targetObjects)
-                {
-                    to->set(fields[index],values[index],units[index]);
+            } else {
+                int index = 0;
+                for (auto& to : targetObjects) {
+                    to->set(fields[index], values[index], units[index]);
                     ++index;
                 }
             }
@@ -160,16 +156,12 @@ namespace events {
         change_code ret = change_code::not_triggered;
         if (time >= triggerTime) {
             try {
-                if (targetObjects.empty())
-                {
+                if (targetObjects.empty()) {
                     m_obj->set(field, value, unitType);
-                }
-                else
-                {
-                    int index=0;
-                    for (auto& to : targetObjects)
-                    {
-                        to->set(fields[index],values[index],units[index]);
+                } else {
+                    int index = 0;
+                    for (auto& to : targetObjects) {
+                        to->set(fields[index], values[index], units[index]);
                         ++index;
                     }
                 }

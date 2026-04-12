@@ -118,7 +118,6 @@ the only one that adjusts the angle.  available control include stepped and cont
                                     check_level_t level) override;
         void reset(reset_levels level) override;
 
-
         void updateLocalCache() override;
         void updateLocalCache(const IOdata& inputs,
                               const stateData& sD,

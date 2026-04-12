@@ -827,15 +827,12 @@ void acLine::updateLocalCache(const IOdata& /*inputs*/,
     }
 }
 
-
 bool acLine::testAndTrip(int tripLevel)
 {
-    if (!isConnected())
-    {
+    if (!isConnected()) {
         return false;
     }
-    if (tripLevel >= 1)
-    {
+    if (tripLevel >= 1) {
         if (std::abs(linkInfo.theta1) > maxAngle) {
             disconnect();
             return true;
@@ -844,10 +841,8 @@ bool acLine::testAndTrip(int tripLevel)
             return true;
         }
     }
-    if (tripLevel >= 2)
-    {
-        if (checkFlag(angle_slip_on_test))
-        {
+    if (tripLevel >= 2) {
+        if (checkFlag(angle_slip_on_test)) {
             disconnect();
             return true;
         }
@@ -939,13 +934,10 @@ void acLine::loadLinkInfo(const stateData& sD, const solverMode& sMode)
     linkInfo.v2 = B2->getVoltage(sD, sMode);
 
     linkInfo.theta1 = B1->getAngle(sD, sMode) - B2->getAngle(sD, sMode) - tapAngle;
-    if (std::fabs(linkInfo.theta1) > kPI / 2.0)
-    {
-        if (isConnected())
-        {
+    if (std::fabs(linkInfo.theta1) > kPI / 2.0) {
+        if (isConnected()) {
             opFlags.set(angle_slip_on_test);
         }
-       
     }
     linkInfo.theta2 = -linkInfo.theta1;
     linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;

@@ -87,22 +87,24 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
         index_t nn = 0;
         gridBus* bus = Area->getBus(nn);
         while (bus != nullptr) {
-            fprintf(fp,
-                    "%d, %d, %d, \"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
-                    Area->getUserID(),
-                    bus->getUserID(),
+            fprintf(
+                fp,
+                "%d, %d, %d, \"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+                Area->getUserID(),
                 bus->getUserID(),
-                    bus->getName().c_str(),
-                    bus->getVoltage(),
-                    units::convert(bus->getAngle(), units::rad, units::deg),
-                    bus->getGenerationReal() * basePower,
-                    bus->getGenerationReactive() * basePower,
-                    bus->getLoadReal() * basePower,
-                    bus->getLoadReactive() * basePower,
-                    bus->getLinkReal() * basePower,
-                    bus->getLinkReactive() * basePower,
-                (bus->getGenerationReal()+bus->getLoadReal()+bus->getLinkReal())*basePower,
-                (bus->getGenerationReactive()+bus->getLoadReactive()+bus->getLinkReactive())*basePower);
+                bus->getUserID(),
+                bus->getName().c_str(),
+                bus->getVoltage(),
+                units::convert(bus->getAngle(), units::rad, units::deg),
+                bus->getGenerationReal() * basePower,
+                bus->getGenerationReactive() * basePower,
+                bus->getLoadReal() * basePower,
+                bus->getLoadReactive() * basePower,
+                bus->getLinkReal() * basePower,
+                bus->getLinkReactive() * basePower,
+                (bus->getGenerationReal() + bus->getLoadReal() + bus->getLinkReal()) * basePower,
+                (bus->getGenerationReactive() + bus->getLoadReactive() + bus->getLinkReactive()) *
+                    basePower);
 
             ++nn;
             bus = Area->getBus(nn);
@@ -115,22 +117,24 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
     gridBus* bus = gds->getBus(nn);
     while (bus != nullptr) {
         bus->updateLocalCache();
-        fprintf(fp,
-                "%d, %d, %d,\"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
-                1,
-                bus->locIndex + 1,
+        fprintf(
+            fp,
+            "%d, %d, %d,\"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
+            1,
+            bus->locIndex + 1,
             bus->getUserID(),
-                bus->getName().c_str(),
-                bus->getVoltage(),
-                units::convert(bus->getAngle(), units::rad, units::deg),
-                bus->getGenerationReal() * basePower,
-                bus->getGenerationReactive() * basePower,
-                bus->getLoadReal() * basePower,
-                bus->getLoadReactive() * basePower,
-                bus->getLinkReal() * basePower,
-                bus->getLinkReactive() * basePower,
-            (bus->getGenerationReal()+bus->getLoadReal()+bus->getLinkReal())*basePower,
-            (bus->getGenerationReactive()+bus->getLoadReactive()+bus->getLinkReactive())*basePower);
+            bus->getName().c_str(),
+            bus->getVoltage(),
+            units::convert(bus->getAngle(), units::rad, units::deg),
+            bus->getGenerationReal() * basePower,
+            bus->getGenerationReactive() * basePower,
+            bus->getLoadReal() * basePower,
+            bus->getLoadReactive() * basePower,
+            bus->getLinkReal() * basePower,
+            bus->getLinkReactive() * basePower,
+            (bus->getGenerationReal() + bus->getLoadReal() + bus->getLinkReal()) * basePower,
+            (bus->getGenerationReactive() + bus->getLoadReactive() + bus->getLinkReactive()) *
+                basePower);
 
         ++nn;
         bus = gds->getBus(nn);
@@ -1132,81 +1136,69 @@ void saveJacobian(gridDynSimulation* gds, const std::string& fileName, const sol
 }
 
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,
-                           const std::string& fileName,int count)
+                           const std::string& fileName,
+                           int count)
 {
     if (contList.empty()) {
         return;
     }
     std::ofstream bFile(fileName.c_str(), std::ios::out);
-    int index=0;
-    while (!contList[index])
-    {
+    int index = 0;
+    while (!contList[index]) {
         ++index;
     }
     while (!contList[index]->isFinished()) {
         contList[index]->wait();
     }
-    bool simplified=(contList[index]->simplifiedOutput);
+    bool simplified = (contList[index]->simplifiedOutput);
 
     bFile << contList[index]->generateHeader() << "\n";
 
     std::vector<std::shared_ptr<Contingency>> timedoutList;
     int ccnt{0};
     for (auto& cont : contList) {
-        if (!cont)
-        {
+        if (!cont) {
             continue;
         }
         while (!cont->isFinished()) {
-            auto res=cont->wait_for(std::chrono::milliseconds(5000));
-            if (res == std::future_status::timeout)
-            {
+            auto res = cont->wait_for(std::chrono::milliseconds(5000));
+            if (res == std::future_status::timeout) {
                 timedoutList.push_back(cont);
                 break;
             }
         }
-        if (!cont->isFinished())
-        {
+        if (!cont->isFinished()) {
             continue;
         }
-        if (simplified)
-        {
+        if (simplified) {
             bFile << cont->generateViolationsOutputLine() << "\n";
-        }
-        else
-        {
+        } else {
             bFile << cont->generateFullOutputLine() << "\n";
         }
-        
+
         ++ccnt;
-        if (count > 0 && ccnt > count)
-        {
+        if (count > 0 && ccnt > count) {
             break;
         }
     }
-    if (ccnt<count && !timedoutList.empty())
-    {
+    if (ccnt < count && !timedoutList.empty()) {
         for (auto& cont : timedoutList) {
             while (!cont->isFinished()) {
-                auto res=cont->wait_for(std::chrono::milliseconds(30000));
-                if (res == std::future_status::timeout)
-                {
-                    std::cout<<cont->generateContingencyString()<<" ERROR contingency timed out\n";
+                auto res = cont->wait_for(std::chrono::milliseconds(30000));
+                if (res == std::future_status::timeout) {
+                    std::cout << cont->generateContingencyString()
+                              << " ERROR contingency timed out\n";
                     continue;
                 }
             }
-            if (simplified)
-            {
+            if (simplified) {
                 bFile << cont->generateViolationsOutputLine() << "\n";
-            }
-            else
-            {
+            } else {
                 bFile << cont->generateFullOutputLine() << "\n";
             }
 
             ++ccnt;
-            if (count > 0 && ccnt > count)
-            {
+            if (count > 0 && ccnt > count) {
                 break;
             }
         }

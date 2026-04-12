@@ -51,7 +51,19 @@ class Violation {
 
 class Event;
 
-enum class contingency_mode_t { N_1, N_1_1, N_2, N_2_LINE, N_3_LINE, line, gen, load, bus, custom, unknown };
+enum class contingency_mode_t {
+    N_1,
+    N_1_1,
+    N_2,
+    N_2_LINE,
+    N_3_LINE,
+    line,
+    gen,
+    load,
+    bus,
+    custom,
+    unknown
+};
 
 class Contingency;
 /** convert a string to a contingency mode*/
@@ -63,7 +75,7 @@ class extraContingencyInfo {
     double cutoff{0.0};  //!< the threshold level to trigger
     double delta{0.0};  //!< the change in data
     int stage{0};  //!< which stage should the contingency execute in
-    bool simplified{false};  //!< indicator that should use simplifed output
+    bool simplified{false};  //!< indicator that should use simplified output
     extraContingencyInfo() = default;
 };
 
@@ -82,27 +94,26 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     std::atomic<bool> completed{false};  //!< boolean indicator if the contingency was run
 
     std::vector<Violation> Violations;  //!< the resulting violations
-    double PI{ 0.0 };  //!< performance index score
-    double lowV{ 0.0 };  //!< minimum voltage
+    double PI{0.0};  //!< performance index score
+    double lowV{0.0};  //!< minimum voltage
     std::vector<double> busVoltages;  //!< vector of bus voltages
     std::vector<double> busAngles;  //!< vector of bus Angles
     std::vector<double> Lineflows;  //!< vector of transmission line flows
     double preEventLoad{0.0};
-    double preContingencyLoad{0.0}; //!< storage for original load to detect load loss
-    double contingencyLoad{ 0.0 }; //!< the storage for the final load
+    double preContingencyLoad{0.0};  //!< storage for original load to detect load loss
+    double contingencyLoad{0.0};  //!< the storage for the final load
     double preEventGen{0.0};
-    double preContingencyGen{0.0}; //!< storage for original generation to detect generation loss
-    double contingencyGen{ 0.0 }; //!< the storage for the final generation
-    int islands{0}; //number of islands in the output
+    double preContingencyGen{0.0};  //!< storage for original generation to detect generation loss
+    double contingencyGen{0.0};  //!< the storage for the final generation
+    int islands{0};  // number of islands in the output
   protected:
     gridDynSimulation* gds = nullptr;  //!< master simulation object
     std::promise<int> promise_val;  //!< paired with future for asynchronous operation
     /// the future object to contain the data that will come upon execution
-    std::shared_future<int>
-        future_ret;
+    std::shared_future<int> future_ret;
     /// events that describe the contingency
-    std::vector<std::vector<std::shared_ptr<Event>>>
-        eventList;  
+    std::vector<std::vector<std::shared_ptr<Event>>> eventList;
+
   public:
     /** default constructor*/
     Contingency();
@@ -125,12 +136,12 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     void add(std::shared_ptr<Event> ge, index_t stage = 0);
 
     /** merge two contingencies */
-    void merge(const Contingency &c2,index_t stage=0);
+    void merge(const Contingency& c2, index_t stage = 0);
     /**
     merge two contingencies if they are unige
     @return true if they were merged
     */
-    bool mergeIfUnique(const Contingency &c2, index_t stage=0);
+    bool mergeIfUnique(const Contingency& c2, index_t stage = 0);
 
     /** generate a header string for a csv file including the data field names this
     @details this header line would be general to all similar contingencies
@@ -138,7 +149,7 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     std::string generateHeader() const;
 
     /** generate the name and contingency as a string
-    */
+     */
     std::string generateContingencyString() const;
 
     /** generate an output line for a csv file containing the contingency result data and any
@@ -156,8 +167,10 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
     void reset();
     /** wait for the contingency to finish executing*/
     void wait() const;
-    /** Waits for the result to become available. Blocks until specified timeout_duration has elapsed or the result becomes available, whichever comes first. The return value identifies the state of the result.
-    */
+    /** Waits for the result to become available. Blocks until specified timeout_duration has
+     * elapsed or the result becomes available, whichever comes first. The return value identifies
+     * the state of the result.
+     */
     std::future_status wait_for(std::chrono::milliseconds waitTime) const;
 
     coreObject* getObject() const override;
@@ -179,7 +192,8 @@ class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterf
 std::vector<std::shared_ptr<Contingency>>
     buildContingencyList(gridDynSimulation* gds,
                          const std::string& contMode,
-                         const extraContingencyInfo& info = emptyExtraInfo, int skip=0);
+                         const extraContingencyInfo& info = emptyExtraInfo,
+                         int skip = 0);
 
 /** @brief add a list of contingencies to an existing list of contingencies
  *@param[in] gds the simulation root object
@@ -192,7 +206,8 @@ std::vector<std::shared_ptr<Contingency>>
 size_t buildContingencyList(gridDynSimulation* gds,
                             contingency_mode_t cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
-                            const extraContingencyInfo& info = emptyExtraInfo,    int skip=0);
+                            const extraContingencyInfo& info = emptyExtraInfo,
+                            int skip = 0);
 
 /** @brief perform a contingency analysis
 @param[in] contList the list of specific contingencies to test
@@ -200,6 +215,8 @@ size_t buildContingencyList(gridDynSimulation* gds,
 @param[in] count the number of contingencies to run, 0 means all
 */
 void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
-                            const std::string& output, int count1=0, int count2=0);
+                            const std::string& output,
+                            int count1 = 0,
+                            int count2 = 0);
 
 }  // namespace griddyn

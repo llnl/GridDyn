@@ -43,8 +43,7 @@ void readEventElement(std::shared_ptr<readerElement>& aP,
                       coreObject* obj)
 {
     if (aP->getName() != "event") {
-        if (aP->getName() != "scenario")
-        {
+        if (aP->getName() != "scenario") {
             gdEI.type = aP->getName();
         }
     }
@@ -95,11 +94,8 @@ void readEventElement(std::shared_ptr<readerElement>& aP,
     field = getElementFieldOptions(aP, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
         gdEI.time = gmlc::utilities::str2vector<coreTime>(ri.checkDefines(field), negTime);
-    }
-    else
-    {
-        if (gdEI.time.empty() && aP->getName() == "scenario")
-        {
+    } else {
+        if (gdEI.time.empty() && aP->getName() == "scenario") {
             gdEI.time.push_back(-1.0);
         }
     }

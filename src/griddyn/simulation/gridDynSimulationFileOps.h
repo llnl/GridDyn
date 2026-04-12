@@ -241,6 +241,7 @@ class Contingency;
 @param[in] count the number of contingencies to save
 */
 void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& contList,
-                           const std::string& fileName, int count=0);
+                           const std::string& fileName,
+                           int count = 0);
 
 }  // namespace griddyn

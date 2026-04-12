@@ -47,13 +47,11 @@ int gridDynSimulation::powerflow()
     auto pFlowData = getSolverInterface(sm);
     // Create the error recovery object to use if necessary
     powerFlowErrorRecovery pfer(this, pFlowData);
-    
-    if (pFlowData->size() >
-        0)  
-    {
+
+    if (pFlowData->size() > 0) {
         // handle the condition when all buses are swing buses hence nothing to solve
         power_iteration_count = 0;
-        count_t rebalance_count{ 0 };
+        count_t rebalance_count{0};
         do  // outer power distribution loop
         {
             if (hasPowerAdjustments) {
@@ -87,8 +85,7 @@ int gridDynSimulation::powerflow()
                     }
                     auto prc = pfer.attemptFix(retval);
                     if (prc == powerFlowErrorRecovery::recovery_return_codes::out_of_options) {
-                        if (tripSlippedLines()>0)
-                        {
+                        if (tripSlippedLines() > 0) {
                             checkNetwork(network_check_type::full);
                             reInitpFlow(sm, change_code::jacobian_change);
                             if (hasPowerAdjustments) {
@@ -99,22 +96,17 @@ int gridDynSimulation::powerflow()
                             }
                             continue;
                         }
-                        if (!controlFlags[disable_automatic_load_loss])
-                        {
+                        if (!controlFlags[disable_automatic_load_loss]) {
                             ++rebalance_count;
-                            if (rebalance_count < 3)
-                            {
+                            if (rebalance_count < 3) {
                                 int check = rebalanceLoadGen();
-                                if (check == 0)
-                                {
+                                if (check == 0) {
                                     continue;
                                 }
                             }
-                            if (doAutomaticLoadLoss())
-                            {
+                            if (doAutomaticLoadLoss()) {
                                 continue;
                             }
-                            
                         }
 
                         LOG_ERROR("unable to solve power flow ||" +
@@ -348,7 +340,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
 
 bool gridDynSimulation::generatorAdjust(double adjustment)
 {
-    double availPower{ 0.0 };
+    double availPower{0.0};
     std::vector<double> avail;
     std::vector<gridBus*> gbusses;
     getBusVector(gbusses);
@@ -397,14 +389,12 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
 bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
 {
     double cPower = 0.0;
-    
-    
+
     auto pv = prevSlkGen.begin();
     for (auto& bus : slkBusses) {
         cPower -= (bus->getLinkReal() + bus->getLoadReal());
         // reset the slk generators to previous levels so the adjustments work properly
-        bus->set("p",
-                 -(*pv));  
+        bus->set("p", -(*pv));
         ++pv;
     }
 

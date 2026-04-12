@@ -6,11 +6,11 @@
 
 #include "../gridDynSimulation.h"
 
+#include "../Link.h"
 #include "../events/Event.h"
 #include "../events/eventQueue.h"
 #include "../events/parameterOperator.h"
 #include "../gridBus.h"
-#include "../Link.h"
 #include "../loads/gridLabDLoad.h"
 #include "../solvers/solverInterface.h"
 #include "contingency.h"
@@ -133,10 +133,8 @@ int gridDynSimulation::tripSlippedLines()
     lineTest.reserve(linkCount);
     getLinkVector(lineTest);
     int disconnectCount{0};
-    for (auto& line : lineTest)
-    {
-        if (line->testAndTrip(2))
-        {
+    for (auto& line : lineTest) {
+        if (line->testAndTrip(2)) {
             ++disconnectCount;
         }
     }
@@ -150,37 +148,29 @@ int gridDynSimulation::rebalanceLoadGen()
     getBusVector(bnetwork);
     double totalLoad{0.0};
     double totalGen{0.0};
-    int maxNetwork{ 1 };
-    int currentNetwork{ 1 };
+    int maxNetwork{1};
+    int currentNetwork{1};
     for (auto& bus : bnetwork) {
-        if (bus->isConnected()  && bus->isEnabled()) {
+        if (bus->isConnected() && bus->isEnabled()) {
             if (bus->Network == currentNetwork) {
                 totalLoad += bus->getLoadReal();
                 totalGen += bus->getGenerationReal();
+            } else if (bus->Network > maxNetwork) {
+                maxNetwork = bus->Network;
             }
-            else if (bus->Network>maxNetwork)
-            {
-                maxNetwork=bus->Network;
-            }
+        } else {
+            bus->Network = 8;
         }
-        else
-        {
-            bus->Network=8;
-        }
-        
     }
-    totalLoad*=1.04;
-    if (std::abs(totalLoad + totalGen) > 0.04)
-    {
-        if (generatorAdjust(totalLoad + totalGen))
-        {
+    totalLoad *= 1.04;
+    if (std::abs(totalLoad + totalGen) > 0.04) {
+        if (generatorAdjust(totalLoad + totalGen)) {
             return 0;
         }
     }
-    
+
     return -1;
 }
-
 
 bool gridDynSimulation::doAutomaticLoadLoss()
 {
@@ -188,79 +178,58 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
     bool modified{false};
-    for (auto& bus : bnetwork)
-    {
-        if (bus->getLoadReal() != 0.0)
-        {
-            if (bus->getVoltage() < 0.95)
-            {
+    for (auto& bus : bnetwork) {
+        if (bus->getLoadReal() != 0.0) {
+            if (bus->getVoltage() < 0.95) {
                 int ii{0};
-                do
-                {
-                    auto *ld=bus->getLoad(ii);
-                    if (ld != nullptr)
-                    {
-                        if (ld->isConnected())
-                        {
-                            modified=true;
+                do {
+                    auto* ld = bus->getLoad(ii);
+                    if (ld != nullptr) {
+                        if (ld->isConnected()) {
+                            modified = true;
                             ld->disconnect();
                             break;
                         }
                         ++ii;
-                    }
-                    else
-                    {
+                    } else {
                         break;
                     }
-                }
-                while (true);
+                } while (true);
             }
-
         }
     }
 
-    if (!modified)
-    {
-        gridBus* mxBus{ nullptr };
+    if (!modified) {
+        gridBus* mxBus{nullptr};
         double maxDiff{0.0};
-        for (auto& bus : bnetwork)
-        {
-            auto ldp=bus->getLoadReal();
-            if (ldp == 0.0)
-            {
+        for (auto& bus : bnetwork) {
+            auto ldp = bus->getLoadReal();
+            if (ldp == 0.0) {
                 continue;
             }
-            auto genp=bus->getGenerationReal();
-            auto lnkp=bus->getLinkReal();
-            auto sum=lnkp+ldp+genp;
-            if (sum > maxDiff)
-            {
-                mxBus=bus;
-                maxDiff=sum;
+            auto genp = bus->getGenerationReal();
+            auto lnkp = bus->getLinkReal();
+            auto sum = lnkp + ldp + genp;
+            if (sum > maxDiff) {
+                mxBus = bus;
+                maxDiff = sum;
             }
         }
-        if (maxDiff>0.01)
-        {
-            int ii{ 0 };
-            do
-            {
+        if (maxDiff > 0.01) {
+            int ii{0};
+            do {
                 auto* ld = mxBus->getLoad(ii);
-                if (ld != nullptr)
-                {
-                    if (ld->isConnected())
-                    {
+                if (ld != nullptr) {
+                    if (ld->isConnected()) {
                         modified = true;
                         ld->disconnect();
                         break;
                     }
                     ++ii;
-                }
-                else
-                {
+                } else {
                     break;
                 }
             } while (true);
-
         }
     }
     return modified;
@@ -314,7 +283,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         }
     }
     // check to make sure we have a swing bus for each network
-    networkCount=networkNum;
+    networkCount = networkNum;
     for (int32_t nn = 1; nn <= networkNum; nn++) {
         bool slkfnd = false, pvfnd = false, afixfnd = false;
         for (auto& bn : slkBusses) {
@@ -621,13 +590,12 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
             break;
         case gridDynAction::gd_action_t::contingency: {
-            auto info=emptyExtraInfo;
-            
-            if (cmd.flag == 1)
-            {
-                info.simplified=true;
+            auto info = emptyExtraInfo;
+
+            if (cmd.flag == 1) {
+                info.simplified = true;
             }
-            auto contingencies = buildContingencyList(this, cmd.string1,info);
+            auto contingencies = buildContingencyList(this, cmd.string1, info);
             if (!contingencies.empty()) {
                 runContingencyAnalysis(contingencies, cmd.string2, cmd.val_int1, cmd.val_int2);
                 out = FUNCTION_EXECUTION_SUCCESS;
@@ -1122,12 +1090,10 @@ double gridDynSimulation::get(const std::string& param, units::unit unitType) co
         val = nonZeros(*defDAEMode);
     } else if (param == "residcount") {
         val = residCount;
-    }
-    else if (param == "haltcount") {
+    } else if (param == "haltcount") {
         val = haltCount;
-    }else if (param=="islands"||param=="networkcount"||param=="networks")
-    {
-        val=networkCount;
+    } else if (param == "islands" || param == "networkcount" || param == "networks") {
+        val = networkCount;
     } else if (param == "iterationcount") {
         fval = getSolverInterface(*defPowerFlowMode)->get("iterationcount");
     } else if ((param == "jacobiancallcount") || (param == "jaccallcount")) {

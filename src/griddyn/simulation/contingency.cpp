@@ -13,8 +13,8 @@
 #include <map>
 #include <memory>
 #include <sstream>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 namespace griddyn {
@@ -57,51 +57,32 @@ std::string Violation::to_string() const
     return violationString;
 }
 
-static const std::unordered_map<std::string, contingency_mode_t> contMap
-{
-    {"n-1",contingency_mode_t::N_1},
-    {"N-1",contingency_mode_t::N_1},
-    {"n_1",contingency_mode_t::N_1},
-    {"N_1",contingency_mode_t::N_1},
-    {"n-1-1",contingency_mode_t::N_1_1},
-    {"N-1-1",contingency_mode_t::N_1_1},
-    {"n_1_1",contingency_mode_t::N_1_1},
-    {"N_1_1",contingency_mode_t::N_1_1},
-    {"n-2",contingency_mode_t::N_2},
-    {"N-2",contingency_mode_t::N_2},
-    {"n_2",contingency_mode_t::N_2},
-    {"N_2",contingency_mode_t::N_2},
-    {"n-2-line",contingency_mode_t::N_2_LINE},
-    {"N-2-LINE",contingency_mode_t::N_2_LINE},
-    {"n_2_line",contingency_mode_t::N_2_LINE},
-    {"N_2_LINE",contingency_mode_t::N_2_LINE},
-    {"N_2_Line",contingency_mode_t::N_2_LINE},
-    {"n-3-line",contingency_mode_t::N_3_LINE},
-    {"N-3-LINE",contingency_mode_t::N_3_LINE},
-    {"n_3_line",contingency_mode_t::N_3_LINE},
-    {"N_3_LINE",contingency_mode_t::N_3_LINE},
-    {"N_3_Line",contingency_mode_t::N_3_LINE},
-    {"line",contingency_mode_t::line},
-    {"Line",contingency_mode_t::line},
-    {"LINE",contingency_mode_t::line},
-    {"gen",contingency_mode_t::gen},
-    {"Gen",contingency_mode_t::gen},
-    {"GEN",contingency_mode_t::gen},
-    {"bus",contingency_mode_t::bus},
-    {"Bus",contingency_mode_t::bus},
-    {"BUS",contingency_mode_t::bus},
-    {"load",contingency_mode_t::load},
-    {"Load",contingency_mode_t::load},
-    {"LOAD",contingency_mode_t::load},
-    {"custom",contingency_mode_t::custom},
-    {"Custom",contingency_mode_t::custom},
-    {"CUSTOM",contingency_mode_t::custom},
+static const std::unordered_map<std::string, contingency_mode_t> contMap{
+    {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
+    {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
+    {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
+    {"n_1_1", contingency_mode_t::N_1_1},       {"N_1_1", contingency_mode_t::N_1_1},
+    {"n-2", contingency_mode_t::N_2},           {"N-2", contingency_mode_t::N_2},
+    {"n_2", contingency_mode_t::N_2},           {"N_2", contingency_mode_t::N_2},
+    {"n-2-line", contingency_mode_t::N_2_LINE}, {"N-2-LINE", contingency_mode_t::N_2_LINE},
+    {"n_2_line", contingency_mode_t::N_2_LINE}, {"N_2_LINE", contingency_mode_t::N_2_LINE},
+    {"N_2_Line", contingency_mode_t::N_2_LINE}, {"n-3-line", contingency_mode_t::N_3_LINE},
+    {"N-3-LINE", contingency_mode_t::N_3_LINE}, {"n_3_line", contingency_mode_t::N_3_LINE},
+    {"N_3_LINE", contingency_mode_t::N_3_LINE}, {"N_3_Line", contingency_mode_t::N_3_LINE},
+    {"line", contingency_mode_t::line},         {"Line", contingency_mode_t::line},
+    {"LINE", contingency_mode_t::line},         {"gen", contingency_mode_t::gen},
+    {"Gen", contingency_mode_t::gen},           {"GEN", contingency_mode_t::gen},
+    {"bus", contingency_mode_t::bus},           {"Bus", contingency_mode_t::bus},
+    {"BUS", contingency_mode_t::bus},           {"load", contingency_mode_t::load},
+    {"Load", contingency_mode_t::load},         {"LOAD", contingency_mode_t::load},
+    {"custom", contingency_mode_t::custom},     {"Custom", contingency_mode_t::custom},
+    {"CUSTOM", contingency_mode_t::custom},
 };
 
 contingency_mode_t getContingencyMode(const std::string& mode)
 {
-    auto rec=contMap.find(mode);
-    return (rec != contMap.end())?rec->second:contingency_mode_t::unknown;
+    auto rec = contMap.find(mode);
+    return (rec != contMap.end()) ? rec->second : contingency_mode_t::unknown;
 }
 
 std::atomic_int Contingency::contingencyCount{0};
@@ -127,13 +108,12 @@ void Contingency::execute()
         std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
     contSim->set("printlevel", 0);
     int res = FUNCTION_EXECUTION_SUCCESS;
-    preEventLoad=contSim->getLoadReal();
-    preEventGen=contSim->getGenerationReal();
-    int stage=0;
+    preEventLoad = contSim->getLoadReal();
+    preEventGen = contSim->getGenerationReal();
+    int stage = 0;
     for (auto& evList : eventList) {
         for (auto& ev : evList) {
-            if (!ev)
-            {
+            if (!ev) {
                 continue;
             }
             ev->updateObject(contSim.get(), object_update_mode::match);
@@ -142,19 +122,18 @@ void Contingency::execute()
                 gds, object_update_mode::match);  // map the event back to the original simulation
         }
         contSim->pFlowInitialize();
-        if (stage == 0)
-        {
-            preContingencyLoad=contSim->getLoadReal();
-            preContingencyGen=contSim->getGenerationReal();
+        if (stage == 0) {
+            preContingencyLoad = contSim->getLoadReal();
+            preContingencyGen = contSim->getGenerationReal();
         }
         res = contSim->powerflow();
         ++stage;
     }
 
     if (res == FUNCTION_EXECUTION_SUCCESS) {
-        contingencyLoad=contSim->getLoadReal();
+        contingencyLoad = contSim->getLoadReal();
         contingencyGen = contSim->getGenerationReal();
-        islands=contSim->get("islands");
+        islands = contSim->get("islands");
         contSim->pFlowCheck(Violations);
         contSim->getVoltage(busVoltages);
         contSim->getAngle(busAngles);
@@ -202,14 +181,11 @@ void Contingency::add(std::shared_ptr<Event> ge, index_t stage)
     eventList[stage].push_back(std::move(ge));
 }
 
-
-void Contingency::merge(const Contingency &c2,index_t stage)
+void Contingency::merge(const Contingency& c2, index_t stage)
 {
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
-    for (const auto& evlist : c2.eventList)
-    {
-        for (const auto& ev : evlist)
-        {
+    for (const auto& evlist : c2.eventList) {
+        for (const auto& ev : evlist) {
             eventList[stage].push_back(ev);
         }
     }
@@ -218,29 +194,22 @@ void Contingency::merge(const Contingency &c2,index_t stage)
 bool Contingency::mergeIfUnique(const Contingency& c2, index_t stage)
 {
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
-    bool newEvent=false;
-    for (const auto& evlist : c2.eventList)
-    {
-        for (const auto& ev : evlist)
-        {
-            bool matched=false;
-            for (const auto& compEV : eventList[stage])
-            {
-                if (!compEV)
-                {
+    bool newEvent = false;
+    for (const auto& evlist : c2.eventList) {
+        for (const auto& ev : evlist) {
+            bool matched = false;
+            for (const auto& compEV : eventList[stage]) {
+                if (!compEV) {
                     continue;
                 }
-                if (*ev == *compEV)
-                {
-                    matched=true;
+                if (*ev == *compEV) {
+                    matched = true;
                 }
             }
-            if (!matched)
-            {
-                newEvent=true;
+            if (!matched) {
+                newEvent = true;
                 eventList[stage].push_back(ev);
             }
-            
         }
     }
     return newEvent;
@@ -248,7 +217,7 @@ bool Contingency::mergeIfUnique(const Contingency& c2, index_t stage)
 
 std::string Contingency::generateOutputLine() const
 {
-    return (simplifiedOutput)?generateViolationsOutputLine():generateFullOutputLine();
+    return (simplifiedOutput) ? generateViolationsOutputLine() : generateFullOutputLine();
 }
 
 std::string Contingency::generateHeader() const
@@ -256,8 +225,7 @@ std::string Contingency::generateHeader() const
     std::stringstream ss;
     ss << "index, name, event";
 
-    if (!simplifiedOutput)
-    {
+    if (!simplifiedOutput) {
         stringVec busNames;
         gds->getBusName(busNames);
         for (auto& bn : busNames) {
@@ -283,8 +251,7 @@ std::string Contingency::generateContingencyString() const
     std::stringstream ss;
     ss << id << ", " << name << commaQuote;
     for (auto& ev : eventList[0]) {
-        if (ev)
-        {
+        if (ev) {
             ss << ev->to_string() << ';';
         }
     }
@@ -297,8 +264,7 @@ std::string Contingency::generateFullOutputLine() const
     std::stringstream ss;
     ss << id << ", " << name << commaQuote;
     for (auto& ev : eventList[0]) {
-        if (ev)
-        {
+        if (ev) {
             ss << ev->to_string() << ';';
         }
     }
@@ -317,12 +283,12 @@ std::string Contingency::generateFullOutputLine() const
     for (auto& ln : Lineflows) {
         ss << ", " << ln;
     }
-    ss<<", "<<lowV;
-    ss<<", "<<islands;
-    ss<<", "<<preEventLoad-contingencyLoad;
-    ss<<", "<<preContingencyLoad-contingencyLoad;
-    ss<<", "<<preEventGen-contingencyGen;
-    ss<<", "<<preContingencyGen-contingencyGen;
+    ss << ", " << lowV;
+    ss << ", " << islands;
+    ss << ", " << preEventLoad - contingencyLoad;
+    ss << ", " << preContingencyLoad - contingencyLoad;
+    ss << ", " << preEventGen - contingencyGen;
+    ss << ", " << preContingencyGen - contingencyGen;
     ss << commaQuote;
     for (auto& viol : Violations) {
         ss << viol.to_string() << ';';
@@ -336,18 +302,16 @@ std::string Contingency::generateViolationsOutputLine() const
     std::stringstream ss;
     ss << id << ", " << name << commaQuote;
     for (auto& ev : eventList[0]) {
-        if (ev)
-        {
+        if (ev) {
             ss << ev->to_string() << ';';
         }
-        
     }
-    ss<<", "<<lowV;
-    ss<<", "<<islands;
-    ss<<", "<<preEventLoad-contingencyLoad;
-    ss<<", "<<preContingencyLoad-contingencyLoad;
-    ss<<", "<<preEventGen-contingencyGen;
-    ss<<", "<<preContingencyGen-contingencyGen;
+    ss << ", " << lowV;
+    ss << ", " << islands;
+    ss << ", " << preEventLoad - contingencyLoad;
+    ss << ", " << preContingencyLoad - contingencyLoad;
+    ss << ", " << preEventGen - contingencyGen;
+    ss << ", " << preContingencyGen - contingencyGen;
     ss << commaQuote;
     for (auto& viol : Violations) {
         ss << viol.to_string() << ';';
@@ -396,8 +360,7 @@ std::shared_ptr<Contingency> Contingency::clone(std::shared_ptr<Contingency> con
     newCont->name = name;
     for (int kk = 0; kk < static_cast<int>(eventList.size()); ++kk) {
         for (auto& evnt : eventList[kk]) {
-            if (evnt)
-            {
+            if (evnt) {
                 newCont->add(evnt->clone(), kk);
             }
         }

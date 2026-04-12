@@ -117,7 +117,6 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     virtual coreObject* getObject() const override;
     virtual void getObjects(std::vector<coreObject*>& objects) const override;
 
-    
   protected:
     /** update the target and field of an event*/
     void loadField(coreObject* searchObj, const std::string& newField);
@@ -151,7 +150,7 @@ std::unique_ptr<Event> make_event(const std::string& eventString, coreObject* ro
 /** equality operator*/
 inline bool operator==(const Event& event1, const Event& event2)
 {
-    return event1.to_string()==event2.to_string();
+    return event1.to_string() == event2.to_string();
 }
 
 }  // namespace griddyn

@@ -43,7 +43,7 @@ int gridDynSimulation::dynInitialize(coreTime tStart)
     if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[power_flow_only]) {
         return retval;
     }
-    
+
     auto dynData = getSolverInterface(tempSm);
     const solverMode& sm = dynData->getSolverMode();
     if (defaultDynamicSolverMethod == dynamic_solver_methods::partitioned) {

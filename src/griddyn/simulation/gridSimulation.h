@@ -88,7 +88,8 @@ class gridSimulation: public Area {
         stateRecorder;  //!< a recorder for recording the state on a periodic basis
     gridState_t pState =
         gridState_t::STARTUP;  //!< the system state keeps track of which state the solver is in
-    int errorCode{GS_NO_ERROR };  //!< for storage of an ERROR code if one exists (intended to be expandable to
+    int errorCode{
+        GS_NO_ERROR};  //!< for storage of an ERROR code if one exists (intended to be expandable to
     //! children objects so using int instead of enum)
     count_t alertCount = 0;  //!< count the number of alerts
     count_t warnCount = 0;  //!<  count the number of warnings from objects

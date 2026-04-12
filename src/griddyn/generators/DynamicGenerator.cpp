@@ -703,12 +703,9 @@ count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& s
         }
         return 0;
     }
-    if (genModel != nullptr)
-    {
+    if (genModel != nullptr) {
         return 1 + genModel->outputDependencyCount(num, sMode);
-    }
-    else
-    {
+    } else {
         if (stateSize(sMode) > 0) {
             return Generator::outputDependencyCount(num, sMode);
         }

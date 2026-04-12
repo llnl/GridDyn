@@ -2084,8 +2084,7 @@ void acBus::converge(coreTime time,
                 computeDerivatives(sD, sMode);
                 double DP = S.sumP();
                 double DQ = S.sumQ();
-                if (v1 <= 0.0 && iteration == 6)
-                {
+                if (v1 <= 0.0 && iteration == 6) {
                     break;
                 }
                 double cerr1 = DP / v1;
@@ -2105,8 +2104,7 @@ void acBus::converge(coreTime time,
                                 dV = -0.1;
                                 forceUp = true;
                                 ++forceCount;
-                                if (forceCount < 8)
-                                {
+                                if (forceCount < 8) {
                                     iteration = (iteration > 5) ? 5 : iteration;
                                 }
                             } else {

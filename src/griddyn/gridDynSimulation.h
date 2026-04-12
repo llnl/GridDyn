@@ -58,7 +58,7 @@ enum gd_flags {
     droop_power_flow = 53,
     save_power_flow_input_data = 54,
     power_flow_input_saved = 55,
-    disable_automatic_load_loss=56,
+    disable_automatic_load_loss = 56,
 };
 
 // for the status flags bitset

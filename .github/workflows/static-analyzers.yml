@@ -19,11 +19,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    - name: Install SuiteSparse
-      shell: bash
-      run: |
-        apt-get update
-        apt-get install -y libsuitesparse-dev
     - name: Run clang-tidy on changed files
       shell: bash
       run: ./.github/actions/run-clang-tidy-pr.sh

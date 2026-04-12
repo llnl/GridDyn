@@ -403,11 +403,13 @@ macro(SuiteSparse_FIND_COMPONENTS)
             set(SuiteSparse_${suitesparseCompUC}_FOUND OFF)
         else()
             set(SuiteSparse_${suitesparseCompUC}_FOUND ON)
-            set_target_properties(
-                ${SuiteSparseNameSpace}::${suitesparseCompLC}
-                PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
-                           "${SuiteSparse_${suitesparseCompUC}_INCLUDE_DIR}"
-            )
+            if(SuiteSparse_${suitesparseCompUC}_INCLUDE_DIR)
+                set_target_properties(
+                    ${SuiteSparseNameSpace}::${suitesparseCompLC}
+                    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+                               "${SuiteSparse_${suitesparseCompUC}_INCLUDE_DIR}"
+                )
+            endif()
         endif()
 
         # if one or both (include dir or filepath lib), then we provide a new cmake cache variable

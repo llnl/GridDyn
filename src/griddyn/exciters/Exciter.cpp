@@ -5,6 +5,7 @@
  */
 
 #include "../Exciter.h"
+
 #include "../Generator.h"
 #include "../gridPrimary.h"
 #include "ExciterDC1A.h"
@@ -23,18 +24,18 @@
 
 namespace griddyn {
 namespace exciters {
-namespace {
-    // setup the object factories
-    static childTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
-    static childTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
-    static childTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
-    static typeFactory<Exciter> gfeDefault(  // NOLINT
-        "exciter",
-        stringVec{"basic", "fast"},
-        "type1");  // setup type 1 as the default
-    static childTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
-    static childTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
-}  // namespace
+    namespace {
+        // setup the object factories
+        static childTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
+        static childTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+        static childTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
+        static typeFactory<Exciter> gfeDefault(  // NOLINT
+            "exciter",
+            stringVec{"basic", "fast"},
+            "type1");  // setup type 1 as the default
+        static childTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
+        static childTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
+    }  // namespace
 }  // namespace exciters
 
 Exciter::Exciter(const std::string& objName): gridSubModel(objName)

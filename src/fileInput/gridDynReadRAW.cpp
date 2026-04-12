@@ -1250,7 +1250,7 @@ int rawReadTX_v33(coreObject* parentObject,
                     [[maybe_unused]] auto tap5 = (bus2->getVoltage() / bus1->getVoltage());
                     [[maybe_unused]] auto tap6 = (bus2->getVoltage() / (vn2 / bv2));
                     [[maybe_unused]] auto tap7 = (bus2->getVoltage() / (vn1 / bv1));
-                    [[maybe_unused]]  auto tap8 = ((vn2 / bv2) / bus1->getVoltage());
+                    [[maybe_unused]] auto tap8 = ((vn2 / bv2) / bus1->getVoltage());
 
                     auto tap9 = (tap1 + tap3) / 2;
                     if (tap9 != 0) {

@@ -1,71 +1,90 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
 /*
-   * LLNS Copyright Start
- * Copyright (c) 2016, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department 
- * of Energy by Lawrence Livermore National Laboratory in part under 
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "gridDyn.h"
-#include "gridDynFileInput.h"
-#include "testHelper.h"
-#include "vectorOps.hpp"
+#include "../gtestHelper.h"
+#include "core/coreExceptions.h"
+#include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Link.h"
+#include "griddyn/gridBus.h"
 #include <cmath>
-//testP case for gridCoreObject object
-
+#include <gtest/gtest.h>
+#include <memory>
+#include <string>
+// testP case for coreObject object
 
 #define AREA_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/area_tests/"
 
-BOOST_FIXTURE_TEST_SUITE (area_tests, gridDynSimulationTestFixture)
+using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE (area_test1)
+class AreaTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(AreaTests, AreaTest1)
 {
-  std::string fname = std::string (AREA_TEST_DIRECTORY "area_test1.xml");
+    std::string fileName = std::string(AREA_TEST_DIRECTORY "area_test1.xml");
 
-  gds = (gridDynSimulation *)readSimXMLFile (fname);
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::STARTUP);
+    gds = readSimXMLFile(fileName);
+    requireState(gridDynSimulation::gridState_t::STARTUP);
 
-  gds->pFlowInitialize ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::INITIALIZED);
+    gds->pFlowInitialize();
+    requireState(gridDynSimulation::gridState_t::INITIALIZED);
 
-  int count;
-  count= gds->getInt ("totalareacount");
-  BOOST_CHECK_EQUAL (count, 1);
-  count=gds->getInt ("totalbuscount");
-  BOOST_CHECK_EQUAL (count, 9);
-  //check the linkcount
-  count=gds->getInt ("totallinkcount");
-  BOOST_CHECK_EQUAL (count, 9);
+    int count;
+    count = gds->getInt("totalareacount");
+    EXPECT_EQ(count, 1);
+    count = gds->getInt("totalbuscount");
+    EXPECT_EQ(count, 9);
+    // check the linkcount
+    count = gds->getInt("totallinkcount");
+    EXPECT_EQ(count, 9);
 
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
+    auto st = gds->getState();
 
-  auto st= gds->getState();
+    fileName = std::string(AREA_TEST_DIRECTORY "area_test0.xml");
 
+    gds2 = readSimXMLFile(fileName);
 
+    gds2->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  fname = std::string (AREA_TEST_DIRECTORY "area_test0.xml");
-
-
-  gds2 = (gridDynSimulation *)readSimXMLFile (fname);
-
-
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-
-
-  auto st2 = gds2->getState();
-  auto diffs = countDiffs(st, st2, 0.00001);
-  BOOST_CHECK(diffs == 0);
- 
+    auto st2 = gds2->getState();
+    auto diffs = gmlc::utilities::countDiffs(st, st2, 0.00001);
+    EXPECT_EQ(diffs, 0);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+TEST_F(AreaTests, AreaTestAdd)
+{
+    auto area = std::make_unique<Area>("area1");
+
+    auto bus1 = new gridBus("bus1");
+    try {
+        area->add(bus1);
+        area->add(bus1);
+    }
+    catch (...) {
+        FAIL();
+    }
+
+    auto bus2 = bus1->clone();
+    try {
+        area->add(bus2);
+        // this is testing failure
+        FAIL();
+    }
+    catch (const objectAddFailure& oaf) {
+        EXPECT_EQ(oaf.who(), "area1");
+    }
+    bus2->setName("bus2");
+    try {
+        area->add(bus2);
+        EXPECT_TRUE(isSameObject(bus2->getParent(), area.get()));
+    }
+    catch (...) {
+        FAIL();
+    }
+}

@@ -1,0 +1,25 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+level, dblevel, deadbandlevel & number & 0 & the output level while the input is inside the deadband\\
+deadband & number & 0 & \\
+db & number & 0 & \\
+deadbandhigh, dbhigh, high & number & -1e+48 & upper limit on the deadband\\
+deadbandlow, dblow, low & number & 1e+48 & lower deadband limit\\
+rampband, ramp, rampupband, rampup & number & 0 & ramp band on the up side\\
+rampdownband, rampdown & number & 0 & ramp band on the low side\\
+resetlevel & number & 0 & \\
+reset & number & 0 & \\
+resethigh & number & -1e+48 & the reset level to go off the deadband\\
+resetlow & number & 1e+48 & the reset level to go back in the deadband on the low side\\
+shifted & flag & 0 & \\
+unshifted & flag & 0 & \\
+no\_down\_deadband & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for deadbandBlock objects. See Table~\ref{table:basicBlock} for additional settable options through basicBlock}
+\label{table:deadbandBlock}
+\end{table}

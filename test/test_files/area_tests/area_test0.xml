@@ -55,7 +55,7 @@
    <bus name="bus9">
       <type>PQ</type>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus4" to="bus4">
       <b>0</b>
       <r>0</r>

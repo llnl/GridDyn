@@ -4,38 +4,38 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
+    <name>bus2</name>
      <!--<load name="load3" type="motor3">
        <a>0.13</a>
-	   <b>0.02</b>
-	   <c>0.024</c>
-	   <p>0.8</p>
-	   <h>0.3</h>
-	   <x1>0.15</x1>
-	   <xm>5</xm>
+       <b>0.02</b>
+       <c>0.024</c>
+       <p>0.8</p>
+       <h>0.3</h>
+       <x1>0.15</x1>
+       <xm>5</xm>
      </load>-->
-	 <load name="load3" type="motor3">
+     <load name="load3" type="motor3">
        <a>0.8</a>
-	   <b>0</b>
-	   <c>0</c>
-	   <p>0.8</p>
-	   <h>0.4</h>
-	   <x1>0.15</x1>
-	   <xm>5</xm>
-	   <event>
-	   <time>3,10,15</time>
-	   <field>a</field>
-	   <value>10,0.4,0.8</value>
-	   </event>
+       <b>0</b>
+       <c>0</c>
+       <p>0.8</p>
+       <h>0.4</h>
+       <x1>0.15</x1>
+       <xm>5</xm>
+       <event>
+       <time>3,10,15</time>
+       <field>a</field>
+       <value>10,0.4,0.8</value>
+       </event>
      </load>
    </bus>
  <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
       <x>0.015</x>
-	  
+
    </link>
    <basepower>100</basepower>
    <timestart>0</timestart>
@@ -44,5 +44,5 @@
     <recorder field="auto,bus2:loadreactive,bus2::load3:slip" period=0.01>
    <file>motorChange.dat</file>
    </recorder>
-   
+
 </griddyn>

@@ -3,20 +3,20 @@
 <griddyn name="input_tests" version="0.0.1">
   <bus name="bus1">
    <load>
-   <param name="P" value=0.4></param>
+   <param name="P" value="0.4"></param>
    <param field="q">0.3</param>
    <param field="ip" units="MW">55</param>
    <param>yq=0.11</param>
-   <param name="iq(MW)" value=32/>
+   <param name="iq(MW)" value="32"/>
    <yp>0.5</yp>
    </load>
-   
-    <load yq=0.74 >
+
+    <load yq="0.74" >
    <p units="puMW"> 0.31</p>
    <param>q(MW)=14.8</param>
-   <param name="yp" unit="MW" value=127/>
+   <param name="yp" unit="MW" value="127"/>
    </load>
-   <!--<param name="load#1:ip" value=0.145></param>-->
+   <!--<param name="load#1:ip" value="0.145"></param>-->
   </bus>
-  <!--<param name="bus1::load#1:iq" value=0.064></param>-->
+  <!--<param name="bus1::load#1:iq" value="0.064"></param>-->
 </griddyn>

@@ -6,7 +6,7 @@
       <voltage>1.04</voltage>
       <generator name="gen1">
           <P>0.7160</P>
-		  <dynmodel>typical</dynmodel>
+          <dynmodel>typical</dynmodel>
       </generator>
    </bus>
    <bus name="bus2">
@@ -15,7 +15,7 @@
       <voltage>1.025</voltage>
       <generator name="gen2">
          <P>1.63</P>
-		 <dynmodel>typical</dynmodel>
+         <dynmodel>typical</dynmodel>
       </generator>
    </bus>
    <bus name="bus3">
@@ -24,7 +24,7 @@
       <voltage>1.025</voltage>
       <generator name="gen3">
          <P>0.85</P>
-		 <dynmodel>typical</dynmodel>
+         <dynmodel>typical</dynmodel>
       </generator>
    </bus>
 
@@ -33,7 +33,7 @@
    </bus>
    <bus name="bus4dc">
       <type>dc</type>
-	  <bustype>slk</bustype>
+      <bustype>slk</bustype>
    </bus>
    <bus name="bus5dc">
       <type>dc</type>
@@ -65,7 +65,7 @@
    <bus name="bus9">
       <type>PQ</type>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus4" to="bus4">
       <b>0</b>
       <r>0</r>
@@ -75,29 +75,29 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus4dc" name="bus4_to_bus5" to="bus5dc">
-	  <type>dc</type>
+      <type>dc</type>
       <r>0.01</r>
       <x>0.085</x>
    </link>
    <link from="bus4" name="bus4rectifier" to="bus4dc">
-	  <type>rectifier</type>
+      <type>rectifier</type>
       <b>0</b>
       <r>0.00</r>
       <x>0.085</x>
-	  <pset>0.3</pset>
-	  <event>
-	  <t>21</t>
-	  <field>pset</field>
-	  <val>0.4</val>
-	  </event>
+      <pset>0.3</pset>
+      <event>
+      <t>21</t>
+      <field>pset</field>
+      <val>0.4</val>
+      </event>
    </link>
    <link from="bus5dc" name="bus5inverter" to="bus5">
-	  <type>inverter</type>
+      <type>inverter</type>
       <b>0</b>
       <r>0.00</r>
       <x>0.085</x>
    </link>
-  
+
    <link from="bus5" name="bus5_to_bus7" to="bus7">
       <b>0.306</b>
       <r>0.032</r>

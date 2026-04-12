@@ -17,8 +17,8 @@ function [num,txt,adata,total_rows]=sheetread(varargin)
 %the data in the cells
 % [num,txt,adata,total_rows]=sheetread(filename,<param>, <value>)
 % 'type' specify the type of the file as one of
-% 'xls','xlsx','csv','tsv','auto','','custom' otherise interpreted from the
-% file extention
+% 'xls','xlsx','csv','tsv','auto','','custom' otherwise interpreted from the
+% file extension
 % 'date_cols' can specify that specific columns should be written as a date
 % 'date_format' can specify the format for the dates (see mat datenum for
 % details
@@ -97,7 +97,7 @@ end
 end
 
 
-function [num,txt,adata,total_rows]=txtsheetread(fname,seperator,params)
+function [num,txt,adata,total_rows]=txtsheetread(fname,separator,params)
 
 fid=fopen(fname,'r');
 
@@ -116,7 +116,7 @@ end
 
 if (isempty(lupdate))||(finfo.datenum~=lupdate)
     regen=1;
-    
+
 end
 
 if (regen)
@@ -144,15 +144,15 @@ if (regen)
                         spcount=spcount+1;
                         if(m==1)
                             sp{spcount}='';
-                            
+
                         else
                             sp{spcount}=tline(cpos+1:cpos+1+m-2);
                         end
                         cpos=cpos+m+1;
-                        m=find((tline(cpos:end)==seperator),1,'first');
+                        m=find((tline(cpos:end)==separator),1,'first');
                         cpos=cpos+m;
                     else
-                        m=find((tline(cpos:end)==seperator),1,'first');
+                        m=find((tline(cpos:end)==separator),1,'first');
                         spcount=spcount+1;
                         if (m==1)
                             sp{spcount}='';
@@ -165,12 +165,12 @@ if (regen)
                 end
                 sp{end}=strtrim(sp{end});
             else
-                sp=regexp(tline,seperator,'split');
+                sp=regexp(tline,separator,'split');
                 sp{end}=strtrim(sp{end});
             end
             if (length(sp)>maxl)
                 maxl=length(sp);
-                
+
             end
             vals=cellfun(@str2double,sp);
             if (~all(isreal(vals)))
@@ -203,7 +203,7 @@ if (regen)
                     ind=s(end-(lcnt-n1000)+1);
                     n1000=n1000+1000;
                     lindex(n1000/1000+1,1)=n1000;
-                    lindex(n1000/1000+1,2)=ftell(fid)-dtnum+ind+1;  
+                    lindex(n1000/1000+1,2)=ftell(fid)-dtnum+ind+1;
                 end
                 break;
             else
@@ -211,12 +211,12 @@ if (regen)
                 lcnt=lcnt+length(s);
                 while (lcnt>n1000)
                     ind=s(end-(lcnt-n1000)+1);
-                    
+
                     lindex(n1000/1000+1,1)=n1000;
                     lindex(n1000/1000+1,2)=ftell(fid)-16192+ind+1;
                     n1000=n1000+1000;
                 end
-                    
+
             end
         end
     end
@@ -242,26 +242,26 @@ end
 indcnt=0;
 skcnt=inf;
 while 1
-    
+
     tline = fgets(fid);
     crcnt=crcnt+1;
     if ~ischar(tline), break, end
-    
+
     if (crcnt<params.rows(1))
-        
+
         continue;
     elseif (indcnt>params.rows(2))
         break;
     elseif (skcnt<params.rows(3))
-        
+
         skcnt=skcnt+1;
         continue;
     else
         skcnt=1;
         indcnt=indcnt+1;
-        
+
     end
-    
+
     if (any(tline=='"'))
 
         m=find(tline=='"');
@@ -274,7 +274,7 @@ while 1
             tline(m(nn):m(nn+1))='#';
             nn=nn+2;
         end
-        sp=regexp(tline(1:end-1),seperator,'split');
+        sp=regexp(tline(1:end-1),separator,'split');
         sp{end}=strtrim(sp{end});
         kk=0;
         for nn=1:length(sp)
@@ -293,15 +293,15 @@ while 1
 %                  spcount=spcount+1;
 %                  if(m==1)
 %                      sp{spcount}='';
-%                      
+%
 %                  else
 %                      sp{spcount}=tline(cpos+1:cpos+1+m-2);
 %                  end
 %                  cpos=cpos+m+1;
-%                  m=find((tline(cpos:end)==seperator),1,'first');
+%                  m=find((tline(cpos:end)==separator),1,'first');
 %                  cpos=cpos+m;
 %             else
-%                 m=find((tline(cpos:end)==seperator),1,'first');
+%                 m=find((tline(cpos:end)==separator),1,'first');
 %                 spcount=spcount+1;
 %                 if (m==1)
 %                     sp{spcount}='';
@@ -314,7 +314,7 @@ while 1
 %         end
 %         sp{end}=strtrim(sp{end});
     else
-        sp=regexp(tline(1:end-1),seperator,'split');
+        sp=regexp(tline(1:end-1),separator,'split');
         sp{end}=strtrim(sp{end});
     end
     colind=0;
@@ -328,26 +328,26 @@ while 1
         for mm=length(vcols)+1:length(sp)
             vcols(mm)=1;
             num(:,mm)=nan;
-            
+
         end
         colnum=min(ceil((params.cols(2))/params.cols(3)),ceil((length(sp)-params.cols(1)+1)/params.cols(3)));
         vcols=zeros(colnum,1);
         vcols(params.cols(1):params.cols(3):params.cols(1)+min((params.cols(2)-1)*params.cols(3),length(sp)-params.cols(1)))=1;
-        
+
     end
     for kk=1:length(sp)
         if (vcols(kk)==1)
             colind=colind+1;
             num(indcnt,colind)=vals(kk);
-            if isnan(num(indcnt,colind)) 
+            if isnan(num(indcnt,colind))
                 txt{indcnt,colind}=strtrim(sp{kk});
-                adata{indcnt,colind}=txt{indcnt,colind};              
-            else   
+                adata{indcnt,colind}=txt{indcnt,colind};
+            else
                 adata{indcnt,colind}=num(indcnt,colind);
             end
         end
     end
-    
+
 end
 for cc=1:size(adata,2)
     if ismember(cc,params.date_cols)

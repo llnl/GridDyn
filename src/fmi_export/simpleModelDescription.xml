@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- See sections in
+     https://svn.modelica.org/fmi/branches/public/specifications/v2.0/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf
+     for details of XML elements -->
+
+<!-- TODO Philip: GUID needs to be associated with GridDyn (sec 2.2.4) -->
+<fmiModelDescription
+  fmiVersion="2.0"
+  modelName="GridDyn.simple"
+  guid="{I am ignoring this now}"
+  numberOfEventIndicators="0"
+  description="simple first cut at GridDyn FMI"
+  version="1.0">
+
+<!-- TODO Philip: determine if FMU supports variable communication step
+     sizes (i.e. step size for fmi2DoStep() doesn't need to be constant). -->
+<CoSimulation
+  modelIdentifier="simple Grid"
+  canHandleVariableCommunicationStepSize="true"/>
+
+<!-- TODO Philip: verify these are the appropriate log categories (sec 2.2.4) -->
+<LogCategories>
+  <Category name="logAll"/>
+  <Category name="logError"/>
+  <Category name="logFmiCall"/>
+  <Category name="logEvent"/>
+</LogCategories>
+
+<ModelVariables>
+  <!-- Outputs from GridDyn to CymDIST -->
+  <!-- TODO Philip: need to set valueReference ("Identifier for variable value
+       in FMI2 function calls", see section 2.2.7), and initial guess for
+       voltage magnitudes and angle outputs. Not sure if start values are
+       strictly required for outputs like these. -->
+  <ScalarVariable name="power" valueReference="1"
+                  description="load power consumed"
+                  causality="inputput" variability="continuous">
+  </ScalarVariable>
+  <ScalarVariable name="load" valueReference="2"
+                  description="measurement of power at a bus"
+                  causality="output" variability="continuous">
+  </ScalarVariable>
+
+</ModelVariables>
+
+<!-- TODO Philip: fill in ModelStructure if necessary (section 2.2.8). Not
+     sure if this is required for our purpose. -->
+<ModelStructure>
+</ModelStructure>
+
+</fmiModelDescription>

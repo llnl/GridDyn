@@ -1,130 +1,128 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
 /*
-   * LLNS Copyright Start
- * Copyright (c) 2016, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department 
- * of Energy by Lawrence Livermore National Laboratory in part under 
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "gridDyn.h"
-#include "gridDynFileInput.h"
-#include "testHelper.h"
-#include "vectorOps.hpp"
-
-#include <iostream>
+#include "../gtestHelper.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
-//test case for gridCoreObject object
+#include <gtest/gtest.h>
+#include <iostream>
+#include <string>
+#include <vector>
+// test case for coreObject object
 
 #define DYN2_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests2/"
 
+using namespace griddyn;
 
-BOOST_FIXTURE_TEST_SUITE (dyn_tests2,gridDynSimulationTestFixture)
+class DynamicSystemTests2: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-
-BOOST_AUTO_TEST_CASE (dyn_test_simpleEvent)
+TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
 {
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
 
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
+    gds = readSimXMLFile(fileName);
+    gds->consolePrintLevel = print_level::warning;
+    gds->powerflow();
+    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  gds = (gridDynSimulation *)readSimXMLFile (fname);
-  gds->consolePrintLevel = 2;
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () ==gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    int retval = gds->dynInitialize();
+    EXPECT_EQ(retval, 0);
+    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-  int retval = gds->dynInitialize ();
-  BOOST_CHECK_EQUAL (retval,0);
-  BOOST_REQUIRE (gds->currentProcessState () ==gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    std::vector<double> st = gds->getState();
 
-  std::vector<double> st = gds->getState ();
+    EXPECT_EQ(st.size(), 30u);
 
+    gds->run();
+    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    std::vector<double> st2 = gds->getState();
 
-  BOOST_CHECK_EQUAL (st.size (),30u);
-
-  gds->run ();
-  BOOST_REQUIRE (gds->currentProcessState () ==gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
-  std::vector<double> st2 = gds->getState ();
-
-  auto diff = countDiffsIgnoreCommon(st, st2, 0.02);
-  //check for stability
-  BOOST_CHECK_EQUAL (diff,0);
+    auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.02);
+    // check for stability
+    EXPECT_EQ(diff, 0u);
 }
 
-BOOST_AUTO_TEST_CASE (dyn_test_simpleChunked)
+TEST_F(DynamicSystemTests2, DynTestSimpleChunked)
 {
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
-  simpleRunTestXML(fname);
-  std::vector<double> st = gds->getState ();
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
+    simpleRunTestXML(fileName);
+    std::vector<double> st = gds->getState();
 
+    fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
+    gds2 = readSimXMLFile(fileName);
+    gds2->consolePrintLevel = print_level::warning;
+    gds2->run(1.5);
+    gds2->run(3.7);
+    gds2->run(7.65896);
+    gds2->run();
+    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    std::vector<double> st2 = gds2->getState();
 
-  fname = std::string (DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
-  gds2 = (gridDynSimulation *)readSimXMLFile (fname);
-  gds2->consolePrintLevel = 2;
-  gds2->run (1.5);
-  gds2->run (3.7);
-  gds2->run (7.65896);
-  gds2->run ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
-  std::vector<double> st2 = gds2->getState ();
+    auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.0001);
 
-  auto diff = countDiffsIgnoreCommon(st, st2, 0.0001);
-
-  BOOST_CHECK(diff == 0);
-
+    EXPECT_EQ(diff, 0);
 }
 
-BOOST_AUTO_TEST_CASE (dyn_test_randomLoadChange)
+TEST_F(DynamicSystemTests2, DynTestRandomLoadChange)
 {
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_randLoadChange.xml");
-  simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_randLoadChange.xml");
+    simpleRunTestXML(fileName);
 }
 
-BOOST_AUTO_TEST_CASE (dyn_test_RampLoadChange)
+TEST_F(DynamicSystemTests2, DynTestRampLoadChange)
 {
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_rampLoadChange.xml");
-  simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_rampLoadChange.xml");
+    simpleRunTestXML(fileName);
 }
 
-
-
-BOOST_AUTO_TEST_CASE (dyn_test_pulseLoadChange1)
+TEST_F(DynamicSystemTests2, DynTestPulseLoadChange1)
 {
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_pulseLoadChange1.xml");
-  simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_pulseLoadChange1.xml");
+    simpleRunTestXML(fileName);
 }
 
-BOOST_AUTO_TEST_CASE (dyn_test_pulseLoadChange2)
+TEST_F(DynamicSystemTests2, DynTestPulseLoadChange2)
 {
-  std::string fname = std::string (DYN2_TEST_DIRECTORY "test_pulseLoadChange2.xml");
-  simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_pulseLoadChange2.xml");
+    simpleRunTestXML(fileName);
 }
 
 #ifdef LOAD_CVODE
-BOOST_AUTO_TEST_CASE(dyn_test_sinLoadChange_part)
-{
-	std::string fname = std::string(DYN2_TEST_DIRECTORY "test_sineLoadChange1_partitioned.xml");
-	simpleRunTestXML(fname);
+TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartCvode)
+{  // using cvode
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned1.xml");
+    simpleRunTestXML(fileName);
 }
 
+#endif
+TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartBasicOde)
+{  // using basicode
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned2.xml");
+    simpleRunTestXML(fileName);
+}
 
-#endif 
-BOOST_AUTO_TEST_CASE(dyn_test_sinLoadChange_part2)
+#ifdef LOAD_ARKODE
+TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartArkode)
+{  // using arkode
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned3.xml");
+    simpleRunTestXML(fileName);
+}
+
+#endif
+
+// now check if all the different solvers all produce the same results
+TEST_F(DynamicSystemTests2, DynTestCompareOde)
 {
-	std::string fname = std::string(DYN2_TEST_DIRECTORY "test_sineLoadChange2_partitioned.xml");
-	simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoadChange.xml");
 }
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
-BOOST_AUTO_TEST_CASE(dyn_test_pulseLoadChange_part)
+TEST_F(DynamicSystemTests2, DynTestPulseLoadChangePart)
 {
-	std::string fname = std::string(DYN2_TEST_DIRECTORY "test_pulseLoadChange1_partitioned.xml");
-	simpleRunTestXML(fname);
+    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_pulseLoadChange1_partitioned.xml");
+    simpleRunTestXML(fileName);
 }
 #endif
-BOOST_AUTO_TEST_SUITE_END ()

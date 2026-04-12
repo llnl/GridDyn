@@ -1,5 +1,5 @@
 clock {
-	timezone PST+8PDT;
+    timezone PST+8PDT;
      starttime '2011-07-04 00:00:00';
      stoptime '2011-07-05 00:00:00';
 
@@ -9,10 +9,10 @@ clock {
 #set profiler=1;
 #set relax_naming_rules=1;
 
-module tape; 
+module tape;
 module climate;
 module residential {
-	implicit_enduses LIGHTS|PLUGS;
+    implicit_enduses LIGHTS|PLUGS;
 };
 module powerflow {
 solver_method NR;
@@ -23,136 +23,136 @@ solver_method NR;
 // IEEE 4 Node Feeder: Balanced step-down delta-delta
 
 
-// Demo Distribution- Boundry SetPoint -network_node - Start
+// Demo Distribution- Boundary SetPoint -network_node - Start
 
 
 object node {
-	name Node1;
-	bustype SWING;   //must be SWING bus for NR solver
-	phases A|B|C;
-	voltage_A +7199.558+0.000j;
-	voltage_B -3599.779-6235.000j;
-	voltage_C -3599.779+6235.000j;
-	nominal_voltage 7199.558;
+    name Node1;
+    bustype SWING;   //must be SWING bus for NR solver
+    phases A|B|C;
+    voltage_A +7199.558+0.000j;
+    voltage_B -3599.779-6235.000j;
+    voltage_C -3599.779+6235.000j;
+    nominal_voltage 7199.558;
 }
 
 object overhead_line {
-	name Link12;
-	phases A|B|C;
-	from Node1;
-	to Node2;
-	length 2000;
-	configuration LC300;
-	nominal_voltage 7199.558;
+    name Link12;
+    phases A|B|C;
+    from Node1;
+    to Node2;
+    length 2000;
+    configuration LC300;
+    nominal_voltage 7199.558;
 }
 
 object node {
-	name Node2;
-	phases A|B|C;
-	voltage_A +7199.558+0.000j;
-	voltage_B -3599.779-6235.000j;
-	voltage_C -3599.779+6235.000j;
-	nominal_voltage 7199.558;
+    name Node2;
+    phases A|B|C;
+    voltage_A +7199.558+0.000j;
+    voltage_B -3599.779-6235.000j;
+    voltage_C -3599.779+6235.000j;
+    nominal_voltage 7199.558;
 }
 
 object transformer {
-	name Link23;
-	phases A|B|C;
-	from Node2;
-	to Node3;
-	configuration XFC400;
+    name Link23;
+    phases A|B|C;
+    from Node2;
+    to Node3;
+    configuration XFC400;
 }
 
 object node {
-	name Node3;
-	phases A|B|C;
-	voltage_A +2401.777+0.000j;
-	voltage_B -1200.889-2080.000j;
-	voltage_C -1200.889+2080.000j;
-	nominal_voltage 2401.777;
+    name Node3;
+    phases A|B|C;
+    voltage_A +2401.777+0.000j;
+    voltage_B -1200.889-2080.000j;
+    voltage_C -1200.889+2080.000j;
+    nominal_voltage 2401.777;
 }
 
 object overhead_line {
-	name Link34;
-	phases A|B|C;
-	from Node3;
-	to Node4;
-	length 2500;
-	configuration LC300;
+    name Link34;
+    phases A|B|C;
+    from Node3;
+    to Node4;
+    length 2500;
+    configuration LC300;
 }
 
 object load {
-	name Load;
-	parent Node4;
-	phases A|B|C|D;
-	voltage_A +2401.777+0.000j;
-	voltage_B -1200.889-2080.000j;
-	voltage_C -1200.889+2080.000j;
-	power_A +1800000.000+871779.789j;
-	power_B +1800000.000+871779.789j;
-	power_C +1800000.000+871779.789j;
-	maximum_voltage_error 0.001;
-	nominal_voltage 2401.777;
+    name Load;
+    parent Node4;
+    phases A|B|C|D;
+    voltage_A +2401.777+0.000j;
+    voltage_B -1200.889-2080.000j;
+    voltage_C -1200.889+2080.000j;
+    power_A +1800000.000+871779.789j;
+    power_B +1800000.000+871779.789j;
+    power_C +1800000.000+871779.789j;
+    maximum_voltage_error 0.001;
+    nominal_voltage 2401.777;
 }
 
 object node {
-	name Node4;
-	phases A|B|C|D;
-	voltage_A +2401.777+0.000j;
-	voltage_B -1200.889-2080.000j;
-	voltage_C -1200.889+2080.000j;
-	nominal_voltage 2401.777;
+    name Node4;
+    phases A|B|C|D;
+    voltage_A +2401.777+0.000j;
+    voltage_B -1200.889-2080.000j;
+    voltage_C -1200.889+2080.000j;
+    nominal_voltage 2401.777;
 }
 
 object transformer {
-	name Link45;
-	phases AS;
-	from Node4;
-	to Node5;
-	configuration PoleTop;
+    name Link45;
+    phases AS;
+    from Node4;
+    to Node5;
+    configuration PoleTop;
 }
 
 object node {
-	name Node5;
-	phases AS;
-	nominal_voltage 120;
+    name Node5;
+    phases AS;
+    nominal_voltage 120;
 }
 
 
-// Demo Distribution- Boundry SetPoint -network_node - End
+// Demo Distribution- Boundary SetPoint -network_node - End
 
 
 
 // Lines parameters description  -------------start
 object overhead_line_conductor {
-	name OH100;
-	geometric_mean_radius 0.0244;
-	resistance 0.306;
+    name OH100;
+    geometric_mean_radius 0.0244;
+    resistance 0.306;
 }
 
 object overhead_line_conductor {
-	name OH101;
-	geometric_mean_radius 0.00814;
-	resistance 0.592;
+    name OH101;
+    geometric_mean_radius 0.00814;
+    resistance 0.592;
 }
 
 object line_spacing {
-	name LS200;
-	distance_AB 2.5;
-	distance_BC 4.5;
-	distance_AC 7.0;
-	distance_AN 5.656854;
-	distance_BN 4.272002;
-	distance_CN 5.0;
+    name LS200;
+    distance_AB 2.5;
+    distance_BC 4.5;
+    distance_AC 7.0;
+    distance_AN 5.656854;
+    distance_BN 4.272002;
+    distance_CN 5.0;
 }
 
 object line_configuration {
-	name LC300;
-	conductor_A OH100;
-	conductor_B OH100;
-	conductor_C OH100;
-	conductor_N OH101;
-	spacing LS200;
+    name LC300;
+    conductor_A OH100;
+    conductor_B OH100;
+    conductor_C OH100;
+    conductor_N OH101;
+    spacing LS200;
 }
 
 
@@ -163,25 +163,25 @@ object line_configuration {
 // Transformer parameters description  -------------start
 // From 12470 V to 4160 V (Line voltage, phase voltage 2400)
 object transformer_configuration {
-	name XFC400;
-	connect_type 2;
-	power_rating 6000;
-	primary_voltage 12470;
-	secondary_voltage 4160;
-	resistance 0.01;
-	reactance 0.06;
+    name XFC400;
+    connect_type 2;
+    power_rating 6000;
+    primary_voltage 12470;
+    secondary_voltage 4160;
+    resistance 0.01;
+    reactance 0.06;
 }
 
 // From 2400 V (phase voltage) to house voltage 120 V
 object transformer_configuration {
-	name PoleTop;
-	connect_type SINGLE_PHASE_CENTER_TAPPED;
-	power_rating 400;
-	powerA_rating 400;
-	primary_voltage 2400;
-	secondary_voltage 120;
-	resistance 0.01;
-	reactance 0.06;
+    name PoleTop;
+    connect_type SINGLE_PHASE_CENTER_TAPPED;
+    power_rating 400;
+    powerA_rating 400;
+    primary_voltage 2400;
+    secondary_voltage 120;
+    resistance 0.01;
+    reactance 0.06;
 }
 
 // Transformer parameters description  -------------End
@@ -190,33 +190,33 @@ object transformer_configuration {
 // residential model
 
 object triplex_meter {
-	name Meter1;
-	parent Node5;
-	nominal_voltage 120.0;
-	phases AS;
+    name Meter1;
+    parent Node5;
+    nominal_voltage 120.0;
+    phases AS;
 }
 
 object house {
-	name House;
-	parent Meter1;
-	latitude "48N";
-	longitude "125W";
-	floor_area 2500.0 sf;
-	envelope_UA 450.0;
-	window_wall_ratio 0.25;
-	heating_setpoint 72.0;
-	cooling_setpoint 76.0;
+    name House;
+    parent Meter1;
+    latitude "48N";
+    longitude "125W";
+    floor_area 2500.0 sf;
+    envelope_UA 450.0;
+    window_wall_ratio 0.25;
+    heating_setpoint 72.0;
+    cooling_setpoint 76.0;
 }
 
 object waterheater {
-	name Waterheater;
-	parent House;
-	tank_volume 60;
-	tank_UA 2.0;
-	water_demand 0.25 gpm;
-	heating_element_capacity 4500 W;
-	location INSIDE;
-	tank_setpoint 120 degF;
+    name Waterheater;
+    parent House;
+    tank_volume 60;
+    tank_UA 2.0;
+    water_demand 0.25 gpm;
+    heating_element_capacity 4500 W;
+    location INSIDE;
+    tank_setpoint 120 degF;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -225,12 +225,12 @@ object waterheater {
 
 
 object recorder{
-	name Meter1_record;
-	parent Meter1;
-	property measured_voltage_1,measured_voltage_2,measured_voltage_N,measured_current_1,measured_current_2,measured_current_N;
-	file Meter_output.csv;
-	interval 3600;
-	limit 1440;
+    name Meter1_record;
+    parent Meter1;
+    property measured_voltage_1,measured_voltage_2,measured_voltage_N,measured_current_1,measured_current_2,measured_current_N;
+    file Meter_output.csv;
+    interval 3600;
+    limit 1440;
 }
 
 

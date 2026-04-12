@@ -5,7 +5,7 @@
       <angle>0</angle>
       <voltage>1.04</voltage>
       <generator name="gen1">
-	  <model type="4"/>
+      <model type="4"/>
           <P>0.7160</P>
       </generator>
    </bus>
@@ -24,8 +24,8 @@
          <Q>0.3</Q>
       </load>
    </bus>
- 
-   
+
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
@@ -33,40 +33,40 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.03</r>
       <x>0.085</x>
    </link>
-  
+
    <link from="bus2" name="bus2_to_bus3" to="bus3">
       <b>0.0</b>
       <r>0.069</r>
       <x>0.2008</x>
-	  <relay>
-	   <type>fuse</type>
-	  <limit>1.0</limit>
-	  <i2t>0</i2t>
-	  </relay>
-	  <relay>
-	   <type>fuse</type>
-	   <terminal>2</terminal>
-	  <limit>1.0</limit>
-	  <i2t>0</i2t>
-	  </relay>
-	  <event>
-	  <field>fault</field>
-	  <time>1.0></time>
-	  <value>0.5></value>
-	  </event>
+      <relay>
+       <type>fuse</type>
+      <limit>1.0</limit>
+      <i2t>0</i2t>
+      </relay>
+      <relay>
+       <type>fuse</type>
+       <terminal>2</terminal>
+      <limit>1.0</limit>
+      <i2t>0</i2t>
+      </relay>
+      <event>
+      <field>fault</field>
+      <time>1.0></time>
+      <value>0.5></value>
+      </event>
    </link>
-   
+
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>10</timestop>
    <recorder field="auto, bus1::gen#0:angle" period=0.005>
    <file>linkfault.dat</file>
    </recorder>
-   
-   
+
+
 </griddyn>

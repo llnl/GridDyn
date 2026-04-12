@@ -1,52 +1,43 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
 /*
-* LLNS Copyright Start
-* Copyright (c) 2016, Lawrence Livermore National Security
-* This work was performed under the auspices of the U.S. Department
-* of Energy by Lawrence Livermore National Laboratory in part under
-* Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
-* Produced at the Lawrence Livermore National Laboratory.
-* All rights reserved.
-* For details, see the LICENSE file.
-* LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-//test cases for the main executable
+// test cases for the main executable
 
-#include "exeTestHelper.h"
-#include <boost/test/unit_test.hpp>
-#include <iostream>
+#include "../exeTestHelper.h"
+#include <cstdio>
 #include <cstdlib>
+#include <gtest/gtest.h>
+#include <iostream>
+#include <string>
 
-static const exeTestRunner mainExeRunner(GRIDDYNINSTALL_LOCATION, GRIDDYNMAIN_LOCATION, "gridDynMain");
+static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
-static std::string pFlow_test_directory = std::string(GRIDDYN_TEST_DIRECTORY "/pFlow_tests/");
-
-BOOST_AUTO_TEST_SUITE(mainexe_tests)
-
-
-BOOST_AUTO_TEST_CASE(mainexe_test1)
+TEST(MainExeTests, MainExeTest1)
 {
-	if (mainExeRunner.isActive())
-	{
-	auto out = mainExeRunner.runCaptureOutput("--version");
-	BOOST_CHECK(out.compare(0, 15, "GridDyn version") == 0);
-}
-	else
-	{
-		std::cout << "Unable to locate main executable:: skipping test\n";
-	}
+    exeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
+    if (mainExeRunner.isActive()) {
+        auto out = mainExeRunner.runCaptureOutput("--version");
+        EXPECT_EQ(out.compare(0, 15, "GridDyn version"), 0);
+        if (out.compare(0, 15, "GridDyn version") != 0) {
+            printf("mismatch out string\n");
+            printf("out=%s||\n", out.c_str());
+        }
+    } else {
+        std::cout << "Unable to locate main executable:: skipping test\n";
+    }
 }
 
-//test is in development
-BOOST_AUTO_TEST_CASE(cdf_readwrite_test)
+// test is in development
+TEST(MainExeTests, CdfReadwriteTest)
 {
-	if (mainExeRunner.isActive())
-	{
-	std::string fname = pFlow_test_directory + "test_powerflow3m9b2.xml";
-	auto out = mainExeRunner.runCaptureOutput(fname+" --powerflow-only --powerflow-output testout.cdf");
-	std::cout << out;
-	}
+    exeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
+    if (mainExeRunner.isActive()) {
+        std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
+        auto out = mainExeRunner.runCaptureOutput(
+            fileName + " --powerflow-only --powerflow-output testout.cdf");
+        std::cout << out;
+    }
 }
-
-BOOST_AUTO_TEST_SUITE_END()

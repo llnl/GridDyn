@@ -7,7 +7,7 @@
   "GECO: Global Event-Driven Co-Simulation Framework for
   Interconnected Power System and Communication Network,"
   IEEE Transactions on Smart Grid, vol.3, no.3, pp.1444-1456,
-  Sept. 2012 
+  Sept. 2012
 
   This test makes use of relay definitions in ieee39_relays_geco_coupled.csv.
 -->
@@ -88,7 +88,7 @@
   <recorder field="auto" period=0.001>
     <file>dynfault.dat</file>
   </recorder>
-   
+
   <timestart>0</timestart>
   <timestop>10</timestop>
 </griddyn>

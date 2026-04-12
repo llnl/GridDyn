@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="single_breaker_trip" version="0.0.1">
+   <import file="powerflowWECC.raw"/>
+
+   <!-- Add grid events -->
+
+   <event>
+   <target>LINK#9</target>
+   <field>breaker1</field>
+   <value>1</value>
+   <time>2.05</time>
+</event>
+
+   <recorder field="auto,busgenerationreactive,busloadreactive" period="0.05">
+   <autosave>1</autosave>
+   <file>dynfault.csv</file>
+   </recorder>
+   <timestart>0</timestart>
+   <action>iterate 0.05 10.0</action>
+</griddyn>

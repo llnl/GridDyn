@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="test1" version="0.0.1">
+   <bus name="bus1">
+      <type>SLK</type>
+      <angle>0</angle>
+      <voltage>1</voltage>
+      <generator name="gen1">
+         <model>
+            <type>fourthOrder</type>
+            <D>0.040</D>
+            <H>5</H>
+            <Tdop>8</Tdop>
+            <Tqop>1</Tqop>
+            <Xd>1.050</Xd>
+            <Xdp>0.350</Xdp>
+            <Xq>0.850</Xq>
+            <Xqp>0.350</Xqp>
+         </model>
+         <exciter>
+            <type>type1</type>
+            <Aex>0</Aex>
+            <Bex>0</Bex>
+            <Ka>20</Ka>
+            <Ke>1</Ke>
+            <Kf>0.040</Kf>
+            <Ta>0.200</Ta>
+            <Te>0.700</Te>
+            <Tf>1</Tf>
+            <Urmax>50</Urmax>
+            <Urmin>-50</Urmin>
+         </exciter>
+         <governor>
+            <type>basic</type>
+            <K>16.667</K>
+
+            <T1>0.100</T1>
+            <T2>0.150</T2>
+            <T3>0.050</T3>
+         </governor>
+      </generator>
+   </bus>
+   <bus name="bus2">
+      <type>PV</type>
+      <angle>0.162</angle>
+      <voltage>1</voltage>
+      <generator name="gen2">
+         <P>2</P>
+         <model>
+            <type>fourthOrder</type>
+            <D>0.040</D>
+            <H>5</H>
+            <Tdop>8</Tdop>
+            <Tqop>1</Tqop>
+            <Xd>1.050</Xd>
+            <Xdp>0.350</Xdp>
+            <Xq>0.850</Xq>
+            <Xqp>0.350</Xqp>
+         </model>
+         <exciter>
+            <type>type1</type>
+            <Aex>0</Aex>
+            <Bex>0</Bex>
+            <Ka>20</Ka>
+            <Ke>1</Ke>
+            <Kf>0.040</Kf>
+            <Ta>0.200</Ta>
+            <Te>0.700</Te>
+            <Tf>1</Tf>
+            <Urmax>50</Urmax>
+            <Urmin>-50</Urmin>
+         </exciter>
+         <governor>
+            <type>basic</type>
+            <K>16.667</K>
+
+            <T1>0.100</T1>
+            <T2>0.150</T2>
+            <T3>0.050</T3>
+         </governor>
+      </generator>
+   </bus>
+   <bus name="bus3">
+      <type>PQ</type>
+      <angle>0.082</angle>
+      <load name="load3">
+         <P>1.500</P>
+         <Q>0</Q>
+      </load>
+      <fmioutput>
+         <field>loadp as load</field>
+         </fmioutput>
+   </bus>
+   <bus name="bus4">
+      <type>PQ</type>
+      <angle>-0.038</angle>
+      <load name="load4">
+        <P>1.500</P>
+             <Q>0</Q>
+      </load>
+   </bus>
+   <link from="bus1" name="bus1_to_bus3" to="bus3">
+      <b>0</b>
+      <r>0</r>
+      <x>0.015</x>
+   </link>
+   <link from="bus1" name="bus1_to_bus4" to="bus4">
+      <b>0</b>
+      <r>0</r>
+      <x>0.015</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus3" to="bus3">
+      <b>0</b>
+      <r>0</r>
+      <x>0.010</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus4" to="bus4">
+      <b>0</b>
+      <r>0</r>
+      <x>0.010</x>
+   </link>
+   <link from="bus3" name="bus3_to_bus4" to="bus4">
+      <b>0</b>
+      <r>0</r>
+      <x>0.020</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>30</timestop>
+   <timestep>0.010</timestep>
+</griddyn>

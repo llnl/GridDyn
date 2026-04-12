@@ -39,7 +39,7 @@
          <Q>0.1</Q>
       </load>
    </bus>
-   
+
  <bus name="bus4">
       <type>PV</type>
       <voltage>1.03</voltage>
@@ -47,59 +47,59 @@
           <P>0.7160</P>
       </generator>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	  <relay commdest="bus1bus2" name="bus1bus2" ref="t1"/>
-	  <relay commdest="bus2bus1" name="bus2bus1" ref="t2"/>
+      <relay commdest="bus1bus2" name="bus1bus2" ref="t1"/>
+      <relay commdest="bus2bus1" name="bus2bus1" ref="t2"/>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	  <relay commdest="bus1bus3" name="bus1bus3" ref="t1"/>
-	  <relay commdest="bus3bus1" name="bus3bus1" ref="t2"/>
+      <relay commdest="bus1bus3" name="bus1bus3" ref="t1"/>
+      <relay commdest="bus3bus1" name="bus3bus1" ref="t2"/>
    </link>
   <link from="bus1" name="bus1_to_bus4" to="bus4">
       <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	  <relay commdest="bus1bus4" name="bus1bus4" ref="t1"/>
-	  <relay commdest="bus4bus1" name="bus4bus1" ref="t2"/>
+      <relay commdest="bus1bus4" name="bus1bus4" ref="t1"/>
+      <relay commdest="bus4bus1" name="bus4bus1" ref="t2"/>
    </link>
    <link from="bus2" name="bus2_to_bus3" to="bus3">
    <type>ac</type>
      <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	  <event>
-	  <field>fault</field>
-	  <time>1.0,1.2></time>
-	  <value>0.15,-1></value>
-	  </event>
-	   <relay commdest="bus2bus3" name="bus2bus3" ref="t1"/>
-	  <relay commdest="bus3bus2" name="bus3bus2" ref="t2"/>
+      <event>
+      <field>fault</field>
+      <time>1.0,1.2></time>
+      <value>0.15,-1></value>
+      </event>
+       <relay commdest="bus2bus3" name="bus2bus3" ref="t1"/>
+      <relay commdest="bus3bus2" name="bus3bus2" ref="t2"/>
    </link>
-   
+
    <link from="bus2" name="bus2_to_bus4" to="bus4">
    <type>ac</type>
       <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	   <relay commdest="bus2bus4" name="bus2bus4" ref="t1"/>
-	  <relay commdest="bus4bus2" name="bus4bus2" ref="t2"/>
+       <relay commdest="bus2bus4" name="bus2bus4" ref="t1"/>
+      <relay commdest="bus4bus2" name="bus4bus2" ref="t2"/>
    </link>
-   
+
   <link from="bus3" name="bus3_to_bus4" to="bus4">
    <type>ac</type>
      <b>0</b>
       <r>0.01</r>
       <x>0.0476</x>
-	   <relay commdest="bus3bus4" name="bus3bus4" ref="t1"/>
-	  <relay commdest="bus4bus3" name="bus4bus3" ref="t2"/>
+       <relay commdest="bus3bus4" name="bus3bus4" ref="t1"/>
+      <relay commdest="bus4bus3" name="bus4bus3" ref="t2"/>
    </link>
    <basepower>100</basepower>
    <timestart>0</timestart>
@@ -107,6 +107,6 @@
    <recorder field="auto" period=0.001>
    <file>relayfault.dat</file>
    </recorder>
-   
-   
+
+
 </griddyn>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--XML test of define objects-->
 <griddyn name="test1" version="0.0.1">
-	<define name="val1" value="1.5"/>
+    <define name="val1" value="1.5"/>
    <bus name="bus1">
       <type>SLK</type>
       <angle>0</angle>
@@ -34,7 +34,7 @@
          <governor>
             <type>basic</type>
             <K>16.667</K>
-    
+
             <T1>0.100</T1>
             <T2>0.150</T2>
             <T3>0.050</T3>
@@ -47,11 +47,11 @@
       <voltage>1</voltage>
       <generator name="gen2">
          <P>2</P>
-		 <recorder>
-		 <file>testRec.dat</file>
-		 <field>P</field>
-		 <period>1</period>
-		 </recorder>
+         <recorder>
+         <file>testRec.dat</file>
+         <field>P</field>
+         <period>1</period>
+         </recorder>
          <model>
             <type>fourthOrder</type>
             <D>0.040</D>
@@ -91,24 +91,24 @@
       <load name="load3">
          <P>val1</P>
          <Q>0</Q>
-		 <event>
-		 <field>P</field>
-		 <value>1.3</value>
-		 <time>1</time>
-		 </event>
-		 <event>
-		 <field>P</field>
-		 <value>1.5</value>
-		 <time>3</time>
-		 </event>
+         <event>
+         <field>P</field>
+         <value>1.3</value>
+         <time>1</time>
+         </event>
+         <event>
+         <field>P</field>
+         <value>1.5</value>
+         <time>3</time>
+         </event>
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>val1</P>
-         	<Q>0</Q>
+        <P>val1</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

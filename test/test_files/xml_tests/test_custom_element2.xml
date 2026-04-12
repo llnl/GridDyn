@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test custom elements-->
 <griddyn name="customtest">
-<custom name="busarray" args=1>
-<array count="arg1"> 
+<custom name="busarray" args="1">
+<array count="arg1">
   <bus>
     <voltage>rand(0.95,1.05)</voltage>
   </bus>
  </array>
 </custom>
-<busarray arg1=7/>
+<busarray arg1="7"/>
 </griddyn>

@@ -19,16 +19,16 @@
           <Urmin>-50</Urmin>
         </exciter>
       </generator>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<generator name="gen2">
+    <name>bus2</name>
+    <generator name="gen2">
         <exciter>
           <type>fast</type>
         </exciter>
-		<model></model>
-		<governor></governor>
-		<P>1.2</P>
+        <model></model>
+        <governor></governor>
+        <P>1.2</P>
       </generator>
      <load name="load3">
        <P>1.500</P>

@@ -67,7 +67,7 @@
       <voltage>1.0324</voltage>
       <angle>0.0343</angle>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus4" to="bus4">
       <b>0</b>
       <r>0</r>
@@ -122,7 +122,7 @@
       <tap>1.0</tap>
       <tapangle>0</tapangle>
    </link>
-  
+
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>30</timestop>

@@ -4,7 +4,7 @@
   <library>
     <generator name="default">
       <exciter>
-	<type>type1</type>
+    <type>type1</type>
       </exciter>
       <model></model>
       <governor></governor>
@@ -27,7 +27,7 @@
     <generator name="gen1" ref="default">
       <P>0.4</P>
     </generator>
-    
+
     <load>
       <type>gridlab</type>
       <file>IEEE_13_mod.glm</file>
@@ -46,7 +46,7 @@
     <x>0.04</x>
   </link>
 
-  <recorder field="auto" period=0.010>
+  <recorder field="auto" period="0.010">
     <file>output/test-IEEE_13_mod/output.csv</file>
   </recorder>
 

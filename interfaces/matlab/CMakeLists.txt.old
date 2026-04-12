@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 3.4)
+
+# Find MATLAB
+find_package(Matlab REQUIRED)
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost REQUIRED COMPONENTS
+    date_time filesystem iostreams thread log regex serialization system chrono)
+
+include_directories(${Matlab_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/griddyn_shared/)
+
+# Generate SWIG wrapper (for both MATLAB and Octave)
+set(CMAKE_SWIG_OUTDIR ${CMAKE_CURRENT_SOURCE_DIR}/target${MATLABLAG}/extra)
+set(CMAKE_SWIG_WRAP_OUTDIR ${CMAKE_CURRENT_SOURCE_DIR}/target${MATLABFLAG}/source/dummy)
+
+set_source_files_properties(../griddyn.i  PROPERTIES  CPLUSPLUS ON)
+swig_module_initialize(griddynMEX matlab)
+swig_add_source_to_module(griddynMEX MEX_FILE ../griddyn.i ../../src/griddyn_shared/griddyn_export.h ../../src/griddyn_shared/griddyn_export_advanced.h)
+get_directory_property(swig_extra_clean_files ADDITIONAL_MAKE_CLEAN_FILES)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${MEX_FILE}")
+
+# Install the generated front-end to ${MATLAB_PREFIX}
+install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/+griddyn DESTINATION lib/matlab)
+install(FILES  ${CMAKE_SWIG_OUTDIR}/SwigGet.m
+   ${CMAKE_SWIG_OUTDIR}/SwigMem.m
+   ${CMAKE_SWIG_OUTDIR}/SwigRef.m
+   DESTINATION  lib/matlab
+   )
+
+# create module directory
+set(MODULE ${CMAKE_CURRENT_BINARY_DIR}/griddyn)
+
+file(MAKE_DIRECTORY ${MODULE})
+
+# Install the generated front-end to lib/matlab
+add_custom_target(matlab DEPENDS griddynMATLAB)
+
+message("matlab include dir: ${Matlab_INCLUDE_DIRS}")
+message("MEX_FILE: ${MEX_FILE}")
+message("Matlab MEX Library: ${Matlab_MEX_LIBRARY}")
+message("Boost LIBRARY DIRS: ${Boost_LIBRARY_DIRS}")
+message("Boost LIBRARIES: ${Boost_LIBRARIES}")
+
+# Compile MEX file
+if (EXISTS ${Matlab_INCLUDE_DIRS}/../version/cpp_mexapi_version.cpp)
+    add_library(griddynMATLAB MODULE ${MEX_FILE} ${Matlab_INCLUDE_DIRS}/../version/cpp_mexapi_version.cpp)
+else()
+    add_library(griddynMATLAB MODULE ${MEX_FILE})
+endif()
+target_include_directories(griddynMATLAB PUBLIC ${Matlab_INCLUDE_DIRS})
+target_link_libraries(griddynMATLAB  griddyn_shared_lib ${Boost_LIBRARIES} ${Matlab_MEX_LIBRARY} )
+set_target_properties(griddynMATLAB
+               PROPERTIES OUTPUT_NAME "griddynMEX"
+               PREFIX ""
+               SUFFIX .${Matlab_MEX_EXTENSION}
+               )
+install(TARGETS griddynMATLAB DESTINATION lib/matlab)
+install(FILES  ${CMAKE_CURRENT_BINARY_DIR}/griddynMEX.mexa64 DESTINATION  lib/matlab )

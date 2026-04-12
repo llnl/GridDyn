@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="test1" version="0.0.1">
+   <import file="./IEEE39.raw"/>
+   <import file="./IEEE39.dyr"/>
+
+<bus name="BUS_2">
+  <load name="load2">
+    <P>0.0</P>
+    <Q>0.0</Q>
+    <event>@2|P=3.0</event>
+  </load>
+</bus>
+
+<!-- <event> -->
+<!-- <target>BUS#2</target> -->
+<!-- <field>P</field> -->
+<!-- <value>-0.3</value> -->
+<!-- </event> -->
+
+<recorder field="auto, bus#31::gen#0:pmech" period=0.02>
+   <file>ieee39out.csv</file>
+   </recorder>
+   <timestart>0</timestart>
+   <timestop>80</timestop>
+
+</griddyn>

@@ -71,8 +71,8 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

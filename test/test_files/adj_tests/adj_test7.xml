@@ -19,17 +19,17 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0.6</Q>
+        <P>1.500</P>
+             <Q>0.6</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3adj" to="bus3">
       <type>adjustable</type>
-		<mode>mvar</mode>
-		<change>stepped</change>
-		<stepsize>0.002</stepsize>
-		<qmin>-0.55</qmin>
-		<qmax>-0.50</qmax>
+        <mode>mvar</mode>
+        <change>stepped</change>
+        <stepsize>0.002</stepsize>
+        <qmin>-0.55</qmin>
+        <qmax>-0.50</qmax>
       <x>0.015</x>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

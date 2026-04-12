@@ -5,12 +5,12 @@
       <angle>0</angle>
       <voltage>1</voltage>
       <generator name="gen1">
-	  <model type="classical"></model>
-		<base>300</base>
+      <model type="classical"></model>
+        <base>300</base>
       </generator>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
+    <name>bus2</name>
      <load name="load3">
        <P>1.500</P>
        <Q>0.3</Q>
@@ -19,7 +19,7 @@
          <value>0.1,0.3,0.5,0.3</value>
          <time>1.0,4.0,7.0,1.0</time>
        </event>
-       
+
      </load>
    </bus>
  <link from="bus1" name="bus1_to_bus2" to="bus2">
@@ -30,7 +30,7 @@
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>30</timestop>
-<recorder field="auto,bus1:genreactive, bus2:loadreactive" period=0.01>
+<recorder field="auto,bus1:genreactive, bus2:loadreactive" period="0.01">
    <file>excitertest.dat</file>
    </recorder>
 </griddyn>

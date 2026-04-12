@@ -4,6 +4,6 @@
    <import file="../matlab_test_files/d_009_fault_mdl.m"/>
    <recorder field="auto, all_gen_angle" period=0.05>
    <file>busdata2.dat</file>
-   
+
    </recorder>
 </griddyn>

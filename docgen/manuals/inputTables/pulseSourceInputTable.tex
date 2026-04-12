@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+a, amplitude & number & 0 & pulse amplitude\\
+period & number & 1e+48 & pulse period\\
+dutycycle & number & 0.5 & pulse duty cycle\\
+shift & number & 0 & storage for phase shift fraction (should be between 0 and 1)\\
+base, set, output & number &  & the base level of the output\\
+invert & number & 0 & \\
+type & string & 0 & \\
+pulsetype & string & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for pulseSource objects. See Table~\ref{table:gridSource} for additional settable options through gridSource}
+\label{table:pulseSource}
+\end{table}

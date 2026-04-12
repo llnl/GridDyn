@@ -50,7 +50,7 @@
             <H>5</H>
             <Tdop>8</Tdop>
             <Tqop>1</Tqop>
-			<!--this next line is bad xml form-->
+            <!--this next line is bad xml form-->
             <Xd>1.050</Xp>
             <Xdp>0.350</Xdp>
             <Xq>0.850</Xq>
@@ -84,24 +84,24 @@
       <load name="load3">
          <P>1.500</P>
          <Q>0</Q>
-		 <event>
-		 <field>P</field>
-		 <value>1.3</value>
-		 <time>1</time>
-		 </event>
-		 <event>
-		 <field>P</field>
-		 <value>1.5</value>
-		 <time>3</time>
-		 </event>
+         <event>
+         <field>P</field>
+         <value>1.3</value>
+         <time>1</time>
+         </event>
+         <event>
+         <field>P</field>
+         <value>1.5</value>
+         <time>3</time>
+         </event>
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

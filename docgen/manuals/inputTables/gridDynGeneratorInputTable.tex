@@ -1,0 +1,40 @@
+\begin{longtable}{p{5cm} c c p{7cm}}
+string(s) & type & default & description \\
+\hline
+pset & number & -1e+48 & [p.u.] target power set point\\
+qmax & number & 1e+48 & [pu mbase] max steady state reactive power values for Power flow analysis\\
+qmin & number & -1e+48 & [pu mbase] min steady state reactive power values for Power flow analysis\\
+adjustment & number & 0 & \\
+xs & number & 1 & generatore impedance defined on Mbase;\\
+rs & number & 0 & the real part of the generator impedance\\
+eft & number & 0 & place to store a constant the exciter field\\
+vref, vtarget & number & -1 & voltage target for the generator at the control bus\\
+rating, base, mbase & number & 100 & MW the internal base power of the generator;\\
+dpdt & number & 0 & define the power ramp\\
+dqdt & number & 0 & define the reactive power ramp\\
+basepower & number & 100 & the base power of the object\\
+basevoltage & number & 120 & [V] base voltage\\
+basefrequency, basefreq & number & 376.9911 & the base frequency of the system default to 60Hz\\
+participation & number & 1 & [\%]a participation factor used in auto allocating load.\\
+vcontrolfrac, vregfraction, vcfrac & number & 1 & [\%]  fraction of output reactive power to maintain voltage regulation\\
+pmax & number & 1e+48 & [pu mbase]max steady state real power values for the generator\\
+pmin & number & -1e+48 & [pu mbase] min steady state real power values for the generator\\
+capabiltycurve & number & 0 & \\
+remote & number & 0 & \\
+dynmodel & string & 0 & \\
+remote & string & 0 & \\
+remote\_power\_control & string & 0 & \\
+p & string & 0 & [p.u.] Electrical generation real power output\\
+q & string & 0 & [p.u.] Electrical generation reactive power output\\
+capabiltycurve & flag & 0 & \\
+variable & flag & 0 & \\
+variablegen & flag & 0 & \\
+reserve & flag & 0 & \\
+reservecapable & flag & 0 & \\
+agc & flag & 0 & \\
+agccapble & flag & 0 & \\
+indirect\_voltage\_control & flag & 0 & \\
+\hline
+\caption{Set options for gridDynGenerator objects. See Table~\ref{table:gridSecondary} for additional settable options through gridSecondary}
+\label{table:gridDynGenerator}
+\end{longtable}

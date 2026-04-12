@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test the xml-reader functions-->
 <main_element>
-	<subelementA>
-	</subelementA>
-	<subelementB>
-	</subelementB>
-	<subelementB>
-	</subelementB>
-	<subelementA>
-	</subelementA>
-	<subelementA>
-	</subelementA>
-	<subelementA>
-	</subelementA>
-	<subelementB>
-	</subelementB>
-	<subelementB>
-	</subelementB>
-	<elementWithAttributes att1="A" att2="46" att3="21.345" att4 = "happy">
-	</elementWithAttributes>
+    <subelementA>
+    </subelementA>
+    <subelementB>
+    </subelementB>
+    <subelementB>
+    </subelementB>
+    <subelementA>
+    </subelementA>
+    <subelementA>
+    </subelementA>
+    <subelementA>
+    </subelementA>
+    <subelementB>
+    </subelementB>
+    <subelementB>
+    </subelementB>
+    <elementWithAttributes att1="A" att2="46" att3="21.345" att4 = "happy">
+    </elementWithAttributes>
 </main_element>

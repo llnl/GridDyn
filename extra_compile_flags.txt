@@ -1,0 +1,2 @@
+    -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wextra -Wformat=2 -Wimplicit-atomic-properties -Wmissing-declarations -Wno-long-long -Wnon-virtual-dtor -Woverlength-strings -Woverloaded-virtual -Wredundant-decls -Wreorder -Wswitch-default -Wunused-variable -Wwrite-strings -Wno-variadic-macros -Wno-unused-local-typedef -Wno-language-extension-token -fstrict-aliasing
+    -Wconversion -Wdocumentation -Wfloat-equal -Wmissing-prototypes -Wold-style-cast -Wunreachable-code

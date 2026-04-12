@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+k & number & 16.667 & [p.u.] droop gain (1/R)\\
+r & number & 0 & \\
+t1 & number & 0.1 & [s]   droop control time constant 1\\
+t2 & number & 0 & [s]   droop control  time constant 2\\
+t3 & number & 0 & [s]  throttle response\\
+omegaref, wref & number & -1e+48 & [rad]  reference frequency\\
+pmax & number & 1e+48 & [p.u.] maximum turbine output\\
+pmin & number & -1e+48 & [p.u.] minimum turbine output\\
+deadband, deadbandhigh & number & -1e+48 & upper threshold on the deadband;\\
+deadbandlow & number & 1e+48 & lower threshold on the deadband;\\
+\hline
+\end{tabular}
+\caption{Set options for gridDynGovernor objects. See Table~\ref{table:gridSubModel} for additional settable options through gridSubModel}
+\label{table:gridDynGovernor}
+\end{table}

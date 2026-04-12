@@ -10,10 +10,10 @@
 % For details, see the LICENSE file.
 % LLNS Copyright End
 classdef timeSeries2 < handle
-    %class to read time series2 (and 1) data as generated from GridDyn
-    
+    %class to operate on a time series2 (and 1) data as generated from GridDyn
+
     properties
-        
+
         description='';
         time=[];
         data=[];
@@ -21,7 +21,7 @@ classdef timeSeries2 < handle
         count=0;
         fields={''};
     end
-    
+
     methods
         function ts=timeSeries2(varargin)
             if (nargin==1)
@@ -39,7 +39,7 @@ classdef timeSeries2 < handle
                     ts.count=length(ts.time);
                 end
                 if isnumeric(varargin{2})
-                   
+
                     [r,c]=size(varargin{2});
                     if (r==ts.count)
                         ts.data=varargin{2};
@@ -50,8 +50,8 @@ classdef timeSeries2 < handle
                 end
             end
         end
-        
-        function out=addData(ts,t,val,colnum)
+
+        function addData(ts,t,val,colnum)
             if (nargin<4)
                 colnum=1;
             end
@@ -66,47 +66,69 @@ classdef timeSeries2 < handle
             elseif (length(t)==size(val,1))
                 ep=length(t);
                 ts.time(ts.count+1:ts.count+ep,1)=t;
-                ts.data(ts.count+1:ts.count+ep,colnum)=val;
+                ts.data(ts.count+1:ts.count+ep,colnum:colnum+size(val,2)-1)=val;
                 ts.count=ts.count+ep;
+                setCols(ts,size(ts.data,2));
             elseif (length(t)==size(val,2))
                 ep=length(t);
+
                 ts.time(ts.count+1:ts.count+ep,1)=t;
-                ts.data(ts.count+1:ts.count+ep,colnum)=val';
+                ts.data(ts.count+1:ts.count+ep,colnum:colnum+size(val,1)-1)=val';
                 ts.count=ts.count+ep;
+                setCols(ts,size(ts.data,2));
             else
+                error('invalid data size');
             end
-            out=1;
         end
-        
-        
+
+        function addColumn(ts,val,colnum)
+             if (nargin<3)
+                colnum=1;
+            end
+            if (size(val,1)==ts.count)
+                ts.data(:,colnum:colnum+size(val,2)-1)=val;
+                setCols(ts,size(ts.data,2))
+
+            elseif (size(val,2)==ts.count)
+               ts.data(:,colnum:colnum+size(val,1)-1)=val';
+               setCols(ts,size(ts.data,2))
+            else
+                error('invalid data size');
+            end
+        end
+
         function setSize(ts,newSize)
             ts.count=newSize;
-            ts.time(ts.count)=NaN;
-            ts.data(ts.count,:)=NaN;
+           if (newSize>length(ts.time))
+                ts.time(end:newSize)=NaN;
+                ts.data(end:newSize,:)=NaN;
+            end
         end
         function setCapacity(ts,newSize)
-            ts.time(newSize)=NaN;
-            ts.data(newSize,:)=NaN;
+            if (newSize>length(ts.time))
+                ts.time(end:newSize)=NaN;
+                ts.data(end:newSize,:)=NaN;
+            end
         end
-        
-        function setcols(ts,newCols)
+
+        function setCols(ts,newCols)
             if (newCols>ts.cols)
-                
-                ts.data(:,newCols)=NaN;
-                [ts.fields{ts.cols+1:newCols}]=deal('');
+
+                ts.data(:,end+1:newCols)=NaN;
+                [ts.fields{end+1:newCols}]=deal('');
             end
             ts.cols=newCols;
         end
-        
+
         function loadBinaryFile(ts,filename)
-            
+
             if (~exist(filename,'file'))
                 return;
             end
-            
+
             fid=fopen(filename,'rb');
             if (fid<0)
-                
+
                 return;
             end
             dflag=fread(fid,1,'int32');
@@ -119,7 +141,7 @@ classdef timeSeries2 < handle
                     return;
                 end
             end
-            
+
             dcount=fread(fid,1,'int32');
             if (dcount>0)
                 desc=fread(fid,dcount,'char=>char')';
@@ -156,37 +178,36 @@ classdef timeSeries2 < handle
                     end
                 end
             end
-            
+
             fclose(fid);
         end
-        
+
         function loadTextFile(ts,filename)
             if (~exist(filename,'file'))
                 return;
             end
             [nm,~,at]=sheetread(filename);
-            
+
             ts.description=at{1,1};
             ts.count=size(at,1)-2;
             ts.cols=size(at,2)-1;
             ts.time=nm(2:end,1);
             ts.data=nm(2:end,2:end);
             ts.fields=at(2,2:end);
-            
+
         end
-        
-        function out=writeBinaryFile(ts,filename)
+
+        function writeBinaryFile(ts,filename)
             [pth,name,ext]=fileparts(filename);
             if isempty(pth)
                 fname=fullfile(pwd,filename);
             else
                 fname=filename;
             end
-            
+
             fid=fopen(fname,'wb');
             if (fid<0)
-                out=-1;
-                return;
+                error('unable to open file');
             end
             fwrite(fid,int32(1),'int32');
             if (~isempty(ts.description))
@@ -208,21 +229,37 @@ classdef timeSeries2 < handle
                     fwrite(fid,uint8(0),'uint8');
                 end
             end
-            
+
              fwrite(fid,ts.time,'double');
             for kk=1:ts.cols
                 fwrite(fid,ts.data(:,kk),'double');
             end
             fclose(fid);
-            out=0;
         end
         function writeTextFile(ts,filename)
         end
-        
+
         function varargout=subsref(ts,s)
             switch (s(1).type)
                 case '.'
-                   varargout = {builtin('subsref',ts,s)};
+                    if (nargout==0)
+                        if (ischar(s(1).subs))
+                            if (ismember(s(1).subs,methods(timeSeries2)))
+                                fh = str2func(s(1).subs);
+                                if (iscell(s(2).subs))
+                                    fh(ts,s(2).subs{:});
+                                else
+                                    fh(ts,s(2).subs);
+                                end
+                            else
+                                varargout = {builtin('subsref',ts,s)};
+                            end
+                        else
+                             varargout = {builtin('subsref',ts,s)};
+                        end
+                    else
+                        varargout = {builtin('subsref',ts,s)};
+                    end
                 case '()'
                     if (length(s)==1)
                         if (length(s(1).subs)==1)

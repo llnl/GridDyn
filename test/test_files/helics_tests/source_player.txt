@@ -1,0 +1,7 @@
+# generation patterns for test case
+3 gen 40
+7 gen 45
+11 gen 50
+15 gen 55
+19 gen 60
+23 gen 65

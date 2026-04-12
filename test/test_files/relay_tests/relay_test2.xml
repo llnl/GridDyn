@@ -23,8 +23,8 @@
          <Q>0.1</Q>
       </load>
    </bus>
- 
-   
+
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
@@ -32,31 +32,31 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.03</r>
       <x>0.085</x>
    </link>
-  
+
    <link from="bus2" name="bus2_to_bus3" to="bus3">
    <type>ac</type>
       <b>0.0</b>
       <r>0.069</r>
       <x>0.2008</x>
-	  <event>
-	  <field>fault</field>
-	  <time>1.0,1.05></time>
-	  <value>0.5,-1></value>
-	  </event>
+      <event>
+      <field>fault</field>
+      <time>1.0,1.05></time>
+      <value>0.5,-1></value>
+      </event>
    </link>
-   
+
    <link from="bus2" name="bus2_to_bus3b" to="bus3">
    <type>ac</type>
       <b>0.0</b>
       <r>0.069</r>
       <x>0.2008</x>
    </link>
-   
+
    <relay target="bus2_to_bus3" flags="comm_enabled" commdest="bus2bus3">
    <terminal>1</terminal>
    <type>zonal</type>
@@ -75,6 +75,6 @@
    <recorder field="auto" period=0.001>
    <file>relayfault.dat</file>
    </recorder>
-   
-   
+
+
 </griddyn>

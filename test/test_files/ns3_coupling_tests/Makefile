@@ -1,6 +1,7 @@
+testFiles=$(sort $(wildcard ./bin/*.tc))
+
 .PHONY: check
-check: \
-	bin/test-ieee39_relay_geco_coupled.tc
+check: ${testFiles}
 
 %.tc: clean $@
 	@${PARGRID_SRC_DIR}/bin/test-runner $@

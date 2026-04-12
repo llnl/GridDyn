@@ -7,38 +7,38 @@
    </bus>
    <bus name="bus2">
      <load name="load1">
-	 <p>0.4</p>
-	 <q>0.1</q>
-	 </load>
-	  <load name="loadP" type="pulse">
-	 <p>0</p>
-	 <period>3</period>
-	 <a>0.2</a>
-	 <pulsetype>square</pulsetype>
-	 </load>
-	 <load name="loadP2" type="pulse">
-	 <p>0</p>
-	 <period>2</period>
-	 <a>0.1</a>
-	 <pulsetype>triangle</pulsetype>
-	 </load>
+     <p>0.4</p>
+     <q>0.1</q>
+     </load>
+      <load name="loadP" type="pulse">
+     <p>0</p>
+     <p:period>3</p:period>
+     <p:a>0.2</p:a>
+     <p:pulsetype>square</p:pulsetype>
+     </load>
+     <load name="loadP2" type="pulse">
+     <p>0</p>
+     <p:period>2</p:period>
+     <p:a>0.1</p:a>
+     <p:pulsetype>triangle</p:pulsetype>
+     </load>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0.002</r>
       <x>0.015</x>
    </link>
-   
+
    <sensor>
    <input>bus2:load</input>
-	<block type="deadband">
-	<high>0.5</high>
-	<low>0.3</low>
-	<level>0.4</level>
-	</block>
-	</sensor>
-	<recorder field="bus2:load, relay#0:output0" period=0.1>
+    <block type="deadband">
+    <high>0.5</high>
+    <low>0.3</low>
+    <level>0.4</level>
+    </block>
+    </sensor>
+    <recorder field="bus2:load, relay#0:output0" period="0.1">
     <file>blocktest.dat</file>
   </recorder>
    <basepower>100</basepower>

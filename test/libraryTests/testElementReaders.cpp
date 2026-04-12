@@ -1,539 +1,477 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
 /*
-* LLNS Copyright Start
-* Copyright (c) 2016, Lawrence Livermore National Security
-* This work was performed under the auspices of the U.S. Department
-* of Energy by Lawrence Livermore National Laboratory in part under
-* Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
-* Produced at the Lawrence Livermore National Laboratory.
-* All rights reserved.
-* For details, see the LICENSE file.
-* LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
+// test case for element readers
 
-
-
-
-
-//test case for element readers
-
-#include "testHelper.h"
-#include "gridDynTypes.h"
-#include "tinyxmlReaderElement.h"
-#include "tinyxml2ReaderElement.h"
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include "../gtestHelper.h"
+#include "formatInterpreters/tinyxml2ReaderElement.h"
+#include "formatInterpreters/tinyxmlReaderElement.h"
+#include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
+#include <string>
 
-static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY "/element_reader_tests/");
+static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
+                                                    "/element_reader_tests/");
 
-BOOST_AUTO_TEST_SUITE(elementReader_tests)
-
-BOOST_AUTO_TEST_CASE(tinyxmlElementReader_test1)
+TEST(ElementReaderTests, TinyxmlElementReaderTest1)
 {
-	tinyxmlReaderElement reader;
-	BOOST_REQUIRE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
-	auto firstChild = reader.clone();
-	BOOST_CHECK(firstChild != nullptr);
-	BOOST_CHECK(firstChild->getName() == "griddyn");
-	//There is only one child
-	auto sibling = firstChild->nextSibling();
-	BOOST_CHECK(sibling == nullptr);
-	sibling = firstChild->firstChild();
-	BOOST_CHECK(sibling->getName() == "bus");
-	auto cChild = sibling->nextSibling();
-	BOOST_CHECK(cChild == nullptr);
-	sibling->moveToNextSibling();
-	BOOST_CHECK(sibling->isValid() == false);
+    tinyxmlReaderElement reader;
+    ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
+    auto firstChild = reader.clone();
+    ASSERT_NE(firstChild, nullptr);
+    EXPECT_EQ(firstChild->getName(), "griddyn");
+    auto sibling = firstChild->nextSibling();
+    EXPECT_EQ(sibling, nullptr);
+    sibling = firstChild->firstChild();
+    EXPECT_EQ(sibling->getName(), "bus");
+    auto cChild = sibling->nextSibling();
+    EXPECT_EQ(cChild, nullptr);
+    sibling->moveToNextSibling();
+    EXPECT_FALSE(sibling->isValid());
 
-	auto busElement= firstChild->firstChild();
-	auto busChild = busElement->firstChild("type");
-	BOOST_REQUIRE(busChild != nullptr);
-	BOOST_CHECK(busChild->getName() == "type");
+    auto busElement = firstChild->firstChild();
+    auto busChild = busElement->firstChild("type");
+    ASSERT_NE(busChild, nullptr);
+    EXPECT_EQ(busChild->getName(), "type");
 
-	auto val = busChild->getText();
-	BOOST_CHECK(val == "SLK");
+    auto val = busChild->getText();
+    EXPECT_EQ(val, "SLK");
 
-	//Go through the children
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "angle");
-	BOOST_CHECK(busChild->getValue() == 0.0);
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "voltage");
-	BOOST_CHECK(busChild->getText() == "1.04");
-	BOOST_CHECK_CLOSE(busChild->getValue(),1.04,0.000001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "angle");
+    EXPECT_EQ(busChild->getValue(), 0.0);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "voltage");
+    EXPECT_EQ(busChild->getText(), "1.04");
+    EXPECT_NEAR(busChild->getValue(), 1.04, 1e-6);
 
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "generator");
-	BOOST_CHECK(busChild->getText().empty());
-	auto genChild = busChild->firstChild();
-	BOOST_CHECK(genChild->getName() == "P");
-	BOOST_CHECK_CLOSE(genChild->getValue(), 0.7160,0.00001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "generator");
+    EXPECT_TRUE(busChild->getText().empty());
+    auto genChild = busChild->firstChild();
+    EXPECT_EQ(genChild->getName(), "P");
+    EXPECT_NEAR(genChild->getValue(), 0.7160, 1e-5);
 
-	//Get the generator attributes
-	auto att = busChild->getFirstAttribute();
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "gen1");
-	//move busChild to the parent to make sure they are the same
-	busChild->moveToParent();
-	BOOST_CHECK(busChild->getName() == busElement->getName());
+    auto att = busChild->getFirstAttribute();
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "gen1");
+    busChild->moveToParent();
+    EXPECT_EQ(busChild->getName(), busElement->getName());
 
-	//Now go back to the first child to do a few checks on attributes
-	att = firstChild->getAttribute("name");
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "test1");
-
+    att = firstChild->getAttribute("name");
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "test1");
 }
 
-
-BOOST_AUTO_TEST_CASE(tinyxmlElementReader_test2)
+TEST(ElementReaderTests, TinyxmlElementReaderTest2)
 {
-	tinyxmlReaderElement reader;
-	//test a bad file
-	reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
-	std::cout << "NOTE:: this should have a message testing bad xml input and not fault\n";
-	BOOST_CHECK(reader.isValid() == false);
-	reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
-	BOOST_CHECK(reader.isValid() == true);
+    tinyxmlReaderElement reader;
+    reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
+    std::cout << "NOTE:: this should have a message testing bad xml input and not fault\n";
+    EXPECT_FALSE(reader.isValid());
+    reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    EXPECT_TRUE(reader.isValid());
 
-	auto main= reader.clone();
-	//there should be 9 elements
-	auto sub = main->firstChild();
-	for (int kk = 0; kk < 8; ++kk)
-	{
-		sub->moveToNextSibling();
-	}
-	auto name = sub->getName();
-	BOOST_CHECK(name == "elementWithAttributes");
-	auto att = sub->getFirstAttribute();
-	BOOST_CHECK(att.getText() == "A");
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.getValue() == 46);
-	att = sub->getNextAttribute();
-	BOOST_CHECK_CLOSE(att.getValue(), 21.345,0.000001);
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.getValue()==kNullVal);
-	BOOST_CHECK(att.getText() == "happy");
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.isValid() == false);
-
+    auto main = reader.clone();
+    auto sub = main->firstChild();
+    for (int kk = 0; kk < 8; ++kk) {
+        sub->moveToNextSibling();
+    }
+    auto name = sub->getName();
+    EXPECT_EQ(name, "elementWithAttributes");
+    auto att = sub->getFirstAttribute();
+    EXPECT_EQ(att.getText(), "A");
+    att = sub->getNextAttribute();
+    EXPECT_EQ(att.getValue(), 46);
+    att = sub->getNextAttribute();
+    EXPECT_NEAR(att.getValue(), 21.345, 1e-6);
+    att = sub->getNextAttribute();
+    EXPECT_EQ(att.getValue(), readerNullVal);
+    EXPECT_EQ(att.getText(), "happy");
+    att = sub->getNextAttribute();
+    EXPECT_FALSE(att.isValid());
 }
 
-BOOST_AUTO_TEST_CASE(tinyxmlElementReader_test3)
+TEST(ElementReaderTests, TinyxmlElementReaderTest3)
 {
-	tinyxmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
-	//test traversal using move commands
-	auto main = reader.clone();
-	
-	main->moveToFirstChild("subelementA");
-	BOOST_CHECK(main->getName() == "subelementA");
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid()==false);
-	//now move back to parent
-	main->moveToParent();
-	BOOST_CHECK(main->getName() == "main_element");
-	//now loop through subElementB
-	main->moveToFirstChild("subelementB");
-	BOOST_CHECK(main->getName() == "subelementB");
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->getName() == "subelementB");
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid() == false);
+    tinyxmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    auto main = reader.clone();
 
-	//test traversal with different element names
-	main->moveToParent();
-	main->moveToFirstChild("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("elementWithAttributes");
-	BOOST_CHECK(main->isValid());
+    main->moveToFirstChild("subelementA");
+    EXPECT_EQ(main->getName(), "subelementA");
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_FALSE(main->isValid());
+    main->moveToParent();
+    EXPECT_EQ(main->getName(), "main_element");
+    main->moveToFirstChild("subelementB");
+    EXPECT_EQ(main->getName(), "subelementB");
+    main->moveToNextSibling("subelementB");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementB");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementB");
+    EXPECT_EQ(main->getName(), "subelementB");
+    main->moveToNextSibling("subelementB");
+    EXPECT_FALSE(main->isValid());
 
-	//Test traversal with invalid names
-	main->moveToFirstChild("badElementName");
-	BOOST_CHECK(main->isValid()==false);
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	main->moveToFirstChild("badElementName");
-	main->moveToFirstChild("badElementName");
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	auto name = main->getName();
-	BOOST_CHECK(name == "main_element");
-	main->moveToParent();
-	
-	BOOST_CHECK(main->isDocument());
+    main->moveToParent();
+    main->moveToFirstChild("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("elementWithAttributes");
+    EXPECT_TRUE(main->isValid());
+
+    main->moveToFirstChild("badElementName");
+    EXPECT_FALSE(main->isValid());
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    main->moveToFirstChild("badElementName");
+    main->moveToFirstChild("badElementName");
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    auto name = main->getName();
+    EXPECT_EQ(name, "main_element");
+    main->moveToParent();
+
+    EXPECT_TRUE(main->isDocument());
 }
 
-BOOST_AUTO_TEST_CASE(tinyxmlElementReader_testParse)
+TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
 {
-	std::string XMLtestString = R"xml(<?xml version="1.0" encoding="utf - 8"?>
-<!--xml file to test the xml - reader functions--> 
-		<griddyn name = "test1" version = "0.0.1">
-		<bus name = "bus1">
-		<type>SLK</type>
-		<angle>0</angle>
-		<voltage>1.04</voltage>
-		<generator name = "gen1">
-		<P>0.7160</P>
-		</generator>
-		</bus>
-		</griddyn>)xml";
+    std::string XMLtestString = R"xml(<?xml version="1.0" encoding="utf - 8"?>
+<!--xml file to test the xml - reader functions-->
+        <GridDyn name = "test1" version = "0.0.1">
+        <bus name = "bus1">
+        <type>SLK</type>
+        <angle>0</angle>
+        <voltage>1.04</voltage>
+        <generator name = "gen1">
+        <P>0.7160</P>
+        </generator>
+        </bus>
+        </GridDyn>)xml";
 
-	tinyxmlReaderElement reader;
-	reader.parse(XMLtestString);
-	BOOST_REQUIRE(reader.isValid());
+    tinyxmlReaderElement reader;
+    reader.parse(XMLtestString);
+    ASSERT_TRUE(reader.isValid());
 
-	auto firstChild = reader.clone();
-	BOOST_CHECK(firstChild != nullptr);
-	BOOST_CHECK(firstChild->getName() == "griddyn");
-	//There is only one child
-	auto sibling = firstChild->nextSibling();
-	BOOST_CHECK(sibling == nullptr);
-	sibling = firstChild->firstChild();
-	BOOST_CHECK(sibling->getName() == "bus");
-	auto cChild = sibling->nextSibling();
-	BOOST_CHECK(cChild == nullptr);
-	sibling->moveToNextSibling();
-	BOOST_CHECK(sibling->isValid() == false);
+    auto firstChild = reader.clone();
+    ASSERT_NE(firstChild, nullptr);
+    EXPECT_EQ(firstChild->getName(), "GridDyn");
+    auto sibling = firstChild->nextSibling();
+    EXPECT_EQ(sibling, nullptr);
+    sibling = firstChild->firstChild();
+    EXPECT_EQ(sibling->getName(), "bus");
+    auto cChild = sibling->nextSibling();
+    EXPECT_EQ(cChild, nullptr);
+    sibling->moveToNextSibling();
+    EXPECT_FALSE(sibling->isValid());
 
-	auto busElement = firstChild->firstChild();
-	auto busChild = busElement->firstChild("type");
-	BOOST_REQUIRE(busChild != nullptr);
-	BOOST_CHECK(busChild->getName() == "type");
+    auto busElement = firstChild->firstChild();
+    auto busChild = busElement->firstChild("type");
+    ASSERT_NE(busChild, nullptr);
+    EXPECT_EQ(busChild->getName(), "type");
 
-	auto val = busChild->getText();
-	BOOST_CHECK(val == "SLK");
+    auto val = busChild->getText();
+    EXPECT_EQ(val, "SLK");
 
-	//Go through the children
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "angle");
-	BOOST_CHECK(busChild->getValue() == 0.0);
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "voltage");
-	BOOST_CHECK(busChild->getText() == "1.04");
-	BOOST_CHECK_CLOSE(busChild->getValue(), 1.04, 0.000001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "angle");
+    EXPECT_EQ(busChild->getValue(), 0.0);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "voltage");
+    EXPECT_EQ(busChild->getText(), "1.04");
+    EXPECT_NEAR(busChild->getValue(), 1.04, 1e-6);
 
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "generator");
-	BOOST_CHECK(busChild->getText().empty());
-	auto genChild = busChild->firstChild();
-	BOOST_CHECK(genChild->getName() == "P");
-	BOOST_CHECK_CLOSE(genChild->getValue(), 0.7160, 0.00001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "generator");
+    EXPECT_TRUE(busChild->getText().empty());
+    auto genChild = busChild->firstChild();
+    EXPECT_EQ(genChild->getName(), "P");
+    EXPECT_NEAR(genChild->getValue(), 0.7160, 1e-5);
 
-	//Get the generator attributes
-	auto att = busChild->getFirstAttribute();
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "gen1");
-	//move busChild to the parent to make sure they are the same
-	busChild->moveToParent();
-	BOOST_CHECK(busChild->getName() == busElement->getName());
+    auto att = busChild->getFirstAttribute();
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "gen1");
+    busChild->moveToParent();
+    EXPECT_EQ(busChild->getName(), busElement->getName());
 
-	//Now go back to the first child to do a few checks on attributes
-	att = firstChild->getAttribute("name");
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "test1");
-
+    att = firstChild->getAttribute("name");
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "test1");
 }
 
-BOOST_AUTO_TEST_CASE(tinyxmlElementReader_test4)
+TEST(ElementReaderTests, TinyxmlElementReaderTest4)
 {
-	auto reader = std::make_shared<tinyxmlReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
-	BOOST_CHECK(reader->getName() == "main_element");
+    auto reader = std::make_shared<tinyxmlReaderElement>(elementReaderTestDirectory +
+                                                         "xmlElementReader_test3.xml");
+    EXPECT_EQ(reader->getName(), "main_element");
 
-	auto main = reader->clone();
-	reader = nullptr;
-	BOOST_CHECK(main->getName() == "main_element");
-	main->bookmark();
-	main->moveToFirstChild();
-	auto tstr = main->getMultiText(", ");
-	BOOST_CHECK(tstr == "part1, part2, part3");
-	main->moveToFirstChild();
-	//att1 is 23t"  should return as not a value
-	double val = main->getAttributeValue("att1");
-	BOOST_CHECK(val == kNullVal);
-	main->moveToFirstChild();
+    auto main = reader->clone();
+    reader = nullptr;
+    EXPECT_EQ(main->getName(), "main_element");
+    main->bookmark();
+    main->moveToFirstChild();
+    auto tstr = main->getMultiText(", ");
+    EXPECT_EQ(tstr, "part1, part2, part3");
+    main->moveToFirstChild();
+    double val = main->getAttributeValue("att1");
+    EXPECT_EQ(val, readerNullVal);
+    main->moveToFirstChild();
 
-	val = main->getValue();
-	BOOST_CHECK(val == kNullVal);
-	BOOST_CHECK(main->getText() == "45.3echo");
-	main->restore();
-	BOOST_CHECK(main->getName() == "main_element");
-	//test iterated and reverse moving bookmarks
-	main->bookmark();
-	main->moveToFirstChild();
-	main->moveToFirstChild();
-	main->bookmark();
-	main->moveToParent();
-	main->moveToParent();
-	main->restore();
-	BOOST_CHECK(main->getName() == "subelementA");
-	main->restore();
-	BOOST_CHECK(main->getName() == "main_element");
+    val = main->getValue();
+    EXPECT_EQ(val, readerNullVal);
+    EXPECT_EQ(main->getText(), "45.3echo");
+    main->restore();
+    EXPECT_EQ(main->getName(), "main_element");
+    main->bookmark();
+    main->moveToFirstChild();
+    main->moveToFirstChild();
+    main->bookmark();
+    main->moveToParent();
+    main->moveToParent();
+    main->restore();
+    EXPECT_EQ(main->getName(), "subelementA");
+    main->restore();
+    EXPECT_EQ(main->getName(), "main_element");
 }
 
-BOOST_AUTO_TEST_CASE(tinyxml2ElementReader_test1)
+TEST(ElementReaderTests, Tinyxml2ElementReaderTest1)
 {
-	tinyxml2ReaderElement reader;
-	BOOST_REQUIRE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
-	auto firstChild = reader.clone();
-	BOOST_CHECK(firstChild != nullptr);
-	BOOST_CHECK(firstChild->getName() == "griddyn");
-	//There is only one child
-	auto sibling = firstChild->nextSibling();
-	BOOST_CHECK(sibling == nullptr);
-	sibling = firstChild->firstChild();
-	BOOST_CHECK(sibling->getName() == "bus");
-	auto cChild = sibling->nextSibling();
-	BOOST_CHECK(cChild == nullptr);
-	sibling->moveToNextSibling();
-	BOOST_CHECK(sibling->isValid() == false);
+    tinyxml2ReaderElement reader;
+    ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
+    auto firstChild = reader.clone();
+    ASSERT_NE(firstChild, nullptr);
+    EXPECT_EQ(firstChild->getName(), "griddyn");
+    auto sibling = firstChild->nextSibling();
+    EXPECT_EQ(sibling, nullptr);
+    sibling = firstChild->firstChild();
+    EXPECT_EQ(sibling->getName(), "bus");
+    auto cChild = sibling->nextSibling();
+    EXPECT_EQ(cChild, nullptr);
+    sibling->moveToNextSibling();
+    EXPECT_FALSE(sibling->isValid());
 
-	auto busElement = firstChild->firstChild();
-	auto busChild = busElement->firstChild("type");
-	BOOST_REQUIRE(busChild != nullptr);
-	BOOST_CHECK(busChild->getName() == "type");
+    auto busElement = firstChild->firstChild();
+    auto busChild = busElement->firstChild("type");
+    ASSERT_NE(busChild, nullptr);
+    EXPECT_EQ(busChild->getName(), "type");
 
-	auto val = busChild->getText();
-	BOOST_CHECK(val == "SLK");
+    auto val = busChild->getText();
+    EXPECT_EQ(val, "SLK");
 
-	//Go through the children
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "angle");
-	BOOST_CHECK(busChild->getValue() == 0.0);
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "voltage");
-	BOOST_CHECK(busChild->getText() == "1.04");
-	BOOST_CHECK_CLOSE(busChild->getValue(), 1.04, 0.000001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "angle");
+    EXPECT_EQ(busChild->getValue(), 0.0);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "voltage");
+    EXPECT_EQ(busChild->getText(), "1.04");
+    EXPECT_NEAR(busChild->getValue(), 1.04, 1e-6);
 
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "generator");
-	BOOST_CHECK(busChild->getText().empty());
-	auto genChild = busChild->firstChild();
-	BOOST_CHECK(genChild->getName() == "P");
-	BOOST_CHECK_CLOSE(genChild->getValue(), 0.7160, 0.00001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "generator");
+    EXPECT_TRUE(busChild->getText().empty());
+    auto genChild = busChild->firstChild();
+    EXPECT_EQ(genChild->getName(), "P");
+    EXPECT_NEAR(genChild->getValue(), 0.7160, 1e-5);
 
-	//Get the generator attributes
-	auto att = busChild->getFirstAttribute();
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "gen1");
-	//move busChild to the parent to make sure they are the same
-	busChild->moveToParent();
-	BOOST_CHECK(busChild->getName() == busElement->getName());
+    auto att = busChild->getFirstAttribute();
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "gen1");
+    busChild->moveToParent();
+    EXPECT_EQ(busChild->getName(), busElement->getName());
 
-	//Now go back to the first child to do a few checks on attributes
-	att = firstChild->getAttribute("name");
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "test1");
-
+    att = firstChild->getAttribute("name");
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "test1");
 }
 
-
-BOOST_AUTO_TEST_CASE(tinyxml2ElementReader_test2)
+TEST(ElementReaderTests, Tinyxml2ElementReaderTest2)
 {
-	tinyxml2ReaderElement reader;
-	//test a bad file
-	reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
-	BOOST_CHECK(reader.isValid() == false);
-	reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
-	BOOST_CHECK(reader.isValid() == true);
+    tinyxml2ReaderElement reader;
+    reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
+    EXPECT_FALSE(reader.isValid());
+    reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    EXPECT_TRUE(reader.isValid());
 
-	auto main = reader.clone();
-	//there should be 9 elements
-	auto sub = main->firstChild();
-	for (int kk = 0; kk < 8; ++kk)
-	{
-		sub->moveToNextSibling();
-	}
-	auto name = sub->getName();
-	BOOST_CHECK(name == "elementWithAttributes");
-	auto att = sub->getFirstAttribute();
-	BOOST_CHECK(att.getText() == "A");
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.getValue() == 46);
-	att = sub->getNextAttribute();
-	BOOST_CHECK_CLOSE(att.getValue(), 21.345, 0.000001);
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.getValue() == kNullVal);
-	BOOST_CHECK(att.getText() == "happy");
-	att = sub->getNextAttribute();
-	BOOST_CHECK(att.isValid() == false);
-
+    auto main = reader.clone();
+    auto sub = main->firstChild();
+    for (int kk = 0; kk < 8; ++kk) {
+        sub->moveToNextSibling();
+    }
+    auto name = sub->getName();
+    EXPECT_EQ(name, "elementWithAttributes");
+    auto att = sub->getFirstAttribute();
+    EXPECT_EQ(att.getText(), "A");
+    att = sub->getNextAttribute();
+    EXPECT_EQ(att.getValue(), 46);
+    att = sub->getNextAttribute();
+    EXPECT_NEAR(att.getValue(), 21.345, 1e-6);
+    att = sub->getNextAttribute();
+    EXPECT_EQ(att.getValue(), readerNullVal);
+    EXPECT_EQ(att.getText(), "happy");
+    att = sub->getNextAttribute();
+    EXPECT_FALSE(att.isValid());
 }
 
-BOOST_AUTO_TEST_CASE(tinyxml2ElementReader_test3)
+TEST(ElementReaderTests, Tinyxml2ElementReaderTest3)
 {
-	tinyxml2ReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
-	//test traversal using move commands
-	auto main = reader.clone();
+    tinyxml2ReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    auto main = reader.clone();
 
-	main->moveToFirstChild("subelementA");
-	BOOST_CHECK(main->getName() == "subelementA");
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementA");
-	BOOST_CHECK(main->isValid() == false);
-	//now move back to parent
-	main->moveToParent();
-	BOOST_CHECK(main->getName() == "main_element");
-	//now loop through subElementB
-	main->moveToFirstChild("subelementB");
-	BOOST_CHECK(main->getName() == "subelementB");
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->getName() == "subelementB");
-	main->moveToNextSibling("subelementB");
-	BOOST_CHECK(main->isValid() == false);
+    main->moveToFirstChild("subelementA");
+    EXPECT_EQ(main->getName(), "subelementA");
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementA");
+    EXPECT_FALSE(main->isValid());
+    main->moveToParent();
+    EXPECT_EQ(main->getName(), "main_element");
+    main->moveToFirstChild("subelementB");
+    EXPECT_EQ(main->getName(), "subelementB");
+    main->moveToNextSibling("subelementB");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementB");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("subelementB");
+    EXPECT_EQ(main->getName(), "subelementB");
+    main->moveToNextSibling("subelementB");
+    EXPECT_FALSE(main->isValid());
 
-	//test traversal with different element names
-	main->moveToParent();
-	main->moveToFirstChild("subelementA");
-	BOOST_CHECK(main->isValid());
-	main->moveToNextSibling("elementWithAttributes");
-	BOOST_CHECK(main->isValid());
+    main->moveToParent();
+    main->moveToFirstChild("subelementA");
+    EXPECT_TRUE(main->isValid());
+    main->moveToNextSibling("elementWithAttributes");
+    EXPECT_TRUE(main->isValid());
 
-	//Test traversal with invalid names
-	main->moveToFirstChild("badElementName");
-	BOOST_CHECK(main->isValid() == false);
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	main->moveToFirstChild("badElementName");
-	main->moveToFirstChild("badElementName");
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	main->moveToParent();
-	BOOST_CHECK(main->isValid());
-	auto name = main->getName();
-	BOOST_CHECK(name == "main_element");
-	main->moveToParent();
-	name = main->getName();
-	BOOST_CHECK(main->isDocument());
+    main->moveToFirstChild("badElementName");
+    EXPECT_FALSE(main->isValid());
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    main->moveToFirstChild("badElementName");
+    main->moveToFirstChild("badElementName");
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    main->moveToParent();
+    EXPECT_TRUE(main->isValid());
+    auto name = main->getName();
+    EXPECT_EQ(name, "main_element");
+    main->moveToParent();
+    EXPECT_TRUE(main->isDocument());
 }
 
-BOOST_AUTO_TEST_CASE(tinyxml2ElementReader_testParse)
+TEST(ElementReaderTests, Tinyxml2ElementReaderTestParse)
 {
-	std::string XMLtestString = R"xml(<?xml version="1.0" encoding="utf - 8"?>
-<!--xml file to test the xml - reader functions--> 
-		<griddyn name = "test1" version = "0.0.1">
-		<bus name = "bus1">
-		<type>SLK</type>
-		<angle>0</angle>
-		<voltage>1.04</voltage>
-		<generator name = "gen1">
-		<P>0.7160</P>
-		</generator>
-		</bus>
-		</griddyn>)xml";
+    std::string XMLtestString = R"xml(<?xml version="1.0" encoding="utf - 8"?>
+<!--xml file to test the xml - reader functions-->
+        <GridDyn name = "test1" version = "0.0.1">
+        <bus name = "bus1">
+        <type>SLK</type>
+        <angle>0</angle>
+        <voltage>1.04</voltage>
+        <generator name = "gen1">
+        <P>0.7160</P>
+        </generator>
+        </bus>
+        </GridDyn>)xml";
 
-	tinyxml2ReaderElement reader;
-	reader.parse(XMLtestString);
+    tinyxml2ReaderElement reader;
+    reader.parse(XMLtestString);
 
-	BOOST_REQUIRE(reader.isValid());
-	auto firstChild = reader.clone();
-	BOOST_CHECK(firstChild != nullptr);
-	BOOST_CHECK(firstChild->getName() == "griddyn");
-	//There is only one child
-	auto sibling = firstChild->nextSibling();
-	BOOST_CHECK(sibling == nullptr);
-	sibling = firstChild->firstChild();
-	BOOST_CHECK(sibling->getName() == "bus");
-	auto cChild = sibling->nextSibling();
-	BOOST_CHECK(cChild == nullptr);
-	sibling->moveToNextSibling();
-	BOOST_CHECK(sibling->isValid() == false);
+    ASSERT_TRUE(reader.isValid());
+    auto firstChild = reader.clone();
+    ASSERT_NE(firstChild, nullptr);
+    EXPECT_EQ(firstChild->getName(), "GridDyn");
+    auto sibling = firstChild->nextSibling();
+    EXPECT_EQ(sibling, nullptr);
+    sibling = firstChild->firstChild();
+    EXPECT_EQ(sibling->getName(), "bus");
+    auto cChild = sibling->nextSibling();
+    EXPECT_EQ(cChild, nullptr);
+    sibling->moveToNextSibling();
+    EXPECT_FALSE(sibling->isValid());
 
-	auto busElement = firstChild->firstChild();
-	auto busChild = busElement->firstChild("type");
-	BOOST_REQUIRE(busChild != nullptr);
-	BOOST_CHECK(busChild->getName() == "type");
+    auto busElement = firstChild->firstChild();
+    auto busChild = busElement->firstChild("type");
+    ASSERT_NE(busChild, nullptr);
+    EXPECT_EQ(busChild->getName(), "type");
 
-	auto val = busChild->getText();
-	BOOST_CHECK(val == "SLK");
+    auto val = busChild->getText();
+    EXPECT_EQ(val, "SLK");
 
-	//Go through the children
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "angle");
-	BOOST_CHECK(busChild->getValue() == 0.0);
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "voltage");
-	BOOST_CHECK(busChild->getText() == "1.04");
-	BOOST_CHECK_CLOSE(busChild->getValue(), 1.04, 0.000001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "angle");
+    EXPECT_EQ(busChild->getValue(), 0.0);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "voltage");
+    EXPECT_EQ(busChild->getText(), "1.04");
+    EXPECT_NEAR(busChild->getValue(), 1.04, 1e-6);
 
-	busChild->moveToNextSibling();
-	BOOST_CHECK(busChild->getName() == "generator");
-	BOOST_CHECK(busChild->getText().empty());
-	auto genChild = busChild->firstChild();
-	BOOST_CHECK(genChild->getName() == "P");
-	BOOST_CHECK_CLOSE(genChild->getValue(), 0.7160, 0.00001);
+    busChild->moveToNextSibling();
+    EXPECT_EQ(busChild->getName(), "generator");
+    EXPECT_TRUE(busChild->getText().empty());
+    auto genChild = busChild->firstChild();
+    EXPECT_EQ(genChild->getName(), "P");
+    EXPECT_NEAR(genChild->getValue(), 0.7160, 1e-5);
 
-	//Get the generator attributes
-	auto att = busChild->getFirstAttribute();
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "gen1");
-	//move busChild to the parent to make sure they are the same
-	busChild->moveToParent();
-	BOOST_CHECK(busChild->getName() == busElement->getName());
+    auto att = busChild->getFirstAttribute();
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "gen1");
+    busChild->moveToParent();
+    EXPECT_EQ(busChild->getName(), busElement->getName());
 
-	//Now go back to the first child to do a few checks on attributes
-	att = firstChild->getAttribute("name");
-	BOOST_CHECK(att.getName() == "name");
-	BOOST_CHECK(att.getText() == "test1");
-
+    att = firstChild->getAttribute("name");
+    EXPECT_EQ(att.getName(), "name");
+    EXPECT_EQ(att.getText(), "test1");
 }
 
-BOOST_AUTO_TEST_CASE(tinyxml2ElementReader_test4)
+TEST(ElementReaderTests, Tinyxml2ElementReaderTest4)
 {
-	auto reader = std::make_shared<tinyxml2ReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
-	BOOST_CHECK(reader->getName() == "main_element");
+    auto reader = std::make_shared<tinyxml2ReaderElement>(elementReaderTestDirectory +
+                                                          "xmlElementReader_test3.xml");
+    EXPECT_EQ(reader->getName(), "main_element");
 
-	auto main = reader->clone();
-	reader = nullptr;
-	BOOST_CHECK(main->getName() == "main_element");
-	main->bookmark();
-	main->moveToFirstChild();
-	auto tstr = main->getMultiText(", ");
-	BOOST_CHECK(tstr == "part1, part2, part3");
-	main->moveToFirstChild();
-	//att1 is 23t"  should return as not a value
-	double val = main->getAttributeValue("att1");
-	BOOST_CHECK(val == kNullVal);
-	main->moveToFirstChild();
+    auto main = reader->clone();
+    reader = nullptr;
+    EXPECT_EQ(main->getName(), "main_element");
+    main->bookmark();
+    main->moveToFirstChild();
+    auto tstr = main->getMultiText(", ");
+    EXPECT_EQ(tstr, "part1, part2, part3");
+    main->moveToFirstChild();
+    double val = main->getAttributeValue("att1");
+    EXPECT_EQ(val, readerNullVal);
+    main->moveToFirstChild();
 
-	val = main->getValue();
-	BOOST_CHECK(val == kNullVal);
-	BOOST_CHECK(main->getText() == "45.3echo");
-	main->restore();
-	BOOST_CHECK(main->getName() == "main_element");
-	
-	//test a downward moving bookmark
-	main->bookmark();
-	main->moveToFirstChild();
-	main->moveToFirstChild();
-	main->bookmark();
-	main->moveToParent();
-	main->moveToParent();
-	main->restore();
-	BOOST_CHECK(main->getName() == "subelementA");
-	main->restore();
-	BOOST_CHECK(main->getName() == "main_element");
+    val = main->getValue();
+    EXPECT_EQ(val, readerNullVal);
+    EXPECT_EQ(main->getText(), "45.3echo");
+    main->restore();
+    EXPECT_EQ(main->getName(), "main_element");
+
+    main->bookmark();
+    main->moveToFirstChild();
+    main->moveToFirstChild();
+    main->bookmark();
+    main->moveToParent();
+    main->moveToParent();
+    main->restore();
+    EXPECT_EQ(main->getName(), "subelementA");
+    main->restore();
+    EXPECT_EQ(main->getName(), "main_element");
 }
-
-BOOST_AUTO_TEST_SUITE_END()

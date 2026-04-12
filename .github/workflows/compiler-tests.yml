@@ -1,0 +1,63 @@
+name: Compiler Tests
+
+on:
+  push:
+    branches:
+      - develop
+      - modernization
+  pull_request:
+    branches:
+      - develop
+      - modernization
+  workflow_dispatch:
+
+concurrency:
+  group: circleci-migrated-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GCC 14
+            container: helics/buildenv:gcc14-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+          - name: GCC 15
+            container: helics/buildenv:gcc15-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON
+          - name: Clang 19
+            container: helics/buildenv:clang19-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_ENABLE_ZMQ=ON -DGRIDDYN_ENABLE_NETWORKING_LIBRARY=ON -DGRIDDYN_ENABLE_TCP=ON
+          - name: Clang 20
+            container: helics/buildenv:clang20-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+          - name: Clang 21
+            container: helics/buildenv:clang21-builder
+            cmake_flags: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir -p build
+          cd build
+          eval cmake .. ${CMAKE_FLAGS}
+        env:
+          CMAKE_FLAGS: ${{ matrix.cmake_flags }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel 4
+
+      - name: Run migrated CircleCI tests
+        shell: bash
+        run: ./scripts/run-circleci-tests.sh

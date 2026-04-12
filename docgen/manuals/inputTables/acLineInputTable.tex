@@ -1,0 +1,18 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+length & number & 0 & [km] transmission line length\\
+tap, ratio & number & 1 & tap position, neutral t = 1;\\
+tapangle & number & 0 & [deg] phase angle for phase shifting transformer\\
+fault & number & 0 & \\
+minangle & number & -1.5708 & the minimum angle of the link can handle\\
+maxangle & number & 1.5708 & the maximum angle the link can handle--related to rating\\
+approximation & string & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for acLine objects. See Table~\ref{table:gridLink} for additional settable options through gridLink}
+\label{table:acLine}
+\end{table}

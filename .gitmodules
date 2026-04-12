@@ -1,0 +1,31 @@
+[submodule "ThirdParty/fmtlib"]
+    path = ThirdParty/fmtlib
+    url = https://github.com/fmtlib/fmt.git
+[submodule "ThirdParty/containers"]
+    path = ThirdParty/containers
+    url = https://github.com/GMLC-TDC/containers.git
+[submodule "ThirdParty/concurrency"]
+    path = ThirdParty/concurrency
+    url = https://github.com/GMLC-TDC/concurrency.git
+[submodule "ThirdParty/jsoncpp_new"]
+	path = ThirdParty/jsoncpp_new
+	url = https://github.com/open-source-parsers/jsoncpp
+[submodule "ThirdParty/units"]
+    path = ThirdParty/units
+    url = https://github.com/LLNL/units.git
+[submodule "ThirdParty/utilities"]
+    path = ThirdParty/utilities
+    url = https://github.com/GMLC-TDC/utilities.git
+[submodule "ThirdParty/suitesparse-cmake"]
+	path = ThirdParty/suitesparse-cmake
+	url = https://github.com/phlptp/suitesparse-metis-for-windows.git
+	branch = cmake_current
+[submodule "ThirdParty/sundials"]
+	path = ThirdParty/sundials
+	url = https://github.com/LLNL/sundials.git
+[submodule "ThirdParty/benchmark"]
+	path = ThirdParty/benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "ThirdParty/googletest"]
+	path = ThirdParty/googletest
+	url = https://github.com/google/googletest.git

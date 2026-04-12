@@ -20,7 +20,7 @@ export NS_LOG=GecoSimulator=info:GecoAdhocApplication=*
 export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH:$PARGRID_DIR/lib:$SUNDIALS_DIR/lib
 
 $PARGRID_DIR/bin/pargrid-debugger 2 \
-				$PARGRID_DIR/bin/$GECO_NS3_EXE_NAME \
-				--ns3 "--commdotfile=$COMM_DOT_FILE --elecdotfile=$ELEC_DOT_FILE --verbose=True" --griddyn "-v 0 $GRIDDYN_XML_FILE"
-				
+                $PARGRID_DIR/bin/$GECO_NS3_EXE_NAME \
+                --ns3 "--commdotfile=$COMM_DOT_FILE --elecdotfile=$ELEC_DOT_FILE --verbose=True" --griddyn "-v 0 $GRIDDYN_XML_FILE"
+
 cp dynfault.csv output/test-ieee39_relay_geco_coupled

@@ -1,0 +1,47 @@
+shallow_clone: true
+
+version: 0.9.1.{build}
+
+image: Visual Studio 2015
+
+platform:
+  - x64
+
+configuration:
+  - Release
+
+# Enable this if the build cache needs fixing
+# (note that the build cache is not saved for PRs)
+environment:
+  APPVEYOR_CACHE_SKIP_RESTORE: true
+
+cache:
+  - build\libs
+
+install:
+
+before_build:
+  # Make the build directory if it doesn't already exist
+  - IF NOT EXIST build mkdir build
+  - cd build
+  - cmake .. -G "Visual Studio 14 2015 Win64" -DBOOST_INSTALL_PATH=C:/libraries/boost_1_63_0 -DENABLE_PACKAGE_BUILD=ON -DENABLE_FMI_EXPORT=ON -DBUILD_RELEASE_ONLY=ON
+  - cd ..
+
+build:
+  project: build/GridDyn.sln
+  parallel: true
+  verbosity: minimal
+
+after_build:
+  - cd build
+  - cpack -B %cd%/installer-output
+  - cd ..
+
+test_script:
+  - cd build
+  # For controlling which tests get run:
+  # ctest -I <start>,<end>,<stride>,<list of test numbers>
+  - cd ..
+
+artifacts:
+  - path: build/installer-output/*.exe

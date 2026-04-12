@@ -6,7 +6,7 @@
       <voltage>1.05</voltage>
       <generator name="gen1">
       </generator>
-	  <load name="load1">
+      <load name="load1">
          <P>1.15</P>
          <Q>0.31</Q>
       </load>

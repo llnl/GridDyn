@@ -15,7 +15,7 @@ function sheetwrite(fname,vals,varargin)
 %function to write any sort of spreadsheet that it can
 %vals is a numeric array or cell array
 % optional arguments are type('auto') or one of 'xls','xlsx','csv','tsv','auto', precision
-% (7),delimiter(',')  
+% (7),delimiter(',')
 % vals=rand(10,10);
 % sheetwrite('randArray.txt',vals,'delimiter',';','precision',4);  to
 % create a file with a 10x10 random number array separated by semicolons written with a precision
@@ -59,7 +59,7 @@ switch (params.type)
         if (ispc)
             xlswrite(fname,vals);
         else
-           
+
             fprintf('unrecognized file type');
         end
 end
@@ -73,17 +73,17 @@ if (fid<0)
      fprintf(2,'Unable to open file for writing\n');
      return;
 end
-     
+
 spec=sprintf('%%.%df',params.precision);
 if (iscell(vals))
     for rr=1:size(vals,1)
-        
+
         for cc=1:size(vals,2)
             if isnumeric(vals{rr,cc})
                 if (isnan(vals{rr,cc}))
                     d='';
                 elseif (ismember(cc,params.date_cols))
-                    d=datestr( vals{rr,cc},params.date_format);  
+                    d=datestr( vals{rr,cc},params.date_format);
                 elseif (round(vals{rr,cc})==vals{rr,cc})
                     d=sprintf('%d',vals{rr,cc});
                 else
@@ -97,7 +97,7 @@ if (iscell(vals))
             end
             if (cc==1)
                 fprintf(fid,'%s',d);
-            
+
             else
                 fprintf(fid,'%s%s',delim,d);
             end
@@ -107,7 +107,7 @@ if (iscell(vals))
 elseif (isnumeric(vals))
     if (~isempty(params.header))
         for rr=1:size(params.header,1)
-        
+
         for cc=1:size(params.header,2)
             if isnumeric(params.header{rr,cc})
                 if (isnan(params.header{rr,cc}))
@@ -125,7 +125,7 @@ elseif (isnumeric(vals))
             end
             if (cc==1)
                 fprintf(fid,'%s',d);
-            
+
             else
                 fprintf(fid,'%s%s',delim,d);
             end
@@ -136,7 +136,7 @@ elseif (isnumeric(vals))
     for rr=params.startrow:size(vals,1)
         if (isnan(vals(rr,1)))
         elseif (ismember(1,params.date_cols))
-             fprintf(fid,'%s',datestr( vals(rr,1),params.date_format));   
+             fprintf(fid,'%s',datestr( vals(rr,1),params.date_format));
         elseif (round(vals(rr,1))==vals(rr,1))
             fprintf(fid,'%d',vals(rr,1));
         else
@@ -146,7 +146,7 @@ elseif (isnumeric(vals))
             fprintf(fid,'%s',delim);
             if (isnan(vals(rr,cc)))
             elseif (ismember(cc,params.date_cols))
-             fprintf(fid,'%s',datestr( vals(rr,cc),params.date_format));  
+             fprintf(fid,'%s',datestr( vals(rr,cc),params.date_format));
             elseif (round(vals(rr,cc))==vals(rr,cc))
                 fprintf(fid,'%d',vals(rr,cc));
             else
@@ -158,6 +158,3 @@ elseif (isnumeric(vals))
 end
 fclose(fid);
 end
-
-
-            

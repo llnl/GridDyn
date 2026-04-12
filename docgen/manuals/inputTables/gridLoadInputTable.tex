@@ -1,0 +1,30 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+load p & number & 0 & [p.u.] real component of the load (constant Power)\\
+load q & number & 0 & [p.u.] imaginary component of the load (constant Power)\\
+yp, shunt g, zr & number & 0 & [p.u.] the impedance load in MW\\
+yq, shunt b, zq & number & 0 & [p.u.]  the reactive impedance load in MVar\\
+ir, ip & number & 0 & [p.u.] real current; (constant current)\\
+iq & number & 0 & [p.u.] imaginary current (constant current)\\
+pf & number & 0 & \\
+powerfactor & number & 0 & \\
+qratio & number & 0 & power factor multiply  sqrt((1-pf*pf)/pf*pf)\\
+usepowerfactor & number & 0 & \\
+converttoimpedance & number & 0 & \\
+vpqmin & number & 0.7 & low voltage at which the PQ powers convert to an impedance type load\\
+vpqmax & number & 1.3 & upper voltage at which the PQ powers convert to an impedance type load\\
+pqlowvlimit & number & 0 & \\
+basevoltage, base vol & number &  & base voltage of the load\\
+basepower, base pow & number & 100 & the base power of the object\\
+usepowerfactor & flag & 0 & \\
+converttoimpedance & flag & 0 & \\
+no\_pqvoltage\_limit & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for gridLoad objects. See Table~\ref{table:gridSecondary} for additional settable options through gridSecondary}
+\label{table:gridLoad}
+\end{table}

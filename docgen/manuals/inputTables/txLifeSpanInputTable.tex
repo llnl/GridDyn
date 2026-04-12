@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+initial, initiallife & number & 150000 & initial life in hours\\
+basetemp & number & 110 & the temperature base for the lifespan equations\\
+agingrate, agingconstant & number & 14594 & aging constant default value of 14594 based on research 15000 is another commonly used value\\
+input & string & 0 & \\
+input0 & string & 0 & \\
+useiec & flag & 0 & \\
+iec & flag & 0 & \\
+useieee & flag & 0 & \\
+ieee & flag & 0 & \\
+no\_discconect & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for txLifeSpan objects. See Table~\ref{table:sensor} for additional settable options through sensor}
+\label{table:txLifeSpan}
+\end{table}

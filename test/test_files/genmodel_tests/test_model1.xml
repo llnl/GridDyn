@@ -4,13 +4,13 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<generator name="gen2">
-		<model type="4"></model>
-		<P>1.2</P>
-		<base>200</base>
+    <name>bus2</name>
+    <generator name="gen2">
+        <model type="4"></model>
+        <P>1.2</P>
+        <base>200</base>
       </generator>
      <load name="load3">
        <P>1.500</P>

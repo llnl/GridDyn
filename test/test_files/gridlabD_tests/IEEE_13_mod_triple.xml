@@ -4,7 +4,7 @@
   <library>
     <generator name="default">
       <exciter>
-	<type>type1</type>
+    <type>type1</type>
       </exciter>
       <model></model>
       <governor></governor>

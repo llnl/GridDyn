@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="test1" version="0.0.1">
+   <bus name="bus1">
+      <type>infinite</type>
+      <angle>0</angle>
+      <voltage>1</voltage>
+    </bus>
+<bus>
+    <name>bus2</name>
+
+     <load name="loadfncs" type="fncs">
+     <loadkey>fncsload</loadkey>
+     <voltagekey>fncsvoltage</voltagekey>
+     <period>1.0</period>
+       <P>0.7</P>
+       <Q>0.1</Q>
+     </load>
+     <load name="load3" type="motor">
+       <P>0.4</P>
+     </load>
+   </bus>
+ <link from="bus1" name="bus1_to_bus2" to="bus2">
+      <b>0</b>
+      <r>0</r>
+      <x>0.015</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>10</timestop>
+
+</griddyn>

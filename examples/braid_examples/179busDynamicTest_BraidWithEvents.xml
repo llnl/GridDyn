@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="test1" version="0.0.1">
+  <import file="./powerflowWECC.raw"/>
+  <import file="./dynamicsWECC.dyr"/>
+
+  <load parent="BUS#141">
+     <type>pulse</type>
+     <p:pulsetype>square</p:pulsetype>
+     <p:period>2</p:period>
+     <p:amplitude>0.1</p:amplitude>
+  </load>
+
+  <recorder field="auto" period=0.01>
+     <file>dynfault.csv</file>
+  </recorder>
+  <timestart>0</timestart>
+  <timestop>10</timestop>
+  <timestep>0.048</timestep>
+
+
+  <solver name="braid">
+     <printlevel>1</printlevel>
+     <configfile>braid_params.ini</configfile>
+     <discontinuities>0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5</discontinuities>
+  </solver>
+
+  <defdae>braid</defdae>
+
+</griddyn>

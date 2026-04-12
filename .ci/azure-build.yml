@@ -1,0 +1,9 @@
+steps:
+  - task: CMake@1
+    inputs:
+      cmakeArgs: .. -DCMAKE_CXX_STANDARD=$(griddyn.std) -DCMAKE_BUILD_TYPE=$(griddyn.build_type) $(griddyn.options)
+    displayName: "Configure"
+
+  - script: cmake --build .
+    displayName: "Build"
+    workingDirectory: build

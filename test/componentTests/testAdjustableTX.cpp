@@ -1,218 +1,191 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*- */
 /*
-   * LLNS Copyright Start
- * Copyright (c) 2016, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department 
- * of Energy by Lawrence Livermore National Laboratory in part under 
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "gridDyn.h"
-#include "gridDynFileInput.h"
-#include "testHelper.h"
-#include "linkModels/acLine.h"
-#include "simulation/diagnostics.h"
-//testP case for gridCoreObject object
-
+#include "../gtestHelper.h"
+#include "fileInput/fileInput.h"
+#include "griddyn/links/acLine.h"
+#include "griddyn/links/adjustableTransformer.h"
+#include "griddyn/simulation/diagnostics.h"
+#include <gtest/gtest.h>
+#include <string>
+#include <vector>
+// testP case for coreObject object
 
 #define TADJ_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/adj_tests/"
 
-BOOST_FIXTURE_TEST_SUITE (adj_tests, gridDynSimulationTestFixture)
+using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE (adj_test_simple)
+class AdjustableTransformerTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(AdjustableTransformerTests, AdjTestSimple)
 {
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test1.xml");
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test1.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  std::vector<double> st;
-  gds->getVoltage (st);
-  BOOST_CHECK_GE (st[2], 0.99);
-  BOOST_CHECK_LE (st[2], 1.01);
+    std::vector<double> st;
+    gds->getVoltage(st);
+    EXPECT_GE(st[2], 0.99);
+    EXPECT_LE(st[2], 1.01);
 
-  //tap changing doesn't do anything in this case we are checking to make sure the tap goes all the way
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test2.xml");
-  gds2 = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    // tap changing doesn't do anything in this case we are checking to make sure the tap goes all
+    // the way
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test2.xml");
+    gds2 = readSimXMLFile(fileName);
+    gds2->powerflow();
+    requireStates(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  adjustableTransformer *adj = dynamic_cast<adjustableTransformer *> (gds2->getLink (1));
-  BOOST_CHECK_SMALL (adj->getTap () - 1.1,0.001);
-
+    auto adj = dynamic_cast<links::adjustableTransformer*>(gds2->getLink(1));
+    ASSERT_NE(adj, nullptr);
+    EXPECT_NEAR(adj->getTap() - 1.1, 0.0, 1e-3);
 }
 
-
-BOOST_AUTO_TEST_CASE (adj_test_simple2)
+TEST_F(AdjustableTransformerTests, AdjTestSimple2)
 {
-  //test multiple interacting controllers
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test3.xml");
+    // test multiple interacting controllers
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test3.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  std::vector<double> st;
-  gds->getVoltage (st);
-  BOOST_CHECK_GE (st[1], 0.99);
-  BOOST_CHECK_LE (st[1], 1.01);
-  BOOST_CHECK_GE (st[2], 0.99);
-  BOOST_CHECK_LE (st[2], 1.01);
+    std::vector<double> st;
+    gds->getVoltage(st);
+    EXPECT_GE(st[1], 0.99);
+    EXPECT_LE(st[1], 1.01);
+    EXPECT_GE(st[2], 0.99);
+    EXPECT_LE(st[2], 1.01);
 
-  //test multiple interacting controllers voltage reduction mode
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test4.xml");
+    // test multiple interacting controllers voltage reduction mode
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test4.xml");
 
-  gds2 = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds2 = readSimXMLFile(fileName);
+    gds2->powerflow();
+    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  gds2->getVoltage (st);
-  BOOST_CHECK_GE (st[1], 0.99);
-  BOOST_CHECK_LE (st[1], 1.01);
-  BOOST_CHECK_GE (st[2], 0.99);
-  BOOST_CHECK_LE (st[2], 1.01);
+    gds2->getVoltage(st);
+    EXPECT_GE(st[1], 0.99);
+    EXPECT_LE(st[1], 1.01);
+    EXPECT_GE(st[2], 0.99);
+    EXPECT_LE(st[2], 1.01);
 
-  delete gds;
-  gds = NULL;
+    // test a remote control bus adjustable link between 1 and 3 and controlling bus 4
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test5.xml");
 
-  //test a remote control bus adjustable link between 1 and 3 and controlling bus 4
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test5.xml");
+    gds = readSimXMLFile(fileName);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-
-  gds->getVoltage (st);
-  BOOST_CHECK_GE (st[2], 0.99);
-  BOOST_CHECK_LE (st[2], 1.011);
-
+    gds->getVoltage(st);
+    EXPECT_GE(st[2], 0.99);
+    EXPECT_LE(st[2], 1.011);
 }
 
-//now test the stepped MW control
-BOOST_AUTO_TEST_CASE (adj_test_mw)
+// now test the stepped MW control
+TEST_F(AdjustableTransformerTests, AdjTestMw)
 {
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test6.xml");
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test6.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  std::vector<double> st;
-  gds->getLinkRealPower (st);
+    std::vector<double> st;
+    gds->getLinkRealPower(st);
 
-  BOOST_CHECK_LE (st[0], 1.05);
-  BOOST_CHECK_GE (st[0], 0.95);
-
+    EXPECT_LE(st[0], 1.05);
+    EXPECT_GE(st[0], 0.95);
 }
 
-//now test the stepped MVar control
-BOOST_AUTO_TEST_CASE (adj_test_mvar)
+// now test the stepped MVar control
+TEST_F(AdjustableTransformerTests, AdjTestMvar)
 {
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test7.xml");
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test7.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->pFlowInitialize();
-  int mmatch = JacobianCheck(gds,cPflowSolverMode);
-  if (mmatch>0)
-  {
-    printStateNames(gds, cPflowSolverMode);
-  }
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->pFlowInitialize();
+    int mmatch = runJacobianCheck(gds, cPflowSolverMode);
 
-  std::vector<double> st;
-  gds->getLinkReactivePower (st,0,2);
+    ASSERT_EQ(mmatch, 0);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  BOOST_CHECK_LE (-st[0], 0.55);
-  BOOST_CHECK_GE (-st[0], 0.50);
+    std::vector<double> st;
+    gds->getLinkReactivePower(st, 0, 2);
 
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test8.xml");
+    EXPECT_LE(-st[0], 0.55);
+    EXPECT_GE(-st[0], 0.50);
 
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test8.xml");
 
-  gds2 = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds2 = readSimXMLFile(fileName);
+    gds2->powerflow();
+    requireStates(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  gds2->getLinkReactivePower (st,0,2);
+    gds2->getLinkReactivePower(st, 0, 2);
 
-  BOOST_CHECK_LE (-st[0], 1.1);
-  BOOST_CHECK_GE (-st[0], 1.0);
-
+    EXPECT_LE(-st[0], 1.1);
+    EXPECT_GE(-st[0], 1.0);
 }
 
-BOOST_AUTO_TEST_CASE (adj_testcont_mvar)
+TEST_F(AdjustableTransformerTests, AdjTestContMvar)
 {
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test7c.xml");
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test7c.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->pFlowInitialize();
-  int mmatch = JacobianCheck(gds,cPflowSolverMode);
-  if (mmatch>0)
-  {
-    printStateNames(gds, cPflowSolverMode);
-  }
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->pFlowInitialize();
+    int mmatch = runJacobianCheck(gds, cPflowSolverMode);
 
-  std::vector<double> st;
-  gds->getLinkReactivePower (st, 0, 2);
+    ASSERT_EQ(mmatch, 0);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  BOOST_CHECK_CLOSE (st[0], -0.50,0.01);
+    std::vector<double> st;
+    gds->getLinkReactivePower(st, 0, 2);
 
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test8c.xml");
+    EXPECT_NEAR(st[0], -0.50, std::abs(-0.50) * 1e-4 + 1e-12);
 
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test8c.xml");
 
-  gds2 = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds2 = readSimXMLFile(fileName);
+    gds2->powerflow();
+    requireStates(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  gds2->getLinkReactivePower (st, 0, 2);
+    gds2->getLinkReactivePower(st, 0, 2);
 
-  BOOST_CHECK_CLOSE (st[0], -1.05,0.01);
-
+    EXPECT_NEAR(st[0], -1.05, std::abs(-1.05) * 1e-4 + 1e-12);
 }
 
-//now test the continuous Voltage control
-BOOST_AUTO_TEST_CASE (adj_test_contV)
+// now test the continuous Voltage control
+TEST_F(AdjustableTransformerTests, AdjTestContV)
 {
-  std::string fname = std::string (TADJ_TEST_DIRECTORY "adj_test9.xml");
+    std::string fileName = std::string(TADJ_TEST_DIRECTORY "adj_test9.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile (fname));
-  gds->pFlowInitialize();
-  int mmatch = JacobianCheck(gds,cPflowSolverMode);
-  if (mmatch>0)
-  {
-    printStateNames(gds, cPflowSolverMode);
-  }
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  gds->powerflow ();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    gds = readSimXMLFile(fileName);
+    gds->pFlowInitialize();
+    int mmatch = runJacobianCheck(gds, cPflowSolverMode);
 
-  std::vector<double> st;
-  gds->getVoltage (st);
+    ASSERT_EQ(mmatch, 0);
+    gds->powerflow();
+    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-  BOOST_CHECK_CLOSE (st[2], 1.0, 0.00001);
-  //test multiple continuous controllers
-  fname = std::string (TADJ_TEST_DIRECTORY "adj_test10.xml");
+    std::vector<double> st;
+    gds->getVoltage(st);
 
-  gds2 = (gridDynSimulation *)readSimXMLFile (fname);
-  gds2->powerflow ();
-  BOOST_REQUIRE (gds2->currentProcessState () == gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    EXPECT_NEAR(st[2], 1.0, 1e-7);
+    // test multiple continuous controllers
+    fileName = std::string(TADJ_TEST_DIRECTORY "adj_test10.xml");
 
-  gds2->getVoltage (st);
-  BOOST_CHECK_CLOSE (st[1], 1.0, 0.00001);
-  BOOST_CHECK_CLOSE (st[2], 1.0, 0.00001);
+    gds2 = readSimXMLFile(fileName);
+    gds2->powerflow();
+    requireStates(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
-
+    gds2->getVoltage(st);
+    EXPECT_NEAR(st[1], 1.0, 1e-7);
+    EXPECT_NEAR(st[2], 1.0, 1e-7);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

@@ -12,16 +12,16 @@
       <type>PV</type>
       <angle>0</angle>
       <voltage>1.025</voltage>
-	  <Qmax>2.0</Qmax>
-	  <Qmin>-2.0</Qmin>
+      <Qmax>2.0</Qmax>
+      <Qmin>-2.0</Qmin>
       <generator name="gen2" dynmodel="modelonly">
          <P>1.63</P>
       </generator>
    </bus>
    <bus name="bus3">
       <type>PV</type>
-	  <Qmax>2.0</Qmax>
-	  <Qmin>-2.0</Qmin>
+      <Qmax>2.0</Qmax>
+      <Qmin>-2.0</Qmin>
       <angle>0</angle>
       <voltage>1.025</voltage>
       <generator name="gen3" dynmodel="modelonly">
@@ -59,7 +59,7 @@
    <bus name="bus9">
       <type>PQ</type>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus4" to="bus4">
       <b>0</b>
       <r>0</r>
@@ -69,7 +69,7 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus4" name="bus4_to_bus5" to="bus5">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.03</r>
       <x>0.085</x>
@@ -81,7 +81,7 @@
    </link>
    <link from="bus4" name="bus4_to_bus6" to="bus6">
       <g>0.02</g>
-	  <b>0.158</b>
+      <b>0.158</b>
       <r>0.017</r>
       <x>0.092</x>
    </link>
@@ -107,19 +107,19 @@
       <b>0.0</b>
       <r>0.003</r>
       <x>0.0518</x>
-	  <breaker>
-	  <limit>0.5</limit>
-	  <minclearingtime>0.05</minclearingtime>
-	  <reclosetime>1</reclosetime>
-	  <reclosers>1</reclosers>
-	  </breaker>
-	  <breaker>
-	   <terminal>2</terminal>
-	   <reclosetime>1</reclosetime>
-	   <reclosers>1</reclosers>
-	  <limit>0.5</limit>
-	  <minclearingtime>0.05</minclearingtime>
-	  </breaker>
+      <breaker>
+      <limit>0.5</limit>
+      <minclearingtime>0.05</minclearingtime>
+      <reclosetime>1</reclosetime>
+      <reclosers>1</reclosers>
+      </breaker>
+      <breaker>
+       <terminal>2</terminal>
+       <reclosetime>1</reclosetime>
+       <reclosers>1</reclosers>
+      <limit>0.5</limit>
+      <minclearingtime>0.05</minclearingtime>
+      </breaker>
    </link>
    <link from="bus2" name="bus2_to_bus7" to="bus7">
       <b>0</b>

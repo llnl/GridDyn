@@ -1,0 +1,23 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+a, amplitude & number & 0 & \\
+period, pulseperiod & number & 1e+48 & \\
+frequency, freq, pulsefreq & number & 0 & \\
+dutycycle & number & 0.5 & \\
+shift & number & 0 & storage for phase shift fraction (should be between 0 and 1)\\
+base, baseload, baseloadp, p & number & 0 & \\
+baseloadq, q & number & 0 & \\
+transition\_time, transtime, transition & number & 0.05 & \\
+invert & number & 0 & \\
+type & string & 0 & \\
+pulsetype & string & 0 & \\
+cosine & string & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for gridPulseLoad objects. See Table~\ref{table:gridLoad} for additional settable options through gridLoad}
+\label{table:gridPulseLoad}
+\end{table}

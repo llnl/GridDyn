@@ -1,0 +1,20 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+max & number &  & the maximum regulation an object has\\
+min & number &  & the minimum regulation level\\
+rampup, ramp & number &  & the rate at which the regulation must ramp\\
+rampdown & number &  & the maximum rate at which regulation can ramp down\\
+rating, base & number & 100 & generator base power\\
+regfrac & number & 0 & \\
+regupfrac & number & 0 & the capacity of the object to keep for regulation up purposes\\
+regdownfrac & number & 0 & the capacity of the object to keep for regulation down purposes\\
+regenabled & number & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for schedulerReg objects. See Table~\ref{table:schedulerRamp} for additional settable options through schedulerRamp}
+\label{table:schedulerReg}
+\end{table}

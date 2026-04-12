@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="genSim" version="0.0.1">
+<library>
+<model name="mod4">
+            <type>fourthOrder</type>
+            <D>0.040</D>
+            <H>5</H>
+            <Tdop>8</Tdop>
+            <Tqop>1</Tqop>
+            <Xd>1.050</Xd>
+            <Xdp>0.350</Xdp>
+            <Xq>0.850</Xq>
+            <Xqp>0.350</Xqp>
+         </model>
+         <governor name="govref">
+            <type>basic</type>
+            <K>16.667</K>
+            <T1>0.100</T1>
+            <T2>0.150</T2>
+            <T3>0.050</T3>
+         </governor>
+</library>
+
+<bus name="bus0">
+<type>SLK</type>
+<gen>
+<model ref="mod4"/>
+<exciter/>
+<gov ref="govref"/>
+<pmin>0</pmin>
+<p>0.1</p>
+<event>
+<time>1.0</time>
+<field>dpdt</field>
+<value>0.01</value>
+</event>
+</gen>
+</bus>
+
+
+<bus name="bus1">
+<type>PQ</type>
+<gen>
+<p>0.1</p>
+<flag>no_control</flag>
+<source type="fncs">
+<val>0.1</val>
+<key>genSim/genDispatch</key>
+<period>1.0</period>
+<scalefactor>-1</scalefactor>
+</source>
+</gen>
+<load type="ramp">
+<p>0.2</p>
+<event>
+<time>1.0</time>
+<field>dpdt</field>
+<value>0.02</value>
+</event>
+</load>
+</bus>
+
+<link>
+<to>bus1</to>
+<from>bus0</from>
+<x>0.12</x>
+</link>
+
+
+<recorder period=1>
+<autosave>10</autosave>
+   <file>testout.csv</file>
+   <field>bus#0:genp</field>
+   <field>bus#1:genp</field>
+   <field>bus#0:v</field>
+   <field>bus#1:v</field>
+   <field>bus#0:angle(deg)</field>
+   <field>bus#1:angle(deg)</field>
+   </recorder>
+
+  <collector type="fncs" period=1>
+   <field>bus#0:genp as genDispatch</field>
+   </collector>
+
+   <timestart>0</timestart>
+   <timestop>100</timestop>
+</griddyn>

@@ -4,10 +4,10 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<generator name="gen1">
+    <name>bus2</name>
+    <generator name="gen1">
         <exciter>
           <type>type1</type>
           <Aex>0</Aex>
@@ -22,7 +22,7 @@
           <Urmin>-50</Urmin>
         </exciter>
       </generator>
-	  
+
      <load name="load3">
        <P>1.500</P>
        <Q>0</Q>

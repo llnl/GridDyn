@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- See sections in
+     https://svn.modelica.org/fmi/branches/public/specifications/v2.0/FMI_for_ModelExchange_and_CoSimulation_v2.0.pdf
+     for details of XML elements -->
+
+<!-- TODO Philip: GUID needs to be associated with GridDyn (sec 2.2.4) -->
+<fmiModelDescription
+  fmiVersion="2.0"
+  modelName="GridDyn.IEEE14"
+  guid="{82072fd0-2f55-4c42-b84c-e47ee14091d0}"
+  numberOfEventIndicators="1"
+  description="IEEE 14-bus model for cosimulation between GridDyn and CymDIST"
+  version="1.0">
+
+<!-- TODO Philip: determine if FMU supports variable communication step
+     sizes (i.e. step size for fmi2DoStep() doesn't need to be constant). -->
+<CoSimulation
+  modelIdentifier="GridDyn_IEEE14"
+  canHandleVariableCommunicationStepSize="true"/>
+
+<!-- TODO Philip: verify these are the appropriate log categories (sec 2.2.4) -->
+<LogCategories>
+  <Category name="logAll"/>
+  <Category name="logError"/>
+  <Category name="logFmiCall"/>
+  <Category name="logEvent"/>
+</LogCategories>
+
+<ModelVariables>
+  <!-- Outputs from GridDyn to CymDIST -->
+  <!-- TODO Philip: need to set valueReference ("Identifier for variable value
+       in FMI2 function calls", see section 2.2.7), and initial guess for
+       voltage magnitudes and angle outputs. Not sure if start values are
+       strictly required for outputs like these. -->
+  <ScalarVariable name="Bus11_VA" valueReference="0"
+                  description="Bus 11 Voltage Magnitude, Phase A"
+                  causality="output" variability="continuous" initial="">
+        <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_VB" valueReference="1"
+                  description="Bus 11 Voltage Magnitude, Phase B"
+                  causality="output" variability="continuous" initial="">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_VC" valueReference="2"
+                  description="Bus 11 Voltage Magnitude, Phase C"
+                  causality="output" variability="continuous" initial="">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_VAngleA" valueReference="3"
+                  description="Bus 11 Voltage Angle, Phase A"
+                  causality="output" variability="continuous" initial="">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_VAngleB" valueReference="4"
+                  description="Bus 11 Voltage Angle, Phase B"
+                  causality="output" variability="continuous" initial="">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_VAngleC" valueReference="5"
+                  description="Bus 11 Voltage Angle, Phase C"
+                  causality="output" variability="continuous" initial="">
+    <Real/>
+  </ScalarVariable>
+
+  <!-- Inputs from CymDIST to GridDyn -->
+  <!-- TODO Philip: need to set valueReference, and reasonable start value for
+       current magnitude and angle inputs. Not sure if start values are
+       strictly required for inputs like these. -->
+  <ScalarVariable name="Bus11_IA" valueReference="6"
+                  description="Bus 11 Current Magnitude, Phase A"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_IB" valueReference="7"
+                  description="Bus 11 Current Magnitude, Phase B"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_IC" valueReference="8"
+                  description="Bus 11 Current Magnitude, Phase C"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_IAngleA" valueReference="9"
+                  description="Bus 11 Current Angle, Phase A"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_IAngleB" valueReference="10"
+                  description="Bus 11 Current Angle, Phase B"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+  <ScalarVariable name="Bus11_IAngleC" valueReference="11"
+                  description="Bus 11 Current Angle, Phase C"
+                  causality="input" variability="continuous">
+    <Real/>
+  </ScalarVariable>
+</ModelVariables>
+
+<ModelStructure>
+</ModelStructure>
+
+</fmiModelDescription>

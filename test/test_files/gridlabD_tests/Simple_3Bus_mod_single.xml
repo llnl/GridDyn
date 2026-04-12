@@ -11,7 +11,7 @@
 </generator>
 </library>
    <bus name="bus1">
-	<basevoltage>12.5</basevoltage>
+    <basevoltage>12.5</basevoltage>
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1.04</voltage>
@@ -27,24 +27,24 @@
       <generator name="gen1" ref="default">
           <P>0.4</P>
       </generator>
-	  
-      <load name="gload1">
-	<type>gridlab</type>
-	<detail>single</detail>
-	<coupling>full</coupling>
-	<pflow>full</pflow>
-	<file>Simple_3Bus_mod.glm</file>
-	<workdir>Simple_3Bus_mod_workdir</workdir>
-	<load>
-	  <P units=MW>9.00001</P>
-	  <Q units=MVar>2.70007</Q>
-	</load>
 
-	<recorder field="all" >
+      <load name="gload1">
+    <type>gridlab</type>
+    <detail>single</detail>
+    <coupling>full</coupling>
+    <pflow>full</pflow>
+    <file>Simple_3Bus_mod.glm</file>
+    <workdir>Simple_3Bus_mod_workdir</workdir>
+    <load>
+      <P units=MW>9.00001</P>
+      <Q units=MVar>2.70007</Q>
+    </load>
+
+    <recorder field="all" >
           <file>output/test-Simple_3Bus_mod_single/gridlabd.csv</file>
           <period>0.010</period>
         </recorder>
-	
+
       </load>
    </bus>
    <link from="bus1" to="bus2">

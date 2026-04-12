@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+reclosetime, reclosetime1 & number & 1 & first reclose time\\
+reclosetime2 & number & 5 & second reclose time\\
+maxrecloseattempts & number & 0 & total number of recloses\\
+reclosers & number & 0 & \\
+minclearingtime, cleartime & number & 0 & minimum clearing time for from bus breaker\\
+limit & number & 1 & maximum current in puA\\
+reclosertap, tap & number & 0 & From side tap multiplier\\
+terminal & number & 0 & \\
+recloserresettime, resettime & number & 60 & time the breaker has to be on before the recloser count resets\\
+nondirectional & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for breaker objects. See Table~\ref{table:gridRelay} for additional settable options through gridRelay}
+\label{table:breaker}
+\end{table}

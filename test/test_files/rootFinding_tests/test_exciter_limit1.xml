@@ -12,7 +12,7 @@
             <Xq>0.850</Xq>
             <Xqp>0.350</Xqp>
          </model>
-		 <exciter name="ext1">
+         <exciter name="ext1">
             <type>type1</type>
             <Aex>0</Aex>
             <Bex>0</Bex>
@@ -33,7 +33,7 @@
             <T2>0.150</T2>
             <T3>0.050</T3>
          </governor>
-		 <generator name="gen1">
+         <generator name="gen1">
          <model ref="mod1"/>
          <exciter ref="ext1"/>
          <governor ref="gov1"/>
@@ -57,13 +57,13 @@
       <type>PQ</type>
       <angle>0.082</angle>
       <load name="load3" type="pulse">
-		<pulsetype>triangle</pulsetype>
-		<dutycycle>1.0</dutycycle>
-		<Q>0.18</Q>
-		<period>30</period>
-		<amplitude>1</amplitude>
+        <pulsetype>triangle</pulsetype>
+        <dutycycle>1.0</dutycycle>
+        <Q>0.18</Q>
+        <period>30</period>
+        <amplitude>1</amplitude>
       </load>
-	   <load name="load3_b">
+       <load name="load3_b">
          <P>0.2</P>
       </load>
    </bus>
@@ -71,8 +71,8 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0.2</Q>
+        <P>1.500</P>
+             <Q>0.2</Q>
       </load>
    </bus>
     <link from="bus1" name="bus1_to_bus2" to="bus2">

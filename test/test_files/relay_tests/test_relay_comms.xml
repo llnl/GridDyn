@@ -4,11 +4,11 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<generator name="gen2" dynmodel="typical">
-		<P>1.2</P>
+    <name>bus2</name>
+    <generator name="gen2" dynmodel="typical">
+        <P>1.2</P>
       </generator>
      <load name="load2">
        <P>1.500</P>
@@ -16,26 +16,26 @@
      </load>
    </bus>
    <bus>
-	<name>bus3</name>
+    <name>bus3</name>
      <load name="load3">
        <P>0.2</P>
        <Q>0.2</Q>
      </load>
-	 <load name="load4">
+     <load name="load4">
        <P>0.2</P>
        <Q>0.2</Q>
      </load>
    </bus>
-   
+
    <relay>
    <type>control</type>
    <name>load4control</name>
    <target>bus3::load4</target>
    <commtype>basic</commtype>
    </relay>
-   
-  
-	
+
+
+
  <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0.001</r>
@@ -51,16 +51,16 @@
       <r>0.001</r>
       <x>0.015</x>
    </link>
-   
+
     <sensor>
-	<name>sensor1</name>
+    <name>sensor1</name>
    <input>bus2:voltage</input>
    <input>bus2:angle</input>
    <input>bus1_to_bus2:current</input>
    <input>bus2_to_bus3:current</input>
-	<commtype>basic</commtype>
-	<outputnames>voltage,angle, current1,current2</outputnames>
-	</sensor>
+    <commtype>basic</commtype>
+    <outputnames>voltage,angle, current1,current2</outputnames>
+    </sensor>
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>60</timestop>

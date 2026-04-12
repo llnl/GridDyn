@@ -5,9 +5,9 @@ This directory contains files that can be used to run a co-simulation
 test with ns-3. Use $PARGRID_DIR/bin/run-pargrid.sh to execute a
 co-simulation run.
 
-geco_fault_coupled.xml         - GridDyn XML file for the transmission system
+geco_fault_coupled.xml - GridDyn XML file for the transmission system
 ieee39_relays_geco_coupled.csv - Describes a few GridDyn relays for the
-                                 IEEE 39-bus system
+IEEE 39-bus system
 
 Unfortunately, the format for the relay CSV file(s) is currently not
 well-documented.
@@ -17,13 +17,13 @@ templates described in geco_fault_coupled.xml. Only the relays in this
 CSV file will be present during the GridDyn simulation. Here's an explanation
 of the contents of ieee39_relays_geco_coupled.csv, on a line-by-line basis:
 
-9,2,auto_2,3_4,LINK#5   - This line represents the relay on the transmission
-                          line between busses 3 and 4, closest to bus 3.
-10,2,auto_2,t2,LINK#5   - This line represents the relay on the transmission
-                          line between busses 3 and 4, closest to bus 4.
-13,2,auto_2,t1,LINK#7   - This line represents the relay on the transmission
-                          line between busses 4 and 5, closest to bus 4.
-14,2,auto_2,5_4,LINK#7  - This line represents the relay on the transmission
-                          line between busses 4 and 5, closest to bus 5.
+9,2,auto_2,3_4,LINK#5 - This line represents the relay on the transmission
+line between buses 3 and 4, closest to bus 3.
+10,2,auto_2,t2,LINK#5 - This line represents the relay on the transmission
+line between buses 3 and 4, closest to bus 4.
+13,2,auto_2,t1,LINK#7 - This line represents the relay on the transmission
+line between buses 4 and 5, closest to bus 4.
+14,2,auto_2,5_4,LINK#7 - This line represents the relay on the transmission
+line between buses 4 and 5, closest to bus 5.
 16,2,auto_2,14_4,LINK#8 - This line represents the relay on the transmission
-                          line between busses 4 and 14, closest to bus 14.
+line between buses 4 and 14, closest to bus 14.

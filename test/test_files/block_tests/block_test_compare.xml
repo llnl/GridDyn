@@ -7,33 +7,33 @@
    </bus>
    <bus name="bus2" flags="compute_frequency">
      <load name="load1">
-	 <p>0.4</p>
-	 <q>0.1</q>
-	 </load>
-	 <load name="loadP" type="pulse">
-	 <p>0</p>
-	 <period>2</period>
-	 <a>0.15</a>
-	 <pulsetype>triangle</pulsetype>
-	 </load>
+     <p>0.4</p>
+     <q>0.1</q>
+     </load>
+     <load name="loadP" type="pulse">
+     <p>0</p>
+     <p:period>2</p:period>
+     <p:a>0.15</p:a>
+     <p:pulsetype>triangle</p:pulsetype>
+     </load>
    </bus>
-   
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0.002</r>
       <x>0.015</x>
    </link>
-   
+
    <sensor>
    <input>bus2::loadP:p</input>
-	
-	</sensor>
-	 <sensor>
+
+    </sensor>
+     <sensor>
    <input>bus2::loadP:p</input>
    <flags>sampled</flags>
    <period>0.05</period>
-	</sensor>
-	<recorder field="bus2::loadP:p, relay#0:output0, relay#1:output0" period=0.05>
+    </sensor>
+    <recorder field="bus2::loadP:p, relay#0:output0, relay#1:output0" period="0.05">
     <file>blocktest.dat</file>
   </recorder>
    <basepower>100</basepower>

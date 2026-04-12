@@ -1,0 +1,15 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+limit & number & 1e+48 & maximum current in puA\\
+i2t & number & 0 & I squared t characteristic of fuse 1 in puA\^2*s\\
+terminal & number & 0 & \\
+minblowtime & number & 0.001 & the minimum time required to for the fuse to blow only used if I2T>0;\\
+\hline
+\end{tabular}
+\caption{Set options for fuse objects. See Table~\ref{table:gridRelay} for additional settable options through gridRelay}
+\label{table:fuse}
+\end{table}

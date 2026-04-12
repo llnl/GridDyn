@@ -1,0 +1,76 @@
+﻿#
+# LLNS Copyright Start
+# Copyright (c) 2014-2018, Lawrence Livermore National Security
+# This work was performed under the auspices of the U.S. Department
+# of Energy by Lawrence Livermore National Laboratory in part under
+# Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
+# Produced at the Lawrence Livermore National Laboratory.
+# All rights reserved.
+# For details, see the LICENSE file.
+# LLNS Copyright End
+#
+
+import subprocess
+import shlex
+
+import os
+from distutils.core import setup, Extension
+
+import platform
+
+VERSION = os.getenv("PYGRIDDYN_PACKAGE_VERSION", '${GRIDDYN_VERSION_MAJOR}.${GRIDDYN_VERSION_MINOR}.${GRIDDYN_VERSION_PATCH}')
+
+if 'GRIDDYN_VERSION_MAJOR' in VERSION:
+    print("Unable to find PYGRIDDYN_PACKAGE_VERSION environment variable. Please check the documentation or contact the developers.")
+    import sys
+    sys.exit(1)
+
+if platform.system() == 'Darwin':
+    os_specific_cflags = ''
+    os_specific_ldflags = '' # '-shared'
+    extra_compile_args = []
+else:
+    os_specific_cflags = ''
+    os_specific_ldflags = ''
+    extra_compile_args = ['-std=c++11']
+
+GRIDDYN_INSTALL = os.path.abspath(os.getenv("GRIDDYN_INSTALL", '${CMAKE_CURRENT_BINARY_DIR}'))
+GRIDDYN_INCLUDE_DIR = os.path.abspath(os.getenv("GRIDDYN_INCLUDE", os.path.join(GRIDDYN_INSTALL, "../../../src/griddyn_shared/")))
+GRIDDYN_LIB_DIR = os.path.abspath(os.getenv("GRIDDYN_INCLUDE", os.path.join(GRIDDYN_INSTALL, "../../src/griddyn_shared/")))
+ZMQ_INCLUDE_DIR = os.path.abspath(os.getenv("ZMQ_INCLUDE", os.path.join(GRIDDYN_INSTALL, ".")))
+ZMQ_LIB_DIR = os.path.abspath(os.getenv("ZMQ_LIB", os.path.join(GRIDDYN_INSTALL, ".")))
+
+if GRIDDYN_INSTALL is None or "CMAKE_INSTALL_PREFIX" in GRIDDYN_INSTALL:
+
+    print("Unable to find GRIDDYN_INSTALL environment variable. Please check the documentation or contact the developers.")
+    import sys
+    sys.exit(1)
+
+os.environ['CFLAGS'] = '-Wall -I"{}" -I"{}" -I"{}" -I"{}" -fPIC {os_specific_cflags}'.format(
+    GRIDDYN_INCLUDE_DIR,
+    os.path.join(GRIDDYN_INCLUDE_DIR, 'griddyn'),
+    os.path.join(GRIDDYN_INCLUDE_DIR, 'griddyn_shared'),
+    ZMQ_INCLUDE_DIR,
+    os_specific_cflags=os_specific_cflags,
+)
+
+os.environ['LDFLAGS'] = '{} -lzmq -L"{}" -L"{}"'.format(os_specific_ldflags, GRIDDYN_LIB_DIR, ZMQ_LIB_DIR)
+griddyn_module = Extension(
+    "_griddyn",
+    sources=[
+        "griddynPythonPYTHON_wrap.c",
+    ],
+    libraries=[
+        "griddyn_shared_library",
+    ],
+    extra_compile_args=extra_compile_args,
+)
+
+setup(
+    name='griddyn',
+    version='${PACKAGE_VERSION}',
+    author="Denis Nadeau and Philip Top",
+    ext_modules=[griddyn_module],
+    py_modules=["griddyn"],
+    license='LLNL'
+)

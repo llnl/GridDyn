@@ -16,81 +16,81 @@
 <governor/>
 </generator>
 <load name="kmotor">
-	  <type>motor</type>
-	  <P>0.5</P>
-	  </load>
-	<!--</load>
-	  <load name="fmimotor">
-	  <type>fmiload</type>
-	  <period>2</period>
-	  <detail>triple</detail>
-	  <coupling>trigger</coupling>
-	  <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
-	</load>-->
-	  <load name="constLd">
-	  <P>0.1</P>
-	  <Q>0.02</Q>
-	  <Ip>0.1</Ip>
-	  <Iq>0.02</Iq>
-	  <Yp>0.1</Yp>
-	  <Yq>0.02</Yq>
-	  </load>
+      <type>motor</type>
+      <P>0.5</P>
+      </load>
+    <!--</load>
+      <load name="fmimotor">
+      <type>fmiload</type>
+      <period>2</period>
+      <detail>triple</detail>
+      <coupling>trigger</coupling>
+      <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
+    </load>-->
+      <load name="constLd">
+      <P>0.1</P>
+      <Q>0.02</Q>
+      <Ip>0.1</Ip>
+      <Iq>0.02</Iq>
+      <Yp>0.1</Yp>
+      <Yq>0.02</Yq>
+      </load>
 </library>
-	<array count=garraySize loopvariable="#rowindex">
-	<array count=garraySize loopvariable="#colindex">
+    <array count=garraySize loopvariable="#rowindex">
+    <array count=garraySize loopvariable="#colindex">
      <bus name="bus_$#rowindex$_$#colindex$">
-	 <load ref="constLd"/>
-	 </bus>
-	 </array>
-	 </array>
-	 <!--add in the motor loads -->
-	 
-	  <array start=1 stop=garraySize loopvariable="#rowindex" interval=2>
-	 <array start=1 stop=garraySize loopvariable="#colindex" interval=2>
+     <load ref="constLd"/>
+     </bus>
+     </array>
+     </array>
+     <!--add in the motor loads -->
+
+      <array start=1 stop=garraySize loopvariable="#rowindex" interval=2>
+     <array start=1 stop=garraySize loopvariable="#colindex" interval=2>
      <bus name="bus_$#rowindex$_$#colindex$">
-	 <load ref="kmotor"/>
-	 </bus>
-	 </array>
-	 </array>
-	  <!--add in the generators -->
-	  <array start=1 stop=garraySize loopvariable="#rowindex" interval=3>
-	 <array start=1 stop=garraySize loopvariable="#colindex" interval=3>
+     <load ref="kmotor"/>
+     </bus>
+     </array>
+     </array>
+      <!--add in the generators -->
+      <array start=1 stop=garraySize loopvariable="#rowindex" interval=3>
+     <array start=1 stop=garraySize loopvariable="#colindex" interval=3>
      <bus name="bus_$#rowindex$_$#colindex$">
-	 <gen ref="default"/>
-	 <bustype>PV</bustype>
-	 <voltage>1.01</voltage>
-	 </bus>
-	 </array>
-	 </array>
-	 <!--add in the vertical links-->
-	 <array stop=garraySize loopvariable="#rowindex" start=2>
-	<array count=garraySize loopvariable="#colindex">
+     <gen ref="default"/>
+     <bustype>PV</bustype>
+     <voltage>1.01</voltage>
+     </bus>
+     </array>
+     </array>
+     <!--add in the vertical links-->
+     <array stop=garraySize loopvariable="#rowindex" start=2>
+    <array count=garraySize loopvariable="#colindex">
      <link name="link_$#rowindex-1$_$#colindex$_to_$#rowindex$_$#colindex$">
-	 <r>0.001</r>
-	 <x>0.07</x>
-	 <from>bus_$#rowindex-1$_$#colindex$</from>
-	 <to>bus_$#rowindex$_$#colindex$</to>
-	 </link>
-	 </array>
-	 </array>
-   
-    <!--add in the horizonal links-->
-	 <array count=garraySize loopvariable="#rowindex">
-	<array stop=garraySize loopvariable="#colindex" start=2>
+     <r>0.001</r>
+     <x>0.07</x>
+     <from>bus_$#rowindex-1$_$#colindex$</from>
+     <to>bus_$#rowindex$_$#colindex$</to>
+     </link>
+     </array>
+     </array>
+
+    <!--add in the horizontal links-->
+     <array count=garraySize loopvariable="#rowindex">
+    <array stop=garraySize loopvariable="#colindex" start=2>
      <link name="link_$#rowindex$_$#colindex-1$_to_$#rowindex$_$#colindex$">
-	 <r>0.001</r>
-	 <x>0.07</x>
-	 <from>bus_$#rowindex$_$#colindex-1$</from>
-	 <to>bus_$#rowindex$_$#colindex$</to>
-	 </link>
-	 </array>
-	 </array>
-	  <!--label the swing bus-->
-	  <busmodify name="bus_1_1">
-	  <bustype>SLK</bustype>
-	  <voltage>1.03</voltage>
-	  </busmodify>
-	 
+     <r>0.001</r>
+     <x>0.07</x>
+     <from>bus_$#rowindex$_$#colindex-1$</from>
+     <to>bus_$#rowindex$_$#colindex$</to>
+     </link>
+     </array>
+     </array>
+      <!--label the swing bus-->
+      <busmodify name="bus_1_1">
+      <bustype>SLK</bustype>
+      <voltage>1.03</voltage>
+      </busmodify>
+
    <basepower>30</basepower>
    <timestart>0</timestart>
    <timestop>60</timestop>

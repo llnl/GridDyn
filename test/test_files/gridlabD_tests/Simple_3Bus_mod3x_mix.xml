@@ -4,7 +4,7 @@
   <library>
     <generator name="default">
       <exciter>
-	<type>type1</type>
+    <type>type1</type>
       </exciter>
       <model/>
       <governor/>
@@ -27,7 +27,7 @@
     <generator name="gen1" ref="default">
       <P>0.4</P>
     </generator>
-    
+
     <load name="gload2">
       <type>gridlab</type>
       <period>2</period>
@@ -36,12 +36,12 @@
       <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<P units=MW>3.00001</P>
-	<Q units=MVar>0.90003</Q>
-	<Ip units=MW>3.00000</Ip>
-	<Iq units=MVar>0.90002</Iq>
-	<Yp units=MW>3.00000</Yp>
-	<Yq units=MVar>0.90002</Yq>
+    <P units=MW>3.00001</P>
+    <Q units=MVar>0.90003</Q>
+    <Ip units=MW>3.00000</Ip>
+    <Iq units=MVar>0.90002</Iq>
+    <Yp units=MW>3.00000</Yp>
+    <Yq units=MVar>0.90002</Yq>
       </load>
     </load>
   </bus>
@@ -53,7 +53,7 @@
     <type>PQ</type>
     <angle>0</angle>
     <voltage>1.00</voltage>
-    
+
     <load>
       <type>gridlab</type>
       <detail>triple</detail>
@@ -61,12 +61,12 @@
       <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<P units=MW>3.00001</P>
-	<Q units=MVar>0.90003</Q>
-	<Ip units=MW>3.00000</Ip>
-	<Iq units=MVar>0.90002</Iq>
-	<Yp units=MW>3.00000</Yp>
-	<Yq units=MVar>0.90002</Yq>
+    <P units=MW>3.00001</P>
+    <Q units=MVar>0.90003</Q>
+    <Ip units=MW>3.00000</Ip>
+    <Iq units=MVar>0.90002</Iq>
+    <Yp units=MW>3.00000</Yp>
+    <Yq units=MVar>0.90002</Yq>
       </load>
     </load>
   </bus>
@@ -76,7 +76,7 @@
   <bus name="bus4">
     <basevoltage>12.5</basevoltage>
     <voltage>1.00</voltage>
-    
+
     <load name="gload1">
       <type>gridlab</type>
       <detail>triple</detail>
@@ -84,12 +84,12 @@
       <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<P units=MW>3.00001</P>
-	<Q units=MVar>0.90003</Q>
-	<Ip units=MW>3.00000</Ip>
-	<Iq units=MVar>0.90002</Iq>
-	<Yp units=MW>3.00000</Yp>
-	<Yq units=MVar>0.90002</Yq>
+    <P units=MW>3.00001</P>
+    <Q units=MVar>0.90003</Q>
+    <Ip units=MW>3.00000</Ip>
+    <Iq units=MVar>0.90002</Iq>
+    <Yp units=MW>3.00000</Yp>
+    <Yq units=MVar>0.90002</Yq>
       </load>
 
       <recorder field="all" >

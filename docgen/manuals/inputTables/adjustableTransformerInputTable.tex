@@ -1,0 +1,43 @@
+\begin{longtable}{p{5cm} c c p{7cm}}
+string(s) & type & default & description \\
+\hline
+tap & number & 1 & tap position, neutral t = 1;\\
+tapangle & number & 0 & [deg] phase angle for phase shifting transformer\\
+no\_pflow\_control & number & 0 & \\
+no\_pflow\_adjustments & number & 0 & \\
+cbus & number & 0 & \\
+controlbus & number & 0 & \\
+vmin & number & 0 & minimum voltage before changing the tap\\
+vmax & number & 1e+48 & maximum voltage before changing the tap\\
+vtarget & number & -1e+48 & target voltage\\
+pmin & number & -1e+48 & the minimum power level before changing the tap\\
+pmax & number & 1e+48 & the maximum power before changing the tap\\
+ptarget & number & -1e+48 & the target power flow\\
+qmin, min & number & -1e+48 & the maximum power before changing the tap\\
+qmax, max & number & 1e+48 & the minimum power level before changing the tap\\
+qtarget, target & number & -1e+48 & the target reactive power flow\\
+direction & number & 1 & variable storing whether the directional derivate of the tap changes with respect to voltage or power is positive or negative\\
+mintap & number & 0.9 & minimum tap setting\\
+maxtap & number & 1.1 & maximum tap setting\\
+mintapangle & number & -0.7854 & minimum tap angle\\
+fault & number & 0 & \\
+maxtapangle & number & 0.7854 & maximum tap angle\\
+stepsize, tapchange & number & 0.01 & step size of the adjustment for non-continuous adjustments\\
+nsteps & number & 0 & \\
+dtapdt & number & 0 & rate of change of the tap\\
+dtapadt & number & 0 & rate of change of the tapAngle\\
+controlmode & string & 0 & \\
+mode & string & 0 & \\
+control\_mode & string & 0 & \\
+change & string & 0 & \\
+change\_mode & string & 0 & \\
+changemode & string & 0 & \\
+stepmode & string & 0 & \\
+center & string & 0 & \\
+center\_mode & string & 0 & \\
+centermode & string & 0 & \\
+bus, controlbus & string &  & the control bus and number setting are not fully determined until initialization so this stores information from the startup phase\\
+\hline
+\caption{Set options for adjustableTransformer objects. See Table~\ref{table:acLine} for additional settable options through acLine}
+\label{table:adjustableTransformer}
+\end{longtable}

@@ -72,7 +72,7 @@
          <governor>
             <type>basic</type>
             <K>16.667</K>
- 
+
             <T1>0.100</T1>
             <T2>0.150</T2>
             <T3>0.050</T3>
@@ -85,20 +85,20 @@
       <load name="load3">
          <P>1.500</P>
          <Q>0</Q>
-		 <event>
-		 <field>P</field>
-		 <value>1.3,1.5</value>
-		 <time>1,3</time>
-		 </event>
-		 
+         <event>
+         <field>P</field>
+         <value>1.3,1.5</value>
+         <time>1,3</time>
+         </event>
+
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

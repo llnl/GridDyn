@@ -1,0 +1,29 @@
+\begin{longtable}{p{5cm} c c p{7cm}}
+string(s) & type & default & description \\
+\hline
+state & number & 0 & \\
+switch & number & 0 & \\
+switch1 & number & 0 & \\
+breaker & number & 0 & \\
+breaker\_open & number & 0 & \\
+breaker1 & number & 0 & \\
+breaker\_open1 & number & 0 & \\
+switch2 & number & 0 & \\
+breaker2 & number & 0 & \\
+breaker\_open2 & number & 0 & \\
+pset & number & 0 & the scheduled power of the link\\
+loss, lossfraction & number & 0 & the fraction of power transferred that is lossed\\
+ratinga, rating & number & -1e+48 & the long term rating of the link\\
+ratingb & number & -1e+48 & the short term rating of the link\\
+ratinge, emergency\_rating, erating, ratingc & number & -1e+48 & the emergency rating of the link\\
+circuit & number & 0 & \\
+zone & number & 1 & publicly accessible loss zone indicator not used internally\\
+bus1 & string & 0 & \\
+from & string & 0 & \\
+bus2 & string & 0 & \\
+to & string & 0 & \\
+status & string & 0 & \\
+\hline
+\caption{Set options for gridLink objects. See Table~\ref{table:gridPrimary} for additional settable options through gridPrimary}
+\label{table:gridLink}
+\end{longtable}

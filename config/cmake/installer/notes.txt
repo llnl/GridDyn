@@ -1,0 +1,22 @@
+Notes:
+x will need to add some dlls (not yet in public repo), possibly library of other files
+- may add GUI later, at which point we would include a start menu option for the exe to gui version
+x need note somewhere for KLU license
+x see if you can wait to request admin privileges after clicking install or
+  not requiring admin privileges at all
+x doxygen documentation system (html documentation)
+    - can build doxy config file in cmake
+x sync version numbers with those in CMakeLists
+x read about cross-OS installer options (alternatives to NSIS)
+
+To do:
+x read CES-21 confluence stuff
+x integrating tests into CTest functionality
+      [Note: could use CDash to create HTML pages of test results, but would
+       need to either use CDash servers or have a private server to maintain.]
+- build travisCI test integration for public repo (continuous build system for repo)
+    - would need CTest working first
+    - checks test exe files before adding
+- learn about functional mockup interface (FMI) -- other intern will be building library
+    - modeling and simulation tool
+- look in to test directory referencing issue

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test cdf execution-->
+<griddyn name="ieee14bus_cyme_link" version="0.0.1">
+   <import file="ieee14.cdf"/>
+
+<load index="0" retype="3phase" bus="BUS#11">
+<basevoltage units="V">4200</basevoltage>
+<fmiparam field="multiplier as multiplier"/>
+<fmiinput field="imaga(A) as Bus11_IA"/>
+<fmiinput field="imagb(A) as Bus11_IB"/>
+<fmiinput field="imagc(A) as Bus11_IC"/>
+<fmiinput field="ianglea(deg) as Bus11_IAngleA"/>
+<fmiinput field="iangleb(deg) as Bus11_IAngleB"/>
+<fmiinput field="ianglec(deg) as Bus11_IAngleC"/>
+<fmioutput>
+<field>
+va(V) as Bus11_VA, vb(V) as Bus11_VB, vc(V) as Bus11_VC, aa(deg) as Bus11_VAngleA, ab(deg) as Bus11_VAngleB, ac(deg) as Bus11_VAngleC
+</field>
+</fmioutput>
+</load>
+
+<recorder field="auto, bus#11:loadq" period="5">
+   <file>totalResults.csv</file>
+   </recorder>
+   <timestart>0</timestart>
+   <timestop>500</timestop>
+</griddyn>

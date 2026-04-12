@@ -19,8 +19,8 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0.6</Q>
+        <P>1.500</P>
+             <Q>0.6</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
@@ -29,12 +29,12 @@
       <x>0.015</x>
    </link>
    <link from="bus3" name="bus3_to_bus4" to="bus4">
-		<type>adjustable</type>
-		<mode>v</mode>
-		<change>continuous</change>
-		<stepsize>0.02</stepsize>
-		<vmin>1.0</vmin>
-		<vmax>1.0</vmax>
+        <type>adjustable</type>
+        <mode>v</mode>
+        <change>continuous</change>
+        <stepsize>0.02</stepsize>
+        <vmin>1.0</vmin>
+        <vmax>1.0</vmax>
       <x>0.020</x>
    </link>
    <basepower>100</basepower>

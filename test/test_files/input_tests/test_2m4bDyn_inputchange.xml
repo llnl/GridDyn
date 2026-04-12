@@ -72,7 +72,7 @@
          <governor>
             <type>basic</type>
             <K>16.667</K>
- 
+
             <T1>0.100</T1>
             <T2>0.150</T2>
             <T3>0.050</T3>
@@ -85,54 +85,54 @@
       <load name="load3">
          <P>1.500</P>
          <Q>0</Q>
-		 <event>
-		 <field>P</field>
-		 <value>1.25</value>
-		 <time>1</time>
-		 </event>
-		 <event>
-		 <field>P</field>
-		 <value>1.5</value>
-		 <time>1.5</time>
-		 </event>
-		  <event>
-		 <field>P</field>
-		 <value>1.75</value>
-		 <time>2.0</time>
-		 </event>
-		 <event>
-		 <field>P</field>
-		 <value>1.5</value>
-		 <time>2.5</time>
-		 </event>
-		  <event>
-		  <field>q</field>
-		 <value>0.25</value>
-		 <time>3.0</time>
-		 </event>
-		 <event>
-		 <field>q</field>
-		 <value>0</value>
-		 <time>3.5</time>
-		 </event>
-		  <event>
-		 <field>q</field>
-		 <value>-0.25</value>
-		 <time>4.0</time>
-		 </event>
-		 <event>
-		 <field>q</field>
-		 <value>0</value>
-		 <time>4.5</time>
-		 </event>
+         <event>
+         <field>p</field>
+         <value>1.25</value>
+         <time>1</time>
+         </event>
+         <event>
+         <field>p</field>
+         <value>1.5</value>
+         <time>1.5</time>
+         </event>
+          <event>
+         <field>p</field>
+         <value>1.75</value>
+         <time>2.0</time>
+         </event>
+         <event>
+         <field>p</field>
+         <value>1.5</value>
+         <time>2.5</time>
+         </event>
+          <event>
+          <field>q</field>
+         <value>0.25</value>
+         <time>3.0</time>
+         </event>
+         <event>
+         <field>q</field>
+         <value>0</value>
+         <time>3.5</time>
+         </event>
+          <event>
+         <field>q</field>
+         <value>-0.25</value>
+         <time>4.0</time>
+         </event>
+         <event>
+         <field>q</field>
+         <value>0</value>
+         <time>4.5</time>
+         </event>
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

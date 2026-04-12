@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="test39" version="0.0.1">
+   <bus name="bus1">
+      <type>PQ</type>
+      <load name="load1">
+         <P>0.976</P>
+         <Q>0.442</Q>
+      </load>
+   </bus>
+   <bus name="bus2">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus3">
+      <type>PQ</type>
+      <load name="load3">
+         <P>3.220</P>
+         <Q>0.024</Q>
+      </load>
+   </bus>
+   <bus name="bus4">
+      <type>PQ</type>
+      <load name="load4">
+         <P>5</P>
+         <Q>1.840</Q>
+     <event>@1|P=10</event>
+     <event>@1|Q=4</event>
+     <event>@2|P=12</event>
+     <event>@2|Q=5</event>
+     <event>@3|P=14</event>
+     <event>@3|Q=6</event>
+      </load>
+      <relay>
+    <cutoutvoltage>0.9</cutoutvoltage>
+    <flag>powerflow_check</flag>
+      </relay>
+   </bus>
+   <bus name="bus5">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus6">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus7">
+      <type>PQ</type>
+      <load name="load7">
+         <P>2.338</P>
+         <Q>0.840</Q>
+      </load>
+   </bus>
+   <bus name="bus8">
+      <type>PQ</type>
+      <load name="load8">
+         <P>5.220</P>
+         <Q>1.766</Q>
+      </load>
+   </bus>
+   <bus name="bus9">
+      <type>PQ</type>
+      <load name="load9">
+         <P>0.065</P>
+         <Q>-0.666</Q>
+      </load>
+   </bus>
+   <bus name="bus10">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus11">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus12">
+      <type>PQ</type>
+      <load name="load12">
+         <P>0.085</P>
+         <Q>0.880</Q>
+      </load>
+   </bus>
+   <bus name="bus13">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus14">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus15">
+      <type>PQ</type>
+      <load name="load15">
+         <P>3.200</P>
+         <Q>1.530</Q>
+      </load>
+   </bus>
+   <bus name="bus16">
+      <type>PQ</type>
+      <load name="load16">
+         <P>3.290</P>
+         <Q>0.323</Q>
+      </load>
+   </bus>
+   <bus name="bus17">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus18">
+      <type>PQ</type>
+      <load name="load18">
+         <P>1.580</P>
+         <Q>0.300</Q>
+      </load>
+   </bus>
+   <bus name="bus19">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus20">
+      <type>PQ</type>
+      <load name="load20">
+         <P>6.800</P>
+         <Q>1.030</Q>
+      </load>
+   </bus>
+   <bus name="bus21">
+      <type>PQ</type>
+      <load name="load21">
+         <P>2.740</P>
+         <Q>1.150</Q>
+      </load>
+   </bus>
+   <bus name="bus22">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus23">
+      <type>PQ</type>
+      <load name="load23">
+         <P>2.475</P>
+         <Q>0.846</Q>
+      </load>
+   </bus>
+   <bus name="bus24">
+      <type>PQ</type>
+      <load name="load24">
+         <P>3.086</P>
+         <Q>-0.922</Q>
+      </load>
+   </bus>
+   <bus name="bus25">
+      <type>PQ</type>
+      <load name="load25">
+         <P>2.240</P>
+         <Q>0.472</Q>
+      </load>
+   </bus>
+   <bus name="bus26">
+      <type>PQ</type>
+      <load name="load26">
+         <P>1.390</P>
+         <Q>0.170</Q>
+      </load>
+   </bus>
+   <bus name="bus27">
+      <type>PQ</type>
+      <load name="load27">
+         <P>2.810</P>
+         <Q>0.755</Q>
+      </load>
+   </bus>
+   <bus name="bus28">
+      <type>PQ</type>
+      <load name="load28">
+         <P>2.060</P>
+         <Q>0.276</Q>
+      </load>
+   </bus>
+   <bus name="bus29">
+      <type>PQ</type>
+      <load name="load29">
+         <P>2.835</P>
+         <Q>0.269</Q>
+      </load>
+   </bus>
+   <bus name="bus30">
+      <type>PV</type>
+      <voltage>1.050</voltage>
+      <generator name="gen30">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>2.500</P>
+      </generator>
+   </bus>
+   <bus name="bus31">
+      <type>SLK</type>
+      <angle>0</angle>
+      <voltage>0.982</voltage>
+      <generator name="gen31">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>6.779</P>
+      </generator>
+   </bus>
+   <bus name="bus32">
+      <type>PV</type>
+      <voltage>0.984</voltage>
+      <generator name="gen32">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>6.500</P>
+      </generator>
+   </bus>
+   <bus name="bus33">
+      <type>PV</type>
+      <voltage>0.997</voltage>
+      <generator name="gen33">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>6.320</P>
+      </generator>
+   </bus>
+   <bus name="bus34">
+      <type>PV</type>
+      <voltage>1.012</voltage>
+      <generator name="gen34">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>5.080</P>
+      </generator>
+   </bus>
+   <bus name="bus35">
+      <type>PV</type>
+      <voltage>1.049</voltage>
+      <generator name="gen35">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>6.500</P>
+      </generator>
+   </bus>
+   <bus name="bus36">
+      <type>PV</type>
+      <voltage>1.064</voltage>
+      <generator name="gen36">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>5.600</P>
+      </generator>
+   </bus>
+   <bus name="bus37">
+      <type>PV</type>
+      <voltage>1.028</voltage>
+      <generator name="gen37">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>5.400</P>
+      </generator>
+   </bus>
+   <bus name="bus38">
+      <type>PV</type>
+      <voltage>1.027</voltage>
+      <generator name="gen38">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>8.300</P>
+      </generator>
+   </bus>
+   <bus name="bus39">
+      <type>PV</type>
+      <voltage>1.030</voltage>
+      <load name="load39">
+         <P>11.040</P>
+         <Q>2.500</Q>
+      </load>
+      <generator name="gen39">
+         <governor>basic</governor>
+         <exciter>basic</exciter>
+         <P>10</P>
+      </generator>
+   </bus>
+   <link from="bus1" name="bus1_to_bus2" to="bus2">
+      <b>0.699</b>
+      <r>0.004</r>
+      <x>0.041</x>
+   </link>
+   <link from="bus1" name="bus1_to_bus39" to="bus39">
+      <b>0.750</b>
+      <r>0.001</r>
+      <x>0.025</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus3" to="bus3">
+      <b>0.257</b>
+      <r>0.001</r>
+      <x>0.015</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus25" to="bus25">
+      <b>0.146</b>
+      <r>0.007</r>
+      <x>0.009</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus30" to="bus30">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0</r>
+      <tap>1.025</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.018</x>
+   </link>
+   <link from="bus3" name="bus3_to_bus4" to="bus4">
+      <b>0.221</b>
+      <r>0.001</r>
+      <x>0.021</x>
+   </link>
+   <link from="bus3" name="bus3_to_bus18" to="bus18">
+      <b>0.214</b>
+      <r>0.001</r>
+      <x>0.013</x>
+   </link>
+   <link from="bus4" name="bus4_to_bus5" to="bus5">
+      <b>0.134</b>
+      <r>0.001</r>
+      <x>0.013</x>
+   </link>
+   <link from="bus4" name="bus4_to_bus14" to="bus14">
+      <b>0.138</b>
+      <r>0.001</r>
+      <x>0.013</x>
+   </link>
+   <link from="bus5" name="bus5_to_bus6" to="bus6">
+      <b>0.043</b>
+      <r>0.000</r>
+      <x>0.003</x>
+   </link>
+   <link from="bus5" name="bus5_to_bus8" to="bus8">
+      <b>0.148</b>
+      <r>0.001</r>
+      <x>0.011</x>
+   </link>
+   <link from="bus6" name="bus6_to_bus7" to="bus7">
+      <b>0.113</b>
+      <r>0.001</r>
+      <x>0.009</x>
+   </link>
+   <link from="bus6" name="bus6_to_bus11" to="bus11">
+      <b>0.139</b>
+      <r>0.001</r>
+      <x>0.008</x>
+   </link>
+   <link from="bus6" name="bus6_to_bus31" to="bus31">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0</r>
+      <tap>1.070</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.025</x>
+   </link>
+   <link from="bus7" name="bus7_to_bus8" to="bus8">
+      <b>0.078</b>
+      <r>0.000</r>
+      <x>0.005</x>
+   </link>
+   <link from="bus8" name="bus8_to_bus9" to="bus9">
+      <b>0.380</b>
+      <r>0.002</r>
+      <x>0.036</x>
+   </link>
+   <link from="bus9" name="bus9_to_bus39" to="bus39">
+      <b>1.200</b>
+      <r>0.001</r>
+      <x>0.025</x>
+   </link>
+   <link from="bus10" name="bus10_to_bus11" to="bus11">
+      <b>0.073</b>
+      <r>0.000</r>
+      <x>0.004</x>
+   </link>
+   <link from="bus10" name="bus10_to_bus13" to="bus13">
+      <b>0.073</b>
+      <r>0.000</r>
+      <x>0.004</x>
+   </link>
+   <link from="bus10" name="bus10_to_bus32" to="bus32">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0</r>
+      <tap>1.070</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.020</x>
+   </link>
+   <link from="bus12" name="bus12_to_bus11" to="bus11">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.002</r>
+      <tap>1.006</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.043</x>
+   </link>
+   <link from="bus12" name="bus12_to_bus13" to="bus13">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.002</r>
+      <tap>1.006</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.043</x>
+   </link>
+   <link from="bus13" name="bus13_to_bus14" to="bus14">
+      <b>0.172</b>
+      <r>0.001</r>
+      <x>0.010</x>
+   </link>
+   <link from="bus14" name="bus14_to_bus15" to="bus15">
+      <b>0.366</b>
+      <r>0.002</r>
+      <x>0.022</x>
+   </link>
+   <link from="bus15" name="bus15_to_bus16" to="bus16">
+      <b>0.171</b>
+      <r>0.001</r>
+      <x>0.009</x>
+   </link>
+   <link from="bus16" name="bus16_to_bus17" to="bus17">
+      <b>0.134</b>
+      <r>0.001</r>
+      <x>0.009</x>
+   </link>
+   <link from="bus16" name="bus16_to_bus19" to="bus19">
+      <b>0.304</b>
+      <r>0.002</r>
+      <x>0.020</x>
+   </link>
+   <link from="bus16" name="bus16_to_bus21" to="bus21">
+      <b>0.255</b>
+      <r>0.001</r>
+      <x>0.014</x>
+   </link>
+   <link from="bus16" name="bus16_to_bus24" to="bus24">
+      <b>0.068</b>
+      <r>0.000</r>
+      <x>0.006</x>
+   </link>
+   <link from="bus17" name="bus17_to_bus18" to="bus18">
+      <b>0.132</b>
+      <r>0.001</r>
+      <x>0.008</x>
+   </link>
+   <link from="bus17" name="bus17_to_bus27" to="bus27">
+      <b>0.322</b>
+      <r>0.001</r>
+      <x>0.017</x>
+   </link>
+   <link from="bus19" name="bus19_to_bus20" to="bus20">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1.060</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.014</x>
+   </link>
+   <link from="bus19" name="bus19_to_bus33" to="bus33">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1.070</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.014</x>
+   </link>
+   <link from="bus20" name="bus20_to_bus34" to="bus34">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1.009</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.018</x>
+   </link>
+   <link from="bus21" name="bus21_to_bus22" to="bus22">
+      <b>0.257</b>
+      <r>0.001</r>
+      <x>0.014</x>
+   </link>
+   <link from="bus22" name="bus22_to_bus23" to="bus23">
+      <b>0.185</b>
+      <r>0.001</r>
+      <x>0.010</x>
+   </link>
+   <link from="bus22" name="bus22_to_bus35" to="bus35">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0</r>
+      <tap>1.025</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.014</x>
+   </link>
+   <link from="bus23" name="bus23_to_bus24" to="bus24">
+      <b>0.361</b>
+      <r>0.002</r>
+      <x>0.035</x>
+   </link>
+   <link from="bus23" name="bus23_to_bus36" to="bus36">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.027</x>
+   </link>
+   <link from="bus25" name="bus25_to_bus26" to="bus26">
+      <b>0.531</b>
+      <r>0.003</r>
+      <x>0.032</x>
+   </link>
+   <link from="bus25" name="bus25_to_bus37" to="bus37">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1.025</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.023</x>
+   </link>
+   <link from="bus26" name="bus26_to_bus27" to="bus27">
+      <b>0.240</b>
+      <r>0.001</r>
+      <x>0.015</x>
+   </link>
+   <link from="bus26" name="bus26_to_bus28" to="bus28">
+      <b>0.780</b>
+      <r>0.004</r>
+      <x>0.047</x>
+   </link>
+   <link from="bus26" name="bus26_to_bus29" to="bus29">
+      <b>1.029</b>
+      <r>0.006</r>
+      <x>0.063</x>
+   </link>
+   <link from="bus28" name="bus28_to_bus29" to="bus29">
+      <b>0.249</b>
+      <r>0.001</r>
+      <x>0.015</x>
+   </link>
+   <link from="bus29" name="bus29_to_bus38" to="bus38">
+      <type>transformer</type>
+      <b>0</b>
+      <r>0.001</r>
+      <tap>1.025</tap>
+      <tapAngle>0</tapAngle>
+      <x>0.016</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>25</timestop>
+   <timestep>0.50</timestep>
+   <action>eventmode</action>
+</griddyn>

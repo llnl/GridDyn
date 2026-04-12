@@ -1,55 +1,64 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  c-set-offset 'innamespace 0; -*- */
 /*
-  * LLNS Copyright Start
- * Copyright (c) 2016, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department 
- * of Energy by Lawrence Livermore National Laboratory in part under 
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "gridBus.h"
-#include "generators/gridDynGenerator.h"
-#include "gridDynFileInput.h"
-#include "testHelper.h"
-#include "simulation/diagnostics.h"
+#include "../gtestHelper.h"
+#include "gmlc/utilities/TimeSeriesMulti.hpp"
+#include "griddyn/Generator.h"
+#include "griddyn/gridBus.h"
+#include <gtest/gtest.h>
+#include <string>
 
 #define GEN_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/gen_tests/"
 
-BOOST_FIXTURE_TEST_SUITE (gen_tests, gridDynSimulationTestFixture)
+using namespace griddyn;
 
-BOOST_AUTO_TEST_CASE(gen_test_remote)
+class GeneratorTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(GeneratorTests, GenTestRemote)
 {
-
-  std::string fname = std::string(GEN_TEST_DIRECTORY "test_gen_remote.xml");
-  detailedStageCheck(fname, gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_remote.xml");
+    detailedStageCheck(fileName, gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 }
 
-BOOST_AUTO_TEST_CASE(gen_test_remoteb)
+TEST_F(GeneratorTests, GenTestRemoteB)
 {
-
-  std::string fname = std::string(GEN_TEST_DIRECTORY "test_gen_remote_b.xml");
-  detailedStageCheck(fname, gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_remote_b.xml");
+    detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 }
 
-
-BOOST_AUTO_TEST_CASE(gen_test_remote2)
+TEST_F(GeneratorTests, GenTestRemote2)
 {
-
-  std::string fname = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote.xml");
-  detailedStageCheck(fname, gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
- 
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote.xml");
+    detailedStageCheck(fileName, gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 }
 
-
-BOOST_AUTO_TEST_CASE(gen_test_remote2b)
+TEST_F(GeneratorTests, GenTestRemote2B)
 {
-  std::string fname = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote_b.xml");
-  detailedStageCheck(fname, gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote_b.xml");
+    detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 }
-BOOST_AUTO_TEST_SUITE_END()
+
+#ifdef ENABLE_EXPERIMENTAL_TEST_CASES
+TEST_F(GeneratorTests, GenTestIsoc)
+{
+    std::string fileName = std::string(GEN_TEST_DIRECTORY "test_isoc2.xml");
+
+    gds = readSimXMLFile(fileName);
+
+    gds->set("recorddirectory", GEN_TEST_DIRECTORY);
+
+    gds->run();
+
+    std::string recname = std::string(GEN_TEST_DIRECTORY "datafile.dat");
+    TimeSeriesMulti<> ts3(recname);
+    ASSERT_GT(ts3.size(), 30u);
+    EXPECT_LT(ts3.data(0, 30), 0.995);
+    EXPECT_GT(ts3[0].back(), 1.0);
+
+    EXPECT_GT(ts3.data(1, 0) - ts3[1].back(), 0.199);
+    remove(recname.c_str());
+}
+#endif

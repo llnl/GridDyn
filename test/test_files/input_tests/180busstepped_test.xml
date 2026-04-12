@@ -2,17 +2,17 @@
 <!--xml file to test matdyn execution-->
 <griddyn name="test1" version="0.0.1">
    <import file="../IEEE_test_cases/powerflow.raw"/>
-   
-   
+
+
 <load name="145" parent="BUS#145" type="ramp">
-	<dZpdt units="MW">1</dZpdt>
+    <dZpdt units="MW">1</dZpdt>
 </load>
-	
-	
+
+
 <recorder field="auto" period=100>
    <file>output.csv</file>
    </recorder>
-   
+
    <timestart>0</timestart>
    <timestop>1500</timestop>
    <timestep>100</timestep>

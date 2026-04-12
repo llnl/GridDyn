@@ -1,456 +1,369 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  c-set-offset 'innamespace 0; -*- */
 /*
-  * LLNS Copyright Start
- * Copyright (c) 2016, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department 
- * of Energy by Lawrence Livermore National Laboratory in part under 
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
-*/
+ * Copyright (c) 2014-2020, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "gridDyn.h"
-#include "gridDynFileInput.h"
-#include "testHelper.h"
-#include "submodels/gridControlBlocks.h"
-#include "relays/gridRelay.h"
-#include "vectorOps.hpp"
-#include "fileReaders.h"
-#include "objectFactory.h"
-#include "simulation/diagnostics.h"
+#include "../gtestHelper.h"
+#include "core/objectFactory.hpp"
+#include "gmlc/utilities/TimeSeriesMulti.hpp"
+#include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Relay.h"
+#include "griddyn/blocks/blockLibrary.h"
+#include "griddyn/simulation/diagnostics.h"
 #include <cstdio>
+#include <gtest/gtest.h>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #define BLOCK_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/block_tests/"
 
-BOOST_FIXTURE_TEST_SUITE (block_tests, gridDynSimulationTestFixture)
+static const char block_test_directory[] = GRIDDYN_TEST_DIRECTORY "/block_tests/";
+using namespace griddyn;
+using namespace griddyn::blocks;
+using namespace gmlc::utilities;
 
-BOOST_AUTO_TEST_CASE(block_test1)
+class BlockTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+
+class BlockCompareTests:
+    public gridDynSimulationTestFixture,
+    public ::testing::TestWithParam<int> {};
+
+TEST_F(BlockTests, TestGainBlock)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests1.xml");
+    std::string fileName = std::string(block_test_directory) + "block_tests1.xml";
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile(fname));
+    gds = readSimXMLFile(fileName);
 
-  dynamicInitializationCheck(fname);
+    dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
-   
-    
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-    timeSeries2 ts3;
-    int ret = ts3.loadBinaryFile(recname);
-    BOOST_CHECK_EQUAL(ret, 0);
-	BOOST_REQUIRE(ts3.count >= 15);
-    BOOST_CHECK_CLOSE(ts3.data[0][5]*5,ts3.data[1][5],0.000001);
-    BOOST_CHECK_CLOSE(ts3.data[0][15] * 5, ts3.data[1][15], 0.000001);
-    ret = remove(recname.c_str());
+    TimeSeriesMulti<> ts3;
+    ts3.loadBinaryFile(recname);
+    ASSERT_GE(ts3.size(), 15u);
+    EXPECT_NEAR(ts3.data(0, 5) * 5, ts3.data(1, 5), std::abs(ts3.data(1, 5)) * 1e-8 + 1e-12);
+    EXPECT_NEAR(ts3.data(0, 15) * 5, ts3.data(1, 15), std::abs(ts3.data(1, 15)) * 1e-8 + 1e-12);
+    int ret = remove(recname.c_str());
 
-    BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_test2)
+TEST_F(BlockTests, BlockTest2)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests2.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests2.xml");
 
-  dynamicInitializationCheck(fname);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    dynamicInitializationCheck(fileName);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3(recname);
 
+    EXPECT_NEAR(ts3.data(0, 5) * 5, ts3.data(1, 5), std::abs(ts3.data(1, 5)) * 1e-5 + 1e-12);
+    EXPECT_NEAR(ts3.data(0, 280) * 5, ts3.data(1, 280), std::abs(ts3.data(1, 280)) * 1e-5 + 1e-12);
+    int ret = remove(recname.c_str());
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
-
-  BOOST_CHECK_CLOSE(ts3.data[0][5] * 5, ts3.data[1][5], 0.001);
-  BOOST_CHECK_CLOSE(ts3.data[0][280] * 5, ts3.data[1][280], 0.001);
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_test3)
+TEST_F(BlockTests, BlockTest3)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests3.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests3.xml");
 
-  dynamicInitializationCheck(fname);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    dynamicInitializationCheck(fileName);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3(recname);
+    // ts3.loadBinaryFile(recname);
 
+    EXPECT_NEAR(ts3.data(1, 5), 0.0, 1e-5);
+    EXPECT_NEAR(ts3.data(1, 280), 0.0, 1e-3);
+    int ret = remove(recname.c_str());
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
-
-  BOOST_CHECK_SMALL(ts3.data[1][5], 0.00001);
-  BOOST_CHECK_SMALL(ts3.data[1][280], 0.001);
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_test4)
+TEST_F(BlockTests, BlockTest4)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests4.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests4.xml");
 
-  dynamicInitializationCheck(fname);
+    dynamicInitializationCheck(fileName);
 
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3;
+    ts3.loadBinaryFile(recname);
 
+    EXPECT_NEAR(ts3.data(1, 5), -0.5, std::abs(-0.5) * 1e-4 + 1e-12);
+    double iv = -0.5;
+    index_t pp;
+    for (pp = 0; pp < static_cast<index_t>(ts3.size()); ++pp) {
+        iv += 100 * ts3.data(0, pp) * 0.01;
+    }
+    EXPECT_NEAR(ts3.data(1, pp - 1), iv, std::abs(iv) * 1e-2 + 1e-12);
+    int ret = remove(recname.c_str());
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
-
-  BOOST_CHECK_CLOSE(ts3.data[1][5], -0.5, 0.01);
-  double iv=-0.5;
-  index_t pp;
-  for (pp=0;pp<ts3.count;++pp)
-  {
-    iv+=100*ts3.data[0][pp]*0.01;
-  }
-  BOOST_CHECK_CLOSE(ts3.data[1][pp-1], iv, 1);
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_test5)
+TEST_F(BlockTests, BlockTest5)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests5.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests5.xml");
 
-  dynamicInitializationCheck(fname);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    dynamicInitializationCheck(fileName);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3;
+    ts3.loadBinaryFile(recname);
 
+    EXPECT_NEAR(ts3.data(1, 5), 0.0, 1e-4);
+    auto vm = absMax(ts3[0]);
+    auto vm2 = absMax(ts3[1]);
+    EXPECT_NEAR(vm2, vm * 5, std::abs(vm * 5) * 1e-2 + 1e-12);
+    int ret = remove(recname.c_str());
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
-
-  BOOST_CHECK_SMALL(ts3.data[1][5], 0.0001);
-  auto vm = absMax(ts3.data[0]);
-  auto vm2=absMax(ts3.data[1]);
-  BOOST_CHECK_CLOSE(vm2, vm*5, 1);
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-
-BOOST_AUTO_TEST_CASE(block_test6)
+TEST_F(BlockTests, BlockTest6)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests6.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests6.xml");
 
-  dynamicInitializationCheck(fname);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE (gds->currentProcessState () == gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    dynamicInitializationCheck(fileName);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3(recname);
+    // ts3.loadBinaryFile(recname);
 
+    EXPECT_NEAR(ts3.data(1, 5), 1.0, 1e-4);
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_NEAR(ts3.data(1, 2000), 1.0, 1e-4);
+    remove(recname.c_str());
 
-  BOOST_CHECK_CLOSE(ts3.data[1][5],1.0, 0.01);
+    recname = std::string(BLOCK_TEST_DIRECTORY "blocktest2.dat");
+    ts3.loadBinaryFile(recname);
 
-  BOOST_CHECK_CLOSE(ts3.data[1][2000], 1.0, 0.01);
-  ret = remove(recname.c_str());
+    EXPECT_NEAR(ts3.data(1, 5), 1.0, 1e-4);
 
-  recname = std::string(BLOCK_TEST_DIRECTORY "blocktest2.dat");
- ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_NEAR(ts3.data(1, 200), 1.0, 1e-4);
+    int ret = remove(recname.c_str());
 
-  BOOST_CHECK_CLOSE(ts3.data[1][5], 1.0, 0.01);
-
-  BOOST_CHECK_CLOSE(ts3.data[1][200], 1.0, 0.01);
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
-
-BOOST_AUTO_TEST_CASE(deadband_block_test)
+TEST_F(BlockTests, DeadbandBlockTest)
 {
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_tests_deadband.xml");
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_tests_deadband.xml");
 
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile(fname));
-  gds->solverSet("powerflow", "printlevel", 0);
-  gds->solverSet("dynamic", "printlevel", 0);
-  int  retval = gds->dynInitialize();
+    gds = readSimXMLFile(fileName);
+    gds->solverSet("powerflow", "printlevel", 0);
+    gds->solverSet("dynamic", "printlevel", 0);
+    int retval = gds->dynInitialize();
 
-  BOOST_CHECK_EQUAL(retval, 0);
+    EXPECT_EQ(retval, 0);
 
-  int mmatch = JacobianCheck(gds,cDaeSolverMode, 1e-5);
-  if (mmatch > 0)
-  {
-    printStateNames(gds, cDaeSolverMode);
-  }
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  mmatch = residualCheck(gds,cDaeSolverMode);
-  if (mmatch > 0)
-  {
-    printStateNames(gds, cDaeSolverMode);
-  }
+    int mmatch = runJacobianCheck(gds, cDaeSolverMode, 1e-5);
 
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->run();
-  BOOST_REQUIRE(gds->getCurrentTime()>7.9);
+    ASSERT_EQ(mmatch, 0);
+    mmatch = runResidualCheck(gds, cDaeSolverMode);
 
+    ASSERT_EQ(mmatch, 0);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->run();
+    ASSERT_GT(double(gds->getSimulationTime()), 7.9);
 
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3;
+    ts3.loadBinaryFile(recname);
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
+    auto mx = std::any_of(ts3[1].begin(), ts3[1].end(), [](double a) {
+        return ((a > 0.400001) && (a < 0.4999999));
+    });
+    EXPECT_FALSE(mx);
 
-  auto mx=std::any_of(ts3.data[1].begin(),ts3.data[1].end(),[](double a){return ((a>0.400001)&&(a<0.4999999));});
-  BOOST_CHECK(mx==false);
+    int ret = remove(recname.c_str());
 
-
-  ret = remove(recname.c_str());
-
-  BOOST_CHECK_EQUAL(ret, 0);
+    EXPECT_EQ(ret, 0);
 }
 
+using blockdescpair = std::pair<std::string, std::vector<std::pair<std::string, double>>>;
 
-BOOST_AUTO_TEST_CASE(compare_block_test)
-{
-  /* *INDENT-OFF* */
-
-  const std::map<std::string, std::vector<std::pair<std::string, double>>> blockparamMap
-  { { "basic", { std::make_pair("k", 2.3), std::make_pair("max", 0.1) } },
-  { "delay", { std::make_pair("t1", 0.5) } },
-  { "integral", { std::make_pair("iv", 0.14) } },
-  { "derivative", { std::make_pair("t", 0.25) } },
-  { "fder", { std::make_pair("t1", 0.25) ,std::make_pair("t2", 0.1) } },
-  //{ "deadband", { std::make_pair("db", 0.1),std::make_pair("ramp",0.03) } },
-  { "db", { std::make_pair("db", 0.08) } },
-  { "pid", { std::make_pair("p", 0.7), std::make_pair("i", 0.02), std::make_pair("d", 0.28), std::make_pair("t", 0.2) } },
-  { "control", { std::make_pair("t1", 0.2), std::make_pair("t2", 0.1)}},
-  { "function", { std::make_pair("gain", kPI), std::make_pair("bias", -0.05) } },
-  { "func", { std::make_pair("arg", 2.35)  } },
+const std::vector<blockdescpair> blockparamMap{
+    {"basic", {std::make_pair("k", 2.3), std::make_pair("max", 0.1)}},
+    {"delay", {std::make_pair("t1", 0.5)}},
+    {"integral", {std::make_pair("iv", 0.14)}},
+    {"derivative", {std::make_pair("t", 0.25)}},
+    {"fder", {std::make_pair("t1", 0.25), std::make_pair("t2", 0.1)}},
+    {"deadband", {std::make_pair("db", 0.1), std::make_pair("ramp", 0.03)}},
+    {"db", {std::make_pair("db", 0.08)}},
+    {"pid",
+     {std::make_pair("p", 0.7),
+      std::make_pair("i", 0.02),
+      std::make_pair("d", 0.28),
+      std::make_pair("t", 0.2)}},
+    {"control", {std::make_pair("t1", 0.2), std::make_pair("t2", 0.1)}},
+    {"function", {std::make_pair("gain", kPI), std::make_pair("bias", -0.05)}},
+    {"func", {std::make_pair("arg", 2.35)}},
 };
 
-  const std::map<std::string, std::vector<std::pair<std::string, std::string>>> blockparamMapSt
-  { { "function", { std::make_pair("func", "sin") } },
-  {  "func", { std::make_pair("func", "pow") } },
-  { "db", { std::make_pair("flags", "shifted") } },
-  };
-  
-  /* *INDENT-ON* */
+const std::map<std::string, std::vector<std::pair<std::string, std::string>>> blockparamMapSt{
+    {"function", {std::make_pair("func", "sin")}},
+    {"func", {std::make_pair("func", "pow")}},
+    {"db", {std::make_pair("flags", "shifted")}},
+};
 
-  std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
+TEST_P(BlockCompareTests, CompareBlockTest)
+{
+    const auto caseIndex = GetParam();
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
+    auto bf = coreObjectFactory::instance()->getFactory("block");
 
-  auto bf = coreObjectFactory::instance()->getFactory("controlblock");
-  for (auto &plist:blockparamMap)
-  {
-  if (gds)
-  {
-    delete gds;
-  }
-  gds = static_cast<gridDynSimulation *> (readSimXMLFile(fname));
-  BOOST_REQUIRE(gds != nullptr);
-  gds->solverSet("powerflow", "printlevel", 0);
-  gds->solverSet("dynamic", "printlevel", 0);
-  gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-  gds->consolePrintLevel = GD_WARNING_PRINT;
-  auto rel1=gds->getRelay(0);
-  auto rel2=gds->getRelay(1);
+    gds = readSimXMLFile(fileName);
+    ASSERT_NE(gds, nullptr);
+    gds->solverSet("powerflow", "printlevel", 0);
+    gds->solverSet("dynamic", "printlevel", 0);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->consolePrintLevel = print_level::warning;
+    auto rel1 = gds->getRelay(0);
+    auto rel2 = gds->getRelay(1);
+    auto& plist = blockparamMap[caseIndex];
 
-  
-  auto bb1=static_cast<basicBlock *>(bf->makeObject(plist.first));
-  auto bb2=static_cast<basicBlock *>(bf->makeObject(plist.first));
+    auto bb1 = static_cast<Block*>(bf->makeObject(plist.first));
+    auto bb2 = static_cast<Block*>(bf->makeObject(plist.first));
 
-  BOOST_REQUIRE(bb1 != nullptr);
-  BOOST_REQUIRE(bb2 != nullptr);
-  for (const auto &pp:plist.second)
-  {
-    int ret=bb1->set(pp.first,pp.second);
-	BOOST_CHECK(ret == PARAMETER_FOUND);
-    ret=bb2->set(pp.first,pp.second);
-	BOOST_CHECK(ret == PARAMETER_FOUND);
-  }
-
-  auto kfind = blockparamMapSt.find(plist.first);
-  if (kfind!=blockparamMapSt.end())
-  {
-    auto bps=blockparamMapSt.at(plist.first);
-    for (const auto &pp:bps)
-    {
-      int ret=bb1->set(pp.first, pp.second);
-	  BOOST_CHECK(ret == PARAMETER_FOUND);
-      ret=bb2->set(pp.first, pp.second);
-	  BOOST_CHECK(ret == PARAMETER_FOUND);
+    ASSERT_NE(bb1, nullptr);
+    ASSERT_NE(bb2, nullptr);
+    for (const auto& pp : plist.second) {
+        bb1->set(pp.first, pp.second);
+        bb2->set(pp.first, pp.second);
     }
-  }
-  rel1->add(bb1);
-  rel2->add(bb2);
-  int  retval = gds->dynInitialize();
 
-  BOOST_CHECK_EQUAL(retval, 0);
+    auto kfind = blockparamMapSt.find(plist.first);
+    if (kfind != blockparamMapSt.end()) {
+        auto bps = blockparamMapSt.at(plist.first);
+        for (const auto& pp : bps) {
+            bb1->set(pp.first, pp.second);
 
-  int mmatch = JacobianCheck(gds,cDaeSolverMode, 1e-5);
-  if (mmatch > 0)
-  {
-    printStateNames(gds, cDaeSolverMode);
-	printf(" mismatching Jacobian in %s\n", plist.first.c_str());
-  }
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
-  mmatch = residualCheck(gds,cDaeSolverMode);
-  if (mmatch > 0)
-  {
-    printStateNames(gds, cDaeSolverMode);
-	printf(" mismatching residual in %s\n", plist.first.c_str());
-  }
+            bb2->set(pp.first, pp.second);
+        }
+    }
+    rel1->add(bb1);
+    rel2->add(bb2);
+    int retval = gds->dynInitialize();
 
-  BOOST_REQUIRE_EQUAL(mmatch, 0);
- 
-  gds->run();
-  if (gds->getCurrentTime() < 7.99)
-  {
-	  runJacobianCheck(gds, cDaeSolverMode);
-	  runResidualCheck(gds, cDaeSolverMode);
-	  BOOST_CHECK_MESSAGE(gds->getCurrentTime() > 7.99, "Block " << plist.first << " failed to solve");
-	  continue;
-  }
+    EXPECT_EQ(retval, 0);
 
+    int mmatch = runJacobianCheck(gds, cDaeSolverMode, 1e-5);
+    if (mmatch > 0) {
+        printf(" mismatching Jacobian in %s\n", plist.first.c_str());
+        ASSERT_EQ(mmatch, 0);
+    }
 
+    mmatch = runResidualCheck(gds, cDaeSolverMode);
+    if (mmatch > 0) {
+        printf(" mismatching residual in %s\n", plist.first.c_str());
+        ASSERT_EQ(mmatch, 0);
+    }
 
-  std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
-  timeSeries2 ts3;
-  int ret = ts3.loadBinaryFile(recname);
-  BOOST_CHECK_EQUAL(ret, 0);
-  std::vector<double> df(ts3.count);
-  compareVec(ts3.data[1], ts3.data[2], df);
-  auto mx = absMax(df);
-  auto adf=mean(df);
-  BOOST_CHECK((mx<1e-2)||(adf<2e-3));
-  ret = remove(recname.c_str());
+    gds->run();
+    if (gds->getSimulationTime() < 7.99) {
+        runJacobianCheck(gds, cDaeSolverMode);
+        runResidualCheck(gds, cDaeSolverMode);
+        ASSERT_GT(gds->getSimulationTime(), 7.99) << "Block " << plist.first << " failed to solve";
+    }
 
-  if ((mx > 1e-2) && (adf > 2e-3))
-  {
-	  printf(" mismatching results in %s\n", plist.first.c_str());
-  }
-  BOOST_CHECK_EQUAL(ret, 0);
+    std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
+    TimeSeriesMulti<> ts3;
+    ts3.loadBinaryFile(recname);
+    std::vector<double> df(ts3.size());
+    compareVec(ts3[1], ts3[2], df);
+    auto mx = absMax(df);
+    auto adf = mean(df);
+    EXPECT_TRUE((mx < 1e-2) || (adf < 2e-3));
+    int ret = remove(recname.c_str());
 
-  }
-  
+    if ((mx > 1e-2) && (adf > 2e-3)) {
+        printf(" mismatching results in %s\n", plist.first.c_str());
+    }
+    EXPECT_EQ(ret, 0);
 }
 
+INSTANTIATE_TEST_SUITE_P(AllBlocks, BlockCompareTests, ::testing::Range(0, 11));
+
 #ifdef LOAD_CVODE
-/** test the control block if they can handle differential only jacobians and algebraic only jacobians
-*/
-BOOST_AUTO_TEST_CASE(block_alg_diff_jac_test)
+/** test the control block if they can handle a differential only Jacobian and an algebraic only
+ * Jacobian
+ */
+TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
 {
-	/* *INDENT-OFF* */
+    const auto caseIndex = GetParam();
+    std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
 
-	const std::map<std::string, std::vector<std::pair<std::string, double>>> blockparamMap
-	{ { "basic",{ std::make_pair("k", 2.3), std::make_pair("max", 0.1) } },
-	{ "delay",{ std::make_pair("t1", 0.5) } },
-	{ "integral",{ std::make_pair("iv", 0.14) } },
-	{ "derivative",{ std::make_pair("t", 0.25) } },
-	{ "fder",{ std::make_pair("t1", 0.25) ,std::make_pair("t2", 0.1) } },
-	{ "deadband",{ std::make_pair("db", 0.1),std::make_pair("ramp",0.03) } },
-	{ "db",{ std::make_pair("db", 0.08) } },
-	{ "pid",{ std::make_pair("p", 0.7), std::make_pair("i", 0.02), std::make_pair("d", 0.28), std::make_pair("t", 0.2) } },
-	{ "control",{ std::make_pair("t1", 0.2), std::make_pair("t2", 0.1) } },
-	{ "function",{ std::make_pair("gain", kPI), std::make_pair("bias", -0.05) } },
-	{ "func",{ std::make_pair("arg", 2.35) } },
-	};
+    auto bf = coreObjectFactory::instance()->getFactory("block");
+    auto& plist = blockparamMap[caseIndex];
 
-	const std::map<std::string, std::vector<std::pair<std::string, std::string>>> blockparamMapSt
-	{ { "function",{ std::make_pair("func", "sin") } },
-	{ "func",{ std::make_pair("func", "pow") } },
-	{ "db",{ std::make_pair("flags", "shifted") } },
-	};
+    gds = readSimXMLFile(fileName);
+    ASSERT_NE(gds, nullptr);
+    gds->solverSet("powerflow", "printlevel", 0);
+    gds->solverSet("dynamic", "printlevel", 0);
+    gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
+    gds->consolePrintLevel = print_level::warning;
+    auto rel1 = gds->getRelay(0);
+    auto rel2 = gds->getRelay(1);
 
-	/* *INDENT-ON* */
+    auto bb1 = static_cast<Block*>(bf->makeObject(plist.first));
+    auto bb2 = static_cast<Block*>(bf->makeObject(plist.first));
 
-	std::string fname = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
+    ASSERT_NE(bb1, nullptr);
+    ASSERT_NE(bb2, nullptr);
+    for (const auto& pp : plist.second) {
+        bb1->set(pp.first, pp.second);
 
-	auto bf = coreObjectFactory::instance()->getFactory("controlblock");
-	for (auto &plist : blockparamMap)
-	{
-		if (gds)
-		{
-			delete gds;
-		}
-		gds = static_cast<gridDynSimulation *> (readSimXMLFile(fname));
-		BOOST_REQUIRE(gds != nullptr);
-		gds->solverSet("powerflow", "printlevel", 0);
-		gds->solverSet("dynamic", "printlevel", 0);
-		gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-		gds->consolePrintLevel = GD_WARNING_PRINT;
-		auto rel1 = gds->getRelay(0);
-		auto rel2 = gds->getRelay(1);
+        bb2->set(pp.first, pp.second);
+    }
 
+    auto kfind = blockparamMapSt.find(plist.first);
+    if (kfind != blockparamMapSt.end()) {
+        auto bps = blockparamMapSt.at(plist.first);
+        for (const auto& pp : bps) {
+            bb1->set(pp.first, pp.second);
 
-		auto bb1 = static_cast<basicBlock *>(bf->makeObject(plist.first));
-		auto bb2 = static_cast<basicBlock *>(bf->makeObject(plist.first));
+            bb2->set(pp.first, pp.second);
+        }
+    }
+    rel1->add(bb1);
+    rel2->add(bb2);
+    int retval = gds->dynInitialize();
 
-		BOOST_REQUIRE(bb1 != nullptr);
-		BOOST_REQUIRE(bb2 != nullptr);
-		for (const auto &pp : plist.second)
-		{
-			int ret = bb1->set(pp.first, pp.second);
-			BOOST_CHECK(ret == PARAMETER_FOUND);
-			ret = bb2->set(pp.first, pp.second);
-			BOOST_CHECK(ret == PARAMETER_FOUND);
-		}
-
-		auto kfind = blockparamMapSt.find(plist.first);
-		if (kfind != blockparamMapSt.end())
-		{
-			auto bps = blockparamMapSt.at(plist.first);
-			for (const auto &pp : bps)
-			{
-				int ret = bb1->set(pp.first, pp.second);
-				BOOST_CHECK(ret == PARAMETER_FOUND);
-				ret = bb2->set(pp.first, pp.second);
-				BOOST_CHECK(ret == PARAMETER_FOUND);
-			}
-		}
-		rel1->add(bb1);
-		rel2->add(bb2);
-		int  retval = gds->dynInitialize();
-
-		BOOST_CHECK_EQUAL(retval, 0);
-		auto mmatch = runResidualCheck(gds, cDaeSolverMode);
-		BOOST_REQUIRE_MESSAGE(mmatch == 0, "Block " << plist.first << " residual issue");
-		mmatch = runDerivativeCheck(gds, cDaeSolverMode);
-		BOOST_REQUIRE_MESSAGE(mmatch == 0, "Block " << plist.first << " derivative issue");
-		mmatch = runAlgebraicCheck(gds, cDaeSolverMode);
-		BOOST_REQUIRE_MESSAGE(mmatch == 0, "Block " << plist.first << " algebraic issue");
-		mmatch = runJacobianCheck(gds, cDynDiffSolverMode);
-		BOOST_REQUIRE_MESSAGE(mmatch == 0, "Block " << plist.first << " Jacobian dynDiff issue");
-		mmatch = runJacobianCheck(gds, cDynAlgSolverMode);
-		BOOST_REQUIRE_MESSAGE(mmatch == 0, "Block " << plist.first << " Jacobian dynAlg issue");
-
-	}
-
+    EXPECT_EQ(retval, 0);
+    auto mmatch = runResidualCheck(gds, cDaeSolverMode);
+    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " residual issue";
+    mmatch = runDerivativeCheck(gds, cDaeSolverMode);
+    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " derivative issue";
+    mmatch = runAlgebraicCheck(gds, cDaeSolverMode);
+    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " algebraic issue";
+    mmatch = runJacobianCheck(gds, cDynDiffSolverMode);
+    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " Jacobian dynDiff issue";
+    mmatch = runJacobianCheck(gds, cDynAlgSolverMode);
+    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " Jacobian dynAlg issue";
 }
 
 #endif
-BOOST_AUTO_TEST_SUITE_END()

@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+r1 & number & 0.05 & primary resistance on the motor\\
+x1 & number & 0.15 & primary inductance of the motor\\
+xm & number & 5 & the inductive load of the motor\\
+alpha & number & 1 & alpha parameter for torque conversion\\
+beta & number & 0 & beta parameter for torque conversion\\
+gamma & number & 0 & gamma parameter for torque conversion\\
+base, mbase, rating & number & -100 & system machine base\\
+Vcontrol & number & 1 & whether the motor has some voltage controls for tweaking power (basically a transformer attached motor\\
+\hline
+\end{tabular}
+\caption{Set options for motorLoad objects. See Table~\ref{table:gridLoad} for additional settable options through gridLoad}
+\label{table:motorLoad}
+\end{table}

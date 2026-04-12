@@ -1,23 +1,21 @@
 {
   "name": "test1",
   "version": "0.0.1",
-  "bus": 
-  [
-  {
-    "name": "bus1",
-    "type": "SLK",
-    "angle": 0,
-    "voltage": 1.04,
-	"generator":
-	{
-		"name":"gen1",
-		"p":0.7160
-	}
-	},
-	{
-    "name": "bus2",
-    "angle": 0,
-    "voltage": 1.01
-	}
+  "bus": [
+    {
+      "name": "bus1",
+      "type": "SLK",
+      "angle": 0,
+      "voltage": 1.04,
+      "generator": {
+        "name": "gen1",
+        "p": 0.716
+      }
+    },
+    {
+      "name": "bus2",
+      "angle": 0,
+      "voltage": 1.01
+    }
   ]
- }
+}

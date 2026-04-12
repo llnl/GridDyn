@@ -1,0 +1,200 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage{amssymb}
+\usepackage{amsmath}
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+\newcommand{\pdiff}[2]{\frac{\partial #1}{\partial #2}}
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{State Estimation in Griddyn}
+\author{Philip Top}
+\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed
+
+\begin{document}
+\maketitle
+
+\section{Background}
+
+In power systems it is desirable to create an estimate of the state of the system from measurements of the system.  In our case $x$ is the state of the system,  $z$ are the measurements, and $h(x)$ is the nonlinear functions relating measurements to the states.  The measurements are corrupted by noise n such that,
+\begin{equation}
+z=h(x)+n.
+\end{equation}
+
+There are typically more measurements than states so the problem is traditionally overdetermined.
+The standard solution formulation is to create a weighted least squares formulation.
+\begin{equation}
+\min_{x \in \mathbb{R}^N} J(x)=\frac{1}{2}\left(x-h(x)\right)^T R^{-1}\left (z-h(x)\right)
+\end{equation}
+where $R$ is a diagonal matrix of the noise variances.
+
+The solution is obtained when
+\begin{equation} \label{Eq:sol1}
+\frac{\partial J(x)}{\partial x} = -H(x)^T R^{-1} \left[z-h(x)\right] = 0
+\end{equation}
+where $H(x)$ is the measurement jacobian which has dimensions $(m \times n)$ with $n$ being the number of states and $m$ being the number of measurements.
+
+in a real state estimation system the solution to these equations is iterated around with a topology detection system, a system visibility check, and a bad data detection system.
+
+\subsection{Assumptions}
+There are several assumptions present in this solution.
+The first is that the system is strongly observable, in that $h(x)$ contains sufficient measurements to capture all the states, \textbf{and} it contains measurements that capture the network layout of the system being measured.  This is true in many cases but it does limit the applicability of this solution.
+
+A second assumption is that the noise is assumed Gaussian,  which is not true in general. This assumption may be effective enough for practical purposes when dealing with naturally generated noise.  Possibly less so if purposeful manipulation is considered.
+
+The problem statement in the most general set of cases is "given a set of measurements $z$ what is the best estimate of the system state $x$"
+\subsection{solutions and variations}
+This problem is traditionally solved using Newtons Method by linearizing the measurement function.
+\begin{equation}
+h(x+\Delta x) \approx h(x)+H(x)\Delta x
+\end{equation}
+
+this results in a solution iteration
+\begin{equation}
+\begin{aligned}
+\left(H^TR^{-1}H\right)\Delta x &= H^TR^{-1}\left[z-h(x)\right] \\
+x^{k+1} &= x^k+\Delta x
+\end{aligned}
+\end{equation}
+and
+
+
+This solution only works if $H^TR^{-1}H$ is non-singular,  and numerical techniques tend to fail if the matrix is not well conditioned, which tends to happen if certain measurement modes dominate.  Various numerical techniques skirt around the problem with additional constraints or other small reformulations.
+
+
+
+\subsection{Simplifications}
+Several simplifications also exist similar to simplifications to the power flow problem, they mainly consist of relaxing or linearizing some of the nonlinear measurement functions for flow measurements between buses.  The flow between 2 bussess is
+\begin{equation}\label{Eq:powerflow}
+\begin{aligned}
+P_{kj} &= |V_k||V_j|\left(G_{kj}\cos(\theta_k-\theta_j) +  B_{kj}\sin(\theta_k-\theta_j)\right)\\
+Q_{kj} &=  -|V_k|^2 B_{k}+|V_k||V_j|\left(G_{kj}\sin(\theta_k-\theta_j) - B_{kj}\cos(\theta_k-\theta_j)\right)
+\end{aligned}
+\end{equation}
+The flows between adjacent buses drive the nonlinear component of problem.  This relation can be simplified in a number of different ways.  The first recognizes that $G_{kj}$ is typically small in relation to the $B_{kj}$ and $B_k$ terms,  resulting in
+\begin{equation}\label{Eq:powerflow}
+\begin{aligned}
+P_{kj} &= |V_k||V_j| B_{kj}\sin(\theta_k-\theta_j)\\
+Q_{kj} &=  -|V_k|^2 B_{k}-|V_k||V_j| B_{kj}\cos(\theta_k-\theta_j)
+\end{aligned}
+\end{equation}
+
+The solutions can also be decoupled associating the power $P$ with the states $\theta_k$ and $\theta_j$ and the reactive power $Q$ with $|V_k|$ and $|V_j|$.  This decoupling does not changes the equations but it removes some elements of the jacobian matrix.
+
+A further simplification ignores the reactive power completely and relies on the DC flow approximation which can be furthered by linearizing the equations
+\begin{equation}
+P_{kj}=|V_k||V_j| B_{kj}(\theta_k-\theta_j)
+\end{equation}
+with $|V_k|$ and $|V_j|$ assumed constant or event assumed to be 1 in the simplest case.
+
+These simplifications can lead to much simpler state estimation problem, though at the potential expense of solution accuracy.
+
+\section{Solution formulation with kinsoll}
+\subsection{unconstrained weighted least squares}
+
+To solve this problem with Kinsol there are 2 general formulations of the solution that might work.  The first is to use Equation~\ref{Eq:sol1} as the function to solve in Kinsol.  This will solve for the unconstrained least squares solution.  If there are $m$ measurements and $n$ states
+\begin{equation}
+\begin{aligned}
+F(x)&=\frac{\partial J(x)}{\partial x} = -H(x)^T R^{-1} \left[z-h(x)\right] = 0\\
+H(x) &= \left[
+\begin{matrix}
+\pdiff{h_1}{x_1} & \pdiff{h_1}{x_2} & \hdots & \pdiff{h_1}{x_n} \\
+\pdiff{h_2}{x_1} & \pdiff{h_2}{x_2} & \hdots & \pdiff{h_2}{x_n} \\
+\vdots & \vdots & \ddots & \vdots \\
+\pdiff{h_m}{x_1} & \pdiff{h_m}{x_2} & \hdots & \pdiff{h_m}{x_n}
+\end{matrix}
+\right]
+\end{aligned}
+\end{equation}
+
+Working through the matrix algebra we end up with a set of equations $i \in [1,n]$,
+\begin{equation}
+F_i(x)=-\sum_{k=1}^m\left[\pdiff{h_k}{x_i}\frac{1}{\sigma_k^2}(z_k-h_k(x))\right]=0.
+\end{equation}
+
+It also requires computation of the jacobian either in numerical evaluation or direct computation
+\begin{equation}
+\pdiff{F_i}{x_j} = -\sum_{k=1}^m\frac{1}{\sigma_k^2}\left[\frac{\partial^2 h_k}{\partial x_j \partial x_i}(z_k-h_k(x))-\pdiff{h_k}{x_j}\pdiff{h_k}{x_i}\right]
+\end{equation}
+
+while the resulting jacobian will likely be sparse this is not likely to be very pleasant or practical to code directly thus the numeral evaluation will be required.
+
+\subsection{fully constrained formulation}
+As an alternative formulation we can expand the state vector significantly to include all the original state vector $x_i$ and a set of new states $y_j$ which are the estimates of the measurements so $y_j=h_j(x)$.  The residual formulation includes the original residual function $F(x)$ from the power flow problem, and a set of new equation $G_j(y)=2h_j(x)-z_j-y_j$
+Given the noise in the system the residual function will never reach 0, but the solution should stabilize and reach the steptol in Kinsol and report back a solution.
+The Jacobian matrix can then be computed
+\begin{equation}
+J(x) = \left[
+\begin{matrix}
+\pdiff{F_1}{x_1} & \pdiff{F_1}{x_2} & \hdots & \pdiff{F_1}{x_n} & 0 & 0 &\hdots & 0 \\
+\pdiff{F_2}{x_1} & \pdiff{F_2}{x_2} & \hdots & \pdiff{F_2}{x_n} & 0 & 0 & \hdots & 0 \\
+\vdots & \vdots & \ddots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+\pdiff{F_n}{x_1} & \pdiff{F_n}{x_2} & \hdots & \pdiff{F_n}{x_n} & 0 & 0 & \hdots & 0 \\
+2\pdiff{h_1}{x_1} & 2\pdiff{h_1}{x_2} & \hdots &2 \pdiff{h_1}{x_n} & -1 & 0 &\hdots &0\\
+2\pdiff{h_2}{x_1} &2 \pdiff{h_2}{x_2} & \hdots & 2\pdiff{h_2}{x_n} & 0 & -1  &\hdots &0\\
+\vdots & \vdots & \ddots & \vdots &\vdots & \vdots  & \ddots & \vdots\\
+2\pdiff{h_m}{x_1} &2 \pdiff{h_m}{x_2} & \hdots & 2\pdiff{h_m}{x_n} & 0 & 0 & \hdots &  -1
+
+\end{matrix}
+\right]
+\end{equation}
+
+The weighting from the noise would be incorporated into Kinsol via the $D_f$ weighting factor.  For state elements $n+1$ to $n+m$ the weighting would be $\frac{\alpha}{\sigma_k^2}$  $\sigma_k^2$ is the noise variance for $z_k$ and $\alpha$ is a weighting parameter to balance the reliance on the measurements to the state network constraints.  For this to work properly it is likely that the state vector would have to include an extended state vector comprising all the $V$, and $\theta$ for each bus,  as well as the power injections $P$ and $Q$ for buses with generators or loads.  The observability step prior to the state estimation would be required to determine if the injection states are measured or inferred and if not some assumption or prediction would need to be made to ensure a complete solution.
+
+This constrained formulation has a number of advantages and disadvantages compared with the unconstrained formulation.  The first advantage is that it is not necessary to have a fully observed network.  Any observations will influence the solution, thus it becomes trivial to combine multiple observation methodologies and islands with predictions and other means of guessing at parts of the network.  Also it is relatively straightforward to include other parameters in the state estimator as well including some network properties and parameters, and as a further step if there is uncertainty in the network parameters this uncertainty can be incorporated into the state weightings for the network solution.  The downside of course is that the solution now likely has $2.5$ to $4x$ as many states as the unconstrained solution which will increase solution time significantly.  The solution is now also not a least squares solution,  though in practice it is unclear how much this will actually matter given that the addition of full network constraints probably leads to a better solution and better bad data detection anyway.
+
+As a further advantage it also leads to the possibility of detecting a broader range of bad data since some measurement that may have been critical in the unconstrained case now have broad network redundancy from the network constraints.
+
+\section{Integration with Griddyn}
+
+\end{document}

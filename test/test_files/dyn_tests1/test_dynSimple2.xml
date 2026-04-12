@@ -19,9 +19,9 @@
           <Urmin>-50</Urmin>
         </exciter>
       </generator>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
+    <name>bus2</name>
      <load name="load3">
        <P>1.500</P>
        <Q>0</Q>

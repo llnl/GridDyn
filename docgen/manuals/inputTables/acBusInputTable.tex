@@ -1,0 +1,31 @@
+\begin{longtable}{p{5cm} c c p{7cm}}
+string(s) & type & default & description \\
+\hline
+voltage, vol & number & 1 & [p.u.]    per unit voltage magnitude\\
+angle, ang & number & 0 & [rad]     voltage angle\\
+basefrequency, basefreq & number & 376.9911 & the base frequency of the system default to 60Hz\\
+vtarget & number & 1 & a target voltage\\
+atarget & number & 0 & an angle Target(for SLK and afix bus types)\\
+qmax & number & 0 & \\
+qmin & number & 0 & \\
+pmax & number & 0 & \\
+pmin & number & 0 & \\
+vmax & number & 1e+48 & [p.u.]    voltage maximum\\
+vmin & number & 0 & [p.u.]    voltage minimum\\
+autogenp & number & 0 & \\
+autogenq & number & 0 & \\
+autogendelay & number & 0 & \\
+voltagetolerance, vtol & number & -1 & voltage tolerance\\
+angletolerance, atol & number & -1 & angle tolerance\\
+tw & number & 0.1 & time constant for the frequency estimator\\
+lowvdisconnect & number & 0 & \\
+type & string & 0 & \\
+bustype & string & 0 & \\
+pflowtype & string & 0 & \\
+dyntype & string & 0 & \\
+status & string & 0 & \\
+compute\_frequency & flag & 0 & \\
+\hline
+\caption{Set options for acBus objects. See Table~\ref{table:gridBus} for additional settable options through gridBus}
+\label{table:acBus}
+\end{longtable}

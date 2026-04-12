@@ -1,0 +1,22 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+k, gain & number & 1 & gain\\
+bias, b & number & 0 & bias\\
+omax, max, limit & number & 1e+48 & max output value\\
+omin, min & number & -1e+48 & min output value\\
+rampmax, ramplimit & number & 1e+48 & rate of change max value\\
+rampmin & number & -1e+48 & rate of change min value\\
+resetlevel & number & -0.001 & the level below or above the max/min that the limiters should be removed\\
+use\_limits & flag & 0 & \\
+simplified & flag & 0 & \\
+differential\_input & flag & 0 & \\
+use\_ramp\_limits & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for basicBlock objects. See Table~\ref{table:gridSubModel} for additional settable options through gridSubModel}
+\label{table:basicBlock}
+\end{table}

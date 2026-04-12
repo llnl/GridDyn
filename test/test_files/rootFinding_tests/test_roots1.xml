@@ -59,7 +59,7 @@
     <voltage>1</voltage>
         <generator name="gen3">
       <model><ref>gm1</ref></model>
-	  <P>0.75</P>
+      <P>0.75</P>
       </generator>
   </bus>
   <link from="bus1" name="bus1_to_bus3" to="bus3">

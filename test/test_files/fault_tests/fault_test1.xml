@@ -4,17 +4,17 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
+    <name>bus2</name>
      <load name="load3">
        <yp>1.500</yp>
-       <yq>0.3</yq>    
+       <yq>0.3</yq>
      </load>
-	 <gen name="gen1">
-	 <p>1.0</p>
-	 <mbase>100</mbase>
-	 </gen>
+     <gen name="gen1">
+     <p>1.0</p>
+     <mbase>100</mbase>
+     </gen>
    </bus>
  <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
@@ -29,7 +29,7 @@
    </event>
    <timestart>0</timestart>
    <timestop>10</timestop>
-<recorder field="auto,bus2::gen1:angle(deg)" period=0.01>
+<recorder field="auto,bus2::gen1:angle(deg)" period="0.01">
    <file>faulttest.dat</file>
    </recorder>
 </griddyn>

@@ -1,82 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <griddyn name="test1" version="0.0.1">
 <import>../IEEE_test_cases/IEEE39.raw</import>
-<define name="ramprate" value=1.0/>
-<bus number=26>
-<load number=1 retype="ramp" usepowerfactor=1>
+<define name="ramprate" value="1.0"/>
+<bus number="25">
+<load number="0" retype="ramp" usepowerfactor="1">
 <dPdt units="MW">ramprate</dPdt></load>
 </bus>
-<bus number=27>
-<load number=1 retype="ramp" usepowerfactor=1>
+<bus number="26">
+<load number="0" retype="ramp" usepowerfactor="1">
 <dPdt units="MW">ramprate</dPdt></load>
 </bus>
-<bus number=28>
-<load number=1 retype="ramp" usepowerfactor=1>
+<bus number="27">
+<load number="0" retype="ramp" usepowerfactor="1">
 <dPdt units="MW">ramprate</dPdt></load>
 </bus>
-<bus number=29>
-<load number=1 retype="ramp" usepowerfactor=1>
+<bus number="28">
+<load number="0" retype="ramp" usepowerfactor="1">
 <dPdt units="MW">ramprate</dPdt></load>
 </bus>
-<bus number=30>
-<generator number=1>
+<bus number="29">
+<generator number="0">
 <Pmax units="MW">350</Pmax></generator>
-<param name="Qmax" value=175 units="MVar"/>
+<param name="Qmax" value="175" units="MVar"/>
 </bus>
-<bus number=31>
-<generator number=1>
+<bus number="30">
+<generator number="0">
 <Pmax units="MW">1145.55</Pmax></generator>
-<param name="Qmax" value=572.8 units="MVar"/>
+<param name="Qmax" value="572.8" units="MVar"/>
 </bus>
-<bus number=32>
-<generator number=1>
+<bus number="31">
+<generator number="0">
 <Pmax units="MW">750</Pmax></generator>
-<param name="Qmax" value=375 units="MVar"/>
+<param name="Qmax" value="375" units="MVar"/>
 </bus>
-<bus number=33>
-<generator number=1>
+<bus number="32">
+<generator number="0">
 <Pmax units="MW">732</Pmax></generator>
-<param name="Qmax" value=366 units="MVar"/>
+<param name="Qmax" value="366" units="MVar"/>
 </bus>
-<bus number=34>
-<generator number=1>
+<bus number="33">
+<generator number="0">
 <Pmax units="MW">608</Pmax></generator>
-<param name="Qmax" value=304 units="MVar"/>
+<param name="Qmax" value="304" units="MVar"/>
 </bus>
-<bus number=35>
-<generator number=1>
+<bus number="34">
+<generator number="0">
 <Pmax units="MW">750</Pmax></generator>
-<param name="Qmax" value=375 units="MVar"/>
+<param name="Qmax" value="375" units="MVar"/>
 </bus>
-<bus number=36>
-<generator number=1>
+<bus number="35">
+<generator number="0">
 <Pmax units="MW">660</Pmax></generator>
-<param name="Qmax" value=330 units="MVar"/>
+<param name="Qmax" value="330" units="MVar"/>
 </bus>
-<bus number=37>
-<generator number=1>
+<bus number="36">
+<generator number="0">
 <Pmax units="MW">640</Pmax></generator>
-<param name="Qmax" value=320 units="MVar"/>
+<param name="Qmax" value="320" units="MVar"/>
 </bus>
-<bus number=38>
-<generator number=1>
+<bus number="37">
+<generator number="0">
 <Pmax units="MW">930</Pmax></generator>
-<param name="Qmax" value=465 units="MVar"/>
+<param name="Qmax" value="465" units="MVar"/>
 </bus>
-<bus number=39>
-<generator number=1>
+<bus number="38">
+<generator number="0">
 <participation>0</participation></generator>
 </bus>
 <recorder>
-		<field>voltage</field>
-		<period>2</period>
-		<file>busVrecNQ.dat</file>
-		</recorder>
-		<recorder>
-		<field>busload</field>
-		<period>2</period>
-		<file>busLrecNQ.dat</file>
-		</recorder>
+        <field>voltage</field>
+        <period>2</period>
+        <file>busVrecNQ.dat</file>
+        </recorder>
+        <recorder>
+        <field>busload</field>
+        <period>2</period>
+        <file>busLrecNQ.dat</file>
+        </recorder>
    <timestart>0</timestart>
    <timestop>600</timestop>
    <timestep>2</timestep>

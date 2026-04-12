@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="test1" version="0.0.1">
+   <bus name="bus1">
+      <type>SLK</type>
+      <angle>0</angle>
+      <voltage>1.04</voltage>
+      <generator name="gen1" dynmodel="typical">
+          <P>0.7160</P>
+      </generator>
+   </bus>
+   <bus name="bus2">
+      <type>PV</type>
+      <angle>0</angle>
+      <voltage>1.025</voltage>
+      <Qmax>2.0</Qmax>
+      <Qmin>-2.0</Qmin>
+      <generator name="gen2" dynmodel="modelonly">
+         <P>1.63</P>
+         <dpdt>0.02</dpdt>
+      </generator>
+   </bus>
+   <bus name="bus3">
+      <type>PV</type>
+      <Qmax>2.0</Qmax>
+      <Qmin>-2.0</Qmin>
+      <angle>0</angle>
+      <voltage>1.025</voltage>
+      <generator name="gen3" dynmodel="modelonly">
+         <P>0.85</P>
+      </generator>
+   </bus>
+
+   <bus name="bus4">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus5">
+      <type>PQ</type>
+      <load name="load5">
+         <P>1.25</P>
+         <Q>0.5</Q>
+      </load>
+   </bus>
+   <bus name="bus6">
+      <type>PQ</type>
+      <load name="load6">
+         <P>0.9</P>
+         <Q>0.3</Q>
+      </load>
+   </bus>
+   <bus name="bus7">
+      <type>PQ</type>
+   </bus>
+   <bus name="bus8">
+      <type>PQ</type>
+      <load name="load8">
+         <P>1.0</P>
+         <Q>0.35</Q>
+      </load>
+   </bus>
+   <bus name="bus9">
+      <type>PQ</type>
+   </bus>
+
+   <link from="bus1" name="bus1_to_bus4" to="bus4">
+      <b>0</b>
+      <r>0</r>
+      <x>0.0576</x>
+      <type>transformer</type>
+      <tap>1.0</tap>
+      <tapangle>0</tapangle>
+   </link>
+   <link from="bus4" name="bus4_to_bus5" to="bus5">
+      <type>ac</type>
+      <b>0</b>
+      <r>0.03</r>
+      <x>0.085</x>
+   </link>
+   <link from="bus5" name="bus5_to_bus7" to="bus7">
+      <b>0.306</b>
+      <r>0.032</r>
+      <x>0.161</x>
+   </link>
+   <link from="bus4" name="bus4_to_bus6" to="bus6">
+      <g>0.02</g>
+      <b>0.158</b>
+      <r>0.017</r>
+      <x>0.092</x>
+   </link>
+   <link from="bus6" name="bus6_to_bus9" to="bus9">
+      <b>0.358</b>
+      <r>0.039</r>
+      <x>0.17</x>
+   </link>
+   <link from="bus7" name="bus7_to_bus8" to="bus8">
+      <b>0.149</b>
+      <r>0.0085</r>
+      <x>0.072</x>
+   </link>
+   <link from="bus3" name="bus3_to_bus9" to="bus9">
+      <b>0</b>
+      <r>0</r>
+      <x>0.0586</x>
+      <type>transformer</type>
+      <tap>1.02</tap>
+      <tapangle>0.03</tapangle>
+   </link>
+   <link from="bus8" name="bus8_to_bus9" to="bus9">
+      <b>0.0</b>
+      <r>0.003</r>
+      <x>0.0518</x>
+   </link>
+   <link from="bus2" name="bus2_to_bus7" to="bus7">
+      <b>0</b>
+      <r>0</r>
+      <x>0.0625</x>
+      <type>transformer</type>
+      <tap>1.04</tap>
+      <tapangle>0</tapangle>
+   </link>
+   <relay target="bus3">
+   <type>pmu</type>
+   </relay>
+  <link from="bus2" name="bus2_to_bus3" to="bus3">
+      <b>0</b>
+      <r>0.039</r>
+      <x>0.17</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>20</timestop>
+   <timestep>0.010</timestep>
+     <timestep>0.010</timestep>
+
+</griddyn>

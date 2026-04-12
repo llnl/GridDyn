@@ -23,8 +23,8 @@
          <Q>0.3</Q>
       </load>
    </bus>
- 
-   
+
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
@@ -32,23 +32,23 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.03</r>
       <x>0.085</x>
    </link>
-  
+
    <link from="bus2" name="bus2_to_bus3" to="bus3">
       <b>0.0</b>
       <r>0.419</r>
       <x>0.8008</x>
-	  <fault>0.5</fault>
+      <fault>0.5</fault>
    </link>
-   
+
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>30</timestop>
- 
-   
-   
+
+
+
 </griddyn>

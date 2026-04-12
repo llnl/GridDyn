@@ -1,0 +1,136 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[12pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+\geometry{margin=1in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage{amssymb}
+\usepackage{amsmath}
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+\usepackage{hyperref}
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+\newcommand{\pdiff}[2]{\frac{\partial #1}{\partial #2}}
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{datetime}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+    language=c++,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=none,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
+}
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{GridDyn API Interface}
+\author{Philip Top}
+\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed
+\newdate{date}{12}{8}{2016}
+\date{\displaydate{date}}
+
+\begin{document}
+\begin{titlepage}
+        \centering
+        \vfill
+        {\bfseries\Large
+            GridDyn API Users Guide\\
+            Version 0.5\\
+            \displaydate{date}
+            \vskip2cm
+            Philip Top Ph.D.\\
+        }
+        \vfill
+        \includegraphics[width=\linewidth]{../images/GridDyn_FullColor.png}
+        \vfill
+        This work was performed under the auspices of the U.S. Department of Energy by
+        Lawrence Livermore National Laboratory under Contract DE-AC52-07NA27344.
+        LLNL-TR-XXXXXXX
+        \vfill
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\section{Introduction}
+
+GridDyn is a power system simulator developed at Lawrence Livermore National Laboratory. The name is a concatenation of Grid Dynamics, and as such usually pronounced as "Grid Dine".   This document details some of the common interfaces to the GridDyn simulation object itself, as well as highlighting some of the input and output functions associated with the simulation object.  For more details on the actual functions and calls and objects used throughout GridDyn the user is encouraged to explore the Doxygen produced documentation for a more interactive description.
+
+\section{Overview}
+\subsection{gridDynSimulation class}
+Principle control of a simulation is done through the  gridDynSimulation object.  The simulation object is accessed in C++ code by including the "griddyn.h" header file.  This object contains the necessary functionality to run a simulation, contain all the power grid components. Additional IO capabilities are provided by the "gridDynFileOperations.h" header file and the "gridDynFileInput.h" header files.  These additional files give access to a the IO libraries for importing models and creating files from the simulation results.
+
+\subsection{gridDynRunner }
+The gridDynRunner object is a simple wrapper around a gridDynSimulation object to help with inclusion in other simulation environments.
+
+\subsection{Other Objects}
+Other objects and models can be created and some modeling could be done with them but they are not intended to be used generally.  Documentation for them can be found in the Doxygen documentation and in the Future Developers Guide(In Development).
+\subsection{future API's}
+Work is ongoing to wrap GridDyn in an FMU for co-simulation object.  This will include a shared object library containing Griddyn and an interface to access it, as well as some additional functionality required to interface as an FMU.  Some future ideas include adding a Python interface but the concept is still in planning stages.
+
+\section{GridDynSimulation Glass}
+
+
+
+
+\end{document}

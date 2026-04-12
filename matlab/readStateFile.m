@@ -16,11 +16,11 @@ function res=readStateFile(filename)
 % function reads a statefile generated from GridDyn for debugging purposes.
 % the statefile has a number of different block types that can be read
 % including states, derivatives, residuals, and jacobians.  Also To be
-% included is state name information.(not working yet).  
-% res is  a structure array with the fields 
+% included is state name information.(not working yet).
+% res is  a structure array with the fields
 % time, index, code, typecode, key, and data
 % time contains the time of the data block
-% index is an index number 
+% index is an index number
 % code is a code describing the data (0 for state, 1 for deriv, 2 for
 % resid)  others are not defined yet
 % typecode defines the type of the data (0 vector, 1 jacobian, 2, state
@@ -52,9 +52,9 @@ while (moredata)
     typecode=bitshift(datav(1),-16);
     res.typecode(ind)=typecode;
     res.key(ind)=double(datav(3));
-    
+
     count=datav(4);
-    
+
     switch(typecode)
         case {0} %get vector information
             res.data{ind}=fread(fid,count,'double');
@@ -72,6 +72,6 @@ while (moredata)
         case 2 % get state name information (not described yet)
     end
     ind=ind+1;
-            
+
 end
 fclose(fid);

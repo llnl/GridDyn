@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="39random" version="0.0.1">
+   <import file="../IEEE_test_cases/IEEE39.raw"/>
+   <loop loopvariable="id" start=0 stop=38>
+   <bus index=id>
+    <if condition="exists(load#0)">
+        <load type="random">
+        <p:mean_t>30</p:mean_t>
+        <p:stdev_l>0.02</p:stdev_l>
+        <p:zbias>0.05</p:zbias>
+        <p:time_dist>exponential</p:time_dist>
+        <p:change_dist>normal</p:change_dist>
+        <p:flags>repeated</p:flags>
+        </load>
+    </if>
+    </bus>
+    </loop>
+
+<recorder field="voltage,angle" file="39random.csv" period=5 autosave=10000/>
+<start>0</start>
+<stop>24*3600*120</stop>
+<steptime>5</steptime>
+<action>iterate</action>
+<flag>power_adjust</flag>
+</griddyn>

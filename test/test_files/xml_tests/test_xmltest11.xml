@@ -6,7 +6,7 @@
     <voltage>rand(0.95,1.05)</voltage>
   </bus>
  </custom>
-  <array count=10> 
+  <array count=10>
     <cbus/>
   </array>
 </griddyn>

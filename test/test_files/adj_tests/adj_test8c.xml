@@ -19,15 +19,15 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0.6</Q>
+        <P>1.500</P>
+             <Q>0.6</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3adj" to="bus3">
       <type>adjustable</type>
-		<mode>mvar</mode>
-		<change>continuous</change>
-		<qtarget>-1.05</qtarget>
+        <mode>mvar</mode>
+        <change>continuous</change>
+        <qtarget>-1.05</qtarget>
       <x>0.015</x>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

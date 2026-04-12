@@ -6,28 +6,28 @@
       <voltage>1</voltage>
       <generator name="gen1">
         <model>
-          <type>4</type> 
+          <type>4</type>
         </model>
-		<exciter type="basic"/>
-		<recorder>
-		<file>datafile.dat</file>
-		<field>freq,angle</field>
-		<period>0.1</period>
-		</recorder>
+        <exciter type="basic"/>
+        <recorder>
+        <file>datafile.dat</file>
+        <field>freq,angle</field>
+        <period>0.1</period>
+        </recorder>
       </generator>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<type>PV</type>
-	<generator name="gen2">
+    <name>bus2</name>
+    <type>PV</type>
+    <generator name="gen2">
         <model type="4"/>
-		<P>1.2</P>
-		<Pmax>3</Pmax>
-		<recorder>
-		<file>datafile.dat</file>
-		<field>freq,angle</field>
-		<period>0.1</period>
-		</recorder>
+        <P>1.2</P>
+        <Pmax>3</Pmax>
+        <recorder>
+        <file>datafile.dat</file>
+        <field>freq,angle</field>
+        <period>0.1</period>
+        </recorder>
       </generator>
 
      <load name="load2">
@@ -41,17 +41,17 @@
      </load>
    </bus>
    <bus>
-	<name>bus3</name>
+    <name>bus3</name>
      <load name="load3" type="fdep">
        <P>0.3</P>
        <Q>0.1</Q>
-	   <loadtype>flourescent</loadtype>
+       <loadtype>fluorescent</loadtype>
      </load>
-	 <recorder>
-		<file>datafile.dat</file>
-		<field>freq,angle,loadp,loadq</field>
-		<period>0.1</period>
-		</recorder>
+     <recorder>
+        <file>datafile.dat</file>
+        <field>freq,angle,loadp,loadq</field>
+        <period>0.1</period>
+        </recorder>
    </bus>
  <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>

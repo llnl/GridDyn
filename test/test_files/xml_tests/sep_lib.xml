@@ -12,7 +12,7 @@
             <Xq>0.850</Xq>
             <Xqp>0.350</Xqp>
          </model>
-		 <exciter name="ext1">
+         <exciter name="ext1">
             <type>type1</type>
             <Aex>0</Aex>
             <Bex>0</Bex>
@@ -33,7 +33,7 @@
             <T2>0.150</T2>
             <T3>0.050</T3>
          </governor>
-		 <generator name="gen1">
+         <generator name="gen1">
          <model ref="mod1"/>
          <exciter ref="ext1"/>
          <governor ref="gov1"/>

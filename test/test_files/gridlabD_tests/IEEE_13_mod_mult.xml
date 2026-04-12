@@ -11,7 +11,7 @@
 </generator>
 </library>
    <bus name="bus1">
-	<basevoltage>7.2</basevoltage>
+    <basevoltage>7.2</basevoltage>
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1.04</voltage>
@@ -27,20 +27,20 @@
       <generator name="gen1" ref="default">
           <P>0.4</P>
       </generator>
-	   <load>
-	  <type>gridlab</type>
-	  <file>IEEE_13_mod.glm</file>
-	  <workdir>IEEE_13_mod_workdir</workdir>
-	  </load>
+       <load>
+      <type>gridlab</type>
+      <file>IEEE_13_mod.glm</file>
+      <workdir>IEEE_13_mod_workdir</workdir>
+      </load>
    </bus>
    <bus name="bus3">
    <basevoltage>7.2</basevoltage>
-      
-	  <load>
-	  <type>gridlab</type>
-	  <file>IEEE_13_mod.glm</file>
-	  <workdir>IEEE_13_mod_workdir</workdir>
-	  </load>
+
+      <load>
+      <type>gridlab</type>
+      <file>IEEE_13_mod.glm</file>
+      <workdir>IEEE_13_mod_workdir</workdir>
+      </load>
    </bus>
    <link from="bus1" to="bus2">
       <x>0.04</x>

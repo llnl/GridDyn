@@ -23,8 +23,8 @@
          <Q>0.3</Q>
       </load>
    </bus>
- 
-   
+
+
    <link from="bus1" name="bus1_to_bus2" to="bus2">
       <b>0</b>
       <r>0</r>
@@ -32,38 +32,38 @@
       <tapangle>0</tapangle>
    </link>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
-	  <type>ac</type>
+      <type>ac</type>
       <b>0</b>
       <r>0.03</r>
       <x>0.085</x>
    </link>
-  
+
    <link from="bus2" name="bus2_to_bus3" to="bus3">
       <b>0.0</b>
       <r>0.069</r>
       <x>0.2008</x>
-	  <relay>
-	   <type>breaker</type>
-	  <limit>0.5</limit>
-	  </relay>
-	  <relay>
-	   <type>breaker</type>
-	   <terminal>2</terminal>
-	  <limit>0.5</limit>
-	  </relay>
-	  <event>
-	  <field>fault</field>
-	  <time>1.0></time>
-	  <value>0.5></value>
-	  </event>
+      <relay>
+       <type>breaker</type>
+      <limit>0.5</limit>
+      </relay>
+      <relay>
+       <type>breaker</type>
+       <terminal>2</terminal>
+      <limit>0.5</limit>
+      </relay>
+      <event>
+      <field>fault</field>
+      <time>1.0></time>
+      <value>0.5></value>
+      </event>
    </link>
-   
+
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>10</timestop>
    <recorder field="auto" period=0.005>
    <file>linkfault.dat</file>
    </recorder>
-   
-   
+
+
 </griddyn>

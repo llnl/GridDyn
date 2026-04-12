@@ -1,6 +1,6 @@
 
 
-testFiles:=$(wildcard ./bin/test-*.tc)
+testFiles:=$(sort $(wildcard ./bin/test-*.tc))
 
 .PHONY: check
 check: ${testFiles}
@@ -14,11 +14,11 @@ demo6:
 
 .PHONY: demo7
 demo7:
-	@pgriddyn Simple_3Bus_ReplicateTest.xml --powerflow-output=Simple_3Bus_ReplicateTest.powerflow.csv 
+	@pgriddyn Simple_3Bus_ReplicateTest.xml --powerflow-output=Simple_3Bus_ReplicateTest.powerflow.csv
 
 .PHONY: debug
 debug:
-	pgriddyn_debug IEEE_13_mod.xml	
+	pgriddyn_debug IEEE_13_mod.xml
 
 .PHONY: clean
 clean:

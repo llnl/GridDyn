@@ -11,7 +11,7 @@
 </generator>
 </library>
    <bus name="bus1">
-	<basevoltage>12.5</basevoltage>
+    <basevoltage>12.5</basevoltage>
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1.04</voltage>
@@ -27,19 +27,19 @@
       <generator name="gen1" ref="default">
           <P>0.4</P>
       </generator>
-	  
-	  <load name="gload2">
-	  <type>gridlab</type>
-	  <period>2</period>
-	  <detail>triple</detail>
-	  <coupling>trigger</coupling>
-	  <file>Simple_3Bus_mod_meter_power_Load.glm</file>
-	  <workdir>Simple_3Bus_mod_workdir</workdir>
-	  <load>
-	  <P units=MW>9.00001</P>
-	  <Q units=MVar>2.70007</Q>
-	  </load>
-	  </load>
+
+      <load name="gload2">
+      <type>gridlab</type>
+      <period>2</period>
+      <detail>triple</detail>
+      <coupling>trigger</coupling>
+      <file>Simple_3Bus_mod_meter_power_Load.glm</file>
+      <workdir>Simple_3Bus_mod_workdir</workdir>
+      <load>
+      <P units=MW>9.00001</P>
+      <Q units=MVar>2.70007</Q>
+      </load>
+      </load>
    </bus>
    <link from="bus1" to="bus2">
       <x>0.04</x>
@@ -49,18 +49,18 @@
       <type>PQ</type>
       <angle>0</angle>
       <voltage>1.00</voltage>
-     
-	  <load>
-	  <type>gridlab</type>
-	  <detail>triple</detail>
-	  <coupling>trigger</coupling>
-	  <file>Simple_3Bus_mod_meter_power_Load.glm</file>
-	  <workdir>Simple_3Bus_mod_workdir</workdir>
-	  <load>
-	<P units=MW>9.00001</P>
-	  <Q units=MVar>2.70007</Q>
-	  </load>
-	  </load>
+
+      <load>
+      <type>gridlab</type>
+      <detail>triple</detail>
+      <coupling>trigger</coupling>
+      <file>Simple_3Bus_mod_meter_power_Load.glm</file>
+      <workdir>Simple_3Bus_mod_workdir</workdir>
+      <load>
+    <P units=MW>9.00001</P>
+      <Q units=MVar>2.70007</Q>
+      </load>
+      </load>
    </bus>
    <link from="bus3" to="bus2">
       <x>0.04</x>
@@ -68,18 +68,18 @@
    <bus name="bus4">
    <basevoltage>12.5</basevoltage>
       <voltage>1.00</voltage>
-     
-	  <load name="gload1">
-	  <type>gridlab</type>
-	  <detail>triple</detail>
-	  <coupling>trigger</coupling>
-	  <file>Simple_3Bus_mod_meter_power_Load.glm</file>
-	  <workdir>Simple_3Bus_mod_workdir</workdir>
-	  <load>
-	  <P units=MW>9.00001</P>
-	  <Q units=MVar>2.70007</Q>
-	  </load>
-	  </load>
+
+      <load name="gload1">
+      <type>gridlab</type>
+      <detail>triple</detail>
+      <coupling>trigger</coupling>
+      <file>Simple_3Bus_mod_meter_power_Load.glm</file>
+      <workdir>Simple_3Bus_mod_workdir</workdir>
+      <load>
+      <P units=MW>9.00001</P>
+      <Q units=MVar>2.70007</Q>
+      </load>
+      </load>
    </bus>
    <link from="bus1" to="bus4">
       <x>0.04</x>

@@ -5,7 +5,7 @@
    <import file="../IEEE_test_cases/dynamics.dyr"/>
 
 <event>
-<target>BUS#31::LOAD$1</target>
+<target>BUS$31::LOAD#0</target>
 <field>zr(MW)</field>
 <value>4500.000,4400.000</value>
 <time>1,3</time>
@@ -13,7 +13,7 @@
 <recorder field="auto" period=0.05>
    <file>dynfaultb.dat</file>
    </recorder>
-   
+
    <timestart>0</timestart>
    <timestop>10</timestop>
 </griddyn>

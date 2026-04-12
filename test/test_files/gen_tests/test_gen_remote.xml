@@ -42,22 +42,22 @@
    <bus name="bus2">
    <angle>0.162</angle>
       <voltage>1</voltage>
-	  </bus>
-	  <link from="bus2" name="bus2GENTX" to="bus2_TXBUS">
+      </bus>
+      <link from="bus2" name="bus2GENTX" to="bus2_TXBUS">
       <b>0</b>
       <r>0.001</r>
       <x>0.015</x>
-	  <tap>1.0</tap>
+      <tap>1.0</tap>
    </link>
    <bus name="bus2_TXBUS">
       <type>PQ</type>
       <angle>0.162</angle>
       <voltage>1</voltage>
-	  
+
       <generator name="gen2">
          <P>2</P>
-		 <remote>bus2</remote>
-		 <vtarget>1.0</vtarget>
+         <remote>bus2</remote>
+         <vtarget>1.0</vtarget>
          <model>
             <type>fourthOrder</type>
             <D>0.040</D>
@@ -85,7 +85,7 @@
          <governor>
             <type>basic</type>
             <K>16.667</K>
- 
+
             <T1>0.100</T1>
             <T2>0.150</T2>
             <T3>0.050</T3>
@@ -98,20 +98,20 @@
       <load name="load3">
          <P>1.500</P>
          <Q>0</Q>
-		 <event>
-		 <field>P</field>
-		 <value>1.3,1.5</value>
-		 <time>1,3</time>
-		 </event>
-		 
+         <event>
+         <field>P</field>
+         <value>1.3,1.5</value>
+         <time>1,3</time>
+         </event>
+
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

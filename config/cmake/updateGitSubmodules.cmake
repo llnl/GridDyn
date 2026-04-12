@@ -1,0 +1,63 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Copyright (c) 2017-2019, Battelle Memorial Institute; Lawrence Livermore
+# National Security, LLC; Alliance for Sustainable Energy, LLC.
+# See the top-level NOTICE for additional details.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Based on https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
+
+find_package(Git QUIET)
+if(GIT_FOUND)
+    if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
+        option(ENABLE_SUBMODULE_UPDATE "Checkout and update git submodules" ON)
+        mark_as_advanced(ENABLE_SUBMODULE_UPDATE)
+    else()
+        message(
+            STATUS
+                "${PROJECT_SOURCE_DIR} is not a Git repository. Clone ${PROJECT_NAME} with Git or ensure you get copies of all the Git submodules code."
+        )
+    endif()
+endif()
+
+macro(submod_update_all)
+    if(ENABLE_SUBMODULE_UPDATE)
+        message(STATUS "Git Submodule Update")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} submodule update --init
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_RESULT
+            OUTPUT_VARIABLE GIT_OUTPUT
+        )
+        if(GIT_RESULT)
+            message(
+                WARNING
+                    "Automatic submodule checkout with `git submodule --init` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}. Checkout the submodules before building."
+            )
+        endif()
+    else()
+        message(WARNING "SUBMODULE update has been disabled")
+    endif()
+endmacro()
+
+macro(submod_update target)
+    if(ENABLE_SUBMODULE_UPDATE)
+        message(STATUS "Git Submodule Update ${target}")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} submodule update --init -- ${target}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_RESULT
+            OUTPUT_VARIABLE GIT_OUTPUT
+        )
+        if(GIT_RESULT)
+            message(
+                WARNING
+                    "Automatic submodule checkout with `git submodule --init -- $[target}` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}. Checkout the submodules before building."
+            )
+        endif()
+    else()
+        message(WARNING "SUBMODULE update has been disabled")
+    endif()
+endmacro()

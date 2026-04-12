@@ -1,0 +1,28 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+voltage, vol & number & 1 & [p.u.]    per unit voltage magnitude\\
+angle, ang & number & 0 & [rad]     voltage angle\\
+basevoltage, base vol & number & 120 & [kV]    base voltage level\\
+basepower & number & 100 & the base power of the object\\
+basefrequency, basefreq & number & 376.9911 & the base frequency of the system default to 60Hz\\
+disconnect & number & 0 & \\
+p, gen p & number & 0 & \\
+q, gen q & number & 0 & \\
+load p & number & 0 & \\
+load q & number & 0 & \\
+shunt g & number & 0 & \\
+g & number & 0 & \\
+shunt b & number & 0 & \\
+b & number & 0 & \\
+zone & number & 1 & zone control for some reporting purposes for labeling purposes\\
+status & string & 0 & \\
+connected & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for gridBus objects. See Table~\ref{table:gridPrimary} for additional settable options through gridPrimary}
+\label{table:gridBus}
+\end{table}

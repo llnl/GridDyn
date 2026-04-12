@@ -1,0 +1,92 @@
+#!/bin/bash
+# LLNS Copyright Start
+# Copyright (c) 2014, Lawrence Livermore National Security
+# This work was performed under the auspices of the U.S. Department
+# of Energy by Lawrence Livermore National Laboratory in part under
+# Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
+# Produced at the Lawrence Livermore National Laboratory.
+# All rights reserved.
+# For details, see the LICENSE file.
+# LLNS Copyright End
+
+#
+# Cosimulation script for Execute griddyn and gridlabd in parallel.
+#
+
+# Compute path to the install directory
+if [ -h "$0" ]; then
+    BINPATH=$(readlink "$0")
+    if [ "${BINPATH:0:1}" != "/" ]; then
+        BINPATH="$(dirname "$0")/$BINPATH"
+    fi
+else
+    BINPATH="$0"
+fi
+CURDIR=$(dirname "$BINPATH")
+
+pushd "$CURDIR" >/dev/null || exit
+export GRIDDYN_BIN_DIR="$PWD"
+cd ..
+export GRIDDYN_DIR="$PWD"
+popd >/dev/null || exit
+
+GRIDDYN_EXE=$GRIDDYN_BIN_DIR/griddynMain
+GRIDDYN_GRIDLABD_EXE=$GRIDDYN_BIN_DIR/gridlabd.bin
+
+export GLPATH=$GRIDDYN_DIR/lib/gridlabd:$GRIDDYN_DIR/share/gridlabd
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GRIDDYN_DIR}/lib
+
+# Note: can set GRIDDYN_PROFILER in environment such as:
+# > export GRIDDYN_PROFILER="valgrind --leak-check=full"
+
+if [ -z "${PARGRID_TIMER}" ]; then
+    PARGRID_TIMER='/usr/bin/time -f TIME,mpirun,%e'
+fi
+
+function mpirun-wrapper {
+
+    args=("$@")
+
+    numberOfGridLABDInstances=$("$GRIDDYN_EXE" --mpicount "${args[@]}" | grep "NumberOfGridLABDInstances" | awk '{print $3}')
+    returnCode=$?
+
+    if [ $returnCode -ne 0 ]; then
+        echo "Error: could not compute number of GridlabD instances"
+        echo "Likely a parsing error in the xml input file"
+        echo ""
+        # SGS FIXME is there a way to capture stderr from above?  Just rerun here for now to get output.
+        "$GRIDDYN_EXE" --mpicount "${args[@]}"
+        return 1
+    fi
+
+    echo "Number of GridlabD instances : $numberOfGridLABDInstances"
+
+    numberOfMPITasks=$((numberOfGridLABDInstances + 1))
+
+    echo "Number of MPI tasks : $numberOfMPITasks"
+
+    case $(uname -a) in
+    *chaos*)
+        # if not running under SLURM assume user wants to run interactively on debug node
+        if [ -z "${SLURM_JOB_ID}" ]; then
+            echo "Running interactive"
+            # shellcheck disable=SC2086
+            ${PARGRID_TIMER} srun -p pdebug --output stdout.$$.%t -n$((numberOfMPITasks)) \
+                ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+        else
+            # shellcheck disable=SC2086
+            ${PARGRID_TIMER} srun --overcommit --output stdout.$$.%t -n$((numberOfMPITasks)) \
+                ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+        fi
+        ;;
+    *)
+        # shellcheck disable=SC2086
+        ${PARGRID_TIMER} mpirun --output-filename stdout.$$ -n $((numberOfMPITasks)) \
+            ${PARGRID_PROFILER} "$GRIDDYN_GRIDLABD_EXE" --pargrid "${args[@]}"
+        ;;
+    esac
+
+}
+
+mpirun-wrapper "$@"

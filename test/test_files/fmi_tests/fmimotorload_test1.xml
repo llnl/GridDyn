@@ -4,12 +4,12 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	  
+    <name>bus2</name>
+
      <load name="load3" type="fmi">
-	 <file>..//..//fmus/ACMotorFMU.fmu</file>
+     <file>..//..//fmus/ACMotorFMU.fmu</file>
        <a_in>#</a_in>
        <event>
          <field>a_in</field>
@@ -30,5 +30,5 @@
     <recorder field="auto,bus2::load3:slip" period=0.05>
    <file>motorChange.dat</file>
    </recorder>
-   
+
 </griddyn>

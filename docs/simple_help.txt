@@ -10,7 +10,7 @@ command line only:
 
 configuration:
   --powerflow-output arg  file output for the powerflow solution
-  -P [ --param ] arg      override simulation file parameters -param 
+  -P [ --param ] arg      override simulation file parameters -param
                           ParamName=<val>
   -D [ --dir ] arg        add search directory for input files
   --import arg            add import files loaded after the main input file
@@ -19,12 +19,12 @@ configuration:
   --save-state-period arg save state every N ms, -1 for saving only at the end
   --log-file arg          log file output
   --jac-output arg        powerflow jacobian file output
-  -v [ --verbose ] arg    specify verbosity output 0=verbose,1=normal, 
+  -v [ --verbose ] arg    specify verbosity output 0=verbose,1=normal,
                           2=summary,3=none
   -f [ --flags ] arg      specify flags to feed to the solver eg. flag1,flag2,flag3
-  -w [ --warn ] arg       specify warning level output 0=all, 
+  -w [ --warn ] arg       specify warning level output 0=all,
                           1=important,2=none
-						  
+
 gridDynSimulation Flags and options
 Flags
 autoallocate : automatically adjust the power generation in a power flow solution  (distributed slack bus)
@@ -73,9 +73,8 @@ nonzeros -the number of non-zeros in the jacobian
 dynnonzeros- the number of non zeros in the dae solution
 pflownonzeros - the number of nonzeros in the pflow solution
 residcount -- the number of times the residual function was called
-stepcount -- the number of steps taked in ida
+stepcount -- the number of steps taken in ida
  recordercount --the number of recorders
  alertcount -- the number of alerts that occurred
  eventcount -- the number of events used in the system
-buscount, linkcount, areacount, gencount, relaycount, loadcount -- the number of the specfic object in area
-
+buscount, linkcount, areacount, gencount, relaycount, loadcount -- the number of the specific object in area

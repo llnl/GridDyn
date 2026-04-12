@@ -1,175 +1,239 @@
-# LLNS Copyright Start
-# Copyright (c) 2016, Lawrence Livermore National Security
-# This work was performed under the auspices of the U.S. Department 
-# of Energy by Lawrence Livermore National Laboratory in part under 
-# Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
-# Produced at the Lawrence Livermore National Laboratory.
-# All rights reserved.
-# For details, see the LICENSE file.
-# LLNS Copyright End
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Copyright (c) 2014-2020, Lawrence Livermore National Security
+# See the top-level NOTICE for additional details. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#project name
-set(testComponent_sources
-	componentTests/testComponents.cpp
-	componentTests/testLoads.cpp
-	componentTests/testRecorders.cpp
-	componentTests/testExciters.cpp
-	componentTests/testGovernors.cpp
-	componentTests/testAdjustableTX.cpp
-	componentTests/testGenModels.cpp
-	componentTests/testdcLinks.cpp
-	componentTests/testGridLab.cpp
-	componentTests/testLinks.cpp
-	componentTests/testRelays.cpp
-	componentTests/testBlocks.cpp
-	componentTests/testGenerators.cpp
-	componentTests/testArea.cpp
-	componentTests/testSource.cpp
-	componentTests/simulationTests.cpp
-	componentTests/faultTests.cpp
-	testHelperFunctions.cpp
-	exeTestHelper.cpp
-	)
+include(AddGoogletest)
 
-set (testLibrary_sources
-	libraryTests/testCore.cpp
-	libraryTests/testXML.cpp
-	libraryTests/testStringOps.cpp
-	testHelperFunctions.cpp
-	exeTestHelper.cpp
-	libraryTests/libraryTests.cpp
-	libraryTests/testGridDynRunner.cpp
-	libraryTests/testElementReaders.cpp
-	libraryTests/testGridParameter.cpp
-	libraryTests/testJsonReader.cpp
-	libraryTests/testReaderInfo.cpp
-	libraryTests/testArrayData.cpp
-	)
-
-set(testSystem_sources
-	systemTests/testSystem.cpp
-	systemTests/testpFlow.cpp
-	systemTests/testDyn1.cpp
-	testHelperFunctions.cpp
-	exeTestHelper.cpp
-	systemTests/testDyn2.cpp
-	systemTests/testInputs.cpp
-	systemTests/testRoots.cpp
-	systemTests/testConstraints.cpp
-	systemTests/validationTests.cpp
-	systemTests/testSolverModes.cpp
-	systemTests/testMainExe.cpp
-	systemTests/testOutputs.cpp
-	systemTests/testCloning.cpp
-	)
-
-set(testExtra_sources
-extraTests/testExtra.cpp
-extraTests/performanceTests.cpp
-testHelperFunctions.cpp
-exeTestHelper.cpp
-)	
-	
-set(testMain_headers
-	testHelper.h
-	exeTestHelper.h
-	
-	)
-
-link_directories(${SUNDIALS_LIBRARY_DIR})
-
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
-
-set(external_library_list
-	${SUNDIALS_LIBRARIES}
-	${Boost_LIBRARIES}
-	)
-	
-
-if(KLU_ENABLE)
- link_directories(${KLU_LIBRARY_DIR})
- list(APPEND external_library_list ${KLU_LIBRARIES})
-endif(KLU_ENABLE)
-
-IF (FMI_ENABLE)
- link_directories(${FMI_LIBRARY_DIRS})
- list(APPEND external_library_list ${FMI_LIBRARIES})
- list(APPEND testSystem systemTests/testFMI.cpp)
-ENDIF(FMI_ENABLE)
-
-IF(FSKIT_ENABLE)
-list(APPEND external_library_list ${FSKIT_LIBRARIES})
-ENDIF(FSKIT_ENABLE)
-
-add_executable(testLibrary ${testLibrary_sources} ${testMain_headers})
-add_executable(testComponents ${testComponent_sources} ${testMain_headers})
-add_executable(testSystem ${testSystem_sources} ${testMain_headers})
-add_executable(testExtra ${testExtra_sources} ${testMain_headers})
-INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/gridDyn)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ThirdParty/tinyxml)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/utilities)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/gridDynFileInput)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/gridDyn/recorder_events)
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/coupling)
-
-IF(OPTIMIZATION_ENABLE)
-  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/gridDynOpt)
-ENDIF(OPTIMIZATION_ENABLE)
-
-IF (FMI_ENABLE)
- INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/fmi)
- INCLUDE_DIRECTORIES(${FMI_INCLUDE_DIR})
-ENDIF(FMI_ENABLE)
-
-INCLUDE_DIRECTORIES(SYSTEM ${SUNDIALS_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(SYSTEM ${Boost_INCLUDE_DIR})
-
-FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/test_files test_dir)
-
-IF(WIN32)
-#there are 4 slashes because cmake escapes "\" and regex escapes it so I need 4
-#this will probably fail on macs yet
-
-STRING(REGEX REPLACE "\\\\" "\\\\\\\\" test_dir ${test_dir})
-ENDIF(WIN32)
-#message(${test_dir})
-
-ADD_DEFINITIONS(-DGRIDDYN_TEST_DIRECTORY="${test_dir}" )
-
-ADD_DEFINITIONS(-DGRIDDYNMAIN_LOCATION="${GRIDYNMAIN_BINARY_LOC}")
-ADD_DEFINITIONS(-DGRIDDYNSERVER_LOCATION="${GRIDYNSERVER_BINARY_LOC}")
-ADD_DEFINITIONS(-DGRIDDYNINSTALL_LOCATION="${CMAKE_INSTALL_PREFIX}")
-
-set(gd_library_list
-gridDynFileInput
-gridDyn
-coupling_static_lib
-utilities
-tinyxml
+set(gtestMain_headers gtestHelper.h)
+set(extra_gtest_sources
+    gtestHelperFunctions.cpp
+    extraTests/testExtra.cpp
+    extraTests/performanceTests.cpp
+    extraTests/largeContingencyTests.cpp
+    extraTests/largeInputTests.cpp
+    extraTests/objectSizeReport.cpp
 )
 
-IF(OPTIMIZATION_ENABLE)
-list(INSERT gd_library_list 1 gridDynOpt)
-ENDIF(OPTIMIZATION_ENABLE)
+if(GRIDDYN_ENABLE_FMI)
+    list(APPEND extra_gtest_sources extraTests/extraFMUtests.cpp)
+endif()
 
-IF(LOAD_EXTRA_MODELS)
-list(INSERT gd_library_list 0 extraModelLibrary)
-ENDIF(LOAD_EXTRA_MODELS)
+set(library_gtest_sources
+    gtestHelperFunctions.cpp
+    libraryTests/gtestLibrarySmokeTests.cpp
+    libraryTests/testCore.cpp
+    libraryTests/testGridParameter.cpp
+    libraryTests/testMatrixData.cpp
+    libraryTests/testZipUtilities.cpp
+    libraryTests/testOperatingBounds.cpp
+    libraryTests/testValuePredictors.cpp
+)
 
-IF(FMI_ENABLE)
-list(INSERT gd_library_list 0 fmiGDLibrary)
-ENDIF(FMI_ENABLE)
+set(file_reader_gtest_sources
+    gtestHelperFunctions.cpp
+    libraryTests/testReaderInfo.cpp
+    libraryTests/testXML.cpp
+    libraryTests/testJsonReader.cpp
+    libraryTests/testElementReaders.cpp
+    libraryTests/testGridDynRunner.cpp
+)
 
-target_link_libraries(testLibrary ${gd_library_list} ${external_library_list})
-target_link_libraries(testComponents ${gd_library_list} ${external_library_list})
-target_link_libraries(testSystem ${gd_library_list} ${external_library_list})
-target_link_libraries(testExtra ${gd_library_list} ${external_library_list})
+set(network_component_gtest_sources
+    gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
+    componentTests/testLinks.cpp componentTests/testAdjustableTX.cpp
+)
 
-#message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-install(DIRECTORY DESTINATION bin/test/)
-INSTALL(TARGETS testLibrary RUNTIME DESTINATION bin/test/)
-INSTALL(TARGETS testComponents RUNTIME DESTINATION bin/test/)
-INSTALL(TARGETS testSystem RUNTIME DESTINATION bin/test/)
-INSTALL(TARGETS testExtra RUNTIME DESTINATION bin/test/)
+set(generator_component_gtest_sources
+    gtestHelperFunctions.cpp
+    componentTests/testBlocks.cpp
+    componentTests/testGovernors.cpp
+    componentTests/testGenerators.cpp
+    componentTests/testGenModels.cpp
+    componentTests/testExciters.cpp
+)
+
+set(event_component_gtest_sources
+    gtestHelperFunctions.cpp
+    componentTests/testSource.cpp
+    componentTests/testRelays.cpp
+    componentTests/ConditionTests.cpp
+    componentTests/testEvents.cpp
+    componentTests/testRecorders.cpp
+)
+
+set(system_component_gtest_sources gtestHelperFunctions.cpp componentTests/testArea.cpp
+                                   componentTests/simulationTests.cpp
+)
+
+set(optional_component_gtest_sources gtestHelperFunctions.cpp componentTests/testExtraModels.cpp)
+if(NOT GRIDDYN_ENABLE_MPI)
+    list(APPEND optional_component_gtest_sources componentTests/testGridLab.cpp)
+endif()
+if(GRIDDYN_ENABLE_FMI)
+    list(APPEND optional_component_gtest_sources componentTests/testFMI.cpp)
+endif()
+if(GRIDDYN_ENABLE_ZMQ OR ZMQ_NEEDED)
+    list(APPEND optional_component_gtest_sources ../src/networking/test/zmqTest.cpp)
+endif()
+if(GRIDDYN_ENABLE_HELICS_EXECUTABLE)
+    list(APPEND optional_component_gtest_sources ../src/helics/test/helicsTest.cpp)
+    list(APPEND optional_component_gtest_sources exeTestHelper.cpp)
+endif()
+if(GRIDDYN_ENABLE_FMI_EXPORT)
+    list(APPEND optional_component_gtest_sources ../src/fmi_export/testFMIExport.cpp)
+endif()
+
+set(powerflow_system_gtest_sources gtestHelperFunctions.cpp systemTests/testpFlow.cpp
+                                   systemTests/validationTests.cpp
+)
+
+set(workflow_system_gtest_sources
+    gtestHelperFunctions.cpp
+    systemTests/testConstraints.cpp
+    systemTests/testOutputs.cpp
+    systemTests/testContingency.cpp
+    systemTests/testCloning.cpp
+    systemTests/testInputs.cpp
+)
+
+set(executable_system_gtest_sources systemTests/testMainExe.cpp systemTests/testGridDynRunner.cpp
+                                    exeTestHelper.cpp
+)
+
+set(dynamic_system_gtest_sources
+    gtestHelperFunctions.cpp
+    systemTests/testSolverModes.cpp
+    systemTests/testDyn1.cpp
+    systemTests/testDyn2.cpp
+    systemTests/testRoots.cpp
+    systemTests/faultTests.cpp
+)
+
+add_library(griddyn_gtest_base INTERFACE)
+target_link_libraries(griddyn_gtest_base INTERFACE gtest gtest_main gmock)
+target_link_libraries(griddyn_gtest_base INTERFACE griddyn_base)
+
+file(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/test_files test_dir)
+
+if(WIN32)
+    # there are 4 slashes because cmake escapes "\" and regex escapes it so I need 4 this will
+    # probably fail on macs yet
+
+    string(REGEX REPLACE "\\\\" "\\\\\\\\" test_dir ${test_dir})
+endif(WIN32)
+# message(${test_dir})
+
+target_compile_definitions(griddyn_gtest_base INTERFACE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
+
+target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNMAIN_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
+target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNSERVER_LOCATION="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)
+target_compile_definitions(
+    griddyn_gtest_base INTERFACE -DGRIDDYNINSTALL_LOCATION="${CMAKE_INSTALL_PREFIX}"
+)
+
+add_executable(ExtraTests ${extra_gtest_sources} ${gtestMain_headers})
+add_executable(LibraryTests ${library_gtest_sources} ${gtestMain_headers})
+add_executable(FileReaderTests ${file_reader_gtest_sources} ${gtestMain_headers})
+add_executable(NetworkComponentTests ${network_component_gtest_sources} ${gtestMain_headers})
+add_executable(GeneratorComponentTests ${generator_component_gtest_sources} ${gtestMain_headers})
+add_executable(EventComponentTests ${event_component_gtest_sources} ${gtestMain_headers})
+add_executable(SystemComponentTests ${system_component_gtest_sources} ${gtestMain_headers})
+add_executable(PowerflowSystemTests ${powerflow_system_gtest_sources} ${gtestMain_headers})
+add_executable(WorkflowSystemTests ${workflow_system_gtest_sources} ${gtestMain_headers})
+add_executable(DynamicSystemTests ${dynamic_system_gtest_sources} ${gtestMain_headers})
+add_executable(
+    ExecutableSystemTests ${executable_system_gtest_sources} gtestHelper.h exeTestHelper.h
+)
+add_executable(OptionalComponentTests ${optional_component_gtest_sources} ${gtestMain_headers})
+
+target_link_libraries(ExtraTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(FileReaderTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(
+    NetworkComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                  ${optional_component_test_linkages}
+)
+target_link_libraries(
+    GeneratorComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                    ${optional_component_test_linkages}
+)
+target_link_libraries(
+    EventComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                ${optional_component_test_linkages}
+)
+target_link_libraries(
+    SystemComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                 ${optional_component_test_linkages}
+)
+target_link_libraries(PowerflowSystemTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(WorkflowSystemTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(DynamicSystemTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(ExecutableSystemTests PRIVATE griddyn_gtest_base)
+target_link_libraries(
+    OptionalComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
+                                   ${optional_component_test_linkages}
+)
+add_gtest(LibraryTests)
+add_gtest(ExtraTests)
+add_gtest(FileReaderTests)
+add_gtest(NetworkComponentTests)
+add_gtest(GeneratorComponentTests)
+add_gtest(EventComponentTests)
+add_gtest(SystemComponentTests)
+add_gtest(PowerflowSystemTests)
+add_gtest(WorkflowSystemTests)
+add_gtest(DynamicSystemTests)
+add_gtest(ExecutableSystemTests)
+add_gtest(OptionalComponentTests)
+set_target_properties(
+    LibraryTests
+    ExtraTests
+    FileReaderTests
+    NetworkComponentTests
+    GeneratorComponentTests
+    EventComponentTests
+    SystemComponentTests
+    PowerflowSystemTests
+    WorkflowSystemTests
+    DynamicSystemTests
+    ExecutableSystemTests
+    OptionalComponentTests
+    PROPERTIES FOLDER tests
+)
+set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(ExtraTests PROPERTIES LABELS "Nightly")
+set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(NetworkComponentTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(GeneratorComponentTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(EventComponentTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(SystemComponentTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(PowerflowSystemTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(WorkflowSystemTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(DynamicSystemTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(ExecutableSystemTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(OptionalComponentTests PROPERTIES LABELS "Quick;Continuous")
+
+# message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS ExtraTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS LibraryTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS FileReaderTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS NetworkComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS GeneratorComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS EventComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS SystemComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS PowerflowSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS WorkflowSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS DynamicSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS ExecutableSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS OptionalComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)

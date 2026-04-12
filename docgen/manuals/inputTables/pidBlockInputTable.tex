@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+p, proportional & number & 1 & proportional control constant\\
+i, integral & number & 0 & integral control constant\\
+d, derivative & number & 0 & differential control constant\\
+t, t1 & number & 0.01 & filtering delay on the input for the differential calculation\\
+iv, initial\_value & number & 0 & intermediate value for calculations\\
+\hline
+\end{tabular}
+\caption{Set options for pidBlock objects. See Table~\ref{table:basicBlock} for additional settable options through basicBlock}
+\label{table:pidBlock}
+\end{table}

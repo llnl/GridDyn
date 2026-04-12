@@ -4,7 +4,7 @@
   <library>
     <generator name="default">
       <exciter>
-	<type>type1</type>
+    <type>type1</type>
       </exciter>
       <model/>
       <governor/>
@@ -27,7 +27,7 @@
     <generator name="gen1" ref="default">
       <P>0.4</P>
     </generator>
-    
+
     <load name="gload2">
       <type>gridlab</type>
       <period>2</period>
@@ -36,8 +36,8 @@
       <file>Simple_3Bus_mod_meter_current_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<Ir units=MW>9.00001</Ir>
-	<Iq units=MVar>2.70007</Iq>
+    <Ir units="MW">9.00001</Ir>
+    <Iq units="MVar">2.70007</Iq>
       </load>
       <recorder field="all" >
         <file>output/test-Simple_3Bus_mod3x_current/gload2.csv</file>
@@ -53,7 +53,7 @@
     <type>PQ</type>
     <angle>0</angle>
     <voltage>1.00</voltage>
-    
+
     <load name="gload3">
       <type>gridlab</type>
       <period>2</period>
@@ -62,10 +62,10 @@
       <file>Simple_3Bus_mod_meter_current_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<Ir units=MW>9.00001</Ir>
-	<Iq units=MVar>2.70007</Iq>
+    <Ir units="MW">9.00001</Ir>
+    <Iq units="MVar">2.70007</Iq>
       </load>
-      
+
       <recorder field="all" >
         <file>output/test-Simple_3Bus_mod3x_current/gload3.csv</file>
         <period>0.010</period>
@@ -79,7 +79,7 @@
   <bus name="bus4">
     <basevoltage>12.5</basevoltage>
     <voltage>1.00</voltage>
-    
+
     <load name="gload1">
       <type>gridlab</type>
       <period>2</period>
@@ -88,15 +88,15 @@
       <file>Simple_3Bus_mod_meter_current_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-	<Ir units=MW>9.00001</Ir>
-	<Iq units=MVar>2.70007</Iq>
+    <Ir units="MW">9.00001</Ir>
+    <Iq units="MVar">2.70007</Iq>
       </load>
-      
+
       <recorder field="all" >
         <file>output/test-Simple_3Bus_mod3x_current/gload1.csv</file>
         <period>0.010</period>
       </recorder>
-      
+
     </load>
   </bus>
   <link from="bus1" to="bus4">
@@ -106,7 +106,7 @@
     <x>0.06</x>
   </link>
 
-  <recorder field="auto" period=0.010>
+  <recorder field="auto" period="0.010">
     <file>output/test-Simple_3Bus_mod3x_current/output.csv</file>
   </recorder>
 
@@ -114,5 +114,5 @@
   <timestart>0</timestart>
   <timestop>30</timestop>
   <timestep>0.010</timestep>
-  <solver name="dynamic" printlevel=1/>
+  <solver name="dynamic" printlevel="1"/>
 </griddyn>

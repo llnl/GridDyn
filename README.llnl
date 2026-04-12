@@ -1,0 +1,40 @@
+# Build instructions for LC systems
+
+# First setup build environment.
+# Build currently assumes MVAPICH is being used as MPI.   This is default MPI on LC.
+
+#-----------------------------------------------------------------------------
+# Set environment
+#-----------------------------------------------------------------------------
+
+export GRIDLABD_DIR=<where to install GridlabD and griddyn>
+
+#-----------------------------------------------------------------------------
+# Create build directory
+#-----------------------------------------------------------------------------
+mkdir build
+
+cd build
+
+#-----------------------------------------------------------------------------
+# Build transmission with MPI
+# Note CMAKE currently has a bug that doesn't allow setting of compiler inside CMake so
+# set it externally by setting CC and CXX.
+#-----------------------------------------------------------------------------
+
+CC=mpicc CXX=mpiCC cmake -DGRIDDYN_INSTALL_PATH=$GRIDLABD_DIR ..
+
+# Note there is a 'configure.griddyn' script in bin that does previous
+# configure to save having to remember this line so this will work as
+# well: ../bin/configure.griddyn
+
+make install
+
+# Note one can do parallel builds to speed things up with:
+# make -j 8 install
+
+#-----------------------------------------------------------------------------
+# Running MPI example
+#-----------------------------------------------------------------------------
+
+./install/bin/pgriddyn ../test/test_files/gridlabD_tests/testgridLab.xml

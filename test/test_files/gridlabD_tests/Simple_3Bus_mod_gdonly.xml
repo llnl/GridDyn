@@ -11,7 +11,7 @@
 </generator>
 </library>
    <bus name="bus1">
-	<basevoltage>12.5</basevoltage>
+    <basevoltage>12.5</basevoltage>
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1.04</voltage>
@@ -27,11 +27,11 @@
       <generator name="gen1" ref="default">
           <P>0.4</P>
       </generator>
-	  
-	  <load>
-	  <P units="MW">9</P>
-	  <Q units="MVAR">3</Q>
-	  </load>
+
+      <load>
+      <P units="MW">9</P>
+      <Q units="MVAR">3</Q>
+      </load>
    </bus>
    <link from="bus1" to="bus2">
       <x>0.04</x>
@@ -40,5 +40,5 @@
    <timestart>0</timestart>
    <timestop>30</timestop>
    <timestep>0.010</timestep>
-   <solver name="dynamic" printlevel=1/>
+   <solver name="dynamic" printlevel="1"/>
 </griddyn>

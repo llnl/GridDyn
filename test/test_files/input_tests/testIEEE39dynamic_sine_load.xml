@@ -3,15 +3,15 @@
 <griddyn name="test1" version="0.0.1">
    <import file="../IEEE_test_cases/IEEE39.raw"/>
    <import file="../IEEE_test_cases/IEEE39.dyr"/>
-	<load parent="BUS#20">
-	<type>sine</type>
-	<frequency>0.5</frequency>
-	<amp>0.1</amp>
-	</load>
-	<recorder field="auto" period=0.05>
+    <load parent="BUS#20">
+    <type>sine</type>
+    <frequency>0.5</frequency>
+    <amp>0.1</amp>
+    </load>
+    <recorder field="auto" period=0.05>
    <file>sinerec.dat</file>
    </recorder>
-   
+
    <timestart>0</timestart>
    <timestop>10</timestop>
 </griddyn>

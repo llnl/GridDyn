@@ -1,0 +1,27 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+timestart, start, starttime & number & 0 & [s]  start time\\
+abstime, walltime & number & 0 & [s] seconds in unix time of the system start time;\\
+stoptime, stop, timestop & number & 0 & [s]  end time\\
+consoleprintlevel, consoleprintlevel & number & 3 & logging level for printing to the console\\
+logprintlevel, logprintlevel & number & 3 & logging level for saving to a file (if a file was specified)\\
+steptime, step, timestep & number & 0.05 & [s]  time step\\
+minupdatetime & number & 0.0001 & minimum time period to go between updates; for the hybrid simultaneous partitioned solution\\
+maxupdatetime & number & 1e+48 & (s) max time period to go between updates\\
+staterecordperiod & number & -1 & how often to record the state\\
+recordstop & number & 1e+48 & [s]  recorder stop time\\
+recordstart & number & -1e+48 & [s]  recorder start time\\
+recorddirectory & string &  & folder location for storing recorded files\\
+printlevel & string & 0 & \\
+logfile & string &  & log file name\\
+statefile & string &  & record file for the state\\
+sourcefile & string &  & main source file name\\
+\hline
+\end{tabular}
+\caption{Set options for gridSimulation objects. See Table~\ref{table:gridArea} for additional settable options through gridArea}
+\label{table:gridSimulation}
+\end{table}

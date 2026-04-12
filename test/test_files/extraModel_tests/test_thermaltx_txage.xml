@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="test_txage_thermaltx" version="0.0.1">
+  <import file="powerflowWECC.raw"/>
+
+  <define name="bv" value=0.97/>
+  <define name="ba" value=-0.9854/>
+
+  <library>
+    <control name="lineControl">
+      <commtype>basic</commtype>
+    </control>
+    <sensor name="lineSensor">
+      <flags>direct_io</flags>
+      <input>current</input>
+      <input>voltage</input>
+      <input>breaker</input>
+      <commtype>basic</commtype>
+    </sensor>
+    <relay name = "txTemp">
+      <type>thermaltx</type>
+      <cooling>dfoa</cooling>
+      <dttor>38</dttor>
+      <dthsr>19</dthsr>
+      <ambient>22.093</ambient>
+    </relay>
+    <relay name = "txLife">
+      <type>txage</type>
+      <initiallife>120</initiallife>
+    </relay>
+  </library>
+
+  <bus>
+    <name>HighSide</name>
+    <voltage>bv</voltage>
+    <angle>ba</angle>
+  </bus>
+
+  <bus>
+    <name>LowSide</name>
+    <voltage>bv</voltage>
+    <angle>ba</angle>
+  </bus>
+
+  <link name="line1">
+    <from>bus#119</from>
+    <to>HighSide</to>
+    <r>0.50000E-03</r>
+    <x>0.53000E-02</x>
+    <control terminal="2" ref="lineControl"/>
+    <sensor terminal="2" ref="lineSensor"/>
+  </link>
+
+  <!--transformer banks-->
+  <transformer name="TX1">
+    <from>HighSide</from>
+    <to>LowSide</to>
+    <tap>1.03</tap>
+    <r>0.00006</r>
+    <x>0.00495</x>
+    <rating units=MW>420</rating>
+    <control terminal=1 ref="lineControl"/>
+    <control terminal=2 ref="lineControl"/>
+    <sensor terminal=1 ref="lineSensor" name="tx1_1sensor"/>
+    <sensor terminal=2 ref="lineSensor" name="tx1_2sensor"/>
+    <relay ref="txTemp" name="tx1temp"/>
+  </transformer>
+
+  <relay ref="txLife" name="tx1life">
+    <sink>TX1</sink>
+    <input>tx1temp:hot_spot</input>
+  </relay>
+
+  <event>
+    <file>temperatures.bin</file>
+    <target>tx1temp</target>
+    <field>dTempdt</field>
+  </event>
+
+  <sensor name="tx1tempsensor">
+    <input>tx1temp:ambient</input>
+    <input>tx1temp:top_oil</input>
+    <input>tx1temp:hot_spot</input>
+    <input>tx1life:remaininglife</input>
+    <outputnames>ambient,top_oil,hot_spot,remaininglife</outputnames>
+    <commtype>ct</commtype>
+  </sensor>
+
+  <recorder period=300>
+    <field>tx1temp:ambient, tx1temp:input0, tx1temp:top_oil, tx1temp:hot_spot, tx1life:remaininglife, tx1life:lossoflife, tx1life:rate</field>
+    <field>tx1_1sensor:current, tx1_1sensor:voltage, tx1_1sensor:breaker</field>
+    <field>tx1_2sensor:current, tx1_2sensor:voltage, tx1_2sensor:breaker</field>
+    <field>TX1:real</field>
+    <autosave>1000</autosave>
+    <reserveCount>1000</reserveCount>
+  </recorder>
+
+
+  <timestart>0</timestart>
+  <timestop>1200</timestop>
+  <timestep>300</timestep>
+  <poweradjustthreshold>0.5</poweradjustthreshold>
+
+</griddyn>

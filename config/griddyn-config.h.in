@@ -1,0 +1,64 @@
+/*
+* LLNS Copyright Start
+ * Copyright (c) 2017, Lawrence Livermore National Security
+ * This work was performed under the auspices of the U.S. Department
+ * of Energy by Lawrence Livermore National Laboratory in part under
+ * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * All rights reserved.
+ * For details, see the LICENSE file.
+ * LLNS Copyright End
+ */
+#pragma once
+
+#include "compiler-config.h"
+
+#cmakedefine GRIDDYN_ENABLE_MPI
+
+#cmakedefine GRIDDYN_ENABLE_OPENMP
+#cmakedefine GRIDDYN_ENABLE_OPENMP_SUNDIALS
+#cmakedefine GRIDDYN_ENABLE_OPENMP_GRIDDYN
+
+#cmakedefine GRIDDYN_ENABLE_KLU
+
+#cmakedefine GRIDDYN_ENABLE_FMI
+#cmakedefine GRIDDYN_ENABLE_FMI_EXPORT
+
+#cmakedefine GRIDDYN_ENABLE_FSKIT
+
+#cmakedefine GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+
+#cmakedefine GRIDDYN_ENABLE_EXPERIMENTAL_TEST_CASES
+
+#cmakedefine GRIDDYN_ENABLE_CVODE
+
+#cmakedefine GRIDDYN_ENABLE_ARKODE
+
+#cmakedefine GRIDDYN_ENABLE_LOGGING
+#cmakedefine GRIDDYN_ENABLE_TRACE_LOGGING
+#cmakedefine GRIDDYN_ENABLE_DEBUG_LOGGING
+
+#cmakedefine GRIDDYN_ENABLE_EXTRA_MODELS
+
+#cmakedefine YAML_FOUND
+
+#cmakedefine GRIDDYN_ENABLE_HELICS_EXECUTABLE
+
+#cmakedefine GRIDDYN_ENABLE_DIME
+#cmakedefine GRIDDYN_ENABLE_TCP
+#cmakedefine GRIDDYN_ENABLE_ZMQ
+
+#cmakedefine BOOST_STATIC
+
+#define GRIDYN_BOOST_VERSION_LEVEL @BOOST_VERSION_LEVEL@
+
+#define GRIDDYN_VERSION_MAJOR ${GRIDDYN_VERSION_MAJOR}
+#define GRIDDYN_VERSION_MINOR ${GRIDDYN_VERSION_MINOR}
+#define GRIDDYN_VERSION_PATCH ${GRIDDYN_VERSION_PATCH}
+#define GRIDDYN_VERSION_BUILD "${GRIDDYN_VERSION_BUILD}"
+#define GRIDDYN_VERSION_STRING "${GRIDDYN_VERSION_STRING}"
+#define GRIDDYN_VERSION_STRING_SHORT "${GRIDDYN_VERSION_STRING_SHORT}"
+#define GRIDDYN_DATE "${GRIDDYN_DATE}"
+#define GRIDDYN_COMPILER_VERSION "${GRIDDYN_COMPILER_VERSION}"
+#define GRIDDYN_BUILD_FLAGS "${GRIDDYN_BUILD_FLAGS_OUTPUT}"
+#define GRIDDYN_BUILD_PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}"

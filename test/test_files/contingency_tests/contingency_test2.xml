@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test matdyn execution-->
+<griddyn name="test1" version="0.0.1">
+   <import file="IEEE39.raw"/>
+<action> contingency line contout_line.csv</action>
+<action> contingency gen contout_gen.csv</action>
+<action> contingency load contout_load.csv</action>
+<action> contingency bus contout_bus.csv</action>
+</griddyn>

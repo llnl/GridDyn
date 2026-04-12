@@ -1,0 +1,28 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+samplingrate & number & 0 & \\
+ts & number & 0 & \\
+commid & number & 0 & \\
+commdestid & number & 0 & \\
+condition & string & 0 & \\
+action & string & 0 & \\
+flags & string & 0 & \\
+commname & string &  & The name to use on the commlink\\
+commtype & string &  & the type of comms to construct\\
+commdest, destination & string &  & the default communication destination as a string\\
+continuous & flag & 0 & \\
+sampled & flag & 0 & \\
+comm\_enabled & flag & 0 & \\
+comms & flag & 0 & \\
+usecomms & flag & 0 & \\
+resettable & flag & 0 & \\
+powerflow\_check & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for gridRelay objects. See Table~\ref{table:gridPrimary} for additional settable options through gridPrimary}
+\label{table:gridRelay}
+\end{table}

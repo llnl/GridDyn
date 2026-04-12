@@ -12,7 +12,7 @@
             <Xq>0.850</Xq>
             <Xqp>0.350</Xqp>
          </model>
-		 <exciter name="ext1">
+         <exciter name="ext1">
             <type>type1</type>
             <Aex>0</Aex>
             <Bex>0</Bex>
@@ -33,7 +33,7 @@
             <T2>0.150</T2>
             <T3>0.050</T3>
          </governor>
-		 <generator name="gen1">
+         <generator name="gen1">
          <model ref="mod1"/>
          <exciter ref="ext1"/>
          <governor ref="gov1"/>
@@ -66,8 +66,8 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
@@ -95,12 +95,12 @@
       <r>0</r>
       <x>0.020</x>
    </link>
-   
-		<recorder>
-		<field>bus3:angle(deg),bus2:angle(deg),bus3:angle(deg)-bus2:angle(deg)</field>
-		<period>0.5</period>
-		<file>busrec2.dat</file>
-		</recorder>
+
+        <recorder>
+        <field>bus3:angle(deg),bus2:angle(deg),bus3:angle(deg)-bus2:angle(deg)</field>
+        <period>0.5</period>
+        <file>busrec2.dat</file>
+        </recorder>
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>5</timestop>

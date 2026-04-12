@@ -5,13 +5,13 @@
       <angle>0</angle>
       <voltage>1.05</voltage>
       <generator name="gen1">
-	  <dynmodel>typical</dynmodel>
-	  <pmax>4</pmax>
+      <dynmodel>typical</dynmodel>
+      <pmax>4</pmax>
       </generator>
-	  <load name="load1">
+      <load name="load1">
          <P>1.15</P>
          <Q>0.31</Q>
-		 <event>@1>p=1.1</event>
+         <event>@1>p=1.1</event>
       </load>
    </bus>
    <bus name="bus2">

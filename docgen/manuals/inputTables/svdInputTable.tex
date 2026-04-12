@@ -1,0 +1,26 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+qlow & number & 0 & the lowest available Q block level\\
+qhigh & number & 1e+48 & the maximum reactive power block level\\
+qmin & number & -1e+48 & the minimum reactive power\\
+qmax & number & 1e+48 & the maximum reactive power output\\
+vmax & number & 1.2 & the high voltage threshold\\
+vmin & number & 0.8 & the low voltage threshold\\
+yq & number & 0 & \\
+step & number & 0 & \\
+participation & number & 1 & a participation factor\\
+block & number & 0 & \\
+count & number & 0 & \\
+blocks & string & 0 & \\
+block & string & 0 & \\
+mode & string & 0 & \\
+control & string & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for svd objects. See Table~\ref{table:gridRampLoad} for additional settable options through gridRampLoad}
+\label{table:svd}
+\end{table}

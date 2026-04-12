@@ -2,7 +2,7 @@ function [gen,exc,gov,freq,stepsize,stoptime] = case9dyn
 
 % case9dyn
 % MatDyn dynamic data file
-% 
+%
 % MatDyn
 % Copyright (C) 2009 Stijn Cole
 % Katholieke Universiteit Leuven

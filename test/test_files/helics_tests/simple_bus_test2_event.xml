@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="event_test2">
+   <bus name="bus1">
+      <type>infinite</type>
+      <angle>0</angle>
+      <voltage>1</voltage>
+    </bus>
+<bus name="loadbus">
+     <load name="load2">
+       <yp>1.500</yp>
+       <yq>0.8</yq>
+     </load>
+   </bus>
+   <link from="bus1" name="mline" to="loadbus">
+     <b>0</b>
+     <r>0.02</r>
+     <x>0.08</x>
+   </link>
+   <basepower>100</basepower>
+   <timestart>0</timestart>
+   <timestop>240</timestop>
+   <timestep>2</timestep>
+   <event type="helics">
+     <field>mline:breaker2</field>
+     <key>breakers</key>
+     <element>1</element>
+   </event>
+   <helics>
+    <coretype>zmq</coretype>
+    <period>2</period>
+   </helics>
+   <collector type="helics" period=6>
+   <field>bus1:voltage as mag1</field>
+   <field>loadbus:voltage as mag2</field>
+   <field>bus1:angle(deg) as ang1</field>
+   <field>loadbus:angle(deg) as ang2</field>
+   </collector>
+</griddyn>

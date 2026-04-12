@@ -18,8 +18,8 @@
          </model>
          <exciter>
             <type>basic</type>
-			<Vrmax>2</Vrmax>
-			<Vrmin>-2</Vrmin>
+            <Vrmax>2</Vrmax>
+            <Vrmin>-2</Vrmin>
          </exciter>
          <governor>
             <type>basic</type>
@@ -28,14 +28,14 @@
             <T2>0.150</T2>
             <T3>0.050</T3>
          </governor>
-		 <recorder>
-		<field>ef</field>
-		<period>0.5</period>
-		<file>efrec.dat</file>
-		</recorder>
+         <recorder>
+        <field>ef</field>
+        <period>0.5</period>
+        <file>efrec.dat</file>
+        </recorder>
       </generator>
-	   <load name="load1" type="ramp">
-		<dQdt>0.08</dQdt>
+       <load name="load1" type="ramp">
+        <dQdt>0.08</dQdt>
          <P>0</P>
          <Q>0.2</Q>
       </load>
@@ -83,7 +83,7 @@
       <type>PQ</type>
       <angle>0.082</angle>
       <load name="load3" type="ramp">
-		<dQdt>0.008</dQdt>
+        <dQdt>0.008</dQdt>
          <P>1.500</P>
          <Q>0.2</Q>
       </load>
@@ -92,8 +92,8 @@
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">

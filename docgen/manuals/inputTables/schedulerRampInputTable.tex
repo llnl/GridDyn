@@ -1,0 +1,22 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+ramp, ramp10, ramp30, reserve & number & 0 & \\
+rampup & number & 1e+48 & maximum ramp rate in the up direction\\
+rampdown & number & 1e+48 & maximum ramp rate in the down direction\\
+ramp10up & number & 1e+48 & The 10 minute maximum up ramp\\
+ramp10down & number & 1e+48 & the 10 minute maximum down ramp\\
+ramp30up & number & 1e+48 & the 30 minute maximum up ramp\\
+ramp30down & number & 1e+48 & the 30 minute maximum down ramp\\
+ramptime & number & 1200 & the ramp window\\
+target & number & 0 & \\
+reserveramptime & number & 900 & the time window the object has to meet the reserve\\
+rampmode & string & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for schedulerRamp objects. See Table~\ref{table:scheduler} for additional settable options through scheduler}
+\label{table:schedulerRamp}
+\end{table}

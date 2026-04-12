@@ -13,7 +13,7 @@
 <recorder field="auto" period=0.05>
    <file>dynfault.dat</file>
    </recorder>
-   
+
    <timestart>0</timestart>
    <timestop>10</timestop>
 </griddyn>

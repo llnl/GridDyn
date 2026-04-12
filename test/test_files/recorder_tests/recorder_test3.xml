@@ -12,7 +12,7 @@
             <Xq>0.850</Xq>
             <Xqp>0.350</Xqp>
          </model>
-		 <exciter name="ext1">
+         <exciter name="ext1">
             <type>type1</type>
             <Aex>0</Aex>
             <Bex>0</Bex>
@@ -33,7 +33,7 @@
             <T2>0.150</T2>
             <T3>0.050</T3>
          </governor>
-		 <generator name="gen1">
+         <generator name="gen1">
          <model ref="mod1"/>
          <exciter ref="ext1"/>
          <governor ref="gov1"/>
@@ -51,26 +51,26 @@
       <voltage>1</voltage>
       <generator name="gen2" ref="gen1">
          <P>2</P>
-		 <recorder>
-		<field>power</field>
-		<frequency>4</frequency>
-		<file>genrec.dat</file>
-		</recorder>
-		 <recorder>
-		<field>freq</field>
-		<period>0.25</period>
-		<file>genrec.dat</file>
-		</recorder>
-		<recorder>
-		<field>q</field>
-		<period>0.25</period>
-		<file>genrec.dat</file>
-		</recorder>
-		<recorder>
-		<field>delta</field>
-		<period>0.25</period>
-		<file>genrec.dat</file>
-		</recorder>
+         <recorder>
+        <field>power</field>
+        <frequency>4</frequency>
+        <file>genrec.dat</file>
+        </recorder>
+         <recorder>
+        <field>freq</field>
+        <period>0.25</period>
+        <file>genrec.dat</file>
+        </recorder>
+        <recorder>
+        <field>q</field>
+        <period>0.25</period>
+        <file>genrec.dat</file>
+        </recorder>
+        <recorder>
+        <field>delta</field>
+        <period>0.25</period>
+        <file>genrec.dat</file>
+        </recorder>
       </generator>
    </bus>
    <bus name="bus3">
@@ -79,34 +79,34 @@
       <load name="load3" type="pulse">
          <P>1.500</P>
          <Q>0</Q>
-        <period>6</period>
-		<recorder>
-		<field>power</field>
-		<period>1</period>
-		<file>loadrec.dat</file>
-		</recorder>
-		
-		<amplitude>0.4</amplitude>
-		
+        <p:period>6</p:period>
+        <recorder>
+        <field>power</field>
+        <period>1</period>
+        <file>loadrec.dat</file>
+        </recorder>
+
+        <p:amplitude>0.4</p:amplitude>
+
       </load>
    </bus>
    <bus name="bus4">
       <type>PQ</type>
       <angle>-0.038</angle>
       <load name="load4">
-		<P>1.500</P>
-         	<Q>0</Q>
+        <P>1.500</P>
+             <Q>0</Q>
       </load>
-	   <recorder>
-		<field>voltage</field>
-		<period>0.5</period>
-		<file>busrec.dat</file>
-		</recorder>
-		<recorder>
-		<field>angle</field>
-		<period>0.5</period>
-		<file>busrec.dat</file>
-		</recorder>
+       <recorder>
+        <field>voltage</field>
+        <period>0.5</period>
+        <file>busrec.dat</file>
+        </recorder>
+        <recorder>
+        <field>angle</field>
+        <period>0.5</period>
+        <file>busrec.dat</file>
+        </recorder>
    </bus>
    <link from="bus1" name="bus1_to_bus3" to="bus3">
       <b>0</b>

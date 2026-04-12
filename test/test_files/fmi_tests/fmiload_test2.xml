@@ -4,18 +4,18 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
+    </bus>
 <bus>
-	<name>bus2</name>
-	  
+    <name>bus2</name>
+
      <load name="load3" type="fmi">
-	 <file>..//..//fmus/LoadFMU.fmu</file>
+     <file>..//..//fmus/LoadFMU.fmu</file>
        <param name="B_p" value=0.5/>
-	   <param name="B_q" value=0.2/>
-	   <param name="m" value=0.02/>
-	   <param name="gamma_p" value=1.0/>
-	   <param name="gamma_q" value=1.0/>
-	   <param name="c" value=0.5/>
+       <param name="B_q" value=0.2/>
+       <param name="m" value=0.02/>
+       <param name="gamma_p" value=1.0/>
+       <param name="gamma_q" value=1.0/>
+       <param name="c" value=0.5/>
        <event>
          <field>B_p</field>
          <value>0.7,0.5</value>
@@ -35,5 +35,5 @@
     <recorder field="auto" period=0.05>
    <file>motorChange.dat</file>
    </recorder>
-   
+
 </griddyn>

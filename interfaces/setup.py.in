@@ -1,0 +1,10 @@
+from distutils.core import setup, Extension
+
+if __name__ == '__main__':
+    setup(
+        name='griddyn',
+        version='${PACKAGE_VERSION}',
+        package_dir={'griddyn':'griddyn' },
+        packages=['griddyn'],
+        package_data={'griddyn':['*.so']},
+        license='LLNL')

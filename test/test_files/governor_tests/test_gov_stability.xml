@@ -6,38 +6,38 @@
       <voltage>1</voltage>
       <generator name="gen1">
         <model>
-          <type>4</type> 
+          <type>4</type>
         </model>
-		<exciter type="basic"/>
-		<recorder>
-		<file>datafile.dat</file>
-		<field>freq</field>
-		<period>0.1</period>
-		</recorder>
+        <exciter type="basic"/>
+        <recorder>
+        <file>datafile.dat</file>
+        <field>freq</field>
+        <period>0.1</period>
+        </recorder>
       </generator>
-	  <recorder>
-	  <file>datafile.dat</file>
-		<field>angle</field>
-		<period>0.1</period>
-		</recorder>
-	</bus>
+      <recorder>
+      <file>datafile.dat</file>
+        <field>angle</field>
+        <period>0.1</period>
+        </recorder>
+    </bus>
 <bus>
-	<name>bus2</name>
-	<generator name="gen2">
+    <name>bus2</name>
+    <generator name="gen2">
         <model type="4"/>
-		<P>1.2</P>
-		<Pmax>3</Pmax>
-		<recorder>
-		<file>datafile.dat</file>
-		<field>freq</field>
-		<period>0.1</period>
-		</recorder>
+        <P>1.2</P>
+        <Pmax>3</Pmax>
+        <recorder>
+        <file>datafile.dat</file>
+        <field>freq</field>
+        <period>0.1</period>
+        </recorder>
       </generator>
-	  <recorder>
-		<file>datafile.dat</file>
-		<field>angle</field>
-		<period>0.1</period>
-		</recorder>
+      <recorder>
+        <file>datafile.dat</file>
+        <field>angle</field>
+        <period>0.1</period>
+        </recorder>
      <load name="load3">
        <P>1.500</P>
        <Q>0</Q>

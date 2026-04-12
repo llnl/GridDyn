@@ -1,0 +1,28 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+ambient, ambienttemp & number & 20 & ambient temperature in C\\
+dtempdt, temp\_rate\_of\_change & number & 0 & rate of change of ambient temperature\\
+dths, rated\_hot\_spot\_rise, dthsr & number & 35 & hot spot rise temp at rated current over top oil\\
+dttor, rated\_top\_oil\_rise, dtto & number & 45 & Oil rise temp at rated current\\
+ttor, oil\_time\_constant & number & 4500 & oil rise time constant\\
+tgr, winding\_time\_constant & number & 300 & winding time constant\\
+alarmtemp, alarmtemp1 & number & 0 & the lower alarm temp\\
+alarmtemp2 & number & 0 & the level 2 alarm temp\\
+cutouttemp & number & 0 & the temp at which the breakers are tripped\\
+alarmdelay & number & 300 & delay time on the alarms and cutout;\\
+lr, loss\_ratio & number & 6.5 & Loss Ratio\\
+m, winding\_exponent, n, oil\_exponent & number & 1 & winding exponent\\
+txtype & string & 0 & \\
+cooling & string & 0 & \\
+auto & flag & 0 & \\
+parameter\_updates & flag & 0 & \\
+enable\_alarms & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for txThermalModel objects. See Table~\ref{table:sensor} for additional settable options through sensor}
+\label{table:txThermalModel}
+\end{table}

@@ -1,0 +1,17 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+delay & number & 0.08 & the delay time from first onset to trigger action\\
+level, max\_difference & number & 0.2 & the maximum allowable differential\\
+reset\_margin & number & 0.01 & the reset margin for clearing a fault\\
+minlevel & number & 0.01 & the minimum absolute level to trigger for relative differential mode\\
+relative & flag & 0 & \\
+absolute & flag & 0 & \\
+\hline
+\end{tabular}
+\caption{Set options for differentialRelay objects. See Table~\ref{table:gridRelay} for additional settable options through gridRelay}
+\label{table:differentialRelay}
+\end{table}

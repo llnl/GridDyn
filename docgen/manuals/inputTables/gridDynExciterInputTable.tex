@@ -1,0 +1,17 @@
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{5cm} c c p{7cm}}
+\hline
+string(s) & type & default & description \\
+\hline
+vref & number & 1 & [p.u.] reference voltage for voltage regulator\\
+ka & number & 10 & [p.u.] amplifier gain\\
+ta & number & 0.004 & [s]    amplifier time constant\\
+vrmax, urmax & number & 6 & [p.u.] upper voltage limit\\
+vrmin, urmin & number & -5.1 & [p.u.] lower voltage limit\\
+vbias & number & 0 & bias field level for adjusting the field output so the ref can remain at some nominal level\\
+\hline
+\end{tabular}
+\caption{Set options for gridDynExciter objects. See Table~\ref{table:gridSubModel} for additional settable options through gridSubModel}
+\label{table:gridDynExciter}
+\end{table}

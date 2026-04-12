@@ -1,0 +1,1121 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[12pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+% use T1 encodings and lmodern font
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+\geometry{margin=1in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[toc,page]{appendix}
+
+\usepackage[hyphens]{url}
+\def\UrlBreaks{\do\/\do-}
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{relsize}
+\usepackage{hyperref}
+\renewcommand*{\UrlFont}{\ttfamily\smaller\relax}
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+\newcommand{\pdiff}[2]{\frac{\partial #1}{\partial #2}}
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{datetime}
+\usepackage{longtable}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\makeatletter
+\providecommand*{\input@path}{}
+\g@addto@macro\input@path{{./inputTables/}}% append
+\makeatother
+
+\lstset{frame=tb,
+    language=xml,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=none,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{dkgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
+}
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{GridDyn Users Guide}
+\author{Philip Top}
+\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed
+\newdate{date}{12}{8}{2016}
+\date{\displaydate{date}}
+
+\begin{document}
+\begin{titlepage}
+    \centering
+    \vfill
+    {\bfseries\Large
+        GridDyn Users Guide\\
+        Version 0.5\\
+        \displaydate{date}
+        \vskip2cm
+        Philip Top Ph.D.\\
+    }
+    \vfill
+        \includegraphics[width=\linewidth]{../images/GridDyn_FullColor.png}
+    \vfill
+    This work was performed under the auspices of the U.S. Department of Energy by
+    Lawrence Livermore National Laboratory under Contract DE-AC52-07NA27344.
+    LLNL-SM-700378
+    \vfill
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\section{Introduction}
+
+GridDyn is a power system simulator developed at Lawrence Livermore National Laboratory. The name is a concatenation of Grid Dynamics, and as such usually pronounced as "Grid Dine". It was created to meet a research need for exploring coupling between transmission, distribution, and communications system simulations.  While good open source tools existed on the distribution side,  the open source tools on the transmission side were limited in usability either in the language or platform or simulation capability, and commercial tools, while quite capable, simply did not allow the access to the internal components and data required to conduct the research.    Thus, the decision was made to design a platform that met the needs of the research project.  Building off of prior efforts in grid simulation, GridDyn was designed to meet the current and future research needs of the various power grid related research and computational efforts.  It is written in C++, making use of recent improvements in the C++ standards.  It is intended to be cross platform with regard to operating system and machine scale.  The design goals were for the software to be easy to couple with other simulation, and be easy to modify and extend.  It is very much still in development and as such, the interfaces and code is likely to change, in some cases significantly as more experience and testing is done.   It is our expectation that the performance, reliability, capabilities, and flexibility will continue to improve as projects making use of the code continue and new ones develop.  We expect there are still many issues so any bug reports or fixes are welcome.    And hopefully even in its current state and as the software improves the broader power systems research community will find it useful.
+
+\section{Installation}
+GridDyn is written in C++ and makes use of a few external libraries not included in the released source code.
+External software packages needing installation prior to compilation of GridDyn include
+\begin{itemize}
+\item Boost 1.61  --for most parts of GridDyn Boost 1.58 or greater will be sufficient but going forward some part of GridDyn will be making use of libraries only found in 1.61 or higher.  GridDyn currently compiles with Boost version >1.49.
+\item SUNDIALS 2.6.2 (GridDyn will be updated to use the new version of SUNDIALS when it is released later in 2016 at which time that will become the required version)
+\item KLU in the suitesparse package.
+\item cmake for building
+\item Doxygen for building in source documentation.
+\item all other third party code is included in the release.
+\end{itemize}
+
+Boost can be downloaded from \url{www.boost.org}  many of the features in GridDyn will work with older versions but going forward we will be making use of some features from Boost 1.61 and will use that as the baseline going forward.    SUNDIALS can downloaded at \url{http://computation.llnl.gov/sundials} the current version is 2.6.2 but will be upgraded to the new version when it is released in the near future.  SUNDIALS should be built with KLU support enabled for reasonable performance.  KLU is part of SuiteSparse on most Linux type systems it can be installed as a package, on Windows  cmake files can be found at \url{https://github.com/jlblancoc/suitesparse-metis-for-windows}.
+
+GridDyn uses a cmake build system to construct build files for whatever platform you happen to be on (assuming it is supported by cmake)
+GridDyn uses C++11 extensively and will make use of some C++14 features in the near future.    Therefore, required future compilers are
+\begin{itemize}
+\item Visual Studio 2015
+\item gcc 4.9.3 or higher (4.8 works for the moment but will not in near future updates)
+\item clang 3.5 or higher (openMP must be turned off to use 3.4)
+\item Intel 16.0 (not thoroughly tested as of yet)
+\end{itemize}
+
+At present GridDyn will likely compile on gcc 4.8 and visual studio 2013 but that is expected to change with future updates.
+\subsection {Cmake options}
+\begin{description}
+\item [BOOST\_ROOT]  if boost is not found in the system directories or a different version is desired the root location of boost can be specified in BOOST\_ROOT
+\item [BUILD\_SERVERMODE]  the servermode for GridDyn is a work in progress, it is recommended that this option be disabled pending further progress
+\item [DEBUG\_LOG\_ENABLE] unselecting disables all DEBUG and TRACE log messages from getting compiled
+\item [TRACE\_LOG\_ENABLE] unselecting disables all TRACE log messages from getting compiled
+\item [DOXYGEN\_OUTPUT\_DIR] location for the generated doxygen documentation
+\item [ENABLE\_64BIT\_INDEXING]  select if you want support inside GridDyn for more than $2^{32}-2$ states or objects (I find this unlikely at this time)
+\item [ENABLE\_EXPERIMENTAL\_TEST\_CASES]  select to enable some experimental test cases in the test suite
+\item [FMI\_ENABLE] enable experimental support for FMI objects.  This is in development,  recommended to leave unselected unless you are developing
+\item [FSKIT\_ENABLE] enable to build additional libraries and support for integration into FSKIT and PARGRID for tool coupling
+\item [GRIDDYN\_GENERATE\_DOXYGEN\_DOC]  select to create a case to build the doxygen docs{\tiny }
+\item [GRIDDYN\_OPENMP] (doesn't do any thing yet) eventually it will enable openMP in the GridDyn evaluation functions
+\item [KLU\_ENABLE] this option may be removed in the future recommended to leave selected otherwise KLU support will not be built in
+\item [KLU\_INSTALL\_DIR]  point to the installation directory for KLU if it was not found in the system directories
+\item [LOAD\_ARKODE] build in support for ARKODE for solving differential equations
+\item [LOAD\_CVODE] build in support for CVODE for solving differential equations Neither cvode or arkode are used at present but will be in the near future
+\item [LOAD\_EXTRA\_MODELS] select to build an additional library containing a few optional models-more will likely be added in the future
+\item [LOG\_ENABLE]  unselect to turn off all logging functions
+\item [MPI\_ENABLE] select to build with MPI support using an MPI compatible compiler
+\item [OPENMP\_ENABLE] option to build in support for openMP in both the solvers and in GridDyn
+\item [OPTIMIZATION\_ENABLE]  enable building of the optimization extension.  This is a work in progress and doesn't do much yet,  recommended to leave unselected unless you are developing on that section.
+\item [SUNDIALS\_INSTALLATION\_DIR] point to the installation location for SUNDIALS
+\item [SUNDIALS\_OPENMP]  select to enable OpenMP in SUNDIALS (assumes SUNDIALS was built with openmp support)
+\item [TEST\_ENABLE]  enable building of the test-suites
+\item [THREAD\_ENABLE]   not used at preset but will eventually enable threaded execution in some models
+\end{description}
+
+\subsection{Installation Notes}
+\subsubsection{Mac}
+Example of successful build on a mac OS X
+GridDyn on Mac OS X
+
+\begin{enumerate}
+\item Install MacPorts
+\item Install cmake port
+\item Download SuiteSparse 4.2.1 \url{http://faculty.cse.tamu.edu/davis/suitesparse.html}
+\item Build/install SuiteSparse
+\item Download SUNDIALS 2.6.2 \url{http://computation.llnl.gov/projects/SUNDIALS-suite-nonlinear-differential-algebraic-equation-solvers/download/SUNDIALS-2.6.2.tar.gz}- didn't build dynamic libs because they caused issue with GridDyn runtime
+\item Configure/build/install SUNDIALS (cd SUNDIALS-2.6.2; mkdir build; ccmake ..; update paths for your install location (prefix, klu lib and include dirs), set KLU\_ENABLE to ON); make; make install)
+\item Download/configure/build/install BOOST
+\item Configure GridDyn (cd transmission; mkdir build; cd build; ccmake -DKLU\_DIR=$<\hdots>$ -DBoost\_INCLUDE\_DIR=$<\hdots>$ -DBoost\_LIBRARY\_DIRS=$<\hdots>$; ) or use cmake-gui
+\end{enumerate}
+
+\subsubsection{Linux}
+Depending on the distribution, Boost or an updated version of it may need to be installed.  SUNDIALS and KLU may need to be installed as well.  Typically camke is used to generate makefiles thought it has been used to generate Eclipse projects.    BOOST\_ROOT, SUNDIALS\_INSTALLATION\_DIR, and KLU\_INSTALL\_DIR may need to be user specified if they are not in the system directories.  This can be done in the cmake-gui or through the command line tools.  Them running make will compile the program.
+Running make install will copy the executables and libraries to the install directory.
+
+\subsubsection{Windows}
+GridDyn has been successfully built with Visual Studio 2015 and on Msys2.  The msys2 build is much like building on Linux  This works fine with gcc,  the current clang version on msys2 has library incompatibilities with some of the boost libraries due to changes in gcc.  I don't fully follow what the exact issue is on but clang won't work on Msys2 to compile GridDyn unless SUNDIALS, boost, and KLU are compiled with the same compiler, I suspect the same issue is also present in some other Linux platforms that use gcc 5.0 or greater as the default compiler.  The suitesparse version available through pacman on msys2 seems to work fine.
+
+For compilation with Visual Studio boost will need to built with the same version as is used to compile GridDyn.  Otherwise follow the same instructions.
+
+\subsection{Included Third party Libraries}
+A few small libraries are included in with the GridDyn Source code.  The primary XML reader is the tinyXML library along with the the tinyXML++ wrapper.  TinyXML2 is also used in a few circumstances.  Both were written by Lee Thomason.  Both are released under a Zlib license.  TinyXML++ is a wrapper around tinyxml making use of C++ constructs written by Ryan Pusztai and Ryan Mulder released under the same license as TinyXML.  The code was modified slightly in a few cases to remove deprecated instances of auto\_ptr and replace with unique\_ptr.  The included Json reader is from the JsonCpp project written by Aaron Jacobs and is licensed under an MIT license.  GridDyn uses an amalgamated source constructed from the library.
+
+FMI functionality is provided by the FMI library 2.0 released under BSD license as part of the JModelica package.
+
+\section {Design Philosophy}
+GridDyn was formulated as a tool to aid in research in simulator coupling.  Its use has expanded but it is primarily a research tool into grid Simulation and power grid related numeric methods, and designed and constructed to enable that research.  It is open source, released under a BSD license.  All included code will have a similarly permissive license.  Any connections with software of other license will require separate download and installation.  It is intended to be fully cross platform,  enabling use on all major operating systems,  all libraries used internally must support the same platforms.  However interaction with other simulators, such as for distribution or communication may impose additional platform restrictions.  Optional components may not always abide within the same restrictions.
+
+Prior to release 1.0 very little effort will be expended in backwards compatibility.  GridDyn was written making extensive use of C++11 constructs, and will shortly be making more use of C++14 standard constructs.  Specifically allowing any features of the standard supported by GCC 4.9.X versions.  It is expected this will be the minimum version until newer compilers are much more widely accessible.
+
+\subsection{Modularity}
+GridDyn code makes heavy use of object oriented design and polymorphism and is intended to be modular and replaceable.  The design intention is to allow users to define a new object that meets a given component specification and have that be loaded into the simulation as easy as any previously existing object, and require no knowledge of the implementation details of any other object in the simulation.  Thus allowing new and more complex models to be added to the system with no disruption on the rest of the system.  Models also do not assume the presence of any other object in the system though are allowed to check for the existence first.  This is exemplified in the interaction of generators with its subcomponents.  Any combination of Generator Model, exciter, and governor should form a valid simulation even though some combinations may not make much physical sense or be realistic.
+
+\subsection{Mathematics}
+The GridDyn code itself has only limited facilities for numeric solutions to the Differential algebraic equations which define a dynamic power system simulation.  Instead it relies on external libraries interacting through a solver Interface tailored for each individual solver.  The models are intended to be very flexible in support for an assortment of numeric approximations and solution models, and define the equations necessary for model evaluation.
+
+Initial development of dynamic simulation capability is done through a coupled differential-algebraic solver with variable time stepping/  The Primary solver used is IDA from the SUNDIALS package\cite{sundials}.  It can use the dense solver or the KLU sparse solver which is much faster for obvious reasons.  Recent work incorporates the use of a fixed time step solution mode, with a partitioned set of solvers separating the algebraic from the differential components and solving them in alternating fashion.  At present this is much less well tested.  Initial formulations use CVODE for the differential equations and KINSOL for the algebraic solution.  Kinsol is also used to solve the power flow solution.  ARKODE, an ode solver use solver using Runga-Kutta methods is also available for solving the ODE portion of the partitioned solution.
+
+In order to provide support for current and future models of grid components a decision was made to distribute the grid connectivity information and not use a Y-bus matrix as is typical in power system simulation tools.  This allows loads and transmission lines to be modeled using arbitrary equations.  This decision alters the typical equations used to define a power flow solution at buses.  each bus simply sums the real and reactive power produced or consumed by all connected loads, generators, and links.  Those components are free to define the power an arbitrary function of bus voltage, angle, and frequency,  provided that function is at least piecewise continuous.  NOTE:  Continuous functions work much better, piecewise continuous functions work but don't really play nicely with the variable timestepping.  Defining the problem in this way comes at a cost of complexity in the complementation and likely a performance hit but allows tremendous flexibility for incorporating novel loads, generators, and other components into power flow and dynamic simulation solutions.  The dependency information is extracted through the Jacobian function call. Currently the solution always assumes the problem is non-linear even if the approximations used are in fact linear.  While GridDyn's interaction with the solvers comes exclusively through interface objects, there may be some inherent biases in the interface definition due to primary testing with the SUNDIALS package.  These will likely be exposed when GridDyn is tested with alternative numerical solvers.
+
+\subsection{Model Definition}
+GridDyn is intended to be flexible in its model definition allowing details to be defined through a number of common power system formats.  The most flexible definition is through a GridDyn specific XML format.  Strictly speaking the most flexible XML cannot be defined by an XML schema due to the fact that the readers allow element names to describe properties of which the complete set of which cannot be described due to support for externally defined models.  Alternate formulations exist which could be standardized in a schema but not attempt has been made to do so.  The XML formulation includes a variety of programming like concepts to allow construction of complex models quickly, including arrays and conditionals, as well as limited support for equations and variable definitions.  The file ingest library also supports importing other files through the XML and defining a library of objects that can be referenced and copied elsewhere.  The typical use case is expected to be importing a file of another format that contains a majority of the desired simulation information and only defining the solver information and any GridDyn specific models and adjustments in the XML.  The general idea is to be as flexible and easy to use as possible for a text based input format, and as GridDyn Develops support as many other formats as is practically possible.  All the file ingest functionality is contained in an separate library from the model bookkeeping and model evaluation functionality.   Other types of input can be added as necessary and Some development is taking place towards an GUI which would interact through REST service commands and JSON objects.  Included in GridDyn are capabilities of searching through objects by name, index number or userID.
+
+\subsection{Performance}
+GridDyn was designed for use in an HPC environment.  What that means right now is that GridDyn can interoperate with other simulators in that environment and some considerations were put in place in the design but GridDyn on its own does not really take advantage of parallel processing.  As of release 0.5 the transmission power flow and dynamic solve is not itself parallel in any way.  Considerable thought has been put into how that might be accomplished in later versions but it is not presently in place.  Initial steps will include adding in optional openMP pragmas to take advantage of the inherent independence of the objects in calculation of the mathematical operations such as residual or Jacobian.  OpenMP vector operations can be enabled in SUNDIALS though this is only expected to result in small performance gains and only for models over 5000 buses.  Further tests will be done to determine exact performance gains.
+
+Some effort has gone into improving the performance of the power flow solve and only incremental gains are expected at this point using the current solve methodology.  No effort has been expended on the dynamic simulation so some performance improvements can be expected in that area when examined.
+
+The system has no inherent size limitations.  Limited only by memory on any given system.  Scalability studies have been carried out to solving a million bus model,  It could probably go higher but the practical value of such a single solve is unclear as of yet.
+
+\subsection{Model Libraries}
+The aim thus far in GridDyn has been the development of the interfaces.  The models available are the result of programmatic needs or the need to ensure the simulator is capable of dealing with specific kinds of model interactions.  As a result the models presently available represent only a small subset of those defined in power system libraries.  More will be available as time goes on, but the idea is not to have a large collection internally but to enable testing of new models, and to incorporate model definition libraries through use of other tools and interfaces such as FMI, and possibly others as needed.
+
+\subsection{Testing}
+a suite of test cases is available and will continue to grow as more components and systems are thoroughly tested.  The nature of the test suite is evolving along with the code and will continue to do so.  It makes use of the BOOST test suite of tools and if built creates 3 executable test programs that test the various aspects of the system.  While we are still a ways from that target 100\% test coverage is a goal though likely not realistic in the near future.  The code is regularly compiled on at least 5 different compilers and multiple operating systems and strives for warning free operation.
+
+\subsection{Test Programs}
+If enabled 3 test programs are built.  These programs execute the unit test suite for testing GridDyn.  They are divided into 3 programs.  testLibrary runs tests aimed at testing operation of the various libraries used In GridDyn.  The testComponents program executes test cases targeted at the individual model components of GridDyn.  The third, testSystem, runs system level tests and some performance and validation tests on GridDyn.  After installation these test programs are placed in the install directory and can be executed by simply running the executable.  Specific tests can be executed with command line parameters
+\begin{verbatim}
+> ./testComponents --run_test=block_tests
+> ./testComponents --run_test=block_tests//block_alg_diff_jac_test
+\end{verbatim}
+
+\begin{verbatim}
+> ./testLibrary -h
+\end{verbatim}
+\section{Executable operation}
+The main executable for GridDyn is built as gridDynMain  and is intended to load and run a single simulation.    The executables testSystem, testComponents, and testLibrary are test programs for the unit Testing of GridDyn.  A servermode for interactive sessions is a work in progress but is not operational at the time of this release.  The primary executable is built as gridDynMain.
+\begin{verbatim}
+>./gridDynMain --version
+\end{verbatim}
+will display the version information
+\begin{verbatim}
+> ./gridDynMain -h
+\end{verbatim}
+will display available command line options.
+
+typical usage is
+\begin{verbatim}
+> ./gridDynMain [options] inputFile [options]
+\end{verbatim}
+the primary input file can be specified with the flag --input or a single flagless argument.  additional input files should be specified using -i or --import flags.
+command Line only options
+\begin{description}
+
+    \item [-{}-help]                  produce help message
+    \item [-{}-config-file arg]        specify a config file to use
+    \item [-{}-config-file-output arg] file to store current config options
+    \item [-{}-mpicount ]              setup for an MPI run, prints out a string listing the number of MPI tasks that are required te execute the specified scenario,  then halts execution.
+    \item [-{}-version]                print version string
+    \end{description}
+    configuration options
+    \begin{description}
+    \item [-o, -{}-powerflow-output filename]  file output for the powerflow solution.  extension specifies a type (.csv, .xml, .dat, .bin, .txt)  unrecognized extensions default to the same format as .txt.
+    \item [-P, -{}-param arg ]     override simulation file parameters -param ParamName=\begin{verbatim}<val>\end{verbatim}
+    \item [-D, -{}-dir directory ]       add search directory for input files
+    \item [-i, -{}-import filename ]           add import files loaded after the main input file
+    \item [-{}-powerflow-only ]       set the solver to stop after the power flow solution
+    \item [-{}-state-output filename ]     file for saving states, corresponds to --save-state-period
+    \item [-{}-save-state-period arg] save state every N ms, -1 for saving only at the end
+    \item [-{}-log-file filename]       log file output
+    \item [ -q, -{}-quiet]  ]         set verbosity to zero and printing to none
+    \item [-{}-jac-output arg ]       powerflow Jacobian file output
+    \item [-v, -{}-verbose arg ]   specify verbosity output 3=verbose, 2=normal,
+    1=summary, 0=none
+    \item [-f, -{}-flags  arg  ]    specify flags to feed to the solver eg. -{}-flags=flag1,flag2,flag3 no spaces between flags if multiple flags are specified or enclose in quotes
+    \item [-w, -{}-warn arg ]      specify warning level output for input file processing 2=all, 1=important, 0=none
+    \item [-{}-auto-capture filename]  automatically capture a set of parameters from a dynamic simulation to the specified file format is determined by extension.  either .csv or .txt will record the output in csv format,  all others will record in the binary file format.  The filename must be specified with -{}-auto-capture-period if used.
+    \item [-{}-auto-capture-period  arg ] specifies the automatic capture period in seconds.  If specified without a corresponding -{}-auto-capture file. a file named auto\_capture.bin is created.
+    \item [-{}-auto-capture-field arg],  specify the fields to be captured through the auto capture,  Defaults to "auto".  can be a comma or semicolon separated list,  no spaces unless enclosed in quotes.
+\end{description}
+
+The configuration routine will look for and load a file named gridDynConfig.ini if it is available.  It will also load any command line specified config file.  The order of precedence is command line, user specified config file, then system config file(if available).
+
+
+
+\section{Components}
+Components in GridDyn are divided into three categories:  primary, secondary, and subModel.  Primary Components include buses, links, relays, and areas and define the basic building blocka for power grid simulation.  Secondary components are those which tie into Buses and consume or produce real and reactive power.  The two component types in the secondary category are loads and generators.  Submodels are any other component in the system and can form the building blocks of other components.  A majority of the differential equations in the dynamic simulations are found in submodels.  Submodels include things such as exciters, governors, generator models, control systems,  sources,  and several others.  There are a few other types of objects used in GridDyn but they generally are used for specific purposes and do not take part in the equations unless interfaced through another object.  The component types currently available in GridDyn will be detailed later in this document.
+
+\subsection{Buses}
+Buses form the nodes of a power system.  They act as containers for secondary objects and attach to links.   The default bus type is an ac bus which in typical operation would have 2 states (voltage and angle).  4 types of bus operation are available PQ, PV, slack and fixed Angle.  The practical value of fixed angle buses is unknown but was included for mathematical completeness and describes a bus whose angle and reactive power are known.  The residual equation used in the bus model take one of two forms
+\begin{equation}
+f_v(X)=\sum_{i=0}^{gens}Qgen_i(V,\theta,f)+\sum_{i=0}^{loads}Qload_i(V,\theta,f)+\sum_{i=0}^{linest}Qline_i(V,\theta,f)
+\end{equation}
+for PQ and afix type buses and
+\begin{equation}
+f_v(X)=V-V_{target}
+\end{equation}
+for PV and SLK type buses.
+The equations for $\theta$ are very similar
+
+\begin{equation}
+f_{\theta}(X)=\sum_{i=0}^{gens}Pgen_i(V,\theta,f)+\sum_{i=0}^{loads}Pload_i(V,\theta,f)+\sum_{i=0}^{lines}Pline_i(V,\theta,f)
+\end{equation}
+for PQ and PV type buses and
+\begin{equation}
+f_v(X)=\theta-\theta_{target}
+\end{equation}
+for fixed angle and SLK type buses.
+
+the frequency can be either extracted from an active generator attached to the bus or computed as a filtered derivative of the angle.  If it is computed the bus has an additional state as part of the dynamic calculations.
+
+The Bus Model implementation in GridDyn also includes some ability to merge buses together to operate in node-breaker type configurations.  At present this is not well tested.
+
+\subsection{Areas}
+Areas define regions on the simulated grid.  An area can contain other areas, buses, links, and relays.  It principally acts as a container for the other objects, though will eventually include controls such as AGC and other wide area controls. The simulation object itself is a specialization of an area.
+
+\subsection{Links}
+In the most general form links connect buses together.  As a primary object it can contain other objects, include state information.  The basic formulation is that of a standard AC transmission line model connecting two buses together.  The code includes a number of possible approximations
+
+\subsection{Relays}
+Relays are perhaps the most interesting and unusual primary object included in GridDyn.  The basic concept is that relays can take in information from one abject and act upon another.   They add protection and control systems into the simulation environment.  They exist as primary objects since they can stand on operate on their own at the same level as buses and areas.  They may contain states, other objects, submodels, etc.  They also act as gateways into communication simulations, functioning as measurement units and control relays.  And through relays a whole host of control and protection schemes can be implemented in simulation alongside normal power flow and dynamic simulations.  Examples of relays include fuses, breakers, differential relays, distance relays, and control relays among others.
+
+
+\section{Development Notes}
+GridDyn is very much a work in progress,  development is proceeding on a number of different aspects from a number of directions and many components are in states of partial operation or are awaiting development in other aspects of the code base.  The notes in this section attempt to capture the development status of various GridDyn components and note where active and planned development is taking place.
+\subsection{interface and executables}
+A gridDynServer executable is in development.  This program will become the main means of interacting with simulations.  The plan will be gor it to support multiple running simulations and allow users to interact through a set of interfaces.  Planned interfaces include A RESTFUL services interface for ethernet based interaction, which will eventually be the basis of interaction with a GUI, a command line interface, and a direct application interface through TCP/UDP or MPI.
+
+Also in development is a wrapper around the simulation engine into a functional Mockup interface to allow GridDyn to interact with other simulations through the FMI for co-simulation framework.
+
+\subsection{Models}
+The Models included in GridDyn are an evolving set.  They have been added to address particular research questions or needs or test specific aspects aspects of GridDyn operation.  THe next several subsections talk about the state of development in the various components available in GridDyn
+\subsubsection{Buses}
+The bus code is well tested but is constantly evolving to simplify the code or areas of responsibility, or to improve operation.  Even though the equations used in the bus evaluation are quite straightforward.  The bus itself is one of the more complex objects in gridDyn in order to handle the management of loads and generators and the associated limits and controls.  As well as the associated transition between powerflow and dynamic simulation.  Currently available are an ACbus, a DC bus for association with HVDC transission lines a trivial bus, and an infinite bus.  Some plans are in place for a 3-phase bus but that has been low on the priority list.  The DC bus is not thoroughly tested, particularly in dynamic contexts.
+\subsubsection{Area}
+At present areas are primary used as a way to group objects.  Ongoing development is taking place to add in area wide controls such as AGC.  Some of these structures are in place but have yet to be tied in with the Area model itself.  There is work ongoing to do this and some form will be functional within the next 3 months.  Areas and subareas can be configured through the GridDyn XML format but none of the other available formats such as CDF or PTI currently make use of the area information available in those formats.  This will be added alongside the development of area controls.
+
+\subsubsection{Links}
+The basic AC link has been tested thoroughly in powerflow and dynamic simulations by comparison with standard test cases.  Other link models such as DC links, and an adjustableTransformer model have been tested in power flow simulations, but the dynamics of them are a work in progress.  They operate fine in that context but do not include the control dynamics at least at a level that is well-tested.
+
+\subsubsection{Relays}
+The generic relay is one of the more complex objects to setup.  Most use cases involve using one the specific relay types as they embody the information for setting up a relay.  There are no known issues with the relays though given their complexity it is likely there are many circumstances when they do not function appropriately, or a cause issues with interaction of the other parts of the system.  The basic relay contains tremendous flexibility and it is  not recommended that beginning users attempt to directly instantiate it.  You are of course welcome to try but the specification of conditions and actions is somewhat more complex than most other system properties through the XML.  Other relay types are in development as needed by specific usage requirements.
+
+\subsubsection{Loads}
+A number of types of loads are modeled in GridDyn.  The basic Model is a ZIP model.  Extensions include ramps and a variety of other load shapes and others such as an exponential load and frequency dependent load.  Also included are motor loads, including models of first order, 3rd order and 5th order induction models, and include mechanisms for modeling motor stalling.  The 5th order model has some potential issues during certain conditions that have not been fully debugged.  All work in powerflow and dynamic simulation. Code for loading a GridlabD distribution system is included in the release but will not function without corresponding alterations to a GridlabD instance and operation with the Pargrid, neither of which are included in this release, so for all practical purposes it will revert to a debug mode with a simulated distribution simulation intended for debugging operations.  The actual functionality necessary for coupling with a distribution system will hopefully be released in the near future,  thought could be made available for partners.
+
+There is a composite load model available.  This is a more generic container for containing other load models.  This is distinct and more general than the composite load model defined by FERC.  Though an instantiation of that model is planned and will make use of the generic composite model in GridDyn.
+
+\subsubsection{Generators}
+Two basic generators are available a regular generator and a variable generator intended as a base for modeling renewable generation.  The Generator model itself contains very little in the way fo mathematical functions instead it acts a manager for the various submodels that make up a power system generator.  These include governors, exciters, generator models, and Power system stabilizers.  The variable generator also has mechanisms for including sources which are data generators, and filters.  The combination of which creates a mechanism for feeding weather data to a solar or wind plant and converting that into power.  The generator is specifically formulated to allow any/all/or none of the subcomponents to be present and still operate.  A default generator model is put input place if none is specified and a dynamic simulation is required.  A third generator which includes a notion of energy storage is in planning stages.
+
+\subsubsection{Generator Models}
+A wide assortment of genModels is included.  Most have been debugged and tested.  The classical generator model includes a notion of a stabilizer due to inherent instabilities under fault conditions when attached to an exciter and or governor.  Not that classical generator model is an appropriate model to use for such circumstances but nonetheless a stabilizer was incorporated to make the model stable.  The incorporation of saturation into the models is not complete.  The models accept the parameters but are not included in the calculation.  GENROU and GENSAL models are being developed but are not complete as of release 0.5.
+
+\subsubsection{Exciters}
+available exciters include simple, IEEE type1,  IEEE type2, DC1A, and DC2A.  The DC2A model has some undiagnosed issue in particular situations and is not recommended for use at present.
+
+\subsubsection{Governors}
+The basic governor and TGOV1 models are operational others are not completed and further work is being delayed until a more general control system model is in place which will greatly simplify governor construction as well as other control systems.  The deadband is not working in TGOV1.
+
+\subsubsection{Power System Stabilizers}
+The current Pss code is a placeholder for future work.  No PSS model is currently available, though some initial design work has taken place.  The work has been delayed until the controlSystem code is operational.
+
+\subsubsection{Control Blocks}
+control blocks are a building block for other models and a number of them are used in other models throughout GridDyn.
+Development on the generic transfer function block is not finished but the others are working and tested.  These will form the building blocks of a set of general control system modules which could be used to build other types of more complex models.
+
+\subsection{Others}
+Other components in GridDyn include Sources which are operational but not well tested in practice,  schedulers which are used to control generator scheduling, and other types of controllers for AGC,  dispatch, and other sorts of controls.  Most of these are various states of development and not well tested.
+
+\subsubsection{Events}
+GridDyn Supports a notion of events which can be scheduled in a simulation and can basically alter any property of the system with the exception of some models prohibiting changing of certain properties after simulation has begun, in this case the event will still be valid, just won't do anything.  Support for more complex events involving multiple devices in a more straightforward fashion is planned.
+
+\subsubsection{Recorders}
+Support for extracting any calculated field or property from any object is supported through grabber objects.  This can be done directly via the state arrays or from the objects themselves.  The files can be saved periodically or at the end of the simulation in a binary format or in CSV.  Readers for the binary format are available in C++, matlab, and Python.  If a large amount of data is captured frequently for dynamic simulations there is a currently a performance hit.  There are ideas for mitigating this that will be addressed when the performance of the dynamic simulation is studied and addressed.
+
+\subsubsection{Simulation}
+Some of the mechanics and interfacing of the planned optimization extension are in place but nothing actually works yet, so don't use it.
+
+\subsubsection{FMU Interaction}
+This works in some cases but is a little more complex to set up than the rest of the code as it is under significant active development, therefore it is not recommended for use at this time.
+
+\subsection{File Input}
+GridDyn is capable of reading XML and Json files defining the GridDyn data directly these formats can take advantage of all GridDyn Capabilities.  Json is not as well tested and was targeted mainly for the server interface, but it should work as a file format just fine.  A fairly flexible CSV input file reader is also available for inputing larger data sets in a more workable format.  CDF files are read though the area and a few other properties not important for powerflow are a not loaded into GridDyn yet.  Most of the common elements in raw and pti files are also loaded properly.  Some of the more exotic elements such as multiterminal DC lines and 3 way transformers are not yet, mainly since we have no examples of such things in example files.  EPC files for PSLF are the same though used less extensively than raw files.  Matlab files from Matpower and PSAT can also be loaded.  Not all dynamic models from PSAT are available,  For DYR files models that match those available are loaded and some others are translated to available models.  The library of models in GridDyn is much smaller than those available in commercial tools.  Support for other formats is added as needed by projects.
+
+\section {XML Input}
+The following section contains a description of the XML input file format and how to construct and specify an input file in the GridDyn XML format.   As stated previously the XML format is intended to be used solely in GridDyn to enable full access to all the capabilities and models that may or may not be defined in other formats.  All the actual interpreters have been designed to use an element tree structure.  And as such the same reader code is used for the XML interpreter and for a JSON interpreter, though there is some variance in the definitions of elements and attributes in those two contexts meaning Json objects are somewhat more restricted in format.  In the documentation a most of the examples will be in XML, but a few will be in JSON for completeness.
+
+\subsection{Initial Example}
+A simple input case is as follows:
+\begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<GridDyn name="2bus_test" version="1">
+
+<bus name="bus1">
+    <type>SLK</type>
+    <angle>0</angle>
+    <voltage>1.05</voltage>
+    <generator name="gen1">
+    </generator>
+    <load name="load1">
+        <P>1.05</P>
+        <Q>0.31</Q>
+    </load>
+</bus>
+
+<bus name="bus2">
+    <load name="load2">
+        <P>0.45</P>
+        <Q>0.2</Q>
+    </load>
+</bus>
+<link from="bus1" name="bus1_to_bus2" to="bus2">
+    <b>0.127</b>
+    <r>0.0839</r>
+    <x>0.51833</x>
+</link>
+
+<flags>powerflow_only</flags>
+</GridDyn>
+\end{lstlisting}
+
+This small XML files defines a two bus system shown in figure XXX.
+There are 5 sections to this model description.  The first line describes the standard XML header information and is not used by GridDyn.  The second line defines the simulation element and the name of the simulation.  in general properties can be described in an either an element or as a property.  There are certain aspects of parameters which can only be controlled in the element form but simple parameters either works fine.  Capitalization of properties also does not matter.  All object properties in GridDyn are represented by lower case strings,  the xml reader converts all property names to lower case strings before input to GridDyn so capitalization doesn't matter in the XML input.  The property values themselves preserve capitalization and it is on a per property basis whether capitalization matters.  For naming capitalization is preserved such that "object1"  is distinct from "Object1".   For this XML file the simulation is given the name 2bus\_test.  The version is for record keeping only and has not relevance to the simulation.
+
+The second block defines a bus object with a name of "bus1"  The bus is a slack bus indicated by {\tt <bustype>SLK</bustype> }.  Other options for this parameter include PQ, PV, SLK, afix.    The angle and voltage are specified.  A generator object is included.  The element "generator" is recognized as a component and a new generator object is created with a name of "gen1".  Finally a load is created with a name of "load1" and a fixed real power of 1.05 and a reactive power of 0.31.
+\begin{lstlisting}
+
+<bus name="bus1">
+   <bustype>SLK</bustype>
+   <angle>0</angle>
+   <voltage>1.05</voltage>
+   <generator name="gen1">
+   </generator>
+   <load name="load1">
+      <P>1.05</P>
+      <Q>0.31</Q>
+   </load>
+</bus>
+
+\end{lstlisting}
+The second bus is defined in a similar way, except it does not define a bustype which means it defaults to a PQ bus.
+The Link is defined by
+
+\begin{lstlisting}
+<link from="bus1" name="bus1_to_bus2" to="bus2">
+   <b>0.127</b>
+   <r>0.0839</r>
+   <x>0.51833</x>
+</link>
+\end{lstlisting}
+the properties b, r, and x are defined in the XML as elements.  The "to" and "from" fields are specified using the names of the buses.  These properties must be specified for the lines or the system will spit out a warning.
+
+Finally the last two lines specify that the simulation should stop after a power flow.
+to add in dynamic modeling a few additional pieces of the XML can be added The Full dynamic simulation input file is shown in Listing\ref{Listing:dyncode1}
+
+\begin{lstlisting}[label={Listing:dyncode1}]
+<?xml version="1.0" encoding="utf-8"?>
+<GridDyn name="2bus_test" version="1">
+
+<bus name="bus1">
+   <type>SLK</type>
+   <angle>0</angle>
+   <voltage>1.05</voltage>
+   <generator name="gen1">
+      <dynmodel>typical</dynmodel>
+      <pmax>4</pmax>
+   </generator>
+   <load name="load1">
+       <P>1.05</P>
+       <Q>0.31</Q>
+   </load>
+</bus>
+
+<bus name="bus2">
+   <load name="load2">
+      <P>0.45</P>
+      <Q>0.2</Q>
+      <event>@1|p=1.1</event>
+   </load>
+</bus>
+<link from="bus1" name="bus1_to_bus2" to="bus2">
+   <b>0.127</b>
+   <r>0.0839</r>
+   <x>0.51833</x>
+</link>
+
+<stoptime>10</stoptime>
+<recorder period=0.05 field="auto">
+   <file>twobusdynout.csv</file>
+</recorder>
+
+</GridDyn>
+\end{lstlisting}
+
+There are a few new sections in this file compared with the previous example.
+the code
+\begin{lstlisting}
+<generator name="gen1">
+   <dynmodel>typical</dynmodel>
+   <pmax>4</pmax>
+</generator>
+\end{lstlisting}
+now defines the generator to have a typical dynamic model, what this means will be detailed in the section on model parameters for specific models. It also specifies a Pmax value of 4 per unit.
+The line {\tt <event>@1|p=1.1</event> } defines an event such at that at time 1.0 the p field of the load is set to 1.1 from the given value of 0.45.  More details will be explained in the section on event specification.
+The final section
+\begin{lstlisting}[label={lst:recorder}]
+<stoptime>10</stoptime>
+<recorder period=0.05 field="auto">
+   <file>twobusdynout.csv</file>
+</recorder>
+\end{lstlisting}
+set the simulation to run until a stoptime of 10 seconds.    The recorder xml element defines a recorder to capture a set of automatic fields at a period of 0.05 seconds, and capture it to the file twobusdynout.csv upon completion of the scenario.  More details  on recorder specification are available later in this document.
+\subsection{Parameter Specification}
+simple parameters can be specified via elements or as attributes.  Default units are in seconds for all times and time constants unless individual models assume differently.  Power and impedance specifications are typically in PU values.  Exceptions include "basepower" and "basevoltage" specifications which are in MW and KV respectively. The default units on any rates are in units per second.  However, individual models are free to deviate from this standard as makes sense for them so check with the individual model type specification for details.  Parameters in the XML can be specified in a number of different forms that are useful in different contexts.  An example showing the various methods is in Listing \ref{lst:parameters}
+\begin{lstlisting}[caption={XML file for testing parameter input methods},label={lst:parameters}]
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml file to test parameter setting methods-->
+<GridDyn name="input_tests" version="0.0.1">
+<bus name="bus1">
+   <load>
+      <param name="P" value=0.4></param>
+      <param field="q">0.3</param>
+      <param field="ip" units="MW">55</param>
+      <param>yq=0.11</param>
+      <param name="iq(MW)" value=32/>
+      <yp>0.5</yp>
+   </load>
+
+   <load yq=0.74 >
+      <p units="puMW"> 0.31</p>
+      <param>q(MW)=14.8</param>
+      <param name="yp" unit="MW" value=127/>
+   </load>
+</bus>
+</GridDyn>
+\end{lstlisting}
+The main variants involve varying how the units are placed.  Units can be placed as an attribute named "unit" or "units" on the parameters either in a param element or and element named after the model parameter.  They can also be placed in parenthesis at the end of the parameter name when the parameter name is a string contained in the elemental form.  values can be places in a value element, as the content of an element, or following an equal sign when defined as a string like  {\tt  <param>yq=0.11</param>}.  Parameter assuming the default units are allowed to be placed as attributes of the object.
+
+\subsection{Functions and Mathematical Operations} \label{sec:func}
+GridDyn XML input allows mathematical operators and expressions in any parameter specification, including complex expressions.  Supported functions are shown in Tables~\ref{table:func0} through \ref{table:func2}. And supported operators are described in Table~\ref{Tab:op}  Operators precedence is respected as are parenthesis.   String operations are not supported but the definition system has features that support some use cases for string operations.
+\begin{table}[ht]
+
+    \caption{Zero argument mathematical expressions} % title of Table
+    \centering % used for centering table
+    \begin{tabular}{l p{11cm}} % centered columns (4 columns)
+        \hline %inserts double horizontal lines
+        function & details \\ [0.5ex] % inserts table
+        %heading
+        \hline % inserts single horizontal line
+    inf() & results in a large number (1e48) currently \\
+    nan()& uses nan("0") \\
+    pi() & pi \\
+    rand() & produces a uniform random number between 0 and 1 \\
+    randn() & produces a normal random number with mean 0 and standard deviation of 1.0 \\
+    randexp() & produces a random number from an exponential distribution with a mean of 1.0 \\
+    randlogn() & produces a random number from a log normal distribution \\
+        \hline %inserts single line
+    \end{tabular}
+    \label{table:func0}
+\end{table}
+
+
+\begin{table}[ht]
+
+    \caption{One argument mathematical expressions} % title of Table
+    \centering % used for centering table
+    \begin{tabular}{l p{11cm}} % centered columns (4 columns)
+        \hline %inserts double horizontal lines
+        function & details \\ [0.5ex] % inserts table
+        %heading
+        \hline % inserts single horizontal line
+        sin(x)  & sine of x \\
+        cos(x)  & cosine of x \\
+        tan(x)  & tangent of x \\
+        sinh(x)  & hyperbolic sine of x \\
+        cosh(x)  & hyperbolic cosine of x \\
+        tanh(x)  & hyperbolic tangent of x \\
+        abs(x)  & absolute value of x \\
+        sign(x) & return 1.0 if x>0 and -1.0 if x< 0 and 0 if x==0 \\
+        asin(x) & arcsin of x \\
+        acos(x) & arccosine of x \\
+        atan(x) & arctangent of x \\
+        sqrt(x) & the square root of x \\
+        cbrt(x) & the cube root of x \\
+        log (x) & the natural logarithm of x $log(exp(x))=x$\\
+        exp(x)  & the exponential function $e^x$ \\
+        log10(x) & the base 10 logarithm of x \\
+        log2(x) & the base 2 logarithm of x \\
+        exp2(x) & evaluates $2^x$ \\
+        ceil(x) & the smallest integer value such that ceil(x)>=x \\
+        floor(x) & the largest integer value such that floor(x)<=x \\
+        round(x) & the nearest integer value to x \\
+        trunc(x) & the integer portion of x \\
+        none(x)  & return x \\
+        dec(x) & the decimal portion of x $trunc(x)+dec(x)=x$\\
+        randexp(x) & an exponential random variable with a mean of x \\
+        \hline %inserts single line
+    \end{tabular}
+    \label{table:func1}
+\end{table}
+
+\begin{table}[ht]
+
+    \caption{Two argument mathematical expressions} % title of Table
+    \centering % used for centering table
+    \begin{tabular}{l p{11cm}} % centered columns (4 columns)
+        \hline %inserts double horizontal lines
+        function & details \\ [0.5ex] % inserts table
+        %heading
+        \hline % inserts single horizontal line
+        atan2(x,y) & the 4 quadrant arctangent function \\
+        pow(x,y) & evaluates $x^y$ \\
+        plus(x,y) & evaluates $ x+y$ \\
+        add(x,y) & evaluates $x+y$ \\
+        minus(x,y) & evaluates $ x - y$ \\
+        subtract(x,y) & evaluates $ x - y$ \\
+        mult(x,y) & evaluates $x*y$ \\
+        product(x,y) & evaluates $x*y$\\
+        div(x,y) & evaluate $x/y$ \\
+        max(x,y) & return the greater of x or y \\
+        min(x,y) & returns the lesser of x or y \\
+        mod(x,y)  & return the modulus of x and y e.g mod(5,3)=2\\
+        hypot(x,y) & evaluates $\sqrt{(x^2+y^2)}$ \\
+        rand(x,y) & return a random number between x and y \\
+        randn(x,y) & returns a random number from a normal distribution with mean x and variance y\\
+        randexp(x,y) & return a random number from an exponential distribution with mean x and variance y \\
+        randlogn(x,y) & returns a random number from a log normal distribution with mean x and variance y \\
+        randint(x,y) & returns a uniformly distributed random integer between x and y inclusive of x and y \\
+        \hline %inserts single line
+    \end{tabular}
+    \label{table:func2}
+\end{table}
+Additionally most operators are supported including '+','-','*','/','\textasciicircum' and,'\%' that do the appropriate operation.  Operator precedence follows normal rules.
+
+\subsection{Component Description}
+components are defined in in elements matching the component name.  For example
+\begin{lstlisting}[float,label={listing:component}, caption={Example of a component XML element}]
+<exciter name="ext1">
+   <type>type1</type>
+   <Aex>0</Aex>
+   <Bex>0</Bex>
+   <Ka>20</Ka>
+   <Ke>1</Ke>
+   <Kf>0.040</Kf>
+   <Ta>0.200</Ta>
+   <Te>0.700</Te>
+   <Tf>1</Tf>
+   <Urmax>50</Urmax>
+   <Urmin>-50</Urmin>
+</exciter>
+\end{lstlisting}
+describes an exciter component as part of a generator.  The name attribute or element is common for all objects.  A "description" can also be defined for all objects which is basically a string that can be added to any object.    The "type" property is a keyword used to describe the detailed type of the component.  In the above example the specific type of the component is "type1".  GridDyn uses polymorphic objects for each of the components.  The type defined in the XML file for each component defines the specific object to instantiate.  If type is not specified the default type of the component is used.
+
+Predefined components include
+\begin{description}
+    \item [area],  defines a region of the grid
+    \item [bus] the basic node of the system
+    \item [link]  the basic object connecting buses together
+    \item [relay]  primary object allowing control and triggers for other objects
+    \item [sensor]  a form of a relay specifically targeted at sensing different parameters and allowing some direct signal processing on the measurements before output.
+    \item [load]  The basic consumer of energy
+    \item [generator] the basic producer of electricity
+    \item [genmodel] the dynamic model of a electrical generator
+    \item [governor] a generator governor
+    \item [exciter] an exciter for a generator
+    \item[pss]  a power system stabilizer*
+    \item [controlblock] a basic control block
+    \item [source]  A signal generator in GridDyn
+    \item [simulation] a simulation object
+    \item [agc]  describe an automatic generation control*
+    \item [reservedispatcher] describe a reserve dispatcher*
+    \item [scheduler] a scheduling controller*
+\end{description}
+* these objects are in development and do not work consistently
+
+Several component types of components are also defined that map onto the more general components,  in some cases these define specific types in others they are simply maps.  Examples include "fuse=>relay", "breaker=>relay",  "transformer=>line",  "block=>controlblock", "control=>relay",  "tie=>line"
+custom definitions can also be defined if desired through a translate element.
+
+\subsection{Object Identification}
+there are many instances where it is necessary to identify an object for purposes of creating links or to extract a property or other.  Internally there is a hierarchy of objects starting with the root simulation object.  This allows a path like specification of the objects.  There are 2 different notations for describing an object path, on based on colons, the other more similar to the URI specification for WEB like services,and both allow properties to be specified in a similar fashion.  Objects can be referred to by 4 distinct patterns.  The first is by the name of the object.  The name should be unique within any given parent object.  The second uses an object component name and index number for example "bus\#0"  would refer to the bus in index location 0,  Using "bus!0" will also work the same as "bus\#0" but can be used in settings where the '\#' is not allowed.   All indices are 0 based.  The fourth makes use of the user id of an object, to use this objects would be identified by load\$2 to locate the load with userID of 2.  When searching for an object the system starts in the current directory for the search if it is not found it traverses to the root object and starts the search from there.
+An example of a specified path using the ':' notation is
+\begin{verbatim}
+area45::bus#6::load#0:p
+\end{verbatim}
+the single colon marks that the final string represents a property.
+the same object in the URI notation would be
+\begin{verbatim}
+area45/bus#6/load#0?p
+\end{verbatim}
+In some cases mixed notation might work but it is not recommended.  The property indication can be left off when referencing an entire object.  Starting the object identification string with and '@' or a beginning '/' implies searching starting in the root object, otherwise the search starts at whatever the current object of interest is.
+\subsection{special elements}
+In addition to the component elements several element names have special purposes.
+\subsubsection{translate}
+The translate element element is used to create a custom object definition
+\begin{lstlisting}
+<translate name="special" component="exciter" type="type1"/>
+\end{lstlisting}
+putting this command in the xml file will allow objects using "special" as the element name instead of specifying "exciter" in the element name and a specific type.  Translations unlike definitions are global and are only allowed in the root element of an XML file.  If you wish to specify a default type for a component or other defined component translation the name or component can be left out.
+
+\subsubsection{definitions}
+The GridDyn XML file allows specification of definition strings that can be used as parameter values or in other definitions.
+ \begin{lstlisting}
+ <define name="constant1" value=5/>
+ <define name="constant2" value=46 locked=1/>
+ <define name="constant3 value="constant1*constant2" eval=1/>
+ \end{lstlisting}
+
+ The above snippet of code defines 3 constants.  Internally constants are stored as strings.  If the eval attribute is specified the value string is evaluated before storing as a string, otherwise it will be stored as a string and evaluated on use.   The locked attribute defines a global parameter, that cannot be overridden by another define command.  The mechanisms allow programmatic or command line overrides of any internal definitions in the XML file.  Inside the XML file they cross scope boundaries like a global variable.  Regular definitions are only valid in elements they were defined in and subelements.  So if a definition is used, define it in the root scope or it will only be applicable in subsection of the XML.
+
+ When using definitions they can be used as a variable in other languages wherever a string or numerical value would be used.  They can also be used in string replacements like the following code
+ \begin{lstlisting}
+ <bus name="bus_$#rowindex$_$#colindex$">
+ \end{lstlisting}
+ When evaluating the expression The parts of the string between the \$ signs gets evaluated first in this case "\#rowindex" and "\#colindex" are part of an array structure which is defined in subsection \ref{sec:array}.
+
+ After the substring replacement, the entire expression is evaluated again for other definitions.  There is a small set of predefined definitions including \%date, \%datetime, \%time, which contain strings of the expected values at the time of file input.
+
+ \subsubsection{custom}
+ Translations are useful for readability, library elements allow duplication of objects with only minor modifications.  For library elements the object is constructed once from XML and duplicated.  Custom objects allow duplication of objects or sets of objects from the xml.  A reference to the actual element source is stored and reprocessed at the time the custom object is encountered. This also allows a set of object to be defined in one input form to be imported by a different form and used to create objects described in the first.  For instance you could create a library of different object sections and import that into another xml file and only use a few of the custom definitions you are interested in.  Custom objects can use other custom objects but cannot define new custom sections.   Custom objects can define a set of required arguments and default values.  When calling the custom element arguments can be defined.
+  A brief example using custom elements is shown in Listing~\ref{listing:custom1} and another using arguments is shown in Listing~\ref{listing:custom2}.
+ \lstinputlisting[label={listing:custom1}, caption={xml file using a custom defined object}]{../../test/test_files/xml_tests/test_custom_element1.xml}
+ \lstinputlisting[label={listing:custom2}, caption={xml file using a custom defined object with arguments}]{../../test/test_files/xml_tests/test_custom_element2.xml}
+
+ \subsubsection{configuration}
+ A configuration element can define some parameters and operations for the XML reader itself.  There are currently 2 parameters that can be specified "printlevel" and "match\_type".  The "printlevel" controls the verbosity of the output.  The match type controls the default match capitalization for searching for specified fields.  The field and valid values are in Table \ref{Table:configOptions}
+
+ \begin{table}[ht]
+
+     \caption{reader configuration options} % title of Table
+     \centering % used for centering table
+     \begin{tabular}{l c p{8cm}} % centered columns (4 columns)
+         \hline %inserts double horizontal lines
+         parameter & value & details \\ [0.5ex] % inserts table
+         %heading
+         \hline % inserts single horizontal line
+         printlevel & none(0) & print only warnings and errors \\ % inserting body of the table
+          & summary(1) & print only summary info \\
+          & detailed(2) & print detailed information  \\
+         match\_type & capital\_case\_match & match on specified, lower case, and upper case values (this is the default value) \\
+         & all & match to all cases [1ex] \\
+         & exact & only match to the given string.  This option can be used to process files where every component and xml description field is in lower case in the xml to speed up processing slightly \\% [1ex] adds vertical space
+         \hline %inserts single line
+     \end{tabular}
+     \label{Table:configOptions}
+ \end{table}
+
+ \subsubsection{event}
+ Events are changes that take place during the course of the GridDyn simulation execution.  They can be as simple as the example used previously or contain more complex specifications and multiple times and values.  The events are likely to be updated significantly in the near future, and while much of the specification will remain the same some new capabilities will be in place.
+ parameters for events are specified like those in the components.  The available element or attribute names are shown in table~\ref{Table:eventOptions}
+
+  \begin{table}[ht]
+
+      \caption{Event Specification Options} % title of Table
+      \centering % used for centering table
+      \begin{tabular}{l p{14cm}} % centered columns (4 columns)
+          \hline %inserts double horizontal lines
+          parameter &  description \\ [0.5ex] % inserts table
+          %heading
+          \hline % inserts single horizontal line
+
+
+          target  &  the object to extract data from\\
+          field &  the field of the target object to capture \\
+          time, t & The time the event is scheduled to occur \\
+          units  & the desired units of the output \\% [1ex] adds vertical space
+        value & the value associated with the event \\
+          period  &  for periodic events set the period\\
+              file &  the input file for a player type event\\ % inserting body of the table
+              column & the column in a data file to use for the event \\
+          \hline %inserts single line
+      \end{tabular}
+      \label{Table:eventOptions}
+  \end{table}
+
+ The field option of event specification is by far the most flexible.  Any text directly in the event element is captured as the field.
+ \subsubsection{Recorder}
+ recorders are the primary data output system for GridDyn dynamic simulations.  Like events recorders have a set of parameters associated with them.  The details are in Table~\ref{Table:recorderOptions}.  Multiple recorder elements can be specified and the recorder for a single file can have multiple elements that get merged even if they are in different objects.  They are keyed by recorder name and/or filename.  Certain properties like the sampling period are specified on a recorder basis.  Others are for the properties and data to record.
+
+ \begin{table}[ht]
+
+     \caption{Recorder Specification Options} % title of Table
+     \centering % used for centering table
+     \begin{tabular}{l c p{8cm}} % centered columns (4 columns)
+         \hline %inserts double horizontal lines
+         parameter & default & description \\ [0.5ex] % inserts table
+         %heading
+         \hline % inserts single horizontal line
+         file & outputfile.csv & the file to save the data to \\ % inserting body of the table
+         name  & "recorder\_\#" & the name of the recorder for easy reference later \\
+         description & & description that gets put in the header of the output file \\
+         column & -1 & the column of the recorder in which to place the requested data  \\
+         target  &  & the object to extract data from\\
+         field &  & the field of the target object to capture \\
+         units  & defUnit & the desired units of the output \\% [1ex] adds vertical space
+         offset & 0 & an offset index for a particular state \\
+         gain & 1.0  & a multiplier on the measurement \\
+         bias  & 0.0 & a measurement bias \\
+         precision& 7 & the number of digits of precision to print for string formats \\
+         frequency & 1.0 & set the frequency of recording \\
+         period  & 1.0 & set the measurement period \\
+         starttime & -inf & set a start time for the recorder \\
+         stoptime & inf & set a stop time for the recorder \\
+         autosave  & 0 & set the recorder to save every N samples 0 for off \\
+         reserve& 0 & reserve space for N samples \\
+         period\_resolution & 0 & set the minimum resolution for any time period (not usually user specified) \\
+                 \hline %inserts single line
+     \end{tabular}
+     \label{Table:recorderOptions}
+ \end{table}
+ Recorder fields define which property of an an object to capture.  This includes all properties and calculations involving properties.  All functions and expressions defined in \ref{sec:func} are valid in recorder expressions.
+
+ \subsubsection{Solver}
+ Solvers can be defined through the XML file.  There are some default solvers defined but the solver element allows the definition of custom solvers applied to specific problem types.  This allows specification of specific approximations or other configuration options for the solvers to use for solving various specific problems.  Solver properties are shown in Table~\ref{table:solverOptions}
+
+  \begin{table}[ht]
+
+      \caption{Solver Control Options} % title of Table
+      \centering % used for centering table
+      \begin{tabular}{l c p{8cm}} % centered columns (4 columns)
+          \hline %inserts double horizontal lines
+          parameter & default & description \\ [0.5ex] % inserts table
+          %heading
+          \hline % inserts single horizontal line
+          printlevel & error(1) & may be specified with a string or number "debug"(2), "error"(1), "none"(0), "error" only prints out error messages \\ % inserting body of the table
+          approx & "none" & see Table~\ref{table:approxmodes} for details on possible options \\
+          flags &  & see Table~\ref{table:solverFlags} for details on available flags \\
+          tolerance & 1e-8 & the residual tolerance to use\\
+          name & solver\_\# & the name of the solver \\
+          index & automatic & the specified index of the solver \\
+          file & & log file for the solver \\% [1ex] adds vertical space
+          \hline %inserts single line
+      \end{tabular}
+      \label{table:solverOptions}
+  \end{table}
+  Solvers have a set of options used to define what types of problems they are intended to solve. And another set of intended approximations.  This information gets passed to the models whenever a solve is attempted.  A listing of the possible modes is shown in Table~\ref{table:approxmodes}.  In some cases multiple modes can be combined in other cases they are mutually exclusive and the second will override the earlier specification.  A number of approximation are also specified mainly targeting approximations to transmission lines.  These approximations are suggestions rather than directives and models are free to ignore them.  There are 3 independent approximations that can be used in various combinations and several descriptions which turn on the simplifications in a convenient form.  Most approximations target the acline models, but future approximations can be added specifically looking at other models.
+   \begin{table}[ht]
+
+       \caption{Solver Modes} % title of Table
+       \centering % used for centering table
+       \begin{tabular}{l p{10cm}} % centered columns (4 columns)
+           \hline %inserts double horizontal lines
+           mode/approximation & description \\ [0.5ex] % inserts table
+           %heading
+           \hline % inserts single horizontal line
+           local & used for local solutions \\
+           dae  & solver is intended for solving a set of coupled differential-algebraic equations \\
+           differential & solver is intended to solve a set of coupled differential equations \\
+           algebraic & solver is intended to solve algebraic equations only \\
+           dynamic & solver is intended for dynamic simulations \\
+           powerflow & solver is intended for powerflow problems (implies !dynamic and algebraic) \\
+           extended & instructs the model to use an extended state formulation mainly targeted at state estimation problems \\
+           primary & opposite of extended \\
+           ac & solve for both voltage and angle on the buses \\
+           dc & solve only for the angle on AC buses, assume the voltage is fixed.   \\
+           r, small\_r & assume the resistance of transmission lines is small \\
+           small\_angle &  assume $sin(\theta)=\theta$  \\
+           coupling & assume there is no coupling between the $V$ and $\theta$ states \\
+           normal & use full detailed calculations \\
+           simple, simplified & use the small\_r approximation \\
+           small\_angle & use the small angle approximation \\
+           decoupled & use the coupling approximation \\
+           small\_angle\_decoupled & use the small angle and decoupled approximations \\
+           small\_angle\_simplified & use the small angle and small r approximations \\
+           simplified\_decoupled & use the small r and decoupling approximations \\
+           fast\_decoupled & use all 3 approximations \\
+           linear & assume the problem is linear \\
+
+
+           \hline %inserts single line
+       \end{tabular}
+       \label{table:approxmodes}
+   \end{table}
+
+   Solvers can also include a number of options that are common across all solvers(though specific solvers may not implement them).  Often specific solvers also include other options specific to that numerical solver.
+   \begin{table}[ht]
+
+       \caption{Solver Flags} % title of Table
+       \centering % used for centering table
+       \begin{tabular}{l p{10cm}} % centered columns (4 columns)
+           \hline %inserts double horizontal lines
+           mode & description \\ [0.5ex] % inserts table
+           %heading
+           \hline % inserts single horizontal line
+           dense,sparse & set the solver to use a dense matrix solve or a sparse(default) \\
+           parallel,serial & set the solver to use parallel or serial(default) arrays, this is in the form of openMP array \\
+           constant\_Jacobian & tell the solver to assume the Jacobian is constant \\
+           mask & tell the solver to use a masking element to shield specific variables from the solution.  Thus functionality is used in some cases of initial condition generation and probably shouldn't be used externally\\
+           \hline %inserts single line
+       \end{tabular}
+       \label{table:solverFlags}
+   \end{table}
+
+  \subsubsection{import}
+  Import statements are used to add an external file into the simulation.  The file can be of type capable of being read by GridDyn.
+  Import statements are typically single element statements thought they can have subelements if desired.  A couple examples are shown in Listing~\ref{listing:imports}.
+  \begin{lstlisting}[caption={Examples of import statements}, label={listing:imports} ]
+  <import>sep_lib.xml</import>
+  <import prefix="A1">subnetwork.csv</import>
+  <import final=true ext="xml">last_elements.odx</import>
+  \end{lstlisting}
+  The optional attributes/elements are described in table~\ref{table:importOptions}.
+
+   \begin{table}[ht]
+
+       \caption{import attributes} % title of Table
+       \centering % used for centering table
+       \begin{tabular}{l c p{8cm}} % centered columns (4 columns)
+           \hline %inserts double horizontal lines
+           parameter & valid values & description \\ [0.5ex] % inserts table
+           %heading
+           \hline % inserts single horizontal line
+           prefix & a string & a string to prefix all object names from the imported file \\ % inserting body of the table
+           final & "true(1)"  & if set to true the import is delayed until after all other non-final imports and the local file have been loaded\\
+           & "false(0)"&  if set to false or not included the import is processed before any locally defined objects and in the order imports are specified \\
+           file & string & the file name, can also be interpreted from the element text  \\
+           filetype & string & the extension to use for interpreting the import file if not specified the extension is determined from the file name \\
+           flags & ignore\_step\_up\_transformers & the flags option is to add in additional options, it will likely be expanded as needed, currently the only options available is to ignore step up transformers in some formats of model input.  As the file readers improve and become more integrated and consistent more options will be available.  \\
+           \hline %inserts single line
+       \end{tabular}
+       \label{table:importOptions}
+   \end{table}
+
+  \subsubsection{directory}
+  The directory element allows the user to specify additional search paths for GridDyn to locate any files without an absolute path.
+  \begin{verbatim}
+  <directory>/home/usr/user1/GridDyn</directory>
+  <directory>
+  \end{verbatim}
+
+  \clearpage
+ \subsubsection{library}
+ GridDyn file input can include a library of predefined objects.  This section is defined through a library element.  Any of the components described above can be included as a library element.  These library objects get stored in a separate holding area and are copied when any object uses a "ref" fields with a value of the library element name.   The "ref" field can be either an element or an attribute.  If type and "ref" are specified the type definition takes priority and the library object is cloned to the newly created object, if only "ref" is specified a new object is cloned directly from the library object.  There can be multiple library sections, they simply get merged.  By using import statements libraries can be defined in a separate file.  A simple example using libraries and references is in Listing~\ref{Listing:library}.  The code describes 4  objects and generator model, an exciter and a governor, and a generator that uses the 3 previously defined submodels to make up thy dynamic components of the generator.
+ \begin{lstlisting}[label={Listing:library}, caption={XML code example of a library element}]
+ <library>
+    <model name="mod1">
+       <type>fourthOrder</type>
+       <D>0.040</D>
+       <H>5</H>
+       <Tdop>8</Tdop>
+       <Tqop>1</Tqop>
+       <Xd>1.050</Xd>
+       <Xdp>0.350</Xdp>
+       <Xq>0.850</Xq>
+       <Xqp>0.350</Xqp>
+    </model>
+    <exciter name="ext1">
+       <type>type1</type>
+       <Aex>0</Aex>
+       <Bex>0</Bex>
+       <Ka>20</Ka>
+       <Ke>1</Ke>
+       <Kf>0.040</Kf>
+       <Ta>0.200</Ta>
+       <Te>0.700</Te>
+       <Tf>1</Tf>
+       <Urmax>50</Urmax>
+       <Urmin>-50</Urmin>
+    </exciter>
+    <governor name="gov1">
+       <type>basic</type>
+       <K>16.667</K>
+       <T1>0.100</T1>
+       <T2>0.150</T2>
+       <T3>0.050</T3>
+    </governor>
+    <generator name="gen1">
+       <model ref="mod1"/>
+       <exciter ref="ext1"/>
+       <governor ref="gov1"/>
+    </generator>
+ </library>
+ \end{lstlisting}
+
+ Libraries are only allowed to be defined at the root object level, they are not allowed in any element that is a part of the root element so they are directly processed by the interpreter.
+
+ \subsection{array}
+ Arrays and if statement make up the control structures in the XM: file.  Arrays allow objects and sets of objects to be generated in a loop,they can even contain other loops.  An example file used for building some scalability tests is shown in Listing~\ref{listing:scalability}.  This file uses many of the concepts discussed previously.
+
+ \lstinputlisting[label={Listing:scalability}, caption={xml file that shows scalability using arrays}]{../../test/test_files/performance_tests/block_grid2.xml}
+
+
+ Arrays can have several attributes which define how the array is handled.
+  \begin{table}[ht]
+
+      \caption{array attributes} % title of Table
+      \centering % used for centering table
+      \begin{tabular}{l c p{8cm}} % centered columns (4 columns)
+          \hline %inserts double horizontal lines
+          attribute & default & description \\ [0.5ex] % inserts table
+          %heading
+          \hline % inserts single horizontal line
+          start & 1 & the index to start the array counter \\ % inserting body of the table
+          stop & X  & the last index to use, either stop or count must be specified\\
+          count & X & the number of loops, either stop or count must be specified \\
+          loopvariable& "\#index"& the name of the definition to store the loop variable \\
+          interval & 1.0 & the interval between each iteration of the loop counter  \\
+
+          \hline %inserts single line
+      \end{tabular}
+      \label{table:arrayAttributes}
+  \end{table}
+
+ \subsubsection{if}
+ If elements create a conditional inclusion.  Most often used for conditional inclusion based on fixed parameters to allow a single file to do a few different scenarios. However, they can be tied in with random function generators and arrays to generate random distributions of elements.  Any element component along with import and define statements are allowed in an if element.
+ The if element must have an element or attribute named "condition".  The condition is a string specifying a value or two values and a comparison operator.  If a single expression is given the elements in the if statement are evaluated as long as the expression does not result in a 0.  Otherwise both sides of the expression are evaluated and the comparison is checked.  If both sides evaluate to strings a string comparison is done, otherwise a numerical comparison if both sides result in numerical values.   depending on the file type and reader '>' and '<' may need to be replaced with the XML character codes of \&gt; and \&lt;  These codes are interpreted properly.  Compound expressions are not yet supported.  Eventually the goal will be to support conditions based on object values instead of values that can be evaluated in the element reader itself, but this capability is not yet allowed.
+
+\subsubsection{econ}
+The econ element describes data related to the costs and values of an object.  It will be used for interaction with optimization solvers and the root object must be an optimization type simulation.  While the element works fine, it doesn't do anything with the data.
+
+\subsubsection{position}
+A position element describes data related to the geophysical(or relative) position of an object.  The element is ignored but will be further developed at a later time.
+
+\subsection{actions}\label{section:action}
+The gridDynSimulation object can execute a number of types of actions.  These can be controlled through the API but also through an action queue.  The actions are defined and stored in a queue and executed when the run function is called.  If no actions are defined some logic is in place to do something sensible, typically run a power flow then a dynamic simulation if dynamic components were instantiated.  Actions allow a much finer grained control over this process.  These actions can be loaded through the XML file eventually in a type of script(not enabled yet).
+actions are specified through an action element containing the action string.  The string is translated into an action and stored in a queue.
+\begin{verbatim}
+<action>run 23.7</action>
+\end{verbatim}
+
+The list of available command is shown in table~\ref{table:actions}, for all lines int the table
+(s) implies string parameter,  (d) implies double parameter,  (i) integer parameter, (X)* optional, (s|d|i), string or double or int*/
+and for a given line everything following a \# at the beginning of a word is considered a comment and ignored
+\begin{table}[ht]
+
+    \caption{GridDyn actions} % title of Table
+    \centering % used for centering table
+    \begin{tabular}{l p{7cm}} % centered columns (2 columns)
+        \hline %inserts double horizontal lines
+        action string & description \\ [0.5ex] % inserts table
+        %heading
+        \hline % inserts single horizontal line
+    ignore XXXXXX & do nothing \\
+    set parameter(s) value(d) & set a particular parameter;  the parameter can include an object path \\
+    setall  objecttype(s) parameter(s) value(d) & set a parameter on all objects of a particular type \\
+    setsolver mode(s) solver(s|i) & set the solver to use for a particular mode of operation \\
+    settime newtime(d) &  set the simulation time \\
+    print parameter(s) setstring(s) &  print a parameter (can include path) using the string definition in setstring \\
+    powerflow & run a powerflow \\
+    step solutionType(s)* & take a single step of the specified solution type \\
+    eventmode stop(d)*  step(d)* & run in event driven power flow mode until stop with step \\
+    initialize &     run the initialization routine \\
+    dynamic solutionType(s)* stop(d)* step(d)* &  run a dynamic simulation \\
+    dynamicdae stop(d)*  &  run a dynamic simulation using DAE solver \\
+    dynamicpart stop(d)* step(d)* & run a dynamic simulation using the partitioned solver \\
+    dynamicdecoupled stop(d)* step(d)* & run a dynamic simulation using the decoupled solver \\
+    reset level(i) & \\  reset the simulation to the specified level \\
+    iterate interval(d)* stop(d)* &  run an iterative power flow with the given interval \\
+    run time(d)* &     run the simulation using the default mode to the given time \\
+    save subject(s) file(s) & save a particular type of file \\
+    load subject(s) file(s) & load  a particular type of file \\
+    add addstring(s) & add something to the simulation  \\
+    rollback point(s|d)  & rollback to a saved checkpoint (not implemented yet) \\
+    checkpoint name(s) &  save a named checkpoint (not implemented yet) \\
+    contingency ????  &  run a contingency analysis (not implemented yet) \\
+    continuation ???? & run a continuation analysis (not implemented yet) \\
+
+
+        \hline %inserts single line
+    \end{tabular}
+    \label{table:actions}
+\end{table}
+
+\section{Acknowledgments}
+Initial development of GridDyn was funded through lab directed research and development at Lawrence Livermore National Lab project 013-ERD-043).  Additional support was provided through the DOE Advanced Grid Modeling program and through a joint project with the California Utilities of Pacific Gas and Electric, Southern California Edison, and San Diego Gas and Electric.
+
+\clearpage
+
+\section{Contributors}
+Lead Author: Philip Top
+
+contributors
+\begin{itemize}
+    \item Steve Smith
+    \item Carol Woodward
+    \item Eddy Banks
+    \item Liang Min
+    \item Brian Kelley
+    \item Rafael Rivera-Soto
+    \item Yining Qin
+\end{itemize}
+past contributors
+\begin{itemize}
+    \item Brett Robbins
+    \item Malquan Gaillard
+    \item Jaleel King
+
+\end{itemize}
+
+\bibliographystyle{ieeetr}
+\bibliography{gridDynRef}
+
+\newpage
+\appendix
+\setcounter{table}{0}
+\renewcommand{\thetable}{A\arabic{table}}
+\section{Settable Object Properties} \label{App:AppendixA}
+
+Appendix A describes the parameters for each of the models present in GridDyn as of Version 0.5.  The tables are automatically generated via Matlab scripts so there are a few bugs and some missing information as of yet.  Each table has 4 columns. The first column specifies the string or strings that can be used to set this property,  multiple strings that do the same thing are separated by a comma.  The second columns defines the type of parameter,  number implies a numeric value, string implies a string field, and flag is a flag or boolean variable which can be set to true with "true", or any number greater than 0.1 (typically 1), and set to false for any number less than 0.1 or "false".  The third column lists the default value if applicable and the fourth column is a description.  In many cases the default units will be described in [] at the beginning of the description,  the default units are the units of the default and the unit that is assumed if no units are given to the set command.  All the set functions cascade to parent classes which are identified in the table captions.
+\input{objectInputs.tex}
+\end{document}

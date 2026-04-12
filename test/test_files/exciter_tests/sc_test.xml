@@ -5,10 +5,10 @@
       <type>infinite</type>
       <angle>0</angle>
       <voltage>1</voltage>
-	</bus>
-	<!--bus name="bus2"/-->
+    </bus>
+    <!--bus name="bus2"/-->
 <bus>
-	<name>bus3</name>
+    <name>bus3</name>
      <load name="load3">
        <yp>1.500</yp>
        <Q>0</Q>

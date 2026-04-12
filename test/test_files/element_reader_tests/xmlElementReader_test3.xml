@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test the xml-reader functions-->
 <main_element>
-	<test_multi_text>
-	part1
-	<subelementA att1="23t">
-	<subsubelement>
-	45.3echo
-	</subsubelement>
-	</subelementA>
-	part2
-	<subelementB>
-	</subelementB>
-	part3
-	</test_multi_text>
+    <test_multi_text>
+    part1
+    <subelementA att1="23t">
+    <subsubelement>
+    45.3echo
+    </subsubelement>
+    </subelementA>
+    part2
+    <subelementB>
+    </subelementB>
+    part3
+    </test_multi_text>
 </main_element>

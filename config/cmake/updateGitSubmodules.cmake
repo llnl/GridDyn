@@ -26,7 +26,8 @@ macro(submod_update_all)
     if(ENABLE_SUBMODULE_UPDATE)
         message(STATUS "Git Submodule Update")
         execute_process(
-            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update --init
+            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update
+                    --init
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             RESULT_VARIABLE GIT_RESULT
             OUTPUT_VARIABLE GIT_OUTPUT
@@ -47,7 +48,8 @@ macro(submod_update target)
     if(ENABLE_SUBMODULE_UPDATE)
         message(STATUS "Git Submodule Update ${target}")
         execute_process(
-            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update --init -- ${target}
+            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update
+                    --init -- ${target}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             RESULT_VARIABLE GIT_RESULT
             OUTPUT_VARIABLE GIT_OUTPUT

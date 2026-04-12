@@ -4,34 +4,36 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "core/coreDefinitions.hpp"
+#include "core/coreObject.h"
 #include "core/objectFactory.hpp"
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
+#include "gmlc/utilities/stringOps.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/gridBus.h"
-#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 
 namespace griddyn {
-static std::shared_ptr<coreObjectFactory> cof = coreObjectFactory::instance();
-
+namespace {
 void loadGENROU(coreObject* parentObject, stringVec& tokens);
 void loadESDC1A(coreObject* parentObject, stringVec& tokens);
 void loadTGOV1(coreObject* parentObject, stringVec& tokens);
 void loadEXDC2(coreObject* parentObject, stringVec& tokens);
 void loadSEXS(coreObject* parentObject, stringVec& tokens);
+}  // namespace
 
 void loadDYR(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& /*bri*/)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
-    std::string line, line2;  // line storage
-    std::string temp1;  // temporary storage for substrings
+    std::string line;  // line storage
+    std::string line2;
 
     if (!(file.is_open())) {
         parentObject->log(parentObject, print_level::error, "Unable to open file " + fileName);
@@ -66,7 +68,7 @@ void loadDYR(coreObject* parentObject, const std::string& fileName, const basicR
         } else if (type == "'ESDC1A'") {
             loadESDC1A(parentObject, lineTokens);
         } else if (type == "'EXDC2'") {
-            loadESDC1A(parentObject, lineTokens);
+            loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
             loadTGOV1(parentObject, lineTokens);
         } else if (type == "'SEXS'") {
@@ -77,6 +79,7 @@ void loadDYR(coreObject* parentObject, const std::string& fileName, const basicR
     }
 }
 
+namespace {
 void loadGENROU(coreObject* parentObject, stringVec& tokens)
 {
     int id = std::stoi(tokens[0]);
@@ -86,7 +89,8 @@ void loadGENROU(coreObject* parentObject, stringVec& tokens)
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-    GenModel* sm = static_cast<GenModel*>(cof->createObject("genmodel", "6"));
+    auto cof = coreObjectFactory::instance();
+    auto* sm = static_cast<GenModel*>(cof->createObject("genmodel", "6"));
     sm->set("tdop", params[3]);
     sm->set("tdopp", params[4]);
     sm->set("tqop", params[5]);
@@ -115,6 +119,7 @@ void loadESDC1A(coreObject* parentObject, stringVec& tokens)
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
     Exciter* sm;
+    auto cof = coreObjectFactory::instance();
     if (params[6] > 0.0)  // dc1a model must have tb>0 otherwise revert to type1
     {
         sm = static_cast<Exciter*>(cof->createObject("exciter", "dc1a"));
@@ -149,7 +154,8 @@ void loadEXDC2(coreObject* parentObject, stringVec& tokens)
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-    Exciter* sm = static_cast<Exciter*>(cof->createObject("exciter", "dc2a"));
+    auto cof = coreObjectFactory::instance();
+    auto* sm = static_cast<Exciter*>(cof->createObject("exciter", "dc2a"));
     // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
     // sm->set("tr", params[3]);
     sm->set("ka", params[4]);
@@ -175,6 +181,7 @@ void loadSEXS(coreObject* parentObject, stringVec& tokens)
     Generator* gen = bus->getGen(id - 1);
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+    auto cof = coreObjectFactory::instance();
     auto* sm = static_cast<Exciter*>(cof->createObject("exciter", "sexs"));
 
     // sm->set("tr", params[3]);
@@ -196,7 +203,8 @@ void loadTGOV1(coreObject* parentObject, stringVec& tokens)
 
     auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-    Governor* sm = static_cast<Governor*>(cof->createObject("governor", "tgov1"));
+    auto cof = coreObjectFactory::instance();
+    auto* sm = static_cast<Governor*>(cof->createObject("governor", "tgov1"));
     // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
     // sm->set("tr", params[3]);
     sm->set("r", params[3]);
@@ -209,5 +217,6 @@ void loadTGOV1(coreObject* parentObject, stringVec& tokens)
 
     gen->add(sm);
 }
+}  // namespace
 
 }  // namespace griddyn

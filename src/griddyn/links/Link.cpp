@@ -270,7 +270,7 @@ void Link::switchChange(int /*switchNum*/)
     computePowers();
 }
 
-bool Link::testAndTrip(int tripLevel)
+bool Link::testAndTrip([[maybe_unused]] int tripLevel)
 {
     return false;
 }

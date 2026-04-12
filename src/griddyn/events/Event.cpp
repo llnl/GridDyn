@@ -359,7 +359,7 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
 
     if (eventString.find_first_of(';') != std::string::npos)
     {
-        auto svector=stringOps::splitlineBracket(eventString,";");
+        auto svector = gmlc::utilities::stringOps::splitlineBracket(eventString, ";");
         if (svector.size() > 1)
         {
             for (const auto& estring : svector)

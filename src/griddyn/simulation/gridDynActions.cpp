@@ -297,19 +297,19 @@ void gridDynAction::process(const std::string& operation)
         }
         if (sz > nindex + 2)
         {
-            val_int1=numeric_conversion<int>(ssep[nindex+2], 0);
+            val_int1 = gmlc::utilities::numeric_conversion<int>(ssep[nindex + 2], 0);
         }
         else
         {
-            val_int1=0;
+            val_int1 = 0;
         }
         if (sz > nindex + 3)
         {
-            val_int2=numeric_conversion<int>(ssep[nindex+3], 0);
+            val_int2 = gmlc::utilities::numeric_conversion<int>(ssep[nindex + 3], 0);
         }
         else
         {
-            val_int2=0;
+            val_int2 = 0;
         }
     } else if (cmd == "continuation") {
     } else {

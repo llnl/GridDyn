@@ -1206,34 +1206,23 @@ int rawReadTX_v33(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    double tap2;
-    
-    int tapcode=std::stoi(strvec[4]);
-    if (tapcode == 2)
-    {
-        auto wv2=numeric_conversion<double>(strvec4[0],0.0);
+    int tapcode = std::stoi(strvec[4]);
+    if (tapcode == 2) {
+        auto wv2 = numeric_conversion<double>(strvec4[0], 0.0);
         tap = (tap / bv1 / (wv2 / bv2));
     } else if (tapcode == 3) {
         if (vn1 == 0.0) {
-            vn1 = bus1->get("basevoltage");
-    }
-    else if (tapcode == 3)
-    {
-        if (vn1 == 0.0)
-        {
-            vn1=bv1;
+            vn1 = bv1;
         }
-        if (vn2 == 0.0)
-        {
-            vn2=bv2;
+        if (vn2 == 0.0) {
+            vn2 = bv2;
         }
         tap = tap * (vn1 / bv1) / (vn2 / bv2);
-        
     }
 
-        if (tap != 0) {
-            lnk->set("tap", tap);
-        }
+    if (tap != 0) {
+        lnk->set("tap", tap);
+    }
 
     auto angle = numeric_conversion<double>(strvec3[2], 0.0);
     if (angle != 0) {

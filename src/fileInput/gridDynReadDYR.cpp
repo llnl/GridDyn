@@ -8,7 +8,6 @@
 #include "core/coreObject.h"
 #include "core/objectFactory.hpp"
 #include "fileInput.h"
-#include "readerInfo.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/Exciter.h"
@@ -16,6 +15,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/gridBus.h"
+#include "readerInfo.h"
 #include <fstream>
 #include <iostream>
 #include <string>

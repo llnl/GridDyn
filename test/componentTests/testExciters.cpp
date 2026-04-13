@@ -5,306 +5,187 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/coreDefinitions.hpp"
 #include "core/objectFactory.hpp"
+#include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
-#include <cmath>
-#include <cstdio>
+#include "solvers/solverMode.hpp"
 #include <gtest/gtest.h>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
-// test case for coreObject object
 
 #define EXCITER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/exciter_tests/"
 
 using namespace griddyn;
 
-class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+namespace {
+
+using exciter_parameter_map =
+    std::map<std::string, std::vector<std::pair<std::string, double>>>;
+
+class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {  // NOLINT(misc-multiple-inheritance)
+};
+
+void applyExciterParameters(coreObject* object,
+                            const exciter_parameter_map& parameters,
+                            const std::string& exciterName)
+{
+    const auto parameterIter = parameters.find(exciterName);
+    if (parameterIter == parameters.end()) {
+        return;
+    }
+
+    for (const auto& parameterValue : parameterIter->second) {
+        object->set(parameterValue.first, parameterValue.second);
+    }
+}
+
+Generator* loadExciterCase(ExciterTests& fixture,
+                           coreObjectFactory* factory,
+                           const std::string& fileName,
+                           const std::string& exciterName,
+                           const exciter_parameter_map& parameters)
+{
+    fixture.gds = readSimXMLFile(fileName);
+    auto* generator = fixture.gds->getGen(0);
+    EXPECT_NE(generator, nullptr);
+    if (generator == nullptr) {
+        return nullptr;
+    }
+
+    fixture.gds->consolePrintLevel = print_level::no_print;
+    auto* object = factory->createObject("exciter", exciterName);
+    EXPECT_NE(object, nullptr) << "Failed to create exciter " << exciterName;
+    if (object == nullptr) {
+        return nullptr;
+    }
+
+    applyExciterParameters(object, parameters, exciterName);
+    generator->add(object);
+    return generator;
+}
+
+void verifyStabilityCase(ExciterTests& fixture,
+                         const std::string& fileName,
+                         const exciter_parameter_map& parameters,
+                         double minVoltage0,
+                         double maxVoltage0,
+                         double minVoltage1,
+                         double maxVoltage1,
+                         const std::vector<std::string>& skippedExcters = {})
+{
+    auto factory = coreObjectFactory::instance();
+    const auto exciterList = factory->getTypeNames("exciter");
+
+    for (const auto& exciterName : exciterList) {
+        if (exciterName.starts_with("fmi")) {
+            continue;
+        }
+        if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
+            skippedExcters.end()) {
+            continue;
+        }
+
+        auto* generator =
+            loadExciterCase(fixture, factory.get(), fileName, exciterName, parameters);
+        ASSERT_NE(generator, nullptr);
+
+        const int returnValue = fixture.gds->dynInitialize();
+        fixture.requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        EXPECT_EQ(returnValue, 0) << "Exciter " << exciterName << " dynInitialize issue";
+
+        const int badResidual = runResidualCheck(fixture.gds, cDaeSolverMode, false);
+        ASSERT_EQ(badResidual, 0) << "Exciter " << exciterName << " residual issue";
+        const int badJacobian = runJacobianCheck(fixture.gds, cDaeSolverMode, false);
+        ASSERT_EQ(badJacobian, 0) << "Exciter " << exciterName << " Jacobian issue";
+
+        fixture.gds->run();
+        if (fixture.gds->getSimulationTime() < 30.0) {
+            fixture.gds->saveRecorders();
+        }
+        ASSERT_GE(fixture.gds->getSimulationTime(), 30.0)
+            << "Exciter " << exciterName << " didn't complete";
+
+        std::vector<double> voltages;
+        fixture.gds->getVoltage(voltages);
+        EXPECT_TRUE((voltages[0] > minVoltage0) && (voltages[0] < maxVoltage0))
+            << "Exciter " << exciterName;
+        EXPECT_TRUE((voltages[1] > minVoltage1) && (voltages[1] < maxVoltage1))
+            << "Exciter " << exciterName;
+    }
+}
+
+}  // namespace
 
 TEST_F(ExciterTests, RootExciterTest)
 {
-    std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_root_exciter.xml");
+    const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_root_exciter.xml");
 
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
 
-    int retval = gds->dynInitialize();
+    const int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
-    std::vector<double> st = gds->getState();
+    const std::vector<double> initialState = gds->getState();
 
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
-    std::vector<double> st2 = gds->getState();
+    const std::vector<double> finalState = gds->getState();
 
     // check for stability
-    auto diff = gmlc::utilities::countDiffs(st, st2, 0.0001);
-    EXPECT_EQ(diff, 0u);
+    const auto diff = gmlc::utilities::countDiffs(initialState, finalState, 0.0001);
+    EXPECT_EQ(diff, 0U);
 }
 
 TEST_F(ExciterTests, BasicStabilityTest1)
 {
-    static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
+    static const exciter_parameter_map parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
-    std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
-
-    auto cof = coreObjectFactory::instance();
-
-    auto exclist = cof->getTypeNames("exciter");
-
-    // exclist.insert(exclist.begin(), "none");
-    for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
-            continue;
-        }
-        gds = readSimXMLFile(fileName);
-        Generator* gen = gds->getGen(0);
-        ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
-
-        auto obj = cof->createObject("exciter", excname);
-        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
-        auto fnd = parameters.find(excname);
-
-        if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
-            }
-        }
-
-        gen->add(obj);
-
-        int retval = gds->dynInitialize();
-        requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
-
-        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
-
-        int badresid = runResidualCheck(gds, cDaeSolverMode, false);
-
-        ASSERT_EQ(badresid, 0) << "exciter type " << excname << " resid issue";
-        int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-        ASSERT_EQ(badjacobian, 0) << "exciter type " << excname << " Jacobian issue";
-
-        std::vector<double> volt1;
-        gds->getVoltage(volt1);
-
-        gds->run();
-
-        ASSERT_GE(gds->getSimulationTime(), 30.0)
-            << "exciter type " << excname << " didn't complete";
-        std::vector<double> volt2;
-        gds->getVoltage(volt2);
-        EXPECT_TRUE((volt2[0] > 0.95) && (volt2[0] < 1.00));
-        EXPECT_TRUE((volt2[1] > 0.95) && (volt2[1] < 1.000));
-
-        // check for stability
-    }
+    const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
+    verifyStabilityCase(*this, fileName, parameters, 0.95, 1.00, 0.95, 1.000);
 }
 
 TEST_F(ExciterTests, BasicStabilityTest2)
 {
-    static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
+    static const exciter_parameter_map parameters{
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
-    std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability2.xml");
-
-    auto cof = coreObjectFactory::instance();
-    auto exclist = cof->getTypeNames("exciter");
-
-    // exclist.insert(exclist.begin(), "none");
-    for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
-            continue;
-        }
-        gds = readSimXMLFile(fileName);
-        Generator* gen = gds->getGen(0);
-        ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
-        auto obj = cof->createObject("exciter", excname);
-        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
-        auto fnd = parameters.find(excname);
-
-        if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
-            }
-        }
-
-        gen->add(obj);
-
-        int retval = gds->dynInitialize();
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
-
-        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
-
-        int badresid = runResidualCheck(gds, cDaeSolverMode, false);
-        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
-        int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-
-        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
-
-        std::vector<double> volt1;
-        gds->getVoltage(volt1);
-
-        gds->run();
-        if (gds->getSimulationTime() < 30.0) {
-            printf("exciter didn't complete %s\n", excname.c_str());
-            gds->saveRecorders();
-        }
-        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
-        std::vector<double> volt2;
-        gds->getVoltage(volt2);
-        EXPECT_TRUE((volt2[0] > 1.00) && (volt2[0] < 1.05));
-        EXPECT_TRUE((volt2[1] > 0.99) && (volt2[1] < 1.04));
-
-        // check for stability
-    }
+    const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability2.xml");
+    verifyStabilityCase(*this, fileName, parameters, 1.00, 1.05, 0.99, 1.04);
 }
 
 TEST_F(ExciterTests, BasicStabilityTest3)
 {
-    static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
-        //{ "basic",{ { "ta",0.2 },{ "ka",11.0 } } },
+    static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
-    std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability3.xml");
-
-    auto cof = coreObjectFactory::instance();
-    coreObject* obj = nullptr;
-
-    auto exclist = cof->getTypeNames("exciter");
-
-    // exclist.insert(exclist.begin(), "none");
-    for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
-            continue;
-        }
-        if (excname == "dc1a" || excname == "sexs") {
-            // TODO(phlpt): Figure out why this still fails.
-            continue;
-        }
-        gds = readSimXMLFile(fileName);
-        Generator* gen = gds->getGen(0);
-        ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
-        obj = cof->createObject("exciter", excname);
-        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
-        auto fnd = parameters.find(excname);
-
-        if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
-            }
-        }
-
-        gen->add(obj);
-
-        int retval = gds->dynInitialize();
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
-
-        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
-
-        int badresid = runResidualCheck(gds, cDaeSolverMode, false);
-
-        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
-        int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-
-        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
-
-        std::vector<double> volt1;
-        gds->getVoltage(volt1);
-
-        gds->run();
-        if (gds->getSimulationTime() < 30.0) {
-            printf("exciter didn't complete %s\n", excname.c_str());
-            gds->saveRecorders();
-        }
-        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
-        std::vector<double> volt2;
-        gds->getVoltage(volt2);
-        EXPECT_TRUE((volt2[0] > 0.98) && (volt2[0] < 1.02)) << "Exciter " << excname;
-        EXPECT_TRUE((volt2[1] > 0.97) && (volt2[1] < 1.02)) << "Exciter " << excname;
-        // check for stability
-    }
+    const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability3.xml");
+    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
 }
 
 TEST_F(ExciterTests, BasicStabilityTest4)
 {
-    static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{
-        //{ "basic",{ { "ta",0.2 },{ "ka",11.0 } } },
+    static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
-    std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability4.xml");
-
-    auto cof = coreObjectFactory::instance();
-    coreObject* obj = nullptr;
-
-    auto exclist = cof->getTypeNames("exciter");
-
-    // exclist.insert(exclist.begin(), "none");
-    for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
-            continue;
-        }
-        if (excname == "dc1a" || excname == "sexs") {
-            // TODO(phlpt): Figure out why this still fails.
-            continue;
-        }
-        gds = readSimXMLFile(fileName);
-        Generator* gen = gds->getGen(0);
-        ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
-        obj = cof->createObject("exciter", excname);
-        ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
-        auto fnd = parameters.find(excname);
-
-        if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
-            }
-        }
-
-        gen->add(obj);
-
-        int retval = gds->dynInitialize();
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
-
-        EXPECT_EQ(retval, 0) << "Exciter " << excname << " dynInitialize issue";
-
-        int badresid = runResidualCheck(gds, cDaeSolverMode, false);
-
-        ASSERT_EQ(badresid, 0) << "Exciter " << excname << " residual issue";
-        int badjacobian = runJacobianCheck(gds, cDaeSolverMode, false);
-        ASSERT_EQ(badjacobian, 0) << "Exciter " << excname << " Jacobian issue";
-
-        std::vector<double> volt1;
-        gds->getVoltage(volt1);
-
-        gds->run();
-        if (gds->getSimulationTime() < 30.0) {
-            printf("exciter didn't complete %s\n", excname.c_str());
-            gds->saveRecorders();
-        }
-        ASSERT_GE(gds->getSimulationTime(), 30.0) << "Exciter " << excname << " didn't complete";
-        std::vector<double> volt2;
-        gds->getVoltage(volt2);
-        EXPECT_TRUE((volt2[0] > 0.98) && (volt2[0] < 1.02)) << "Exciter " << excname;
-        EXPECT_TRUE((volt2[1] > 0.97) && (volt2[1] < 1.02)) << "Exciter " << excname;
-        // check for stability
-    }
+    const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability4.xml");
+    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
 }
 
 #ifdef LOAD_CVODE

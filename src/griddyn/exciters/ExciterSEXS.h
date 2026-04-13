@@ -6,6 +6,9 @@
 #pragma once
 
 #include "Exciter.h"
+#include "../gridDynDefinitions.hpp"
+#include "core/coreDefinitions.hpp"
+#include "solvers/solverMode.hpp"
 #include <string>
 #include <vector>
 
@@ -39,30 +42,30 @@ namespace exciters {
         stringVec localStateNames() const override;
 
         void residual(const IOdata& inputs,
-                      const stateData& sD,
+                      const stateData& stateData,
                       double resid[],
-                      const solverMode& sMode) override;
+                      const solverMode& solverMode) override;
         void derivative(const IOdata& inputs,
-                        const stateData& sD,
+                        const stateData& stateData,
                         double deriv[],
-                        const solverMode& sMode) override;
+                        const solverMode& solverMode) override;
         void jacobianElements(const IOdata& inputs,
-                              const stateData& sD,
-                              matrixData<double>& md,
+                              const stateData& stateData,
+                              matrixData<double>& matrix,
                               const IOlocs& inputLocs,
-                              const solverMode& sMode) override;
+                              const solverMode& solverMode) override;
 
         void rootTest(const IOdata& inputs,
-                      const stateData& sD,
+                      const stateData& stateData,
                       double root[],
-                      const solverMode& sMode) override;
+                      const solverMode& solverMode) override;
         void rootTrigger(coreTime time,
                          const IOdata& inputs,
                          const std::vector<int>& rootMask,
-                         const solverMode& sMode) override;
+                         const solverMode& solverMode) override;
         change_code rootCheck(const IOdata& inputs,
-                              const stateData& sD,
-                              const solverMode& sMode,
+                              const stateData& stateData,
+                              const solverMode& solverMode,
                               check_level_t level) override;
 
       private:

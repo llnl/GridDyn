@@ -26,8 +26,7 @@ namespace {
 using exciter_parameter_map = std::map<std::string, std::vector<std::pair<std::string, double>>>;
 
 // NOLINTNEXTLINE(misc-multiple-inheritance)
-class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {
-};
+class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 void applyExciterParameters(coreObject* object,
                             const exciter_parameter_map& parameters,

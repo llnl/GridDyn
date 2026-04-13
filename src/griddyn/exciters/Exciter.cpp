@@ -21,7 +21,6 @@
 #include "core/objectFactoryTemplates.hpp"
 #include "solvers/solverMode.hpp"
 #include "utilities/matrixData.hpp"
-#include "units/units.hpp"
 #include <cstdint>
 #include <algorithm>
 #include <string>

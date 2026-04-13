@@ -28,7 +28,7 @@ if ((filecount > 0 && filecount <= 20)); then
     fi
     while read -r line; do
         if echo "$line" | grep -E '\.(cpp|hpp|c|h)$'; then
-            if "${TIDY_CMD[@]}" -p build -quiet -config-file "$PWD/.clang-tidy" "$line"; then
+            if "${TIDY_CMD[@]}" -p build -quiet "$line"; then
                 rc=0
             else
                 rc=$?

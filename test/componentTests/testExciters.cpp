@@ -26,7 +26,8 @@ namespace {
 using exciter_parameter_map =
     std::map<std::string, std::vector<std::pair<std::string, double>>>;
 
-class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {  // NOLINT(misc-multiple-inheritance)
+// NOLINTNEXTLINE(misc-multiple-inheritance)
+class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {
 };
 
 void applyExciterParameters(coreObject* object,
@@ -43,13 +44,14 @@ void applyExciterParameters(coreObject* object,
     }
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 Generator* loadExciterCase(ExciterTests& fixture,
                            coreObjectFactory* factory,
-                           const std::string& fileName,
+                           const std::string& caseFileName,
                            const std::string& exciterName,
                            const exciter_parameter_map& parameters)
 {
-    fixture.gds = readSimXMLFile(fileName);
+    fixture.gds = readSimXMLFile(caseFileName);
     auto* generator = fixture.gds->getGen(0);
     EXPECT_NE(generator, nullptr);
     if (generator == nullptr) {
@@ -68,8 +70,9 @@ Generator* loadExciterCase(ExciterTests& fixture,
     return generator;
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void verifyStabilityCase(ExciterTests& fixture,
-                         const std::string& fileName,
+                         const std::string& caseFileName,
                          const exciter_parameter_map& parameters,
                          double minVoltage0,
                          double maxVoltage0,
@@ -90,7 +93,7 @@ void verifyStabilityCase(ExciterTests& fixture,
         }
 
         auto* generator =
-            loadExciterCase(fixture, factory.get(), fileName, exciterName, parameters);
+            loadExciterCase(fixture, factory.get(), caseFileName, exciterName, parameters);
         ASSERT_NE(generator, nullptr);
 
         const int returnValue = fixture.gds->dynInitialize();

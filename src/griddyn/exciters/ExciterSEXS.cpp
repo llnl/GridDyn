@@ -14,7 +14,6 @@
 #include "core/coreObject.h"
 #include "core/coreObjectTemplates.hpp"
 #include "solvers/solverMode.hpp"
-#include "units/units.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <cstdint>

@@ -8,6 +8,7 @@
 #define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_
 
 #include "gridSubModel.h"
+#include "units/units_decl.hpp"
 #include <string>
 #include <vector>
 namespace griddyn {
@@ -56,30 +57,30 @@ class Exciter: public gridSubModel {
     virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateData,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const solverMode& solverMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateData,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const solverMode& solverMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateData,
+                                  matrixData<double>& matrix,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const solverMode& solverMode) override;
     // handle the rootfinding functions
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateData,
                           double root[],
-                          const solverMode& sMode) override;
+                          const solverMode& solverMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const solverMode& solverMode) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
+                                  const stateData& stateData,
+                                  const solverMode& solverMode,
                                   check_level_t level) override;
 
     // virtual void setTime(coreTime time){prevTime=time;};

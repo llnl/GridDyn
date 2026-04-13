@@ -20,9 +20,10 @@
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
 #include "solvers/solverMode.hpp"
+#include "units/units.hpp"
 #include "utilities/matrixData.hpp"
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <string>
 #include <vector>
 

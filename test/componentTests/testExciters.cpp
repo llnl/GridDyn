@@ -23,8 +23,7 @@ using namespace griddyn;
 
 namespace {
 
-using exciter_parameter_map =
-    std::map<std::string, std::vector<std::pair<std::string, double>>>;
+using exciter_parameter_map = std::map<std::string, std::vector<std::pair<std::string, double>>>;
 
 // NOLINTNEXTLINE(misc-multiple-inheritance)
 class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {

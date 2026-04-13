@@ -5,8 +5,8 @@
  */
 #pragma once
 
-#include "Exciter.h"
 #include "../gridDynDefinitions.hpp"
+#include "Exciter.h"
 #include "core/coreDefinitions.hpp"
 #include "solvers/solverMode.hpp"
 #include <string>

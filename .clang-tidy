@@ -11,6 +11,7 @@ google-*,
 modernize*,
 -modernize-use-trailing-return-type,
 -modernize-use-override,
+-modernize-use-ranges,
 -modernize-avoid-c-arrays,
 -modernize-pass-by-value,
 -modernize-use-equals-default,
@@ -24,11 +25,14 @@ hicpp-*,
 clang-analyzer-*,
 bugprone-*,
 -bugprone-narrowing-conversions,
+-bugprone-easily-swappable-parameters,
 misc-*,
 -misc-non-private-member-variables-in-classes,
+-misc-include-cleaner,
 cert-*,
 -cert-err58-cpp,
 portability-*,
+-portability-template-virtual-member-function,
 readability-*,
 -readability-magic-numbers,
 performance-*
@@ -45,6 +49,7 @@ google-*,
 modernize*,
 -modernize-use-trailing-return-type,
 -modernize-use-override,
+-modernize-use-ranges,
 -modernize-use-using,
 -modernize-avoid-c-arrays,
 -modernize-pass-by-value,
@@ -65,6 +70,7 @@ misc-*,
 cert-*,
 -cert-err58-cpp,
 portability-*,
+-portability-template-virtual-member-function,
 readability-*,
 -readability-magic-numbers,
 -readability-identifier-naming,
@@ -74,7 +80,6 @@ performance-*
 
 HeaderFilterRegex: 'src/helics/*.hp?p?'
 
-AnalyzeTemporaryDtors: false
 CheckOptions:
   - key:             cert-dcl59-cpp.HeaderFileExtensions
     value:           h,hh,hpp,hxx
@@ -315,7 +320,7 @@ CheckOptions:
   - key:             readability-identifier-naming.MethodSuffix
     value:           ''
   - key:             readability-identifier-naming.NamespaceCase
-    value:           lowercase
+    value:           lower_case
   - key:             readability-identifier-naming.NamespacePrefix
     value:           ''
   - key:             readability-identifier-naming.NamespaceSuffix

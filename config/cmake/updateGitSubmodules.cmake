@@ -26,15 +26,17 @@ macro(submod_update_all)
     if(ENABLE_SUBMODULE_UPDATE)
         message(STATUS "Git Submodule Update")
         execute_process(
-            COMMAND ${GIT_EXECUTABLE} submodule update --init
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update
+                    --init
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             RESULT_VARIABLE GIT_RESULT
             OUTPUT_VARIABLE GIT_OUTPUT
+            ERROR_VARIABLE GIT_ERROR
         )
         if(GIT_RESULT)
             message(
                 WARNING
-                    "Automatic submodule checkout with `git submodule --init` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}. Checkout the submodules before building."
+                    "Automatic submodule checkout with `git submodule --init` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}${GIT_ERROR}. Checkout the submodules before building."
             )
         endif()
     else()
@@ -46,15 +48,17 @@ macro(submod_update target)
     if(ENABLE_SUBMODULE_UPDATE)
         message(STATUS "Git Submodule Update ${target}")
         execute_process(
-            COMMAND ${GIT_EXECUTABLE} submodule update --init -- ${target}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND ${GIT_EXECUTABLE} -c safe.directory=${PROJECT_SOURCE_DIR} submodule update
+                    --init -- ${target}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
             RESULT_VARIABLE GIT_RESULT
             OUTPUT_VARIABLE GIT_OUTPUT
+            ERROR_VARIABLE GIT_ERROR
         )
         if(GIT_RESULT)
             message(
                 WARNING
-                    "Automatic submodule checkout with `git submodule --init -- $[target}` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}. Checkout the submodules before building."
+                    "Automatic submodule checkout with `git submodule --init -- ${target}` failed with error ${GIT_RESULT} and output ${GIT_OUTPUT}${GIT_ERROR}. Checkout the submodules before building."
             )
         endif()
     else()

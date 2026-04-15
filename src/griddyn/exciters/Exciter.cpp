@@ -4,31 +4,43 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../Exciter.h"
+
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../gridComponentHelperClasses.h"
+#include "../gridDynDefinitions.hpp"
+#include "../gridPrimary.h"
+#include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
+#include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
+#include "ExciterSEXS.h"
+#include "core/coreDefinitions.hpp"
+#include "core/coreObject.h"
 #include "core/coreObjectTemplates.hpp"
 #include "core/objectFactoryTemplates.hpp"
+#include "solvers/solverMode.hpp"
+#include "units/units.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
-#include <cmath>
+#include <cstdint>
 #include <string>
 #include <vector>
 
-// note that there is only 1 dynamic state since V_R = E_f
-
 namespace griddyn {
 namespace exciters {
-    // setup the object factories
-    static childTypeFactory<ExciterDC1A, Exciter> gfe1("exciter", "dc1a");
-    static childTypeFactory<ExciterDC2A, Exciter> gfe2("exciter", "dc2a");
-    static childTypeFactory<ExciterIEEEtype1, Exciter> gfet1("exciter", "type1");
-    static typeFactory<Exciter> gf("exciter",
-                                   stringVec{"basic", "fast"},
-                                   "type1");  // setup type 1 as the default
-    static childTypeFactory<ExciterIEEEtype2, Exciter> gfet2("exciter", "type2");
-
+    namespace {
+        // setup the object factories
+        static childTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
+        static childTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+        static childTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
+        static typeFactory<Exciter> gfeDefault(  // NOLINT
+            "exciter",
+            stringVec{"basic", "fast"},
+            "type1");  // setup type 1 as the default
+        static childTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
+        static childTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
+    }  // namespace
 }  // namespace exciters
 
 Exciter::Exciter(const std::string& objName): gridSubModel(objName)
@@ -36,7 +48,7 @@ Exciter::Exciter(const std::string& objName): gridSubModel(objName)
     m_inputSize = 4;
     m_outputSize = 1;
 }
-// cloning function
+
 coreObject* Exciter::clone(coreObject* obj) const
 {
     auto* gdE = cloneBase<Exciter, gridSubModel>(this, obj);
@@ -67,96 +79,95 @@ void Exciter::checkForLimits()
         offsets.local().local.algRoots = 1;
     }
 }
-// initial conditions
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void Exciter::dynObjectInitializeB(const IOdata& inputs,
                                    const IOdata& desiredOutput,
                                    IOdata& fieldSet)
 {
-    double* gs = m_state.data();
-    double V = inputs[voltageInLocation];
+    auto* stateValues = m_state.data();
+    const double voltage = inputs[voltageInLocation];
     if (desiredOutput.empty() || (desiredOutput[0] == kNullVal)) {
-        gs[0] = (Vref + vBias - V) / Ka;
-        fieldSet[0] = gs[0];
+        stateValues[0] = (Vref + vBias - voltage) / Ka;
+        fieldSet[0] = stateValues[0];
     } else {
-        gs[0] = desiredOutput[0];
+        stateValues[0] = desiredOutput[0];
 
-        vBias = V - Vref + gs[0] / Ka;
+        vBias = voltage - Vref + (stateValues[0] / Ka);
         fieldSet[exciterVsetInLocation] = Vref;
     }
 }
 
-// residual
 void Exciter::residual(const IOdata& inputs,
-                       const stateData& sD,
+                       const stateData& stateData,
                        double resid[],
-                       const solverMode& sMode)
+                       const solverMode& solverMode)
 {
-    if (isAlgebraicOnly(sMode)) {
+    if (isAlgebraicOnly(solverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(sMode);
-    const double* es = sD.state + offset;
-    const double* esp = sD.dstate_dt + offset;
-    double* rv = resid + offset;
+    auto offset = offsets.getDiffOffset(solverMode);
+    const auto* exciterState = stateData.state + offset;
+    const auto* exciterStateDerivatives = stateData.dstate_dt + offset;
+    auto* residualValues = resid + offset;
     if (opFlags[outside_vlim]) {
-        rv[0] = -esp[0];
+        residualValues[0] = -exciterStateDerivatives[0];
     } else {
-        rv[0] = (-es[0] + Ka * (Vref + vBias - inputs[voltageInLocation])) / Ta - esp[0];
+        residualValues[0] =
+            (((-exciterState[0]) + (Ka * (Vref + vBias - inputs[voltageInLocation]))) / Ta) -
+            exciterStateDerivatives[0];
     }
 }
 
 void Exciter::derivative(const IOdata& inputs,
-                         const stateData& sD,
+                         const stateData& stateData,
                          double deriv[],
-                         const solverMode& sMode)
+                         const solverMode& solverMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
-    const double* es = Loc.diffStateLoc;
-    double* d = Loc.destDiffLoc;
+    auto locations = offsets.getLocations(stateData, deriv, solverMode, this);
+    const auto* exciterState = locations.diffStateLoc;
+    auto* derivatives = locations.destDiffLoc;
     if (opFlags[outside_vlim]) {
-        d[0] = 0.0;
+        derivatives[0] = 0.0;
     } else {
-        d[0] = (-es[0] + Ka * (Vref + vBias - inputs[voltageInLocation])) / Ta;
+        derivatives[0] =
+            ((-exciterState[0]) + (Ka * (Vref + vBias - inputs[voltageInLocation]))) / Ta;
     }
 }
 
-// Jacobian
 void Exciter::jacobianElements(const IOdata& /*inputs*/,
-                               const stateData& sD,
-                               matrixData<double>& md,
+                               const stateData& stateData,
+                               matrixData<double>& matrix,
                                const IOlocs& inputLocs,
-                               const solverMode& sMode)
+                               const solverMode& solverMode)
 {
-    if (isAlgebraicOnly(sMode)) {
+    if (isAlgebraicOnly(solverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(sMode);
+    auto offset = offsets.getDiffOffset(solverMode);
 
-    // Ef (Vr)
     if (opFlags[outside_vlim]) {
-        md.assign(offset, offset, -sD.cj);
+        matrix.assign(offset, offset, -stateData.cj);
     } else {
-        md.assign(offset, offset, -1.0 / Ta - sD.cj);
-        md.assignCheckCol(offset, inputLocs[voltageInLocation], -Ka / Ta);
+        matrix.assign(offset, offset, (-1.0 / Ta) - stateData.cj);
+        matrix.assignCheckCol(offset, inputLocs[voltageInLocation], -Ka / Ta);
     }
-
-    // printf("%f\n",sD.cj);
 }
 
 void Exciter::rootTest(const IOdata& inputs,
-                       const stateData& sD,
+                       const stateData& stateData,
                        double root[],
-                       const solverMode& sMode)
+                       const solverMode& solverMode)
 {
-    auto offset = offsets.getDiffOffset(sMode);
-    int rootOffset = offsets.getRootOffset(sMode);
-    double Efield = sD.state[offset];
+    auto offset = offsets.getDiffOffset(solverMode);
+    const auto rootOffset = offsets.getRootOffset(solverMode);
+    const double eField = stateData.state[offset];
 
     if (opFlags[outside_vlim]) {
         root[rootOffset] = Vref + vBias - inputs[voltageInLocation];
     } else {
-        root[rootOffset] = std::min(Vrmax - Efield, Efield - Vrmin) + 0.0001;
-        if (Efield > Vrmax) {
+        root[rootOffset] = std::min(Vrmax - eField, eField - Vrmin) + 0.0001;
+        if (eField > Vrmax) {
             opFlags.set(etrigger_high);
         }
     }
@@ -165,9 +176,9 @@ void Exciter::rootTest(const IOdata& inputs,
 void Exciter::rootTrigger(coreTime time,
                           const IOdata& inputs,
                           const std::vector<int>& rootMask,
-                          const solverMode& sMode)
+                          const solverMode& solverMode)
 {
-    int rootOffset = offsets.getRootOffset(sMode);
+    const auto rootOffset = offsets.getRootOffset(solverMode);
     if (rootMask[rootOffset] != 0) {
         if (opFlags[outside_vlim]) {
             LOG_NORMAL("root trigger back in bounds");
@@ -185,21 +196,21 @@ void Exciter::rootTrigger(coreTime time,
             }
             alert(this, JAC_COUNT_DECREASE);
         }
-        stateData sD(time, m_state.data());
+        const stateData stateData(time, m_state.data());
 
-        derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
+        derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
 
 change_code Exciter::rootCheck(const IOdata& inputs,
-                               const stateData& /*sD*/,
-                               const solverMode& /*sMode*/,
+                               const stateData& /*stateData*/,
+                               const solverMode& /*solverMode*/,
                                check_level_t /*level*/)
 {
-    double Efield = m_state[0];
+    const double eField = m_state[0];
     change_code ret = change_code::no_change;
     if (opFlags[outside_vlim]) {
-        double test = Vref + vBias - inputs[voltageInLocation];
+        const double test = Vref + vBias - inputs[voltageInLocation];
         if (opFlags[etrigger_high]) {
             if (test < 0) {
                 opFlags.reset(outside_vlim);
@@ -215,13 +226,13 @@ change_code Exciter::rootCheck(const IOdata& inputs,
             }
         }
     } else {
-        if (Efield > Vrmax + 0.0001) {
+        if (eField > Vrmax + 0.0001) {
             opFlags.set(etrigger_high);
             opFlags.set(outside_vlim);
             m_state[0] = Vrmax;
             alert(this, JAC_COUNT_DECREASE);
             ret = change_code::jacobian_change;
-        } else if (Efield < Vrmin - 0.0001) {
+        } else if (eField < Vrmin - 0.0001) {
             opFlags.set(outside_vlim);
             m_state[0] = Vrmin;
             alert(this, JAC_COUNT_DECREASE);
@@ -231,17 +242,16 @@ change_code Exciter::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-static const stringVec exciterFields{"ef"};
-
 stringVec Exciter::localStateNames() const
 {
-    return exciterFields;
+    return {"ef"};
 }
+
 void Exciter::set(const std::string& param, const std::string& val)
 {
-    coreObject::set(param, val);
+    gridSubModel::set(param, val);
 }
-// set parameters
+
 void Exciter::set(const std::string& param, double val, units::unit unitType)
 {
     if (param == "vref") {
@@ -261,24 +271,22 @@ void Exciter::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-static const std::vector<stringVec> inputNamesStr{
-    {"voltage", "v", "volt"},
-    {"vset", "setpoint", "voltageset"},
-    {"pmech", "power", "mechanicalpower"},
-    {"omega", "frequency", "w", "f"},
-};
-
 const std::vector<stringVec>& Exciter::inputNames() const
 {
+    static const std::vector<stringVec> inputNamesStr{
+        {"voltage", "v", "volt"},
+        {"vset", "setpoint", "voltageset"},
+        {"pmech", "power", "mechanicalpower"},
+        {"omega", "frequency", "w", "f"},
+    };  // NOLINT(bugprone-throwing-static-initialization)
     return inputNamesStr;
 }
 
-static const std::vector<stringVec> outputNamesStr{
-    {"e", "field", "exciter"},
-};
-
 const std::vector<stringVec>& Exciter::outputNames() const
 {
+    static const std::vector<stringVec> outputNamesStr{
+        {"e", "field", "exciter"},
+    };  // NOLINT(bugprone-throwing-static-initialization)
     return outputNamesStr;
 }
 

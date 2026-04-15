@@ -3,12 +3,10 @@ name: Braid Build
 on:
   push:
     branches:
-      - develop
-      - modernization
+      - main
   pull_request:
     branches:
-      - develop
-      - modernization
+      - main
   workflow_dispatch:
 
 concurrency:

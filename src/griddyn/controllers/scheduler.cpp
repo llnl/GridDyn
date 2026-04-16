@@ -137,12 +137,13 @@ void scheduler::setTarget(const std::string& fileName)
     gmlc::utilities::TimeSeries<double, coreTime> targets;
     targets.loadFile(fileName);
 
-    const std::list<tsched> targetList = [&targets]() {
+    auto targetList = [&targets]() {
         std::list<tsched> loadedTargets;
         const auto targetCount = static_cast<int>(targets.size());
         for (int index = 0; index < targetCount; ++index) {
             loadedTargets.emplace_back(targets.time(index), targets.data(index));
         }
+        loadedTargets.sort();
         return loadedTargets;
     }();
     pTarget.merge(targetList);

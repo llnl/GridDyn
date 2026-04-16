@@ -92,12 +92,12 @@ jobs:
           imageName: "windows-latest"
           langArch: "x64"
           vsArch: "x64"
-          extraFlags: "-DCMAKE_CXX_STANDARD=23"
+          extraFlags: "-DCMAKE_CXX_STANDARD=26"
         VS2022-64bit:
           imageName: "windows-2022"
           langArch: "x64"
           vsArch: "x64"
-          extraFlags: "-DCMAKE_CXX_STANDARD=20"
+          extraFlags: "-DCMAKE_CXX_STANDARD=23"
     pool:
       vmImage: $(imageName)
     variables:

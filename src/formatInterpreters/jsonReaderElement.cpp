@@ -9,9 +9,10 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "jsonElement.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 // default initialized empty string
 static const char nullStr[] = "";
@@ -73,13 +74,13 @@ bool jsonReaderElement::loadFile(const std::string& fileName)
             return true;
         }
 
-        std::cerr << "file read error in " << fileName << "::" << errs << '\n';
+        std::println(stderr, "file read error in {}::{}", fileName, errs);
         doc = nullptr;
         clear();
         return false;
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;
@@ -95,7 +96,7 @@ bool jsonReaderElement::parse(const std::string& inputString)
         std::string errs;
         bool ok = Json::parseFromStream(rbuilder, file, doc.get(), &errs);
         if (!ok) {
-            std::cerr << "Read error in stream::" << errs << '\n';
+            std::println(stderr, "Read error in stream::{}", errs);
             doc = nullptr;
             clear();
             return false;
@@ -106,7 +107,7 @@ bool jsonReaderElement::parse(const std::string& inputString)
         std::istringstream jstring(inputString);
         bool ok = Json::parseFromStream(rbuilder, jstring, doc.get(), &errs);
         if (!ok) {
-            std::cerr << "Read error in stream::" << errs << '\n';
+            std::println(stderr, "Read error in stream::{}", errs);
             doc = nullptr;
             clear();
             return false;

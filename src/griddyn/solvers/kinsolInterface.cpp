@@ -26,10 +26,9 @@
 
 #include <cassert>
 #include <cstdio>
-#include <format>
-#include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <string>
 
 namespace griddyn {
@@ -134,7 +133,7 @@ namespace solvers {
         if (m_gds != nullptr) {
             m_gds->log(m_gds, logLevel, logstr);
         } else {
-            std::cout << std::format("\n{}", logstr);
+            std::print("\n{}", logstr);
         }
     }
 
@@ -314,10 +313,10 @@ namespace solvers {
         auto stop_t = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_t = stop_t - start_t;
         kinTime += elapsed_t.count();
-        std::cout << std::format("total solve time {}, {:5.3f}% in resid {:5.3f}%  in Jacobian\n",
-                                 kinTime,
-                                 residTime / kinTime * 100.0,
-                                 jacTime / kinTime * 100);
+        std::println("total solve time {}, {:5.3f}% in resid {:5.3f}%  in Jacobian",
+                     kinTime,
+                     residTime / kinTime * 100.0,
+                     jacTime / kinTime * 100);
 #else
         int retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
 #endif
@@ -391,15 +390,14 @@ namespace solvers {
             KINGetNumNonlinSolvIters(sd->solverMem, &val);
             double* residuals = NVECTOR_DATA(sd->use_omp, resid);
             double* values = NVECTOR_DATA(sd->use_omp, state);
-            std::cout << std::format("Residual for {} at time ={} iteration %{}\n",
-                                     sd->getName(),
-                                     static_cast<double>(sd->solveTime),
-                                     val);
+            std::println("Residual for {} at time ={} iteration {}",
+                         sd->getName(),
+                         static_cast<double>(sd->solveTime),
+                         val);
             for (int kk = 0; kk < static_cast<int>(sd->svsize); ++kk) {
-                std::cout << std::format(
-                    "value[{}] = {}, resid[{}]={}\n", kk, values[kk], kk, residuals[kk]);
+                std::println("value[{}] = {}, resid[{}]={}", kk, values[kk], kk, residuals[kk]);
             }
-            std::cout << "---------------------------------\n";
+            std::println("---------------------------------");
         }
         if (sd->flags[fileCapture_flag]) {
             if (!sd->stateFile.empty()) {

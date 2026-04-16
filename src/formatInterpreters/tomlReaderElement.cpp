@@ -9,9 +9,10 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "tomlElement.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 
 static const char nullStr[] = "";
@@ -68,13 +69,13 @@ bool tomlReaderElement::loadFile(const std::string& fileName)
             return true;
         }
 
-        std::cerr << "file read error in " << fileName << "::" << doc->errorReason << '\n';
+        std::println(stderr, "file read error in {}::{}", fileName, doc->errorReason);
         doc = nullptr;
         clear();
         return false;
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;
@@ -89,7 +90,7 @@ bool tomlReaderElement::parse(const std::string& inputString)
         return true;
     }
 
-    std::cerr << "Read error in stream:: " << doc->errorReason << '\n';
+    std::println(stderr, "Read error in stream:: {}", doc->errorReason);
     doc = nullptr;
     clear();
     return false;

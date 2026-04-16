@@ -9,9 +9,10 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "inih/INIReader.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 
 static const char nullStr[] = "";
@@ -56,7 +57,7 @@ bool iniReaderElement::loadFile(const std::string& fileName)
         return true;
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;

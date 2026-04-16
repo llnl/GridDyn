@@ -15,9 +15,10 @@
 #include "utilities/stringConversion.h"
 #include "yamlElement.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 
 static const char nullStr[] = "";
@@ -74,14 +75,14 @@ bool yamlReaderElement::loadFile(const std::string& fileName)
             return false;
         }
         catch (const YAML::ParserException& pe) {
-            std::cerr << pe.what() << '\n';
+            std::println(stderr, "{}", pe.what());
             doc = nullptr;
             clear();
             return false;
         }
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;
@@ -101,7 +102,7 @@ bool yamlReaderElement::parse(const std::string& inputString)
         return false;
     }
     catch (const YAML::ParserException& pe) {
-        std::cerr << pe.what() << '\n';
+        std::println(stderr, "{}", pe.what());
         doc = nullptr;
         clear();
         return false;

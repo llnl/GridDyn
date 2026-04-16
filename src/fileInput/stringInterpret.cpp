@@ -11,9 +11,9 @@
 #include "utilities/functionInterpreter.h"
 #include <algorithm>
 #include <cctype>
+#include <cstdio>
 #include <cmath>
-#include <format>
-#include <iostream>
+#include <print>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -96,8 +96,9 @@ double interpretString_sv(string_view command, readerInfo& ri)
                             val = InterpretFunction(std::string{cmdBlock}, v1, ri);
                         }
                     } else {
-                        std::cout << std::format("invalid arguments to function {}\n",
-                                                 std::string{cmdBlock});
+                        std::println(stderr,
+                                     "invalid arguments to function {}",
+                                     std::string{cmdBlock});
                     }
                 } else {
                     if (cmdBlock == "query") {

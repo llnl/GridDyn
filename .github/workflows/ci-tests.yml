@@ -43,7 +43,7 @@ jobs:
           cmake \
           ninja-build \
           libsuitesparse-dev \
-          libboost--dev \
+          libboost-dev \
           ${{ matrix.c_compiler }} \
           ${{ matrix.cxx_compiler }} \
           ${{ matrix.extra_packages }}

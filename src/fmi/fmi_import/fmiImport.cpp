@@ -432,7 +432,7 @@ void fmiLibrary::makeCallbackFunctions()
 }
 
 namespace {
-    constexpr std::size_t string_buffer_size = 1000;
+constexpr std::size_t string_buffer_size = 1000;
 }
 
 // NOLINTNEXTLINE(hicpp-vararg)

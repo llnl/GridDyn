@@ -11,8 +11,8 @@
 #include "utilities/functionInterpreter.h"
 #include <algorithm>
 #include <cctype>
-#include <cstdio>
 #include <cmath>
+#include <cstdio>
 #include <print>
 #include <string>
 #include <string_view>

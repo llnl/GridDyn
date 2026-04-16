@@ -83,7 +83,7 @@ class extraContingencyInfo {
 const extraContingencyInfo emptyExtraInfo{};
 /** class that encapsulated the information about a contingency
  */
-class Contingency: public gmlc::containers::basicWorkBlock, objectOperatorInterface {
+class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterface {
   private:
     static std::atomic_int
         contingencyCount;  //!< static variable counting the number of created contingencies

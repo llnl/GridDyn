@@ -12,6 +12,7 @@
 #include "dispatcher.h"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/griddyn-config.h"
+#include <algorithm>
 #include <list>
 #include <memory>
 #include <string>
@@ -115,16 +116,14 @@ void scheduler::setTarget(coreTime time, double target)
 
 void scheduler::setTarget(std::vector<double>& time, std::vector<double>& target)
 {
-    auto tm = time.begin();
-    auto tg = target.begin();
-    auto tme = time.end();
-    auto the = target.end();
-    std::list<tsched> flist;
-    while ((tm != tme) && (tg != the)) {
-        // pTarget.push_back (tsched (*tm, *tg));
-        pTarget.emplace_back(*tm, *tg);
-        ++tm;
-        ++tg;
+    auto timeIter = time.begin();
+    auto targetIter = target.begin();
+    const auto timeEnd = time.end();
+    const auto targetEnd = target.end();
+    while ((timeIter != timeEnd) && (targetIter != targetEnd)) {
+        pTarget.emplace_back(*timeIter, *targetIter);
+        ++timeIter;
+        ++targetIter;
     }
     pTarget.sort();
     if (pTarget.front().time != nextUpdateTime) {
@@ -138,15 +137,15 @@ void scheduler::setTarget(const std::string& fileName)
     gmlc::utilities::TimeSeries<double, coreTime> targets;
     targets.loadFile(fileName);
 
-    std::list<tsched> flist;
-    auto Ntargets = static_cast<int>(targets.size());
-    for (int kk = 0; kk < Ntargets; ++kk) {
-        // flist.push_back (tsched (targets.time(kk), targets.data(kk)));
-        flist.emplace_back(targets.time(kk), targets.data(kk));
-        // setTarget(targets.time[kk],targets.data[kk]);
-    }
-    flist.sort();
-    pTarget.merge(flist);
+    const std::list<tsched> targetList = [&targets]() {
+        std::list<tsched> loadedTargets;
+        const auto targetCount = static_cast<int>(targets.size());
+        for (int index = 0; index < targetCount; ++index) {
+            loadedTargets.emplace_back(targets.time(index), targets.data(index));
+        }
+        return loadedTargets;
+    }();
+    pTarget.merge(targetList);
     if (pTarget.front().time != nextUpdateTime) {
         nextUpdateTime = (pTarget.front()).time;
         alert(this, UPDATE_TIME_CHANGE);
@@ -155,18 +154,14 @@ void scheduler::setTarget(const std::string& fileName)
 
 void scheduler::updateA(coreTime time)
 {
-    auto dt = (time - prevTime);
-    if (dt == timeZero) {
+    const auto deltaTime = (time - prevTime);
+    if (deltaTime == timeZero) {
         return;
     }
     if (time >= nextUpdateTime) {
         while (time >= pTarget.front().time) {
             PCurr = (pTarget.front()).target;
-            if (PCurr > Pmax) {
-                PCurr = Pmax;
-            } else if (PCurr < Pmin) {
-                PCurr = Pmin;
-            }
+            PCurr = std::clamp(PCurr, Pmin, Pmax);
 
             pTarget.pop_front();
             if (pTarget.empty()) {
@@ -187,11 +182,7 @@ double scheduler::predict(coreTime time)
     double out = m_output;
     if (time >= nextUpdateTime) {
         out = (pTarget.front()).target;
-        if (out > Pmax) {
-            out = Pmax;
-        } else if (out < Pmin) {
-            out = Pmin;
-        }
+        out = std::clamp(out, Pmin, Pmax);
     }
     return out;
 }
@@ -202,7 +193,7 @@ void scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 
     commLink->registerReceiveCallback(
         [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
-            receiveMessage(sourceID, message);
+            receiveMessage(sourceID, std::move(message));
         });
     prevTime = time0;
 }
@@ -252,14 +243,10 @@ void scheduler::set(const std::string& param, double val, unit unitType)
 {
     if (param == "min") {
         Pmin = convert(val, unitType, puMW, m_Base);
-        if (PCurr < Pmin) {
-            PCurr = Pmin;
-        }
+        PCurr = std::clamp(PCurr, Pmin, Pmax);
     } else if (param == "max") {
         Pmax = convert(val, unitType, puMW, m_Base);
-        if (PCurr > Pmax) {
-            PCurr = Pmax;
-        }
+        PCurr = std::clamp(PCurr, Pmin, Pmax);
     } else if (param == "base") {
         m_Base = convert(val, unitType, MW, systemBasePower);
     } else if (param == "target") {
@@ -300,35 +287,34 @@ void scheduler::clearSchedule()
     }
 }
 
-void scheduler::insertTarget(tsched ts)
+void scheduler::insertTarget(tsched targetSchedule)
 {
-    if (ts < nextUpdateTime) {
-        pTarget.push_front(ts);
-        nextUpdateTime = ts.time;
+    if (targetSchedule < nextUpdateTime) {
+        pTarget.push_front(targetSchedule);
+        nextUpdateTime = targetSchedule.time;
         alert(this, UPDATE_TIME_CHANGE);
     } else {
-        pTarget.push_back(ts);
+        pTarget.push_back(targetSchedule);
         pTarget.sort();
     }
 }
 
-void scheduler::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
+void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<commMessage>& message)
 {
     using comms::schedulerMessagePayload;
-    auto sm = message->getPayload<schedulerMessagePayload>();
+    auto* schedulerPayload = message->getPayload<schedulerMessagePayload>();
     switch (message->getMessageType()) {
         case schedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
         case schedulerMessagePayload::SHUTDOWN:
-            break;
         case schedulerMessagePayload::STARTUP:
             break;
         case schedulerMessagePayload::UPDATE_TARGETS:
             clearSchedule();
             [[fallthrough]];
         case schedulerMessagePayload::ADD_TARGETS:
-            setTarget(sm->m_time, sm->m_target);
+            setTarget(schedulerPayload->m_time, schedulerPayload->m_target);
             break;
         case schedulerMessagePayload::REGISTER_DISPATCHER:
             dispatcher_id = sourceID;
@@ -340,7 +326,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessa
 
 void scheduler::dispatcherLink()
 {
-    auto dispatch = static_cast<dispatcher*>(getParent()->find("dispatcher"));
+    auto* dispatch = static_cast<dispatcher*>(getParent()->find("dispatcher"));
     if (dispatch != nullptr) {
         dispatch->add(this);
     }

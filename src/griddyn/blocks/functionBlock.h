@@ -34,7 +34,7 @@ operations*/
         /** @brief default constructor*/
         functionBlock();
         /** @brief alternate constructor
-    @param[in] function the name of the function as a string
+    @param[in] functionName the name of the function as a string
     */
         explicit functionBlock(const std::string& functionName);
         virtual coreObject* clone(coreObject* obj = nullptr) const override;

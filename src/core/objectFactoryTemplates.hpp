@@ -361,9 +361,9 @@ class typeFactoryArg: public objectFactory {
 
 /**
 * @brief template for cloneBase using an object Factory to make new objects instead of new
-* @param[in] object of class A to be cloned
-* @param[in] pointer of an object to clone to or a null pointer if a new object needs to be created
-@param[in] factory making the new object
+* @param[in] bobj object of class A to be cloned
+* @param[in] obj an object to clone to, or a null pointer if a new object needs to be created
+* @param[in] cfact factory making the new object
 * @return pointer to the cloned object
 */
 template<class A, class B>

@@ -18,8 +18,11 @@
 static const char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
 
-static bool isElement(const toml::Value& testValue);
-static bool isAttribute(const toml::Value& testValue);
+namespace {
+bool isElement(const toml::Value& testValue);
+bool isAttribute(const toml::Value& testValue);
+}  // namespace
+
 tomlReaderElement::tomlReaderElement() = default;
 tomlReaderElement::tomlReaderElement(const std::string& fileName)
 {
@@ -409,7 +412,9 @@ void tomlReaderElement::restore()
     bookmarks.pop_back();
 }
 
-static bool isAttribute(const toml::Value& testValue)
+namespace {
+
+bool isAttribute(const toml::Value& testValue)
 {
     if (testValue.empty()) {
         return false;
@@ -423,7 +428,7 @@ static bool isAttribute(const toml::Value& testValue)
     return true;
 }
 
-static bool isElement(const toml::Value& testValue)
+bool isElement(const toml::Value& testValue)
 {
     if (testValue.empty()) {
         return false;
@@ -431,3 +436,5 @@ static bool isElement(const toml::Value& testValue)
 
     return (!isAttribute(testValue));
 }
+
+}  // namespace

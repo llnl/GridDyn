@@ -19,8 +19,11 @@ static const char nullStr[] = "";
 
 using gmlc::utilities::numeric_conversionComplete;
 
-static bool isElement(const Json::Value& testValue);
-static bool isAttribute(const Json::Value& testValue);
+namespace {
+bool isElement(const Json::Value& testValue);
+bool isAttribute(const Json::Value& testValue);
+}  // namespace
+
 jsonReaderElement::jsonReaderElement() = default;
 jsonReaderElement::jsonReaderElement(const std::string& fileName)
 {
@@ -417,7 +420,9 @@ void jsonReaderElement::restore()
     bookmarks.pop_back();
 }
 
-static bool isAttribute(const Json::Value& testValue)
+namespace {
+
+bool isAttribute(const Json::Value& testValue)
 {
     if (testValue.empty()) {
         return false;
@@ -431,7 +436,7 @@ static bool isAttribute(const Json::Value& testValue)
     return true;
 }
 
-static bool isElement(const Json::Value& testValue)
+bool isElement(const Json::Value& testValue)
 {
     if (testValue.empty()) {
         return false;
@@ -446,3 +451,5 @@ static bool isElement(const Json::Value& testValue)
 
     return false;
 }
+
+}  // namespace

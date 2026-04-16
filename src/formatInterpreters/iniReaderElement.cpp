@@ -213,7 +213,7 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
         currentSection = ';';
         return;
     }
-    auto& sec = doc->Sections();
+    const auto& sec = doc->Sections();
     if (sec.empty()) {
         currentSection = ';';
         return;

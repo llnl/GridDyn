@@ -435,7 +435,7 @@ namespace {
 constexpr std::size_t string_buffer_size = 1000;
 }
 
-// NOLINTNEXTLINE(hicpp-vararg)
+// NOLINTNEXTLINE(hicpp-vararg,cert-dcl50-cpp,modernize-avoid-variadic-functions)
 void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String /* instanceName */,
                 fmi2Status /* status */,
@@ -443,7 +443,7 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String message,
                 ...)
 {
-    std::array<char, string_buffer_size> temp;
+    std::array<char, string_buffer_size> temp{};
     // FMI defines this callback as a variadic C API, so we must bridge it with va_list here.
     // NOLINTNEXTLINE(hicpp-vararg)
     va_list arglist;

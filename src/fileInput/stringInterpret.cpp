@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 #include <print>
 #include <string>
 #include <string_view>
@@ -24,6 +25,7 @@ using gmlc::utilities::string_viewOps::splitlineBracket;
 using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
 
+// NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)
 double interpretStringBlock(string_view command, readerInfo& ri);
 
 void interpretStringBlock(string_view command, readerInfo& ri, std::vector<double>& outputs);
@@ -165,7 +167,7 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
     return (op == '+') ? valA + valB : valA - valB;
 }
 
-const double nan_val = std::nan("0");
+const double nan_val = std::numeric_limits<double>::quiet_NaN();
 
 double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
 {
@@ -288,3 +290,4 @@ double stringBlocktoDouble(string_view block, readerInfo& ri)
 }
 
 }  // namespace griddyn
+// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)

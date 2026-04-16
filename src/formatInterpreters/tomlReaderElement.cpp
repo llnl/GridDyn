@@ -51,7 +51,7 @@ std::shared_ptr<readerElement> tomlReaderElement::clone() const
 {
     auto ret = std::make_shared<tomlReaderElement>();
     ret->parents.reserve(parents.size());
-    for (auto& parent : parents) {
+    for (const auto& parent : parents) {
         ret->parents.push_back(std::make_shared<tomlElement>(*parent));
     }
     ret->current = std::make_shared<tomlElement>(*current);
@@ -145,7 +145,7 @@ bool tomlReaderElement::hasAttribute(const std::string& attributeName) const
         return false;
     }
 
-    auto att = current->getElement().find(attributeName);
+    const auto* att = current->getElement().find(attributeName);
     if (att != nullptr) {
         return (isAttribute(*att));
     }
@@ -158,7 +158,7 @@ bool tomlReaderElement::hasElement(const std::string& elementName) const
         return false;
     }
 
-    auto att = current->getElement().find(elementName);
+    const auto* att = current->getElement().find(elementName);
     if (att != nullptr) {
         return (isElement(*att));
     }
@@ -169,83 +169,83 @@ bool tomlReaderElement::hasElement(const std::string& elementName) const
 readerAttribute tomlReaderElement::getFirstAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
     if (current->getElement().type() != toml::Value::TABLE_TYPE) {
-        return readerAttribute();
+        return {};
     }
-    auto& tab = current->getElement().as<toml::Table>();
+    const auto& tab = current->getElement().as<toml::Table>();
     auto attIterator = tab.begin();
     auto elementEnd = tab.end();
     iteratorCount = 0;
 
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return readerAttribute(attIterator->first, attIterator->second.as<std::string>());
+            return {attIterator->first, attIterator->second.as<std::string>()};
         }
         ++attIterator;
         ++iteratorCount;
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute tomlReaderElement::getNextAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
-    auto& tab = current->getElement().as<toml::Table>();
+    const auto& tab = current->getElement().as<toml::Table>();
     auto attIterator = tab.begin();
     auto elementEnd = tab.end();
     for (int ii = 0; ii < iteratorCount; ++ii) {
         ++attIterator;
         if (attIterator == elementEnd) {
-            return readerAttribute();
+            return {};
         }
     }
     if (attIterator == elementEnd) {
-        return readerAttribute();
+        return {};
     }
     ++attIterator;
     ++iteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return readerAttribute(attIterator->first, attIterator->second.as<std::string>());
+            return {attIterator->first, attIterator->second.as<std::string>()};
         }
         ++attIterator;
         ++iteratorCount;
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute tomlReaderElement::getAttribute(const std::string& attributeName) const
 {
-    auto v = current->getElement().find(attributeName);
-    if ((v != nullptr) && (isAttribute(*v))) {
-        return readerAttribute(attributeName, v->as<std::string>());
+    const auto* valuePtr = current->getElement().find(attributeName);
+    if ((valuePtr != nullptr) && (isAttribute(*valuePtr))) {
+        return {attributeName, valuePtr->as<std::string>()};
     }
-    return readerAttribute();
+    return {};
 }
 
 std::string tomlReaderElement::getAttributeText(const std::string& attributeName) const
 {
-    auto v = current->getElement().find(attributeName);
-    if ((v != nullptr) && (isAttribute(*v))) {
-        return v->as<std::string>();
+    const auto* valuePtr = current->getElement().find(attributeName);
+    if ((valuePtr != nullptr) && (isAttribute(*valuePtr))) {
+        return valuePtr->as<std::string>();
     }
     return nullStr;
 }
 
 double tomlReaderElement::getAttributeValue(const std::string& attributeName) const
 {
-    auto v = current->getElement().find(attributeName);
-    if (v == nullptr) {
+    const auto* valuePtr = current->getElement().find(attributeName);
+    if (valuePtr == nullptr) {
         return readerNullVal;
     }
-    if (v->isNumber()) {
-        return v->asNumber();
+    if (valuePtr->isNumber()) {
+        return valuePtr->asNumber();
     }
-    return numeric_conversionComplete(v->as<std::string>(), readerNullVal);
+    return numeric_conversionComplete(valuePtr->as<std::string>(), readerNullVal);
 }
 
 std::shared_ptr<readerElement> tomlReaderElement::firstChild() const
@@ -269,7 +269,7 @@ void tomlReaderElement::moveToFirstChild()
     }
     current->elementIndex = 0;
     if (current->getElement().type() == toml::Value::TABLE_TYPE) {
-        auto& tab = current->getElement().as<toml::Table>();
+        const auto& tab = current->getElement().as<toml::Table>();
         auto elementIterator = tab.begin();
         auto endIterator = tab.end();
 
@@ -296,10 +296,10 @@ void tomlReaderElement::moveToFirstChild(const std::string& childName)
     if (current->getElement().type() != toml::Value::TABLE_TYPE) {
         return;
     }
-    auto v = current->getElement().findChild(childName);
-    if ((v != nullptr) && (isElement(*v))) {
+    const auto* valuePtr = current->getElement().findChild(childName);
+    if ((valuePtr != nullptr) && (isElement(*valuePtr))) {
         parents.push_back(current);
-        current = std::make_shared<tomlElement>(*v, childName);
+        current = std::make_shared<tomlElement>(*valuePtr, childName);
         return;
     }
 
@@ -325,7 +325,7 @@ void tomlReaderElement::moveToNextSibling()
     }
     // there are no more elements in a potential array
 
-    auto& tab = parents.back()->getElement().as<toml::Table>();
+    const auto& tab = parents.back()->getElement().as<toml::Table>();
     auto elementIterator = tab.begin();
     auto elementEnd = tab.end();
     ++parents.back()->elementIndex;
@@ -363,9 +363,9 @@ void tomlReaderElement::moveToNextSibling(const std::string& siblingName)
         }
         current->clear();
     } else {
-        auto v = parents.back()->getElement().find(siblingName);
-        if ((v != nullptr) && (isElement(*v))) {
-            current = std::make_shared<tomlElement>(*v, siblingName);
+        const auto* valuePtr = parents.back()->getElement().find(siblingName);
+        if ((valuePtr != nullptr) && (isElement(*valuePtr))) {
+            current = std::make_shared<tomlElement>(*valuePtr, siblingName);
             return;
         }
     }

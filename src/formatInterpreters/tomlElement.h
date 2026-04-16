@@ -19,7 +19,11 @@ class tomlElement {
     void clear();
     const toml::Value& getElement() const
     {
-        return (arraytype) ? *element.find(arrayIndex) : element;
+        if (arraytype) {
+            const auto* elementPtr = element.find(arrayIndex);
+            return (elementPtr != nullptr) ? *elementPtr : element;
+        }
+        return element;
     }
     int count() const { return (arraytype) ? static_cast<int>(element.size()) : 1; }
     bool isNull() const

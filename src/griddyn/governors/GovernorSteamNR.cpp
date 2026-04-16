@@ -94,20 +94,16 @@ namespace governors {
         // use the md.assign Macro defined in basicDefs
         // md.assign(arrayIndex, RowIndex, ColIndex, value)
         int omegaLoc = -1;
-        int nn = 0;
 
         // Pm
         if (omegaLoc >= 0) {
             md.assign(refI, omegaLoc, -K * T2 / (T1 * T3));
-            nn++;
         }
         md.assign(refI, refI, -1 / T3 - sD.cj);
         md.assign(refI, refI + 1, -K / T3);
-        nn += 2;
         // X
         if (omegaLoc >= 0) {
             md.assign(refI + 1, omegaLoc, (T1 - T2) / (T1 * T1));
-            nn++;
         }
 
         md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);

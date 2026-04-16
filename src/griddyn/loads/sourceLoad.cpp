@@ -278,12 +278,10 @@ namespace loads {
     void sourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
         // Do a check on the sources;
-        int fnd = 0;
         for (auto& sL : sourceLink) {
             if (sL < 0) {
                 continue;
             }
-            ++fnd;
             if (sL >= static_cast<int>(sources.size())) {
                 LOG_WARNING("no source given at called index");
             } else if (sources[sL] == nullptr) {

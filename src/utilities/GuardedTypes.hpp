@@ -6,12 +6,12 @@ Energy, LLC All rights reserved. See LICENSE file and DISCLAIMER for more detail
 
 #pragma once
 
-#include <mutex>
-#include <shared_mutex>
 #include <libguarded/atomic_guarded.hpp>
 #include <libguarded/guarded.hpp>
 #include <libguarded/ordered_guarded.hpp>
 #include <libguarded/shared_guarded.hpp>
+#include <mutex>
+#include <shared_mutex>
 
 template<class T>
 using guarded = libguarded::guarded<T>;

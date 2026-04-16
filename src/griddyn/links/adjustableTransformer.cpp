@@ -562,8 +562,7 @@ namespace links {
                     {
                         break;
                     }
-                    FALLTHROUGH
-                    // FALLTHROUGH
+                    [[fallthrough]];
                 case control_mode_t::MVar_control: {
                     double midTap = (minTap + maxTap) / 2.0;
                     if (opFlags[continuous_flag]) {

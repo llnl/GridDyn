@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.28)
 cmake_policy(VERSION 3.28)
 
-project(GRIDDYN VERSION 0.10.0)
+project(GRIDDYN VERSION 0.11.0)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "GridDyn requires a 64-bit target platform")
@@ -19,16 +19,16 @@ endif()
 
 # Require C++20 (or newer) across the project.
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 23)
 endif()
-if(CMAKE_CXX_STANDARD LESS 20)
-    message(FATAL_ERROR "GridDyn requires CMAKE_CXX_STANDARD to be at least 20")
+if(CMAKE_CXX_STANDARD LESS 23)
+    message(FATAL_ERROR "GridDyn requires CMAKE_CXX_STANDARD to be at least 23")
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Minimum supported compiler versions for C++20-era GridDyn.
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
-    message(FATAL_ERROR "GridDyn requires GCC 13 or newer")
+# Minimum supported compiler versions for C++23-era GridDyn.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+    message(FATAL_ERROR "GridDyn requires GCC 14 or newer")
 endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18)
     message(FATAL_ERROR "GridDyn requires Clang 18 or newer")
@@ -36,7 +36,7 @@ endif()
 
 # version number
 set(GRIDDYN_VERSION_BUILD)
-set(GRIDDYN_DATE "06-16-2020")
+set(GRIDDYN_DATE "2026-04-16")
 
 set(GRIDDYN_VERSION_UNDERSCORE
     "${GRIDDYN_VERSION_MAJOR}_${GRIDDYN_VERSION_MINOR}_${GRIDDYN_VERSION_PATCH}"
@@ -175,10 +175,6 @@ option(GRIDDYN_ENABLE_FMI_EXPORT "Enable construction of a binary fmi shared lib
 
 option(GRIDDYN_BUILD_PYTHON_INTERFACE "Build Python extension" OFF)
 
-option(GRIDDYN_BUILD_PYTHON2_INTERFACE
-       "Build Python2.7 extension (conflicts with \"PYTHON_INTERFACE\", requires swig)" OFF
-)
-
 option(GRIDDYN_BUILD_MATLAB_INTERFACE "Build Matlab Extension" OFF)
 
 option(GRIDDYN_BUILD_OCTAVE_INTERFACE "Build Octave extension (very experimental)" OFF)
@@ -281,7 +277,6 @@ else()
 endif()
 
 if(GRIDDYN_BUILD_PYTHON_INTERFACE
-   OR GRIDDYN_BUILD_PYTHON2_INTERFACE
    OR GRIDDYN_BUILD_MATLAB_INTERFACE
    OR GRIDDYN_BUILD_JAVA_INTERFACE
    OR GRIDDYN_BUILD_OCTAVE_INTERFACE
@@ -415,12 +410,7 @@ if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
     endif()
 endif(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
 
-# ------------------------------------------------------------
-# Get some configuration for modern C++ features as available
-# ------------------------------------------------------------
-# message(STATUS ${CMAKE_CXX_FLAGS})
 set(CONFIGURE_TARGET_LOCATION ${GRIDDYN_BINARY_DIR}/griddyn_generated_includes/griddyn/)
-include(configGenerator)
 target_include_directories(
     griddyn_base INTERFACE $<BUILD_INTERFACE:${GRIDDYN_BINARY_DIR}/griddyn_generated_includes/>
 )

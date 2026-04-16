@@ -8,7 +8,6 @@
 
 #include "fmiObjects.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/compiler-config.h"
 #include "utilities/zipUtilities.h"
 #include <array>
 #include <cstdarg>
@@ -273,7 +272,7 @@ path fmiLibrary::findSoPath(fmutype_t type)
             }
             break;
     }
-    if IF_CONSTEXPR (sizeof(void*) == 8) {
+    if constexpr (sizeof(void*) == 8) {
 #ifdef _WIN32
         sopath /= "win64";
         sopath /= identifier + ".dll";

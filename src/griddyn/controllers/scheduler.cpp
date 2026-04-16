@@ -326,7 +326,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessa
             break;
         case schedulerMessagePayload::UPDATE_TARGETS:
             clearSchedule();
-            FALLTHROUGH
+            [[fallthrough]];
         case schedulerMessagePayload::ADD_TARGETS:
             setTarget(sm->m_time, sm->m_target);
             break;

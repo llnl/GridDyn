@@ -19,7 +19,6 @@
 #include "gmlc/utilities/vectorOps.hpp"
 // #include "matrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/compiler-config.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -171,7 +170,7 @@ void acBus::alert(coreObject* obj, int code)
             if (opFlags[disconnected]) {
                 reconnect();
             }
-            FALLTHROUGH
+            [[fallthrough]];
         default:
             gridPrimary::alert(obj, code);  // NOLINT
     }

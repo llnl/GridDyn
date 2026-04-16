@@ -267,8 +267,7 @@ void gridBus::alert(coreObject* obj, int code)
             if (opFlags[disconnected]) {
                 reconnect();
             }
-            FALLTHROUGH
-            // FALLTHROUGH
+            [[fallthrough]];
         default:
             gridPrimary::alert(obj, code);
     }

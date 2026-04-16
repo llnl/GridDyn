@@ -11,8 +11,6 @@
  */
 #pragma once
 
-#include "compiler-config.h"
-
 #cmakedefine GRIDDYN_ENABLE_MPI
 
 #cmakedefine GRIDDYN_ENABLE_OPENMP

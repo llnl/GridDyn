@@ -118,8 +118,8 @@ void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-static const std::string paramString("params");
-static const std::string inputString("inputs");
+static const char paramString[] = "params";
+static const char inputString[] = "inputs";
 
 void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
@@ -269,7 +269,7 @@ void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
         }
     }
 }
-static const std::string localIntegrationtimeString("localintegrationtime");
+static const char localIntegrationtimeString[] = "localintegrationtime";
 void fmiCoSimSubModel::set(const std::string& param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == localIntegrationtimeString)) {

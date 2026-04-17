@@ -24,9 +24,9 @@ static const double k3sq2sq = k3sq2 * k3sq2;
 using units::convert;
 using units::puMW;
 using units::unit;
-const std::string rect = "rectifier_$";
-const std::string inv = "inverter_$";
-const std::string bidir = "acdcConveter_$";
+const char rect[] = "rectifier_$";
+const char inv[] = "inverter_$";
+const char bidir[] = "acdcConveter_$";
 
 const std::string& modeToName(acdcConverter::mode_t mode, const std::string& name)
 {

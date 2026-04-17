@@ -57,7 +57,7 @@ void fmiCollector::set(const std::string& param, const std::string& val)
     }
 }
 
-static const std::string defFMIName("fmi");
+static const char defFMIName[] = "fmi";
 const std::string& fmiCollector::getSinkName() const
 {
     if (coord != nullptr) {

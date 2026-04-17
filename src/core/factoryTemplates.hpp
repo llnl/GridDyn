@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
@@ -21,7 +23,7 @@ class classFactory;
  */
 template<class parentClass>
 class coreClassFactory {
-    using fMap = std::map<std::string, classFactory<parentClass>*>;
+    using fMap = std::map<std::string, classFactory<parentClass>*, std::less<>>;
     std::string m_defaultType;
 
   public:
@@ -37,23 +39,26 @@ class coreClassFactory {
     @param[in] name the string identifier to the factory
     @param[in] tf the type factory to place in the map
     */
-    void registerFactory(const std::string& name, classFactory<parentClass>* tf)
+    void registerFactory(std::string_view name, classFactory<parentClass>* tf)
     {
-        m_factoryMap[name] = tf;
+        auto ret = m_factoryMap.emplace(name, tf);
+        if (!ret.second) {
+            ret.first->second = tf;
+        }
     }
     /** @brief register a type factory with the coreObjectFactory
     gets the name to use in the mapping from the type factory itself
     @param[in] tf the type factory to place in the map
     */
     void registerFactory(classFactory<parentClass>* tf) { registerFactory(tf->name, tf); }
-    void setDefault(const std::string& type)
+    void setDefault(std::string_view type)
     {
         if (type.empty()) {
             return;
         }
         auto mfind = m_factoryMap.find(type);
         if (mfind != m_factoryMap.end()) {
-            m_defaultType = type;
+            m_defaultType = mfind->first;
         }
     }
 
@@ -71,11 +76,11 @@ class coreClassFactory {
     /** @brief create an object from a given objectType and typeName
     @param[in] typeName  the specific type to create
     @return the created coreObject */
-    std::unique_ptr<parentClass> createObject(const std::string& typeName)
+    std::unique_ptr<parentClass> createObject(std::string_view typeName)
     {
         auto mfind = m_factoryMap.find(typeName);
         if (mfind != m_factoryMap.end()) {
-            return m_factoryMap[typeName]->makeObject();
+            return mfind->second->makeObject();
         }
         if (!m_defaultType.empty()) {
             return m_factoryMap[m_defaultType]->makeObject();
@@ -87,12 +92,12 @@ class coreClassFactory {
     @param[in] typeName  the specific type to create
     @param[in] objName  the name of the object to create
     @return the created coreObject */
-    std::unique_ptr<parentClass> createObject(const std::string& typeName,
-                                              const std::string& objName)
+    std::unique_ptr<parentClass> createObject(std::string_view typeName,
+                                              std::string_view objName)
     {
         auto mfind = m_factoryMap.find(typeName);
         if (mfind != m_factoryMap.end()) {
-            return m_factoryMap[typeName]->makeObject(objName);
+            return mfind->second->makeObject(objName);
         }
         if (!m_defaultType.empty()) {
             return m_factoryMap[m_defaultType]->makeObject(objName);
@@ -104,20 +109,20 @@ class coreClassFactory {
     @param[in] typeName the name of the typeFactory to get
     @return a shared pointer to a specific type Factory
     */
-    classFactory<parentClass>* getFactory(const std::string& typeName)
+    classFactory<parentClass>* getFactory(std::string_view typeName)
     {
         if (typeName.empty()) {
             return m_factoryMap[m_defaultType];
         }
         auto mfind = m_factoryMap.find(typeName);
         if (mfind != m_factoryMap.end()) {
-            return m_factoryMap[typeName];
+            return mfind->second;
         }
         return nullptr;
     }
 
     /** @brief check if a specific object category is valid*/
-    bool isValidObject(const std::string& typeName)
+    bool isValidObject(std::string_view typeName)
     {
         auto mfind = m_factoryMap.find(typeName);
         return (mfind != m_factoryMap.end());
@@ -154,9 +159,9 @@ class classFactory {
     }
     virtual ~classFactory() = default;
     virtual std::unique_ptr<parentClass> makeObject() { return std::make_unique<parentClass>(); }
-    virtual std::unique_ptr<parentClass> makeObject(const std::string& newObjectName)
+    virtual std::unique_ptr<parentClass> makeObject(std::string_view newObjectName)
     {
-        return std::make_unique<parentClass>(newObjectName);
+        return std::make_unique<parentClass>(std::string{newObjectName});
     }
 };
 
@@ -180,9 +185,9 @@ class childClassFactory: public classFactory<parentClass> {
     {
         return std::make_unique<childClass>();
     }
-    virtual std::unique_ptr<parentClass> makeObject(const std::string& newObjectName) override
+    virtual std::unique_ptr<parentClass> makeObject(std::string_view newObjectName) override
     {
-        return std::make_unique<childClass>(newObjectName);
+        return std::make_unique<childClass>(std::string{newObjectName});
     }
 
     std::unique_ptr<childClass> makeClassObject() { return std::make_unique<childClass>(); }
@@ -216,9 +221,9 @@ class childClassFactoryArg: public classFactory<parentClass> {
     {
         return std::make_unique<childClass>(argVal);
     }
-    std::unique_ptr<parentClass> makeObject(const std::string& newObjectName) override
+    std::unique_ptr<parentClass> makeObject(std::string_view newObjectName) override
     {
-        return std::make_unique<childClass>(newObjectName, argVal);
+        return std::make_unique<childClass>(std::string{newObjectName}, argVal);
     }
     std::unique_ptr<childClass> makeClassObject() { return std::make_unique<childClass>(argVal); }
 };

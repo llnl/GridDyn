@@ -17,8 +17,7 @@
 namespace griddyn {
 class coreObject;
 /** define a variant type for the different types of properties that may be set*/
-using property_type =
-    std::variant<double, std::pair<double, units::unit>, int, bool, std::string>;
+using property_type = std::variant<double, std::pair<double, units::unit>, int, bool, std::string>;
 
 /** class for temporarily holding object properties if the object has delayed initialization or
 something to that effect

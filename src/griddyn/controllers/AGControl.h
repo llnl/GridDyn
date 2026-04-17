@@ -1,10 +1,10 @@
-#pragma once
-
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+#pragma once
 
 #include "core/coreOwningPtr.hpp"
 #include "griddyn/gridSubModel.h"
@@ -96,7 +96,6 @@ class AGControlBattery:public AGControl
 {
 public:
 
-
 protected:
         std::vector <battery *> batList;
         std::vector<int> isBat;
@@ -114,7 +113,6 @@ public:
         AGControlBattery();
         virtual coreObject *clone(coreObject *obj = nullptr, bool copyName = false) const;
         virtual ~AGControlBattery();
-
 
         virtual double dynObjectInitializeA (coreTime time0,double freq0,double tiedev0);
 

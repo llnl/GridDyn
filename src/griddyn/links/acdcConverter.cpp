@@ -332,7 +332,6 @@ namespace griddyn::links {
             /*
         Idc = (opFlags[fixed_target_power]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
-
         linkInfo.P1 = linkInfo.v2 * Idc;
         linkInfo.P2 = -linkInfo.P1;
         double sr = k3sq2*linkInfo.v1*Idc;
@@ -426,7 +425,6 @@ namespace griddyn::links {
         } else {
             /*
         Idc = (opFlags[fixed_target_power]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
-
 
         linkInfo.P1 = linkInfo.v2 * Idc;
         linkInfo.P2 = -linkInfo.P1;

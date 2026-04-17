@@ -1,10 +1,11 @@
-#pragma once
-
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+
+#pragma once
+
 #ifndef GRIDDYN_INTERPOLATING_PLAYER_H_
 #    define GRIDDYN_INTERPOLATING_PLAYER_H_
 

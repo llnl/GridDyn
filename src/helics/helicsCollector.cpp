@@ -190,8 +190,6 @@ void helicsCollector::set(const std::string& param, const std::string& val)
     }
 }
 
-
-
 const std::string& helicsCollector::getSinkName() const
 {
     static const std::string helicsName("helics");

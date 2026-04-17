@@ -13,8 +13,7 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModel3::GenModel3(const std::string& objName): GenModelClassical(objName)
     {
         // default values
@@ -260,5 +259,4 @@ namespace genmodels {
             GenModelClassical::set(param, val, unitType);
         }
     }
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

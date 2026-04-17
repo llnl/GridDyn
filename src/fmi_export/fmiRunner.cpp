@@ -17,8 +17,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiRunner::fmiRunner(const std::string& name,
                          const std::string& resourceLocations,
                          const fmi2CallbackFunctions* functions,
@@ -176,5 +175,4 @@ namespace fmi {
         return coord->getOutput(vr);
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

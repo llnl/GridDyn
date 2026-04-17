@@ -15,8 +15,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModel6::GenModel6(const std::string& objName): GenModel5(objName)
     {
         // changing some of the default values;
@@ -274,5 +273,4 @@ namespace genmodels {
     {
         return genModel6Names;
     }
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Copyright (C) 2017, Battelle Memorial Institute
 All rights reserved.
@@ -20,9 +22,6 @@ Livermore National Security, LLC.
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_
 
 #include "zmqContextManager.h"
 #include "zmqSocketDescriptor.h"
@@ -79,4 +78,3 @@ class zmqProxyHub {
 };
 
 }  // namespace zmqlib
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQPROXYHUB_H_

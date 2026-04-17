@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_IPOLY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_IPOLY_H_
-
 #include "../common/def.h"
 #include "DenseMatrix.h"
 #include "PMultiVector.h"
 #include "Vector.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class IPoly {
         // y values and associated times
         PMultiVector tyy;
@@ -38,7 +36,4 @@ namespace paradae {
         void GetValueDY(Real t, Vector& yp);
         inline int GetXSize() { return nx; };
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_IPOLY_H_
+}  // namespace griddyn::paradae

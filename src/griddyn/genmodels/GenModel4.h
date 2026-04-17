@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "GenModel3.h"
 #include "utilities/saturation.h"
 #include <string>
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     class GenModel4: public GenModel3 {
       protected:
         double Xqp = 0.35;  //!< [pu] q-axis transient reactance
@@ -55,5 +54,4 @@ namespace genmodels {
                                      double alpha) override;
     };
 
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

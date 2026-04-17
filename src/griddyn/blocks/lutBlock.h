@@ -1,19 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef LUT_BLOCK_H_
-#define LUT_BLOCK_H_
-#pragma once
-
 #include "../Block.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief lookup table block*/
     class lutBlock: public Block {
       public:
@@ -55,6 +52,4 @@ namespace blocks {
         // virtual void setTime(coreTime time){prevTime=time;};
         double computeValue(double input);
     };
-}  // namespace blocks
-}  // namespace griddyn
-#endif  // LUT_BLOCK_H_
+}  // namespace griddyn::blocks

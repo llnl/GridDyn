@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../common/MapParam.h"
 #include "Equation_DAE_full.h"
 #include <memory>
@@ -15,8 +15,7 @@ class solverMode;
 }  // namespace griddyn
 
 using namespace std;
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     /** @brief class that connects ParaDAE and GridDyn
      */
     class EquationGridDyn: public Equation_DAE_full {
@@ -50,5 +49,4 @@ namespace paradae {
         virtual ~EquationGridDyn() {};
     };
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,10 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef _MATRIX_DATA_CUSTOM_WRITE_ONLY_H_
-#define _MATRIX_DATA_CUSTOM_WRITE_ONLY_H_
-#pragma once
 
 #include "utilities/matrixData.hpp"
 #include <cassert>
@@ -46,5 +44,3 @@ class matrixDataCustomWriteOnly: public matrixData<ValueT> {
         insertFunction = std::move(func);
     }
 };
-
-#endif  // _MATRIX_DATA_CUSTOM_WRITE_ONLY_H_

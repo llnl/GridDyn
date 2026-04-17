@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,17 +12,13 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_
-
 #include "griddyn/measurement/collector.h"
 #include <memory>
 #include <string>
 
 class dimeClientInterface;
 
-namespace griddyn {
-namespace dimeLib {
+namespace griddyn::dimeLib {
     class dimeCollector: public collector {
       private:
         std::string server;
@@ -43,6 +41,4 @@ namespace dimeLib {
         virtual const std::string& getSinkName() const override;
     };
 
-}  // namespace dimeLib
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOLLECTOR_H_
+}  // namespace griddyn::dimeLib

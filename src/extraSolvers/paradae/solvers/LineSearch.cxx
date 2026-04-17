@@ -8,8 +8,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     LinearSearch::LinearSearch(int max_iter_)
@@ -73,5 +72,4 @@ namespace paradae {
 
         return it;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -28,8 +28,7 @@
 enum control_mode_t{ manual_control=0, voltage_control=1, MW_control=2, MVar_control=3};
 enum change_mode_t{ stepped = 0, continuous = 1 };
 */
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     using gmlc::utilities::convertToLowerCase;
     using gmlc::utilities::signn;
     using units::convert;
@@ -1349,5 +1348,4 @@ namespace links {
         }
         return std::round((testTapValue - minTap) / stepSize) * stepSize + minTap;
     }
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

@@ -27,8 +27,7 @@ using std::ifstream;
 using std::pair;
 using std::string;
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     template<typename T>
     void export_param(int mpi_rank, string key, T value, T default_value)
@@ -190,5 +189,4 @@ namespace paradae {
         return val;
     }
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

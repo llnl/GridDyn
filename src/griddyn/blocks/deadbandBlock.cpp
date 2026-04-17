@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     deadbandBlock::deadbandBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(use_state);
@@ -574,5 +573,4 @@ namespace blocks {
             Block::set(param, val, unitType);
         }
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

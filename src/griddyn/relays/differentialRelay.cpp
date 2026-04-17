@@ -18,8 +18,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     differentialRelay::differentialRelay(const std::string& objName): Relay(objName)
     {
         opFlags.set(continuous_flag);
@@ -220,5 +219,4 @@ namespace relays {
         }
     }
 
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

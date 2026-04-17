@@ -11,8 +11,7 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     delayBlock::delayBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(differential_output);
@@ -167,5 +166,4 @@ namespace blocks {
             Block::set(param, val, unitType);
         }
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

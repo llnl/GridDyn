@@ -1,16 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
 #include "../Block.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class defining a null block  meaning input==output
      */
     class nullBlock final: public Block {
@@ -84,5 +84,4 @@ namespace blocks {
         virtual double getBlockDoutDt() const override;
     };
 
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

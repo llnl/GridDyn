@@ -12,8 +12,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     longLine::longLine(const std::string& objName): subsystem(objName) {}
     coreObject* longLine::clone(coreObject* obj) const
     {
@@ -171,5 +170,4 @@ namespace links {
         }
     }
 
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

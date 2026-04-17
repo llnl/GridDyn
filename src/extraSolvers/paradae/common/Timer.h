@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
-
 #include "../math/SVector.h"
 #include "def.h"
 #include "mpi.h"
@@ -19,8 +18,7 @@
 #include <map>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
 #ifndef TIMER_INTRUSION  // 0->global 1->init,run,out 2->feval,jaceval,facto,solve
 #    define TIMER_INTRUSION 1
@@ -85,7 +83,4 @@ namespace paradae {
 
     extern Timer global_timer;
 
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
+}  // namespace griddyn::paradae

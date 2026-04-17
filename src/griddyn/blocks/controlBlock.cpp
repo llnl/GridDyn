@@ -11,8 +11,7 @@
 #include "utilities/matrixData.hpp"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     controlBlock::controlBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(use_state);
@@ -220,5 +219,4 @@ namespace blocks {
         out[loc] = "intermediate";
         return out;
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

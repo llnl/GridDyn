@@ -1,14 +1,12 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_DIRK_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_DIRK_H_
-
 #include "RungeKutta_Implicit.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class Solver_App_DIRK: public Solver_App_IRK {
       public:
         Solver_App_DIRK(Real rtol,
@@ -32,7 +30,4 @@ namespace paradae {
         virtual Solver_App_RK* BuildSolverApp(Real t, Real dt, const Vector& x0);
         virtual ~RungeKutta_DIRK() {};
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_RUNGEKUTTA_DIRK_H_
+}  // namespace griddyn::paradae

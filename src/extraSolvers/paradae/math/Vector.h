@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../common/def.h"
 #include <cstring>
 #include <iostream>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class Vector {
       protected:
         int m;
@@ -42,5 +41,4 @@ namespace paradae {
 
     std::ostream& operator<<(std::ostream& output, const Vector& vec);
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

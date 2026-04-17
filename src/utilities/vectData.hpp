@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,9 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_
-#define ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_
 
 #include "indexTypes.hpp"
 #include <algorithm>
@@ -146,5 +145,3 @@ class vectData {
         }
     }
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_VECTDATA_HPP_

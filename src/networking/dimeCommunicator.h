@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,15 +12,11 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_
-
 #include "zmqCommunicator.h"
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace dimeLib {
+namespace griddyn::dimeLib {
     /** class implementing a communicator to interact with the DIME Communication methods*/
     class dimeCommunicator: public zmqInterface::zmqCommunicator {
       public:
@@ -45,6 +43,4 @@ namespace dimeLib {
       private:
     };
 
-}  // namespace dimeLib
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMECOMMUNICATOR_H_
+}  // namespace griddyn::dimeLib

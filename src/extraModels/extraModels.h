@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,8 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-#pragma once
-
 #include <string>
 namespace griddyn {
 /** @brief load the extra models specified by the subset indicator into the object factory

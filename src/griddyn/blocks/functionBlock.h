@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "../Block.h"
 #include <functional>
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a function operation on the input
 a wide assortment of functions are available including trig, logs, and other common math
 operations*/
@@ -70,5 +69,4 @@ operations*/
     @param[in] functionName the name of the function as a string*/
         void setFunction(const std::string& functionName);
     };
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

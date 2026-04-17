@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,10 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef _MATRIX_DATA_CONTAINER_H_
-#define _MATRIX_DATA_CONTAINER_H_
-#pragma once
 
 #include "utilities/matrixData.hpp"
 
@@ -57,5 +55,3 @@ class matrixDataContainer: public matrixData<ValueT> {
     */
     virtual void setArray(matrixData<ValueT>& newAd) { setArray(&newAd); }
 };
-
-#endif

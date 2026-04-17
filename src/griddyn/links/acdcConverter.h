@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
 
 #include "../Link.h"
 #include "core/coreOwningPtr.hpp"
@@ -149,4 +148,3 @@ namespace links {
 
 }  // namespace links
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_

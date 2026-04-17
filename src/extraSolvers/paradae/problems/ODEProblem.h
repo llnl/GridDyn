@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,7 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
 #include "../common/MapParam.h"
 #include "../common/def.h"
 #include "../equations/Equation.h"
@@ -19,8 +20,7 @@
 #include <string>
 
 enum ODE_error { ODE_FAILED };
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class ODEProblem {
         Equation* equation;
         TimeIntegrator* TI;
@@ -48,5 +48,4 @@ namespace paradae {
         inline bool PrintSolution() { return print_solution; };
         inline bool PrintAllITERSolution() { return print_all_iter_solution; };
     };
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

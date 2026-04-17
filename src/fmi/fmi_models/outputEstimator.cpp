@@ -11,8 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
 
     outputEstimator::outputEstimator(std::vector<int> sDep, std::vector<int> iDep):
         stateDep(std::move(sDep)), inputDep(std::move(iDep))
@@ -55,5 +54,4 @@ namespace fmi {
         return diff_large_enough && scaled_error_large_enough;
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

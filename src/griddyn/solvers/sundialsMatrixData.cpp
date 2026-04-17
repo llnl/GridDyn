@@ -28,6 +28,4 @@ namespace griddyn::solvers {
         }
     }
 
-}  // namespace solvers
-
-}  // namespace griddyn
+}  // namespace griddyn::solvers

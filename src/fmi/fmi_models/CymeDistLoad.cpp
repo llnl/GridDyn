@@ -16,8 +16,7 @@
 #include <iostream>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     std::atomic<int> CymeDistLoadME::indexCounter{0};
 
     CymeDistLoadME::CymeDistLoadME(const std::string& objName): fmiMELoad3phase(objName)
@@ -90,5 +89,4 @@ namespace fmi {
             }
         }
     }
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

@@ -17,8 +17,7 @@
 #include <complex>
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objName)
     {
         // default values
@@ -478,5 +477,4 @@ namespace genmodels {
         }
     }
 
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

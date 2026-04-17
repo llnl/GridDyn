@@ -12,8 +12,7 @@
 // --------------------------
 //      | 2/9  1/3  4/9  0
 //      | 7/24 1/4  1/3  1/8
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     BogaSham_23::BogaSham_23(Equation* eq, bool variable_step):
         RungeKutta_Explicit(eq, variable_step)
     {
@@ -41,5 +40,4 @@ namespace paradae {
         rk_c(2) = Real(3. / 4.);
         rk_c(3) = Real(1.);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

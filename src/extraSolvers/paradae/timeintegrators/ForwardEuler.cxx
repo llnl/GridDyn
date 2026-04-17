@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "ForwardEuler.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ForwardEuler::ForwardEuler(Equation* eq): RungeKutta_Explicit(eq, false)
     {
         nb_steps = 1;
@@ -17,5 +16,4 @@ namespace paradae {
 
         rk_b(0) = Real(1);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

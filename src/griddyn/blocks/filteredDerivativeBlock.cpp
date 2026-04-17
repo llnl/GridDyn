@@ -14,8 +14,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     filteredDerivativeBlock::filteredDerivativeBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(use_state);
@@ -182,5 +181,4 @@ namespace blocks {
                 return {"limited", "ramp_limited", "deriv", "filter"};
         }
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

@@ -16,8 +16,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace dimeLib {
+namespace griddyn::dimeLib {
     dimeCollector::dimeCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
     dimeCollector::dimeCollector(const std::string& collectorName): collector(collectorName) {}
@@ -82,5 +81,4 @@ namespace dimeLib {
         return server;
     }
 
-}  // namespace dimeLib
-}  // namespace griddyn
+}  // namespace griddyn::dimeLib

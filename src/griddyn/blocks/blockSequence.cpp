@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     blockSequence::blockSequence(const std::string& objName): Block(objName)
     {
         opFlags[use_direct] = true;
@@ -331,5 +330,4 @@ namespace blocks {
         return gridComponent::findByUserID(typeName, searchID);
     }
 
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

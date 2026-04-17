@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
@@ -7,8 +9,6 @@
 /** @file
  * @brief classes and object to help in the operation of gridComponents
  */
-
-#pragma once
 
 #include "solvers/solverMode.hpp"
 #include <bitset>

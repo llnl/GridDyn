@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_
 
 #include "rampSource.h"
 #include <memory>
@@ -14,8 +13,7 @@ namespace utilities {
 class gridRandom;
 }
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /** @brief a source generating a random output*/
     class randomSource: public rampSource {
       public:
@@ -84,7 +82,4 @@ namespace sources {
         /** compute a bias shift in the random generation*/
         double computeBiasAdjust();
     };
-}  // namespace sources
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_RANDOMSOURCE_H_
+}  // namespace griddyn::sources

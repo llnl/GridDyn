@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../Load.h"
 #include "../griddyn_autogen.h"
 #include <string>
 #include <utility>
 #include <vector>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** @brief class defining operations and equations for an induction motor load
      */
     class motorLoad: public Load {
@@ -172,5 +171,4 @@ namespace loads {
         double qPower(double vin, double slip) const;
     };
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

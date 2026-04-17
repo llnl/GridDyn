@@ -21,8 +21,7 @@
 #include "helicsSupport.h"
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsSource::helicsSource(const std::string& objName):
         rampSource(objName), valueType(helics::data_type::helics_double)
     {
@@ -223,5 +222,4 @@ namespace helicsLib {
         }
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

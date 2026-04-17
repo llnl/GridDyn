@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_DEF_MPI_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_DEF_MPI_H_
-
 #include <cstdio>
 
 #ifdef CHECK_TIMING
@@ -74,5 +73,3 @@ int rk_MACRO, sz_MACRO;
         } while (0);
 
 #endif
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_DEF_MPI_H_

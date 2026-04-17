@@ -1,11 +1,11 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_
 /** @file
 @brief helper header file defining all the different block types
 */
@@ -21,5 +21,3 @@
 #include "nullBlock.h"
 #include "pidBlock.h"
 #include "transferFunctionBlock.h"
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_BLOCKS_BLOCKLIBRARY_H_

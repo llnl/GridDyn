@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,9 +12,6 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_
-
 #include "../comms/commManager.h"
 #include "sourceTypes.h"
 #include <functional>
@@ -20,4 +19,3 @@
 namespace griddyn {
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_OTHERSOURCES_H_

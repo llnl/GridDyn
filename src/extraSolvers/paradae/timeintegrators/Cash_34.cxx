@@ -15,8 +15,7 @@
 //                4 | 0.896869652944  0.0182725272734 -0.0845900310706 -0.266418670647
 //                0.435866521508 3 | 0.776691932910  0.0297472791484 -0.0267440239074 0.220304811849
 //                0.0
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     Cash_34::Cash_34(Equation* eq, bool variable_step): RungeKutta_SDIRK(eq, variable_step)
     {
         nb_steps = 5;
@@ -57,5 +56,4 @@ namespace paradae {
         rk_c(3) = 0.924556761814;
         rk_c(4) = 1.0;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

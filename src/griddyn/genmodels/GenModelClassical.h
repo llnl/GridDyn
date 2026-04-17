@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_
-
 #include "../GenModel.h"
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     class GenModelClassical: public GenModel {
       public:
         /** @brief set of flags used by genModels for variations in computation
@@ -101,6 +99,4 @@ namespace genmodels {
                                            double X1);
     };
 
-}  // namespace genmodels
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODELCLASSICAL_H_
+}  // namespace griddyn::genmodels

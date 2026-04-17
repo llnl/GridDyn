@@ -7,8 +7,7 @@
 #include "rampLimiter.h"
 
 #include <algorithm>
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     rampLimiter::rampLimiter(double nmin, double nmax): minRamp(nmin), maxRamp(nmax) {}
     void rampLimiter::setLimits(double nmin, double nmax)
     {
@@ -93,5 +92,4 @@ namespace blocks {
         }
         return dIdt;
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

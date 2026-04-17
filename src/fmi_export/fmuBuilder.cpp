@@ -32,8 +32,7 @@
 #    define FMILIBRARY_TYPE "unknown"
 #endif
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     using std::filesystem::copy_file;
     using std::filesystem::copy_options;
     using std::filesystem::create_directory;
@@ -557,5 +556,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

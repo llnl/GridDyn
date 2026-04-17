@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef _BASIC_ODE_SOLVER_INTERFACE_H_
-#define _BASIC_ODE_SOLVER_INTERFACE_H_
-#pragma once
 
 #include "solverInterface.h"
 #include <memory>
@@ -55,4 +53,3 @@ namespace griddyn::solvers {
     };
 
 }  // namespace griddyn::solvers
-#endif

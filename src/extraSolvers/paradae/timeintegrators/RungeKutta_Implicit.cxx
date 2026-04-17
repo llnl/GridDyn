@@ -14,8 +14,7 @@
 #include <iostream>
 
 using namespace std;
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     RungeKutta_Implicit::RungeKutta_Implicit(Equation* eq, bool varstep): RungeKutta(eq, varstep)
     {
         CurrentJacobian = NULL;
@@ -163,5 +162,4 @@ namespace paradae {
         }
         // update_jacobian=true;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

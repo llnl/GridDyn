@@ -1,15 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SVECTOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SVECTOR_H_
-
 #include "Vector.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class PVector;
 
     class SVector: public Vector {
@@ -28,7 +26,4 @@ namespace paradae {
 
         static SVector Rand(int n, Real a = 0, Real b = 1);
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SVECTOR_H_
+}  // namespace griddyn::paradae

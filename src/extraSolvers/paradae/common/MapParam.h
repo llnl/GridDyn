@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,16 +11,13 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "def.h"
 #include <cstring>
 #include <map>
 #include <mpi.h>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class SVector;
 
     class MapParam: public std::map<std::string, std::string> {
@@ -36,5 +35,4 @@ namespace paradae {
         SVector GetVectorParam(std::string key, SVector default_val) const;
         int GetMpiRank() const { return mpi_rank; };
     };
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

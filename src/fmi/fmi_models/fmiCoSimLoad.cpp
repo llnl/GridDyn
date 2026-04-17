@@ -14,8 +14,7 @@
 #include "griddyn/gridBus.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiCoSimLoad::fmiCoSimLoad(const std::string& objName): fmiCoSimWrapper<Load>(objName) {}
 
     coreObject* fmiCoSimLoad::clone(coreObject* obj) const
@@ -67,5 +66,4 @@ namespace fmi {
         setQ(out[QoutLocation]);
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

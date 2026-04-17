@@ -10,8 +10,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /*
 enum pulse_type_t{ square = 0, triangle = 1, gaussian = 2, biexponential = 3, exponential = 4 };
 pulse_type_t ptype;
@@ -145,5 +144,4 @@ double nextCycleTime;*/
             pulseSource::set(param, val, unitType);
         }
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

@@ -10,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiEvent::fmiEvent(const std::string& newName, fmiEventType type):
         reversibleEvent(newName), eventType(type)
     {
@@ -112,5 +111,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

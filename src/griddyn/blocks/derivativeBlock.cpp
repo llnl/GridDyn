@@ -13,8 +13,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     derivativeBlock::derivativeBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(use_state);
@@ -175,5 +174,4 @@ namespace blocks {
         bbstates.emplace_back("delayI");
         return bbstates;
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

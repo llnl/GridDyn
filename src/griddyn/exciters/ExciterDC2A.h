@@ -1,16 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_
-
 #include "ExciterDC1A.h"
 #include <string>
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     /** @brief DC2A exciter
      */
     class ExciterDC2A: public ExciterDC1A {
@@ -44,7 +42,4 @@ namespace exciters {
                                    matrixData<double>& md) override;
     };
 
-}  // namespace exciters
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC2A_H_
+}  // namespace griddyn::exciters

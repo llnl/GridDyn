@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "ExpMidPoint.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ExpMidPoint::ExpMidPoint(Equation* eq): RungeKutta_Explicit(eq, false)
     {
         nb_steps = 2;
@@ -22,5 +21,4 @@ namespace paradae {
         rk_b(1) = 1. / (2. * alpha);
         rk_c(1) = alpha;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

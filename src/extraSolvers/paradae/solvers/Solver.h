@@ -1,16 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../common/def.h"
 #include "../math/SVector.h"
 #include "../math/VirtualMatrix.h"
 #include <cmath>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class Solver_App {
       public:
         bool update_jacobian;
@@ -51,5 +50,4 @@ namespace paradae {
         virtual ~Solver() {};
         virtual int Solve(Solver_App* app, Vector& x) = 0;
     };
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

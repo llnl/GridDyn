@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../gridDynDefinitions.hpp"
 #include "Exciter.h"
 #include "core/coreDefinitions.hpp"
@@ -12,8 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
 
     /** @brief Simplified excitation system (SEXS) model.
      *
@@ -72,5 +71,4 @@ namespace exciters {
         double regulatorOutput(const IOdata& inputs, const double stateX) const;
     };
 
-}  // namespace exciters
-}  // namespace griddyn
+}  // namespace griddyn::exciters

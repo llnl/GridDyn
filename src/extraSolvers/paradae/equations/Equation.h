@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_H_
-
 #include "../common/def.h"
 #include "../math/IPoly.h"
 #include "../math/SVector.h"
@@ -13,8 +12,7 @@
 #include "../math/VirtualMatrix.h"
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     enum type_Equation { ODE, DAE };
 
@@ -168,7 +166,4 @@ namespace paradae {
         inline int GetNSRoots() { return roots.GetNSRoots(); };
         virtual int GetNState() { return 0; };
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_H_
+}  // namespace griddyn::paradae

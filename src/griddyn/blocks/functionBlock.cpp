@@ -13,8 +13,7 @@
 #include "utilities/matrixData.hpp"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     functionBlock::functionBlock(): Block("functionBlock_#")
     {
         offsets.local().local.algSize = 2;
@@ -176,5 +175,4 @@ double functionBlock::currentValue() const
   return m_state[0];
 }
 */
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef DERIVATIVE_BLOCK_H_
-#define DERIVATIVE_BLOCK_H_
-#pragma once
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a derivative
  block implementing \f$H(S)=\frac{K s}{1+T_1 s}\f$
 if the time constant is very small it reverts to the basic block
@@ -62,7 +60,4 @@ if the time constant is very small it reverts to the basic block
         virtual stringVec localStateNames() const override;
         // virtual void setTime(coreTime time){prevTime=time;};
     };
-}  // namespace blocks
-}  // namespace griddyn
-
-#endif  // DERIVATIVE_BLOCK_H_
+}  // namespace griddyn::blocks

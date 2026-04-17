@@ -17,8 +17,7 @@
 
 using gmlc::utilities::convertToLowerCase;
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     randomSource::randomSource(const std::string& objName, double startVal):
         rampSource(objName, startVal), param1_L(startVal)
     {
@@ -288,5 +287,4 @@ namespace sources {
         }
         return bias;
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

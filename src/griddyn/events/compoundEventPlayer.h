@@ -1,10 +1,11 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
 // headers
 // #include "gridDynSimulation.h"
 
@@ -14,8 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     /** event type allowing multiple changes on multiple object at a set of given time points*/
     class compoundEventPlayer: public compoundEvent {
       protected:
@@ -60,5 +60,4 @@ namespace events {
         /** helper function to update the trigger time*/
         virtual void updateTrigger(coreTime time);
     };
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

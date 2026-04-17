@@ -18,8 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModelInverter::GenModelInverter(const std::string& objName): GenModel(objName) {}
     coreObject* GenModelInverter::clone(coreObject* obj) const
     {
@@ -476,5 +475,4 @@ namespace genmodels {
         return change_code::no_change;
     }
 
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

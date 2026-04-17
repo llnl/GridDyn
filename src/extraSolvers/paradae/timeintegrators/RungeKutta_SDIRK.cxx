@@ -9,8 +9,7 @@
 #include "../math/PMultiVector.h"
 #include "../solvers/Newton.h"
 #include <iostream>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     RungeKutta_SDIRK::RungeKutta_SDIRK(Equation* eq, bool varstep): RungeKutta_Implicit(eq, varstep)
@@ -134,5 +133,4 @@ namespace paradae {
         }
         // update_jacobian=true;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

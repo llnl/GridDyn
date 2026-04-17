@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -9,10 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef GRIDDYNGOVERNOR_H_
-#define GRIDDYNGOVERNOR_H_
-#pragma once
 
 #include "gridSubModel.h"
 #include "submodels/controlBlocks/controlBlock.h"
@@ -98,5 +96,3 @@ class Governor: public gridSubModel {
 };
 
 }  // namespace griddyn
-
-#endif  // GRIDGOVERNOR_H_

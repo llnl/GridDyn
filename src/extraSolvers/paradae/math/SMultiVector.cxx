@@ -9,8 +9,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     SMultiVector::SMultiVector(int ns_, int nx_, Real fill_):
@@ -306,5 +305,4 @@ namespace paradae {
         data[0] = v;
     }
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

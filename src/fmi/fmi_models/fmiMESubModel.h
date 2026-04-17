@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#pragma once
 
 #include "../fmi_import/fmiInfo.h"
 #include "core/propertyBuffer.h"
@@ -20,8 +20,7 @@ class fmi2ModelExchangeObject;
 
 enum class fmuMode;  // forward declare enumeration
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class outputEstimator;
     /** class defining a subModel interacting with an FMU v2.0 object for model exchange*/
     class fmiMESubModel: public gridSubModel {
@@ -167,5 +166,4 @@ namespace fmi {
         // int searchByRef(fmi2_value_reference_t ref);
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

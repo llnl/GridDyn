@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Copyright (C) 2017, Battelle Memorial Institute
 All rights reserved.
@@ -21,9 +23,6 @@ Livermore National Security, LLC.
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_
-
 #include <string>
 
 namespace zmq {
@@ -33,4 +32,3 @@ enum class socket_type : int;
 namespace zmqlib {
 zmq::socket_type socketTypeFromString(const std::string& socketType);
 }
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_ZMQLIBRARY_ZMQHELPER_H_

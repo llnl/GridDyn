@@ -9,8 +9,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     PVector::PVector(const Vector& v)
@@ -38,5 +37,4 @@ namespace paradae {
         m = m_;
         data = data_;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

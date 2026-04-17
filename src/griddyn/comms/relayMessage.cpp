@@ -15,8 +15,7 @@
 #include <map>
 #include <string>
 
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     static dMessageFactory<relayMessage, BASE_RELAY_MESSAGE_NUMBER, BASE_RELAY_MESSAGE_NUMBER + 12>
         dmf("relay");
 
@@ -104,5 +103,4 @@ namespace comms {
         }
     }
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms

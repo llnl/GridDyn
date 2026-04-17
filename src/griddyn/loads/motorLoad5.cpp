@@ -14,8 +14,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     // setup the load object factories
 
     motorLoad5::motorLoad5(const std::string& objName): motorLoad3(objName)
@@ -574,5 +573,4 @@ namespace loads {
         }
         return change_code::no_change;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

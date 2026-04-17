@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_
-
 #include "../Link.h"
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     /** @brief class that acts as a zero impedance tie
 used for implementing a bus-breaker model of a power system as well as creating slave buses and a
 few other types of linkages
@@ -61,6 +59,4 @@ few other types of linkages
         void unmerge();
     };
 
-}  // namespace links
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ZBREAKER_H_
+}  // namespace griddyn::links

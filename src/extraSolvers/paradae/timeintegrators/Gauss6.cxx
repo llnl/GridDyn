@@ -6,8 +6,7 @@
 #include "Gauss6.h"
 
 #include <cmath>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     Gauss6::Gauss6(Equation* eq): RungeKutta_Implicit(eq, false)
     {
         nb_steps = 3;
@@ -35,5 +34,4 @@ namespace paradae {
         rk_c(1) = Real(1. / 2.);
         rk_c(2) = Real(1. / 2.) + sq15 / 10.;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

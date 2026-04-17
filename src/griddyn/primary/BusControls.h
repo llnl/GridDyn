@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef BUSCONTROLS_H_
-#define BUSCONTROLS_H_
-#pragma once
 
 #include "../gridDynDefinitions.hpp"
 #include <vector>
@@ -95,4 +93,3 @@ class BusControls {
 };
 
 }  // namespace griddyn
-#endif

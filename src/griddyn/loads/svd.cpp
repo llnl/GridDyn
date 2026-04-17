@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     static typeFactory<svd> svdld("load",
                                   stringVec{"svd", "switched shunt", "switchedshunt", "ssd"});
 
@@ -374,5 +373,4 @@ namespace loads {
     {
         return change_code::no_change;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

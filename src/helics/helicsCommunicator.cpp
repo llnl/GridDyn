@@ -22,8 +22,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
 
     helicsCommunicator::helicsCommunicator(const std::string& id): Communicator(id) {}
 
@@ -81,5 +80,4 @@ namespace helicsLib {
         coord->sendMessage(index, mdata.data(), static_cast<count_t>(mdata.size()));
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

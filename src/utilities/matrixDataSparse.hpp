@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,10 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef _MATRIX_DATA_SPARSE_H_
-#define _MATRIX_DATA_SPARSE_H_
-#pragma once
 
 #include "matrixData.hpp"
 #include "matrixDataOrdering.hpp"
@@ -233,5 +231,3 @@ std::vector<index_t> findMissing(matrixDataSparse<ValueT>& md);
 
 template<class ValueT>
 std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md);
-
-#endif

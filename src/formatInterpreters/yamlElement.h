@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,10 +12,6 @@
  * LLNS Copyright End
  */
 
-#ifndef YAML_ELEMENT_H_
-#define YAML_ELEMENT_H_
-
-#pragma once
 #include "yaml-cpp/yaml.h"
 #include <string>
 
@@ -42,5 +40,3 @@ class yamlElement {
     YAML::Node element;  //!< pointer to the actual YAML element
     bool arraytype = false;  //!< indicator if the element is a sequence
 };
-
-#endif

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "FE_ExpTrap_12.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     FE_ExpTrap_12::FE_ExpTrap_12(Equation* eq, bool variable_step):
         RungeKutta_Explicit(eq, variable_step)
     {
@@ -24,5 +23,4 @@ namespace paradae {
         rk_binf(1) = Real(0.);
         rk_c(1) = Real(1.);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

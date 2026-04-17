@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_DENSEMATRIX_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_DENSEMATRIX_H_
-
 #include "VirtualMatrix.h"
 
 #define HAVE_LAPACK_CONFIG_H
 #define LAPACK_COMPLEX_CPP
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     typedef int lapack_int;
 
     class DenseMatrix: public Matrix {
@@ -46,7 +44,4 @@ namespace paradae {
 
         virtual void dump(std::ostream& output) const;
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_DENSEMATRIX_H_
+}  // namespace griddyn::paradae

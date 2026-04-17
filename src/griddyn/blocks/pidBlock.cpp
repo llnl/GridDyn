@@ -11,8 +11,7 @@
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <string>
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     pidBlock::pidBlock(const std::string& objName): Block(objName), no_D(extra_bool)
     {
         opFlags.set(use_state);
@@ -249,5 +248,4 @@ namespace blocks {
         out.emplace_back("integral");
         return out;
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

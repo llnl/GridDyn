@@ -12,8 +12,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace tcpLib {
+namespace griddyn::tcpLib {
 
     tcpCommunicator::tcpCommunicator(const std::string& name): Communicator(name) {}
 
@@ -210,5 +209,4 @@ namespace tcpLib {
      }
      */
 
-}  // namespace tcpLib
-}  // namespace griddyn
+}  // namespace griddyn::tcpLib

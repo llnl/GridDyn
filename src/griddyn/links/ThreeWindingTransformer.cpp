@@ -12,8 +12,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): subsystem(objName)
     {
         gridBus* bus = new acBus("ibus_mid");
@@ -143,5 +142,4 @@ namespace links {
         return val;
     }
 
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

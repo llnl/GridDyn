@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_
 
 #include "griddyn/griddyn-config.h"
 #include "optHelperClasses.h"
@@ -82,5 +81,3 @@ std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, cons
 std::shared_ptr<optimizerInterface> makeOptimizer(const std::string& type);
 
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_

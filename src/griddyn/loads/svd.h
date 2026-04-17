@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "rampLoad.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** @brief defining the interface for a static var device*/
     class svd: public rampLoad {
       public:
@@ -141,5 +140,4 @@ namespace loads {
     */
         virtual void updateSetting(int step);
     };
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

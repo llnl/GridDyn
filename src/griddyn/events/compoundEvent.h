@@ -1,20 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_COMPOUND_EVENT_H_
-#define GRIDDYN_COMPOUND_EVENT_H_
-#pragma once
-
 #include "Event.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     /** single event allowing multiple changes in multiple events at a single time point */
     class compoundEvent: public Event {
       protected:
@@ -47,6 +44,4 @@ namespace events {
         virtual coreObject* getObject() const override;
         virtual void getObjects(std::vector<coreObject*>& objects) const override;
     };
-}  // namespace events
-}  // namespace griddyn
-#endif
+}  // namespace griddyn::events

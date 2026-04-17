@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef PID_BLOCK_H_
-#define PID_BLOCK_H_
-#pragma once
-
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a PID controller
 the derivative operator has a prefilter operation on it with a time constant T1 and the output has a
 delay of Td*/
@@ -63,7 +60,4 @@ delay of Td*/
         virtual stringVec localStateNames() const override;
     };
 
-}  // namespace blocks
-}  // namespace griddyn
-
-#endif  // PID_BLOCK_H_
+}  // namespace griddyn::blocks

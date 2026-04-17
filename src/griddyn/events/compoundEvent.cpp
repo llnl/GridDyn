@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     compoundEvent::compoundEvent(coreTime time0): Event(time0) {}
 
     compoundEvent::compoundEvent(const std::string& eventName): Event(eventName) {}
@@ -192,5 +191,4 @@ namespace events {
         }
         return armed;
     }
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

@@ -25,8 +25,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     using units::convert;
     using units::puA;
     fuse::fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
@@ -379,5 +378,4 @@ namespace relays {
             }
         }
     }
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

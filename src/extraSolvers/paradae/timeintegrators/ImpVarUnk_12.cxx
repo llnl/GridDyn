@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "ImpVarUnk_12.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ImpVarUnk_12::ImpVarUnk_12(Equation* eq, bool variable_step): RungeKutta_DIRK(eq, variable_step)
     {
         nb_steps = 4;
@@ -45,5 +44,4 @@ namespace paradae {
         rk_binf(2) = 0;
         rk_binf(3) = 0;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

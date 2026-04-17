@@ -14,8 +14,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
     {
         // default values that are different from inherited default values
@@ -280,5 +279,4 @@ namespace exciters {
         }
     }
 
-}  // namespace exciters
-}  // namespace griddyn
+}  // namespace griddyn::exciters

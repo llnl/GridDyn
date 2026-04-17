@@ -9,8 +9,7 @@
 #include "SVector.h"
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     IVander::IVander(int n): DenseMatrix(n)
@@ -203,5 +202,4 @@ namespace paradae {
             new_dx.AXPBY(coeffs(m - 1 - j) / Dt, 1.0, subvec_xn);
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

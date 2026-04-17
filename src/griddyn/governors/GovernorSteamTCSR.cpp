@@ -10,8 +10,7 @@
 #include "../gridBus.h"
 #include "utilities/matrixData.hpp"
 #include <string>
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     GovernorSteamTCSR::GovernorSteamTCSR(const std::string& objName): GovernorSteamNR(objName)
     {
         // default values
@@ -149,5 +148,4 @@ namespace governors {
         }
     }
 
-}  // namespace governors
-}  // namespace griddyn
+}  // namespace griddyn::governors

@@ -1,18 +1,18 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
 #include "commMessage.h"
 #include <cereal/types/vector.hpp>
 #include <string>
 #include <vector>
 
 #define BASE_SCHEDULER_MESSAGE_NUMBER 800
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     class schedulerMessagePayload: public CommPayload {
       public:
         enum scheduler_message_type_t : std::uint32_t {
@@ -57,8 +57,7 @@ namespace comms {
         std::string makeTargetString(size_t cnt) const;
     };
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms
 
 #if defined(__GNUC__) && !defined(__clang__)
 #    pragma GCC diagnostic push

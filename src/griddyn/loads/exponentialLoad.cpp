@@ -12,8 +12,7 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     exponentialLoad::exponentialLoad(const std::string& objName): Load(objName) {}
     exponentialLoad::exponentialLoad(double rP, double qP, const std::string& objName):
         Load(rP, qP, objName)
@@ -110,5 +109,4 @@ namespace loads {
         }
         return 0.0;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

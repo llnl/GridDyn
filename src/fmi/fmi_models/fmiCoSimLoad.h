@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "fmiCoSimWrapper.hpp"
 #include "griddyn/Load.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiCoSimLoad: public fmiCoSimWrapper<Load> {
       public:
         enum threephasefmi_load_flags {
@@ -36,5 +35,4 @@ namespace fmi {
                               const solverMode& sMode) override;
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

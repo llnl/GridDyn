@@ -1,15 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
 #include "griddyn/events/reversibleEvent.h"
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiCoordinator;
     /** class to manage the inputs for an FMI configuration in GridDyn*/
     class fmiEvent: public events::reversibleEvent {
@@ -56,5 +56,4 @@ namespace fmi {
         void findCoordinator();
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -19,12 +21,7 @@
  *      Author: banks12
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_
-
 class GhostSwingBus {
   private:
   public:
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_COUPLING_GHOSTSWINGBUS_H_

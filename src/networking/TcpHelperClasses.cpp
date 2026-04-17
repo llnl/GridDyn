@@ -13,8 +13,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <thread>
 #include <utility>
 
-namespace griddyn {
-namespace tcpLib {
+namespace griddyn::tcpLib {
     using asio::ip::tcp;
 
     using namespace std::chrono_literals;  // NOLINT
@@ -727,5 +726,4 @@ namespace tcpLib {
         }
     }
 
-}  // namespace tcpLib
-}  // namespace griddyn
+}  // namespace griddyn::tcpLib

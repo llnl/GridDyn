@@ -22,8 +22,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace zmqInterface {
+namespace griddyn::zmqInterface {
 
     zmqCommunicator::zmqCommunicator(const std::string& name):
         Communicator(name), txDescriptor(name + "_tx"), rxDescriptor(name + "_rx")
@@ -224,5 +223,4 @@ namespace zmqInterface {
         receive(0, getName(), std::move(gdMsg));
     }
 
-}  // namespace zmqInterface
-}  // namespace griddyn
+}  // namespace griddyn::zmqInterface

@@ -13,8 +13,7 @@
 #include <map>
 #include <string>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName)
     {
         sourceLink.fill(-1);
@@ -366,5 +365,4 @@ namespace loads {
         }
         return src;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

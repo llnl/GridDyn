@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_
-
 #include "../paradae/math/SMultiVector.h"
 #include "../paradae/math/Vector.h"
 #include "../paradae/problems/ODEProblem.h"
@@ -77,8 +76,7 @@ typedef struct _braid_App_struct {
     void DumpDataStruct();
 } Braid_App;
 
-namespace griddyn {
-namespace braid {
+namespace griddyn::braid {
 
     paradae::Real IntegrationLoop(braid_App app,
                                   std::list<paradae::Real>& tprev,
@@ -130,6 +128,4 @@ namespace braid {
     int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus);
     int my_TimeGrid(braid_App app, braid_Real* ta, braid_Int* ilower, braid_Int* iupper);
 
-}  // namespace braid
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_BRAID_BRAID_DRIVER_H_
+}  // namespace griddyn::braid

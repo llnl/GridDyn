@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "../Block.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a generic transfer unction
  block implementing \f$H(S)=\frac{K(b_0+b_1 s +/hdots +b_n s^n}{a_0+a_1 s +/hdots +a_n s^n}\f$
 it then converts it to observable canonical form as state space matrices for implementation as part
@@ -81,5 +80,4 @@ the solver
         // virtual void setTime(coreTime time){prevTime=time;};
         virtual stringVec localStateNames() const override;
     };
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

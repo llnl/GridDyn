@@ -11,8 +11,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiCollector::fmiCollector(): collector(maxTime, maxTime) {}
     fmiCollector::fmiCollector(const std::string& name): collector(name)
     {
@@ -96,5 +95,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

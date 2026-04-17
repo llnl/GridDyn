@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -11,8 +13,6 @@
 /** @file
  *  @brief define some operations related to matrixData objects
  */
-#pragma once
-
 #include <complex>
 #include <type_traits>
 #include <vector>

@@ -15,8 +15,7 @@
 #include <complex>
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiMELoad::fmiMELoad(const std::string& objName): fmiMEWrapper<Load>(objName) {}
 
     coreObject* fmiMELoad::clone(coreObject* obj) const
@@ -107,5 +106,4 @@ namespace fmi {
         }
         return powers;
     }
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

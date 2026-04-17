@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -11,7 +13,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
 #ifndef _FSKIT_RUNNER_H_
 #    define _FSKIT_RUNNER_H_
 

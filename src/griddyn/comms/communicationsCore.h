@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef GRIDDYN_COMMUNICATIONS_CORE_
-#define GRIDDYN_COMMUNICATIONS_CORE_
-#pragma once
 
 #include "../gridDynDefinitions.hpp"
 #include <cstdint>
@@ -71,4 +69,3 @@ class communicationsCore {
     coreTime m_time = timeZero;  //!< current time of the communicator
 };
 }  // namespace griddyn
-#endif

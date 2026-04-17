@@ -20,8 +20,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace extra {
+namespace griddyn::extra {
     txThermalModel::txThermalModel(const std::string& objName): sensor(objName)
     {
         opFlags.reset(continuous_flag);  // this is a not a continuous model
@@ -386,5 +385,4 @@ namespace extra {
         updateA(time);
     }
 
-}  // namespace extra
-}  // namespace griddyn
+}  // namespace griddyn::extra

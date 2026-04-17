@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -8,14 +10,10 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXLIFESPAN_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXLIFESPAN_H_
-
 #include "griddyn/relays/sensor.h"
 #include <string>
 
-namespace griddyn {
-namespace extra {
+namespace griddyn::extra {
     /** @brief class modeling a transformer lifespan based on thermal effects
      */
     class txLifeSpan: public sensor {
@@ -67,6 +65,4 @@ namespace extra {
                          coreTime /*actionTime*/) override;
     };
 
-}  // namespace extra
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXLIFESPAN_H_
+}  // namespace griddyn::extra

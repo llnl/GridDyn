@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2016, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_
 
 #include "griddyn/comms/Communicator.h"
 #include <cstdint>
@@ -56,5 +55,3 @@ class FskitCommunicator: public griddyn::Communicator, public fskit::LogicalProc
   private:
     void doTransmit(std::shared_ptr<griddyn::commMessage> message);
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_FSKITCOMMUNICATOR_H_

@@ -14,8 +14,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     using units::unit;
 
     static typeFactory<zBreaker> glf("link", stringVec{"zbreaker", "zline", "busbreaker"});
@@ -157,5 +156,4 @@ namespace links {
         return 1;
     }
 
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

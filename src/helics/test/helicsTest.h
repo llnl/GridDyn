@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,13 +12,8 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     /** run tests of the HELICS code
 @return true if tests passed*/
     bool runHELICStests();
-}  // namespace helicsLib
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_HELICS_TEST_HELICSTEST_H_
+}  // namespace griddyn::helicsLib

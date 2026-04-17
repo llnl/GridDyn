@@ -12,8 +12,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     grabberSource::grabberSource(const std::string& objName): rampSource(objName) {}
     grabberSource::~grabberSource() = default;
 
@@ -149,5 +148,4 @@ namespace sources {
         }
         target = obj->getName();
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

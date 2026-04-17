@@ -16,8 +16,7 @@
 #include <sstream>
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helics::Time gd2helicsTime(coreTime evntTime)
     {
         return helics::Time(evntTime.toCount(time_units::ns), time_units::ns);
@@ -52,5 +51,4 @@ namespace helicsLib {
         return v;
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

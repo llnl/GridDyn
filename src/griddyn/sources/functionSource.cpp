@@ -10,8 +10,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     functionSource::functionSource(const std::string& objName): Source(objName) {}
     coreObject* functionSource::clone(coreObject* obj) const
     {
@@ -53,5 +52,4 @@ namespace sources {
     {
         sourceFunc = std::move(calcFunc);
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

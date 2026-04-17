@@ -12,8 +12,7 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModel4::GenModel4(const std::string& objName): GenModel3(objName) {}
     coreObject* GenModel4::clone(coreObject* obj) const
     {
@@ -285,5 +284,4 @@ namespace genmodels {
         }
     }
 
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

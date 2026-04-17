@@ -18,8 +18,7 @@
 #include <sstream>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     BackwardDiff::BackwardDiff() {}
@@ -579,5 +578,4 @@ namespace paradae {
         }
         // update_jacobian=true;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -13,8 +13,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     using gmlc::utilities::convertToLowerCase;
     using gmlc::utilities::numeric_conversion;
     using gmlc::utilities::stringOps::splitline;
@@ -285,5 +284,4 @@ namespace loads {
         return schedLoad.size();
     }
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

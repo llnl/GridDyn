@@ -1,16 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_
-
 #include "../Load.h"
 #include <string>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** primary load class supports 3 main types of loads  constant power, constant impedance,
 constant current these loads should for the basis of most non dynamic load models following the ZIP
 model Z-constant impedance, I-constant current, P- constant Power
@@ -78,6 +76,4 @@ model Z-constant impedance, I-constant current, P- constant Power
         virtual double getReactivePower() const override;  // for saving the state
     };
 
-}  // namespace loads
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_FREQUENCYSENSITIVELOAD_H_
+}  // namespace griddyn::loads

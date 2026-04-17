@@ -1,16 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BILLINGTON_23_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BILLINGTON_23_H_
-
 #include "RungeKutta_SDIRK.h"
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     /*!
   Butcher tableau:
   \f[\begin{array}{c|ccc}
@@ -27,7 +25,4 @@ namespace paradae {
         Billington_23(Equation* eq, bool variable_step = false);
         virtual std::string GetName() { return "RK_ImpBi_23"; };
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BILLINGTON_23_H_
+}  // namespace griddyn::paradae

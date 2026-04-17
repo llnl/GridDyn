@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FILTERED_DERIVATIVE_BLOCK_H_
-#define FILTERED_DERIVATIVE_BLOCK_H_
-#pragma once
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a derivative
 block implementing \f$H(S)=\frac{K s}{1+T_1 s} \frac{1}{1+T_2 s}\f$
 
@@ -62,7 +60,4 @@ block implementing \f$H(S)=\frac{K s}{1+T_1 s} \frac{1}{1+T_2 s}\f$
         virtual stringVec localStateNames() const override;
         // virtual void setTime(coreTime time){prevTime=time;};
     };
-}  // namespace blocks
-}  // namespace griddyn
-
-#endif  // FILTERED_DERIVATIVE_BLOCK_H_
+}  // namespace griddyn::blocks

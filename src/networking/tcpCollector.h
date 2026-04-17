@@ -1,16 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "griddyn/measurement/collector.h"
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace tcpLib {
+namespace griddyn::tcpLib {
     class TcpConnection;
 
     class tcpCollector: public collector {
@@ -35,5 +34,4 @@ namespace tcpLib {
         virtual const std::string& getSinkName() const override;
     };
 
-}  // namespace tcpLib
-}  // namespace griddyn
+}  // namespace griddyn::tcpLib

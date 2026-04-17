@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "fmiMELoad3phase.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class CymeDistLoadME: public fmiMELoad3phase {
         static std::atomic<int> indexCounter;
         std::string configFile;
@@ -28,5 +27,4 @@ namespace fmi {
         void loadConfigFile(const std::string& configFileName);
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

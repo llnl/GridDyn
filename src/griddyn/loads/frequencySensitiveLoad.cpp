@@ -16,8 +16,7 @@
 #include <iostream>
 #include <string>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     using units::unit;
 
     frequencySensitiveLoad::frequencySensitiveLoad(const std::string& objName): Load(objName) {}
@@ -212,5 +211,4 @@ namespace loads {
     {
     }
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

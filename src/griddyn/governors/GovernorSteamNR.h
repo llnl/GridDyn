@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GOVERNOR_IEEE_SIMPLE_H_
-#define GOVERNOR_IEEE_SIMPLE_H_
-#pragma once
-
 #include "GovernorIeeeSimple.h"
 #include <string>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     class GovernorSteamNR: public GovernorIeeeSimple {
       public:
       protected:
@@ -43,7 +40,4 @@ namespace governors {
                                       const solverMode& sMode) override;
     };
 
-}  // namespace governors
-}  // namespace griddyn
-
-#endif  // GOVERNOR_IEEE_SIMPLE_H_
+}  // namespace griddyn::governors

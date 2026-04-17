@@ -19,8 +19,7 @@
 #    include "solvers/NewtonStats.h"
 #endif
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     Newton::Newton(int max_iter_, Real tol_, bool update)
@@ -134,5 +133,4 @@ namespace paradae {
 
         return it;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

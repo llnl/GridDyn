@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../fmi_models/fmiMESubModel.h"
 #include "fmiWrapper.hpp"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     template<class BaseObj>
     class fmiMEWrapper: public fmiWrapper<fmiMESubModel, BaseObj> {
       public:
@@ -158,5 +157,4 @@ namespace fmi {
             fmiWrapper<fmiMESubModel, BaseObj>::fmisub->timestep(time, inputs, sMode);
         }
     };
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

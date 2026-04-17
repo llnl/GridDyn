@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_
-
 #include "subsystem.h"
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     /** @brief class defining a complete hvdc system including converters dc buses and dc line*/
     class hvdc: public subsystem {
       public:
@@ -43,6 +41,4 @@ namespace links {
   */
         void setFlow(int direction);
     };
-}  // namespace links
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_HVDC_H_
+}  // namespace griddyn::links

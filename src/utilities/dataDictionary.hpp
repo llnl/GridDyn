@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2016, Lawrence Livermore National Security
@@ -7,10 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef DATA_DICTIONARY_H_
-#define DATA_DICTIONARY_H_
-#pragma once
 
 #include "mapOps.hpp"
 #include <algorithm>
@@ -74,4 +72,3 @@ class dataDictionary {
 };
 
 }  // namespace utilities
-#endif

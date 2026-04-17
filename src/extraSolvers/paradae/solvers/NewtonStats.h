@@ -1,18 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../common/def.h"
 #include "../math/SVector.h"
 #include "mpi.h"
 #include <list>
 #include <map>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     enum NSType { sequential, braid };
 
     class NewtonStats {
@@ -46,5 +45,4 @@ namespace paradae {
     };
 
     extern NewtonStats newton_stats;
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

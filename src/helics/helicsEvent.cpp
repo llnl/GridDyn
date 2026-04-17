@@ -18,8 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsEvent::helicsEvent(const std::string& newName): reversibleEvent(newName)
     {
         initRequired = true;
@@ -185,5 +184,4 @@ namespace helicsLib {
         }
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

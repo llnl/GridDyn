@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -12,9 +14,6 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_
-
 #include <string>
 
 class gridDynPlugInApi {
@@ -25,5 +24,3 @@ class gridDynPlugInApi {
 
     virtual ~gridDynPlugInApi() {}
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_PLUGINS_GRIDDYNPLUGINAPI_H_

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Copyright (C) 2017, Battelle Memorial Institute
 All rights reserved.
@@ -18,8 +20,6 @@ Livermore National Security, LLC.
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "../cppzmq/zmq_addon.hpp"
 #include <functional>
 #include <memory>

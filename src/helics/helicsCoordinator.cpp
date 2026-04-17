@@ -27,8 +27,7 @@
 #include <unordered_map>
 #include <utility>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     std::unordered_map<std::string, helicsCoordinator*> helicsCoordinator::registry;
     std::mutex helicsCoordinator::registry_protection;
 
@@ -384,5 +383,4 @@ namespace helicsLib {
             fed->finalize();
         }
     }
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

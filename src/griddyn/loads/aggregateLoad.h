@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_
-
 #include "zipLoad.h"
 #include <string>
 #include <vector>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** @brief class implementing a generic composite load
  the load can consume other loads already as part of a bus or have its own loads
 */
@@ -82,6 +80,4 @@ namespace loads {
         virtual double getRealPower() const override;
         virtual double getReactivePower() const override;
     };
-}  // namespace loads
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_AGGREGATELOAD_H_
+}  // namespace griddyn::loads

@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include <cstdlib>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 #define REAL_ 2
 
 #if REAL_ == 1
@@ -56,5 +55,4 @@ namespace paradae {
     void operator delete[](void* ptr, const std::nothrow_t&);
 
 #endif
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

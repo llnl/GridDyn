@@ -13,8 +13,7 @@
 #include <string>
 
 using namespace std;
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ODEProblem::ODEProblem(MPI_Comm comm_)
     {
         comm = comm_;
@@ -187,5 +186,4 @@ namespace paradae {
             *output << setprecision(20);
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

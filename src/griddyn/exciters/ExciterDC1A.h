@@ -1,16 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC1A_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC1A_H_
-
 #include "ExciterIEEEtype1.h"
 #include <string>
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     /** @brief DC1A exciter
      */
     class ExciterDC1A: public ExciterIEEEtype1 {
@@ -68,7 +66,4 @@ namespace exciters {
         virtual void
             limitJacobian(double V, int Vloc, int refLoc, double cj, matrixData<double>& md);
     };
-}  // namespace exciters
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITERS_EXCITERDC1A_H_
+}  // namespace griddyn::exciters

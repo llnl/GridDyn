@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -8,9 +10,6 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_GLOBALWORKQUEUE_HPP_
-#define ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_GLOBALWORKQUEUE_HPP_
-
 #include "gmlc/containers/WorkQueue.hpp"
 #include <memory>
 
@@ -20,5 +19,3 @@ the work queue itself is thread safe
 */
 const std::shared_ptr<gmlc::containers::WorkQueue>& getGlobalWorkQueue(int threads = -1);
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_GLOBALWORKQUEUE_HPP_

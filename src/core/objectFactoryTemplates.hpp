@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef GD_OBJECT_FACTORY_TEMPLATES_H_
-#define GD_OBJECT_FACTORY_TEMPLATES_H_
-#pragma once
 
 #include "core/coreExceptions.h"
 #include "core/coreOwningPtr.hpp"
@@ -397,4 +395,3 @@ A* cloneBaseFactory(const A* bobj, coreObject* obj, objectFactory* cfact)
 }
 
 }  // namespace griddyn
-#endif

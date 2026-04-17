@@ -14,8 +14,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
 
     // cloning function
@@ -236,5 +235,4 @@ namespace exciters {
         }
     }
 
-}  // namespace exciters
-}  // namespace griddyn
+}  // namespace griddyn::exciters

@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef GRIDDYN_CONTROL_MESSAGE_H_
-#define GRIDDYN_CONTROL_MESSAGE_H_
-#pragma once
 
 #include "commMessage.h"
 #include <cereal/types/string.hpp>
@@ -16,8 +14,7 @@
 
 #define BASE_CONTROL_MESSAGE_NUMBER 500
 
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     /** a message type used for requesting control actions to relays and sending values in response
      */
     class controlMessagePayload: public CommPayload {
@@ -87,8 +84,6 @@ namespace comms {
         }
     };
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms
 
 CEREAL_REGISTER_TYPE(griddyn::comms::controlMessagePayload)
-#endif

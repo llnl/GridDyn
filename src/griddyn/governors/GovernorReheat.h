@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GOVERNOR_REHEAT_H_
-#define GOVERNOR_REHEAT_H_
-#pragma once
-
 #include "../Governor.h"
 #include <string>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     class GovernorReheat: public Governor {
       public:
       protected:
@@ -48,7 +45,4 @@ namespace governors {
         // virtual void setTime (coreTime time) const{prevTime=time;};
     };
 
-}  // namespace governors
-}  // namespace griddyn
-
-#endif  // GOVERNOR_REHEAT_H_
+}  // namespace griddyn::governors

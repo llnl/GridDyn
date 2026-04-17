@@ -1,15 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_ODE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_ODE_H_
-
 #include "Equation.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     class Equation_ODE: public Equation {
       public:
@@ -58,7 +56,4 @@ namespace paradae {
         };
         virtual type_Equation GetTypeEq() { return ODE; };
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_EQUATIONS_EQUATION_ODE_H_
+}  // namespace griddyn::paradae

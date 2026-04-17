@@ -11,8 +11,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace tcpLib {
+namespace griddyn::tcpLib {
     tcpCollector::tcpCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
     tcpCollector::tcpCollector(const std::string& collectorName): collector(collectorName) {}
@@ -80,5 +79,4 @@ namespace tcpLib {
         return server;
     }
 
-}  // namespace tcpLib
-}  // namespace griddyn
+}  // namespace griddyn::tcpLib

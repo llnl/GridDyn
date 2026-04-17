@@ -15,8 +15,7 @@
 #include <cstdio>
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModelGENROU::GenModelGENROU(const std::string& objName): GenModel5(objName)
     {
         // default values
@@ -332,5 +331,4 @@ namespace genmodels {
     {
         return genModelGenRouNames;
     }
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

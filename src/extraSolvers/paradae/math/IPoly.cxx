@@ -13,8 +13,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     IPoly::IPoly(const PMultiVector& tyy_, const PMultiVector& yy_): tyy(tyy_), yy(yy_)
@@ -121,5 +120,4 @@ namespace paradae {
             dy.AXPBY(vec_t(i + nyy) / (max_time - min_time), 1.0, yi);
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -12,8 +12,7 @@
 #include <iostream>
 
 using namespace std;
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     RungeKutta::RungeKutta() {}
 
     RungeKutta::RungeKutta(Equation* eq, bool variable_step)
@@ -178,5 +177,4 @@ namespace paradae {
         }
         return sqrt(res / fx.GetM());
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

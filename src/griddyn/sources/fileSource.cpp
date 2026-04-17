@@ -9,8 +9,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     fileSource::fileSource(const std::string& fileName, int column): rampSource("filesource_#")
     {
         if (!fileName.empty()) {
@@ -150,5 +149,4 @@ namespace sources {
         }
         return schedLoad.size();
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

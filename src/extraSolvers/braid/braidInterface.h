@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2018, Lawrence Livermore National Security
@@ -9,8 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "../paradae/equations/EqGridDyn.h"
 #include "../paradae/equations/Equation.h"
 #include "../paradae/math/paradaeArrayData.h"
@@ -20,8 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace braid {
+namespace griddyn::braid {
     using griddyn::paradae::Equation;
     using griddyn::paradae::MapParam;
     using griddyn::paradae::ODEProblem;
@@ -77,5 +76,4 @@ namespace braid {
         /** execute the braid solve*/
         virtual int RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
     };
-}  // namespace braid
-}  // namespace griddyn
+}  // namespace griddyn::braid

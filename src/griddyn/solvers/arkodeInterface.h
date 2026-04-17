@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_
 
 #include "sundialsInterface.h"
 #include <memory>
@@ -83,5 +82,3 @@ namespace griddyn::solvers {
     };
 
 }  // namespace griddyn::solvers
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_

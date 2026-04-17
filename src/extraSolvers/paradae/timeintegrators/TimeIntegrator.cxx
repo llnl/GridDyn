@@ -6,8 +6,7 @@
 #include "TimeIntegrator.h"
 
 #include <cmath>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     DATA_Struct::DATA_Struct(int nx, int nb, int ng, int ns):
@@ -160,5 +159,4 @@ namespace paradae {
         }
     }
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

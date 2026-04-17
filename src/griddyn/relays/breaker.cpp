@@ -21,8 +21,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     using units::convert;
     using units::puA;
     breaker::breaker(const std::string& objName): Relay(objName), useCTI(extra_bool)
@@ -449,5 +448,4 @@ std::string commType;
         alert(this, UPDATE_TIME_CHANGE);
     }
 
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

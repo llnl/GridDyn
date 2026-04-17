@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
@@ -15,8 +15,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     /** @brief template class to wrap a component type with an FMIsubmodel
 @tparam FMItype the type of fmiSubmodel to incorporate
 @tparam BaseObj the component class this object is a part of
@@ -369,5 +368,4 @@ namespace fmi {
             return fmisub->getOutputs(inputs, sD, sMode);
         }
     };
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

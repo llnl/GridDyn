@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef DELAYBLOCK_H_
-#define DELAYBLOCK_H_
-#pragma once
-
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a delay block
  block implementing \f$H(S)=\frac{K}{1+T_1 s}\f$
 if the time constant is very small it reverts to the basic block
@@ -66,6 +63,4 @@ if the time constant is very small it reverts to the basic block
         // virtual void setTime(coreTime time){prevTime=time;};
     };
 
-}  // namespace blocks
-}  // namespace griddyn
-#endif  // DELAYBLOCK_H_
+}  // namespace griddyn::blocks

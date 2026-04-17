@@ -14,8 +14,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     busRelay::busRelay(const std::string& objName): Relay(objName)
     {
         opFlags.set(continuous_flag);
@@ -126,5 +125,4 @@ std::string commType;
             alert(m_sourceObject, BUS_UNDER_FREQUENCY);
         }
     }
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

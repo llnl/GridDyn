@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -8,14 +10,10 @@
  * All rights reserved.
  * For details, see the L */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_
-
 #include "griddyn/relays/sensor.h"
 #include <string>
 
-namespace griddyn {
-namespace extra {
+namespace griddyn::extra {
     /** @brief basic thermal model of a transformer
      */
     class txThermalModel: public sensor {
@@ -70,6 +68,4 @@ namespace extra {
         virtual void updateA(coreTime time) override;
     };
 
-}  // namespace extra
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRAMODELS_TXTHERMALMODEL_H_
+}  // namespace griddyn::extra

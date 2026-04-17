@@ -9,8 +9,7 @@
 #include "SVector.h"
 #include <iostream>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     PMultiVector::PMultiVector(const SMultiVector& v)
@@ -78,5 +77,4 @@ namespace paradae {
         v.Resize(nx);
         memcpy(v.GetData(), data + i * nx, nx * sizeof(Real));
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

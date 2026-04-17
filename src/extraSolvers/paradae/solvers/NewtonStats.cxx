@@ -12,8 +12,7 @@
 #include <list>
 #include <utility>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     NewtonStats newton_stats;
 
@@ -211,5 +210,4 @@ namespace paradae {
             }
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

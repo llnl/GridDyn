@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../Source.h"
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /**@brief defines a ramping source
      */
     class rampSource: public Source {
@@ -32,5 +31,4 @@ namespace sources {
         /** @brief clear the ramp (set it to 0)*/
         void clearRamp() { mp_dOdt = 0.0; }
     };
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

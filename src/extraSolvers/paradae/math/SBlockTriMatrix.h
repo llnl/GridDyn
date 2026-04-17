@@ -1,15 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_
-
 #include "DBlockTriMatrix.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class SBlockTriMatrix: public DBlockTriMatrix {
       private:
         void operator=(const SBlockTriMatrix& mat) {};
@@ -35,7 +33,4 @@ namespace paradae {
 
         virtual void dump(std::ostream& output) const;
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_SBLOCKTRIMATRIX_H_
+}  // namespace griddyn::paradae

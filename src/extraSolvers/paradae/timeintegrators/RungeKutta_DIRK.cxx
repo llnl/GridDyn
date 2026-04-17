@@ -7,8 +7,7 @@
 
 #include "../math/DBlockTriMatrix.h"
 #include "../math/PMultiVector.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     RungeKutta_DIRK::RungeKutta_DIRK(Equation* eq, bool varstep): RungeKutta_Implicit(eq, varstep)
     {
     }
@@ -101,5 +100,4 @@ namespace paradae {
         }
         // update_jacobian=true;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -20,8 +20,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     using gmlc::utilities::ensureSizeAtLeast;
 
     zonalRelay::zonalRelay(const std::string& objName): Relay(objName)
@@ -337,5 +336,4 @@ std::string commType;
         }
         return autoname;
     }
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

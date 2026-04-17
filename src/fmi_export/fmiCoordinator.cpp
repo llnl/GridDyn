@@ -14,8 +14,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiCoordinator::fmiCoordinator(const std::string& /* unused */): coreObject("fmiCoordinator") {}
 
     static auto searchFunc = [](const auto& vp1, const auto& vp2) {
@@ -196,5 +195,4 @@ namespace fmi {
         return (param.second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter);
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

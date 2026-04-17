@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     // setup the load object factories
 
     motorLoad3::motorLoad3(const std::string& objName): motorLoad(objName) {}
@@ -683,5 +682,4 @@ namespace loads {
 
         return Qtemp * scale;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

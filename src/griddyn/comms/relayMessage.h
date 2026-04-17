@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -10,13 +12,11 @@
  * LLNS Copyright End
  */
 
-#pragma once
 #include "commMessage.h"
 #include <string>
 
 #define BASE_RELAY_MESSAGE_NUMBER 400
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     using relayMessage = commMessage;
     enum relay_message_type_t : std::uint32_t {
         NO_EVENT = BASE_RELAY_MESSAGE_NUMBER,
@@ -33,5 +33,4 @@ namespace comms {
         ALARM_CLEARED_EVENT = BASE_RELAY_MESSAGE_NUMBER + 13,
     };
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms

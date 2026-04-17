@@ -1,18 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "griddyn/measurement/collector.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiCoordinator;
 
     /** collector object to interface with an fmi output*/
@@ -42,5 +41,4 @@ namespace fmi {
         virtual void dataPointAdded(const collectorPoint& cp) override;
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

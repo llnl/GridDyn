@@ -26,8 +26,7 @@ using std::ostringstream;
 using std::printf;
 using std::string;
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     void TimedElem::Start(string name_)
     {
@@ -168,5 +167,4 @@ namespace paradae {
 
     Timer global_timer;
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

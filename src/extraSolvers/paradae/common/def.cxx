@@ -9,8 +9,7 @@
 #include "../math/IVanderExt.h"
 #include "../math/SVector.h"
 #include <string>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     using namespace std;
 
@@ -113,5 +112,4 @@ namespace paradae {
     }
 #endif
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

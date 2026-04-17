@@ -7,8 +7,7 @@
 
 #    include "paradaeArrayData.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     paradaeArrayData::paradaeArrayData(SparseMatrix* mat)
     {
         J = mat;
@@ -69,7 +68,6 @@ namespace paradae {
         return {J->GetRowIndex(N), J->GetColIndex(N), J->GetValue(N)};
     }
 
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae
 
 #endif

@@ -14,8 +14,7 @@
 #include <sstream>
 #include <string>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     interpolatingPlayer::interpolatingPlayer(const std::string& eventName): Player(eventName) {}
 
     interpolatingPlayer::interpolatingPlayer(coreTime time0, double loopPeriod):
@@ -190,5 +189,4 @@ namespace events {
         }
         return ret;
     }
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

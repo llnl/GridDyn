@@ -33,8 +33,7 @@
 #include <iostream>
 #include <memory>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsRunner::helicsRunner()
     {
         griddyn::loadHELICSLibrary();
@@ -138,5 +137,4 @@ namespace helicsLib {
     {
         fed_->finalize();
     }
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

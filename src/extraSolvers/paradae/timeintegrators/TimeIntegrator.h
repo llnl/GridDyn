@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_
-
 #include "../common/def.h"
 #include "../equations/Equation.h"
 #include "../math/PVector.h"
@@ -14,8 +13,7 @@
 #include <list>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     enum TI_type { RK, BDF };
 
@@ -126,7 +124,4 @@ namespace paradae {
         inline Real GetMaxRFactor() { return max_rfactor; };
     };
 
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_TIMEINTEGRATOR_H_
+}  // namespace griddyn::paradae

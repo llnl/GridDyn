@@ -1,14 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../Relay.h"
 #include <string>
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** relay object for bus protection can isolate a bus based on voltage or frequency
 with a controllable delay time operates on undervoltage and underfrequency
 */
@@ -43,5 +42,4 @@ with a controllable delay time operates on undervoltage and underfrequency
                                  change_code actionReturn,
                                  coreTime actionTime) override;
     };
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

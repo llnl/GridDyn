@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -9,8 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "core/coreOwningPtr.hpp"
 #include "runner/gridDynRunner.h"
 #include <memory>

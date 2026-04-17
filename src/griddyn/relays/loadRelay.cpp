@@ -14,8 +14,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     loadRelay::loadRelay(const std::string& objName): Relay(objName)
     {
         // opFlags.set(continuous_flag);
@@ -222,5 +221,4 @@ std::string commType;
    }
    */
     }
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

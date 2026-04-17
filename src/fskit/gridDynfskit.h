@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -12,9 +14,6 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_
-
 #include <string>
 /** @brief load the fskit components specified by the subset indicator into the object factory
 @param[in] subset specify a subset of the models to load
@@ -22,5 +21,3 @@
 others will be added as the library grows
 */
 void loadFskit(const std::string& subset = "");
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFSKIT_H_

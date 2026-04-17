@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -9,13 +11,10 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "../griddyn/loads/rampLoad.h"
 #include "helicsSupport.h"
 #include <string>
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     class helicsCoordinator;
     enum class helicsValueType : char;
 
@@ -64,5 +63,4 @@ namespace helicsLib {
         void setSubscription();
     };
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

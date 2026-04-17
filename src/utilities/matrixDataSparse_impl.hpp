@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,9 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_MATRIXDATASPARSE_IMPL_HPP_
-#define ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_MATRIXDATASPARSE_IMPL_HPP_
 
 #include "matrixDataSparse.hpp"
 #include <algorithm>
@@ -326,5 +325,3 @@ std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
     }
     return mrows;
 }
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_UTILITIES_MATRIXDATASPARSE_IMPL_HPP_

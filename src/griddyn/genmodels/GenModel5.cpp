@@ -15,8 +15,7 @@
 #include <complex>
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModel5::GenModel5(const std::string& objName): GenModel4(objName) {}
     coreObject* GenModel5::clone(coreObject* obj) const
     {
@@ -277,5 +276,4 @@ namespace genmodels {
         }
     }
 
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

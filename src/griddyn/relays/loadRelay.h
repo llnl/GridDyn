@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_
-
 #include "../Relay.h"
 #include <string>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** class implementing a protective relay for load objects
 the protective systems include underfrequency, undervoltage, and a return time so the load
 automatically recovers
@@ -49,7 +47,4 @@ automatically recovers
         virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
         virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
     };
-}  // namespace relays
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_LOADRELAY_H_
+}  // namespace griddyn::relays

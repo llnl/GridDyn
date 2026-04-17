@@ -1,19 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_
-
 #include "fmiCoSimWrapper.hpp"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiCoSimSubModel;
 
     class fmiCoSimLoad3phase: public fmiCoSimWrapper<loads::ThreePhaseLoad> {
@@ -45,6 +43,4 @@ namespace fmi {
         virtual const std::vector<stringVec>& fmiOutputNames() const override;
     };
 
-}  // namespace fmi
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMICOSIMLOAD3PHASE_H_
+}  // namespace griddyn::fmi

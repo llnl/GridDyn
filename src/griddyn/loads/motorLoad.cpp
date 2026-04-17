@@ -17,8 +17,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     using units::convert;
     using units::MVAR;
     using units::puMW;
@@ -606,5 +605,4 @@ namespace loads {
         double out = vin * vin * (1.0 / xm + xs2 / (r1 * r1 + xs2 * (x + x1)));
         return out;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

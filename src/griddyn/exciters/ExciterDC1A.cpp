@@ -12,8 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
     {
         // default values
@@ -262,5 +261,4 @@ namespace exciters {
         }
     }
 
-}  // namespace exciters
-}  // namespace griddyn
+}  // namespace griddyn::exciters

@@ -8,8 +8,7 @@
 
 #include <algorithm>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     valueLimiter::valueLimiter(double nmin, double nmax): minVal(nmin), maxVal(nmax) {}
     void valueLimiter::setLimits(double nmin, double nmax)
     {
@@ -82,5 +81,4 @@ namespace blocks {
         return (input > maxVal) ? maxVal : (input < minVal) ? minVal : input;
     }
 
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

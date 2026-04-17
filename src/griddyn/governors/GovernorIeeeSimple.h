@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef GOVERNORIEEE_SIMPLE_H_
-#define GOVERNORIEEE_SIMPLE_H_
-#pragma once
 
 #include "../Governor.h"
 #include "../blocks/controlBlock.h"
@@ -15,8 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     class GovernorIeeeSimple: public Governor {
       public:
       protected:
@@ -63,7 +60,4 @@ namespace governors {
         // virtual void setTime(coreTime time){prevTime=time;};
     };
 
-}  // namespace governors
-}  // namespace griddyn
-
-#endif  // GRIDGOVERNOR_H_
+}  // namespace griddyn::governors

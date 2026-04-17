@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     compoundEventPlayer::compoundEventPlayer() = default;
 
     compoundEventPlayer::compoundEventPlayer(const std::string& eventName): compoundEvent(eventName)
@@ -205,5 +204,4 @@ namespace events {
             triggerTime = ts.time(0);
         }
     }
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

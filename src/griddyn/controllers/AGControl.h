@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
 
 #include "core/coreOwningPtr.hpp"
 #include "griddyn/gridSubModel.h"
@@ -133,4 +132,3 @@ protected:
 
 */
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_

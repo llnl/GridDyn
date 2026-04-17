@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     using units::unit;
 
     GovernorTgov1::GovernorTgov1(const std::string& objName): GovernorIeeeSimple(objName)
@@ -270,5 +269,4 @@ namespace governors {
             GovernorIeeeSimple::set(param, val, unitType);
         }
     }
-}  // namespace governors
-}  // namespace griddyn
+}  // namespace griddyn::governors

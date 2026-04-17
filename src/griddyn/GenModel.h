@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef GRIDDYNGENMODEL_H_
-#define GRIDDYNGENMODEL_H_
-#pragma once
 
 #include "gridSubModel.h"
 #include <string>
@@ -85,4 +83,3 @@ class GenModel: public gridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
 };
 }  // namespace griddyn
-#endif  // GRIDDYNGENMODEL_H_

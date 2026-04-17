@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef CONTROL_BLOCK_H_
-#define CONTROL_BLOCK_H_
-#pragma once
-
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a control block
  block implementing \f$H(S)=\frac{K(1+T_2 s}{1+T_1 s}\f$
 default is \f$T_2 =0\f$ for behavior equivalent to a delay block
@@ -72,7 +69,4 @@ if T1 is 0 it behaves like the basic block
         virtual stringVec localStateNames() const override;
     };
 
-}  // namespace blocks
-}  // namespace griddyn
-
-#endif  // CONTROL_BLOCK_H_
+}  // namespace griddyn::blocks

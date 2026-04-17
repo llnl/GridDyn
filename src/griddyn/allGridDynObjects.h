@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_
 
 #include "Block.h"
 #include "Exciter.h"
@@ -25,5 +24,3 @@
 #include "loads/zipLoad.h"
 #include "measurement/collector.h"
 #include "relays/zonalRelay.h"
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_ALLGRIDDYNOBJECTS_H_

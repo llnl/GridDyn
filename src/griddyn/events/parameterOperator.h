@@ -1,12 +1,11 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef PARAMETER_OPERATOR_H_
-#define PARAMETER_OPERATOR_H_
-#pragma once
 // headers
 // #include "gridDynSimulation.h"
 
@@ -60,4 +59,3 @@ class parameterSet {
 };
 
 }  // namespace griddyn
-#endif

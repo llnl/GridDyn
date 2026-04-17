@@ -19,8 +19,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     static const bool unimplemented = false;
 
     fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
@@ -703,5 +702,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

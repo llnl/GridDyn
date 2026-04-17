@@ -17,8 +17,7 @@
 // only differences from dc1a are gains and voltage limit is a function of
 // terminal voltage
 
-namespace griddyn {
-namespace exciters {
+namespace griddyn::exciters {
     ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
     {
         // default values
@@ -178,5 +177,4 @@ namespace exciters {
         return ret;
     }
 
-}  // namespace exciters
-}  // namespace griddyn
+}  // namespace griddyn::exciters

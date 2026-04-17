@@ -5,8 +5,7 @@
  */
 #include "Equation_ODE.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     void Equation_ODE::function(const Real t,
                                 const Vector& y,
@@ -91,5 +90,4 @@ namespace paradae {
             yh(j) -= h;
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

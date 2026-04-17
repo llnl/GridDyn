@@ -16,8 +16,7 @@
 #include <mpi.h>
 #include <utility>
 
-namespace griddyn {
-namespace mpi {
+namespace griddyn::mpi {
     std::unique_ptr<MpiService> MpiService::m_pInstance;
     std::mutex MpiService::startupLock;  //!< mutex protecting the instance
 
@@ -112,5 +111,4 @@ namespace mpi {
         }
     }
 
-}  // namespace mpi
-}  // namespace griddyn
+}  // namespace griddyn::mpi

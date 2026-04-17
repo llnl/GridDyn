@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -11,9 +13,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_
 
 #include "fskit/fskitRunner.h"
 #include <fskit/discrete-event-federated-simulator.h>
@@ -69,5 +68,3 @@ class GriddynFederatedSimulator:
 
     std::shared_ptr<griddyn::fskitRunner> m_griddyn;
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSIMULATOR_H_

@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_
-
 #include "motorLoad.h"
 #include <string>
 #include <vector>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** @brief class implementing a model of a 3rd order induction motor
      */
     class motorLoad3: public motorLoad {
@@ -117,6 +115,4 @@ namespace loads {
         void converge();
     };
 
-}  // namespace loads
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LOADS_MOTORLOAD3_H_
+}  // namespace griddyn::loads

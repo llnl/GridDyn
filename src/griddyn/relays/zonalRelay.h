@@ -1,5 +1,4 @@
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_
+#pragma once
 
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
@@ -12,8 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** class building off of Relay to define a zonal relays
  the number of zones is arbitrary and it works by checking the impedances of the associated link and
 comparing to specific thresholds. This zonal relays runs off a single impedance number
@@ -65,6 +63,4 @@ comparing to specific thresholds. This zonal relays runs off a single impedance 
 
         virtual std::string generateCommName() override;
     };
-}  // namespace relays
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_ZONALRELAY_H_
+}  // namespace griddyn::relays

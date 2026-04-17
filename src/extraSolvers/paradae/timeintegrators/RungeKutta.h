@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "../equations/Equation.h"
 #include "../math/DenseMatrix.h"
 #include "../math/SMultiVector.h"
@@ -13,8 +13,7 @@
 #include "../solvers/Solver.h"
 #include "../timeintegrators/TimeIntegrator.h"
 #include <list>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class RungeKutta;
 
     class Solver_App_RK: public Solver_App {
@@ -68,5 +67,4 @@ namespace paradae {
         inline Vector& GetBinf() { return rk_binf; };
         inline Vector& GetC() { return rk_c; };
     };
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -1,10 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "core/coreObject.h"
 #include <map>
 #include <mutex>
@@ -12,8 +12,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiEvent;
     class fmiCollector;
 
@@ -112,5 +111,4 @@ namespace fmi {
         static bool isStringParameter(const vrInputPair& param);
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

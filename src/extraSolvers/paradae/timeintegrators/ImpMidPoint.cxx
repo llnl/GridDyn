@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "ImpMidPoint.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ImpMidPoint::ImpMidPoint(Equation* eq): RungeKutta_DIRK(eq, false)
     {
         nb_steps = 1;
@@ -16,5 +15,4 @@ namespace paradae {
         rk_binf.Resize(nb_steps);
         rk_c.Resize(nb_steps, 0.5);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

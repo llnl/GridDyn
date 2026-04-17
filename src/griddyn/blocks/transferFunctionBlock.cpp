@@ -15,8 +15,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     transferFunctionBlock::transferFunctionBlock(const std::string& objName):
         Block(objName), a(2, 1), b(2, 0)
     {
@@ -278,5 +277,4 @@ namespace blocks {
     {
         return stNames;
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

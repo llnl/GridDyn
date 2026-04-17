@@ -23,8 +23,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     pmu::pmu(const std::string& objName): sensor(objName)
     {
         outputStrings = {{"voltage"}, {"angle"}, {"frequency"}, {"rocof"}};
@@ -306,5 +305,4 @@ namespace relays {
         }
     }
 
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

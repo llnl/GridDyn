@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "SDIRK_12.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     SDIRK_12::SDIRK_12(Equation* eq, bool variable_step): RungeKutta_SDIRK(eq, variable_step)
     {
         nb_steps = 2;
@@ -27,5 +26,4 @@ namespace paradae {
         rk_binf(0) = 1;
         rk_binf(1) = 0;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

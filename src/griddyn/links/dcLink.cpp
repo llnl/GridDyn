@@ -16,8 +16,7 @@
 #include <cstring>
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     using units::convert;
     using units::puMW;
     using units::unit;
@@ -469,5 +468,4 @@ namespace links {
         return fixRealPower(power, measureTerminal, fixedTerminal, unitType);
     }
 
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

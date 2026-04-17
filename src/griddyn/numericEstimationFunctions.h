@@ -1,12 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef NUMERIC_ESTIMATION_FUNCTIONS_H_
-#define NUMERIC_ESTIMATION_FUNCTIONS_H_
-#pragma once
 
 #include "gridDynDefinitions.hpp"
 #include <vector>
@@ -59,4 +57,3 @@ void copyObjectLocalState(const gridComponent* comp,
 std::vector<index_t> getObjectLocalStateIndices(const gridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
-#endif

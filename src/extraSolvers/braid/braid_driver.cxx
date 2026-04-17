@@ -120,8 +120,7 @@ void _braid_App_struct::DumpDataStruct()
     cout << "# sprev   = " << alloc_data.sprev << endl;
 }
 
-namespace griddyn {
-namespace braid {
+namespace griddyn::braid {
 
     void my_Step_OnOnePoint(braid_App app,
                             braid_Vector ustop,
@@ -958,5 +957,4 @@ namespace braid {
 
         return 0;
     }
-}  // namespace braid
-}  // namespace griddyn
+}  // namespace griddyn::braid

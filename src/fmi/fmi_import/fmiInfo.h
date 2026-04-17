@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
@@ -7,8 +9,6 @@
 /** @file
 @brief file containing classes and types for managing information about FMU's
 */
-
-#pragma once
 
 #include "../FMI2/fmi2TypesPlatform.h"
 #include "fmiEnumDefinitions.h"

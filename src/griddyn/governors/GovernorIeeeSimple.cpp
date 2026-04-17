@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     using units::puMW;
     using units::unit;
 
@@ -275,5 +274,4 @@ namespace governors {
         }
     }
 
-}  // namespace governors
-}  // namespace griddyn
+}  // namespace griddyn::governors

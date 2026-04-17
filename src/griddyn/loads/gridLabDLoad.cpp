@@ -22,8 +22,7 @@
 #include <vector>
 
 // #define SGS_DEBUG
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     static typeFactory<gridLabDLoad> gfgld("load", stringVec{"gridlabd", "gridlab"});
     // constants for rotating a complex number by +120 and -120 degrees
     static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
@@ -1093,5 +1092,4 @@ namespace loads {
     }
 #endif  // GRIDDYN_ENABLE_MPI
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

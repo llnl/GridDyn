@@ -11,8 +11,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     commManager::commManager() = default;
     commManager::commManager(const commManager& cm)
     {
@@ -143,5 +142,4 @@ namespace comms {
         }
     }
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms

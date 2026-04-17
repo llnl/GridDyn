@@ -9,8 +9,7 @@
 // 1   | 3/4   1/4
 // -----------------
 //     | 3/4   1/4
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     Radau3::Radau3(Equation* eq): RungeKutta_Implicit(eq, false)
     {
         nb_steps = 2;
@@ -30,5 +29,4 @@ namespace paradae {
         rk_c(0) = Real(1. / 3.);
         rk_c(1) = Real(1.);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

@@ -21,8 +21,7 @@
 #include "helicsSupport.h"
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsGhostBus::helicsGhostBus(const std::string& objName): gridBus(objName) {}
 
     coreObject* helicsGhostBus::clone(coreObject* obj) const
@@ -130,5 +129,4 @@ namespace helicsLib {
         // helicsRegister::dataType::helicsComplex, def);
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

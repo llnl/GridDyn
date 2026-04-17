@@ -1,16 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "rampLoad.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     /** @brief a load that generates its value from files*/
     class fileLoad: public rampLoad {
       public:
@@ -50,5 +50,4 @@ namespace loads {
       private:
         count_t loadFile();
     };
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

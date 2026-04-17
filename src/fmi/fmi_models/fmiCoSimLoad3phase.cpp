@@ -15,8 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiCoSimLoad3phase::fmiCoSimLoad3phase(const std::string& objName):
         fmiCoSimWrapper<loads::ThreePhaseLoad>(objName)
     {
@@ -139,5 +138,4 @@ complex_output = object_flag11,
         return outputNames();
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

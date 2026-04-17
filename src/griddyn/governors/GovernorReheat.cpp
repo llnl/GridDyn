@@ -13,8 +13,7 @@
 #include "utilities/matrixData.hpp"
 #include <string>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     using units::unit;
 
     GovernorReheat::GovernorReheat(const std::string& objName): Governor(objName)
@@ -224,5 +223,4 @@ namespace governors {
             Governor::set(param, val, unitType);
         }
     }
-}  // namespace governors
-}  // namespace griddyn
+}  // namespace griddyn::governors

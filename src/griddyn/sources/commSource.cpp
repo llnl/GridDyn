@@ -15,8 +15,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     commSource::commSource(const std::string& objName): rampSource(objName)
     {
         enable_updates();
@@ -183,5 +182,4 @@ namespace sources {
                 break;
         }
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

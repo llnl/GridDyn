@@ -17,8 +17,7 @@
 #include <cmath>
 #include <cstring>
 #include <string>
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     static const double k3sq2 = (3.0 * sqrt(2.0) / kPI);
     static const double k3sq2sq = k3sq2 * k3sq2;
 
@@ -734,5 +733,4 @@ linkFlows.Q1);
         }
     }
 
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

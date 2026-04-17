@@ -15,8 +15,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     lutBlock::lutBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(use_state);
@@ -167,5 +166,4 @@ namespace blocks {
         return (input - vlower) * m + b;
     }
 
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

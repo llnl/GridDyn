@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BLOCK_SEQUENCE_H_
-#define BLOCK_SEQUENCE_H_
-#pragma once
 #include "../Block.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a sequence of blocks as a single block
 A block is defined as a single input single output subModel.  This object takes any number of blocks
 in a sequence and processes them in the appropriate fashion.
@@ -112,6 +110,4 @@ in a sequence and processes them in the appropriate fashion.
         virtual coreObject* findByUserID(const std::string& typeName,
                                          index_t searchID) const override;
     };
-}  // namespace blocks
-}  // namespace griddyn
-#endif
+}  // namespace griddyn::blocks

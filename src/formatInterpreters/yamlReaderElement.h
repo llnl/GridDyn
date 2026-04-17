@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -9,9 +11,6 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_
 
 #include "readerElement.h"
 #include <memory>
@@ -80,5 +79,3 @@ class yamlReaderElement: public readerElement {
     int iteratorCount = 0;
     std::vector<std::shared_ptr<yamlReaderElement>> bookmarks;
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FORMATINTERPRETERS_YAMLREADERELEMENT_H_

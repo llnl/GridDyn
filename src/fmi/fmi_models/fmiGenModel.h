@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
-
 #include "fmiMEWrapper.hpp"
 #include "griddyn/GenModel.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     class fmiMESubModel;
 
     class fmiGenModel: public fmiMEWrapper<GenModel> {
@@ -29,6 +27,4 @@ namespace fmi {
                          units::unit unitType = units::defunit) override;
     };
 
-}  // namespace fmi
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
+}  // namespace griddyn::fmi

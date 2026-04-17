@@ -26,8 +26,7 @@
 #include <memory>
 #include <utility>
 
-namespace griddyn {
-namespace dimeLib {
+namespace griddyn::dimeLib {
 
     dimeRunner::dimeRunner()
     {
@@ -86,5 +85,4 @@ namespace dimeLib {
         GriddynRunner::Finalize();
     }
 
-}  // namespace dimeLib
-}  // namespace griddyn
+}  // namespace griddyn::dimeLib

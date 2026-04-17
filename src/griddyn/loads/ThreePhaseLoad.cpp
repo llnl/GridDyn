@@ -16,8 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     using units::convert;
     using units::puA;
     using units::puMW;
@@ -483,5 +482,4 @@ namespace loads {
         return Load::outputNames();
     }
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

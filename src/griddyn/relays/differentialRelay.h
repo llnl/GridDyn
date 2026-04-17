@@ -1,19 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_
-
 #include "../Relay.h"
 #include "../comms/commMessage.h"
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** relay implementing differential relay protection scheme
      */
     class differentialRelay: public Relay {
@@ -56,7 +54,4 @@ namespace relays {
         virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
     };
 
-}  // namespace relays
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_DIFFERENTIALRELAY_H_
+}  // namespace griddyn::relays

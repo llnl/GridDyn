@@ -13,8 +13,7 @@
 #include "griddyn/gridBus.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     fmiExciter::fmiExciter(const std::string& objName): fmiMEWrapper<Exciter>(objName) {}
 
     coreObject* fmiExciter::clone(coreObject* obj) const
@@ -43,5 +42,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

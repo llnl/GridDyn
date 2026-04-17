@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -9,16 +11,13 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "../griddyn/gridDynDefinitions.hpp"
 #include "helics/application_api.hpp"
 #include <complex>
 #include <future>
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helics::Time gd2helicsTime(coreTime evntTime);
 
     coreTime helics2gdTime(helics::Time ftime);
@@ -27,5 +26,4 @@ namespace helicsLib {
     std::future<int> runPlayer(const std::string& cmd_args);
     std::future<int> runRecorder(const std::string& cmd_args);
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

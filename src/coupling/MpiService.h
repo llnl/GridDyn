@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -10,8 +12,6 @@
  * LLNS Copyright End
  */
 
-#pragma once
-
 #include "griddyn/griddyn-config.h"
 #include <memory>
 #include <mutex>
@@ -19,8 +19,7 @@
 #include <thread>
 #include <utility>
 
-namespace griddyn {
-namespace mpi {
+namespace griddyn::mpi {
     /** service object to get a singular point for startup and shutdown of MPI*/
     class MpiService {
       public:
@@ -107,5 +106,4 @@ namespace mpi {
         std::mutex tokenLock;  //!< mutex protecting MPI calls
     };
 
-}  // namespace mpi
-}  // namespace griddyn
+}  // namespace griddyn::mpi

@@ -10,8 +10,7 @@
  * LLNS Copyright End
  */
 #include "Ralston.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     Ralston::Ralston(Equation* eq): RungeKutta_Explicit(eq, false)
     {
         nb_steps = 2;
@@ -28,5 +27,4 @@ namespace paradae {
         rk_b(1) = 1. / (2. * alpha);
         rk_c(1) = alpha;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

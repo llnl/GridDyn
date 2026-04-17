@@ -1,16 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef RAMP_LIMITER_H_
-#define RAMP_LIMITER_H_
-#pragma once
-
 #include <limits>
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** class that limits the rate of change of a value between an upper and lower limit and
      * maintains state of whether it is clamping or not
      */
@@ -58,6 +55,4 @@ namespace blocks {
     allowable ramp*/
         double clampOutputRamp(double dIdt) const;
     };
-}  // namespace blocks
-}  // namespace griddyn
-#endif
+}  // namespace griddyn::blocks

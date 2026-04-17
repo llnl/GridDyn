@@ -13,8 +13,7 @@
 #include <string>
 
 // #include <ctime>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     using units::convert;
     using units::puA;
     using units::puMW;
@@ -163,5 +162,4 @@ namespace loads {
         dYqdt = 0.0;
         dYpdt = 0.0;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

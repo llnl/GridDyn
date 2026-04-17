@@ -24,8 +24,7 @@
 using gmlc::utilities::convertToLowerCase;
 
 // #define SGS_DEBUG
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
 #define CONJUGATE 1
 
     approximatingLoad::approximatingLoad(const std::string& objName): rampLoad(objName)
@@ -603,5 +602,4 @@ namespace loads {
         return change_code::no_change;
     }
 
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

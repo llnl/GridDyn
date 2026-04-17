@@ -12,8 +12,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     static dPayloadFactory<schedulerMessagePayload,
                            BASE_SCHEDULER_MESSAGE_NUMBER,
                            BASE_SCHEDULER_MESSAGE_NUMBER + 16>
@@ -119,5 +118,4 @@ namespace comms {
         return targetString;
     }
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms

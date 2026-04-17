@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
@@ -7,10 +9,6 @@
 /** @file
 define some functions and operations for configuring file reader operations and loading files
 */
-#ifndef GRIDDYNINPUT_H_
-#define GRIDDYNINPUT_H_
-#pragma once
-
 #include "../griddyn/gridDynDefinitions.hpp"
 #include "readerInfo.h"
 #include <memory>
@@ -153,4 +151,3 @@ void addToParent(coreObject* objectToAdd, coreObject* parentObject);
 void addToParentRename(coreObject* objectToAdd, coreObject* parentObject);
 
 }  // namespace griddyn
-#endif

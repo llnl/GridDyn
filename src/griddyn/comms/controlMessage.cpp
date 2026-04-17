@@ -9,8 +9,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include <string>
 
-namespace griddyn {
-namespace comms {
+namespace griddyn::comms {
     static dPayloadFactory<controlMessagePayload,
                            BASE_CONTROL_MESSAGE_NUMBER,
                            BASE_CONTROL_MESSAGE_NUMBER + 16>
@@ -206,5 +205,4 @@ namespace comms {
         }
     }
 
-}  // namespace comms
-}  // namespace griddyn
+}  // namespace griddyn::comms

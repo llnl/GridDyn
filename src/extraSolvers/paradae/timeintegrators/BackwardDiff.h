@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_
 
 #include "../equations/Equation.h"
 #include "../math/PMultiVector.h"
@@ -18,8 +17,7 @@
 #include <list>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     enum BDF_type { BDF_1 = 1, BDF_2 = 2, BDF_3 = 3, BDF_4 = 4, BDF_5 = 5, BDF_6 = 6 };
 
     enum BDF_error { BDF_ORDER_NOT_IMPLEMENTED, BDF_FAILED_IMPLICIT_STEP };
@@ -117,7 +115,4 @@ namespace paradae {
                              const SMultiVector& xprev,
                              const Vector& dxprev);
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_BACKWARDDIFF_H_
+}  // namespace griddyn::paradae

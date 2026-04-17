@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "Kutta4.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     Kutta4::Kutta4(Equation* eq): RungeKutta_Explicit(eq, false)
     {
         nb_steps = 4;
@@ -26,5 +25,4 @@ namespace paradae {
         rk_c(2) = Real(1. / 2.);
         rk_c(3) = Real(1.0);
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

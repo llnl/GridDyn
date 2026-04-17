@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -9,13 +11,10 @@
  * For details, see the LICENSE file.
  * LLNS Copyright End
  */
-#pragma once
-
 #include "../griddyn/sources/rampSource.h"
 #include "helicsSupport.h"
 #include <string>
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     class helicsCoordinator;
 
     /** class defining an object that pulls in data from a helics co-simulation*/
@@ -61,5 +60,4 @@ namespace helicsLib {
         void updateSubscription();
     };
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

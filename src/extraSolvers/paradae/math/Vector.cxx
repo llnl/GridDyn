@@ -12,8 +12,7 @@
 #include <iostream>
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     using namespace std;
 
     void Vector::Fill(Real fill_)
@@ -156,5 +155,4 @@ namespace paradae {
         vec.dump(output);
         return output;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

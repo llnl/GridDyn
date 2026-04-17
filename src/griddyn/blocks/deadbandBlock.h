@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef DEADBANDBLOCK_H_
-#define DEADBANDBLOCK_H_
-#pragma once
 #include "../Block.h"
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing a deadband system
  TOBE added
 */
@@ -111,6 +109,4 @@ namespace blocks {
         // virtual void setTime(coreTime time){prevTime=time;};
     };
 
-}  // namespace blocks
-}  // namespace griddyn
-#endif  // DEADBANDBLOCK_H_
+}  // namespace griddyn::blocks

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2017, Lawrence Livermore National Security
@@ -10,9 +12,6 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_
-
 namespace griddyn {
 class readerInfo;
 
@@ -20,5 +19,3 @@ void loadDimeLibrary();
 
 void loadDimeReaderInfoDefinitions(readerInfo& ri);
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_NETWORKING_DIMEINTERFACE_H_

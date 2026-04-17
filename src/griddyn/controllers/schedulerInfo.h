@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_
 
 #include "../gridDynDefinitions.hpp"
 
@@ -46,5 +45,3 @@ bool operator==(const tsched& td1, coreTime timeC);
 bool operator!=(const tsched& td1, coreTime timeC);
 
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_SCHEDULERINFO_H_

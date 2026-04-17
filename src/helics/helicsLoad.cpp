@@ -21,8 +21,7 @@
 #include <map>
 #include <string>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsLoad::helicsLoad(const std::string& objName):
         rampLoad(objName), loadType(helics::data_type::helics_complex),
         voltageType(helics::data_type::helics_complex)
@@ -232,5 +231,4 @@ namespace helicsLib {
         }
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

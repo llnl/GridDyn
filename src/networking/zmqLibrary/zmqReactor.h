@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Copyright (C) 2017, Battelle Memorial Institute
 All rights reserved.
@@ -17,8 +19,6 @@ Livermore National Security, LLC.
  * All rights reserved..
  * LLNS Copyright End
  */
-#pragma once
-
 #include "gmlc/containers/SimpleQueue.hpp"
 #include "zmqSocketDescriptor.h"
 #include <atomic>

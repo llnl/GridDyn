@@ -1,18 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_
-
 #include "../Source.h"
 #include <functional>
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /** source allowing the specification of an arbitrary function as the source generator
 @details uses a function that is dependent on time the function should not have state as the input
 time is not necessarily unidirectional
@@ -48,7 +46,4 @@ time is not necessarily unidirectional
     */
         void setFunction(std::function<double(double)> calcFunc);
     };
-}  // namespace sources
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_FUNCTIONSOURCE_H_
+}  // namespace griddyn::sources

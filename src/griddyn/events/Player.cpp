@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     Player::Player(const std::string& eventName): Event(eventName) {}
 
     Player::Player(coreTime time0, double loopPeriod): Event(time0), period(loopPeriod) {}
@@ -242,5 +241,4 @@ namespace events {
         currIndex = 0;
         setNextValue();
     }
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

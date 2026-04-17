@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_
-
 #include "sensor.h"
 #include <string>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** @brief class modeling a PMU
      */
     class pmu: public sensor {
@@ -64,6 +62,4 @@ namespace relays {
         void generateAndTransmitMessage() const;
     };
 
-}  // namespace relays
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_PMU_H_
+}  // namespace griddyn::relays

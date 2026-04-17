@@ -17,8 +17,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace dimeLib {
+namespace griddyn::dimeLib {
     dimeCommunicator::dimeCommunicator() = default;
 
     dimeCommunicator::dimeCommunicator(const std::string& name): zmqCommunicator(name) {}
@@ -79,5 +78,4 @@ namespace dimeLib {
         }
     }
 
-}  // namespace dimeLib
-}  // namespace griddyn
+}  // namespace griddyn::dimeLib

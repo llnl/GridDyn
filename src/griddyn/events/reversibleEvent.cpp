@@ -11,8 +11,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     reversibleEvent::reversibleEvent(const std::string& eventName): Event(eventName) {}
     reversibleEvent::reversibleEvent(coreTime time0): Event(time0) {}
     reversibleEvent::reversibleEvent(const EventInfo& gdEI, coreObject* rootObject):
@@ -147,5 +146,4 @@ namespace events {
         return (ggrab) ? (ggrab->grabData()) : kNullVal;
     }
 
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events

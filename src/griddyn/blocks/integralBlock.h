@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef INTEGRAL_BLOCK_H_
-#define INTEGRAL_BLOCK_H_
-#pragma once
-
 #include "../Block.h"
 #include <string>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     /** @brief class implementing an integral block
  computes the integral of the input
 */
@@ -60,7 +57,4 @@ namespace blocks {
         // virtual void timestep(coreTime time, const IOdata &inputs, const solverMode &sMode);
         // virtual void setTime(coreTime time){prevTime=time;};
     };
-}  // namespace blocks
-}  // namespace griddyn
-
-#endif  // INTEGRAL_BLOCK_H_
+}  // namespace griddyn::blocks

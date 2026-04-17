@@ -10,8 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     nullBlock::nullBlock(const std::string& objName): Block(objName)
     {
         opFlags[use_direct] = true;
@@ -176,5 +175,4 @@ namespace blocks {
         return gridSubModel::get(param, unitType);
     }
 
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

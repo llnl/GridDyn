@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 namespace griddyn {
-
 namespace readerConfig {
     int printMode = READER_DEFAULT_PRINT;
     int warnMode = READER_WARN_ALL;

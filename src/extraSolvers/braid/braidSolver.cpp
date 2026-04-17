@@ -35,8 +35,7 @@
 #include <sstream>
 #include <string>
 
-namespace griddyn {
-namespace braid {
+namespace griddyn::braid {
     using griddyn::paradae::BackwardDiff;
     using griddyn::paradae::BDF;
     using griddyn::paradae::Equation;
@@ -513,5 +512,4 @@ namespace braid {
     {
         return 0;
     }
-}  // namespace braid
-}  // namespace griddyn
+}  // namespace griddyn::braid

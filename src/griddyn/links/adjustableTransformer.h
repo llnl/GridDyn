@@ -1,19 +1,17 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_
-
 #include "acLine.h"
 #include <queue>
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     /** @brief extends the link class to include adjustments to the tap and tapAngle
 *  principally a model for adjustable transformers such as ULTC or regulators or other types of
 transformers with adjustments. it implements three types of control in power flow voltage control of
@@ -234,6 +232,4 @@ the only one that adjusts the angle.  available control include stepped and cont
         double getValidTapRatio(double testTapValue) const;
     };
 
-}  // namespace links
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ADJUSTABLETRANSFORMER_H_
+}  // namespace griddyn::links

@@ -1,11 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_
 
 #include "../Relay.h"
 #include <memory>
@@ -209,4 +208,3 @@ class sensor: public Relay {
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;
 };
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_SENSOR_H_

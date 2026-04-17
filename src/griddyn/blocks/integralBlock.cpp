@@ -14,8 +14,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
 #include <string>
-namespace griddyn {
-namespace blocks {
+namespace griddyn::blocks {
     integralBlock::integralBlock(const std::string& objName): Block(objName)
     {
         opFlags.set(differential_output);
@@ -137,5 +136,4 @@ namespace blocks {
             Block::set(param, val, unitType);
         }
     }
-}  // namespace blocks
-}  // namespace griddyn
+}  // namespace griddyn::blocks

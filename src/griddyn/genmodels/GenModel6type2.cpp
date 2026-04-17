@@ -14,8 +14,7 @@
 #include <cmath>
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
     GenModel6type2::GenModel6type2(const std::string& objName): GenModel5type2(objName) {}
     coreObject* GenModel6type2::clone(coreObject* obj) const
     {
@@ -269,5 +268,4 @@ namespace genmodels {
     {
         return genModel6type2Names;
     }
-}  // namespace genmodels
-}  // namespace griddyn
+}  // namespace griddyn::genmodels

@@ -1,18 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GOVERNORE_STEAM_TCSR_H_
-#define GOVERNORE_STEAM_TCSR_H_
-#pragma once
-
 #include "GovernorSteamNR.h"
 #include <string>
 
-namespace griddyn {
-namespace governors {
+namespace griddyn::governors {
     class GovernorSteamTCSR: public GovernorSteamNR {
       public:
       protected:
@@ -48,7 +45,4 @@ namespace governors {
                                       const solverMode& sMode) override;
     };
 
-}  // namespace governors
-}  // namespace griddyn
-
-#endif  // GOVERNORE_STEAM_TCSR_H_
+}  // namespace griddyn::governors

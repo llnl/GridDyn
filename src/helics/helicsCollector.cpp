@@ -22,8 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace helicsLib {
+namespace griddyn::helicsLib {
     helicsCollector::helicsCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
     helicsCollector::helicsCollector(const std::string& collectorName): collector(collectorName) {}
@@ -206,5 +205,4 @@ namespace helicsLib {
         return helicsName;
     }
 
-}  // namespace helicsLib
-}  // namespace griddyn
+}  // namespace griddyn::helicsLib

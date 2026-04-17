@@ -21,8 +21,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     controlRelay::controlRelay(const std::string& objName): Relay(objName) {}
 
     coreObject* controlRelay::clone(coreObject* obj) const
@@ -403,5 +402,4 @@ std::string commType;
         actions.resize((static_cast<size_t>(asize) + 1) * 2);  // double the size
         return asize;
     }
-}  // namespace relays
-}  // namespace griddyn
+}  // namespace griddyn::relays

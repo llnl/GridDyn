@@ -18,8 +18,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <string>
 
-namespace griddyn {
-namespace links {
+namespace griddyn::links {
     using units::unit;
 
     static typeFactory<hvdc> gf("link", stringVec{"hvdc"});
@@ -151,5 +150,4 @@ namespace links {
             }
         }
     }
-}  // namespace links
-}  // namespace griddyn
+}  // namespace griddyn::links

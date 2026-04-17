@@ -11,8 +11,7 @@
 #include <ctime>
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     rampSource::rampSource(const std::string& objName, double startVal): Source(objName, startVal)
     {
     }
@@ -53,5 +52,4 @@ namespace sources {
     {
         return (num == 0) ? mp_dOdt : 0.0;
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_
-
 #include "../Relay.h"
 #include <cstdint>
 #include <string>
-namespace griddyn {
-namespace relays {
+namespace griddyn::relays {
     /** fuse implements a standard power system fuse which can blow on time or using and I^2t
      * calculation
      */
@@ -94,6 +92,4 @@ namespace relays {
     @return a change_code associated with the action to match a function signature*/
         change_code blowFuse();
     };
-}  // namespace relays
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_FUSE_H_
+}  // namespace griddyn::relays

@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -12,10 +14,5 @@
  * LLNS Copyright End
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_
-
 #include <fskit/tracer.h>
 #define GRIDDYN_TRACER(arg) FSKIT_TRACER(arg)
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYN_TRACER_H_

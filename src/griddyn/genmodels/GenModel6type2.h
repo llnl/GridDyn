@@ -1,17 +1,15 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODEL6TYPE2_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODEL6TYPE2_H_
-
 #include "GenModel5type2.h"
 #include <string>
 
-namespace griddyn {
-namespace genmodels {
+namespace griddyn::genmodels {
 
     class GenModel6type2: public GenModel5type2 {
       protected:
@@ -45,6 +43,4 @@ namespace genmodels {
                                      double alpha) override;
     };
 
-}  // namespace genmodels
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_GENMODELS_GENMODEL6TYPE2_H_
+}  // namespace griddyn::genmodels

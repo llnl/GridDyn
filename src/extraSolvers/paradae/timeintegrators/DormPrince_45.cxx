@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "DormPrince_45.h"
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     DormPrince_45::DormPrince_45(Equation* eq, bool variable_step):
         RungeKutta_Explicit(eq, variable_step)
     {
@@ -57,5 +56,4 @@ namespace paradae {
         rk_c(5) = 1.0;
         rk_c(6) = 1.0;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

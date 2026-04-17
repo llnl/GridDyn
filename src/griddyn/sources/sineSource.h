@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "pulseSource.h"
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /** A source generating a sinusoidal output
      */
     class sineSource: public pulseSource {
@@ -39,5 +38,4 @@ namespace sources {
         virtual void updateOutput(coreTime time) override;
         virtual double computeOutput(coreTime time) const override;
     };
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

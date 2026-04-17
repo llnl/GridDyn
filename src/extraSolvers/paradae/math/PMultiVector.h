@@ -1,15 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_PMULTIVECTOR_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_PMULTIVECTOR_H_
-
 #include "PVector.h"
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     class SMultiVector;
     class SVector;
 
@@ -29,7 +27,4 @@ namespace paradae {
         int GetXSize() const { return nx; };
         int GetSSize() const { return ns; };
     };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_MATH_PMULTIVECTOR_H_
+}  // namespace griddyn::paradae

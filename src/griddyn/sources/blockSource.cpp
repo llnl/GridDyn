@@ -12,8 +12,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     blockSource::blockSource(const std::string& objName): Source(objName) {}
     coreObject* blockSource::clone(coreObject* obj) const
     {
@@ -394,5 +393,4 @@ namespace sources {
 
         return gridComponent::getSubObject(typeName, num);
     }
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

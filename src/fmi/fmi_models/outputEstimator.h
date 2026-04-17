@@ -1,15 +1,14 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "griddyn/gridDynDefinitions.hpp"
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     /** class to help with estimating outputs based on changes to the states and inputs in
 intermediate steps. The output may not be a state variable in these contexts the FMI itself doesn't
 always stay updated in intermediate time values Thus the output may need to be estimated for use in
@@ -40,5 +39,4 @@ the input and states and summing them with the actual difference between the las
         bool update(coreTime time, double val, const IOdata& inputs, const double state[]);
     };
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

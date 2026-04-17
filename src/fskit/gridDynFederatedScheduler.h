@@ -1,3 +1,5 @@
+#pragma once
+
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  eval: (c-set-offset 'innamespace 0); -*-
  */
 /*
@@ -12,9 +14,6 @@
  * LLNS Copyright End
  * -----------------------------------------------------------------
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_
-
 #include <cassert>
 #include <memory>
 
@@ -68,5 +67,3 @@ class GriddynFederatedScheduler {
 
     static std::shared_ptr<fskit::GrantedTimeWindowScheduler> g_scheduler;
 };
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FSKIT_GRIDDYNFEDERATEDSCHEDULER_H_

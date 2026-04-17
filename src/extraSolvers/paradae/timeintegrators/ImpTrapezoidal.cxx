@@ -9,8 +9,7 @@
 // 1 | 1/2  1/2
 // -------------
 //   | 1/2  1/2
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     ImpTrapezoidal::ImpTrapezoidal(Equation* eq): RungeKutta_DIRK(eq, false)
     {
         nb_steps = 2;
@@ -24,5 +23,4 @@ namespace paradae {
         rk_A(1, 1) = 1. / 2.;
         rk_c(1) = 1.0;
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

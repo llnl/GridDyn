@@ -1,17 +1,16 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#pragma once
-
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "rampSource.h"
 #include <string>
 
-namespace griddyn {
-namespace sources {
+namespace griddyn::sources {
     /** Source getting its data from a file*/
     class fileSource: public rampSource {
       public:
@@ -54,5 +53,4 @@ namespace sources {
         /** @brief load the file*/
         int loadFile();
     };
-}  // namespace sources
-}  // namespace griddyn
+}  // namespace griddyn::sources

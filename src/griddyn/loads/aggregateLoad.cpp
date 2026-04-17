@@ -12,8 +12,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
 #include <string>
-namespace griddyn {
-namespace loads {
+namespace griddyn::loads {
     static typeFactory<aggregateLoad> glfld("load", stringVec{"composite", "cluster", "group"});
 
     using gmlc::utilities::stringOps::splitline;
@@ -399,5 +398,4 @@ namespace loads {
         }
         return rp;
     }
-}  // namespace loads
-}  // namespace griddyn
+}  // namespace griddyn::loads

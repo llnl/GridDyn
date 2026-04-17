@@ -9,8 +9,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
 
     using namespace std;
 
@@ -297,5 +296,4 @@ namespace paradae {
             dyh(j) -= h;
         }
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

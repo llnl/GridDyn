@@ -7,8 +7,7 @@
 
 #include <string>
 
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     std::ostream& operator<<(std::ostream& output, const VirtualMatrix& mat)
     {
         mat.dump(output);
@@ -22,5 +21,4 @@ namespace paradae {
         this->dump(file);
         file.close();
     }
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

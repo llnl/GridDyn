@@ -1,9 +1,10 @@
+#pragma once
+
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
 #ifndef GRIDDYN_INTERPOLATING_PLAYER_H_
 #    define GRIDDYN_INTERPOLATING_PLAYER_H_
 
@@ -13,8 +14,7 @@
 #    include "Player.h"
 #    include <memory>
 #    include <string>
-namespace griddyn {
-namespace events {
+namespace griddyn::events {
     /** event player allowing a timeSeries of events to occur over numerous time points on a single
      * object and field*/
     class interpolatingPlayer: public Player {
@@ -48,6 +48,5 @@ namespace events {
       protected:
         virtual void setNextValue() override;
     };
-}  // namespace events
-}  // namespace griddyn
+}  // namespace griddyn::events
 #endif

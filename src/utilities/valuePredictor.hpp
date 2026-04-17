@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * LLNS Copyright Start
  * Copyright (c) 2014-2018, Lawrence Livermore National Security
@@ -7,10 +9,6 @@
  * Produced at the Lawrence Livermore National Laboratory.
  * All rights reserved.
  * For details, see the L */
-
-#ifndef VALUE_PREDICTOR_H_
-#define VALUE_PREDICTOR_H_
-#pragma once
 
 namespace utilities {
 /** @brief class implementing a prediction system
@@ -76,4 +74,3 @@ class valuePredictor {
     SlopeType getSlope() const { return slope_; }
 };
 }  // namespace utilities
-#endif

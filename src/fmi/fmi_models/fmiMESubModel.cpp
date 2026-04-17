@@ -21,8 +21,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace fmi {
+namespace griddyn::fmi {
     using gmlc::utilities::vectorMultAdd;
 
     fmiMESubModel::fmiMESubModel(const std::string& newName,
@@ -1082,5 +1081,4 @@ namespace fmi {
         }
     }
 
-}  // namespace fmi
-}  // namespace griddyn
+}  // namespace griddyn::fmi

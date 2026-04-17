@@ -19,8 +19,7 @@
 #include <string>
 #include <utility>
 
-namespace griddyn {
-namespace extra {
+namespace griddyn::extra {
     txLifeSpan::txLifeSpan(const std::string& objName): sensor(objName)
     {
         opFlags.reset(continuous_flag);  // this is a not a continuous model everything is slow so
@@ -205,5 +204,4 @@ namespace extra {
         }
     }
 
-}  // namespace extra
-}  // namespace griddyn
+}  // namespace griddyn::extra

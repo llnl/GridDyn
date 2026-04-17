@@ -1,14 +1,13 @@
+#pragma once
+
 /*
  * Copyright (c) 2018-2020, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#pragma once
-
 #include "RungeKutta_Explicit.h"
 #include <string>
-namespace griddyn {
-namespace paradae {
+namespace griddyn::paradae {
     /*!
   Butcher tableau:
   \f[\begin{array}{c|ccc}
@@ -24,5 +23,4 @@ namespace paradae {
         Kutta3(Equation* eq);
         virtual std::string GetName() { return "RK_Kutta_3"; };
     };
-}  // namespace paradae
-}  // namespace griddyn
+}  // namespace griddyn::paradae

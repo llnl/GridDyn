@@ -60,10 +60,11 @@ void fmiCollector::set(const std::string& param, const std::string& val)
 static const char defFMIName[] = "fmi";
 const std::string& fmiCollector::getSinkName() const
 {
+    static const std::string defaultFMIName{defFMIName};
     if (coord != nullptr) {
         return coord->getFMIName();
     }
-    return defFMIName;
+    return defaultFMIName;
 }
 
 coreObject* fmiCollector::getOwner() const

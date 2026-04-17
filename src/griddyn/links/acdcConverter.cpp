@@ -28,7 +28,7 @@ const char rect[] = "rectifier_$";
 const char inv[] = "inverter_$";
 const char bidir[] = "acdcConveter_$";
 
-const std::string& modeToName(acdcConverter::mode_t mode, const std::string& name)
+std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
 {
     if (!name.empty()) {
         return name;

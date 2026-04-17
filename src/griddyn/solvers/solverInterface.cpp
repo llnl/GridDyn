@@ -24,8 +24,7 @@
 #include <utility>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     static childClassFactoryArg<basicSolver, SolverInterface, basicSolver::mode_t>
         basicFactoryG(stringVec{"basic", "gauss"}, basicSolver::mode_t::gauss);
     static childClassFactoryArg<basicSolver, SolverInterface, basicSolver::mode_t>

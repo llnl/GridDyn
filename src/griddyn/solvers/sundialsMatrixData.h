@@ -12,8 +12,7 @@
 #include <cstdio>
 #include <memory>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief class implementing an matrixData wrapper around the SUNDIALS dense matrix*/
     class sundialsMatrixDataDense: public matrixData<double> {
       private:
@@ -115,5 +114,4 @@ namespace solvers {
 
     std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J);
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

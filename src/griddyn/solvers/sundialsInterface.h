@@ -39,8 +39,7 @@
 
 #define MEASURE_TIMINGS 0
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
     {
         return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;
@@ -137,5 +136,4 @@ anything on its own just provides common functionality to SUNDIALS SolverInterfa
                     N_Vector tmp1,
                     N_Vector tmp2);
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

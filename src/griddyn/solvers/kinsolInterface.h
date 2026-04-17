@@ -9,8 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief SolverInterface interfacing to the SUNDIALS kinsol solver
      */
     class kinsolInterface: public sundialsInterface {
@@ -61,5 +60,4 @@ namespace solvers {
 #endif
     };
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

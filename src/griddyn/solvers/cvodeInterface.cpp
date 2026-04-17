@@ -26,8 +26,7 @@
 #include <sunlinsol/sunlinsol_dense.h>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     int cvodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
 
     int cvodeJac(realtype time,
@@ -507,5 +506,4 @@ namespace solvers {
         return sundialsJac(time, 0.0, state, dstate_dt, J, user_data, tmp1, tmp2);
     }
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

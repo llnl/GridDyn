@@ -29,8 +29,7 @@
 #include <sunlinsol/sunlinsol_dense.h>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     int idaFunc(realtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data);
 
     int idaJac(realtype time,
@@ -606,5 +605,4 @@ namespace solvers {
         return sundialsJac(time, cj, state, dstate_dt, J, user_data, tmp1, tmp2);
     }
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

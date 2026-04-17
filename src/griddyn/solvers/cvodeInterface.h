@@ -12,8 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief SolverInterface interfacing to the SUNDIALS cvode solver
      */
     class cvodeInterface: public sundialsInterface {
@@ -76,7 +75,6 @@ namespace solvers {
         void loadMaskElements();
     };
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers
 
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_CVODEINTERFACE_H_

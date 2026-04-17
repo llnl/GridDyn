@@ -34,8 +34,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     static childClassFactory<kinsolInterface, SolverInterface>
         kinFactory(stringVec{"kinsol", "algebraic"});
     static childClassFactory<idaInterface, SolverInterface>
@@ -496,5 +495,4 @@ writeArray(sd->solveTime, 1, val, sd->mode.offsetIndex, a1, sd->jacFile);
         return FUNCTION_EXECUTION_SUCCESS;
     }
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

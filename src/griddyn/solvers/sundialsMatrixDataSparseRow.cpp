@@ -8,8 +8,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     sundialsMatrixDataSparseRow::sundialsMatrixDataSparseRow(SUNMatrix mat):
         matrixData<double>(static_cast<count_t>(SM_ROWS_S(mat)),
                            static_cast<count_t>(SM_COLUMNS_S(mat))),
@@ -99,5 +98,4 @@ namespace solvers {
         }
         return 0.0;
     }
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

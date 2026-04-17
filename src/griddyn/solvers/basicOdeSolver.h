@@ -13,8 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief class implementing a Gauss Seidel solver for algebraic variables in a power system
      */
     class basicOdeSolver: public SolverInterface {
@@ -55,6 +54,5 @@ namespace solvers {
                           step_mode stepMode = step_mode::normal) override;
     };
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers
 #endif

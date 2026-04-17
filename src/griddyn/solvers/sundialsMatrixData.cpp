@@ -10,8 +10,7 @@
 #include <cstring>
 #include <memory>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J)
     {
         switch (SUNMatGetID(J)) {

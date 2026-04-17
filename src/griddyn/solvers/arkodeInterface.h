@@ -18,8 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief SolverInterface interfacing to the SUNDIALS arkode solver
      */
     class arkodeInterface: public sundialsInterface {
@@ -83,7 +82,6 @@ namespace solvers {
         void loadMaskElements();
     };
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers
 
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOLVERS_ARKODEINTERFACE_H_

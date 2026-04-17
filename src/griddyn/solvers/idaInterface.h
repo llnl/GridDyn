@@ -11,8 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     /** @brief SolverInterface interfacing to the SUNDIALS IDA solver
      */
     class idaInterface: public sundialsInterface {
@@ -85,5 +84,4 @@ namespace solvers {
         void loadMaskElements();
     };
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

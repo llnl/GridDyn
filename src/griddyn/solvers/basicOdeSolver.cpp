@@ -13,8 +13,7 @@
 #include <memory>
 #include <string>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     basicOdeSolver::basicOdeSolver(const std::string& objName): SolverInterface(objName)
     {
         mode.dynamic = true;
@@ -160,5 +159,4 @@ namespace solvers {
         return FUNCTION_EXECUTION_SUCCESS;
     }
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

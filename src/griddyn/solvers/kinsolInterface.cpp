@@ -31,8 +31,7 @@
 #include <print>
 #include <string>
 
-namespace griddyn {
-namespace solvers {
+namespace griddyn::solvers {
     int kinsolFunc(N_Vector state, N_Vector resid, void* user_data);
     int kinsolJac(N_Vector state,
                   N_Vector resid,
@@ -432,5 +431,4 @@ namespace solvers {
         return sundialsJac(sd->solveTime, 0, state, nullptr, J, user_data, tmp1, tmp2);
     }
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

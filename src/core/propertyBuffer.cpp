@@ -49,7 +49,7 @@ void propertyBuffer::clear()
 }
 void propertyBuffer::apply(coreObject* obj) const
 {
-    for (auto& prop : properties) {
+    for (const auto& prop : properties) {
         switch (prop.second.index()) {
             case 0:
                 obj->set(prop.first, std::get<double>(prop.second));
@@ -67,6 +67,8 @@ void propertyBuffer::apply(coreObject* obj) const
                 break;
             case 4:
                 obj->set(prop.first, std::get<std::string>(prop.second));
+                break;
+            default:
                 break;
         }
     }

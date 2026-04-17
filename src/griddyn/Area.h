@@ -5,6 +5,7 @@
  */
 
 #pragma once
+
 // headers
 #include "gridPrimary.h"
 #include <memory>

@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYN_COMMUNICATIONS_CORE_
-#define GRIDDYN_COMMUNICATIONS_CORE_
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
@@ -71,4 +69,3 @@ class communicationsCore {
     coreTime m_time = timeZero;  //!< current time of the communicator
 };
 }  // namespace griddyn
-#endif

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_
+#pragma once
 
 #include "../Link.h"
 #include "core/coreOwningPtr.hpp"
@@ -149,4 +148,3 @@ namespace links {
 
 }  // namespace links
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_ACDCCONVERTER_H_

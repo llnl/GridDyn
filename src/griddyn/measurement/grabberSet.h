@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRID_GRABBER_SET_H_
-#define GRID_GRABBER_SET_H_
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
@@ -109,4 +107,3 @@ class grabberSet: public objectOperatorInterface {
 };
 
 }  // namespace griddyn
-#endif

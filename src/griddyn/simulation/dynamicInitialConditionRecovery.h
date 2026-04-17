@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DYNAMICINITIALCONDITIONRECOVERY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DYNAMICINITIALCONDITIONRECOVERY_H_
+#pragma once
 
 #include <memory>
 
@@ -61,4 +60,3 @@ class dynamicInitialConditionRecovery {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_DYNAMICINITIALCONDITIONRECOVERY_H_

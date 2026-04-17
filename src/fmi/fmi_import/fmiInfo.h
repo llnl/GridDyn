@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#pragma once
+
 /** @file
 @brief file containing classes and types for managing information about FMU's
 */
-
-#pragma once
 
 #include "../FMI2/fmi2TypesPlatform.h"
 #include "fmiEnumDefinitions.h"

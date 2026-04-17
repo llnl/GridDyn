@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_
+#pragma once
 
 #include "../gridBus.h"
 #include <string>
@@ -59,4 +58,3 @@ class infiniteBus: public gridBus {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_PRIMARY_INFINITEBUS_H_

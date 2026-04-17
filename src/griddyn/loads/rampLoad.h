@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef RAMPLOAD_H_
-#define RAMPLOAD_H_
 #pragma once
 
 #include "zipLoad.h"
@@ -43,5 +41,3 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
-
-#endif

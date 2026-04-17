@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_
+#pragma once
 
 #include "core/coreOwningPtr.hpp"
 #include "griddyn/gridSubModel.h"
@@ -97,7 +96,6 @@ class AGControlBattery:public AGControl
 {
 public:
 
-
 protected:
         std::vector <battery *> batList;
         std::vector<int> isBat;
@@ -116,7 +114,6 @@ public:
         virtual coreObject *clone(coreObject *obj = nullptr, bool copyName = false) const;
         virtual ~AGControlBattery();
 
-
         virtual double dynObjectInitializeA (coreTime time0,double freq0,double tiedev0);
 
         virtual double updateA(coreTime time, double freq, double tiedev);
@@ -133,4 +130,3 @@ protected:
 
 */
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_AGCONTROL_H_

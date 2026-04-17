@@ -13,35 +13,33 @@
 #include "griddyn/gridBus.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
-    fmiExciter::fmiExciter(const std::string& objName): fmiMEWrapper<Exciter>(objName) {}
+namespace griddyn::fmi {
+fmiExciter::fmiExciter(const std::string& objName): fmiMEWrapper<Exciter>(objName) {}
 
-    coreObject* fmiExciter::clone(coreObject* obj) const
-    {
-        auto nobj = cloneBase<fmiExciter, fmiMEWrapper<Exciter>>(this, obj);
-        if (nobj == nullptr) {
-            return obj;
-        }
-
-        return nobj;
+coreObject* fmiExciter::clone(coreObject* obj) const
+{
+    auto nobj = cloneBase<fmiExciter, fmiMEWrapper<Exciter>>(this, obj);
+    if (nobj == nullptr) {
+        return obj;
     }
 
-    void fmiExciter::set(const std::string& param, const std::string& val)
-    {
-        if (param.empty()) {
-        } else {
-            fmiMEWrapper<Exciter>::set(param, val);
-        }
-    }
+    return nobj;
+}
 
-    void fmiExciter::set(const std::string& param, double val, units::unit unitType)
-    {
-        if (param.empty()) {
-        } else {
-            fmiMEWrapper<Exciter>::set(param, val, unitType);
-        }
+void fmiExciter::set(const std::string& param, const std::string& val)
+{
+    if (param.empty()) {
+    } else {
+        fmiMEWrapper<Exciter>::set(param, val);
     }
+}
 
-}  // namespace fmi
-}  // namespace griddyn
+void fmiExciter::set(const std::string& param, double val, units::unit unitType)
+{
+    if (param.empty()) {
+    } else {
+        fmiMEWrapper<Exciter>::set(param, val, unitType);
+    }
+}
+
+}  // namespace griddyn::fmi

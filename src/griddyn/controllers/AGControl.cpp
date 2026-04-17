@@ -49,7 +49,6 @@ public:
 
         ~AGControl();
 
-
         double initialize(coreTime time0,double freq0,double tiedev0);
 
         double updateP(coreTime time, double freq, double tiedev);

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_
+#pragma once
 
 #include "griddyn/griddyn-config.h"
 #include "optHelperClasses.h"
@@ -82,5 +81,3 @@ std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, cons
 std::shared_ptr<optimizerInterface> makeOptimizer(const std::string& type);
 
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTIMIZERINTERFACE_H_

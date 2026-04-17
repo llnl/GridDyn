@@ -25,22 +25,20 @@
 #include <vector>
 
 namespace griddyn {
-namespace solvers {
-    static childClassFactoryArg<basicSolver, SolverInterface, basicSolver::mode_t>
-        basicFactoryG(stringVec{"basic", "gauss"}, basicSolver::mode_t::gauss);
-    static childClassFactoryArg<basicSolver, SolverInterface, basicSolver::mode_t>
-        basicFactoryGS(stringVec{"gs", "gauss-seidel"}, basicSolver::mode_t::gauss_seidel);
+static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::mode_t::gauss);
+static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::mode_t::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
-    static childClassFactory<basicOdeSolver, SolverInterface>
-        basicOdeFactory(stringVec{"basicode", "euler"});
+static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    basicOdeFactory(stringVec{"basicode", "euler"});
 #else
-    // if cvode is not available this becomes the default differential solver
-    static childClassFactory<basicOdeSolver, SolverInterface>
-        basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
+// if cvode is not available this becomes the default differential solver
+static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
 
-}  // namespace solvers
 SolverInterface::SolverInterface(const std::string& objName): helperObject(objName) {}
 SolverInterface::SolverInterface(gridDynSimulation* gds, const solverMode& sMode):
     mode(sMode), m_gds(gds)

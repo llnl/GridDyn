@@ -5,6 +5,7 @@
  */
 
 #pragma once
+
 #include "../core/coreDefinitions.hpp"
 #include <string>
 #include <vector>

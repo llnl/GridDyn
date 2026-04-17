@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_CORE_OBJECTFACTORY_HPP_
-#define ___W_GRIDDYN_GRIDDYN_SRC_CORE_OBJECTFACTORY_HPP_
+#pragma once
 
 #include "coreObject.h"
 #include <map>
@@ -172,4 +171,3 @@ class coreObjectFactory {
     fMap m_factoryMap;  //!< the main map from string to the typeFactory
 };
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_CORE_OBJECTFACTORY_HPP_

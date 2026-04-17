@@ -1,23 +1,19 @@
 /*
- * LLNS Copyright Start
- * Copyright (c) 2014-2018, Lawrence Livermore National Security
- * This work was performed under the auspices of the U.S. Department
- * of Energy by Lawrence Livermore National Laboratory in part under
- * Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
- * Produced at the Lawrence Livermore National Laboratory.
- * All rights reserved.
- * For details, see the LICENSE file.
- * LLNS Copyright End
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#pragma once
+
 #ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
+#    define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
 
-#include "griddyn_export.h"
+#    include "griddyn_export.h"
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#endif
+#    endif
 
 // object mathematical functions*/
 
@@ -156,8 +152,8 @@ GRIDDYN_EXPORT void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                                           SolverKey key,
                                                           GridDynError* err);
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 } /* end of extern "C" { */
-#endif
+#    endif
 
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_

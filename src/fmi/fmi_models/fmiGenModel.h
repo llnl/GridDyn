@@ -4,31 +4,26 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
+#pragma once
 
 #include "fmiMEWrapper.hpp"
 #include "griddyn/GenModel.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
-    class fmiMESubModel;
+namespace griddyn::fmi {
+class fmiMESubModel;
 
-    class fmiGenModel: public fmiMEWrapper<GenModel> {
-      public:
-        fmiGenModel(const std::string& objName = "fmiGenModel_#");
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
-        // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags) override;
-        // virtual void dynObjectInitializeB (const IOdata &inputs, const IOdata &desiredOutput,
-        // IOdata &fieldSet) override;
+class fmiGenModel: public fmiMEWrapper<GenModel> {
+  public:
+    fmiGenModel(const std::string& objName = "fmiGenModel_#");
+    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags) override;
+    // virtual void dynObjectInitializeB (const IOdata &inputs, const IOdata &desiredOutput,
+    // IOdata &fieldSet) override;
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
-    };
+    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void
+        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+};
 
-}  // namespace fmi
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIGENMODEL_H_
+}  // namespace griddyn::fmi

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_
+#pragma once
 
 #include "gridSubModel.h"
 #include "units/units_decl.hpp"
@@ -92,5 +91,3 @@ class Exciter: public gridSubModel {
 };
 
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_EXCITER_H_

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_
+#pragma once
 
 #include "../Source.h"
 #include <string>
@@ -111,5 +110,3 @@ namespace sources {
     };
 }  // namespace sources
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_BLOCKSOURCE_H_

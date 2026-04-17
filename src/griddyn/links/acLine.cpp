@@ -1294,11 +1294,9 @@ void acLine::decoupledDeriv()
     linkFlows.P1 -= g * constLinkComp.Vmx * linkComp.cosTheta1;
     linkFlows.P1 -= b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-
     linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * constLinkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
-
 
     linkFlows.P2 = (g + 0.5 * mp_G) * constLinkInfo.v2 * constLinkInfo.v2;
     linkFlows.P2 -= g * constLinkComp.Vmx * linkComp.cosTheta2;
@@ -1358,7 +1356,6 @@ void acLine::smallAngleDeriv()
     linkFlows.P1 -= g * linkComp.Vmx;
     linkFlows.P1 -= b * linkComp.Vmx * linkComp.sinTheta1;
 
-
     linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * linkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx;
@@ -1408,7 +1405,6 @@ void acLine::simplifiedDecoupledDeriv()
 {
     /*
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
-
 
     linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
@@ -1599,7 +1595,6 @@ void acLine::swOpenDeriv()
     LinkDeriv.dP1dv1 = 2 * (g + mp_G) / (tap * tap) * linkInfo.v1;
     LinkDeriv.dQ1dv1 = -2 * (b  + mp_B) / (tap * tap) * linkInfo.v1;
     }
-
 
     if (!opFlags[switch2_open_flag])
     {

@@ -144,7 +144,6 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     /* Process the first line
     First card in file.
 
-
     Columns  2- 9   Date, in format DD/MM/state with leading zeros. If no date
             provided, use 0b/0b/0b where b is blank.
     Columns 11-30   Originator's name (A)

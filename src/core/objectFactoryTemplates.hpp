@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GD_OBJECT_FACTORY_TEMPLATES_H_
-#define GD_OBJECT_FACTORY_TEMPLATES_H_
 #pragma once
 
 #include "core/coreExceptions.h"
@@ -397,4 +395,3 @@ A* cloneBaseFactory(const A* bobj, coreObject* obj, objectFactory* cfact)
 }
 
 }  // namespace griddyn
-#endif

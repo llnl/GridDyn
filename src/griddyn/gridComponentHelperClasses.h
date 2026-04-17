@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#pragma once
+
 /** @file
  * @brief classes and object to help in the operation of gridComponents
  */
-
-#pragma once
 
 #include "solvers/solverMode.hpp"
 #include <bitset>

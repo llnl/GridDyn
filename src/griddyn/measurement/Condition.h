@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_
+#pragma once
 
 #include "../gridComponent.h"
 #include "core/objectOperatorInterface.hpp"
@@ -223,4 +222,3 @@ class compoundCondition: public Condition {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_MEASUREMENT_CONDITION_H_

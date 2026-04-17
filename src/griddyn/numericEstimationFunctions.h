@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef NUMERIC_ESTIMATION_FUNCTIONS_H_
-#define NUMERIC_ESTIMATION_FUNCTIONS_H_
 #pragma once
 
 #include "gridDynDefinitions.hpp"
@@ -59,4 +57,3 @@ void copyObjectLocalState(const gridComponent* comp,
 std::vector<index_t> getObjectLocalStateIndices(const gridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
-#endif

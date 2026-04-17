@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef BUSCONTROLS_H_
-#define BUSCONTROLS_H_
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
@@ -95,4 +93,3 @@ class BusControls {
 };
 
 }  // namespace griddyn
-#endif

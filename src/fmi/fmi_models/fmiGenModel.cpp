@@ -13,35 +13,33 @@
 #include "griddyn/gridBus.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
-    fmiGenModel::fmiGenModel(const std::string& objName): fmiMEWrapper<GenModel>(objName) {}
+namespace griddyn::fmi {
+fmiGenModel::fmiGenModel(const std::string& objName): fmiMEWrapper<GenModel>(objName) {}
 
-    coreObject* fmiGenModel::clone(coreObject* obj) const
-    {
-        auto nobj = cloneBase<fmiGenModel, fmiMEWrapper<GenModel>>(this, obj);
-        if (nobj == nullptr) {
-            return obj;
-        }
-
-        return nobj;
+coreObject* fmiGenModel::clone(coreObject* obj) const
+{
+    auto nobj = cloneBase<fmiGenModel, fmiMEWrapper<GenModel>>(this, obj);
+    if (nobj == nullptr) {
+        return obj;
     }
 
-    void fmiGenModel::set(const std::string& param, const std::string& val)
-    {
-        if (param.empty()) {
-        } else {
-            fmiMEWrapper<GenModel>::set(param, val);
-        }
-    }
+    return nobj;
+}
 
-    void fmiGenModel::set(const std::string& param, double val, units::unit unitType)
-    {
-        if (param.empty()) {
-        } else {
-            fmiMEWrapper<GenModel>::set(param, val, unitType);
-        }
+void fmiGenModel::set(const std::string& param, const std::string& val)
+{
+    if (param.empty()) {
+    } else {
+        fmiMEWrapper<GenModel>::set(param, val);
     }
+}
 
-}  // namespace fmi
-}  // namespace griddyn
+void fmiGenModel::set(const std::string& param, double val, units::unit unitType)
+{
+    if (param.empty()) {
+    } else {
+        fmiMEWrapper<GenModel>::set(param, val, unitType);
+    }
+}
+
+}  // namespace griddyn::fmi

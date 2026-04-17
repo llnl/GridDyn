@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef EVENTADAPTERS_H_
-#define EVENTADAPTERS_H_
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
@@ -369,4 +367,3 @@ class functionEventAdapter: public eventAdapter {
 };
 
 }  // namespace griddyn
-#endif

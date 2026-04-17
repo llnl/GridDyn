@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef FACTORY_TEMPLATES_H_
-#define FACTORY_TEMPLATES_H_
 #pragma once
 
 #include <map>
@@ -226,4 +224,3 @@ class childClassFactoryArg: public classFactory<parentClass> {
 };
 
 }  // namespace griddyn
-#endif

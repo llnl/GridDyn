@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_
-#define ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_
+#pragma once
 
 #include "coreObject.h"
 #include "utilities/dataDictionary.h"
@@ -31,5 +30,3 @@ class coreObjectProperty {
 @param[in] npos a gridPositionObject
 */
 // void loadPosition (std::shared_ptr<gridPositionInfo> npos);
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_CORE_COREPROPERTIES_HPP_

@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_CONTROLSYSTEM_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_CONTROLSYSTEM_H_
+#pragma once
 
 #include "../gridSubModel.h"
 #include "utilities/matrixDataSparse.hpp"
@@ -71,4 +70,3 @@ class controlSystem: public gridSubModel {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_CONTROLLERS_CONTROLSYSTEM_H_

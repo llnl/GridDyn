@@ -4,28 +4,23 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIEXCITER_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIEXCITER_H_
+#pragma once
 
 #include "fmiMEWrapper.hpp"
 #include "griddyn/Exciter.h"
 #include <string>
 
-namespace griddyn {
-namespace fmi {
-    class fmiMESubModel;
-    /** class defining an exciter wrapper for an FMU*/
-    class fmiExciter: public fmiMEWrapper<Exciter> {
-      public:
-        fmiExciter(const std::string& objName = "fmiExciter_#");
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+namespace griddyn::fmi {
+class fmiMESubModel;
+/** class defining an exciter wrapper for an FMU*/
+class fmiExciter: public fmiMEWrapper<Exciter> {
+  public:
+    fmiExciter(const std::string& objName = "fmiExciter_#");
+    virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
-    };
+    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void
+        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+};
 
-}  // namespace fmi
-}  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMI_MODELS_FMIEXCITER_H_
+}  // namespace griddyn::fmi

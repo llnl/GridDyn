@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2018-2020, Lawrence Livermore National Security
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_CASH_34_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_CASH_34_H_
+
+#pragma once
 
 #include "RungeKutta_SDIRK.h"
 #include <string>
@@ -25,14 +25,10 @@
   \f]
  */
 
-namespace griddyn {
-namespace paradae {
-    class Cash_34: public RungeKutta_SDIRK {
-      public:
-        Cash_34(Equation* eq, bool variable_step = false);
-        virtual std::string GetName() { return "RK_ImpCa_34"; };
-    };
-}  // namespace paradae
-}  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_TIMEINTEGRATORS_CASH_34_H_
+namespace griddyn::paradae {
+class Cash_34: public RungeKutta_SDIRK {
+  public:
+    Cash_34(Equation* eq, bool variable_step = false);
+    virtual std::string GetName() { return "RK_ImpCa_34"; };
+};
+}  // namespace griddyn::paradae

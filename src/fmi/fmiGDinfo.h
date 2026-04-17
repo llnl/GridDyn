@@ -4,13 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMIGDINFO_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMIGDINFO_H_
+#pragma once
 
 namespace griddyn {
 /** function to create the linkages from the FMI library into the object factory system
  */
 void loadFmiLibrary();
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_FMI_FMIGDINFO_H_

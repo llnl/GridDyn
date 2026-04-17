@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_
+#pragma once
 
 #include "../gridDynDefinitions.hpp"
 #include <string>
@@ -72,5 +71,3 @@ class gridDynAction {
     void reset();
 };
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SIMULATION_GRIDDYNACTIONS_H_

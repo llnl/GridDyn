@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTHELPERCLASSES_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTHELPERCLASSES_H_
+#pragma once
 
 #include "griddyn/gridDynDefinitions.hpp"
 #include <cstdio>
@@ -247,4 +246,3 @@ class optimData {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_OPTIMIZATION_OPTHELPERCLASSES_H_

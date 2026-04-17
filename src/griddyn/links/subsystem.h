@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_
+#pragma once
 
 #include "../Area.h"
 #include "../Link.h"
@@ -202,4 +201,3 @@ class subsystem: public Link {
 };
 
 }  // namespace griddyn
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_LINKS_SUBSYSTEM_H_

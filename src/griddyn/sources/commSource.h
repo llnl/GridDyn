@@ -4,8 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_COMMSOURCE_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_COMMSOURCE_H_
+#pragma once
 
 #include "../comms/commManager.h"
 #include "rampSource.h"
@@ -52,5 +51,3 @@ namespace sources {
 
 }  // namespace sources
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SOURCES_COMMSOURCE_H_

@@ -39,103 +39,100 @@
 
 #define MEASURE_TIMINGS 0
 
-namespace griddyn {
-namespace solvers {
-    inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
-    {
-        return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;
-    }
+namespace griddyn::solvers {
+inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
+{
+    return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;
+}
 
-    void sundialsErrorHandlerFunc(int error_code,
-                                  const char* module,
-                                  const char* function,
-                                  char* msg,
-                                  void* user_data);
+void sundialsErrorHandlerFunc(int error_code,
+                              const char* module,
+                              const char* function,
+                              char* msg,
+                              void* user_data);
 
 #ifdef GRIDDYN_ENABLE_KLU
-    /** @brief check if the matrix is setup already
-     *@param[in] J the matrix to check
-     *@return true if the matrix has been loaded already false otherwise
-     */
-    bool isSUNMatrixSetup(SUNMatrix J);
+/** @brief check if the matrix is setup already
+ *@param[in] J the matrix to check
+ *@return true if the matrix has been loaded already false otherwise
+ */
+bool isSUNMatrixSetup(SUNMatrix J);
 
-    /** @brief convert an array data object to a SUNDIALS matrix
+/** @brief convert an array data object to a SUNDIALS matrix
 @param[in] md the matrix data to convert
 @param[out] J the SUNDIALS matrix to store the data
 @param[in] svsize the number of states representing the matrix
 */
-    void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize);
+void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize);
 
 #endif
-    /** brief abstract base class for SUNDIALS based SolverInterface objects doesn't really do
+/** brief abstract base class for SUNDIALS based SolverInterface objects doesn't really do
 anything on its own just provides common functionality to SUNDIALS SolverInterface objects
 */
-    class sundialsInterface: public SolverInterface {
-      protected:
-        count_t maxNNZ = 0;  //!< the maximum number of non-zeros that might be needed
-        bool use_omp = false;  //!< helper variable to handle omp functionality
-        N_Vector state = nullptr;  //!< state vector
-        N_Vector dstate_dt = nullptr;  //!< dstate_dt information
-        N_Vector abstols = nullptr;  //!< tolerance vector
-        N_Vector consData = nullptr;  //!< constraint type Vector
-        N_Vector scale = nullptr;  //!< scaling vector
-        N_Vector types = nullptr;  //!< type data
-        void* solverMem = nullptr;  //!< the memory used by a specific solver internally
-        FILE* m_sundialsInfoFile =
-            nullptr;  //!< direct file reference for input to the solver itself
-        SUNMatrix J = nullptr;  //!< sundials matrix to use
-        SUNLinearSolver LS = nullptr;  //!< the link to the linear solver to use
-        SUNContext sunctx = nullptr;  //!< SUNDIALS context
-      public:
-        explicit sundialsInterface(const std::string& objName = "sundials");
-        /** @brief constructor loading the SolverInterface structure*
-    @param[in] gds  the gridDynSimulation to link with
-    @param[in] sMode the solverMode for the solver
-    */
-        sundialsInterface(gridDynSimulation* gds, const solverMode& sMode);
-        /** @brief destructor
-         */
-        virtual ~sundialsInterface();
+class sundialsInterface: public SolverInterface {
+  protected:
+    count_t maxNNZ = 0;  //!< the maximum number of non-zeros that might be needed
+    bool use_omp = false;  //!< helper variable to handle omp functionality
+    N_Vector state = nullptr;  //!< state vector
+    N_Vector dstate_dt = nullptr;  //!< dstate_dt information
+    N_Vector abstols = nullptr;  //!< tolerance vector
+    N_Vector consData = nullptr;  //!< constraint type Vector
+    N_Vector scale = nullptr;  //!< scaling vector
+    N_Vector types = nullptr;  //!< type data
+    void* solverMem = nullptr;  //!< the memory used by a specific solver internally
+    FILE* m_sundialsInfoFile = nullptr;  //!< direct file reference for input to the solver itself
+    SUNMatrix J = nullptr;  //!< sundials matrix to use
+    SUNLinearSolver LS = nullptr;  //!< the link to the linear solver to use
+    SUNContext sunctx = nullptr;  //!< SUNDIALS context
+  public:
+    explicit sundialsInterface(const std::string& objName = "sundials");
+    /** @brief constructor loading the SolverInterface structure*
+@param[in] gds  the gridDynSimulation to link with
+@param[in] sMode the solverMode for the solver
+*/
+    sundialsInterface(gridDynSimulation* gds, const solverMode& sMode);
+    /** @brief destructor
+     */
+    virtual ~sundialsInterface();
 
-        virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
+    virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
-        virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
-        virtual double* state_data() noexcept override;
-        virtual double* deriv_data() noexcept override;
-        virtual const double* state_data() const noexcept override;
-        virtual const double* deriv_data() const noexcept override;
-        virtual double* type_data() noexcept override;
-        virtual const double* type_data() const noexcept override;
-        virtual void allocate(count_t stateCount, count_t numRoots) override;
-        virtual void setMaxNonZeros(count_t nonZeroCount) override;
-        virtual double get(const std::string& param) const override;
+    virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
+    virtual double* state_data() noexcept override;
+    virtual double* deriv_data() noexcept override;
+    virtual const double* state_data() const noexcept override;
+    virtual const double* deriv_data() const noexcept override;
+    virtual double* type_data() noexcept override;
+    virtual const double* type_data() const noexcept override;
+    virtual void allocate(count_t stateCount, count_t numRoots) override;
+    virtual void setMaxNonZeros(count_t nonZeroCount) override;
+    virtual double get(const std::string& param) const override;
 
-        /** @brief get the dedicated memory space of the solver
-    @return a void pointer to the memory location of the solver specific memory
-    */
-        void* getSolverMem() const { return solverMem; }
+    /** @brief get the dedicated memory space of the solver
+@return a void pointer to the memory location of the solver specific memory
+*/
+    void* getSolverMem() const { return solverMem; }
 
-        friend int sundialsJac(realtype time,
-                               realtype cj,
-                               N_Vector state,
-                               N_Vector dstate_dt,
-                               SUNMatrix J,
-                               void* user_data,
-                               N_Vector tmp1,
-                               N_Vector tmp2);
+    friend int sundialsJac(realtype time,
+                           realtype cj,
+                           N_Vector state,
+                           N_Vector dstate_dt,
+                           SUNMatrix J,
+                           void* user_data,
+                           N_Vector tmp1,
+                           N_Vector tmp2);
 
-      protected:
-        void KLUReInit(sparse_reinit_modes sparseReInitMode);
-    };
+  protected:
+    void KLUReInit(sparse_reinit_modes sparseReInitMode);
+};
 
-    int sundialsJac(realtype time,
-                    realtype cj,
-                    N_Vector state,
-                    N_Vector dstate_dt,
-                    SUNMatrix J,
-                    void* user_data,
-                    N_Vector tmp1,
-                    N_Vector tmp2);
+int sundialsJac(realtype time,
+                realtype cj,
+                N_Vector state,
+                N_Vector dstate_dt,
+                SUNMatrix J,
+                void* user_data,
+                N_Vector tmp1,
+                N_Vector tmp2);
 
-}  // namespace solvers
-}  // namespace griddyn
+}  // namespace griddyn::solvers

@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef DISPATCHER_H_
-#define DISPATCHER_H_
 #pragma once
 
 #include "../gridSubModel.h"
@@ -55,4 +53,3 @@ class dispatcher: public coreObject {
 };
 
 }  // namespace griddyn
-#endif

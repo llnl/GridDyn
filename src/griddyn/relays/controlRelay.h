@@ -3,8 +3,8 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_
+
+#pragma once
 
 #include "../Link.h"  //some special features for links
 #include "../Relay.h"
@@ -116,5 +116,3 @@ namespace relays {
     };
 }  // namespace relays
 }  // namespace griddyn
-
-#endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_RELAYS_CONTROLRELAY_H_

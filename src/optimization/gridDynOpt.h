@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef GRIDDYNOPT_H_
-#define GRIDDYNOPT_H_
 #pragma once
+
 // debug
 // #define DEBUG_IDA
 
@@ -116,4 +115,3 @@ class gridDynOptimization: public gridDynSimulation {
 };
 
 }  // namespace griddyn
-#endif

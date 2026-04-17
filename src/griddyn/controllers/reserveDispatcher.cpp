@@ -40,9 +40,7 @@ public:
 
         virtual ~reserveDispatcher();
 
-
         virtual double initialize(coreTime time0,double dispatchSet);
-
 
         void setTime(coreTime time);
         virtual double updateP(coreTime time);
@@ -61,7 +59,6 @@ set(param,&val, unitType);};
 protected:
         virtual void checkGen();
 };
-
 
 */
 reserveDispatcher::reserveDispatcher(const std::string& objName): coreObject(objName) {}

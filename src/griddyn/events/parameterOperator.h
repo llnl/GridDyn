@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef PARAMETER_OPERATOR_H_
-#define PARAMETER_OPERATOR_H_
 #pragma once
+
 // headers
 // #include "gridDynSimulation.h"
 
@@ -60,4 +59,3 @@ class parameterSet {
 };
 
 }  // namespace griddyn
-#endif

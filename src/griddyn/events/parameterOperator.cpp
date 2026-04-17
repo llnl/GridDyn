@@ -94,7 +94,7 @@ std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& par
     auto pop =
         std::make_unique<parameterOperator>(dynamic_cast<gridComponent*>(objI.m_obj), objI.m_field);
     if (!rname.empty()) {
-        pop->setName(std::string{rname});
+        pop->setName(rname);
     }
     return pop;
 }

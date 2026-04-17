@@ -10,6 +10,7 @@
 #include "units/units.hpp"
 #include <extra_includes/variant.hpp>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -29,21 +30,21 @@ class propertyBuffer {
     std::vector<std::pair<std::string, property_type>> properties;  //!< storage for the properties
   public:
     /** add a string property to the buffer*/
-    void set(const std::string& param, const std::string& val);
+    void set(std::string_view param, std::string_view val);
     /** add a double property to to the buffer*/
-    void set(const std::string& param, double val);
+    void set(std::string_view param, double val);
     /** add a double property with units to the buffer*/
-    void set(const std::string& param, double val, units::unit unitType);
+    void set(std::string_view param, double val, units::unit unitType);
     /** add an integer property to the buffer*/
-    void set(const std::string& param, int val);
+    void set(std::string_view param, int val);
     /** add a flag property to the buffer*/
-    void setFlag(const std::string& flag, bool val = true);
+    void setFlag(std::string_view flag, bool val = true);
     /** return true if there are any parameters stored in the buffer*/
     bool empty() const { return properties.empty(); }
     /** remove a property from the buffers
     @param[in] param the parameter to remove
     */
-    void remove(const std::string& param);
+    void remove(std::string_view param);
     /** apply the properties to a coreObject
     @details the properties are applied sequentially and the apply may
     throw an exception from the underlying set function if the property is not valid

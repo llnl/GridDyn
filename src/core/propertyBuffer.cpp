@@ -10,33 +10,33 @@
 #include "helperObject.h"
 #include <algorithm>
 #include <string>
+#include <string_view>
 #include <utility>
 namespace griddyn {
-void propertyBuffer::set(const std::string& param, const std::string& val)
+void propertyBuffer::set(std::string_view param, std::string_view val)
 {
-    properties.emplace_back(param, property_type(val));
+    properties.emplace_back(std::string{param}, property_type(std::string{val}));
 }
-void propertyBuffer::set(const std::string& param, double val)
+void propertyBuffer::set(std::string_view param, double val)
 {
-    properties.emplace_back(param, property_type(val));
+    properties.emplace_back(std::string{param}, property_type(val));
 }
-void propertyBuffer::set(const std::string& param, double val, units::unit unitType)
+void propertyBuffer::set(std::string_view param, double val, units::unit unitType)
 {
-    properties.emplace_back(param, property_type(std::make_pair(val, unitType)));
+    properties.emplace_back(std::string{param}, property_type(std::make_pair(val, unitType)));
 }
-void propertyBuffer::set(const std::string& param, int val)
+void propertyBuffer::set(std::string_view param, int val)
 {
-    properties.emplace_back(param, property_type(val));
+    properties.emplace_back(std::string{param}, property_type(val));
 }
-void propertyBuffer::setFlag(const std::string& flag, bool val)
+void propertyBuffer::setFlag(std::string_view flag, bool val)
 {
-    properties.emplace_back(flag, property_type(val));
+    properties.emplace_back(std::string{flag}, property_type(val));
 }
 
-void propertyBuffer::remove(const std::string& param)
+void propertyBuffer::remove(std::string_view param)
 {
-    // Using auto lambda here still seems like magic that this works
-    auto checkMatch = [param](auto input) { return (std::get<0>(input) == param); };
+    auto checkMatch = [param](const auto& input) { return (std::get<0>(input) == param); };
 
     auto strend = std::remove_if(properties.begin(), properties.end(), checkMatch);
     properties.erase(strend, properties.end());

@@ -11,6 +11,7 @@
 #include "gmlc/utilities/string_viewOps.h"
 #include "utilities/dataDictionary.h"
 #include <string>
+#include <string_view>
 #include <utility>
 namespace griddyn {
 // start at 100 since there are some objects that use low numbers as a check for interface number
@@ -42,9 +43,9 @@ void helperObject::set(const std::string& param, double val)
 {
     setFlag(param, (val > 0.1));
 }
-void helperObject::setDescription(const std::string& description)  // NOLINT
+void helperObject::setDescription(std::string_view description)  // NOLINT
 {
-    descriptionDictionary.update(m_oid, description);
+    descriptionDictionary.update(m_oid, std::string{description});
 }
 
 std::string helperObject::getDescription() const
@@ -72,7 +73,7 @@ coreObject* helperObject::getOwner() const
 {
     return nullptr;
 }
-void setMultipleFlags(helperObject* obj, const std::string& flags)
+void setMultipleFlags(helperObject* obj, std::string_view flags)
 {
     auto lcflags = gmlc::utilities::convertToLowerCase(flags);
     auto flgs = gmlc::utilities::string_viewOps::split(lcflags);

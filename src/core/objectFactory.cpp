@@ -132,25 +132,25 @@ objectFactory* componentFactory::getFactory(std::string_view typeName)
 std::shared_ptr<coreObjectFactory> coreObjectFactory::instance()
 {
     // can't use make shared since constructor is private
-    static std::shared_ptr<coreObjectFactory> factory =
+    static const std::shared_ptr<coreObjectFactory> factory =
         std::shared_ptr<coreObjectFactory>(new coreObjectFactory());  // NOLINT
     return factory;
 }
 
 void coreObjectFactory::registerFactory(std::string_view name,
-                                        const std::shared_ptr<componentFactory>& tf)
+                                        const std::shared_ptr<componentFactory>& componentFac)
 {
-    auto ret = m_factoryMap.emplace(name, tf);
+    auto ret = m_factoryMap.emplace(name, componentFac);
     if (!ret.second) {
-        ret.first->second = tf;
+        ret.first->second = componentFac;
     }
 }
 
-void coreObjectFactory::registerFactory(const std::shared_ptr<componentFactory>& tf)
+void coreObjectFactory::registerFactory(const std::shared_ptr<componentFactory>& componentFac)
 {
-    auto ret = m_factoryMap.emplace(tf->name, tf);
+    auto ret = m_factoryMap.emplace(componentFac->name, componentFac);
     if (!ret.second) {
-        ret.first->second = tf;
+        ret.first->second = componentFac;
     }
 }
 
@@ -170,7 +170,7 @@ stringVec coreObjectFactory::getTypeNames(std::string_view component)
     if (mfind != m_factoryMap.end()) {
         return mfind->second->getTypeNames();
     }
-    return stringVec();
+    return {};
 }
 
 coreObject* coreObjectFactory::createObject(std::string_view component)
@@ -212,9 +212,9 @@ std::shared_ptr<componentFactory> coreObjectFactory::getFactory(std::string_view
         return mfind->second;
     }
     // make a new factory
-    auto tf = std::make_shared<componentFactory>(std::string{component});
-    m_factoryMap.emplace(component, tf);
-    return tf;
+    auto componentFac = std::make_shared<componentFactory>(std::string{component});
+    m_factoryMap.emplace(component, componentFac);
+    return componentFac;
 }
 
 bool coreObjectFactory::isValidObject(std::string_view component)

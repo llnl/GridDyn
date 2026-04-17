@@ -12,6 +12,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <variant>
 namespace griddyn {
 void propertyBuffer::set(std::string_view param, std::string_view val)
 {
@@ -51,21 +52,21 @@ void propertyBuffer::apply(coreObject* obj) const
     for (auto& prop : properties) {
         switch (prop.second.index()) {
             case 0:
-                obj->set(prop.first, mpark::get<double>(prop.second));
+                obj->set(prop.first, std::get<double>(prop.second));
                 break;
             case 1:
                 obj->set(prop.first,
-                         mpark::get<std::pair<double, units::unit>>(prop.second).first,
-                         mpark::get<std::pair<double, units::unit>>(prop.second).second);
+                         std::get<std::pair<double, units::unit>>(prop.second).first,
+                         std::get<std::pair<double, units::unit>>(prop.second).second);
                 break;
             case 2:
-                obj->set(prop.first, mpark::get<int>(prop.second));
+                obj->set(prop.first, std::get<int>(prop.second));
                 break;
             case 3:
-                obj->setFlag(prop.first, mpark::get<bool>(prop.second));
+                obj->setFlag(prop.first, std::get<bool>(prop.second));
                 break;
             case 4:
-                obj->set(prop.first, mpark::get<std::string>(prop.second));
+                obj->set(prop.first, std::get<std::string>(prop.second));
                 break;
         }
     }

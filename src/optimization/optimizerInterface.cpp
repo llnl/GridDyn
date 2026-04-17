@@ -59,8 +59,8 @@ int optimizerInterface::check_flag(void* flagvalue,
             if (printError) {
                 m_gdo->log(m_gdo,
                            print_level::error,
-                           std::string{funcname} + " failed with flag = " +
-                               std::to_string(*errflag));
+                           std::string{funcname} +
+                               " failed with flag = " + std::to_string(*errflag));
             }
             return (1);
         }

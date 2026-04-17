@@ -58,8 +58,7 @@ class optComponentFactory {
 };
 
 // create a high level object factory for the coreObject class
-using optfMap =
-    std::map<std::string, std::shared_ptr<optComponentFactory>, std::less<>>;
+using optfMap = std::map<std::string, std::shared_ptr<optComponentFactory>, std::less<>>;
 
 class coreOptObjectFactory {
   public:
@@ -68,8 +67,7 @@ class coreOptObjectFactory {
      */
     ~coreOptObjectFactory() {}
     static std::shared_ptr<coreOptObjectFactory> instance();
-    void registerFactory(std::string_view name,
-                         std::shared_ptr<optComponentFactory> componentFac);
+    void registerFactory(std::string_view name, std::shared_ptr<optComponentFactory> componentFac);
     void registerFactory(std::shared_ptr<optComponentFactory> componentFac);
     stringVec getFactoryNames();
     stringVec getObjNames(std::string_view factoryName);

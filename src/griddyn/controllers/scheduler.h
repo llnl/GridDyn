@@ -74,9 +74,10 @@ class scheduler: public Source {
     virtual double getMin(coreTime time = maxTime) const;
 
   protected:
-    virtual void insertTarget(tsched ts);
+    virtual void insertTarget(tsched targetSchedule);
     void clearSchedule();
-    virtual void receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message);
+    virtual void receiveMessage(std::uint64_t sourceID,
+                                const std::shared_ptr<commMessage>& message);
 };
 
 /** @brief scheduler that can deal with ramping of the power on a continuous basis
@@ -150,10 +151,10 @@ class schedulerRamp: public scheduler {
 
   protected:
     virtual void updatePTarget();
-    virtual void insertTarget(tsched ts) override;
+    virtual void insertTarget(tsched targetSchedule) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
-                                std::shared_ptr<commMessage> message) override;
+                                const std::shared_ptr<commMessage>& message) override;
 };
 
 /** @brief scheduler targeted at handling regulation management
@@ -216,7 +217,7 @@ class schedulerReg: public schedulerRamp {
 
   protected:
     virtual void receiveMessage(std::uint64_t sourceID,
-                                std::shared_ptr<commMessage> message) override;
+                                const std::shared_ptr<commMessage>& message) override;
 };
 
 }  // namespace griddyn

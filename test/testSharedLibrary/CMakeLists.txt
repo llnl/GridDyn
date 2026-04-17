@@ -31,15 +31,15 @@ endif(WIN32)
 target_compile_definitions(shared_library_tests PRIVATE -DGRIDDYN_TEST_DIRECTORY="${test_dir}")
 target_link_libraries(shared_library_tests PUBLIC griddyn_shared_lib)
 
-if(VERSION_OPTION)
+if(CXX_STANDARD_FLAG)
     if(MSVC)
-        target_compile_options(shared_library_tests PUBLIC ${VERSION_OPTION})
+        target_compile_options(shared_library_tests PUBLIC ${CXX_STANDARD_FLAG})
     else()
         target_compile_options(
-            shared_library_tests PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${VERSION_OPTION}>
+            shared_library_tests PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${CXX_STANDARD_FLAG}>
         )
     endif(MSVC)
-endif(VERSION_OPTION)
+endif(CXX_STANDARD_FLAG)
 
 target_link_libraries(shared_library_tests PUBLIC gtest gtest_main gmock)
 

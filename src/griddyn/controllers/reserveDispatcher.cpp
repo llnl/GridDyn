@@ -11,6 +11,7 @@
 #include "AGControl.h"
 #include "core/coreExceptions.h"
 #include "scheduler.h"
+#include <algorithm>
 #include <string>
 
 namespace griddyn {
@@ -105,6 +106,7 @@ void reserveDispatcher::moveSchedulers(reserveDispatcher* rD)
         this->schedList[this->schedCount + kk] = rD->schedList[kk];
         //    rD->schedList[kk]->reserveDispatcherLink(this);
     }
+    schedCount = static_cast<count_t>(schedList.size());
     checkGen();
 }
 
@@ -164,13 +166,14 @@ double reserveDispatcher::testP(coreTime time, double pShort)
 
 void reserveDispatcher::remove(schedulerRamp* sched)
 {
-    for (auto sch = schedList.begin(); sch != schedList.end(); ++sch) {
-        if (isSameObject(*sch, sched)) {
-            schedList.erase(sch);
-            --schedCount;
-            checkGen();
-            return;
-        }
+    const auto schedIter =
+        std::find_if(schedList.begin(), schedList.end(), [sched](schedulerRamp* candidate) {
+            return isSameObject(candidate, sched);
+        });
+    if (schedIter != schedList.end()) {
+        schedList.erase(schedIter);
+        schedCount = static_cast<count_t>(schedList.size());
+        checkGen();
     }
 }
 
@@ -185,8 +188,8 @@ void reserveDispatcher::add(coreObject* obj)
 
 void reserveDispatcher::add(schedulerRamp* sched)
 {
-    schedCount++;
     schedList.push_back(sched);
+    schedCount = static_cast<count_t>(schedList.size());
     reserveUsed.resize(schedCount);
     resAvailable.resize(schedCount);
     //    sched->reserveDispatcherLink(this);

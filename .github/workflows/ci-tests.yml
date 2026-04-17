@@ -21,9 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: GCC 13
-            c_compiler: gcc-13
-            cxx_compiler: g++-13
+          - name: GCC 14
+            c_compiler: gcc-14
+            cxx_compiler: g++-14
             extra_packages: ""
           - name: Clang 18
             c_compiler: clang-18
@@ -43,11 +43,7 @@ jobs:
           cmake \
           ninja-build \
           libsuitesparse-dev \
-          libboost-filesystem-dev \
-          libboost-system-dev \
-          libboost-date-time-dev \
-          libboost-timer-dev \
-          libboost-chrono-dev \
+          libboost-dev \
           ${{ matrix.c_compiler }} \
           ${{ matrix.cxx_compiler }} \
           ${{ matrix.extra_packages }}

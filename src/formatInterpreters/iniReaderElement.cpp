@@ -9,10 +9,12 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "inih/INIReader.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
+#include <utility>
 
 static const char nullStr[] = "";
 
@@ -56,7 +58,7 @@ bool iniReaderElement::loadFile(const std::string& fileName)
         return true;
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;
@@ -95,7 +97,7 @@ bool iniReaderElement::hasAttribute(const std::string& attributeName) const
     if (!isValid()) {
         return false;
     }
-    auto& val = doc->Get(currentSection, attributeName);
+    const auto& val = doc->Get(currentSection, attributeName);
 
     return !(val.empty());
 }
@@ -105,47 +107,47 @@ bool iniReaderElement::hasElement(const std::string& elementName) const
     if (!currentSection.empty()) {
         return false;
     }
-    auto& sec = doc->Sections();
-    return (sec.find(elementName) != sec.end());
+    const auto& sec = doc->Sections();
+    return sec.contains(elementName);
 }
 
 readerAttribute iniReaderElement::getFirstAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
-    auto& att = doc->getAttribute(currentSection, 0);
+    const auto& att = doc->getAttribute(currentSection, 0);
     iteratorIndex = 0;
     if ((!att.first.empty()) && (!att.second.empty())) {
-        return readerAttribute(att.first, att.second);
+        return {att.first, att.second};
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute iniReaderElement::getNextAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
 
-    auto& att = doc->getAttribute(currentSection, iteratorIndex + 1);
+    const auto& att = doc->getAttribute(currentSection, iteratorIndex + 1);
     ++iteratorIndex;
     if ((!att.first.empty()) && (!att.second.empty())) {
-        return readerAttribute(att.first, att.second);
+        return {att.first, att.second};
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute iniReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
-    auto& val = doc->Get(currentSection, attributeName);
+    const auto& val = doc->Get(currentSection, attributeName);
     if (!val.empty()) {
-        return readerAttribute(attributeName, val);
+        return {attributeName, val};
     }
-    return readerAttribute();
+    return {};
 }
 
 std::string iniReaderElement::getAttributeText(const std::string& attributeName) const
@@ -191,7 +193,7 @@ void iniReaderElement::moveToFirstChild()
         currentSection = ';';
         return;
     }
-    auto& sec = doc->Sections();
+    const auto& sec = doc->Sections();
     if (sec.empty()) {
         currentSection = ';';
         return;
@@ -211,14 +213,14 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
         currentSection = ';';
         return;
     }
-    auto& sec = doc->Sections();
+    const auto& sec = doc->Sections();
     if (sec.empty()) {
         currentSection = ';';
         return;
     }
     auto sptr = sec.begin();
     while (sptr != sec.end()) {
-        if (sptr->find(childName) == 0) {
+        if (sptr->starts_with(childName)) {
             currentSection = *sptr;
         }
         ++sectionIndex;
@@ -236,8 +238,8 @@ void iniReaderElement::moveToNextSibling()
     }
     ++sectionIndex;
     iteratorIndex = 0;
-    auto& secs = doc->Sections();
-    if (sectionIndex >= static_cast<int>(secs.size())) {
+    const auto& secs = doc->Sections();
+    if (std::cmp_greater_equal(sectionIndex, secs.size())) {
         currentSection = ';';
         return;
     }
@@ -260,7 +262,7 @@ void iniReaderElement::moveToNextSibling(const std::string& siblingName)
     if (!isValid()) {
         return;
     }
-    if (currentSection.find(siblingName) != 0) {
+    if (!currentSection.starts_with(siblingName)) {
         currentSection = ';';
         return;
     }

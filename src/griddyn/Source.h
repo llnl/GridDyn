@@ -20,7 +20,7 @@ class Source: public gridSubModel {
     units::unit outputUnits_ = units::defunit;  //!< specify the units of the output
   public:
     /** constructor
-    @param[in] objname the name of the object
+    @param[in] objName the name of the object
     @param[in] startVal the starting Value of the object
     */
     Source(const std::string& objName = "source_#", double startVal = 0.0);

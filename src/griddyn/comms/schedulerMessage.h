@@ -60,4 +60,11 @@ namespace comms {
 }  // namespace comms
 }  // namespace griddyn
 
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
 CEREAL_REGISTER_TYPE(griddyn::comms::schedulerMessagePayload)
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif

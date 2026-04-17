@@ -122,7 +122,7 @@ class commMessage {
 
     /** convert a command to a raw data bytes
     @param[out] data pointer to memory to store the command
-    @param[in] buffer_size-- the size of the buffer
+    @param[in] buffer_size the size of the buffer
     @return the size of the buffer actually used
     */
     int toByteArray(char* data, size_t buffer_size) const;
@@ -229,7 +229,7 @@ class MessageTypeRegistry {
     static MessageTypeRegistry& instance();
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
-    @param[in] mf pointer to a message factory to store in the core factory*/
+    @param[in] type the message type to store in the registry*/
     void registerType(const std::string& name, std::uint32_t);
 
     uint32_t getType(const std::string& name) const;

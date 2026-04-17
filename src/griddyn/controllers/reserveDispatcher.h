@@ -27,7 +27,7 @@ class reserveDispatcher: public coreObject {
     coreTime dispatchTime = negTime;
     coreTime dispatchInterval = 60.0 * 5.0;
 
-    count_t schedCount;
+    count_t schedCount = 0;
     std::vector<schedulerRamp*> schedList;
     std::vector<double> resAvailable;
     std::vector<double> reserveUsed;

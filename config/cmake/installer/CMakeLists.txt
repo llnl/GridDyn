@@ -130,11 +130,8 @@ else(UNIX)
     endif(MSVC)
 endif(UNIX)
 
-# message(STATUS ${CMAKE_CXX_FLAGS})
-include(configGenerator)
-
-if(VERSION_OPTION)
-    add_compile_options(${VERSION_OPTION})
+if(CXX_STANDARD_FLAG)
+    add_compile_options(${CXX_STANDARD_FLAG})
 else()
     set(CMAKE_CXX_STANDARD 14)
 endif()

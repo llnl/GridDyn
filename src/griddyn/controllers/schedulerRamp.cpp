@@ -470,7 +470,8 @@ double schedulerRamp::get(const std::string& param, units::unit unitType) const
     return val;
 }
 
-void schedulerRamp::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
+void schedulerRamp::receiveMessage(std::uint64_t sourceID,
+                                   const std::shared_ptr<commMessage>& message)
 {
     using comms::schedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);

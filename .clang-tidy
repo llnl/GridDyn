@@ -181,6 +181,8 @@ CheckOptions:
     value:           '1'
   - key:             readability-function-size.BranchThreshold
     value:           '4294967295'
+  - key:             readability-function-cognitive-complexity.Threshold
+    value:           '175'
   - key:             readability-function-size.LineThreshold
     value:           '4294967295'
   - key:             readability-function-size.StatementThreshold

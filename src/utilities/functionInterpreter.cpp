@@ -215,17 +215,10 @@ static const std::map<std::string, std::function<double(double, double)>> FuncLi
 };
 
 static const std::map<std::string, std::function<double(double, double, double)>> FuncList3{
-#ifdef HAVE_CLAMP
     std::make_pair("clamp",
                    [](double val, double valLow, double valHigh) {
                        return std::clamp(val, valLow, valHigh);
                    }),
-#else
-  std::make_pair ("clamp",
-                  [](double val, double valLow, double valHigh) {
-                      return (val < valLow) ? valLow : ((val > valHigh) ? valHigh : val);
-                  }),
-#endif
     std::make_pair("max",
                    [](double val1, double val2, double val3) {
                        return (val1 > val2) ? std::max(val1, val3) : std::max(val2, val3);
@@ -234,7 +227,6 @@ static const std::map<std::string, std::function<double(double, double, double)>
                    [](double val1, double val2, double val3) {
                        return (val1 > val2) ? std::min(val2, val3) : std::min(val1, val3);
                    }),
-#ifdef HAVE_HYPOT3
     std::make_pair("hypot",
                    [](double val1, double val2, double val3) {
                        return std::hypot(val1, val2, val3);
@@ -243,17 +235,6 @@ static const std::map<std::string, std::function<double(double, double, double)>
                    [](double val1, double val2, double val3) {
                        return std::hypot(val1, val2, val3);
                    }),
-#else
-  std::make_pair ("hypot",
-                  [](double val1, double val2, double val3) {
-                      return sqrt (val1 * val1 + val2 * val2 + val3 * val3);
-                  }),
-
-  std::make_pair ("mag",
-                  [](double val1, double val2, double val3) {
-                      return sqrt (val1 * val1 + val2 * val2 + val3 * val3);
-                  }),
-#endif
     std::make_pair("sum", [](double val1, double val2, double val3) { return val1 + val2 + val3; }),
     std::make_pair("product",
                    [](double val1, double val2, double val3) { return val1 * val2 * val3; }),

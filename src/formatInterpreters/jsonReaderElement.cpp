@@ -9,17 +9,21 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "jsonElement.h"
 #include <cassert>
+#include <cstdio>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <print>
 #include <string>
 // default initialized empty string
 static const char nullStr[] = "";
 
 using gmlc::utilities::numeric_conversionComplete;
 
+namespace {
 bool isElement(const Json::Value& testValue);
 bool isAttribute(const Json::Value& testValue);
+}  // namespace
+
 jsonReaderElement::jsonReaderElement() = default;
 jsonReaderElement::jsonReaderElement(const std::string& fileName)
 {
@@ -51,7 +55,7 @@ std::shared_ptr<readerElement> jsonReaderElement::clone() const
 {
     auto ret = std::make_shared<jsonReaderElement>();
     ret->parents.reserve(parents.size());
-    for (auto& parent : parents) {
+    for (const auto& parent : parents) {
         ret->parents.push_back(std::make_shared<jsonElement>(*parent));
     }
     ret->current = std::make_shared<jsonElement>(*current);
@@ -65,21 +69,21 @@ bool jsonReaderElement::loadFile(const std::string& fileName)
     if (file.is_open()) {
         doc = std::make_shared<Json::Value>();
 
-        Json::CharReaderBuilder rbuilder;
+        const Json::CharReaderBuilder rbuilder;
         std::string errs;
-        bool ok = Json::parseFromStream(rbuilder, file, doc.get(), &errs);
-        if (ok) {
+        const bool parseOk = Json::parseFromStream(rbuilder, file, doc.get(), &errs);
+        if (parseOk) {
             current = std::make_shared<jsonElement>(*doc, fileName);
             return true;
         }
 
-        std::cerr << "file read error in " << fileName << "::" << errs << '\n';
+        std::println(stderr, "file read error in {}::{}", fileName, errs);
         doc = nullptr;
         clear();
         return false;
     }
 
-    std::cerr << "unable to open file " << fileName << '\n';
+    std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
     clear();
     return false;
@@ -91,22 +95,22 @@ bool jsonReaderElement::parse(const std::string& inputString)
     doc = std::make_shared<Json::Value>();
 
     if (file.is_open()) {
-        Json::CharReaderBuilder rbuilder;
+        const Json::CharReaderBuilder rbuilder;
         std::string errs;
-        bool ok = Json::parseFromStream(rbuilder, file, doc.get(), &errs);
-        if (!ok) {
-            std::cerr << "Read error in stream::" << errs << '\n';
+        const bool parseOk = Json::parseFromStream(rbuilder, file, doc.get(), &errs);
+        if (!parseOk) {
+            std::println(stderr, "Read error in stream::{}", errs);
             doc = nullptr;
             clear();
             return false;
         }
     } else {
-        Json::CharReaderBuilder rbuilder;
+        const Json::CharReaderBuilder rbuilder;
         std::string errs;
         std::istringstream jstring(inputString);
-        bool ok = Json::parseFromStream(rbuilder, jstring, doc.get(), &errs);
-        if (!ok) {
-            std::cerr << "Read error in stream::" << errs << '\n';
+        const bool parseOk = Json::parseFromStream(rbuilder, jstring, doc.get(), &errs);
+        if (!parseOk) {
+            std::println(stderr, "Read error in stream::{}", errs);
             doc = nullptr;
             clear();
             return false;
@@ -186,7 +190,7 @@ bool jsonReaderElement::hasElement(const std::string& elementName) const
 readerAttribute jsonReaderElement::getFirstAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
 
     auto attIterator = current->getElement().begin();
@@ -195,49 +199,49 @@ readerAttribute jsonReaderElement::getFirstAttribute()
 
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
-            return readerAttribute(attIterator.name(), attIterator->asString());
+            return {attIterator.name(), attIterator->asString()};
         }
         ++attIterator;
         ++iteratorCount;
     }
 
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute jsonReaderElement::getNextAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
     auto elementEnd = current->getElement().end();
     auto attIterator = current->getElement().begin();
     for (int ii = 0; ii < iteratorCount; ++ii) {
         ++attIterator;
         if (attIterator == elementEnd) {
-            return readerAttribute();
+            return {};
         }
     }
     if (attIterator == elementEnd) {
-        return readerAttribute();
+        return {};
     }
     ++attIterator;
     ++iteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
-            return readerAttribute(attIterator.name(), attIterator->asString());
+            return {attIterator.name(), attIterator->asString()};
         }
         ++attIterator;
         ++iteratorCount;
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute jsonReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (hasAttribute(attributeName)) {
-        return readerAttribute(attributeName, current->getElement()[attributeName].asString());
+        return {attributeName, current->getElement()[attributeName].asString()};
     }
-    return readerAttribute();
+    return {};
 }
 
 std::string jsonReaderElement::getAttributeText(const std::string& attributeName) const
@@ -416,6 +420,8 @@ void jsonReaderElement::restore()
     bookmarks.pop_back();
 }
 
+namespace {
+
 bool isAttribute(const Json::Value& testValue)
 {
     if (testValue.empty()) {
@@ -445,3 +451,5 @@ bool isElement(const Json::Value& testValue)
 
     return false;
 }
+
+}  // namespace

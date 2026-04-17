@@ -67,7 +67,8 @@ class grabberInterpreter {
             }
         }
 
-        if ((outer_chunks[0].first == 0) && (outer_chunks[0].second == command.length() - 1)) {
+        if ((!outer_chunks.empty()) && (outer_chunks[0].first == 0) &&
+            (outer_chunks[0].second == command.length() - 1)) {
             return interpretGrabberBlock(command.substr(1, outer_chunks[0].second - 1), obj);
         }
         size_t operatorLocation;
@@ -87,7 +88,7 @@ class grabberInterpreter {
             operatorLocation = command.find_first_of(mdivstr, operatorLocation + 1);
         }
 
-        if (outer_chunks[0].first != std::string::npos) {
+        if ((!outer_chunks.empty()) && (outer_chunks[0].first != std::string::npos)) {
             std::string cmdBlock = command.substr(0, outer_chunks[0].first);
             if (isFunctionName(cmdBlock)) {
                 std::string fcallstr = gmlc::utilities::stringOps::trim(

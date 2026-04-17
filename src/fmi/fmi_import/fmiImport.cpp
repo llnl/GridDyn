@@ -8,10 +8,10 @@
 
 #include "fmiObjects.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/compiler-config.h"
 #include "utilities/zipUtilities.h"
 #include <array>
 #include <cstdarg>
+#include <cstdio>
 #include <map>
 #include <memory>
 
@@ -90,7 +90,7 @@ void fmiLibrary::loadFMU(const std::string& fmupath, const std::string& extractP
 
 int fmiLibrary::getCounts(const std::string& countType) const
 {
-    auto cnt = size_t(-1);
+    int cnt{-1};
     if (countType == "meobjects") {
         cnt = mecount;
     } else if (countType == "cosimobjects") {
@@ -99,10 +99,10 @@ int fmiLibrary::getCounts(const std::string& countType) const
         cnt = information->getCounts(countType);
     }
 
-    if (cnt == size_t(-1)) {
-        return (-1);
+    if (cnt == -1) {
+        return -1;
     }
-    return static_cast<int>(cnt);
+    return cnt;
 }
 
 void fmiLibrary::loadInformation()
@@ -114,7 +114,7 @@ void fmiLibrary::loadInformation()
             return;
         }
     }
-    int res = information->loadFile(xmlfile.string());
+    const int res = information->loadFile(xmlfile.string());
     if (res != 0) {
         error = true;
         return;
@@ -132,22 +132,22 @@ void fmiLibrary::loadInformation()
 std::string fmiLibrary::getTypes() const
 {
     if (isSoLoaded()) {
-        return std::string(baseFunctions.fmi2GetTypesPlatform());
+        return {baseFunctions.fmi2GetTypesPlatform()};
     }
-    return "";
+    return {};
 }
 
 std::string fmiLibrary::getVersion() const
 {
     if (isSoLoaded()) {
-        return std::string(baseFunctions.fmi2GetVersion());
+        return {baseFunctions.fmi2GetVersion()};
     }
-    return "";
+    return {};
 }
 
 int fmiLibrary::extract()
 {
-    int ret = utilities::unzip(fmuName.string(), extractDirectory.string());
+    const int ret = utilities::unzip(fmuName.string(), extractDirectory.string());
     if (ret != 0) {
         error = true;
     }
@@ -273,7 +273,7 @@ path fmiLibrary::findSoPath(fmutype_t type)
             }
             break;
     }
-    if IF_CONSTEXPR (sizeof(void*) == 8) {
+    if constexpr (sizeof(void*) == 8) {
 #ifdef _WIN32
         sopath /= "win64";
         sopath /= identifier + ".dll";
@@ -314,7 +314,7 @@ path fmiLibrary::findSoPath(fmutype_t type)
         return sopath;
     }
 
-    return path("");
+    return {};
 }
 
 void fmiLibrary::loadBaseFunctions()
@@ -431,8 +431,11 @@ void fmiLibrary::makeCallbackFunctions()
     callbacks->componentEnvironment = static_cast<void*>(this);
 }
 
-#define STRING_BUFFER_SIZE 1000
-// NOLINTNEXTLINE
+namespace {
+constexpr std::size_t string_buffer_size = 1000;
+}
+
+// NOLINTNEXTLINE(hicpp-vararg,cert-dcl50-cpp,modernize-avoid-variadic-functions)
 void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String /* instanceName */,
                 fmi2Status /* status */,
@@ -440,10 +443,12 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String message,
                 ...)
 {
-    std::array<char, STRING_BUFFER_SIZE> temp;  // NOLINT
+    std::array<char, string_buffer_size> temp{};
+    // FMI defines this callback as a variadic C API, so we must bridge it with va_list here.
+    // NOLINTNEXTLINE(hicpp-vararg)
     va_list arglist;
     va_start(arglist, message);  // NOLINT
-    vsnprintf(temp.data(), STRING_BUFFER_SIZE, message, arglist);
+    static_cast<void>(std::vsnprintf(temp.data(), string_buffer_size, message, arglist));
     va_end(arglist);
-    printf("%s\n", temp.data());  // NOLINT
+    std::printf("%s\n", temp.data());  // NOLINT
 }

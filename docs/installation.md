@@ -49,7 +49,6 @@ GridDyn uses C++11 extensively and will make use of some C++14 features in the n
 - **ENABLE_MULTITHREADING** not used at preset but will eventually enable threaded execution in some models
 - **ENABLE_EXTRA_COMPILER_WARNINGS** enable more compiler warnings (full list in config/cmake/compiler_flags.cmake)
 - **BUILD_PYTHON_INTERFACE** enable the python swig interface
-- **BUILD_PYTHON2_INTERFACE** enable the newer python swig interface
 - **BUILD_MATLAB_INTERFACE** enable the matlab swig interface
 - **BUILD_OCTAVE_INTERFACE** enable the octave swig interface
 - **BUILD_JAVA_INTERFACE** enable the java swig interface

@@ -12,8 +12,9 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <format>
-#include <iostream>
+#include <cstdio>
+#include <limits>
+#include <print>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -24,6 +25,7 @@ using gmlc::utilities::string_viewOps::splitlineBracket;
 using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
 
+// NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)
 double interpretStringBlock(string_view command, readerInfo& ri);
 
 void interpretStringBlock(string_view command, readerInfo& ri, std::vector<double>& outputs);
@@ -96,8 +98,9 @@ double interpretString_sv(string_view command, readerInfo& ri)
                             val = InterpretFunction(std::string{cmdBlock}, v1, ri);
                         }
                     } else {
-                        std::cout << std::format("invalid arguments to function {}\n",
-                                                 std::string{cmdBlock});
+                        std::println(stderr,
+                                     "invalid arguments to function {}",
+                                     std::string{cmdBlock});
                     }
                 } else {
                     if (cmdBlock == "query") {
@@ -164,7 +167,7 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
     return (op == '+') ? valA + valB : valA - valB;
 }
 
-const double nan_val = std::nan("0");
+const double nan_val = std::numeric_limits<double>::quiet_NaN();
 
 double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
 {
@@ -287,3 +290,4 @@ double stringBlocktoDouble(string_view block, readerInfo& ri)
 }
 
 }  // namespace griddyn
+// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)

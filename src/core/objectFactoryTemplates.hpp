@@ -11,6 +11,7 @@
 #include "objectFactory.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -111,7 +112,7 @@ class objectPrepper {
             }
         }
     }
-    Ntype* getNewObject(const std::string& objName = "")
+    Ntype* getNewObject(std::string_view objName = {})
     {
         Ntype* ret = nullptr;
         if (useBlock) {
@@ -148,13 +149,13 @@ class objectPrepper {
             }
             if (ret) {
                 if (!objName.empty()) {
-                    ret->setName(objName);
+                    ret->setName(std::string{objName});
                 }
             }
         }
         if (ret == nullptr)  // if we fail on all counts just make a new object
         {
-            ret = (objName.empty()) ? (new Ntype()) : (new Ntype(objName));
+            ret = (objName.empty()) ? (new Ntype()) : (new Ntype(std::string{objName}));
         }
         return ret;
     }
@@ -204,19 +205,19 @@ class typeFactory: public objectFactory {
         return ret;
     }
 
-    coreObject* makeObject(const std::string& objName) override
+    coreObject* makeObject(std::string_view objName) override
     {
         coreObject* ret = makeTypeObject(objName);
         return ret;
     }
 
-    virtual Ntype* makeTypeObject(const std::string& objName = "")
+    virtual Ntype* makeTypeObject(std::string_view objName = {})
     {
         if (preparedObjects) {
             return preparedObjects->getNewObject(objName);
         }
         if (!objName.empty()) {
-            return new Ntype(objName);
+            return new Ntype(std::string{objName});
         }
         return new Ntype();
     }
@@ -273,7 +274,7 @@ class childTypeFactory: public typeFactory<Btype> {
         return ret;
     }
 
-    coreObject* makeObject(const std::string& objName) override
+    coreObject* makeObject(std::string_view objName) override
     {
         coreObject* ret = makeTypeObject(objName);
 
@@ -281,15 +282,14 @@ class childTypeFactory: public typeFactory<Btype> {
     }
 
     Btype* makeTypeObject(
-        const std::string& objName = std::string()) override  // done this way to make sure calling
+        std::string_view objName = {}) override  // done this way to make sure calling
     // makeTypeObject on the parent works in the
     // correct polymorphic call
     {
         return makeDirectObject(objName);
     }
 
-    Ntype* makeDirectObject(
-        const std::string& objName = std::string())  // done this way to make sure calling
+    Ntype* makeDirectObject(std::string_view objName = {})  // done this way to make sure calling
     // makeTypeObject on the parent works in the
     // correct polymorphic call
     {
@@ -297,7 +297,7 @@ class childTypeFactory: public typeFactory<Btype> {
             return preparedObjects->getNewObject(objName);
         }
         if (!objName.empty()) {
-            return new Ntype(objName);
+            return new Ntype(std::string{objName});
         }
         return new Ntype();
     }
@@ -346,14 +346,14 @@ class typeFactoryArg: public objectFactory {
     }
 
     coreObject* makeObject() override { return static_cast<coreObject*>(new Ntype(arg)); }
-    coreObject* makeObject(const std::string& objName) override
+    coreObject* makeObject(std::string_view objName) override
     {
-        return static_cast<coreObject*>(new Ntype(arg, objName));
+        return static_cast<coreObject*>(new Ntype(arg, std::string{objName}));
     }
 
-    Ntype* makeTypeObject(const std::string& objName = "")
+    Ntype* makeTypeObject(std::string_view objName = {})
     {
-        return (objName.empty()) ? (new Ntype(arg)) : (new Ntype(arg, objName));
+        return (objName.empty()) ? (new Ntype(arg)) : (new Ntype(arg, std::string{objName}));
     }
 };
 

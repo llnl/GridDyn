@@ -8,13 +8,7 @@
 
 #include <atomic>
 #include <string>
-
-// disable a funny warning (bug in visual studio 2015)
-#ifdef _MSC_VER
-#    if _MSC_VER >= 1900
-#        pragma warning(disable : 4592)
-#    endif
-#endif
+#include <string_view>
 
 namespace griddyn {
 class coreObject;
@@ -72,7 +66,7 @@ class helperObject {
     inline int getInt(const std::string& param) const { return static_cast<int>(get(param)); }
 
     /** @brief set the name*/
-    void setName(const std::string& newName)
+    void setName(std::string_view newName)
     {
         um_name = newName;
         nameUpdate();
@@ -81,7 +75,7 @@ class helperObject {
     /** @brief get the name of the object*/
     const std::string& getName() const noexcept { return um_name; }
     /** set the description of the object */
-    void setDescription(const std::string& description);
+    void setDescription(std::string_view description);
     /** get the description of the object*/
     std::string getDescription() const;
 
@@ -115,5 +109,5 @@ a negative sign in front of the flag indicates the flag should be turned off
 @param[in] obj the helper object to set
 @param[in] flags the list of flags to set
 */
-void setMultipleFlags(helperObject* obj, const std::string& flags);
+void setMultipleFlags(helperObject* obj, std::string_view flags);
 }  // namespace griddyn

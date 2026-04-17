@@ -7,9 +7,11 @@
 #pragma once
 
 #include "coreObject.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
@@ -25,13 +27,13 @@ class objectFactory {
     @param[in] component  the name of the type of component this factory is a constructor for
     @param[in] typeName  the name of the specific type of object this factor builds
     */
-    objectFactory(const std::string& component, std::string typeName);
+    objectFactory(std::string_view component, std::string typeName);
 
     /** @brief constructor B
     @param[in] component  the name of component this factory is a constructor for
     @param[in] typeNames  the names of the specific types of objects this factor builds
     */
-    objectFactory(const std::string& component, const stringVec& typeNames);
+    objectFactory(std::string_view component, const stringVec& typeNames);
 
     /** @brief make and object   abstract function
     @return a pointer to a newly constructed object
@@ -43,7 +45,7 @@ class objectFactory {
     @return a pointer to a newly constructed object
     */
 
-    virtual coreObject* makeObject(const std::string& objectName) = 0;
+    virtual coreObject* makeObject(std::string_view objectName) = 0;
     /** @brief prepare to make a certain number of objects
     The parameters are intentionally unnamed in the interface because they are optional to use.
     */
@@ -58,7 +60,7 @@ class objectFactory {
 // component factory is a template class that inherits from cFactory to actually to the construction
 // of a specific object
 
-using cMap = std::map<std::string, objectFactory*>;
+using cMap = std::map<std::string, objectFactory*, std::less<>>;
 
 /** @brief a factory containing a mapping of specific object factories for a specific component
  */
@@ -69,14 +71,14 @@ class componentFactory {
     explicit componentFactory(std::string component);
     ~componentFactory();
     stringVec getTypeNames();
-    coreObject* makeObject(const std::string& type, const std::string& objectName);
-    coreObject* makeObject(const std::string& type);
+    coreObject* makeObject(std::string_view type, std::string_view objectName);
+    coreObject* makeObject(std::string_view type);
     coreObject* makeObject();
-    void registerFactory(const std::string& typeName, objectFactory* oFac);
+    void registerFactory(std::string_view typeName, objectFactory* oFac);
     void registerFactory(objectFactory* oFac);
-    void setDefault(const std::string& type);
-    bool isValidType(const std::string& typeName) const;
-    objectFactory* getFactory(const std::string& typeName);
+    void setDefault(std::string_view type);
+    bool isValidType(std::string_view typeName) const;
+    objectFactory* getFactory(std::string_view typeName);
 
   protected:
     cMap m_factoryMap;
@@ -84,7 +86,7 @@ class componentFactory {
 };
 
 // create a high level object factory for the coreObject class
-using fMap = std::map<std::string, std::shared_ptr<componentFactory>>;
+using fMap = std::map<std::string, std::shared_ptr<componentFactory>, std::less<>>;
 /** @brief central location for building objects and storing factories for making all the gridDyn
  component core object Factory class  intended to be a singleton it contains a map from strings to
  typeFactories
@@ -100,51 +102,52 @@ class coreObjectFactory {
     @param[in] name the string identifier to the factory
     @param[in] tf the type factory to place in the map
     */
-    void registerFactory(const std::string& name, const std::shared_ptr<componentFactory>& tf);
+    void registerFactory(std::string_view name,
+                         const std::shared_ptr<componentFactory>& componentFac);
 
     /** @brief register a type factory with the coreObjectFactory
     gets the name to use in the mapping from the type factory itself
     @param[in] tf the type factory to place in the map
     */
-    void registerFactory(const std::shared_ptr<componentFactory>& tf);
+    void registerFactory(const std::shared_ptr<componentFactory>& componentFac);
 
     /** @brief get a listing of the factory names*/
     stringVec getFactoryNames();
 
     /** @brief get a listing of the type names available for a given factory*/
-    stringVec getTypeNames(const std::string& component);
+    stringVec getTypeNames(std::string_view component);
 
     /** @brief create the default object from a given component
     @param[in] component  the name of the category of objects
     @return the created coreObject */
-    coreObject* createObject(const std::string& component);
+    coreObject* createObject(std::string_view component);
 
     /** @brief create an object from a given objectType and typeName
     @param[in] component  the name of the category of objects
     @param[in] typeName  the specific type to create
     @return the created coreObject */
-    coreObject* createObject(const std::string& component, const std::string& typeName);
+    coreObject* createObject(std::string_view component, std::string_view typeName);
 
     /** @brief create an object from a given objectType and typeName
     @param[in] component  the name of the category of objects
     @param[in] typeName  the specific type to create
     @param[in] objName  the name of the object to create
     @return the created coreObject */
-    coreObject* createObject(const std::string& component,
-                             const std::string& typeName,
-                             const std::string& objName);
+    coreObject* createObject(std::string_view component,
+                             std::string_view typeName,
+                             std::string_view objName);
 
     /** @brief get a specific type factory
     @param[in] component the name of the typeFactory to get
     @return a shared pointer to a specific type Factory
     */
-    std::shared_ptr<componentFactory> getFactory(const std::string& component);
+    std::shared_ptr<componentFactory> getFactory(std::string_view component);
 
     /** @brief check if a specific object category is valid*/
-    bool isValidObject(const std::string& component);
+    bool isValidObject(std::string_view component);
 
     /** @brief check if a specific component name is valid for a specific category of objects*/
-    bool isValidType(const std::string& component, const std::string& typeName);
+    bool isValidType(std::string_view component, std::string_view typeName);
 
     /** @brief prepare a number of objects for use later so they can all be constructed at once
     @param[in] component the category of Object to create
@@ -152,8 +155,8 @@ class coreObjectFactory {
     @param[in] numObjects  the number of objects to preallocate
     @param[in] obj the object to reference as the owner responsible for deleting the container
     */
-    void prepObjects(const std::string& component,
-                     const std::string& typeName,
+    void prepObjects(std::string_view component,
+                     std::string_view typeName,
                      count_t numObjects,
                      coreObject* obj);
 
@@ -163,7 +166,7 @@ class coreObjectFactory {
     @param[in] numObjects  the number of objects to preallocate
     @param[in] obj the object to reference as the owner responsible for deleting the container
     */
-    void prepObjects(const std::string& component, count_t numObjects, coreObject* obj);
+    void prepObjects(std::string_view component, count_t numObjects, coreObject* obj);
 
   private:
     coreObjectFactory();

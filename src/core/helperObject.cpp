@@ -11,8 +11,13 @@
 #include "gmlc/utilities/string_viewOps.h"
 #include "utilities/dataDictionary.h"
 #include <string>
+#include <string_view>
 #include <utility>
 namespace griddyn {
+namespace {
+    dataDictionary<std::uint64_t, std::string> descriptionDictionary;
+}
+
 // start at 100 since there are some objects that use low numbers as a check for interface number
 // and the id as secondary
 std::atomic<std::uint64_t> helperObject::s_obcnt(101);
@@ -23,7 +28,6 @@ helperObject::~helperObject() = default;
 helperObject::helperObject(std::string objectName): m_oid(s_obcnt++), um_name(std::move(objectName))
 {
 }
-static dataDictionary<std::uint64_t, std::string> descriptionDictionary;
 
 void helperObject::set(const std::string& param, const std::string& val)
 {
@@ -42,9 +46,9 @@ void helperObject::set(const std::string& param, double val)
 {
     setFlag(param, (val > 0.1));
 }
-void helperObject::setDescription(const std::string& description)  // NOLINT
+void helperObject::setDescription(std::string_view description)  // NOLINT
 {
-    descriptionDictionary.update(m_oid, description);
+    descriptionDictionary.update(m_oid, std::string{description});
 }
 
 std::string helperObject::getDescription() const
@@ -72,7 +76,7 @@ coreObject* helperObject::getOwner() const
 {
     return nullptr;
 }
-void setMultipleFlags(helperObject* obj, const std::string& flags)
+void setMultipleFlags(helperObject* obj, std::string_view flags)
 {
     auto lcflags = gmlc::utilities::convertToLowerCase(flags);
     auto flgs = gmlc::utilities::string_viewOps::split(lcflags);

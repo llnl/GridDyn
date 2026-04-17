@@ -8,16 +8,16 @@
 
 #include "core/coreOwningPtr.hpp"
 #include "units/units.hpp"
-#include <extra_includes/variant.hpp>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace griddyn {
 class coreObject;
 /** define a variant type for the different types of properties that may be set*/
-using property_type =
-    mpark::variant<double, std::pair<double, units::unit>, int, bool, std::string>;
+using property_type = std::variant<double, std::pair<double, units::unit>, int, bool, std::string>;
 
 /** class for temporarily holding object properties if the object has delayed initialization or
 something to that effect
@@ -29,21 +29,21 @@ class propertyBuffer {
     std::vector<std::pair<std::string, property_type>> properties;  //!< storage for the properties
   public:
     /** add a string property to the buffer*/
-    void set(const std::string& param, const std::string& val);
+    void set(std::string_view param, std::string_view val);
     /** add a double property to to the buffer*/
-    void set(const std::string& param, double val);
+    void set(std::string_view param, double val);
     /** add a double property with units to the buffer*/
-    void set(const std::string& param, double val, units::unit unitType);
+    void set(std::string_view param, double val, units::unit unitType);
     /** add an integer property to the buffer*/
-    void set(const std::string& param, int val);
+    void set(std::string_view param, int val);
     /** add a flag property to the buffer*/
-    void setFlag(const std::string& flag, bool val = true);
+    void setFlag(std::string_view flag, bool val = true);
     /** return true if there are any parameters stored in the buffer*/
     bool empty() const { return properties.empty(); }
     /** remove a property from the buffers
     @param[in] param the parameter to remove
     */
-    void remove(const std::string& param);
+    void remove(std::string_view param);
     /** apply the properties to a coreObject
     @details the properties are applied sequentially and the apply may
     throw an exception from the underlying set function if the property is not valid
@@ -66,20 +66,20 @@ class propertyBuffer {
         for (auto& prop : properties) {
             switch (prop.second.index()) {
                 case 0:
-                    obj->set(prop.first, mpark::get<double>(prop.second));
+                    obj->set(prop.first, std::get<double>(prop.second));
                     break;
                 case 1:
                     obj->set(prop.first,
-                             mpark::get<std::pair<double, units::unit>>(prop.second).first);
+                             std::get<std::pair<double, units::unit>>(prop.second).first);
                     break;
                 case 2:
-                    obj->set(prop.first, mpark::get<int>(prop.second));
+                    obj->set(prop.first, std::get<int>(prop.second));
                     break;
                 case 3:
-                    obj->setFlag(prop.first, mpark::get<bool>(prop.second));
+                    obj->setFlag(prop.first, std::get<bool>(prop.second));
                     break;
                 case 4:
-                    obj->set(prop.first, mpark::get<std::string>(prop.second));
+                    obj->set(prop.first, std::get<std::string>(prop.second));
                     break;
             }
         }

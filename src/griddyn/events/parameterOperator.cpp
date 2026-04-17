@@ -35,12 +35,12 @@ void parameterOperator::setTarget(gridComponent* target, const std::string& fiel
 void parameterOperator::updateObject(coreObject* target, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
-        auto nobj = dynamic_cast<gridComponent*>(target);
+        auto* nobj = dynamic_cast<gridComponent*>(target);
         if (nobj != nullptr) {
             comp = nobj;
         }
     } else {
-        auto newTarget = dynamic_cast<gridComponent*>(findMatchingObject(comp, target));
+        auto* newTarget = dynamic_cast<gridComponent*>(findMatchingObject(comp, target));
         if (newTarget != nullptr) {
             setTarget(newTarget);
         } else {
@@ -52,7 +52,8 @@ void parameterOperator::updateObject(coreObject* target, object_update_mode mode
 void parameterOperator::setParameter(double val)
 {
     if (parameterIndex == kNullLocation) {
-        return comp->set(m_field, val);
+        comp->set(m_field, val);
+        return;
     }
     comp->setParameter(parameterIndex, val);
 }
@@ -89,12 +90,12 @@ std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& par
         rname = trim(paramS.substr(renameloc + 4));
         paramS = paramS.substr(0, renameloc);
     }
-    objInfo objI(std::string{paramS}, rootObject);
+    const objInfo objI(std::string{paramS}, rootObject);
 
     auto pop =
         std::make_unique<parameterOperator>(dynamic_cast<gridComponent*>(objI.m_obj), objI.m_field);
     if (!rname.empty()) {
-        pop->setName(std::string{rname});
+        pop->setName(rname);
     }
     return pop;
 }

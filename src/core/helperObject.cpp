@@ -15,7 +15,7 @@
 #include <utility>
 namespace griddyn {
 namespace {
-dataDictionary<std::uint64_t, std::string> descriptionDictionary;
+    dataDictionary<std::uint64_t, std::string> descriptionDictionary;
 }
 
 // start at 100 since there are some objects that use low numbers as a check for interface number

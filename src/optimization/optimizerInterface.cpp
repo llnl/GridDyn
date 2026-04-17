@@ -10,12 +10,13 @@
 #include "gridDynOpt.h"
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 static childClassFactory<basicOptimizer, optimizerInterface>
     basicFac(stringVec{"basic", "pricestack"});
 
-optimizerInterface::optimizerInterface(const std::string& optName): name(optName) {}
+optimizerInterface::optimizerInterface(std::string_view optName): name(optName) {}
 
 optimizerInterface::optimizerInterface(gridDynOptimization* gdo, const optimMode& oMode):
     mode(oMode), m_gdo(gdo)
@@ -32,20 +33,22 @@ void optimizerInterface::setOptimizationData(gridDynOptimization* gdo, const opt
 
 void optimizerInterface::initializeJacArray(count_t /*size*/) {}
 
-double optimizerInterface::get(const std::string& /*param*/) const
+double optimizerInterface::get(std::string_view /*param*/) const
 {
     return kNullVal;
 }
 
 int optimizerInterface::check_flag(void* flagvalue,
-                                   const std::string& funcname,
+                                   std::string_view funcname,
                                    int opt,
                                    bool printError)
 {
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
-            m_gdo->log(m_gdo, print_level::error, funcname + " failed - returned nullptr pointer");
+            m_gdo->log(m_gdo,
+                       print_level::error,
+                       std::string{funcname} + " failed - returned nullptr pointer");
         }
         return (1);
     }
@@ -56,7 +59,8 @@ int optimizerInterface::check_flag(void* flagvalue,
             if (printError) {
                 m_gdo->log(m_gdo,
                            print_level::error,
-                           funcname + " failed with flag = " + std::to_string(*errflag));
+                           std::string{funcname} + " failed with flag = " +
+                               std::to_string(*errflag));
             }
             return (1);
         }
@@ -65,14 +69,14 @@ int optimizerInterface::check_flag(void* flagvalue,
         if (printError) {
             m_gdo->log(m_gdo,
                        print_level::error,
-                       funcname + " failed MEMORY_ERROR- returned nullptr pointer");
+                       std::string{funcname} + " failed MEMORY_ERROR- returned nullptr pointer");
         }
         return (1);
     }
     return 0;
 }
 
-basicOptimizer::basicOptimizer(const std::string& optName): optimizerInterface(optName) {}
+basicOptimizer::basicOptimizer(std::string_view optName): optimizerInterface(optName) {}
 
 basicOptimizer::basicOptimizer(gridDynOptimization* gdo, const optimMode& oMode):
     optimizerInterface(gdo, oMode)
@@ -117,7 +121,7 @@ std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, cons
     return of;
 }
 
-std::shared_ptr<optimizerInterface> makeOptimizer(const std::string& type)
+std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type)
 {
     return coreClassFactory<optimizerInterface>::instance()->createObject(type);
 }

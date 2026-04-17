@@ -17,6 +17,7 @@ class gridGrabberInfo;
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -104,19 +105,19 @@ class readerInfo: public basicReaderInfo {
     the given object
     @return a pointer to the new object created/or cloned from the library object
     */
-    coreObject* makeLibraryObject(const std::string& objName, coreObject* mobj);
+    coreObject* makeLibraryObject(std::string_view objName, coreObject* mobj);
     /** @brief get a pointer to a library object
     @param[in] objName  the name of the object in the library to locate
     @return nullptr if no object found or a pointer to the library object
     */
-    coreObject* findLibraryObject(const std::string& objName) const;
+    coreObject* findLibraryObject(std::string_view objName) const;
 
     /** @brief  find a collector stored in the readerInfo either by name or by sink location
     *@param[in] name  the name of the collector to find
     @param[in] fileName  the sink name of the collector to find by file name
     @return a shared pointer to the collector or nullptr if not found
     */
-    std::shared_ptr<collector> findCollector(const std::string& name, const std::string& fileName);
+    std::shared_ptr<collector> findCollector(std::string_view name, std::string_view fileName);
     /** get the keyObject*/
     coreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/

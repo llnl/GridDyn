@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 namespace griddyn {
@@ -264,9 +265,9 @@ bool readerInfo::addLibraryObject(coreObject* obj, std::vector<gridParameter>& p
     return false;
 }
 
-coreObject* readerInfo::findLibraryObject(const std::string& objName) const
+coreObject* readerInfo::findLibraryObject(std::string_view objName) const
 {
-    auto retval = library.find(objName);
+    auto retval = library.find(std::string{objName});
     if (retval != library.end()) {
         return retval->second.first;
     }
@@ -274,9 +275,9 @@ coreObject* readerInfo::findLibraryObject(const std::string& objName) const
 }
 
 const char libraryLabel[] = "library";
-coreObject* readerInfo::makeLibraryObject(const std::string& objName, coreObject* mobj)
+coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* mobj)
 {
-    auto objloc = library.find(objName);
+    auto objloc = library.find(std::string{objName});
     if (objloc == library.end()) {
         WARNPRINT(READER_WARN_ALL, "unknown reference object " << objName);
         return mobj;
@@ -326,8 +327,8 @@ void readerInfo::addDirectory(const std::string& directory)
     }
 }
 
-std::shared_ptr<collector> readerInfo::findCollector(const std::string& name,
-                                                     const std::string& fileName)
+std::shared_ptr<collector> readerInfo::findCollector(std::string_view name,
+                                                     std::string_view fileName)
 {
     for (auto& col : collectors) {
         if ((name.empty()) || (col->getName() == name)) {

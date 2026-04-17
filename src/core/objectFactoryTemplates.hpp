@@ -289,8 +289,7 @@ class childTypeFactory: public typeFactory<Btype> {
         return makeDirectObject(objName);
     }
 
-    Ntype* makeDirectObject(
-        std::string_view objName = {})  // done this way to make sure calling
+    Ntype* makeDirectObject(std::string_view objName = {})  // done this way to make sure calling
     // makeTypeObject on the parent works in the
     // correct polymorphic call
     {

@@ -92,8 +92,7 @@ class coreClassFactory {
     @param[in] typeName  the specific type to create
     @param[in] objName  the name of the object to create
     @return the created coreObject */
-    std::unique_ptr<parentClass> createObject(std::string_view typeName,
-                                              std::string_view objName)
+    std::unique_ptr<parentClass> createObject(std::string_view typeName, std::string_view objName)
     {
         auto mfind = m_factoryMap.find(typeName);
         if (mfind != m_factoryMap.end()) {

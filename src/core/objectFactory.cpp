@@ -246,9 +246,7 @@ void coreObjectFactory::prepObjects(std::string_view component,
     }
 }
 
-void coreObjectFactory::prepObjects(std::string_view component,
-                                    count_t numObjects,
-                                    coreObject* obj)
+void coreObjectFactory::prepObjects(std::string_view component, count_t numObjects, coreObject* obj)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {

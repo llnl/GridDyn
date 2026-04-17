@@ -10,7 +10,6 @@
 #include <string>
 #include <string_view>
 
-
 namespace griddyn {
 class coreObject;
 /** @brief      base class for helper objects

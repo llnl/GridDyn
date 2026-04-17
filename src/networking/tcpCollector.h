@@ -11,28 +11,28 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-    class TcpConnection;
+class TcpConnection;
 
-    class tcpCollector: public collector {
-      private:
-        std::string server;
-        std::string port;
-        std::shared_ptr<TcpConnection> connection;
+class tcpCollector: public collector {
+  private:
+    std::string server;
+    std::string port;
+    std::shared_ptr<TcpConnection> connection;
 
-      public:
-        tcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-        explicit tcpCollector(const std::string& name);
-        ~tcpCollector();
+  public:
+    tcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit tcpCollector(const std::string& name);
+    ~tcpCollector();
 
-        virtual std::unique_ptr<collector> clone() const override;
+    virtual std::unique_ptr<collector> clone() const override;
 
-        virtual void cloneTo(collector* col) const override;
-        virtual change_code trigger(coreTime time) override;
+    virtual void cloneTo(collector* col) const override;
+    virtual change_code trigger(coreTime time) override;
 
-        void set(const std::string& param, double val) override;
-        void set(const std::string& param, const std::string& val) override;
+    void set(const std::string& param, double val) override;
+    void set(const std::string& param, const std::string& val) override;
 
-        virtual const std::string& getSinkName() const override;
-    };
+    virtual const std::string& getSinkName() const override;
+};
 
 }  // namespace griddyn::tcpLib

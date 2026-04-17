@@ -25,9 +25,9 @@
   \f]
  */
 namespace griddyn::paradae {
-    class Cash_24: public RungeKutta_SDIRK {
-      public:
-        Cash_24(Equation* eq, bool variable_step = false);
-        virtual std::string GetName() { return "RK_ImpCa_24"; };
-    };
+class Cash_24: public RungeKutta_SDIRK {
+  public:
+    Cash_24(Equation* eq, bool variable_step = false);
+    virtual std::string GetName() { return "RK_ImpCa_24"; };
+};
 }  // namespace griddyn::paradae

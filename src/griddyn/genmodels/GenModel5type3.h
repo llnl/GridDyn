@@ -11,31 +11,31 @@
 
 namespace griddyn::genmodels {
 
-    class GenModel5type3: public GenModel3 {
-      protected:
-      public:
-        explicit GenModel5type3(const std::string& objName = "genModel5type3_#");
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
-        virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-        virtual void dynObjectInitializeB(const IOdata& inputs,
-                                          const IOdata& desiredOutput,
-                                          IOdata& fieldSet) override;
+class GenModel5type3: public GenModel3 {
+  protected:
+  public:
+    explicit GenModel5type3(const std::string& objName = "genModel5type3_#");
+    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeB(const IOdata& inputs,
+                                      const IOdata& desiredOutput,
+                                      IOdata& fieldSet) override;
 
-        virtual stringVec localStateNames() const override;
-        // dynamics
-        virtual void residual(const IOdata& inputs,
-                              const stateData& sD,
-                              double resid[],
-                              const solverMode& sMode) override;
-        virtual void derivative(const IOdata& inputs,
-                                const stateData& sD,
-                                double deriv[],
-                                const solverMode& sMode) override;
-        virtual void jacobianElements(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
-                                      const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
-    };
+    virtual stringVec localStateNames() const override;
+    // dynamics
+    virtual void residual(const IOdata& inputs,
+                          const stateData& sD,
+                          double resid[],
+                          const solverMode& sMode) override;
+    virtual void derivative(const IOdata& inputs,
+                            const stateData& sD,
+                            double deriv[],
+                            const solverMode& sMode) override;
+    virtual void jacobianElements(const IOdata& inputs,
+                                  const stateData& sD,
+                                  matrixData<double>& md,
+                                  const IOlocs& inputLocs,
+                                  const solverMode& sMode) override;
+};
 
 }  // namespace griddyn::genmodels

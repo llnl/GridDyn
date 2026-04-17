@@ -8,17 +8,17 @@
 #include <string>
 
 namespace griddyn::paradae {
-    std::ostream& operator<<(std::ostream& output, const VirtualMatrix& mat)
-    {
-        mat.dump(output);
-        return output;
-    }
-    void VirtualMatrix::dump(std::string filename) const
-    {
-        std::ofstream file;
-        file.open(filename.c_str());
-        file << std::setprecision(20);
-        this->dump(file);
-        file.close();
-    }
+std::ostream& operator<<(std::ostream& output, const VirtualMatrix& mat)
+{
+    mat.dump(output);
+    return output;
+}
+void VirtualMatrix::dump(std::string filename) const
+{
+    std::ofstream file;
+    file.open(filename.c_str());
+    file << std::setprecision(20);
+    this->dump(file);
+    file.close();
+}
 }  // namespace griddyn::paradae

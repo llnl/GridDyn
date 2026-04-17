@@ -7,15 +7,15 @@
 #pragma once
 
 #ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
-#include "gmlc/concurrency/TripWire.hpp"
-#include "gmlc/libguarded/guarded.hpp"
-#include "griddyn/gridComponent.h"
-#include "griddyn/solvers/solverMode.hpp"
-#include <deque>
-#include <memory>
-#include <string>
-#include <vector>
+#    define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
+#    include "gmlc/concurrency/TripWire.hpp"
+#    include "gmlc/libguarded/guarded.hpp"
+#    include "griddyn/gridComponent.h"
+#    include "griddyn/solvers/solverMode.hpp"
+#    include <deque>
+#    include <memory>
+#    include <string>
+#    include <vector>
 
 typedef void* GridDynObject;
 /** make a GridDynObject wrapper out of an actual component pointer*/
@@ -52,12 +52,12 @@ void CopyFromLocal(std::vector<double>& dest,
                    const griddyn::solverMode& sMode);
 
 /** definitions to simplify error returns if an error already exists*/
-#define GRIDDYN_ERROR_CHECK(err, retval)                                                           \
-    do {                                                                                           \
-        if (((err) != nullptr) && ((err)->error_code != 0)) {                                      \
-            return (retval);                                                                       \
-        }                                                                                          \
-    } while (false)
+#    define GRIDDYN_ERROR_CHECK(err, retval)                                                       \
+        do {                                                                                       \
+            if (((err) != nullptr) && ((err)->error_code != 0)) {                                  \
+                return (retval);                                                                   \
+            }                                                                                      \
+        } while (false)
 
 /** assign and error string and code to an error object if it exists*/
 inline void assignError(GridDynError* err, int errorCode, const char* string)
@@ -70,18 +70,18 @@ inline void assignError(GridDynError* err, int errorCode, const char* string)
 
 extern const char emptyStr[];
 extern const std::string nullStringArgument;
-#define AS_STRING(str) ((str) != nullptr) ? std::string(str) : std::string(emptyStr)
+#    define AS_STRING(str) ((str) != nullptr) ? std::string(str) : std::string(emptyStr)
 
-#define CHECK_NULL_STRING(str, retval)                                                             \
-    do {                                                                                           \
-        if ((str) == nullptr) {                                                                    \
-            if (err != nullptr) {                                                                  \
-                err->error_code = helics_error_invalid_argument;                                   \
-                err->message = nullStringArgument.c_str();                                         \
+#    define CHECK_NULL_STRING(str, retval)                                                         \
+        do {                                                                                       \
+            if ((str) == nullptr) {                                                                \
+                if (err != nullptr) {                                                              \
+                    err->error_code = helics_error_invalid_argument;                               \
+                    err->message = nullStringArgument.c_str();                                     \
+                }                                                                                  \
+                return (retval);                                                                   \
             }                                                                                      \
-            return (retval);                                                                       \
-        }                                                                                          \
-    } while (false)
+        } while (false)
 
 /**centralized error handler for the C interface*/
 void griddynErrorHandler(GridDynError* err) noexcept;

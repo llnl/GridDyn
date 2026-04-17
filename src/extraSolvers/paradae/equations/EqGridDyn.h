@@ -17,37 +17,37 @@ class solverMode;
 
 using namespace std;
 namespace griddyn::paradae {
-    /** @brief class that connects ParaDAE and GridDyn
-     */
-    class EquationGridDyn: public Equation_DAE_full {
-        griddyn::gridDynSimulation* gds;
+/** @brief class that connects ParaDAE and GridDyn
+ */
+class EquationGridDyn: public Equation_DAE_full {
+    griddyn::gridDynSimulation* gds;
 
-      public:
-        // EquationGridDyn specific
-        EquationGridDyn(Real t0_,
-                        Real Tmax_,
-                        int N_unistep_,
-                        griddyn::gridDynSimulation* gds_,
-                        const Vector& y0_,
-                        griddyn::solverMode* mode_,
-                        vector<double>& discontinuities);
-        static EquationGridDyn Default(const MapParam& param);
-        griddyn::solverMode* mode;  //!< to the solverMode
+  public:
+    // EquationGridDyn specific
+    EquationGridDyn(Real t0_,
+                    Real Tmax_,
+                    int N_unistep_,
+                    griddyn::gridDynSimulation* gds_,
+                    const Vector& y0_,
+                    griddyn::solverMode* mode_,
+                    vector<double>& discontinuities);
+    static EquationGridDyn Default(const MapParam& param);
+    griddyn::solverMode* mode;  //!< to the solverMode
 
-        // Redefinition of inherited virtual methods
-        virtual void function(const Real t,
-                              const Vector& y,
-                              const Vector& dy,
-                              const Vector& state,
-                              Vector& Fydy);
-        virtual void jacobian_ypcdy(const Real t,
-                                    const Vector& y,
-                                    const Vector& dy,
-                                    const Vector& state,
-                                    const Real cj,
-                                    Matrix& J);
-        virtual void init(const Real t, Vector& y);
-        virtual ~EquationGridDyn() {};
-    };
+    // Redefinition of inherited virtual methods
+    virtual void function(const Real t,
+                          const Vector& y,
+                          const Vector& dy,
+                          const Vector& state,
+                          Vector& Fydy);
+    virtual void jacobian_ypcdy(const Real t,
+                                const Vector& y,
+                                const Vector& dy,
+                                const Vector& state,
+                                const Real cj,
+                                Matrix& J);
+    virtual void init(const Real t, Vector& y);
+    virtual ~EquationGridDyn() {};
+};
 
 }  // namespace griddyn::paradae

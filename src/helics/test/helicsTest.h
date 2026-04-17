@@ -7,7 +7,7 @@
 #pragma once
 
 namespace griddyn::helicsLib {
-    /** run tests of the HELICS code
+/** run tests of the HELICS code
 @return true if tests passed*/
-    bool runHELICStests();
+bool runHELICStests();
 }  // namespace griddyn::helicsLib

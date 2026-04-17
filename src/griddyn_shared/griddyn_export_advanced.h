@@ -7,13 +7,13 @@
 #pragma once
 
 #ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
+#    define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_
 
-#include "griddyn_export.h"
+#    include "griddyn_export.h"
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#endif
+#    endif
 
 // object mathematical functions*/
 
@@ -152,8 +152,8 @@ GRIDDYN_EXPORT void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                                           SolverKey key,
                                                           GridDynError* err);
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 } /* end of extern "C" { */
-#endif
+#    endif
 
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_ADVANCED_H_

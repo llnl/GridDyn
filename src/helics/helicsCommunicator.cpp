@@ -18,60 +18,60 @@
 
 namespace griddyn::helicsLib {
 
-    helicsCommunicator::helicsCommunicator(const std::string& id): Communicator(id) {}
+helicsCommunicator::helicsCommunicator(const std::string& id): Communicator(id) {}
 
-    helicsCommunicator::helicsCommunicator(const std::string& name, std::uint64_t id):
-        Communicator(name, id)
-    {
-    }
+helicsCommunicator::helicsCommunicator(const std::string& name, std::uint64_t id):
+    Communicator(name, id)
+{
+}
 
-    void helicsCommunicator::set(const std::string& param, const std::string& val)
-    {
-        if (param == "federate") {
-            coordName = val;
-        } else if (param == "target") {
-            target = val;
-        } else {
-            Communicator::set(param, val);
-        }
-    }
-
-    void helicsCommunicator::set(const std::string& param, double val)
-    {
+void helicsCommunicator::set(const std::string& param, const std::string& val)
+{
+    if (param == "federate") {
+        coordName = val;
+    } else if (param == "target") {
+        target = val;
+    } else {
         Communicator::set(param, val);
     }
+}
 
-    void helicsCommunicator::initialize()
-    {
-        coord = helicsCoordinator::findCoordinator(coordName);
-        if (coord == nullptr) {
-            auto obj = gridDynSimulation::getInstance()->find("helics");
-            coord = dynamic_cast<helicsCoordinator*>(obj);
-        }
-        if (coord == nullptr) {
-            throw(griddyn::executionFailure(nullptr, "unable to connect with HELICS coordinator"));
-        }
-        index = coord->addEndpoint(getName(), std::string(), target);
+void helicsCommunicator::set(const std::string& param, double val)
+{
+    Communicator::set(param, val);
+}
+
+void helicsCommunicator::initialize()
+{
+    coord = helicsCoordinator::findCoordinator(coordName);
+    if (coord == nullptr) {
+        auto obj = gridDynSimulation::getInstance()->find("helics");
+        coord = dynamic_cast<helicsCoordinator*>(obj);
     }
-
-    void helicsCommunicator::disconnect() {}
-
-    void helicsCommunicator::transmit(const std::string& destName,
-                                      std::shared_ptr<griddyn::commMessage> message)
-    {
-        auto mdata = message->to_string();
-        if (destName.empty()) {
-            coord->sendMessage(index, mdata.data(), static_cast<count_t>(mdata.size()));
-        } else {
-            coord->sendMessage(index, destName, mdata.data(), static_cast<count_t>(mdata.size()));
-        }
+    if (coord == nullptr) {
+        throw(griddyn::executionFailure(nullptr, "unable to connect with HELICS coordinator"));
     }
+    index = coord->addEndpoint(getName(), std::string(), target);
+}
 
-    void helicsCommunicator::transmit(std::uint64_t /*destID*/,
-                                      std::shared_ptr<griddyn::commMessage> message)
-    {
-        auto mdata = message->to_string();
+void helicsCommunicator::disconnect() {}
+
+void helicsCommunicator::transmit(const std::string& destName,
+                                  std::shared_ptr<griddyn::commMessage> message)
+{
+    auto mdata = message->to_string();
+    if (destName.empty()) {
         coord->sendMessage(index, mdata.data(), static_cast<count_t>(mdata.size()));
+    } else {
+        coord->sendMessage(index, destName, mdata.data(), static_cast<count_t>(mdata.size()));
     }
+}
+
+void helicsCommunicator::transmit(std::uint64_t /*destID*/,
+                                  std::shared_ptr<griddyn::commMessage> message)
+{
+    auto mdata = message->to_string();
+    coord->sendMessage(index, mdata.data(), static_cast<count_t>(mdata.size()));
+}
 
 }  // namespace griddyn::helicsLib

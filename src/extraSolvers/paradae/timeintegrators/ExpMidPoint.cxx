@@ -5,20 +5,20 @@
  */
 #include "ExpMidPoint.h"
 namespace griddyn::paradae {
-    ExpMidPoint::ExpMidPoint(Equation* eq): RungeKutta_Explicit(eq, false)
-    {
-        nb_steps = 2;
-        order = 2;
-        rk_A.Clone(DenseMatrix(nb_steps, Real(0.0)));
-        rk_b.Resize(nb_steps);
-        rk_binf.Resize(nb_steps);
-        rk_c.Resize(nb_steps);
+ExpMidPoint::ExpMidPoint(Equation* eq): RungeKutta_Explicit(eq, false)
+{
+    nb_steps = 2;
+    order = 2;
+    rk_A.Clone(DenseMatrix(nb_steps, Real(0.0)));
+    rk_b.Resize(nb_steps);
+    rk_binf.Resize(nb_steps);
+    rk_c.Resize(nb_steps);
 
-        Real alpha = 1. / 2.;
+    Real alpha = 1. / 2.;
 
-        rk_A(1, 0) = alpha;
-        rk_b(0) = 1 - 1. / (2. * alpha);
-        rk_b(1) = 1. / (2. * alpha);
-        rk_c(1) = alpha;
-    }
+    rk_A(1, 0) = alpha;
+    rk_b(0) = 1 - 1. / (2. * alpha);
+    rk_b(1) = 1. / (2. * alpha);
+    rk_c(1) = alpha;
+}
 }  // namespace griddyn::paradae

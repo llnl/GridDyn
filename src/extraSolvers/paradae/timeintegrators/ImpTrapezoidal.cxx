@@ -10,17 +10,17 @@
 // -------------
 //   | 1/2  1/2
 namespace griddyn::paradae {
-    ImpTrapezoidal::ImpTrapezoidal(Equation* eq): RungeKutta_DIRK(eq, false)
-    {
-        nb_steps = 2;
-        order = 2;
-        this->InitArray();
-        rk_A.Clone(DenseMatrix(nb_steps, Real(0.0)));
-        rk_b.Resize(nb_steps, 0.5);
-        rk_binf.Resize(nb_steps);
-        rk_c.Resize(nb_steps);
-        rk_A(1, 0) = 1. / 2.;
-        rk_A(1, 1) = 1. / 2.;
-        rk_c(1) = 1.0;
-    }
+ImpTrapezoidal::ImpTrapezoidal(Equation* eq): RungeKutta_DIRK(eq, false)
+{
+    nb_steps = 2;
+    order = 2;
+    this->InitArray();
+    rk_A.Clone(DenseMatrix(nb_steps, Real(0.0)));
+    rk_b.Resize(nb_steps, 0.5);
+    rk_binf.Resize(nb_steps);
+    rk_c.Resize(nb_steps);
+    rk_A(1, 0) = 1. / 2.;
+    rk_A(1, 1) = 1. / 2.;
+    rk_c(1) = 1.0;
+}
 }  // namespace griddyn::paradae

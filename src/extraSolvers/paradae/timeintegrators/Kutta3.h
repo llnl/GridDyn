@@ -9,19 +9,19 @@
 #include "RungeKutta_Explicit.h"
 #include <string>
 namespace griddyn::paradae {
-    /*!
-  Butcher tableau:
-  \f[\begin{array}{c|ccc}
-  0&&&\\
-  \frac{1}{2}&\frac{1}{2}&&\\
-  1&-1&2&\\\hline
-  (3)&\frac{1}{6}&\frac{2}{3}&\frac{1}{6}
-  \end{array}
-  \f]
- */
-    class Kutta3: public RungeKutta_Explicit {
-      public:
-        Kutta3(Equation* eq);
-        virtual std::string GetName() { return "RK_Kutta_3"; };
-    };
+/*!
+Butcher tableau:
+\f[\begin{array}{c|ccc}
+0&&&\\
+\frac{1}{2}&\frac{1}{2}&&\\
+1&-1&2&\\\hline
+(3)&\frac{1}{6}&\frac{2}{3}&\frac{1}{6}
+\end{array}
+\f]
+*/
+class Kutta3: public RungeKutta_Explicit {
+  public:
+    Kutta3(Equation* eq);
+    virtual std::string GetName() { return "RK_Kutta_3"; };
+};
 }  // namespace griddyn::paradae

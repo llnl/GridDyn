@@ -11,14 +11,14 @@
 #include "Solver.h"
 
 namespace griddyn::paradae {
-    enum LS_error { LS_NOT_CONVERGED, LS_INF_NAN };
+enum LS_error { LS_NOT_CONVERGED, LS_INF_NAN };
 
-    class LinearSearch: Solver {
-        static const int max_iter_int = 100;
+class LinearSearch: Solver {
+    static const int max_iter_int = 100;
 
-      public:
-        LinearSearch() {};
-        LinearSearch(int max_iter_);
-        int Solve(Solver_App* app, Vector& x);
-    };
+  public:
+    LinearSearch() {};
+    LinearSearch(int max_iter_);
+    int Solve(Solver_App* app, Vector& x);
+};
 }  // namespace griddyn::paradae

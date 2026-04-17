@@ -9,10 +9,10 @@
 #include "Equation.h"
 
 namespace griddyn::paradae {
-    class Equation_DAE: public Equation {
-      public:
-        // Redefinition of inherited virtual methods
-        virtual ~Equation_DAE() {};
-        virtual type_Equation GetTypeEq() { return DAE; };
-    };
+class Equation_DAE: public Equation {
+  public:
+    // Redefinition of inherited virtual methods
+    virtual ~Equation_DAE() {};
+    virtual type_Equation GetTypeEq() { return DAE; };
+};
 }  // namespace griddyn::paradae

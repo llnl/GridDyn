@@ -15,15 +15,15 @@
  *  @{
  */
 #ifndef ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_
-#define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_
+#    define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_
 
-#include "griddyn_shared_export.h"
+#    include "griddyn_shared_export.h"
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#endif
+#    endif
 
-#include <stdlib.h>
+#    include <stdlib.h>
 
 /** typedef a GridDynObject to a void * to represent an object in GridDyn */
 typedef void* GridDynObject;
@@ -83,11 +83,11 @@ typedef struct GriddynError {
 } GridDynError;
 
 // definitions for void
-#ifndef GRIDDYN_PENDING
-#    define GRIDDYN_PENDING (25)
-#endif
+#    ifndef GRIDDYN_PENDING
+#        define GRIDDYN_PENDING (25)
+#    endif
 
-#define GRIDDYN_COMPLETE (30)
+#    define GRIDDYN_COMPLETE (30)
 
 /**
  * Get a version string for GridDyn.
@@ -737,8 +737,8 @@ GRIDDYN_EXPORT void gridDynEventSetTarget(GridDynEvent evnt, GridDynObject obj, 
 
 /** @} */  // end of the C-api group
 
-#ifdef __cplusplus
+#    ifdef __cplusplus
 } /* end of extern "C" { */
-#endif
+#    endif
 
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_GRIDDYN_EXPORT_H_

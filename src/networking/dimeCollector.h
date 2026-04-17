@@ -13,26 +13,26 @@
 class dimeClientInterface;
 
 namespace griddyn::dimeLib {
-    class dimeCollector: public collector {
-      private:
-        std::string server;
-        std::string processName;
-        std::unique_ptr<dimeClientInterface> dime;
+class dimeCollector: public collector {
+  private:
+    std::string server;
+    std::string processName;
+    std::unique_ptr<dimeClientInterface> dime;
 
-      public:
-        dimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-        explicit dimeCollector(const std::string& name);
-        ~dimeCollector();
+  public:
+    dimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit dimeCollector(const std::string& name);
+    ~dimeCollector();
 
-        virtual std::unique_ptr<collector> clone() const override;
+    virtual std::unique_ptr<collector> clone() const override;
 
-        virtual void cloneTo(collector* col) const override;
-        virtual change_code trigger(coreTime time) override;
+    virtual void cloneTo(collector* col) const override;
+    virtual change_code trigger(coreTime time) override;
 
-        void set(const std::string& param, double val) override;
-        void set(const std::string& param, const std::string& val) override;
+    void set(const std::string& param, double val) override;
+    void set(const std::string& param, const std::string& val) override;
 
-        virtual const std::string& getSinkName() const override;
-    };
+    virtual const std::string& getSinkName() const override;
+};
 
 }  // namespace griddyn::dimeLib

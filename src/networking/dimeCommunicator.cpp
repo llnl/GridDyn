@@ -12,64 +12,63 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-    dimeCommunicator::dimeCommunicator() = default;
+dimeCommunicator::dimeCommunicator() = default;
 
-    dimeCommunicator::dimeCommunicator(const std::string& name): zmqCommunicator(name) {}
+dimeCommunicator::dimeCommunicator(const std::string& name): zmqCommunicator(name) {}
 
-    dimeCommunicator::dimeCommunicator(const std::string& name, std::uint64_t id):
-        zmqCommunicator(name, id)
-    {
+dimeCommunicator::dimeCommunicator(const std::string& name, std::uint64_t id):
+    zmqCommunicator(name, id)
+{
+}
+
+dimeCommunicator::dimeCommunicator(std::uint64_t id): zmqCommunicator(id) {}
+
+std::unique_ptr<Communicator> dimeCommunicator::clone() const
+{
+    std::unique_ptr<Communicator> col = std::make_unique<dimeCommunicator>();
+    dimeCommunicator::cloneTo(col.get());
+    return col;
+}
+
+void dimeCommunicator::cloneTo(Communicator* comm) const
+{
+    zmqCommunicator::cloneTo(comm);
+    auto dc = dynamic_cast<dimeCommunicator*>(comm);
+    if (dc == nullptr) {
+        return;
     }
+}
 
-    dimeCommunicator::dimeCommunicator(std::uint64_t id): zmqCommunicator(id) {}
+void dimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
 
-    std::unique_ptr<Communicator> dimeCommunicator::clone() const
-    {
-        std::unique_ptr<Communicator> col = std::make_unique<dimeCommunicator>();
-        dimeCommunicator::cloneTo(col.get());
-        return col;
-    }
+void dimeCommunicator::addHeader(zmq::multipart_t& msg, std::shared_ptr<commMessage>& /* message */)
+{
+}
 
-    void dimeCommunicator::cloneTo(Communicator* comm) const
-    {
-        zmqCommunicator::cloneTo(comm);
-        auto dc = dynamic_cast<dimeCommunicator*>(comm);
-        if (dc == nullptr) {
-            return;
-        }
-    }
+void dimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
+                                      std::shared_ptr<commMessage>& /* message */)
+{
+}
 
-    void dimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
-
-    void dimeCommunicator::addHeader(zmq::multipart_t& msg,
-                                     std::shared_ptr<commMessage>& /* message */)
-    {
-    }
-
-    void dimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
-                                          std::shared_ptr<commMessage>& /* message */)
-    {
-    }
-
-    void dimeCommunicator::set(const std::string& param, const std::string& val)
-    {
-        if (param.empty()) {
-        } else {
-            zmqCommunicator::set(param, val);
-        }
-    }
-
-    void dimeCommunicator::set(const std::string& param, double val)
-    {
+void dimeCommunicator::set(const std::string& param, const std::string& val)
+{
+    if (param.empty()) {
+    } else {
         zmqCommunicator::set(param, val);
     }
+}
 
-    void dimeCommunicator::setFlag(const std::string& flag, bool val)
-    {
-        if (flag.empty()) {
-        } else {
-            zmqCommunicator::setFlag(flag, val);
-        }
+void dimeCommunicator::set(const std::string& param, double val)
+{
+    zmqCommunicator::set(param, val);
+}
+
+void dimeCommunicator::setFlag(const std::string& flag, bool val)
+{
+    if (flag.empty()) {
+    } else {
+        zmqCommunicator::setFlag(flag, val);
     }
+}
 
 }  // namespace griddyn::dimeLib

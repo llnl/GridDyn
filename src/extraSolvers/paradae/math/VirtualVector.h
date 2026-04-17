@@ -9,14 +9,14 @@
 #include "../common/def.h"
 
 namespace griddyn::paradae {
-    class Vector;
+class Vector;
 
-    class VirtualVector {
-      public:
-        virtual int GetM() const = 0;
-        virtual Real* GetData() = 0;
-        virtual ~VirtualVector() {};
-        virtual void SetSubVec(int i, const Vector& vec) = 0;
-        virtual Vector GetSubVec(int i, int l) const = 0;
-    };
+class VirtualVector {
+  public:
+    virtual int GetM() const = 0;
+    virtual Real* GetData() = 0;
+    virtual ~VirtualVector() {};
+    virtual void SetSubVec(int i, const Vector& vec) = 0;
+    virtual Vector GetSubVec(int i, int l) const = 0;
+};
 }  // namespace griddyn::paradae

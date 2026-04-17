@@ -11,30 +11,29 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-    /** class implementing a communicator to interact with the DIME Communication methods*/
-    class dimeCommunicator: public zmqInterface::zmqCommunicator {
-      public:
-        dimeCommunicator();
-        explicit dimeCommunicator(const std::string& name);
-        dimeCommunicator(const std::string& name, std::uint64_t id);
-        explicit dimeCommunicator(std::uint64_t id);
+/** class implementing a communicator to interact with the DIME Communication methods*/
+class dimeCommunicator: public zmqInterface::zmqCommunicator {
+  public:
+    dimeCommunicator();
+    explicit dimeCommunicator(const std::string& name);
+    dimeCommunicator(const std::string& name, std::uint64_t id);
+    explicit dimeCommunicator(std::uint64_t id);
 
-        virtual std::unique_ptr<Communicator> clone() const override;
+    virtual std::unique_ptr<Communicator> clone() const override;
 
-        void cloneTo(Communicator* comm) const override;
+    void cloneTo(Communicator* comm) const override;
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param, double val) override;
-        virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(const std::string& param, double val) override;
+    virtual void setFlag(const std::string& flag, bool val) override;
 
-      protected:
-        virtual void messageHandler(const zmq::multipart_t& msg) override;
-        virtual void addHeader(zmq::multipart_t& msg,
-                               std::shared_ptr<commMessage>& message) override;
-        virtual void addMessageBody(zmq::multipart_t& msg,
-                                    std::shared_ptr<commMessage>& message) override;
+  protected:
+    virtual void messageHandler(const zmq::multipart_t& msg) override;
+    virtual void addHeader(zmq::multipart_t& msg, std::shared_ptr<commMessage>& message) override;
+    virtual void addMessageBody(zmq::multipart_t& msg,
+                                std::shared_ptr<commMessage>& message) override;
 
-      private:
-    };
+  private:
+};
 
 }  // namespace griddyn::dimeLib

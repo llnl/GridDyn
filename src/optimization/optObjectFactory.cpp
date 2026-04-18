@@ -168,8 +168,7 @@ gridOptObject* coreOptObjectFactory::createObject(std::string_view typeName)
     return nullptr;
 }
 
-std::shared_ptr<optComponentFactory> coreOptObjectFactory::getFactory(
-    std::string_view factoryName)
+std::shared_ptr<optComponentFactory> coreOptObjectFactory::getFactory(std::string_view factoryName)
 {
     auto mfind = m_factoryMap.find(factoryName);
     if (mfind != m_factoryMap.end()) {
@@ -178,8 +177,9 @@ std::shared_ptr<optComponentFactory> coreOptObjectFactory::getFactory(
     // make a new factory
     auto componentFac = std::make_shared<optComponentFactory>();
     componentFac->name = std::string{factoryName};
-    m_factoryMap.insert(std::pair<std::string, std::shared_ptr<optComponentFactory>>(
-        std::string{factoryName}, componentFac));
+    m_factoryMap.insert(
+        std::pair<std::string, std::shared_ptr<optComponentFactory>>(std::string{factoryName},
+                                                                     componentFac));
     return componentFac;
 }
 

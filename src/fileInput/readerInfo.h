@@ -42,8 +42,8 @@ class basicReaderInfo {
 
     /** @brief virtual destructor*/
     virtual ~basicReaderInfo() = default;
-    void setFlag(int flagID);
-    bool checkFlag(int flagID) const
+    void setFlag(uint32_t flagID);
+    bool checkFlag(uint32_t flagID) const
     {
         return (flagID < 32) ? ((flags & (1 << flagID)) != 0) : false;
     }

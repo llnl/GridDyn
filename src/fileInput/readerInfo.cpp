@@ -57,7 +57,7 @@ namespace {
     }
 }  // namespace
 
-void basicReaderInfo::setFlag(int flagID)
+void basicReaderInfo::setFlag(uint32_t flagID)
 {
     if (flagID < 32 && flagID >= 0) {
         flags |= (std::uint32_t{1} << flagID);

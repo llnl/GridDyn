@@ -31,12 +31,12 @@ namespace comms {
 
       public:
         commManager();
-        commManager(const commManager& cm);
-        commManager(commManager&& cm);
+        commManager(const commManager& other);
+        commManager(commManager&& other);
         ~commManager();
 
-        commManager& operator=(const commManager& cm);
-        commManager& operator=(commManager&& cm);
+        commManager& operator=(const commManager& other);
+        commManager& operator=(commManager&& other);
 
         bool set(std::string_view param, std::string_view val);
         bool set(std::string_view param, double val);

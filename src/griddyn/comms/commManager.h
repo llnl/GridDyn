@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 class Communicator;
@@ -30,16 +31,16 @@ namespace comms {
 
       public:
         commManager();
-        commManager(const commManager& cm);
-        commManager(commManager&& cm);
+        commManager(const commManager& other);
+        commManager(commManager&& other);
         ~commManager();
 
-        commManager& operator=(const commManager& cm);
-        commManager& operator=(commManager&& cm);
+        commManager& operator=(const commManager& other);
+        commManager& operator=(commManager&& other);
 
-        bool set(const std::string& param, const std::string& val);
-        bool set(const std::string& param, double val);
-        bool setFlag(const std::string& flag, bool val);
+        bool set(std::string_view param, std::string_view val);
+        bool set(std::string_view param, double val);
+        bool setFlag(std::string_view flag, bool val);
         std::shared_ptr<Communicator> build();
         std::shared_ptr<Communicator> getCommLink() const { return commLink; }
 
@@ -47,7 +48,7 @@ namespace comms {
 
         const std::string& destName() const { return commDestName; }
         const std::string& getName() const { return commName; }
-        void setName(const std::string& name);
+        void setName(std::string_view name);
         std::uint64_t id() const { return commId; }
         std::uint64_t destId() const { return commDestId; }
     };

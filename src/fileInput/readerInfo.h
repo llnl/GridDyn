@@ -199,8 +199,7 @@ class readerInfo: public basicReaderInfo {
     @return a pair with a shared pointer to the custom object and an integer representing the number
     or arguments
     */
-    const std::pair<std::shared_ptr<readerElement>, int>
-        getCustomElement(const std::string& name) const;
+    std::pair<std::shared_ptr<readerElement>, int> getCustomElement(const std::string& name) const;
 
     /** @brief check and translate a string for definitions
      does a direct translation for any strings also interprets and translates to a string anything

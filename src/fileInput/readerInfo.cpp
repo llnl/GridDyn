@@ -60,7 +60,7 @@ namespace {
 void basicReaderInfo::setFlag(int flagID)
 {
     if (flagID < 32 && flagID >= 0) {
-        flags |= (1 << flagID);
+        flags |= (std::uint32_t{1} << flagID);
     }
 }
 
@@ -204,7 +204,7 @@ std::string readerInfo::checkDefines(const std::string& input)
                 }
                 // try a recursive interpretation of the string block to convert a numeric result
                 // back into a string
-                double val = interpretString(temp, *this);
+                const double val = interpretString(temp, *this);
                 if (!std::isnan(val)) {
                     if (std::abs(trunc(val) - val) < 1e-9) {
                         // out = out.substr (0, pos1) + std::to_string (static_cast<int> (val)) +
@@ -284,9 +284,9 @@ coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* 
     }
 
     coreObject* obj = objloc->second.first->clone(mobj);
-    for (auto& po : objloc->second.second) {
-        paramStringProcess(po, *this);
-        objectParameterSet(libraryLabel, obj, po);
+    for (auto& paramObj : objloc->second.second) {
+        paramStringProcess(paramObj, *this);
+        objectParameterSet(libraryLabel, obj, paramObj);
     }
     obj->updateName();
     return obj;
@@ -294,7 +294,9 @@ coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* 
 
 void readerInfo::loadDefaultDefines()
 {
-    std::ostringstream ss1, ss2, ss3;
+    std::ostringstream ss1;
+    std::ostringstream ss2;
+    std::ostringstream ss3;
     const auto now = std::chrono::system_clock::now();
     const auto nowTime = std::chrono::system_clock::to_time_t(now);
     const auto utcTime = makeUtcTm(nowTime);
@@ -353,6 +355,7 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
     bool ret = false;
     if (sourcePath.has_relative_path()) {
         // check the most recently added directories first
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
             auto qpath = std::filesystem::path(*checkDirectory);
@@ -366,8 +369,9 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
                 break;
             }
         }
-        if ((!ret) && (extra_find)) {
+        if (!ret && extra_find) {
             // check the most recently added directories first
+            // NOLINTNEXTLINE(modernize-loop-convert)
             for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
                  ++checkDirectory) {
                 auto qpath = std::filesystem::path(*checkDirectory);
@@ -411,6 +415,7 @@ bool readerInfo::checkDirectoryParam(std::string& strVal)
     std::filesystem::path sourcePath(strVal);
     bool ret = false;
     if (sourcePath.has_relative_path()) {
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
             auto qpath = std::filesystem::path(*checkDirectory);
@@ -446,8 +451,8 @@ bool readerInfo::isCustomElement(const std::string& name) const
     return (retval != customElements.end());
 }
 
-const std::pair<std::shared_ptr<readerElement>, int>
-    readerInfo::getCustomElement(const std::string& name) const
+std::pair<std::shared_ptr<readerElement>, int> readerInfo::getCustomElement(
+    const std::string& name) const
 {
     auto retval = customElements.find(name);
     return retval->second;

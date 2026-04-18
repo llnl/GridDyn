@@ -13,6 +13,7 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
+#include <functional>
 
 namespace griddyn {
 // class definitions for the object factories that can create the objects

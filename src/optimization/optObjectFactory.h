@@ -7,13 +7,13 @@
 #pragma once
 
 #include "gridOptObjects.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
-#include <functional>
 
 namespace griddyn {
 // class definitions for the object factories that can create the objects

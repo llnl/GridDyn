@@ -451,8 +451,8 @@ bool readerInfo::isCustomElement(const std::string& name) const
     return (retval != customElements.end());
 }
 
-std::pair<std::shared_ptr<readerElement>, int> readerInfo::getCustomElement(
-    const std::string& name) const
+std::pair<std::shared_ptr<readerElement>, int>
+    readerInfo::getCustomElement(const std::string& name) const
 {
     auto retval = customElements.find(name);
     return retval->second;

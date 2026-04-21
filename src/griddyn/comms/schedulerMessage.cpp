@@ -15,11 +15,11 @@
 
 namespace griddyn::comms {
 namespace {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-dPayloadFactory<schedulerMessagePayload,
-                BASE_SCHEDULER_MESSAGE_NUMBER,
-                BASE_SCHEDULER_MESSAGE_NUMBER + 16>
-    schedulerPayloadFactory("scheduler");
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    dPayloadFactory<schedulerMessagePayload,
+                    BASE_SCHEDULER_MESSAGE_NUMBER,
+                    BASE_SCHEDULER_MESSAGE_NUMBER + 16>
+        schedulerPayloadFactory("scheduler");
 }  // namespace
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)

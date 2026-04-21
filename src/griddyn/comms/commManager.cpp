@@ -11,6 +11,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <functional>
 
 namespace griddyn::comms {
 commManager::commManager() = default;

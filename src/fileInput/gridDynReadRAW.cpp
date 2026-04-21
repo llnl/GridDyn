@@ -42,37 +42,37 @@ using units::deg;
 using units::MVAR;
 using units::MW;
 
-int getPSSversion(const std::string& line);
-void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
-void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
-void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
-void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
-void rawReadBranch(coreObject* parentObject,
-                   const std::string& line,
-                   std::vector<gridBus*>& busList,
-                   basicReaderInfo& opt);
-int rawReadTX(coreObject* parentObject,
-              stringVec& txlines,
-              std::vector<gridBus*>& busList,
-              basicReaderInfo& opt);
-int rawReadTX_v33(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
-
-void rawReadSwitchedShunt(coreObject* parentObject,
+static int getPSSversion(const std::string& line);
+static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
+static void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
+static void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
+static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
+static void rawReadBranch(coreObject* parentObject,
                           const std::string& line,
                           std::vector<gridBus*>& busList,
                           basicReaderInfo& opt);
-void rawReadTXadj(coreObject* parentObject,
-                  const std::string& line,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
+static int rawReadTX(coreObject* parentObject,
+                     stringVec& txlines,
+                     std::vector<gridBus*>& busList,
+                     basicReaderInfo& opt);
+static int rawReadTX_v33(coreObject* parentObject,
+                         stringVec& txlines,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt);
 
-int rawReadDCLine(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
+static void rawReadSwitchedShunt(coreObject* parentObject,
+                                 const std::string& line,
+                                 std::vector<gridBus*>& busList,
+                                 basicReaderInfo& opt);
+static void rawReadTXadj(coreObject* parentObject,
+                         const std::string& line,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt);
+
+static int rawReadDCLine(coreObject* parentObject,
+                         stringVec& txlines,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt);
 
 enum sections { unknown, bus, branch, load, fixedShunt, generator, tx, switchedShunt, txadj };
 
@@ -86,9 +86,9 @@ static childTypeFactory<acLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-sections findSectionType(const std::string& line);
+static sections findSectionType(const std::string& line);
 
-bool checkNextLine(std::ifstream& file, std::string& nextLine)
+static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 {
     if (std::getline(file, nextLine)) {
         trimString(nextLine);
@@ -97,7 +97,7 @@ bool checkNextLine(std::ifstream& file, std::string& nextLine)
     return false;
 }
 
-gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
+static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
 {
     auto pos = line.find_first_of(',');
     auto temp1 = trim(line.substr(0, pos));
@@ -382,7 +382,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     file.close();
 }
 
-int getPSSversion(const std::string& line)
+static int getPSSversion(const std::string& line)
 {
     int ver = 29;
     auto slp = line.find_first_of('/');
@@ -430,7 +430,7 @@ static const std::map<std::string, sections, std::less<>> sectionNames{
     {"BEGIN TRANSFORMER DATA", tx},
 };
 
-sections findSectionType(const std::string& line)
+static sections findSectionType(const std::string& line)
 {
     for (auto& sname : sectionNames) {
         auto ts = line.find(sname.first);
@@ -446,7 +446,7 @@ sections findSectionType(const std::string& line)
     return unknown;
 }
 
-void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
+static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
 {
     double bv;
     double vm;
@@ -548,7 +548,7 @@ void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
     }
 }
 
-void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // version 32:
     //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
@@ -599,7 +599,7 @@ void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
     // ignore the owner field
 }
 
-void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // 0,    1,      2,      3,      4
     // Bus, name, Status, g (MW), b (Mvar)
@@ -628,7 +628,7 @@ void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri
     }
 }
 
-void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
+static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
 {
     // 0, 1, 2, 3, 4, 5, 6, 7,    8,   9,10,11, 12, 13, 14,   15, 16,17,18,19
     //  I,ID,PG,QG,QT,QB,VS,IREG,MBASE,ZR,ZX,RT,XT,GTAP,STAT,RMPCT,PT,PB,O1,F1
@@ -789,10 +789,10 @@ auto generateBranchName(const stringVector& strvec,
     return std::make_tuple(name, ind1, ind2);
 }
 
-void rawReadBranch(coreObject* parentObject,
-                   const std::string& line,
-                   std::vector<gridBus*>& busList,
-                   basicReaderInfo& opt)
+static void rawReadBranch(coreObject* parentObject,
+                          const std::string& line,
+                          std::vector<gridBus*>& busList,
+                          basicReaderInfo& opt)
 {
     //
     // I,J,CKT,R,X,B,RATEA,RATEB,RATEC,GI,BI,GJ,BJ,ST,LEN,O1,F1,...,O4,F4
@@ -887,10 +887,10 @@ void rawReadBranch(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
 }
 
-void rawReadTXadj(coreObject* parentObject,
-                  const std::string& line,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt)
+static void rawReadTXadj(coreObject* parentObject,
+                         const std::string& line,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt)
 {
     // int status;
 
@@ -1032,10 +1032,10 @@ void rawReadTXadj(coreObject* parentObject,
     }
 }
 
-int rawReadTX_v33(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt)
+static int rawReadTX_v33(coreObject* parentObject,
+                         stringVec& txlines,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt)
 {
     /* version 33
     # """
@@ -1297,10 +1297,10 @@ int rawReadTX_v33(coreObject* parentObject,
     return tline;
 }
 
-int rawReadTX(coreObject* parentObject,
-              stringVec& txlines,
-              std::vector<gridBus*>& busList,
-              basicReaderInfo& opt)
+static int rawReadTX(coreObject* parentObject,
+                     stringVec& txlines,
+                     std::vector<gridBus*>& busList,
+                     basicReaderInfo& opt)
 {
     // gridBus *bus3;
     acLine* lnk = nullptr;
@@ -1459,18 +1459,18 @@ int rawReadTX(coreObject* parentObject,
     return tline;
 }
 
-int rawReadDCLine(coreObject* /*parentObject*/,
-                  stringVec& /*txlines*/,
-                  std::vector<gridBus*>& /*busList*/,
-                  basicReaderInfo& /*bri*/)
+static int rawReadDCLine(coreObject* /*parentObject*/,
+                         stringVec& /*txlines*/,
+                         std::vector<gridBus*>& /*busList*/,
+                         basicReaderInfo& /*bri*/)
 {
     return 0;
 }
 
-void rawReadSwitchedShunt(coreObject* parentObject,
-                          const std::string& line,
-                          std::vector<gridBus*>& busList,
-                          basicReaderInfo& opt)
+static void rawReadSwitchedShunt(coreObject* parentObject,
+                                 const std::string& line,
+                                 std::vector<gridBus*>& busList,
+                                 basicReaderInfo& opt)
 {
     auto strvec = splitline(line);
 

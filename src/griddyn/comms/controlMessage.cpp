@@ -11,10 +11,13 @@
 #include <string_view>
 
 namespace griddyn::comms {
-static dPayloadFactory<controlMessagePayload,
-                       BASE_CONTROL_MESSAGE_NUMBER,
-                       BASE_CONTROL_MESSAGE_NUMBER + 16>
-    dmf("control");
+namespace {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+dPayloadFactory<controlMessagePayload,
+                BASE_CONTROL_MESSAGE_NUMBER,
+                BASE_CONTROL_MESSAGE_NUMBER + 16>
+    controlPayloadFactory("control");
+}  // namespace
 
 REGISTER_MESSAGE_TYPE(m1, "SET", controlMessagePayload::SET);
 REGISTER_MESSAGE_TYPE(m2, "GET", controlMessagePayload::GET);
@@ -71,11 +74,12 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
             temp.pop_back();  // get rid of the last comma
             break;
         case SET_SUCCESS:
-            if (m_actionID > 0) {
-                temp = std::to_string(m_actionID);
-            }
-            break;
         case SET_FAIL:
+        case SET_SCHEDULED:
+        case GET_SCHEDULED:
+        case CANCEL:
+        case CANCEL_SUCCESS:
+        case CANCEL_FAIL:
             if (m_actionID > 0) {
                 temp = std::to_string(m_actionID);
             }
@@ -86,21 +90,6 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
                 temp += '(' + m_units + ')';
             }
             temp += " = " + std::to_string(m_value) + '@' + std::to_string(m_time);
-            break;
-        case SET_SCHEDULED:
-            temp = std::to_string(m_actionID);
-            break;
-        case GET_SCHEDULED:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL_SUCCESS:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL_FAIL:
-            temp = std::to_string(m_actionID);
             break;
         default:
             break;
@@ -118,8 +107,8 @@ void controlMessagePayload::from_string(uint32_t type,
 
     auto vstring = fromString.substr(offset);
     if (vstring[0] == '(') {
-        auto cp = vstring.find_first_of(')');
-        idstring = std::string{vstring.substr(1, cp - 1)};
+        const auto closeParen = vstring.find_first_of(')');
+        idstring = std::string{vstring.substr(1, closeParen - 1)};
         if (idstring.empty()) {
             m_actionID = 0;
         } else {
@@ -168,10 +157,11 @@ void controlMessagePayload::from_string(uint32_t type,
             multiFields = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
         } break;
         case GET_RESULT_MULTIPLE: {
-            auto mf = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
+            auto multiFieldStrings =
+                gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
             multiFields.resize(0);
             multiValues.resize(0);
-            for (auto& mfl : mf) {
+            for (auto& mfl : multiFieldStrings) {
                 auto fsep = gmlc::utilities::stringOps::splitline(mfl, '=');
                 if (fsep.size() == 2) {
                     multiFields.push_back(fsep[0]);

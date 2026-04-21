@@ -14,10 +14,13 @@
 #include <vector>
 
 namespace griddyn::comms {
-static dPayloadFactory<schedulerMessagePayload,
-                       BASE_SCHEDULER_MESSAGE_NUMBER,
-                       BASE_SCHEDULER_MESSAGE_NUMBER + 16>
-    dmf("scheduler");
+namespace {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+dPayloadFactory<schedulerMessagePayload,
+                BASE_SCHEDULER_MESSAGE_NUMBER,
+                BASE_SCHEDULER_MESSAGE_NUMBER + 16>
+    schedulerPayloadFactory("scheduler");
+}  // namespace
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeClearTargets,

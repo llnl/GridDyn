@@ -15,7 +15,7 @@ namespace {
     dPayloadFactory<controlMessagePayload,
                     BASE_CONTROL_MESSAGE_NUMBER,
                     BASE_CONTROL_MESSAGE_NUMBER + 16>
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
         controlPayloadFactory("control");
 }  // namespace
 

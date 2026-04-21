@@ -12,11 +12,11 @@
 
 namespace griddyn::comms {
 namespace {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-dPayloadFactory<controlMessagePayload,
-                BASE_CONTROL_MESSAGE_NUMBER,
-                BASE_CONTROL_MESSAGE_NUMBER + 16>
-    controlPayloadFactory("control");
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    dPayloadFactory<controlMessagePayload,
+                    BASE_CONTROL_MESSAGE_NUMBER,
+                    BASE_CONTROL_MESSAGE_NUMBER + 16>
+        controlPayloadFactory("control");
 }  // namespace
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)

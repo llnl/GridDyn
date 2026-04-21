@@ -19,27 +19,54 @@ static dPayloadFactory<schedulerMessagePayload,
                        BASE_SCHEDULER_MESSAGE_NUMBER + 16>
     dmf("scheduler");
 
-REGISTER_MESSAGE_TYPE(m1, "CLEAR TARGETS", schedulerMessagePayload::CLEAR_TARGETS);
-REGISTER_MESSAGE_TYPE(m2, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
-REGISTER_MESSAGE_TYPE(m3, "STARTUP", schedulerMessagePayload::STARTUP);
-REGISTER_MESSAGE_TYPE(m4, "ADD TARGETS", schedulerMessagePayload::ADD_TARGETS);
-REGISTER_MESSAGE_TYPE(m5, "UPDATE TARGETS", schedulerMessagePayload::UPDATE_TARGETS);
-REGISTER_MESSAGE_TYPE(m6, "UPDATE RESERVES", schedulerMessagePayload::UPDATE_RESERVES);
-REGISTER_MESSAGE_TYPE(m7,
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeClearTargets,
+                      "CLEAR TARGETS",
+                      schedulerMessagePayload::CLEAR_TARGETS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeShutdown, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeStartup, "STARTUP", schedulerMessagePayload::STARTUP);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeAddTargets,
+                      "ADD TARGETS",
+                      schedulerMessagePayload::ADD_TARGETS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeUpdateTargets,
+                      "UPDATE TARGETS",
+                      schedulerMessagePayload::UPDATE_TARGETS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeUpdateReserves,
+                      "UPDATE RESERVES",
+                      schedulerMessagePayload::UPDATE_RESERVES);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationReserve,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_RESERVE);
-REGISTER_MESSAGE_TYPE(m8, "USE RESERVE", schedulerMessagePayload::USE_RESERVE);
-REGISTER_MESSAGE_TYPE(m9,
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeUseReserve,
+                      "USE RESERVE",
+                      schedulerMessagePayload::USE_RESERVE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationTarget,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_TARGET);
-REGISTER_MESSAGE_TYPE(m10, "REGISTER DISPATCHER", schedulerMessagePayload::REGISTER_DISPATCHER);
-REGISTER_MESSAGE_TYPE(m11,
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRegisterDispatcher,
+                      "REGISTER DISPATCHER",
+                      schedulerMessagePayload::REGISTER_DISPATCHER);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRegisterAgcDispatcher,
                       "REGISTER AGC DISPATCHER",
                       schedulerMessagePayload::REGISTER_AGC_DISPATCHER);
-REGISTER_MESSAGE_TYPE(m12,
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRegisterReserveDispatcher,
                       "REGISTER RESERVE DISPATCHER",
                       schedulerMessagePayload::REGISTER_RESERVE_DISPATCHER);
-REGISTER_MESSAGE_TYPE(m13, "REGISTER CONTROLLER", schedulerMessagePayload::REGISTER_CONTROLLER);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRegisterController,
+                      "REGISTER CONTROLLER",
+                      schedulerMessagePayload::REGISTER_CONTROLLER);
 
 schedulerMessagePayload::schedulerMessagePayload(std::vector<double> time,
                                                  std::vector<double> target):
@@ -106,6 +133,8 @@ void schedulerMessagePayload::from_string(uint32_t type,
         case USE_RESERVE:
         case UPDATE_REGULATION_TARGET:
             loadtargets(targets);
+            break;
+        default:
             break;
     }
 }

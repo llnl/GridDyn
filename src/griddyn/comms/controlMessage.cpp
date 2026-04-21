@@ -24,21 +24,13 @@ REGISTER_MESSAGE_TYPE(messageTypeSet, "SET", controlMessagePayload::SET);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeGet, "GET", controlMessagePayload::GET);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetMultiple,
-                      "GET MULTIPLE",
-                      controlMessagePayload::GET_MULTIPLE);
+REGISTER_MESSAGE_TYPE(messageTypeGetMultiple, "GET MULTIPLE", controlMessagePayload::GET_MULTIPLE);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetPeriodic,
-                      "GET PERIODIC",
-                      controlMessagePayload::GET_PERIODIC);
+REGISTER_MESSAGE_TYPE(messageTypeGetPeriodic, "GET PERIODIC", controlMessagePayload::GET_PERIODIC);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetMultiple,
-                      "SET MULTIPLE",
-                      controlMessagePayload::SET_MULTIPLE);
+REGISTER_MESSAGE_TYPE(messageTypeSetMultiple, "SET MULTIPLE", controlMessagePayload::SET_MULTIPLE);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetSuccess,
-                      "SET SUCCESS",
-                      controlMessagePayload::SET_SUCCESS);
+REGISTER_MESSAGE_TYPE(messageTypeSetSuccess, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeSetFail, "SET FAIL", controlMessagePayload::SET_FAIL);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
@@ -62,9 +54,7 @@ REGISTER_MESSAGE_TYPE(messageTypeCancelSuccess,
                       "CANCEL SUCCESS",
                       controlMessagePayload::CANCEL_SUCCESS);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeCancelFail,
-                      "CANCEL FAIL",
-                      controlMessagePayload::CANCEL_FAIL);
+REGISTER_MESSAGE_TYPE(messageTypeCancelFail, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
 std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string temp;

@@ -11,6 +11,7 @@
 #include "utilities/vectData.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -36,7 +37,7 @@ class optimizerInterface {
     count_t svsize = 0;
 
   public:
-    optimizerInterface(const std::string& optName = "optim");
+    optimizerInterface(std::string_view optName = "optim");
 
     optimizerInterface(gridDynOptimization* gdo, const optimMode& oMode);
     virtual ~optimizerInterface() {}
@@ -49,7 +50,7 @@ class optimizerInterface {
     }
     virtual void dynObjectInitializeA(double /*t0*/) {}
 
-    virtual double get(const std::string& param) const;
+    virtual double get(std::string_view param) const;
     virtual int solve(double /*tStop*/, double& /*tReturn*/) { return -101; }
     void initializeJacArray(count_t size);
     bool isInitialized() const { return initialized; }
@@ -60,15 +61,15 @@ class optimizerInterface {
     count_t getSize() const { return svsize; }
     virtual void setOptimizationData(gridDynOptimization* gdo, const optimMode& oMode);
     virtual int
-        check_flag(void* flagvalue, const std::string& funcname, int opt, bool printError = true);
-    void setName(std::string newName) { name = newName; }
+        check_flag(void* flagvalue, std::string_view funcname, int opt, bool printError = true);
+    void setName(std::string_view newName) { name = std::string{newName}; }
     const std::string& getName() const { return name; }
 };
 
 class basicOptimizer: public optimizerInterface {
   private:
   public:
-    explicit basicOptimizer(const std::string& optName = "basic");
+    explicit basicOptimizer(std::string_view optName = "basic");
 
     basicOptimizer(gridDynOptimization* gdo, const optimMode& oMode);
 
@@ -78,6 +79,6 @@ class basicOptimizer: public optimizerInterface {
 
 std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, const optimMode& oMode);
 
-std::shared_ptr<optimizerInterface> makeOptimizer(const std::string& type);
+std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type);
 
 }  // namespace griddyn

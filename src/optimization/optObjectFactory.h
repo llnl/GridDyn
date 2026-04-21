@@ -7,9 +7,11 @@
 #pragma once
 
 #include "gridOptObjects.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
@@ -20,11 +22,11 @@ class optFactory {
   public:
     std::string name;
     int m_level = 0;
-    optFactory(const std::string& component, const std::string& objName, int level = 0):
+    optFactory(std::string_view component, std::string_view objName, int level = 0):
         name(objName), m_level(level)
     {
     }
-    optFactory(const stringVec& component, const std::string& objName, int level = 0):
+    optFactory(const stringVec& component, std::string_view objName, int level = 0):
         name(objName), m_level(level)
     {
     }
@@ -35,21 +37,21 @@ class optFactory {
     virtual bool testObject(coreObject*) { return true; }
 };
 
-using optMap = std::map<std::string, optFactory*>;
+using optMap = std::map<std::string, optFactory*, std::less<>>;
 
 class optComponentFactory {
   public:
     std::string name;
     optComponentFactory() {}
-    optComponentFactory(const std::string& typeName);
+    optComponentFactory(std::string_view typeName);
     ~optComponentFactory();
     stringVec getObjNames();
     gridOptObject* makeObject(coreObject* obj);
-    gridOptObject* makeObject(const std::string& objType);
+    gridOptObject* makeObject(std::string_view objType);
     gridOptObject* makeObject();
     void registerFactory(optFactory* optFac);
-    bool isValidObject(const std::string& objName);
-    optFactory* getFactory(const std::string& typeName);
+    bool isValidObject(std::string_view objName);
+    optFactory* getFactory(std::string_view typeName);
 
   protected:
     optMap m_factoryMap;
@@ -57,7 +59,7 @@ class optComponentFactory {
 };
 
 // create a high level object factory for the coreObject class
-using optfMap = std::map<std::string, std::shared_ptr<optComponentFactory>>;
+using optfMap = std::map<std::string, std::shared_ptr<optComponentFactory>, std::less<>>;
 
 class coreOptObjectFactory {
   public:
@@ -66,23 +68,23 @@ class coreOptObjectFactory {
      */
     ~coreOptObjectFactory() {}
     static std::shared_ptr<coreOptObjectFactory> instance();
-    void registerFactory(const std::string& name, std::shared_ptr<optComponentFactory> tf);
-    void registerFactory(std::shared_ptr<optComponentFactory> tf);
+    void registerFactory(std::string_view name, std::shared_ptr<optComponentFactory> componentFac);
+    void registerFactory(std::shared_ptr<optComponentFactory> componentFac);
     stringVec getFactoryNames();
-    stringVec getObjNames(const std::string& factoryName);
-    gridOptObject* createObject(const std::string& optType, const std::string& typeName);
-    gridOptObject* createObject(const std::string& optType, coreObject* obj);
+    stringVec getObjNames(std::string_view factoryName);
+    gridOptObject* createObject(std::string_view optType, std::string_view typeName);
+    gridOptObject* createObject(std::string_view optType, coreObject* obj);
     gridOptObject* createObject(coreObject* obj);
-    gridOptObject* createObject(const std::string& typeName);
-    std::shared_ptr<optComponentFactory> getFactory(const std::string& factoryName);
-    bool isValidType(const std::string& obComponent);
-    bool isValidObject(const std::string& optType, const std::string& objName);
-    void setDefaultType(const std::string& defType);
-    void prepObjects(const std::string& optType,
-                     const std::string& typeName,
+    gridOptObject* createObject(std::string_view typeName);
+    std::shared_ptr<optComponentFactory> getFactory(std::string_view factoryName);
+    bool isValidType(std::string_view obComponent);
+    bool isValidObject(std::string_view optType, std::string_view objName);
+    void setDefaultType(std::string_view defType);
+    void prepObjects(std::string_view optType,
+                     std::string_view typeName,
                      count_t numObjects,
                      coreObject* baseObj);
-    void prepObjects(const std::string& typeName, count_t numObjects, coreObject* baseObj);
+    void prepObjects(std::string_view typeName, count_t numObjects, coreObject* baseObj);
 
   private:
     coreOptObjectFactory() {}
@@ -138,8 +140,8 @@ class optObjectFactory: public optFactory {
     gridOptObjectHolder<Ntype, gdType>* gOOH = nullptr;
 
   public:
-    optObjectFactory(const std::string& component,
-                     const std::string& objName,
+    optObjectFactory(std::string_view component,
+                     std::string_view objName,
                      int level = 0,
                      bool makeDefault = false): optFactory(component, objName, level)
     {

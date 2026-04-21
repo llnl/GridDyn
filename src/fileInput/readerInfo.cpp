@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 namespace griddyn {
@@ -56,10 +57,10 @@ namespace {
     }
 }  // namespace
 
-void basicReaderInfo::setFlag(int flagID)
+void basicReaderInfo::setFlag(uint32_t flagID)
 {
     if (flagID < 32 && flagID >= 0) {
-        flags |= (1 << flagID);
+        flags |= (std::uint32_t{1} << flagID);
     }
 }
 
@@ -203,7 +204,7 @@ std::string readerInfo::checkDefines(const std::string& input)
                 }
                 // try a recursive interpretation of the string block to convert a numeric result
                 // back into a string
-                double val = interpretString(temp, *this);
+                const double val = interpretString(temp, *this);
                 if (!std::isnan(val)) {
                     if (std::abs(trunc(val) - val) < 1e-9) {
                         // out = out.substr (0, pos1) + std::to_string (static_cast<int> (val)) +
@@ -264,9 +265,9 @@ bool readerInfo::addLibraryObject(coreObject* obj, std::vector<gridParameter>& p
     return false;
 }
 
-coreObject* readerInfo::findLibraryObject(const std::string& objName) const
+coreObject* readerInfo::findLibraryObject(std::string_view objName) const
 {
-    auto retval = library.find(objName);
+    auto retval = library.find(std::string{objName});
     if (retval != library.end()) {
         return retval->second.first;
     }
@@ -274,18 +275,18 @@ coreObject* readerInfo::findLibraryObject(const std::string& objName) const
 }
 
 const char libraryLabel[] = "library";
-coreObject* readerInfo::makeLibraryObject(const std::string& objName, coreObject* mobj)
+coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* mobj)
 {
-    auto objloc = library.find(objName);
+    auto objloc = library.find(std::string{objName});
     if (objloc == library.end()) {
         WARNPRINT(READER_WARN_ALL, "unknown reference object " << objName);
         return mobj;
     }
 
     coreObject* obj = objloc->second.first->clone(mobj);
-    for (auto& po : objloc->second.second) {
-        paramStringProcess(po, *this);
-        objectParameterSet(libraryLabel, obj, po);
+    for (auto& paramObj : objloc->second.second) {
+        paramStringProcess(paramObj, *this);
+        objectParameterSet(libraryLabel, obj, paramObj);
     }
     obj->updateName();
     return obj;
@@ -293,7 +294,9 @@ coreObject* readerInfo::makeLibraryObject(const std::string& objName, coreObject
 
 void readerInfo::loadDefaultDefines()
 {
-    std::ostringstream ss1, ss2, ss3;
+    std::ostringstream ss1;
+    std::ostringstream ss2;
+    std::ostringstream ss3;
     const auto now = std::chrono::system_clock::now();
     const auto nowTime = std::chrono::system_clock::to_time_t(now);
     const auto utcTime = makeUtcTm(nowTime);
@@ -326,8 +329,8 @@ void readerInfo::addDirectory(const std::string& directory)
     }
 }
 
-std::shared_ptr<collector> readerInfo::findCollector(const std::string& name,
-                                                     const std::string& fileName)
+std::shared_ptr<collector> readerInfo::findCollector(std::string_view name,
+                                                     std::string_view fileName)
 {
     for (auto& col : collectors) {
         if ((name.empty()) || (col->getName() == name)) {
@@ -352,6 +355,7 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
     bool ret = false;
     if (sourcePath.has_relative_path()) {
         // check the most recently added directories first
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
             auto qpath = std::filesystem::path(*checkDirectory);
@@ -365,8 +369,9 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
                 break;
             }
         }
-        if ((!ret) && (extra_find)) {
+        if (!ret && extra_find) {
             // check the most recently added directories first
+            // NOLINTNEXTLINE(modernize-loop-convert)
             for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
                  ++checkDirectory) {
                 auto qpath = std::filesystem::path(*checkDirectory);
@@ -410,6 +415,7 @@ bool readerInfo::checkDirectoryParam(std::string& strVal)
     std::filesystem::path sourcePath(strVal);
     bool ret = false;
     if (sourcePath.has_relative_path()) {
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
              ++checkDirectory) {
             auto qpath = std::filesystem::path(*checkDirectory);
@@ -445,7 +451,7 @@ bool readerInfo::isCustomElement(const std::string& name) const
     return (retval != customElements.end());
 }
 
-const std::pair<std::shared_ptr<readerElement>, int>
+std::pair<std::shared_ptr<readerElement>, int>
     readerInfo::getCustomElement(const std::string& name) const
 {
     auto retval = customElements.find(name);

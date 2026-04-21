@@ -23,6 +23,19 @@ using archiver = cereal::PortableBinaryOutputArchive;
 using retriever = cereal::PortableBinaryInputArchive;
 
 namespace griddyn {
+namespace {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
+    {"overcurrent", OVERCURRENT_ALARM},
+    {"undercurrent", UNDERCURRENT_ALARM},
+    {"overvoltage", OVERVOLTAGE_ALARM},
+    {"undervoltage", UNDERVOLTAGE_ALARM},
+    {"temperature_alarm1", TEMPERATURE_ALARM1},
+    {"temperature", TEMPERATURE_ALARM1},
+    {"temperature_alarm2", TEMPERATURE_ALARM2},
+    {"temperature2", TEMPERATURE_ALARM2},
+};
+}  // namespace
 
 using gmlc::utilities::numeric_conversion;
 
@@ -191,17 +204,6 @@ void commMessage::from_vector(const std::vector<char>& data)
     fromByteArray(data.data(), data.size());
 }
 
-static std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
-    {"overcurrent", OVERCURRENT_ALARM},
-    {"undercurrent", UNDERCURRENT_ALARM},
-    {"overvoltage", OVERVOLTAGE_ALARM},
-    {"undervoltage", UNDERVOLTAGE_ALARM},
-    {"temperature_alarm1", TEMPERATURE_ALARM1},
-    {"temperature", TEMPERATURE_ALARM1},
-    {"temperature_alarm2", TEMPERATURE_ALARM2},
-    {"temperature2", TEMPERATURE_ALARM2},
-};
-
 std::uint32_t getAlarmCode(std::string_view alarmStr)
 {
     auto fnd = alarmCodeMap.find(alarmStr);
@@ -258,19 +260,20 @@ corePayloadFactory& corePayloadFactory::instance()
     return factory;
 }
 
-void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* mf)
+void corePayloadFactory::registerFactory(std::string_view name,
+                                         payloadFactory* messageFactory)
 {
-    auto ret = m_factoryMap.emplace(std::string{name}, mf);
+    auto ret = m_factoryMap.emplace(std::string{name}, messageFactory);
     if (!ret.second) {
-        ret.first->second = mf;
+        ret.first->second = messageFactory;
     }
 }
 
-void corePayloadFactory::registerFactory(payloadFactory* mf)
+void corePayloadFactory::registerFactory(payloadFactory* messageFactory)
 {
-    auto ret = m_factoryMap.emplace(mf->name, mf);
+    auto ret = m_factoryMap.emplace(messageFactory->name, messageFactory);
     if (!ret.second) {
-        ret.first->second = mf;
+        ret.first->second = messageFactory;
     }
 }
 
@@ -304,7 +307,7 @@ std::vector<std::string> corePayloadFactory::getPayloadTypeNames()
 {
     std::vector<std::string> typeNames;
     typeNames.reserve(m_factoryMap.size());
-    for (auto typeName : m_factoryMap) {
+    for (const auto& typeName : m_factoryMap) {
         typeNames.push_back(typeName.first);
     }
     return typeNames;

@@ -48,21 +48,13 @@ REGISTER_MESSAGE_TYPE(messageTypeReply, "reply", commMessage::replyMessageType);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeNoEvent, "NO EVENT", commMessage::NO_EVENT);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeLocalFault,
-                      "LOCAL FAULT",
-                      commMessage::LOCAL_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(messageTypeLocalFault, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeRemoteFault,
-                      "REMOTE FAULT",
-                      commMessage::REMOTE_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(messageTypeRemoteFault, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip,
-                      "BREAKER TRIP",
-                      commMessage::BREAKER_TRIP_EVENT);
+REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerClose,
-                      "BREAKER CLOSE",
-                      commMessage::BREAKER_CLOSE_EVENT);
+REGISTER_MESSAGE_TYPE(messageTypeBreakerClose, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeLocalFaultCleared,
                       "LOCAL FAULT CLEARED",
@@ -131,10 +123,8 @@ void commMessage::from_string(std::string_view fromString)
     m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, delimiterPos));
     if (fromString[delimiterPos] == '[') {
         auto end = fromString.find_first_of(']', delimiterPos + 1);
-        code =
-            numeric_conversion<std::uint32_t>(
-                std::string{fromString.substr(delimiterPos + 1, end - delimiterPos - 1)},
-                                              0xFFFFFFFF);
+        code = numeric_conversion<std::uint32_t>(
+            std::string{fromString.substr(delimiterPos + 1, end - delimiterPos - 1)}, 0xFFFFFFFF);
         delimiterPos = end + 1;
         if (delimiterPos >= fromString.size()) {
             return;

@@ -16,6 +16,7 @@
 #include "readElement.h"
 #include "readElementFile.h"
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -132,7 +133,7 @@ int objectParameterSet(const std::string& label, coreObject* obj, gridParameter&
     return (-1);
 }
 
-static const std::map<std::string, int> flagStringMap{
+static const std::map<std::string, int, std::less<>> flagStringMap{
     {"ignore_step_up_transformers", ignore_step_up_transformer},
     {"powerflow_only", assume_powerflow_only},
     {"no_generator_bus_reset", no_generator_bus_voltage_reset},

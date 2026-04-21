@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -68,7 +69,7 @@ std::string commMessage::to_string() const
     }
     return message;
 }
-void commMessage::from_string(const std::string& fromString)
+void commMessage::from_string(std::string_view fromString)
 {
     auto ip = fromString.find_first_of(":[");
     if (ip == std::string::npos) {
@@ -76,11 +77,12 @@ void commMessage::from_string(const std::string& fromString)
         code = 0xFFFF'FFFF;
         return;
     }
-    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, ip - 1));
+    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, ip));
     if (fromString[ip] == '[') {
         auto end = fromString.find_first_of(']', ip + 1);
         code =
-            numeric_conversion<std::uint32_t>(fromString.substr(ip + 1, end - ip - 1), 0xFFFFFFFF);
+            numeric_conversion<std::uint32_t>(std::string{fromString.substr(ip + 1, end - ip - 1)},
+                                              0xFFFFFFFF);
         ip = end + 1;
         if (ip >= fromString.size()) {
             return;
@@ -178,7 +180,7 @@ void commMessage::fromByteArray(const char* data, size_t buffer_size)
     }
 }
 
-void commMessage::from_datastring(const std::string& data)
+void commMessage::from_datastring(std::string_view data)
 {
     fromByteArray(data.data(), data.size());
 }
@@ -188,7 +190,7 @@ void commMessage::from_vector(const std::vector<char>& data)
     fromByteArray(data.data(), data.size());
 }
 
-static std::map<std::string, std::uint32_t> alarmCodeMap{
+static std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
     {"overcurrent", OVERCURRENT_ALARM},
     {"undercurrent", UNDERCURRENT_ALARM},
     {"overvoltage", OVERVOLTAGE_ALARM},
@@ -199,7 +201,7 @@ static std::map<std::string, std::uint32_t> alarmCodeMap{
     {"temperature2", TEMPERATURE_ALARM2},
 };
 
-std::uint32_t getAlarmCode(const std::string& alarmStr)
+std::uint32_t getAlarmCode(std::string_view alarmStr)
 {
     auto fnd = alarmCodeMap.find(alarmStr);
     if (fnd != alarmCodeMap.end()) {
@@ -216,21 +218,21 @@ MessageTypeRegistry& MessageTypeRegistry::instance()
     return registry;
 }
 
-void MessageTypeRegistry::registerType(const std::string& name, std::uint32_t type)
+void MessageTypeRegistry::registerType(std::string_view name, std::uint32_t type)
 {
-    typeMapA[name] = type;
-    typeMapB[type] = name;
+    typeMapA[std::string{name}] = type;
+    typeMapB[type] = std::string{name};
 }
 
-uint32_t MessageTypeRegistry::getType(const std::string& name) const
+uint32_t MessageTypeRegistry::getType(std::string_view name) const
 {
-    auto fnd = typeMapA.find(name);
+    auto fnd = typeMapA.find(std::string{name});
 
     if (fnd != typeMapA.end()) {
         return fnd->second;
     }
-    if (name.compare(0, 5, "type_") == 0) {
-        return std::stoul(name.substr(5));
+    if (name.starts_with("type_")) {
+        return std::stoul(std::string{name.substr(5)});
     }
     return commMessage::unknownMessageType;
 }
@@ -255,9 +257,9 @@ corePayloadFactory& corePayloadFactory::instance()
     return factory;
 }
 
-void corePayloadFactory::registerFactory(std::string name, payloadFactory* mf)
+void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* mf)
 {
-    auto ret = m_factoryMap.emplace(std::move(name), mf);
+    auto ret = m_factoryMap.emplace(std::string{name}, mf);
     if (!ret.second) {
         ret.first->second = mf;
     }
@@ -271,9 +273,9 @@ void corePayloadFactory::registerFactory(payloadFactory* mf)
     }
 }
 
-payloadFactory* corePayloadFactory::getFactory(const std::string& factoryName)
+payloadFactory* corePayloadFactory::getFactory(std::string_view factoryName)
 {
-    auto mfind = m_factoryMap.find(factoryName);
+    auto mfind = m_factoryMap.find(std::string{factoryName});
     if (mfind != m_factoryMap.end()) {
         return mfind->second;
     }
@@ -307,9 +309,9 @@ std::vector<std::string> corePayloadFactory::getPayloadTypeNames()
     return typeNames;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string& messageType)
+std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -317,10 +319,10 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string
     return nullptr;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string& messageType,
+std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType,
                                                                std::uint32_t type)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -349,9 +351,9 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::uint32_t typ
     return nullptr;
 }
 
-bool corePayloadFactory::isValidMessage(const std::string& messageType)
+bool corePayloadFactory::isValidMessage(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     return (mfind != m_factoryMap.end());
 }
 

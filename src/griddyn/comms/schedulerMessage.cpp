@@ -9,6 +9,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include <cstring>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -75,12 +76,13 @@ std::string schedulerMessagePayload::to_string(uint32_t type, uint32_t /*code*/)
 
 void schedulerMessagePayload::from_string(uint32_t type,
                                           uint32_t /*code*/,
-                                          const std::string& fromString,
+                                          std::string_view fromString,
                                           size_t offset)
 {
     std::vector<double> targets;
     if (fromString.size() - offset > 1) {
-        targets = gmlc::utilities::str2vector(fromString.substr(offset), kNullVal, "@ ");
+        targets =
+            gmlc::utilities::str2vector(std::string{fromString.substr(offset)}, kNullVal, "@ ");
     }
 
     auto loadtargets = [this](std::vector<double> newTargets) {

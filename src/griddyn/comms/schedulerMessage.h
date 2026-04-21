@@ -9,6 +9,7 @@
 #include "commMessage.h"
 #include <cereal/types/vector.hpp>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #define BASE_SCHEDULER_MESSAGE_NUMBER 800
@@ -43,7 +44,7 @@ class schedulerMessagePayload: public CommPayload {
     virtual std::string to_string(uint32_t type, uint32_t code) const override;
     virtual void from_string(uint32_t type,
                              uint32_t code,
-                             const std::string& fromString,
+                             std::string_view fromString,
                              size_t offset) override;
 
   private:

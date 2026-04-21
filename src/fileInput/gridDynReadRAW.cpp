@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
@@ -409,7 +410,7 @@ int getPSSversion(const std::string& line)
     return ver;
 }
 
-static const std::map<std::string, sections> sectionNames{
+static const std::map<std::string, sections, std::less<>> sectionNames{
     {"BEGIN FIXED SHUNT", fixedShunt},
     {"BEGIN SWITCHED SHUNT DATA", switchedShunt},
     {"BEGIN AREA INTERCHANGE DATA", unknown},

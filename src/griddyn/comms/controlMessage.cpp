@@ -8,6 +8,7 @@
 #include "../gridDynDefinitions.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <string>
+#include <string_view>
 
 namespace griddyn::comms {
 static dPayloadFactory<controlMessagePayload,
@@ -109,16 +110,16 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
 
 void controlMessagePayload::from_string(uint32_t type,
                                         uint32_t /*code*/,
-                                        const std::string& fromString,
+                                        std::string_view fromString,
                                         size_t offset)
 {
     std::string idstring;
     bool vstrid = false;
 
-    auto vstring = fromString.substr(offset, std::string::npos);
+    auto vstring = fromString.substr(offset);
     if (vstring[0] == '(') {
         auto cp = vstring.find_first_of(')');
-        idstring = vstring.substr(0, cp - 1);
+        idstring = std::string{vstring.substr(1, cp - 1)};
         if (idstring.empty()) {
             m_actionID = 0;
         } else {
@@ -128,7 +129,7 @@ void controlMessagePayload::from_string(uint32_t type,
 
     switch (type) {
         case SET: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, "=@");
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -140,7 +141,7 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, '@');
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -152,8 +153,8 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_PERIODIC: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
-            auto psep = gmlc::utilities::stringOps::splitline(vstring, ',');
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, '@');
+            auto psep = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
             if (psep.size() > 1) {
                 m_units = psep[1];
             }
@@ -164,10 +165,10 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_MULTIPLE: {
-            multiFields = gmlc::utilities::stringOps::splitline(vstring, ',');
+            multiFields = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
         } break;
         case GET_RESULT_MULTIPLE: {
-            auto mf = gmlc::utilities::stringOps::splitline(vstring, ',');
+            auto mf = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
             multiFields.resize(0);
             multiValues.resize(0);
             for (auto& mfl : mf) {
@@ -179,7 +180,7 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_RESULT: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, "=@");
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -199,7 +200,7 @@ void controlMessagePayload::from_string(uint32_t type,
         if (vstring.empty()) {
             m_actionID = 0;
         } else {
-            m_actionID = std::stoull(vstring);
+            m_actionID = std::stoull(std::string{vstring});
         }
     }
 }

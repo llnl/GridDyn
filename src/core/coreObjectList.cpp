@@ -7,6 +7,7 @@
 #include "coreObjectList.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 bool coreObjectList::insert(coreObject* obj, bool replace)
@@ -21,9 +22,9 @@ bool coreObjectList::insert(coreObject* obj, bool replace)
     }
     return false;
 }
-coreObject* coreObjectList::find(const std::string& objName) const
+coreObject* coreObjectList::find(std::string_view objName) const
 {
-    auto fp = m_objects.get<name>().find(objName);
+    auto fp = m_objects.get<name>().find(std::string{objName});
     if (fp != m_objects.get<name>().end()) {
         return (*fp);
     }
@@ -54,9 +55,9 @@ bool coreObjectList::remove(coreObject* obj)
     return false;
 }
 
-bool coreObjectList::remove(const std::string& objName)
+bool coreObjectList::remove(std::string_view objName)
 {
-    auto fp = m_objects.get<name>().find(objName);
+    auto fp = m_objects.get<name>().find(std::string{objName});
     if (fp != m_objects.get<name>().end()) {
         // I don't know why I have to do this find on the id index
         // Not understanding these multindex objects well enough I guess

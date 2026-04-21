@@ -34,7 +34,11 @@ namespace griddyn {
 // clang-format off
 #define READERSIGNATURE [](std::shared_ptr<readerElement> & cd, readerInfo & ri, coreObject * parent)
 
-static const std::map<std::string, std::function<coreObject *(std::shared_ptr<readerElement> &, readerInfo &, coreObject *parent)>>
+static const std::map<std::string,
+                      std::function<coreObject*(std::shared_ptr<readerElement>&,
+                                                readerInfo&,
+                                                coreObject* parent)>,
+                      std::less<>>
 loadFunctionMap{
   {"genmodel", READERSIGNATURE{return ElementReader(cd, static_cast<GenModel *>(nullptr), "genmodel", ri, parent);}},
       {"exciter", READERSIGNATURE{return ElementReader (cd, static_cast<Exciter *>(nullptr), "exciter", ri, parent);}},

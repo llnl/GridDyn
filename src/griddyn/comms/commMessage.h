@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -32,7 +33,7 @@ class CommPayload {
     virtual std::string to_string(uint32_t type, uint32_t code) const = 0;
     virtual void from_string(uint32_t type,
                              uint32_t code,
-                             const std::string& fromString,
+                             std::string_view fromString,
                              size_t offset = 0) = 0;
 };
 
@@ -118,7 +119,7 @@ class commMessage {
     /** generate a string describing the message*/
     std::string to_string() const;
     /** load a message definition from a string*/
-    void from_string(const std::string& fromString);
+    void from_string(std::string_view fromString);
 
     /** convert a command to a raw data bytes
     @param[out] data pointer to memory to store the command
@@ -138,7 +139,7 @@ class commMessage {
     /** generate a command from a raw data stream*/
     void fromByteArray(const char* data, size_t buffer_size);
     /** read a command from a string*/
-    void from_datastring(const std::string& data);
+    void from_datastring(std::string_view data);
     /** read a command from a char vector*/
     void from_vector(const std::vector<char>& data);
 
@@ -216,7 +217,7 @@ enum alarmCode {
 
 };
 
-std::uint32_t getAlarmCode(const std::string& alarmStr);
+std::uint32_t getAlarmCode(std::string_view alarmStr);
 
 // component factory is a template class that inherits from cFactory to actually to the construction
 // of a specific object
@@ -230,9 +231,9 @@ class MessageTypeRegistry {
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
     @param[in] type the message type to store in the registry*/
-    void registerType(const std::string& name, std::uint32_t);
+    void registerType(std::string_view name, std::uint32_t);
 
-    uint32_t getType(const std::string& name) const;
+    uint32_t getType(std::string_view name) const;
     std::string getTypeString(int32_t type) const;
 
   private:
@@ -248,7 +249,7 @@ class typeRegister {
     std::uint32_t type_;
 
   public:
-    typeRegister(const std::string& name, std::uint32_t type): type_(type)
+    typeRegister(std::string_view name, std::uint32_t type): type_(type)
     {
         MessageTypeRegistry::instance().registerType(name, type);
     };
@@ -266,7 +267,7 @@ class payloadFactory {
   public:
     std::string name;  //!< the name of the factory
     /** constructor taking the name as an argument*/
-    explicit payloadFactory(const std::string& typeName): name(typeName) {}
+    explicit payloadFactory(std::string_view typeName): name(typeName) {}
     /** virtual destructor*/
     virtual ~payloadFactory() = default;
 
@@ -295,28 +296,28 @@ class corePayloadFactory {
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
     @param[in] mf pointer to a message factory to store in the core factory*/
-    void registerFactory(std::string name, payloadFactory* mf);
+    void registerFactory(std::string_view name, payloadFactory* mf);
     /** insert a factory in the coreMessageFactory
     @param[in] mf pointer to a message factory to store in the core factory*/
     void registerFactory(payloadFactory* mf);
     /** get a list of all the valid message types*/
     std::vector<std::string> getPayloadTypeNames();
     /** build a default message of the type defined in messageType*/
-    std::shared_ptr<CommPayload> createPayload(const std::string& messageType);
+    std::shared_ptr<CommPayload> createPayload(std::string_view messageType);
     /** build a default message of the type defined in messageType
     @param messageType string describing the class of messages
     @param type the specific message code for the message*/
-    std::shared_ptr<CommPayload> createPayload(const std::string& messageType, std::uint32_t type);
+    std::shared_ptr<CommPayload> createPayload(std::string_view messageType, std::uint32_t type);
     /** build a message payload of the specific type, deriving the general type from the valid
   ranges of specific types defining in the factory
   @param type the specific message code for the message*/
     std::shared_ptr<CommPayload> createPayload(std::uint32_t type);
     /** get a pointer to a specific factory*/
-    payloadFactory* getFactory(const std::string& factoryName);
+    payloadFactory* getFactory(std::string_view factoryName);
     /** get a pointer to a factory that builds a specific type of message*/
     payloadFactory* getFactory(std::uint32_t type);
     /** check if a string represents a valid message class*/
-    bool isValidMessage(const std::string& messageType);
+    bool isValidMessage(std::string_view messageType);
 
   private:
     /** private constructor defined in a singleton class*/
@@ -333,7 +334,7 @@ class dPayloadFactory: public payloadFactory {
                   "factory class must have commMessage as base");
 
   public:
-    explicit dPayloadFactory(const std::string& typeName): payloadFactory(typeName)
+    explicit dPayloadFactory(std::string_view typeName): payloadFactory(typeName)
     {
         corePayloadFactory::instance().registerFactory(typeName, this);
     }

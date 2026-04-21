@@ -10,6 +10,7 @@
 
 #include "coreObject.h"
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <boost/multi_index/mem_fun.hpp>
@@ -67,14 +68,14 @@ class coreObjectList {
      * @param[in] objName the name of the object to remove
      * @return a bool indicating successful removal (0 on success, -1 on failure) const
      */
-    bool remove(const std::string& objName);
+    bool remove(std::string_view objName);
 
     /** @brief find object by name
      * function to find an object by name
      * @param[in] objName the name of the object to search for
      * @return a pointer to the object if found otherwise nullptr
      */
-    coreObject* find(const std::string& objName) const;
+    coreObject* find(std::string_view objName) const;
 
     /** @brief find object by id
      * function to find an object by user id code

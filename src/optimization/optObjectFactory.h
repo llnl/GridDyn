@@ -154,7 +154,7 @@ class optObjectFactory: public optFactory {
     }
 
     optObjectFactory(const stringVec& components,
-                     const std::string& objName,
+                     std::string_view objName,
                      int level = 0,
                      bool makeDefault = false): optFactory(components[0], objName, level)
     {

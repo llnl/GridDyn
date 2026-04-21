@@ -7,13 +7,13 @@
 #include "commMessage.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <functional>
 
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>

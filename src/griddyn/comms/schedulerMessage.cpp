@@ -28,9 +28,7 @@ REGISTER_MESSAGE_TYPE(messageTypeShutdown, "SHUTDOWN", schedulerMessagePayload::
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeStartup, "STARTUP", schedulerMessagePayload::STARTUP);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeAddTargets,
-                      "ADD TARGETS",
-                      schedulerMessagePayload::ADD_TARGETS);
+REGISTER_MESSAGE_TYPE(messageTypeAddTargets, "ADD TARGETS", schedulerMessagePayload::ADD_TARGETS);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateTargets,
                       "UPDATE TARGETS",
@@ -44,9 +42,7 @@ REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationReserve,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_RESERVE);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeUseReserve,
-                      "USE RESERVE",
-                      schedulerMessagePayload::USE_RESERVE);
+REGISTER_MESSAGE_TYPE(messageTypeUseReserve, "USE RESERVE", schedulerMessagePayload::USE_RESERVE);
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationTarget,
                       "UPDATE REGULATION RESERVE",

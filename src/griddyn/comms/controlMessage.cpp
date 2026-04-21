@@ -19,20 +19,52 @@ dPayloadFactory<controlMessagePayload,
     controlPayloadFactory("control");
 }  // namespace
 
-REGISTER_MESSAGE_TYPE(m1, "SET", controlMessagePayload::SET);
-REGISTER_MESSAGE_TYPE(m2, "GET", controlMessagePayload::GET);
-REGISTER_MESSAGE_TYPE(m3, "GET MULTIPLE", controlMessagePayload::GET_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m4, "GET PERIODIC", controlMessagePayload::GET_PERIODIC);
-REGISTER_MESSAGE_TYPE(m5, "SET MULTIPLE", controlMessagePayload::SET_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m6, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
-REGISTER_MESSAGE_TYPE(m7, "SET FAIL", controlMessagePayload::SET_FAIL);
-REGISTER_MESSAGE_TYPE(m8, "GET RESULT", controlMessagePayload::GET_RESULT);
-REGISTER_MESSAGE_TYPE(m9, "GET RESULT MULTIPLE", controlMessagePayload::GET_RESULT_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m10, "SET SCHEDULED", controlMessagePayload::SET_SCHEDULED);
-REGISTER_MESSAGE_TYPE(m11, "GET SCHEDULED", controlMessagePayload::GET_SCHEDULED);
-REGISTER_MESSAGE_TYPE(m12, "CANCEL", controlMessagePayload::CANCEL);
-REGISTER_MESSAGE_TYPE(m13, "CANCEL SUCCESS", controlMessagePayload::CANCEL_SUCCESS);
-REGISTER_MESSAGE_TYPE(m14, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSet, "SET", controlMessagePayload::SET);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGet, "GET", controlMessagePayload::GET);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetMultiple,
+                      "GET MULTIPLE",
+                      controlMessagePayload::GET_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetPeriodic,
+                      "GET PERIODIC",
+                      controlMessagePayload::GET_PERIODIC);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetMultiple,
+                      "SET MULTIPLE",
+                      controlMessagePayload::SET_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetSuccess,
+                      "SET SUCCESS",
+                      controlMessagePayload::SET_SUCCESS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetFail, "SET FAIL", controlMessagePayload::SET_FAIL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetResult, "GET RESULT", controlMessagePayload::GET_RESULT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetResultMultiple,
+                      "GET RESULT MULTIPLE",
+                      controlMessagePayload::GET_RESULT_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetScheduled,
+                      "SET SCHEDULED",
+                      controlMessagePayload::SET_SCHEDULED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetScheduled,
+                      "GET SCHEDULED",
+                      controlMessagePayload::GET_SCHEDULED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancel, "CANCEL", controlMessagePayload::CANCEL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancelSuccess,
+                      "CANCEL SUCCESS",
+                      controlMessagePayload::CANCEL_SUCCESS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancelFail,
+                      "CANCEL FAIL",
+                      controlMessagePayload::CANCEL_FAIL);
 std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string temp;
@@ -55,7 +87,7 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
             }
             break;
         case GET_MULTIPLE:
-            for (auto& fld : multiFields) {
+            for (const auto& fld : multiFields) {
                 temp += ' ' + fld + ',';
             }
             temp.pop_back();  // get rid of the last comma

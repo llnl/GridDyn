@@ -24,17 +24,17 @@ using retriever = cereal::PortableBinaryInputArchive;
 
 namespace griddyn {
 namespace {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
-    {"overcurrent", OVERCURRENT_ALARM},
-    {"undercurrent", UNDERCURRENT_ALARM},
-    {"overvoltage", OVERVOLTAGE_ALARM},
-    {"undervoltage", UNDERVOLTAGE_ALARM},
-    {"temperature_alarm1", TEMPERATURE_ALARM1},
-    {"temperature", TEMPERATURE_ALARM1},
-    {"temperature_alarm2", TEMPERATURE_ALARM2},
-    {"temperature2", TEMPERATURE_ALARM2},
-};
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
+        {"overcurrent", OVERCURRENT_ALARM},
+        {"undercurrent", UNDERCURRENT_ALARM},
+        {"overvoltage", OVERVOLTAGE_ALARM},
+        {"undervoltage", UNDERVOLTAGE_ALARM},
+        {"temperature_alarm1", TEMPERATURE_ALARM1},
+        {"temperature", TEMPERATURE_ALARM1},
+        {"temperature_alarm2", TEMPERATURE_ALARM2},
+        {"temperature2", TEMPERATURE_ALARM2},
+    };
 }  // namespace
 
 using gmlc::utilities::numeric_conversion;
@@ -260,8 +260,7 @@ corePayloadFactory& corePayloadFactory::instance()
     return factory;
 }
 
-void corePayloadFactory::registerFactory(std::string_view name,
-                                         payloadFactory* messageFactory)
+void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* messageFactory)
 {
     auto ret = m_factoryMap.emplace(std::string{name}, messageFactory);
     if (!ret.second) {

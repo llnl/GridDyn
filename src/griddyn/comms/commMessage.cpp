@@ -39,21 +39,58 @@ std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
 
 using gmlc::utilities::numeric_conversion;
 
-REGISTER_MESSAGE_TYPE(m1, "IGNORE", commMessage::ignoreMessageType);
-REGISTER_MESSAGE_TYPE(m2, "ping", commMessage::pingMessageType);
-REGISTER_MESSAGE_TYPE(m3, "reply", commMessage::replyMessageType);
-REGISTER_MESSAGE_TYPE(m4, "NO EVENT", commMessage::NO_EVENT);
-REGISTER_MESSAGE_TYPE(m5, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(m6, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(m7, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
-REGISTER_MESSAGE_TYPE(m8, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
-REGISTER_MESSAGE_TYPE(m9, "LOCAL FAULT CLEARED", commMessage::LOCAL_FAULT_CLEARED);
-REGISTER_MESSAGE_TYPE(m10, "REMOTE FAULT CLEARED", commMessage::REMOTE_FAULT_CLEARED);
-REGISTER_MESSAGE_TYPE(m11, "BREAKER TRIP COMMAND", commMessage::BREAKER_TRIP_COMMAND);
-REGISTER_MESSAGE_TYPE(m12, "BREAKER CLOSE COMMAND", commMessage::BREAKER_CLOSE_COMMAND);
-REGISTER_MESSAGE_TYPE(m13, "BREAKER OOS COMMAND", commMessage::BREAKER_OOS_COMMAND);
-REGISTER_MESSAGE_TYPE(m14, "ALARM TRIGGER EVENT", commMessage::ALARM_TRIGGER_EVENT);
-REGISTER_MESSAGE_TYPE(m15, "ALARM CLEARED EVENT", commMessage::ALARM_CLEARED_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeIgnore, "IGNORE", commMessage::ignoreMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypePing, "ping", commMessage::pingMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeReply, "reply", commMessage::replyMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeNoEvent, "NO EVENT", commMessage::NO_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeLocalFault,
+                      "LOCAL FAULT",
+                      commMessage::LOCAL_FAULT_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRemoteFault,
+                      "REMOTE FAULT",
+                      commMessage::REMOTE_FAULT_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip,
+                      "BREAKER TRIP",
+                      commMessage::BREAKER_TRIP_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerClose,
+                      "BREAKER CLOSE",
+                      commMessage::BREAKER_CLOSE_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeLocalFaultCleared,
+                      "LOCAL FAULT CLEARED",
+                      commMessage::LOCAL_FAULT_CLEARED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRemoteFaultCleared,
+                      "REMOTE FAULT CLEARED",
+                      commMessage::REMOTE_FAULT_CLEARED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerTripCommand,
+                      "BREAKER TRIP COMMAND",
+                      commMessage::BREAKER_TRIP_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerCloseCommand,
+                      "BREAKER CLOSE COMMAND",
+                      commMessage::BREAKER_CLOSE_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerOosCommand,
+                      "BREAKER OOS COMMAND",
+                      commMessage::BREAKER_OOS_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeAlarmTriggerEvent,
+                      "ALARM TRIGGER EVENT",
+                      commMessage::ALARM_TRIGGER_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeAlarmClearedEvent,
+                      "ALARM CLEARED EVENT",
+                      commMessage::ALARM_CLEARED_EVENT);
 
 commMessage::commMessage(std::uint32_t type): m_messageType(type)
 {
@@ -85,27 +122,28 @@ std::string commMessage::to_string() const
 }
 void commMessage::from_string(std::string_view fromString)
 {
-    auto ip = fromString.find_first_of(":[");
-    if (ip == std::string::npos) {
+    auto delimiterPos = fromString.find_first_of(":[");
+    if (delimiterPos == std::string::npos) {
         m_messageType = MessageTypeRegistry::instance().getType(fromString);
         code = 0xFFFF'FFFF;
         return;
     }
-    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, ip));
-    if (fromString[ip] == '[') {
-        auto end = fromString.find_first_of(']', ip + 1);
+    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, delimiterPos));
+    if (fromString[delimiterPos] == '[') {
+        auto end = fromString.find_first_of(']', delimiterPos + 1);
         code =
-            numeric_conversion<std::uint32_t>(std::string{fromString.substr(ip + 1, end - ip - 1)},
+            numeric_conversion<std::uint32_t>(
+                std::string{fromString.substr(delimiterPos + 1, end - delimiterPos - 1)},
                                               0xFFFFFFFF);
-        ip = end + 1;
-        if (ip >= fromString.size()) {
+        delimiterPos = end + 1;
+        if (delimiterPos >= fromString.size()) {
             return;
         }
     } else {
         code = 0xFFFF'FFFF;
     }
     payload = corePayloadFactory::instance().createPayload(m_messageType);
-    payload->from_string(m_messageType, code, fromString, ip + 1);
+    payload->from_string(m_messageType, code, fromString, delimiterPos + 1);
 }
 
 int commMessage::toByteArray(char* data, size_t buffer_size) const
@@ -113,13 +151,13 @@ int commMessage::toByteArray(char* data, size_t buffer_size) const
     if ((data == nullptr) || (buffer_size == 0)) {
         return -1;
     }
-    boost::iostreams::basic_array_sink<char> sr(data, buffer_size);
-    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> s(sr);
+    boost::iostreams::basic_array_sink<char> sinkRange(data, buffer_size);
+    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> sinkStream(sinkRange);
 
-    archiver oa(s);
+    archiver outputArchive(sinkStream);
     try {
-        save(oa);
-        return static_cast<int>(boost::iostreams::seek(s, 0, std::ios_base::cur));
+        save(outputArchive);
+        return static_cast<int>(boost::iostreams::seek(sinkStream, 0, std::ios_base::cur));
     }
     catch (const std::ios_base::failure&) {
         return -1;
@@ -130,13 +168,14 @@ std::string commMessage::to_datastring() const
 {
     std::string data;
     boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
     return data;
 }
 
@@ -144,13 +183,14 @@ std::vector<char> commMessage::to_vector() const
 {
     std::vector<char> data;
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
     return data;
 }
 
@@ -158,13 +198,14 @@ void commMessage::to_vector(std::vector<char>& data) const
 {
     data.clear();
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
 }
 
 void commMessage::to_datastring(std::string& data) const
@@ -172,22 +213,23 @@ void commMessage::to_datastring(std::string& data) const
     data.clear();
 
     boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
 }
 
 void commMessage::fromByteArray(const char* data, size_t buffer_size)
 {
     boost::iostreams::basic_array_source<char> device(data, buffer_size);
-    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> s(device);
-    retriever ia(s);
+    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> inputStream(device);
+    retriever inputArchive(inputStream);
     try {
-        load(ia);
+        load(inputArchive);
     }
     catch (const cereal::Exception&) {
         m_messageType = unknownMessageType;

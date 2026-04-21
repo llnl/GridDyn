@@ -296,10 +296,10 @@ class corePayloadFactory {
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
     @param[in] mf pointer to a message factory to store in the core factory*/
-    void registerFactory(std::string_view name, payloadFactory* mf);
+    void registerFactory(std::string_view name, payloadFactory* messageFactory);
     /** insert a factory in the coreMessageFactory
     @param[in] mf pointer to a message factory to store in the core factory*/
-    void registerFactory(payloadFactory* mf);
+    void registerFactory(payloadFactory* messageFactory);
     /** get a list of all the valid message types*/
     std::vector<std::string> getPayloadTypeNames();
     /** build a default message of the type defined in messageType*/

@@ -76,4 +76,3 @@ const std::string& dimeCollector::getSinkName() const
 }
 
 }  // namespace griddyn::dimeLib
-

@@ -536,4 +536,3 @@ std::unique_ptr<SolverInterface> makeSolver(const std::string& type, const std::
 }
 
 }  // namespace griddyn
-

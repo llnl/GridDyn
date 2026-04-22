@@ -37,4 +37,3 @@ class dimeCommunicator: public zmqInterface::zmqCommunicator {
 };
 
 }  // namespace griddyn::dimeLib
-

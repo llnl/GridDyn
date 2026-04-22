@@ -63,4 +63,3 @@ class helicsCollector: public collector {
 };
 
 }  // namespace griddyn::helicsLib
-

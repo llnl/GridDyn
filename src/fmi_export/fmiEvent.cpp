@@ -111,4 +111,3 @@ void fmiEvent::findCoordinator()
 }
 
 }  // namespace griddyn::fmi
-

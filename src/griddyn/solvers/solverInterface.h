@@ -370,4 +370,3 @@ std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solver
 std::unique_ptr<SolverInterface> makeSolver(const std::string& type, const std::string& name = "");
 
 }  // namespace griddyn
-

@@ -209,4 +209,3 @@ void tcpCommunicator::setFlag(std::string_view flag, bool val)
  */
 
 }  // namespace griddyn::tcpLib
-

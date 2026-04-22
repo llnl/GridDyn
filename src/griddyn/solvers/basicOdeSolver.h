@@ -52,4 +52,3 @@ class basicOdeSolver: public SolverInterface {
 };
 
 }  // namespace griddyn::solvers
-

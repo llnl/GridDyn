@@ -75,4 +75,3 @@ void helicsCommunicator::transmit(std::uint64_t /*destID*/,
 }
 
 }  // namespace griddyn::helicsLib
-

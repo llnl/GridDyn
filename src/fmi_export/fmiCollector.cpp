@@ -97,4 +97,3 @@ void fmiCollector::dataPointAdded(const collectorPoint& cp)
 }
 
 }  // namespace griddyn::fmi
-

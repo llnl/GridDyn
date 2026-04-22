@@ -432,4 +432,3 @@ int kinsolJac(N_Vector state,
 }
 
 }  // namespace griddyn::solvers
-

@@ -191,4 +191,3 @@ bool compoundEvent::setTarget(coreObject* gdo, const std::string& var)
     return armed;
 }
 }  // namespace griddyn::events
-

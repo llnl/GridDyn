@@ -72,4 +72,3 @@ void dimeCommunicator::setFlag(std::string_view flag, bool val)
 }
 
 }  // namespace griddyn::dimeLib
-

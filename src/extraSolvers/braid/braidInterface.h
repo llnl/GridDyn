@@ -71,4 +71,3 @@ class braidSolver: public SolverInterface {
     virtual int RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
 };
 }  // namespace griddyn::braid
-

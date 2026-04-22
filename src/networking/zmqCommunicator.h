@@ -82,4 +82,3 @@ namespace zmqInterface {
 
 }  // namespace zmqInterface
 }  // namespace griddyn
-

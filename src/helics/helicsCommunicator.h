@@ -48,4 +48,3 @@ class helicsCommunicator:
 };
 
 }  // namespace griddyn::helicsLib
-

@@ -80,4 +80,3 @@ const std::string& tcpCollector::getSinkName() const
 }
 
 }  // namespace griddyn::tcpLib
-

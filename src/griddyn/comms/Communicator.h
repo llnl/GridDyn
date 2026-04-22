@@ -110,4 +110,3 @@ std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
                                                const std::uint64_t id);
 }  // namespace griddyn
-

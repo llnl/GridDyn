@@ -75,4 +75,3 @@ class arkodeInterface: public sundialsInterface {
 };
 
 }  // namespace griddyn::solvers
-

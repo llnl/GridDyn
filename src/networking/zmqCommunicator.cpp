@@ -213,4 +213,3 @@ void zmqCommunicator::messageHandler(const zmq::multipart_t& msg)
 }
 
 }  // namespace griddyn::zmqInterface
-

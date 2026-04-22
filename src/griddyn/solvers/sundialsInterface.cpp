@@ -496,4 +496,3 @@ writeArray(sd->solveTime, 1, val, sd->mode.offsetIndex, a1, sd->jacFile);
 }
 
 }  // namespace griddyn::solvers
-

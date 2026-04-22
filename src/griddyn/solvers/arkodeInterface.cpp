@@ -496,4 +496,3 @@ int arkodeJac(realtype time,
 }
 
 }  // namespace griddyn::solvers
-

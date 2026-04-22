@@ -480,4 +480,3 @@ std::unique_ptr<collector> makeCollector(const std::string& type, const std::str
 }
 
 }  // namespace griddyn
-

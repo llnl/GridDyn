@@ -60,4 +60,3 @@ class kinsolInterface: public sundialsInterface {
 };
 
 }  // namespace griddyn::solvers
-

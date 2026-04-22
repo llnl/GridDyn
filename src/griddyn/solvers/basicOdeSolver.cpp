@@ -159,4 +159,3 @@ int basicOdeSolver::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
 }
 
 }  // namespace griddyn::solvers
-

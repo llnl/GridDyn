@@ -598,4 +598,3 @@ int idaJac(realtype time,
 }
 
 }  // namespace griddyn::solvers
-

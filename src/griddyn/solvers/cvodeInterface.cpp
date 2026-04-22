@@ -503,4 +503,3 @@ int cvodeJac(realtype time,
 }
 
 }  // namespace griddyn::solvers
-

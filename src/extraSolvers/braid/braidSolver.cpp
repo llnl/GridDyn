@@ -506,4 +506,3 @@ int braidSolver::calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constr
     return 0;
 }
 }  // namespace griddyn::braid
-

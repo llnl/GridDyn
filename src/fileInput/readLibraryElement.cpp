@@ -37,7 +37,7 @@ namespace {
 #define READSIGNATURE [](std::shared_ptr<readerElement> & currentElement, readerInfo & readerInf)
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    const std::map<std::string,
+    const std::map<std::string,  // NOLINT(bugprone-throwing-static-initialization)
                    std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>,
                    std::less<>>
         loadFunctionMap{// clang-format off

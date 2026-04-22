@@ -37,7 +37,7 @@ namespace {
     [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf, coreObject* parentObject)
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-const std::map<std::string,
+const std::map<std::string,  // NOLINT(bugprone-throwing-static-initialization)
                std::function<coreObject*(std::shared_ptr<readerElement>&,
                                          readerInfo&,
                                          coreObject* parent)>,
@@ -124,7 +124,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
             } else if (obname == "event") {
                 loadEventElement(element, parentObject, readerInf);
             } else {
-                auto rval = loadFunctionMap.find(obname);
+                auto rval = loadFunctionMap.find(obname);  // NOLINT(bugprone-throwing-static-initialization)
                 if (rval != loadFunctionMap.end()) {
                     const auto* obj = rval->second(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {

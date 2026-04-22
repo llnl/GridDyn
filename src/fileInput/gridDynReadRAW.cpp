@@ -18,13 +18,18 @@
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/loads/svd.h"
 #include "readerHelper.h"
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
+#include <compare>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
-#include <map>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -41,39 +46,51 @@ using units::deg;
 using units::MVAR;
 using units::MW;
 
-int getPSSversion(const std::string& line);
-void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
-void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
-void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
-void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
-void rawReadBranch(coreObject* parentObject,
-                   const std::string& line,
-                   std::vector<gridBus*>& busList,
-                   basicReaderInfo& opt);
-int rawReadTX(coreObject* parentObject,
-              stringVec& txlines,
-              std::vector<gridBus*>& busList,
-              basicReaderInfo& opt);
-int rawReadTX_v33(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
-
-void rawReadSwitchedShunt(coreObject* parentObject,
+static int getPSSversion(const std::string& line);
+static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
+static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderInfo& opt);
+static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicReaderInfo& opt);
+static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
+static void rawReadBranch(coreObject* parentObject,
                           const std::string& line,
                           std::vector<gridBus*>& busList,
                           basicReaderInfo& opt);
-void rawReadTXadj(coreObject* parentObject,
-                  const std::string& line,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
+static int rawReadTX(coreObject* parentObject,
+                     stringVec& txlines,
+                     std::vector<gridBus*>& busList,
+                     basicReaderInfo& opt);
+static int rawReadTxV33(coreObject* parentObject,
+                        stringVec& txlines,
+                        std::vector<gridBus*>& busList,
+                        basicReaderInfo& opt);
 
-int rawReadDCLine(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt);
+static void rawReadSwitchedShunt(coreObject* parentObject,
+                                 const std::string& line,
+                                 std::vector<gridBus*>& busList,
+                                 basicReaderInfo& opt);
+static void rawReadTXadj(coreObject* parentObject,
+                         const std::string& line,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt);
 
-enum sections { unknown, bus, branch, load, fixedShunt, generator, tx, switchedShunt, txadj };
+// static int rawReadDCLine(coreObject* parentObject,
+//                          stringVec& txlines,
+//                          std::vector<gridBus*>& busList,
+//                          basicReaderInfo& opt);
+
+namespace {
+    enum class section_t : std::uint8_t {
+        unknown,
+        bus,
+        branch,
+        load,
+        fixed_shunt,
+        generator,
+        tx,
+        switched_shunt,
+        txadj
+    };
+}  // namespace
 
 // get the basic busFactory
 static typeFactory<gridBus>* busfactory = nullptr;
@@ -85,9 +102,9 @@ static childTypeFactory<acLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-sections findSectionType(const std::string& line);
+static section_t findSectionType(const std::string& line);
 
-bool checkNextLine(std::ifstream& file, std::string& nextLine)
+static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 {
     if (std::getline(file, nextLine)) {
         trimString(nextLine);
@@ -96,7 +113,7 @@ bool checkNextLine(std::ifstream& file, std::string& nextLine)
     return false;
 }
 
-gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
+static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
 {
     auto pos = line.find_first_of(',');
     auto temp1 = trim(line.substr(0, pos));
@@ -115,10 +132,9 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
-    std::string pref2;  // temp storage to 2nd order prefix.
     std::vector<gridBus*> busList;
     basicReaderInfo opt(bri);
-    Load* ld;
+    Load* loadObject;
     Generator* gen;
     gridBus* bus;
     index_t index;
@@ -203,9 +219,9 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
             temp1 = line.substr(0, pos);
             index = numeric_conversion<index_t>(temp1, 0);
 
-            if (index >= static_cast<index_t>(busList.size())) {
+            if (std::cmp_greater_equal(index, busList.size())) {
                 if (index < 100000000) {
-                    busList.resize(2 * index + 1, nullptr);
+                    busList.resize((2 * index) + 1, nullptr);
                 } else {
                     std::cerr << "Bus index overload " << index << '\n';
                 }
@@ -216,7 +232,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                 busList[index]->setUserID(index);
 
                 rawReadBus(busList[index], line, opt);
-                auto tobj = parentObject->find(busList[index]->getName());
+                auto* tobj = parentObject->find(busList[index]->getName());
                 if (tobj == nullptr) {
                     parentObject->add(busList[index]);
                 } else {
@@ -246,17 +262,17 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     bool moreSections = true;
 
     while (moreSections) {
-        sections currSection = findSectionType(line);
+        const section_t currSection = findSectionType(line);
         moreData = true;
         switch (currSection) {
-            case load:
+            case section_t::load:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            ld = ldfactory->makeTypeObject();
-                            bus->add(ld);
-                            rawReadLoad(ld, line, opt);
+                            loadObject = ldfactory->makeTypeObject();
+                            bus->add(loadObject);
+                            rawReadLoad(loadObject, line, opt);
                         } else {
                             std::cerr << "Invalid bus number for load " << line.substr(0, 30)
                                       << '\n';
@@ -266,7 +282,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case generator:
+            case section_t::generator:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -283,7 +299,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case branch:
+            case section_t::branch:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadBranch(parentObject, line, busList, opt);
@@ -292,14 +308,14 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case fixedShunt:
+            case section_t::fixed_shunt:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            ld = ldfactory->makeTypeObject();
-                            bus->add(ld);
-                            rawReadFixedShunt(ld, line, opt);
+                            loadObject = ldfactory->makeTypeObject();
+                            bus->add(loadObject);
+                            rawReadFixedShunt(loadObject, line, opt);
                         } else {
                             std::cerr << "Invalid bus number for fixed shunt " << line.substr(0, 30)
                                       << '\n';
@@ -309,7 +325,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case switchedShunt:
+            case section_t::switched_shunt:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadSwitchedShunt(parentObject, line, busList, opt);
@@ -318,7 +334,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case txadj:
+            case section_t::txadj:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadTXadj(parentObject, line, busList, opt);
@@ -327,7 +343,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case tx:
+            case section_t::tx:
 
                 while (moreData) {
                     if (tline == 5) {
@@ -354,13 +370,13 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                         std::getline(file, txlines[4]);
                     }
                     if (opt.version >= 33) {
-                        tline = rawReadTX_v33(parentObject, txlines, busList, opt);
+                        tline = rawReadTxV33(parentObject, txlines, busList, opt);
                     } else {
                         tline = rawReadTX(parentObject, txlines, busList, opt);
                     }
                 }
                 break;
-            case unknown:
+            case section_t::unknown:
             default:
                 while (moreData) {
                     if (std::getline(file, line)) {
@@ -381,7 +397,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     file.close();
 }
 
-int getPSSversion(const std::string& line)
+static int getPSSversion(const std::string& line)
 {
     int ver = 29;
     auto slp = line.find_first_of('/');
@@ -409,47 +425,42 @@ int getPSSversion(const std::string& line)
     return ver;
 }
 
-static const std::map<std::string, sections> sectionNames{
-    {"BEGIN FIXED SHUNT", fixedShunt},
-    {"BEGIN SWITCHED SHUNT DATA", switchedShunt},
-    {"BEGIN AREA INTERCHANGE DATA", unknown},
-    {"BEGIN TWO-TERMINAL DC LINE DATA", unknown},
-    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", unknown},
-    {"BEGIN IMPEDANCE CORRECTION DATA", unknown},
-    {"BEGIN MULTI-TERMINAL DC LINE DATA", unknown},
-    {"BEGIN MULTI-SECTION LINE GROUP DATA", unknown},
-    {"BEGIN ZONE DATA", unknown},
-    {"BEGIN INTER-AREA TRANSFER DATA", unknown},
-    {"BEGIN OWNER DATA", unknown},
-    {"BEGIN FACTS CONTROL DEVICE DATA", unknown},
-    {"BEGIN LOAD DATA", load},
-    {"BEGIN GENERATOR DATA", generator},
-    {"BEGIN BRANCH DATA", branch},
-    {"BEGIN TRANSFORMER ADJUSTMENT DATA", txadj},
-    {"BEGIN TRANSFORMER DATA", tx},
-};
+static constexpr std::array<std::pair<std::string_view, section_t>, 17> sectionNames{{
+    {"BEGIN FIXED SHUNT", section_t::fixed_shunt},
+    {"BEGIN SWITCHED SHUNT DATA", section_t::switched_shunt},
+    {"BEGIN AREA INTERCHANGE DATA", section_t::unknown},
+    {"BEGIN TWO-TERMINAL DC LINE DATA", section_t::unknown},
+    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", section_t::unknown},
+    {"BEGIN IMPEDANCE CORRECTION DATA", section_t::unknown},
+    {"BEGIN MULTI-TERMINAL DC LINE DATA", section_t::unknown},
+    {"BEGIN MULTI-SECTION LINE GROUP DATA", section_t::unknown},
+    {"BEGIN ZONE DATA", section_t::unknown},
+    {"BEGIN INTER-AREA TRANSFER DATA", section_t::unknown},
+    {"BEGIN OWNER DATA", section_t::unknown},
+    {"BEGIN FACTS CONTROL DEVICE DATA", section_t::unknown},
+    {"BEGIN LOAD DATA", section_t::load},
+    {"BEGIN GENERATOR DATA", section_t::generator},
+    {"BEGIN BRANCH DATA", section_t::branch},
+    {"BEGIN TRANSFORMER ADJUSTMENT DATA", section_t::txadj},
+    {"BEGIN TRANSFORMER DATA", section_t::tx},
+}};
 
-sections findSectionType(const std::string& line)
+static section_t findSectionType(const std::string& line)
 {
-    for (auto& sname : sectionNames) {
-        auto ts = line.find(sname.first);
-        if (ts != std::string::npos) {
-            return sname.second;
-        }
-        auto l2 = convertToUpperCase(line);
-        ts = l2.find(sname.first);
-        if (ts != std::string::npos) {
-            return sname.second;
+    const auto upperLine = convertToUpperCase(line);
+    for (const auto& sectionName : sectionNames) {
+        if (line.contains(sectionName.first) || upperLine.contains(sectionName.first)) {
+            return sectionName.second;
         }
     }
-    return unknown;
+    return section_t::unknown;
 }
 
-void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
+static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
 {
-    double bv;
-    double vm;
-    double va;
+    double baseVoltage = 0.0;
+    double voltageMagnitude = 0.0;
+    double voltageAngle = 0.0;
     int type;
 
     auto strvec = splitlineQuotes(line);
@@ -473,9 +484,9 @@ void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
     bus->setName(temp2);
 
     // get the localBaseVoltage
-    bv = std::stod(strvec[2]);
-    if (bv > 0.0) {
-        bus->set("basevoltage", bv);
+    baseVoltage = std::stod(strvec[2]);
+    if (baseVoltage > 0.0) {
+        bus->set("basevoltage", baseVoltage);
     }
 
     // get the bus type
@@ -507,47 +518,45 @@ void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
         // skip the load flow area and loss zone for now
         // skip the owner information
         // get the voltage and angle specifications
-        vm = numeric_conversion<double>(strvec[7], 0.0);
-        va = numeric_conversion<double>(strvec[8], 0.0);
+        voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
         if (strvec.size() > 10) {
-            bv = numeric_conversion<double>(strvec[9], 0.0);
-            bus->set("vmax", bv);
-            bv = numeric_conversion<double>(strvec[10], 0.0);
-            bus->set("vmin", bv);
+            baseVoltage = numeric_conversion<double>(strvec[9], 0.0);
+            bus->set("vmax", baseVoltage);
+            baseVoltage = numeric_conversion<double>(strvec[10], 0.0);
+            bus->set("vmin", baseVoltage);
         }
     } else {
         // get the zone information
-        vm = numeric_conversion<double>(strvec[7], 0.0);
-        bus->set("zone", vm);
+        voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
+        bus->set("zone", voltageMagnitude);
 
-        vm = numeric_conversion<double>(strvec[8], 0.0);
-        va = numeric_conversion<double>(strvec[9], 0.0);
+        voltageMagnitude = numeric_conversion<double>(strvec[8], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[9], 0.0);
         // load the fixed shunt data
-        double p, q;
-
-        p = numeric_conversion<double>(strvec[4], 0.0);
-        q = numeric_conversion<double>(strvec[5], 0.0);
-        if ((p != 0) || (q != 0)) {
-            auto ld = ldfactory->makeTypeObject();
-            bus->add(ld);
-            if (p != 0.0) {
-                ld->set("yp", p, MW);
+        const auto realAdmittance = numeric_conversion<double>(strvec[4], 0.0);
+        const auto reactiveAdmittance = numeric_conversion<double>(strvec[5], 0.0);
+        if ((realAdmittance != 0) || (reactiveAdmittance != 0)) {
+            auto* fixedLoad = ldfactory->makeTypeObject();
+            bus->add(fixedLoad);
+            if (realAdmittance != 0.0) {
+                fixedLoad->set("yp", realAdmittance, MW);
             }
-            if (q != 0.0) {
-                ld->set("yq", -q, MVAR);
+            if (reactiveAdmittance != 0.0) {
+                fixedLoad->set("yq", -reactiveAdmittance, MVAR);
             }
         }
     }
 
-    if (va != 0) {
-        bus->set("angle", va, deg);
+    if (voltageAngle != 0) {
+        bus->set("angle", voltageAngle, deg);
     }
-    if (vm != 0) {
-        bus->set("voltage", vm);
+    if (voltageMagnitude != 0) {
+        bus->set("voltage", voltageMagnitude);
     }
 }
 
-void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // version 32:
     //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
@@ -558,47 +567,47 @@ void rawReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
     // get the load index and name
     auto temp = trim(removeQuotes(strvec[1]));
 
-    auto prefix = ld->getParent()->getName() + "_load_" + temp;
-    ld->setName(prefix);
+    auto prefix = loadObject->getParent()->getName() + "_load_" + temp;
+    loadObject->setName(prefix);
 
     // get the status
     auto status = std::stoi(strvec[2]);
     if (status == 0) {
-        ld->disable();
+        loadObject->disable();
     }
     // skip the area and zone information for now
 
     // get the constant power part of the load
-    auto p = numeric_conversion<double>(strvec[5], 0.0);
-    auto q = numeric_conversion<double>(strvec[6], 0.0);
-    if (p != 0.0) {
-        ld->set("p", p, MW);
+    auto realPower = numeric_conversion<double>(strvec[5], 0.0);
+    auto reactivePower = numeric_conversion<double>(strvec[6], 0.0);
+    if (realPower != 0.0) {
+        loadObject->set("p", realPower, MW);
     }
-    if (q != 0.0) {
-        ld->set("q", q, MVAR);
+    if (reactivePower != 0.0) {
+        loadObject->set("q", reactivePower, MVAR);
     }
     // get the constant current part of the load
-    p = numeric_conversion<double>(strvec[7], 0.0);
-    q = numeric_conversion<double>(strvec[8], 0.0);
-    if (p != 0.0) {
-        ld->set("ip", p, MW);
+    realPower = numeric_conversion<double>(strvec[7], 0.0);
+    reactivePower = numeric_conversion<double>(strvec[8], 0.0);
+    if (realPower != 0.0) {
+        loadObject->set("ip", realPower, MW);
     }
-    if (q != 0.0) {
-        ld->set("iq", q, MVAR);
+    if (reactivePower != 0.0) {
+        loadObject->set("iq", reactivePower, MVAR);
     }
     // get the impedance part of the load
-    p = numeric_conversion<double>(strvec[9], 0.0);
-    q = numeric_conversion<double>(strvec[10], 0.0);
-    if (p != 0.0) {
-        ld->set("yp", p, MW);
+    realPower = numeric_conversion<double>(strvec[9], 0.0);
+    reactivePower = numeric_conversion<double>(strvec[10], 0.0);
+    if (realPower != 0.0) {
+        loadObject->set("yp", realPower, MW);
     }
-    if (q != 0.0) {
-        ld->set("yq", -q, MVAR);
+    if (reactivePower != 0.0) {
+        loadObject->set("yq", -reactivePower, MVAR);
     }
     // ignore the owner field
 }
 
-void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // 0,    1,      2,      3,      4
     // Bus, name, Status, g (MW), b (Mvar)
@@ -606,28 +615,28 @@ void rawReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*bri
 
     // get the load index and name
     auto temp = trim(removeQuotes(strvec[1]));
-    auto name = ld->getParent()->getName() + "_shunt_" + temp;
-    ld->setName(name);
+    auto name = loadObject->getParent()->getName() + "_shunt_" + temp;
+    loadObject->setName(name);
 
     // get the status
     auto status = std::stoi(strvec[2]);
     if (status == 0) {
-        ld->disable();
+        loadObject->disable();
     }
     // skip the area and zone information for now
 
     // get the constant power part of the load
-    auto p = numeric_conversion<double>(strvec[3], 0.0);
-    auto q = numeric_conversion<double>(strvec[4], 0.0);
-    if (p != 0.0) {
-        ld->set("yp", p, MW);
+    const auto conductance = numeric_conversion<double>(strvec[3], 0.0);
+    const auto susceptance = numeric_conversion<double>(strvec[4], 0.0);
+    if (conductance != 0.0) {
+        loadObject->set("yp", conductance, MW);
     }
-    if (q != 0.0) {
-        ld->set("yq", -q, MVAR);
+    if (susceptance != 0.0) {
+        loadObject->set("yq", -susceptance, MVAR);
     }
 }
 
-void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
+static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
 {
     // 0, 1, 2, 3, 4, 5, 6, 7,    8,   9,10,11, 12, 13, 14,   15, 16,17,18,19
     //  I,ID,PG,QG,QT,QB,VS,IREG,MBASE,ZR,ZX,RT,XT,GTAP,STAT,RMPCT,PT,PB,O1,F1
@@ -644,17 +653,17 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
         gen->disable();
     }
 
-    auto mb = numeric_conversion<double>(strvec[8], 0.0);
-    gen->set("mbase", mb);
+    auto machineBase = numeric_conversion<double>(strvec[8], 0.0);
+    gen->set("mbase", machineBase);
 
     // get the power generation
-    auto p = numeric_conversion<double>(strvec[2], 0.0);
-    auto q = numeric_conversion<double>(strvec[3], 0.0);
-    if (p != 0.0) {
-        gen->set("p", p, MW);
+    auto realPower = numeric_conversion<double>(strvec[2], 0.0);
+    auto reactivePower = numeric_conversion<double>(strvec[3], 0.0);
+    if (realPower != 0.0) {
+        gen->set("p", realPower, MW);
     }
-    if (q != 0.0) {
-        gen->set("q", q, MVAR);
+    if (reactivePower != 0.0) {
+        gen->set("q", reactivePower, MVAR);
     }
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
@@ -667,8 +676,8 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
     }
     auto Vtarget = numeric_conversion<double>(strvec[6], 0.0);
     if (Vtarget > 0) {
-        double vp = gen->getParent()->get("vtarget");
-        if (std::abs(vp - Vtarget) > 0.0001) {
+        const double voltageParent = gen->getParent()->get("vtarget");
+        if (std::abs(voltageParent - Vtarget) > 0.0001) {
             gen->set("vtarget", Vtarget);
             // for raw files the bus doesn't necessarily set a control point it comes from the
             // generator, so we have to set it here.
@@ -677,7 +686,7 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
                 gen->getParent()->set("voltage", Vtarget);
             }
         } else {
-            gen->set("vtarget", vp);
+            gen->set("vtarget", voltageParent);
         }
     }
     auto rbus = numeric_conversion<int>(strvec[7], 0);
@@ -688,23 +697,23 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
         gen->add(remoteBus);
     }
 
-    auto r = numeric_conversion<double>(strvec[9], 0.0);
-    gen->set("rs", r);
+    auto resistance = numeric_conversion<double>(strvec[9], 0.0);
+    gen->set("rs", resistance);
 
-    auto x = numeric_conversion<double>(strvec[10], 0.0);
-    gen->set("xs", x);
+    auto reactance = numeric_conversion<double>(strvec[10], 0.0);
+    gen->set("xs", reactance);
 
     if (!opt.checkFlag(ignore_step_up_transformer)) {
-        r = numeric_conversion<double>(strvec[11], 0.0);
-        x = numeric_conversion<double>(strvec[12], 0.0);
-        if ((r != 0) || (x != 0))  // need to add a step up transformer
+        resistance = numeric_conversion<double>(strvec[11], 0.0);
+        reactance = numeric_conversion<double>(strvec[12], 0.0);
+        if ((resistance != 0) || (reactance != 0))  // need to add a step up transformer
         {
-            auto oBus = static_cast<gridBus*>(gen->find("bus"));
+            auto* oBus = static_cast<gridBus*>(gen->find("bus"));
             gridBus* nBus = busfactory->makeTypeObject();
-            auto lnk = new acLine(
-                r * opt.base / mb,
-                x * opt.base /
-                    mb);  // we need to adjust to the simulation base as opposed to the machine base
+            auto* lnk = new acLine(resistance * opt.base / machineBase,
+                                   reactance * opt.base /
+                                       machineBase);  // we need to adjust to the simulation base as
+                                                      // opposed to the machine base
 
             oBus->remove(gen);
             nBus->add(gen);
@@ -720,7 +729,7 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
             }
             oBus->getParent()->add(nBus);
             oBus->getParent()->add(lnk);
-            if (gen->getName().compare(0, oBus->getName().length(), oBus->getName()) == 0) {
+            if (gen->getName().starts_with(oBus->getName())) {
                 lnk->setName(gen->getName() + "_TX");
                 nBus->setName(gen->getName() + "_TXBUS");
             } else {
@@ -728,16 +737,16 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
                 nBus->setName(oBus->getName() + '_' + gen->getName() + "_TXBUS");
             }
             // get the tap ratio
-            r = numeric_conversion<double>(strvec[13], 0.0);
-            lnk->set("tap", r);
+            const auto tapRatio = numeric_conversion<double>(strvec[13], 0.0);
+            lnk->set("tap", tapRatio);
             // match the voltage and angle of the other bus
-            nBus->setVoltageAngle(oBus->getVoltage() * r, oBus->getAngle());
+            nBus->setVoltageAngle(oBus->getVoltage() * tapRatio, oBus->getAngle());
             gen->add(oBus);
             // get the power again for the generator
-            p = numeric_conversion<double>(strvec[2], 0.0);
-            q = numeric_conversion<double>(strvec[3], 0.0);
+            realPower = numeric_conversion<double>(strvec[2], 0.0);
+            reactivePower = numeric_conversion<double>(strvec[3], 0.0);
             // now adjust the newBus angle and Voltage to match the power flows
-            lnk->fixPower(-p, -q, 1, 1, MVAR);
+            lnk->fixPower(-realPower, -reactivePower, 1, 1, MVAR);
             if (!gen->isEnabled()) {
                 nBus->disable();
             }
@@ -745,12 +754,12 @@ void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt)
     }
 }
 
-auto generateBranchName(const stringVector& strvec,
-                        const std::vector<gridBus*>& busList,
-                        const std::string& prefix,
-                        int cctIndex = -1)
+static auto generateBranchName(const stringVector& strvec,
+                               const std::vector<gridBus*>& busList,
+                               const std::string& prefix,
+                               int cctIndex = -1)
 {
-    int ind1 = std::stoi(trim(strvec[0]));
+    const int ind1 = std::stoi(trim(strvec[0]));
 
     int ind2 = std::stoi(trim(strvec[1]));
 
@@ -762,8 +771,8 @@ auto generateBranchName(const stringVector& strvec,
         // ind2 = tmp;
     }
 
-    if ((ind1 < 0) || (ind2 < 0) || (ind1 >= static_cast<int>(busList.size())) ||
-        (ind2 >= static_cast<int>(busList.size()))) {
+    if ((ind1 < 0) || (ind2 < 0) || std::cmp_greater_equal(ind1, busList.size()) ||
+        std::cmp_greater_equal(ind2, busList.size())) {
         std::cerr << "invalid link buses\n";
         assert(false);
     }
@@ -788,10 +797,10 @@ auto generateBranchName(const stringVector& strvec,
     return std::make_tuple(name, ind1, ind2);
 }
 
-void rawReadBranch(coreObject* parentObject,
-                   const std::string& line,
-                   std::vector<gridBus*>& busList,
-                   basicReaderInfo& opt)
+static void rawReadBranch(coreObject* parentObject,
+                          const std::string& line,
+                          std::vector<gridBus*>& busList,
+                          basicReaderInfo& opt)
 {
     //
     // I,J,CKT,R,X,B,RATEA,RATEB,RATEC,GI,BI,GJ,BJ,ST,LEN,O1,F1,...,O4,F4
@@ -799,7 +808,8 @@ void rawReadBranch(coreObject* parentObject,
     auto strvec = splitline(line);
 
     std::string name;
-    int ind1, ind2;
+    int ind1;
+    int ind2;
     std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
 
     acLine* lnk = linkfactory->makeDirectObject(name);
@@ -816,7 +826,7 @@ void rawReadBranch(coreObject* parentObject,
     }
     catch (const objectAddFailure&) {
         // must be a parallel branch
-        std::string sub = lnk->getName();
+        const std::string sub = lnk->getName();
         char parallel = 'a';
         while (lnk->isRoot()) {
             lnk->setName(sub + '_' + parallel);
@@ -826,17 +836,17 @@ void rawReadBranch(coreObject* parentObject,
             }
             catch (const objectAddFailure& e) {
                 if (parallel > 'z') {
-                    throw(e);
+                    throw e;
                 }
             }
         }
     }
 
-    auto R = numeric_conversion<double>(strvec[3], 0.0);
-    auto X = numeric_conversion<double>(strvec[4], 0.0);
+    auto resistance = numeric_conversion<double>(strvec[3], 0.0);
+    auto reactance = numeric_conversion<double>(strvec[4], 0.0);
     // get line impedances and resistance
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", resistance);
+    lnk->set("x", reactance);
     // get line capacitance
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
@@ -886,28 +896,29 @@ void rawReadBranch(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
 }
 
-void rawReadTXadj(coreObject* parentObject,
-                  const std::string& line,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt)
+static void rawReadTXadj(coreObject* parentObject,
+                         const std::string& line,
+                         std::vector<gridBus*>& busList,
+                         basicReaderInfo& opt)
 {
     // int status;
 
     auto strvec = splitline(line);
 
     std::string name;
-    int ind1, ind2;
+    int ind1;
+    int ind2;
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
 
-    auto lnk = static_cast<acLine*>(parentObject->find(name));
+    auto* lnk = static_cast<acLine*>(parentObject->find(name));
 
     if (lnk == nullptr) {
         parentObject->log(parentObject, print_level::error, "unable to locate link " + name);
         return;
     }
 
-    auto adjTX = new links::adjustableTransformer();
+    auto* adjTX = new links::adjustableTransformer();
     lnk->clone(adjTX);
     lnk->addOwningReference();
     parentObject->remove(lnk);
@@ -917,9 +928,9 @@ void rawReadTXadj(coreObject* parentObject,
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
     parentObject->add(adjTX);
-    auto Ta = adjTX->getTapAngle();
+    auto tapAngle = adjTX->getTapAngle();
     int code;
-    if (Ta != 0) {
+    if (tapAngle != 0) {
         adjTX->set("mode", "mw");
         adjTX->set("stepmode", "continuous");
         code = 3;
@@ -952,51 +963,47 @@ void rawReadTXadj(coreObject* parentObject,
         }
     }
     //
-    auto mx = numeric_conversion<double>(strvec[4], 0.0);
-    auto mn = numeric_conversion<double>(strvec[5], 0.0);
-    if ((mx - mn > 1.0) && (code != 3)) {
+    auto maxTap = numeric_conversion<double>(strvec[4], 0.0);
+    auto minTap = numeric_conversion<double>(strvec[5], 0.0);
+    if ((maxTap - minTap > 1.0) && (code != 3)) {
         adjTX->set("mode", "mw");
         adjTX->set("stepmode", "continuous");
         code = 3;
     }
     if (code == 3) {
         // not sure why I need this but
-        Ta = Ta * 180 / kPI;
-        if (Ta > mx) {
-            mx = Ta;
-        }
-        if (Ta < mn) {
-            mn = Ta;
-        }
-        adjTX->set("maxtapangle", mx, deg);
-        adjTX->set("mintapangle", mn, deg);
+        tapAngle = tapAngle * 180 / kPI;
+        maxTap = (std::max)(tapAngle, maxTap);
+        minTap = (std::min)(tapAngle, minTap);
+        adjTX->set("maxtapangle", maxTap, deg);
+        adjTX->set("mintapangle", minTap, deg);
     } else {
-        if (mx < mn) {
-            std::swap(mx, mn);
+        if (maxTap < minTap) {
+            std::swap(maxTap, minTap);
         }
-        adjTX->set("maxtap", mx);
-        adjTX->set("mintap", mn);
+        adjTX->set("maxtap", maxTap);
+        adjTX->set("mintap", minTap);
     }
-    mx = numeric_conversion<double>(strvec[6], 0.0);
-    mn = numeric_conversion<double>(strvec[7], 0.0);
-    if ((mx - mn > 1.0) && (code == 1)) {
+    maxTap = numeric_conversion<double>(strvec[6], 0.0);
+    minTap = numeric_conversion<double>(strvec[7], 0.0);
+    if ((maxTap - minTap > 1.0) && (code == 1)) {
         adjTX->set("mode", "mvar");
         code = 2;
     }
     if (code == 1) {
-        if (mx - mn > 0.00001) {
-            adjTX->set("vmax", mx);
-            adjTX->set("vmin", mn);
+        if (maxTap - minTap > 0.00001) {
+            adjTX->set("vmax", maxTap);
+            adjTX->set("vmin", minTap);
         }
     } else if (code == 3) {
-        if (mx - mn > 0.00001) {
-            adjTX->set("pmax", mx, MW);
-            adjTX->set("pmin", mn, MW);
+        if (maxTap - minTap > 0.00001) {
+            adjTX->set("pmax", maxTap, MW);
+            adjTX->set("pmin", minTap, MW);
         }
     } else {
-        if (mx - mn > 0.00001) {
-            adjTX->set("qmax", mx, MVAR);
-            adjTX->set("qmin", mn, MVAR);
+        if (maxTap - minTap > 0.00001) {
+            adjTX->set("qmax", maxTap, MVAR);
+            adjTX->set("qmin", minTap, MVAR);
         }
     }
     if (code != 3)  // get the stepsize
@@ -1022,19 +1029,19 @@ void rawReadTXadj(coreObject* parentObject,
             adjTX->set("no_pflow_adjustments", 1);
         }
     }
-    mx = numeric_conversion<double>(strvec[11], 0.0);
-    mn = numeric_conversion<double>(strvec[12], 0.0);
-    if ((mx != 0) || (mn != 0)) {
+    maxTap = numeric_conversion<double>(strvec[11], 0.0);
+    minTap = numeric_conversion<double>(strvec[12], 0.0);
+    if ((maxTap != 0) || (minTap != 0)) {
         parentObject->log(parentObject,
                           print_level::warning,
                           "load drop compensation not implemented yet ");
     }
 }
 
-int rawReadTX_v33(coreObject* parentObject,
-                  stringVec& txlines,
-                  std::vector<gridBus*>& busList,
-                  basicReaderInfo& opt)
+static int rawReadTxV33(coreObject* parentObject,
+                        stringVec& txlines,
+                        std::vector<gridBus*>& busList,
+                        basicReaderInfo& opt)
 {
     /* version 33
     # """
@@ -1062,11 +1069,12 @@ int rawReadTX_v33(coreObject* parentObject,
     auto strvec4 = splitline(txlines[3]);
 
     std::string name;
-    int ind1, ind2;
+    int ind1;
+    int ind2;
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_", 3);
 
-    int ind3 = std::stoi(strvec[2]);
+    const int ind3 = std::stoi(strvec[2]);
     int tline = 4;
     if (ind3 != 0) {
         tline = 5;
@@ -1076,12 +1084,9 @@ int rawReadTX_v33(coreObject* parentObject,
         return tline;
     }
 
-    auto bus1 = busList[ind1];
-    auto bus2 = busList[ind2];
-    if (ind1 == 110) {
-        ind1 = 110;
-    }
-    int code = std::stoi(strvec3[6]);
+    auto* bus1 = busList[ind1];
+    auto* bus2 = busList[ind2];
+    const int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
         case 0:
         default:
@@ -1122,17 +1127,17 @@ int rawReadTX_v33(coreObject* parentObject,
     }
     catch (const objectAddFailure&) {
         // must be a parallel branch
-        auto& sub = lnk->getName();
-        char m = 'a';
+        const auto& sub = lnk->getName();
+        char suffix = 'a';
         while (lnk->isRoot()) {
-            lnk->setName(sub + '_' + m);
-            m = m + 1;
+            lnk->setName(sub + '_' + suffix);
+            suffix = suffix + 1;
             try {
                 parentObject->add(lnk);
             }
             catch (const objectAddFailure& e) {
-                if (m > 'z') {
-                    throw(e);
+                if (suffix > 'z') {
+                    throw e;
                 }
             }
         }
@@ -1142,10 +1147,10 @@ int rawReadTX_v33(coreObject* parentObject,
 
     // get the branch impedance
 
-    auto Itype = numeric_conversion<int>(strvec[5], 1);
+    const auto impedanceType = numeric_conversion<int>(strvec[5], 1);
 
-    auto R = numeric_conversion<double>(strvec2[0], 0.0);
-    auto X = numeric_conversion<double>(strvec2[1], 0.0);
+    auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
+    auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
 
     auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
     auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
@@ -1155,20 +1160,16 @@ int rawReadTX_v33(coreObject* parentObject,
 
     auto base = numeric_conversion<double>(strvec2[2], 0.0);
 
-    if (Itype == 1) {
-        lnk->set("r", R);
-        lnk->set("x", X);
-    } else if (Itype == 2) {
+    if (impedanceType == 1) {
+        lnk->set("r", resistance);
+        lnk->set("x", reactance);
+    } else if (impedanceType == 2) {
         if (vn2 != 0.0) {
-            auto r1 = R * opt.base / base * (vn1 / bv1) * (vn1 / bv1);
-            [[maybe_unused]] auto x1 = X * opt.base / base * (vn1 / bv1) * (vn1 / bv1);
-            auto r2 = R * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
-            auto x2 = X * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
-            if (ind2 == 2005) {
-                r1 = r2;
-            }
-            lnk->set("r", r2);
-            lnk->set("x", x2);
+            const auto secondaryResistance =
+                resistance * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
+            const auto secondaryReactance = reactance * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
+            lnk->set("r", secondaryResistance);
+            lnk->set("x", secondaryReactance);
         }
 
         // lnk->set("r", R*base/opt.base*(vn2/bv2)*(vn2/bv2));
@@ -1187,7 +1188,7 @@ int rawReadTX_v33(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    int tapcode = std::stoi(strvec[4]);
+    const int tapcode = std::stoi(strvec[4]);
     if (tapcode == 2) {
         auto wv2 = numeric_conversion<double>(strvec4[0], 0.0);
         tap = (tap / bv1 / (wv2 / bv2));
@@ -1259,47 +1260,47 @@ int rawReadTX_v33(coreObject* parentObject,
             }
         }
 
-        R = numeric_conversion<double>(strvec3[8], 0.0);
-        X = numeric_conversion<double>(strvec3[9], 0.0);
+        resistance = numeric_conversion<double>(strvec3[8], 0.0);
+        reactance = numeric_conversion<double>(strvec3[9], 0.0);
 
         if (code == 3) {
-            lnk->set("maxtapangle", R, deg);
-            lnk->set("mintapangle", X, deg);
+            lnk->set("maxtapangle", resistance, deg);
+            lnk->set("mintapangle", reactance, deg);
         } else {
-            if (X < 1.0) {
-                lnk->set("maxtap", R);
-                lnk->set("mintap", X);
+            if (reactance < 1.0) {
+                lnk->set("maxtap", resistance);
+                lnk->set("mintap", reactance);
             } else {
-                lnk->set("maxtap", R / vn1);
-                lnk->set("mintap", X / vn1);
+                lnk->set("maxtap", resistance / vn1);
+                lnk->set("mintap", reactance / vn1);
             }
         }
 
-        R = numeric_conversion<double>(strvec3[10], 0.0);
-        X = numeric_conversion<double>(strvec3[11], 0.0);
+        resistance = numeric_conversion<double>(strvec3[10], 0.0);
+        reactance = numeric_conversion<double>(strvec3[11], 0.0);
 
         if (code == 3) {
-            lnk->set("pmax", R, MW);
-            lnk->set("pmin", X, MW);
+            lnk->set("pmax", resistance, MW);
+            lnk->set("pmin", reactance, MW);
         } else if (code == 2) {
-            lnk->set("qmax", R, MVAR);
-            lnk->set("qmin", X, MVAR);
+            lnk->set("qmax", resistance, MVAR);
+            lnk->set("qmin", reactance, MVAR);
         } else {
-            lnk->set("vmax", R);
-            lnk->set("vmin", X);
+            lnk->set("vmax", resistance);
+            lnk->set("vmin", reactance);
         }
-        R = numeric_conversion<double>(strvec3[12], 0.0);
+        resistance = numeric_conversion<double>(strvec3[12], 0.0);
         if (code != 3) {
-            lnk->set("nsteps", R);
+            lnk->set("nsteps", resistance);
         }
     }
     return tline;
 }
 
-int rawReadTX(coreObject* parentObject,
-              stringVec& txlines,
-              std::vector<gridBus*>& busList,
-              basicReaderInfo& opt)
+static int rawReadTX(coreObject* parentObject,
+                     stringVec& txlines,
+                     std::vector<gridBus*>& busList,
+                     basicReaderInfo& opt)
 {
     // gridBus *bus3;
     acLine* lnk = nullptr;
@@ -1312,11 +1313,12 @@ int rawReadTX(coreObject* parentObject,
     auto strvec4 = splitline(txlines[3]);
 
     std::string name;
-    int ind1, ind2;
+    int ind1;
+    int ind2;
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_", 3);
 
-    int ind3 = std::stoi(strvec[2]);
+    const int ind3 = std::stoi(strvec[2]);
     int tline = 4;
     if (ind3 != 0) {
         tline = 5;
@@ -1326,9 +1328,9 @@ int rawReadTX(coreObject* parentObject,
         return tline;
     }
 
-    auto bus1 = busList[ind1];
-    auto bus2 = busList[ind2];
-    int code = std::stoi(strvec3[6]);
+    auto* bus1 = busList[ind1];
+    auto* bus2 = busList[ind2];
+    const int code = std::stoi(strvec3[6]);
     switch (abs(code)) {
         case 0:
         default:
@@ -1360,17 +1362,17 @@ int rawReadTX(coreObject* parentObject,
     }
     catch (const objectAddFailure&) {
         // must be a parallel branch
-        auto& sub = lnk->getName();
-        char m = 'a';
+        const auto& sub = lnk->getName();
+        char suffix = 'a';
         while (lnk->isRoot()) {
-            lnk->setName(sub + '_' + m);
-            m = m + 1;
+            lnk->setName(sub + '_' + suffix);
+            suffix = suffix + 1;
             try {
                 parentObject->add(lnk);
             }
             catch (const objectAddFailure& e) {
-                if (m > 'z') {
-                    throw(e);
+                if (suffix > 'z') {
+                    throw e;
                 }
             }
         }
@@ -1380,11 +1382,11 @@ int rawReadTX(coreObject* parentObject,
 
     // get the branch impedance
 
-    auto R = numeric_conversion<double>(strvec2[0], 0.0);
-    auto X = numeric_conversion<double>(strvec2[1], 0.0);
+    auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
+    auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", resistance);
+    lnk->set("x", reactance);
     // get line capacitance
 
     auto status = std::stoi(strvec[11]);
@@ -1423,69 +1425,69 @@ int rawReadTX(coreObject* parentObject,
             }
         }
 
-        R = numeric_conversion<double>(strvec3[8], 0.0);
-        X = numeric_conversion<double>(strvec3[9], 0.0);
+        resistance = numeric_conversion<double>(strvec3[8], 0.0);
+        reactance = numeric_conversion<double>(strvec3[9], 0.0);
 
         if (code == 3) {
-            lnk->set("maxtapangle", R, deg);
-            lnk->set("mintapangle", X, deg);
+            lnk->set("maxtapangle", resistance, deg);
+            lnk->set("mintapangle", reactance, deg);
         } else {
-            lnk->set("maxtap", R);
-            lnk->set("mintap", X);
+            lnk->set("maxtap", resistance);
+            lnk->set("mintap", reactance);
         }
         if (opt.version >= 33) {
-            R = numeric_conversion<double>(strvec3[12], 0.0);
-            X = numeric_conversion<double>(strvec3[13], 0.0);
+            resistance = numeric_conversion<double>(strvec3[12], 0.0);
+            reactance = numeric_conversion<double>(strvec3[13], 0.0);
         } else {
-            R = numeric_conversion<double>(strvec3[10], 0.0);
-            X = numeric_conversion<double>(strvec3[11], 0.0);
+            resistance = numeric_conversion<double>(strvec3[10], 0.0);
+            reactance = numeric_conversion<double>(strvec3[11], 0.0);
         }
         if (code == 3) {
-            lnk->set("pmax", R, MW);
-            lnk->set("pmin", X, MW);
+            lnk->set("pmax", resistance, MW);
+            lnk->set("pmin", reactance, MW);
         } else if (code == 2) {
-            lnk->set("qmax", R, MVAR);
-            lnk->set("qmin", X, MVAR);
+            lnk->set("qmax", resistance, MVAR);
+            lnk->set("qmin", reactance, MVAR);
         } else {
-            lnk->set("vmax", R);
-            lnk->set("vmin", X);
+            lnk->set("vmax", resistance);
+            lnk->set("vmin", reactance);
         }
-        R = numeric_conversion<double>(strvec3[12], 0.0);
+        resistance = numeric_conversion<double>(strvec3[12], 0.0);
         if (code != 3) {
-            lnk->set("nsteps", R);
+            lnk->set("nsteps", resistance);
         }
     }
     return tline;
 }
 
-int rawReadDCLine(coreObject* /*parentObject*/,
-                  stringVec& /*txlines*/,
-                  std::vector<gridBus*>& /*busList*/,
-                  basicReaderInfo& /*bri*/)
-{
-    return 0;
-}
+// static int rawReadDCLine(coreObject* /*parentObject*/,
+//                          stringVec& /*txlines*/,
+//                          std::vector<gridBus*>& /*busList*/,
+//                          basicReaderInfo& /*bri*/)
+// {
+//     return 0;
+// }
 
-void rawReadSwitchedShunt(coreObject* parentObject,
-                          const std::string& line,
-                          std::vector<gridBus*>& busList,
-                          basicReaderInfo& opt)
+static void rawReadSwitchedShunt(coreObject* parentObject,
+                                 const std::string& line,
+                                 std::vector<gridBus*>& busList,
+                                 basicReaderInfo& opt)
 {
     auto strvec = splitline(line);
 
     auto index = std::stoul(strvec[0]);
     gridBus* rbus = nullptr;
-    loads::svd* ld = nullptr;
+    loads::svd* loadObject = nullptr;
     double temp;
-    if (index > busList.size()) {
+    if (std::cmp_greater_equal(index, busList.size())) {
         throw std::runtime_error("Invalid bus number for load " + std::to_string(index));
     }
     if (busList[index] == nullptr) {
         throw std::runtime_error("Invalid bus number for load " + std::to_string(index));
     }
 
-    ld = new loads::svd();
-    busList[index]->add(ld);
+    loadObject = new loads::svd();
+    busList[index]->add(loadObject);
 
     auto mode = numeric_conversion<int>(strvec[1], 0);
     int shift = 0;
@@ -1501,9 +1503,7 @@ void rawReadSwitchedShunt(coreObject* parentObject,
 
     if (cbus < 0) {
         trimString(strvec[4 + shift]);
-        if (strvec[4 + shift] == "I") {
-            cbus = index;
-        } else if (strvec[4 + shift].empty()) {
+        if ((strvec[4 + shift] == "I") || strvec[4 + shift].empty()) {
             cbus = index;
         } else {
             rbus = static_cast<gridBus*>(parentObject->find(strvec[4 + shift]));
@@ -1519,73 +1519,47 @@ void rawReadSwitchedShunt(coreObject* parentObject,
 
     switch (mode) {
         case 0:
-            ld->set("mode", "manual");
+            loadObject->set("mode", "manual");
             break;
         case 1:
-            ld->set("mode", "stepped");
-            ld->set("vmax", high);
-            ld->set("vmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
+            loadObject->set("mode", "stepped");
+            loadObject->set("vmax", high);
+            loadObject->set("vmin", low);
+            if (std::cmp_not_equal(cbus, index)) {
+                loadObject->setControlBus(rbus);
             }
 
             temp = numeric_conversion<double>(strvec[5 + shift], 0.0);
             if (temp > 0) {
-                ld->set("participation", temp / 100.0);
+                loadObject->set("participation", temp / 100.0);
             }
             break;
         case 2:
-            ld->set("mode", "cont");
-            ld->set("vmax", high);
-            ld->set("vmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
+            loadObject->set("mode", "cont");
+            loadObject->set("vmax", high);
+            loadObject->set("vmin", low);
+            if (std::cmp_not_equal(cbus, index)) {
+                loadObject->setControlBus(rbus);
             }
             temp = numeric_conversion<double>(strvec[5 + shift], 0.0);
             if (temp > 0) {
-                ld->set("participation", temp / 100.0);
+                loadObject->set("participation", temp / 100.0);
             }
             break;
         case 3:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
-            ld->set("qmax", high);
-            ld->set("qmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
-            }
-            break;
         case 4:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
-            ld->set("qmax", high);
-            ld->set("qmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
-            }
-            // TODO(phlpt): Handle the unusual PT load target object condition.
-            break;
         case 5:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
-            ld->set("qmax", high);
-            ld->set("qmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
-            }
-            break;
         case 6:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
-            ld->set("qmax", high);
-            ld->set("qmin", low);
-            if (cbus != static_cast<int>(index)) {
-                ld->setControlBus(rbus);
+            loadObject->set("mode", "stepped");
+            loadObject->set("control", "reactive");
+            loadObject->set("qmax", high);
+            loadObject->set("qmin", low);
+            if (std::cmp_not_equal(cbus, index)) {
+                loadObject->setControlBus(rbus);
             }
-            // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         default:
-            ld->set("mode", "manual");
+            loadObject->set("mode", "manual");
             break;
     }
     // load the switched shunt blocks
@@ -1595,12 +1569,12 @@ void rawReadSwitchedShunt(coreObject* parentObject,
     } else if (opt.version >= 32) {
         start = 9;
     }
-    size_t ksize = strvec.size() - 1;
+    const size_t ksize = strvec.size() - 1;
     for (size_t kk = start + 1; kk < ksize; kk += 2) {
         auto cnt = numeric_conversion<int>(strvec[kk], 0);
         auto block = numeric_conversion<double>(strvec[kk + 1], 0.0);
         if ((cnt > 0) && (block != 0.0)) {
-            ld->addBlock(cnt, -block, MVAR);
+            loadObject->addBlock(cnt, -block, MVAR);
         } else {
             break;
         }
@@ -1608,7 +1582,7 @@ void rawReadSwitchedShunt(coreObject* parentObject,
     // set the initial value
     auto initVal = numeric_conversion<double>(strvec[start], 0.0);
 
-    ld->set("yq", -initVal, MVAR);
+    loadObject->set("yq", -initVal, MVAR);
 }
 
 }  // namespace griddyn

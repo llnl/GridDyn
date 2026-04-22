@@ -8,27 +8,53 @@
 #include "../gridDynDefinitions.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <string>
+#include <string_view>
 
 namespace griddyn::comms {
-static dPayloadFactory<controlMessagePayload,
-                       BASE_CONTROL_MESSAGE_NUMBER,
-                       BASE_CONTROL_MESSAGE_NUMBER + 16>
-    dmf("control");
+namespace {
+    dPayloadFactory<controlMessagePayload,
+                    BASE_CONTROL_MESSAGE_NUMBER,
+                    BASE_CONTROL_MESSAGE_NUMBER + 16>
+        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+        controlPayloadFactory("control");
+}  // namespace
 
-REGISTER_MESSAGE_TYPE(m1, "SET", controlMessagePayload::SET);
-REGISTER_MESSAGE_TYPE(m2, "GET", controlMessagePayload::GET);
-REGISTER_MESSAGE_TYPE(m3, "GET MULTIPLE", controlMessagePayload::GET_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m4, "GET PERIODIC", controlMessagePayload::GET_PERIODIC);
-REGISTER_MESSAGE_TYPE(m5, "SET MULTIPLE", controlMessagePayload::SET_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m6, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
-REGISTER_MESSAGE_TYPE(m7, "SET FAIL", controlMessagePayload::SET_FAIL);
-REGISTER_MESSAGE_TYPE(m8, "GET RESULT", controlMessagePayload::GET_RESULT);
-REGISTER_MESSAGE_TYPE(m9, "GET RESULT MULTIPLE", controlMessagePayload::GET_RESULT_MULTIPLE);
-REGISTER_MESSAGE_TYPE(m10, "SET SCHEDULED", controlMessagePayload::SET_SCHEDULED);
-REGISTER_MESSAGE_TYPE(m11, "GET SCHEDULED", controlMessagePayload::GET_SCHEDULED);
-REGISTER_MESSAGE_TYPE(m12, "CANCEL", controlMessagePayload::CANCEL);
-REGISTER_MESSAGE_TYPE(m13, "CANCEL SUCCESS", controlMessagePayload::CANCEL_SUCCESS);
-REGISTER_MESSAGE_TYPE(m14, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSet, "SET", controlMessagePayload::SET);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGet, "GET", controlMessagePayload::GET);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetMultiple, "GET MULTIPLE", controlMessagePayload::GET_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetPeriodic, "GET PERIODIC", controlMessagePayload::GET_PERIODIC);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetMultiple, "SET MULTIPLE", controlMessagePayload::SET_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetSuccess, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetFail, "SET FAIL", controlMessagePayload::SET_FAIL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetResult, "GET RESULT", controlMessagePayload::GET_RESULT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetResultMultiple,
+                      "GET RESULT MULTIPLE",
+                      controlMessagePayload::GET_RESULT_MULTIPLE);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeSetScheduled,
+                      "SET SCHEDULED",
+                      controlMessagePayload::SET_SCHEDULED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeGetScheduled,
+                      "GET SCHEDULED",
+                      controlMessagePayload::GET_SCHEDULED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancel, "CANCEL", controlMessagePayload::CANCEL);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancelSuccess,
+                      "CANCEL SUCCESS",
+                      controlMessagePayload::CANCEL_SUCCESS);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeCancelFail, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
 std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string temp;
@@ -51,7 +77,7 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
             }
             break;
         case GET_MULTIPLE:
-            for (auto& fld : multiFields) {
+            for (const auto& fld : multiFields) {
                 temp += ' ' + fld + ',';
             }
             temp.pop_back();  // get rid of the last comma
@@ -70,11 +96,12 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
             temp.pop_back();  // get rid of the last comma
             break;
         case SET_SUCCESS:
-            if (m_actionID > 0) {
-                temp = std::to_string(m_actionID);
-            }
-            break;
         case SET_FAIL:
+        case SET_SCHEDULED:
+        case GET_SCHEDULED:
+        case CANCEL:
+        case CANCEL_SUCCESS:
+        case CANCEL_FAIL:
             if (m_actionID > 0) {
                 temp = std::to_string(m_actionID);
             }
@@ -86,21 +113,6 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
             }
             temp += " = " + std::to_string(m_value) + '@' + std::to_string(m_time);
             break;
-        case SET_SCHEDULED:
-            temp = std::to_string(m_actionID);
-            break;
-        case GET_SCHEDULED:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL_SUCCESS:
-            temp = std::to_string(m_actionID);
-            break;
-        case CANCEL_FAIL:
-            temp = std::to_string(m_actionID);
-            break;
         default:
             break;
     }
@@ -109,16 +121,16 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
 
 void controlMessagePayload::from_string(uint32_t type,
                                         uint32_t /*code*/,
-                                        const std::string& fromString,
+                                        std::string_view fromString,
                                         size_t offset)
 {
     std::string idstring;
     bool vstrid = false;
 
-    auto vstring = fromString.substr(offset, std::string::npos);
+    auto vstring = fromString.substr(offset);
     if (vstring[0] == '(') {
-        auto cp = vstring.find_first_of(')');
-        idstring = vstring.substr(0, cp - 1);
+        const auto closeParen = vstring.find_first_of(')');
+        idstring = std::string{vstring.substr(1, closeParen - 1)};
         if (idstring.empty()) {
             m_actionID = 0;
         } else {
@@ -128,7 +140,7 @@ void controlMessagePayload::from_string(uint32_t type,
 
     switch (type) {
         case SET: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, "=@");
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -140,7 +152,7 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, '@');
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -152,8 +164,8 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_PERIODIC: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, '@');
-            auto psep = gmlc::utilities::stringOps::splitline(vstring, ',');
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, '@');
+            auto psep = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
             if (psep.size() > 1) {
                 m_units = psep[1];
             }
@@ -164,13 +176,14 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_MULTIPLE: {
-            multiFields = gmlc::utilities::stringOps::splitline(vstring, ',');
+            multiFields = gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
         } break;
         case GET_RESULT_MULTIPLE: {
-            auto mf = gmlc::utilities::stringOps::splitline(vstring, ',');
+            auto multiFieldStrings =
+                gmlc::utilities::stringOps::splitline(std::string{vstring}, ',');
             multiFields.resize(0);
             multiValues.resize(0);
-            for (auto& mfl : mf) {
+            for (auto& mfl : multiFieldStrings) {
                 auto fsep = gmlc::utilities::stringOps::splitline(mfl, '=');
                 if (fsep.size() == 2) {
                     multiFields.push_back(fsep[0]);
@@ -179,7 +192,7 @@ void controlMessagePayload::from_string(uint32_t type,
             }
         } break;
         case GET_RESULT: {
-            auto svec = gmlc::utilities::stringOps::splitline(vstring, "=@");
+            auto svec = gmlc::utilities::stringOps::splitline(std::string{vstring}, "=@");
             auto psep = gmlc::utilities::stringOps::splitline(svec[0], "()");
             if (psep.size() > 1) {
                 m_units = psep[1];
@@ -199,7 +212,7 @@ void controlMessagePayload::from_string(uint32_t type,
         if (vstring.empty()) {
             m_actionID = 0;
         } else {
-            m_actionID = std::stoull(vstring);
+            m_actionID = std::stoull(std::string{vstring});
         }
     }
 }

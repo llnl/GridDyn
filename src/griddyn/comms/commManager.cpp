@@ -7,6 +7,7 @@
 
 #include "Communicator.h"
 #include "core/propertyBuffer.h"
+#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>

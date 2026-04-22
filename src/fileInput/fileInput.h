@@ -96,12 +96,12 @@ void addflags(basicReaderInfo& bri, const std::string& flags);
 
 void loadFile(std::unique_ptr<gridDynSimulation>& gds,
               const std::string& fileName,
-              readerInfo* ri = nullptr,
+              readerInfo* readerInf = nullptr,
               const std::string& ext = "");
 
 void loadFile(coreObject* parentObject,
               const std::string& fileName,
-              readerInfo* ri = nullptr,
+              readerInfo* readerInf = nullptr,
               std::string ext = "");
 
 void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& ri);

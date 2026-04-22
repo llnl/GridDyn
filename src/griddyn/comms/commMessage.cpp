@@ -7,9 +7,11 @@
 #include "commMessage.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -21,24 +23,66 @@ using archiver = cereal::PortableBinaryOutputArchive;
 using retriever = cereal::PortableBinaryInputArchive;
 
 namespace griddyn {
+namespace {
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
+        {"overcurrent", OVERCURRENT_ALARM},
+        {"undercurrent", UNDERCURRENT_ALARM},
+        {"overvoltage", OVERVOLTAGE_ALARM},
+        {"undervoltage", UNDERVOLTAGE_ALARM},
+        {"temperature_alarm1", TEMPERATURE_ALARM1},
+        {"temperature", TEMPERATURE_ALARM1},
+        {"temperature_alarm2", TEMPERATURE_ALARM2},
+        {"temperature2", TEMPERATURE_ALARM2},
+    };
+}  // namespace
 
 using gmlc::utilities::numeric_conversion;
 
-REGISTER_MESSAGE_TYPE(m1, "IGNORE", commMessage::ignoreMessageType);
-REGISTER_MESSAGE_TYPE(m2, "ping", commMessage::pingMessageType);
-REGISTER_MESSAGE_TYPE(m3, "reply", commMessage::replyMessageType);
-REGISTER_MESSAGE_TYPE(m4, "NO EVENT", commMessage::NO_EVENT);
-REGISTER_MESSAGE_TYPE(m5, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(m6, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(m7, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
-REGISTER_MESSAGE_TYPE(m8, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
-REGISTER_MESSAGE_TYPE(m9, "LOCAL FAULT CLEARED", commMessage::LOCAL_FAULT_CLEARED);
-REGISTER_MESSAGE_TYPE(m10, "REMOTE FAULT CLEARED", commMessage::REMOTE_FAULT_CLEARED);
-REGISTER_MESSAGE_TYPE(m11, "BREAKER TRIP COMMAND", commMessage::BREAKER_TRIP_COMMAND);
-REGISTER_MESSAGE_TYPE(m12, "BREAKER CLOSE COMMAND", commMessage::BREAKER_CLOSE_COMMAND);
-REGISTER_MESSAGE_TYPE(m13, "BREAKER OOS COMMAND", commMessage::BREAKER_OOS_COMMAND);
-REGISTER_MESSAGE_TYPE(m14, "ALARM TRIGGER EVENT", commMessage::ALARM_TRIGGER_EVENT);
-REGISTER_MESSAGE_TYPE(m15, "ALARM CLEARED EVENT", commMessage::ALARM_CLEARED_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeIgnore, "IGNORE", commMessage::ignoreMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypePing, "ping", commMessage::pingMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeReply, "reply", commMessage::replyMessageType);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeNoEvent, "NO EVENT", commMessage::NO_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeLocalFault, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRemoteFault, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerClose, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeLocalFaultCleared,
+                      "LOCAL FAULT CLEARED",
+                      commMessage::LOCAL_FAULT_CLEARED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeRemoteFaultCleared,
+                      "REMOTE FAULT CLEARED",
+                      commMessage::REMOTE_FAULT_CLEARED);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerTripCommand,
+                      "BREAKER TRIP COMMAND",
+                      commMessage::BREAKER_TRIP_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerCloseCommand,
+                      "BREAKER CLOSE COMMAND",
+                      commMessage::BREAKER_CLOSE_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeBreakerOosCommand,
+                      "BREAKER OOS COMMAND",
+                      commMessage::BREAKER_OOS_COMMAND);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeAlarmTriggerEvent,
+                      "ALARM TRIGGER EVENT",
+                      commMessage::ALARM_TRIGGER_EVENT);
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+REGISTER_MESSAGE_TYPE(messageTypeAlarmClearedEvent,
+                      "ALARM CLEARED EVENT",
+                      commMessage::ALARM_CLEARED_EVENT);
 
 commMessage::commMessage(std::uint32_t type): m_messageType(type)
 {
@@ -68,28 +112,28 @@ std::string commMessage::to_string() const
     }
     return message;
 }
-void commMessage::from_string(const std::string& fromString)
+void commMessage::from_string(std::string_view fromString)
 {
-    auto ip = fromString.find_first_of(":[");
-    if (ip == std::string::npos) {
+    auto delimiterPos = fromString.find_first_of(":[");
+    if (delimiterPos == std::string::npos) {
         m_messageType = MessageTypeRegistry::instance().getType(fromString);
         code = 0xFFFF'FFFF;
         return;
     }
-    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, ip - 1));
-    if (fromString[ip] == '[') {
-        auto end = fromString.find_first_of(']', ip + 1);
-        code =
-            numeric_conversion<std::uint32_t>(fromString.substr(ip + 1, end - ip - 1), 0xFFFFFFFF);
-        ip = end + 1;
-        if (ip >= fromString.size()) {
+    m_messageType = MessageTypeRegistry::instance().getType(fromString.substr(0, delimiterPos));
+    if (fromString[delimiterPos] == '[') {
+        auto end = fromString.find_first_of(']', delimiterPos + 1);
+        code = numeric_conversion<std::uint32_t>(
+            std::string{fromString.substr(delimiterPos + 1, end - delimiterPos - 1)}, 0xFFFFFFFF);
+        delimiterPos = end + 1;
+        if (delimiterPos >= fromString.size()) {
             return;
         }
     } else {
         code = 0xFFFF'FFFF;
     }
     payload = corePayloadFactory::instance().createPayload(m_messageType);
-    payload->from_string(m_messageType, code, fromString, ip + 1);
+    payload->from_string(m_messageType, code, fromString, delimiterPos + 1);
 }
 
 int commMessage::toByteArray(char* data, size_t buffer_size) const
@@ -97,13 +141,13 @@ int commMessage::toByteArray(char* data, size_t buffer_size) const
     if ((data == nullptr) || (buffer_size == 0)) {
         return -1;
     }
-    boost::iostreams::basic_array_sink<char> sr(data, buffer_size);
-    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> s(sr);
+    boost::iostreams::basic_array_sink<char> sinkRange(data, buffer_size);
+    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> sinkStream(sinkRange);
 
-    archiver oa(s);
+    archiver outputArchive(sinkStream);
     try {
-        save(oa);
-        return static_cast<int>(boost::iostreams::seek(s, 0, std::ios_base::cur));
+        save(outputArchive);
+        return static_cast<int>(boost::iostreams::seek(sinkStream, 0, std::ios_base::cur));
     }
     catch (const std::ios_base::failure&) {
         return -1;
@@ -114,13 +158,14 @@ std::string commMessage::to_datastring() const
 {
     std::string data;
     boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
     return data;
 }
 
@@ -128,13 +173,14 @@ std::vector<char> commMessage::to_vector() const
 {
     std::vector<char> data;
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
     return data;
 }
 
@@ -142,13 +188,14 @@ void commMessage::to_vector(std::vector<char>& data) const
 {
     data.clear();
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
 }
 
 void commMessage::to_datastring(std::string& data) const
@@ -156,29 +203,30 @@ void commMessage::to_datastring(std::string& data) const
     data.clear();
 
     boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> s(inserter);
-    archiver oa(s);
+    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
+        inserter);
+    archiver outputArchive(outputStream);
 
-    save(oa);
+    save(outputArchive);
 
     // don't forget to flush the stream to finish writing into the buffer
-    s.flush();
+    outputStream.flush();
 }
 
 void commMessage::fromByteArray(const char* data, size_t buffer_size)
 {
     boost::iostreams::basic_array_source<char> device(data, buffer_size);
-    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> s(device);
-    retriever ia(s);
+    boost::iostreams::stream<boost::iostreams::basic_array_source<char>> inputStream(device);
+    retriever inputArchive(inputStream);
     try {
-        load(ia);
+        load(inputArchive);
     }
     catch (const cereal::Exception&) {
         m_messageType = unknownMessageType;
     }
 }
 
-void commMessage::from_datastring(const std::string& data)
+void commMessage::from_datastring(std::string_view data)
 {
     fromByteArray(data.data(), data.size());
 }
@@ -188,18 +236,7 @@ void commMessage::from_vector(const std::vector<char>& data)
     fromByteArray(data.data(), data.size());
 }
 
-static std::map<std::string, std::uint32_t> alarmCodeMap{
-    {"overcurrent", OVERCURRENT_ALARM},
-    {"undercurrent", UNDERCURRENT_ALARM},
-    {"overvoltage", OVERVOLTAGE_ALARM},
-    {"undervoltage", UNDERVOLTAGE_ALARM},
-    {"temperature_alarm1", TEMPERATURE_ALARM1},
-    {"temperature", TEMPERATURE_ALARM1},
-    {"temperature_alarm2", TEMPERATURE_ALARM2},
-    {"temperature2", TEMPERATURE_ALARM2},
-};
-
-std::uint32_t getAlarmCode(const std::string& alarmStr)
+std::uint32_t getAlarmCode(std::string_view alarmStr)
 {
     auto fnd = alarmCodeMap.find(alarmStr);
     if (fnd != alarmCodeMap.end()) {
@@ -216,21 +253,21 @@ MessageTypeRegistry& MessageTypeRegistry::instance()
     return registry;
 }
 
-void MessageTypeRegistry::registerType(const std::string& name, std::uint32_t type)
+void MessageTypeRegistry::registerType(std::string_view name, std::uint32_t type)
 {
-    typeMapA[name] = type;
-    typeMapB[type] = name;
+    typeMapA[std::string{name}] = type;
+    typeMapB[type] = std::string{name};
 }
 
-uint32_t MessageTypeRegistry::getType(const std::string& name) const
+uint32_t MessageTypeRegistry::getType(std::string_view name) const
 {
-    auto fnd = typeMapA.find(name);
+    auto fnd = typeMapA.find(std::string{name});
 
     if (fnd != typeMapA.end()) {
         return fnd->second;
     }
-    if (name.compare(0, 5, "type_") == 0) {
-        return std::stoul(name.substr(5));
+    if (name.starts_with("type_")) {
+        return std::stoul(std::string{name.substr(5)});
     }
     return commMessage::unknownMessageType;
 }
@@ -255,25 +292,25 @@ corePayloadFactory& corePayloadFactory::instance()
     return factory;
 }
 
-void corePayloadFactory::registerFactory(std::string name, payloadFactory* mf)
+void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* messageFactory)
 {
-    auto ret = m_factoryMap.emplace(std::move(name), mf);
+    auto ret = m_factoryMap.emplace(std::string{name}, messageFactory);
     if (!ret.second) {
-        ret.first->second = mf;
+        ret.first->second = messageFactory;
     }
 }
 
-void corePayloadFactory::registerFactory(payloadFactory* mf)
+void corePayloadFactory::registerFactory(payloadFactory* messageFactory)
 {
-    auto ret = m_factoryMap.emplace(mf->name, mf);
+    auto ret = m_factoryMap.emplace(messageFactory->name, messageFactory);
     if (!ret.second) {
-        ret.first->second = mf;
+        ret.first->second = messageFactory;
     }
 }
 
-payloadFactory* corePayloadFactory::getFactory(const std::string& factoryName)
+payloadFactory* corePayloadFactory::getFactory(std::string_view factoryName)
 {
-    auto mfind = m_factoryMap.find(factoryName);
+    auto mfind = m_factoryMap.find(std::string{factoryName});
     if (mfind != m_factoryMap.end()) {
         return mfind->second;
     }
@@ -301,15 +338,15 @@ std::vector<std::string> corePayloadFactory::getPayloadTypeNames()
 {
     std::vector<std::string> typeNames;
     typeNames.reserve(m_factoryMap.size());
-    for (auto typeName : m_factoryMap) {
+    for (const auto& typeName : m_factoryMap) {
         typeNames.push_back(typeName.first);
     }
     return typeNames;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string& messageType)
+std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -317,10 +354,10 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string
     return nullptr;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(const std::string& messageType,
+std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType,
                                                                std::uint32_t type)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -349,9 +386,9 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::uint32_t typ
     return nullptr;
 }
 
-bool corePayloadFactory::isValidMessage(const std::string& messageType)
+bool corePayloadFactory::isValidMessage(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(messageType);
+    auto mfind = m_factoryMap.find(std::string{messageType});
     return (mfind != m_factoryMap.end());
 }
 

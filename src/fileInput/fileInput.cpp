@@ -16,6 +16,7 @@
 #include "readElement.h"
 #include "readElementFile.h"
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -132,7 +133,8 @@ int objectParameterSet(const std::string& label, coreObject* obj, gridParameter&
     return (-1);
 }
 
-static const std::map<std::string, int> flagStringMap{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string, int, std::less<>> flagStringMap{
     {"ignore_step_up_transformers", ignore_step_up_transformer},
     {"powerflow_only", assume_powerflow_only},
     {"no_generator_bus_reset", no_generator_bus_voltage_reset},
@@ -153,28 +155,29 @@ void addflags(basicReaderInfo& bri, const std::string& flags)
 
 void loadFile(std::unique_ptr<gridDynSimulation>& gds,
               const std::string& fileName,
-              readerInfo* ri,
+              readerInfo* readerInf,
               const std::string& ext)
 {
-    loadFile(gds.get(), fileName, ri, ext);
+    loadFile(gds.get(), fileName, readerInf, ext);
 }
 
 void loadFile(coreObject* parentObject,
               const std::string& fileName,
-              readerInfo* ri,
+              readerInfo* readerInf,
               std::string ext)
 {
     if (ext.empty()) {
-        std::filesystem::path sourcePath(fileName);
+        const std::filesystem::path sourcePath(fileName);
         ext = gmlc::utilities::convertToLowerCase(sourcePath.extension().string());
         if (ext[0] == '.') {
             ext.erase(0, 1);
         }
     }
 
-    std::unique_ptr<readerInfo> uri = (ri != nullptr) ? nullptr : std::make_unique<readerInfo>();
-    if (ri == nullptr) {
-        ri = uri.get();
+    const std::unique_ptr<readerInfo> uri =
+        (readerInf != nullptr) ? nullptr : std::make_unique<readerInfo>();
+    if (readerInf == nullptr) {
+        readerInf = uri.get();
     }
 
     // get rid of the . on the extension if it has one
@@ -183,35 +186,35 @@ void loadFile(coreObject* parentObject,
         switch (readerConfig::default_xml_reader) {
             case xmlreader::tinyxml:
             default:
-                loadElementFile<tinyxmlReaderElement>(parentObject, fileName, ri);
+                loadElementFile<tinyxmlReaderElement>(parentObject, fileName, readerInf);
                 break;
             case xmlreader::tinyxml2:
-                loadElementFile<tinyxml2ReaderElement>(parentObject, fileName, ri);
+                loadElementFile<tinyxml2ReaderElement>(parentObject, fileName, readerInf);
                 break;
         }
     } else if (ext == "csv") {
-        loadCSV(parentObject, fileName, *ri);
+        loadCSV(parentObject, fileName, *readerInf);
     } else if (ext == "raw" || ext == "psse" || ext == "pss/e" || ext == "pti") {
-        loadRAW(parentObject, fileName, *ri);
+        loadRAW(parentObject, fileName, *readerInf);
     } else if (ext == "dyr") {
-        loadDYR(parentObject, fileName, *ri);
+        loadDYR(parentObject, fileName, *readerInf);
     } else if ((ext == "cdf") || (ext == "txt")) {
-        loadCDF(parentObject, fileName, *ri);
+        loadCDF(parentObject, fileName, *readerInf);
     } else if (ext == "uct") {
     } else if (ext == "m" || ext == "matlab") {
-        loadMFile(parentObject, fileName, *ri);
+        loadMFile(parentObject, fileName, *readerInf);
     } else if (ext == "psp") {
-        loadPSP(parentObject, fileName, *ri);
+        loadPSP(parentObject, fileName, *readerInf);
     } else if (ext == "epc") {
-        loadEPC(parentObject, fileName, *ri);
+        loadEPC(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
-        loadElementFile<jsonReaderElement>(parentObject, fileName, ri);
+        loadElementFile<jsonReaderElement>(parentObject, fileName, readerInf);
 #ifdef YAML_FOUND
     } else if ((ext == "yaml") || (ext == "yml")) {
-        loadElementFile<yamlReaderElement>(parentObject, fileName, ri);
+        loadElementFile<yamlReaderElement>(parentObject, fileName, readerInf);
 #endif
     } else if (ext == "gdz") {  // gridDyn Zipped file
-        loadGDZ(parentObject, fileName, *ri);
+        loadGDZ(parentObject, fileName, *readerInf);
     }
 }
 
@@ -236,7 +239,7 @@ void addToParent(coreObject* objectToAdd, coreObject* parentObject)
 // object and add it.
 void addToParentRename(coreObject* objectToAdd, coreObject* parentObject)
 {
-    std::string bname = objectToAdd->getName();
+    const std::string bname = objectToAdd->getName();
     int cnt = 2;
     auto* fndObject = parentObject->find(bname + '-' + std::to_string(cnt));
     while (fndObject != nullptr) {

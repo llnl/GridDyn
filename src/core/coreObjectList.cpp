@@ -7,6 +7,7 @@
 #include "coreObjectList.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 bool coreObjectList::insert(coreObject* obj, bool replace)
@@ -21,47 +22,47 @@ bool coreObjectList::insert(coreObject* obj, bool replace)
     }
     return false;
 }
-coreObject* coreObjectList::find(const std::string& objName) const
+coreObject* coreObjectList::find(std::string_view objName) const
 {
-    auto fp = m_objects.get<name>().find(objName);
-    if (fp != m_objects.get<name>().end()) {
-        return (*fp);
+    auto foundObject = m_objects.get<name>().find(std::string{objName});
+    if (foundObject != m_objects.get<name>().end()) {
+        return (*foundObject);
     }
     return nullptr;
 }
 
 std::vector<coreObject*> coreObjectList::find(index_t searchID) const
 {
-    auto fp = m_objects.get<uid>().lower_bound(searchID);
-    auto fp2 = m_objects.get<uid>().upper_bound(searchID);
+    auto foundObject = m_objects.get<uid>().lower_bound(searchID);
+    auto foundObjectEnd = m_objects.get<uid>().upper_bound(searchID);
     std::vector<coreObject*> out;
-    while (fp != fp2) {
-        if ((*fp)->getUserID() == searchID) {
-            out.push_back(*fp);
+    while (foundObject != foundObjectEnd) {
+        if ((*foundObject)->getUserID() == searchID) {
+            out.push_back(*foundObject);
         }
-        ++fp;
+        ++foundObject;
     }
     return out;
 }
 
 bool coreObjectList::remove(coreObject* obj)
 {
-    auto fp = m_objects.get<id>().find(obj->getID());
-    if (fp != m_objects.get<id>().end()) {
-        m_objects.erase(fp);
+    auto foundObject = m_objects.get<id>().find(obj->getID());
+    if (foundObject != m_objects.get<id>().end()) {
+        m_objects.erase(foundObject);
         return true;
     }
     return false;
 }
 
-bool coreObjectList::remove(const std::string& objName)
+bool coreObjectList::remove(std::string_view objName)
 {
-    auto fp = m_objects.get<name>().find(objName);
-    if (fp != m_objects.get<name>().end()) {
+    auto foundObject = m_objects.get<name>().find(std::string{objName});
+    if (foundObject != m_objects.get<name>().end()) {
         // I don't know why I have to do this find on the id index
         // Not understanding these multindex objects well enough I guess
-        auto fp2 = m_objects.get<id>().find((*fp)->getID());
-        m_objects.erase(fp2);
+        auto foundById = m_objects.get<id>().find((*foundObject)->getID());
+        m_objects.erase(foundById);
 
         return true;
     }
@@ -70,21 +71,21 @@ bool coreObjectList::remove(const std::string& objName)
 
 bool coreObjectList::isMember(const coreObject* obj) const
 {
-    auto fp = m_objects.get<id>().find(obj->getID());
-    return (fp != m_objects.get<id>().end());
+    auto foundObject = m_objects.get<id>().find(obj->getID());
+    return (foundObject != m_objects.get<id>().end());
 }
 
 void coreObjectList::deleteAll(coreObject* parent)
 {
-    for (auto* it : m_objects) {
-        removeReference(it, parent);
+    for (auto* objectPtr : m_objects) {
+        removeReference(objectPtr, parent);
     }
 }
 
 void coreObjectList::updateObject(coreObject* obj)
 {
-    auto fp = m_objects.get<id>().find(obj->getID());
-    m_objects.replace(fp, obj);
+    auto foundObject = m_objects.get<id>().find(obj->getID());
+    m_objects.replace(foundObject, obj);
 }
 
 }  // namespace griddyn

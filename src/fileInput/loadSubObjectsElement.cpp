@@ -7,10 +7,9 @@
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "readElement.h"
+#include <array>
 #include <cstdio>
-#include <functional>
 #include <iterator>
-#include <map>
 #include <string>
 
 // A bunch of includes to load these kinds of objects
@@ -31,54 +30,211 @@
 #include "griddyn/loads/zipLoad.h"
 
 namespace griddyn {
-// clang-format off
-#define READERSIGNATURE [](std::shared_ptr<readerElement> & cd, readerInfo & ri, coreObject * parent)
+namespace {
+    using load_function_t = coreObject* (*)(std::shared_ptr<readerElement>&,
+                                            readerInfo&,
+                                            coreObject* parent);
 
-static const std::map<std::string, std::function<coreObject *(std::shared_ptr<readerElement> &, readerInfo &, coreObject *parent)>>
-loadFunctionMap{
-  {"genmodel", READERSIGNATURE{return ElementReader(cd, static_cast<GenModel *>(nullptr), "genmodel", ri, parent);}},
-      {"exciter", READERSIGNATURE{return ElementReader (cd, static_cast<Exciter *>(nullptr), "exciter", ri, parent);}},
-    {"governor", READERSIGNATURE{return ElementReader (cd, static_cast<Governor *>(nullptr), "governor", ri, parent);}},
-    {"pss", READERSIGNATURE{return ElementReader (cd, static_cast<Stabilizer *>(nullptr), "pss", ri, parent);}},
-    {"source", READERSIGNATURE{return ElementReader (cd, static_cast<Source *>(nullptr), "source", ri, parent);}},
-    {"scheduler", READERSIGNATURE{return ElementReader (cd, static_cast<scheduler *>(nullptr), "scheduler", ri, parent);}},
-    {"agc", READERSIGNATURE{return ElementReader (cd, static_cast<AGControl *>(nullptr), "agc", ri, parent);}},
-    {"reservedispatcher",READERSIGNATURE{return ElementReader (cd, static_cast<reserveDispatcher *>(nullptr), "reservedispatcher", ri, parent);}},
-    {"block", READERSIGNATURE{return ElementReader (cd, static_cast<Block *>(nullptr), "block", ri, parent);}},
-    {"generator", READERSIGNATURE{return ElementReader (cd, static_cast<Generator *>(nullptr), "generator", ri, parent);}},
-    {"load", READERSIGNATURE{return ElementReader (cd, static_cast<Load *>(nullptr), "load", ri, parent);}},
-    {"extra", READERSIGNATURE{ return ElementReader(cd, static_cast<coreObject *>(nullptr), "extra", ri, parent); } },
-    {"bus", READERSIGNATURE{return readBusElement (cd, ri, parent);}},
-    {"relay", READERSIGNATURE{return readRelayElement (cd, ri, parent);}},
-    {"area", READERSIGNATURE{return readAreaElement (cd, ri, parent);}},
-    {"link", READERSIGNATURE{return readLinkElement (cd, ri, parent, false);}},
-    {"econ", READERSIGNATURE{readEconElement (cd, ri, parent);return parent;}},
-    {"array", READERSIGNATURE{readArrayElement (cd, ri, parent);return parent;}},
-    {"if", READERSIGNATURE{loadConditionElement (cd, ri, parent);return parent;}}
-};
-// clang-format on
+    struct load_function_entry {
+        const char* name;
+        load_function_t loader;
+    };
 
-static const IgnoreListType customIgnore{"args",
-                                         "arg1",
-                                         "arg2",
-                                         "arg3",
-                                         "arg4",
-                                         "arg5",
-                                         "arg6",
-                                         "arg7",
-                                         "arg8",
-                                         "arg9",
-                                         "arg0"};
+    coreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, parentObject);
+    }
+
+    coreObject* loadExciter(std::shared_ptr<readerElement>& currentElement,
+                            readerInfo& readerInf,
+                            coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, parentObject);
+    }
+
+    coreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Governor*>(nullptr), "governor", readerInf, parentObject);
+    }
+
+    coreObject* loadPss(std::shared_ptr<readerElement>& currentElement,
+                        readerInfo& readerInf,
+                        coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Stabilizer*>(nullptr), "pss", readerInf, parentObject);
+    }
+
+    coreObject* loadSource(std::shared_ptr<readerElement>& currentElement,
+                           readerInfo& readerInf,
+                           coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Source*>(nullptr), "source", readerInf, parentObject);
+    }
+
+    coreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement,
+                              readerInfo& readerInf,
+                              coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, parentObject);
+    }
+
+    coreObject* loadAgc(std::shared_ptr<readerElement>& currentElement,
+                        readerInfo& readerInf,
+                        coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<AGControl*>(nullptr), "agc", readerInf, parentObject);
+    }
+
+    coreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
+                                      readerInfo& readerInf,
+                                      coreObject* parentObject)
+    {
+        return ElementReader(currentElement,
+                             static_cast<reserveDispatcher*>(nullptr),
+                             "reservedispatcher",
+                             readerInf,
+                             parentObject);
+    }
+
+    coreObject* loadBlock(std::shared_ptr<readerElement>& currentElement,
+                          readerInfo& readerInf,
+                          coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Block*>(nullptr), "block", readerInf, parentObject);
+    }
+
+    coreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement,
+                              readerInfo& readerInf,
+                              coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Generator*>(nullptr), "generator", readerInf, parentObject);
+    }
+
+    coreObject* loadLoad(std::shared_ptr<readerElement>& currentElement,
+                         readerInfo& readerInf,
+                         coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<Load*>(nullptr), "load", readerInf, parentObject);
+    }
+
+    coreObject* loadExtra(std::shared_ptr<readerElement>& currentElement,
+                          readerInfo& readerInf,
+                          coreObject* parentObject)
+    {
+        return ElementReader(
+            currentElement, static_cast<coreObject*>(nullptr), "extra", readerInf, parentObject);
+    }
+
+    coreObject* loadBus(std::shared_ptr<readerElement>& currentElement,
+                        readerInfo& readerInf,
+                        coreObject* parentObject)
+    {
+        return readBusElement(currentElement, readerInf, parentObject);
+    }
+
+    coreObject* loadRelay(std::shared_ptr<readerElement>& currentElement,
+                          readerInfo& readerInf,
+                          coreObject* parentObject)
+    {
+        return readRelayElement(currentElement, readerInf, parentObject);
+    }
+
+    coreObject* loadArea(std::shared_ptr<readerElement>& currentElement,
+                         readerInfo& readerInf,
+                         coreObject* parentObject)
+    {
+        return readAreaElement(currentElement, readerInf, parentObject);
+    }
+
+    coreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
+                         readerInfo& readerInf,
+                         coreObject* parentObject)
+    {
+        return readLinkElement(currentElement, readerInf, parentObject, false);
+    }
+
+    coreObject* loadEcon(std::shared_ptr<readerElement>& currentElement,
+                         readerInfo& readerInf,
+                         coreObject* parentObject)
+    {
+        readEconElement(currentElement, readerInf, parentObject);
+        return parentObject;
+    }
+
+    coreObject* loadArray(std::shared_ptr<readerElement>& currentElement,
+                          readerInfo& readerInf,
+                          coreObject* parentObject)
+    {
+        readArrayElement(currentElement, readerInf, parentObject);
+        return parentObject;
+    }
+
+    coreObject* loadIf(std::shared_ptr<readerElement>& currentElement,
+                       readerInfo& readerInf,
+                       coreObject* parentObject)
+    {
+        loadConditionElement(currentElement, readerInf, parentObject);
+        return parentObject;
+    }
+
+    const std::array<load_function_entry, 19> loadFunctionMap{
+        {{.name = "genmodel", .loader = &loadGenModel},
+         {.name = "exciter", .loader = &loadExciter},
+         {.name = "governor", .loader = &loadGovernor},
+         {.name = "pss", .loader = &loadPss},
+         {.name = "source", .loader = &loadSource},
+         {.name = "scheduler", .loader = &loadScheduler},
+         {.name = "agc", .loader = &loadAgc},
+         {.name = "reservedispatcher", .loader = &loadReserveDispatcher},
+         {.name = "block", .loader = &loadBlock},
+         {.name = "generator", .loader = &loadGenerator},
+         {.name = "load", .loader = &loadLoad},
+         {.name = "extra", .loader = &loadExtra},
+         {.name = "bus", .loader = &loadBus},
+         {.name = "relay", .loader = &loadRelay},
+         {.name = "area", .loader = &loadArea},
+         {.name = "link", .loader = &loadLink},
+         {.name = "econ", .loader = &loadEcon},
+         {.name = "array", .loader = &loadArray},
+         {.name = "if", .loader = &loadIf}}};
+
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    const IgnoreListType customIgnore{"args",
+                                      "arg1",
+                                      "arg2",
+                                      "arg3",
+                                      "arg4",
+                                      "arg5",
+                                      "arg6",
+                                      "arg7",
+                                      "arg8",
+                                      "arg9",
+                                      "arg0"};
+}  // namespace
 
 void loadSubObjects(std::shared_ptr<readerElement>& element,
-                    readerInfo& ri,
+                    readerInfo& readerInf,
                     coreObject* parentObject)
 {
     // read areas first to set them up for other things to call
     if (element->hasElement("area")) {
         element->moveToFirstChild("area");
         while (element->isValid()) {
-            readAreaElement(element, ri, parentObject);
+            readAreaElement(element, readerInf, parentObject);
             element->moveToNextSibling("area");  // next area
         }
         element->moveToParent();
@@ -88,7 +244,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
     if (element->hasElement("bus")) {
         element->moveToFirstChild("bus");
         while (element->isValid()) {
-            readBusElement(element, ri, parentObject);
+            readBusElement(element, readerInf, parentObject);
             element->moveToNextSibling("bus");  // next bus
         }
         element->moveToParent();
@@ -106,37 +262,40 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                    // in loops to add
         // stacked parameters and imports
         {
-            loadElementInformation(parentObject, element, fieldName, ri, IgnoreListType{});
+            loadElementInformation(parentObject, element, fieldName, readerInf, IgnoreListType{});
         } else {
             // std::cout<<"library model :"<<fieldName<<":\n";
-            auto obname = ri.objectNameTranslate(fieldName);
+            auto obname = readerInf.objectNameTranslate(fieldName);
             if (obname == "collector") {
-                loadCollectorElement(element, parentObject, ri);
+                loadCollectorElement(element, parentObject, readerInf);
             } else if (obname == "event") {
-                loadEventElement(element, parentObject, ri);
+                loadEventElement(element, parentObject, readerInf);
             } else {
-                auto rval = loadFunctionMap.find(obname);
-                if (rval != loadFunctionMap.end()) {
-                    coreObject* obj = rval->second(element, ri, parentObject);
+                const auto* const reader =
+                    std::find_if(loadFunctionMap.data(),
+                                 loadFunctionMap.data() + loadFunctionMap.size(),
+                                 [&obname](const auto& entry) { return entry.name == obname; });
+                if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
+                    const auto* obj = reader->loader(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   obj->getName() << " not owned by any other object");
                     }
-                } else if (ri.isCustomElement(obname)) {
-                    auto customElementPair = ri.getCustomElement(obname);
-                    auto scopeID = ri.newScope();
-                    loadDefines(element, ri);
+                } else if (readerInf.isCustomElement(obname)) {
+                    auto customElementPair = readerInf.getCustomElement(obname);
+                    auto scopeID = readerInf.newScope();
+                    loadDefines(element, readerInf);
                     char argVal = '1';
                     std::string argName = "arg";
                     for (int argNum = 1; argNum <= customElementPair.second; ++argVal, ++argNum) {
                         argName.push_back(argVal);
-                        auto av = getElementField(element, argName);
-                        if (!av.empty()) {
-                            ri.addDefinition(argName, av);
+                        auto argumentValue = getElementField(element, argName);
+                        if (!argumentValue.empty()) {
+                            readerInf.addDefinition(argName, argumentValue);
                         } else {
-                            av = getElementField(customElementPair.first, argName);
-                            if (!av.empty()) {
-                                ri.addDefinition(argName, av);
+                            argumentValue = getElementField(customElementPair.first, argName);
+                            if (!argumentValue.empty()) {
+                                readerInf.addDefinition(argName, argumentValue);
                             } else {
                                 WARNPRINT(READER_WARN_IMPORTANT,
                                           "custom element " << argName << " not specified");
@@ -145,8 +304,8 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                         argName.pop_back();
                     }
                     loadElementInformation(
-                        parentObject, customElementPair.first, obname, ri, customIgnore);
-                    ri.closeScope(scopeID);
+                        parentObject, customElementPair.first, obname, readerInf, customIgnore);
+                    readerInf.closeScope(scopeID);
                 }
             }
         }

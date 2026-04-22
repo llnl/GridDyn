@@ -169,7 +169,9 @@ namespace {
     {"econ", &loadEcon},
     {"reservedispatcher", &loadReserveDispatcher}
 // clang-format on
-}};
+}
+}
+;
 }  // namespace
 
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)

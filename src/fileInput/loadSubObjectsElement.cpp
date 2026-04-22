@@ -37,11 +37,11 @@ namespace {
     [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf, coreObject* parentObject)
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string,
-                      std::function<coreObject*(std::shared_ptr<readerElement>&,
-                                                readerInfo&,
-                                                coreObject* parent)>,
-                      std::less<>>
+const std::map<std::string,
+               std::function<coreObject*(std::shared_ptr<readerElement>&,
+                                         readerInfo&,
+                                         coreObject* parent)>,
+               std::less<>>
 loadFunctionMap{
   {"genmodel", READERSIGNATURE{return ElementReader(currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, parentObject);}},
       {"exciter", READERSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, parentObject);}},
@@ -66,17 +66,17 @@ loadFunctionMap{
 // clang-format on
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const IgnoreListType customIgnore{"args",
-                                         "arg1",
-                                         "arg2",
-                                         "arg3",
-                                         "arg4",
-                                         "arg5",
-                                         "arg6",
-                                         "arg7",
-                                         "arg8",
-                                         "arg9",
-                                         "arg0"};
+const IgnoreListType customIgnore{"args",
+                                  "arg1",
+                                  "arg2",
+                                  "arg3",
+                                  "arg4",
+                                  "arg5",
+                                  "arg6",
+                                  "arg7",
+                                  "arg8",
+                                  "arg9",
+                                  "arg0"};
 }  // namespace
 
 void loadSubObjects(std::shared_ptr<readerElement>& element,

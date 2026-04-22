@@ -37,9 +37,9 @@ namespace {
 #define READSIGNATURE [](std::shared_ptr<readerElement> & currentElement, readerInfo & readerInf)
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static const std::map<std::string,
-                          std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>,
-                          std::less<>>
+    const std::map<std::string,
+                   std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>,
+                   std::less<>>
         loadFunctionMap{// clang-format off
     {"genmodel", READSIGNATURE{return ElementReader (currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, nullptr);}},
     {"exciter", READSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, nullptr);}},

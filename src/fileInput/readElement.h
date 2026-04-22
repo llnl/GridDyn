@@ -71,7 +71,7 @@ void loadConditionElement(std::shared_ptr<readerElement>& element,
                           readerInfo& ri,
                           coreObject* parentObject);
 void loadSubObjects(std::shared_ptr<readerElement>& element,
-                    readerInfo& ri,
+                    readerInfo& readerInf,
                     coreObject* parentObject);
 
 void readImports(std::shared_ptr<readerElement>& element,
@@ -80,18 +80,18 @@ void readImports(std::shared_ptr<readerElement>& element,
                  bool finalFlag);
 
 void loadDefines(std::shared_ptr<readerElement>& element,
-                 readerInfo& ri);  // NOTE: defined in readLibraryElement.cpp
+                 readerInfo& readerInf);  // NOTE: defined in readLibraryElement.cpp
 void loadDirectories(std::shared_ptr<readerElement>& element,
-                     readerInfo& ri);  // NOTE: defined in readLibraryElement.cpp
+                     readerInfo& readerInf);  // NOTE: defined in readLibraryElement.cpp
 void loadTranslations(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri);  // NOTE: defined in readLibraryElement.cpp
+                      readerInfo& readerInf);  // NOTE: defined in readLibraryElement.cpp
 void loadCustomSections(std::shared_ptr<readerElement>& element,
-                        readerInfo& ri);  // NOTE: defined in readLibraryElement.cpp
+                        readerInfo& readerInf);  // NOTE: defined in readLibraryElement.cpp
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
                        readerInfo& ri,
                        gridDynSimulation* parentObject);
-void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& ri);
+void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf);
 
 using IgnoreListType = std::unordered_set<std::string>;
 // using IgnoreListType = boost::container::flat_set<std::string>;

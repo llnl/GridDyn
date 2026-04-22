@@ -285,7 +285,8 @@ class fmi2CoSimObject: public fmi2Object {
     /** advance a time step
     @param[in] currentCommunicationPoint the current communication point
     @param[in] communicationStepSize the size of the communication step
-    @param[in] noSetFMUStatePriorToCurrentPoint flag indicating whether setting the FMU state is skipped before the current point
+    @param[in] noSetFMUStatePriorToCurrentPoint flag indicating whether setting the FMU state is
+    skipped before the current point
     */
     void doStep(fmi2Real currentCommunicationPoint,
                 fmi2Real communicationStepSize,

@@ -78,17 +78,17 @@ static void rawReadTXadj(coreObject* parentObject,
 //                          basicReaderInfo& opt);
 
 namespace {
-enum class Section : std::uint8_t {
-    unknown,
-    bus,
-    branch,
-    load,
-    fixed_shunt,
-    generator,
-    tx,
-    switched_shunt,
-    txadj
-};
+    enum class Section : std::uint8_t {
+        unknown,
+        bus,
+        branch,
+        load,
+        fixed_shunt,
+        generator,
+        tx,
+        switched_shunt,
+        txadj
+    };
 }  // namespace
 
 // get the basic busFactory
@@ -710,10 +710,10 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
         {
             auto* oBus = static_cast<gridBus*>(gen->find("bus"));
             gridBus* nBus = busfactory->makeTypeObject();
-            auto* lnk = new acLine(
-                resistance * opt.base / machineBase,
-                reactance * opt.base /
-                    machineBase);  // we need to adjust to the simulation base as opposed to the machine base
+            auto* lnk = new acLine(resistance * opt.base / machineBase,
+                                   reactance * opt.base /
+                                       machineBase);  // we need to adjust to the simulation base as
+                                                      // opposed to the machine base
 
             oBus->remove(gen);
             nBus->add(gen);
@@ -1167,8 +1167,7 @@ static int rawReadTxV33(coreObject* parentObject,
         if (vn2 != 0.0) {
             const auto secondaryResistance =
                 resistance * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
-            const auto secondaryReactance =
-                reactance * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
+            const auto secondaryReactance = reactance * opt.base / base * (vn2 / bv2) * (vn2 / bv2);
             lnk->set("r", secondaryResistance);
             lnk->set("x", secondaryReactance);
         }
@@ -1469,7 +1468,7 @@ static int rawReadTX(coreObject* parentObject,
 //     return 0;
 // }
 
- static void rawReadSwitchedShunt(coreObject* parentObject,
+static void rawReadSwitchedShunt(coreObject* parentObject,
                                  const std::string& line,
                                  std::vector<gridBus*>& busList,
                                  basicReaderInfo& opt)

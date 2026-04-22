@@ -124,7 +124,8 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
             } else if (obname == "event") {
                 loadEventElement(element, parentObject, readerInf);
             } else {
-                auto rval = loadFunctionMap.find(obname);  // NOLINT(bugprone-throwing-static-initialization)
+                auto rval = loadFunctionMap.find(
+                    obname);  // NOLINT(bugprone-throwing-static-initialization)
                 if (rval != loadFunctionMap.end()) {
                     const auto* obj = rval->second(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {

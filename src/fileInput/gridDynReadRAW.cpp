@@ -18,6 +18,7 @@
 #include "griddyn/links/adjustableTransformer.h"
 #include "griddyn/loads/svd.h"
 #include "readerHelper.h"
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
@@ -78,7 +79,7 @@ static void rawReadTXadj(coreObject* parentObject,
 //                          basicReaderInfo& opt);
 
 namespace {
-enum class Section : std::uint8_t {
+enum class section : std::uint8_t {
     unknown,
     bus,
     branch,
@@ -101,7 +102,7 @@ static childTypeFactory<acLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-static Section findSectionType(const std::string& line);
+static section findSectionType(const std::string& line);
 
 static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 {
@@ -261,10 +262,10 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
     bool moreSections = true;
 
     while (moreSections) {
-        const Section currSection = findSectionType(line);
+        const section currSection = findSectionType(line);
         moreData = true;
         switch (currSection) {
-            case Section::load:
+            case section::load:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -281,7 +282,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::generator:
+            case section::generator:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -298,7 +299,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::branch:
+            case section::branch:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadBranch(parentObject, line, busList, opt);
@@ -307,7 +308,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::fixed_shunt:
+            case section::fixed_shunt:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -324,7 +325,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::switched_shunt:
+            case section::switched_shunt:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadSwitchedShunt(parentObject, line, busList, opt);
@@ -333,7 +334,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::txadj:
+            case section::txadj:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadTXadj(parentObject, line, busList, opt);
@@ -342,7 +343,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::tx:
+            case section::tx:
 
                 while (moreData) {
                     if (tline == 5) {
@@ -375,7 +376,7 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
                     }
                 }
                 break;
-            case Section::unknown:
+            case section::unknown:
             default:
                 while (moreData) {
                     if (std::getline(file, line)) {
@@ -424,36 +425,35 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, Section>, 17> sectionNames{{
-    {"BEGIN FIXED SHUNT", Section::fixed_shunt},
-    {"BEGIN SWITCHED SHUNT DATA", Section::switched_shunt},
-    {"BEGIN AREA INTERCHANGE DATA", Section::unknown},
-    {"BEGIN TWO-TERMINAL DC LINE DATA", Section::unknown},
-    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", Section::unknown},
-    {"BEGIN IMPEDANCE CORRECTION DATA", Section::unknown},
-    {"BEGIN MULTI-TERMINAL DC LINE DATA", Section::unknown},
-    {"BEGIN MULTI-SECTION LINE GROUP DATA", Section::unknown},
-    {"BEGIN ZONE DATA", Section::unknown},
-    {"BEGIN INTER-AREA TRANSFER DATA", Section::unknown},
-    {"BEGIN OWNER DATA", Section::unknown},
-    {"BEGIN FACTS CONTROL DEVICE DATA", Section::unknown},
-    {"BEGIN LOAD DATA", Section::load},
-    {"BEGIN GENERATOR DATA", Section::generator},
-    {"BEGIN BRANCH DATA", Section::branch},
-    {"BEGIN TRANSFORMER ADJUSTMENT DATA", Section::txadj},
-    {"BEGIN TRANSFORMER DATA", Section::tx},
+static constexpr std::array<std::pair<std::string_view, section>, 17> sectionNames{{
+    {"BEGIN FIXED SHUNT", section::fixed_shunt},
+    {"BEGIN SWITCHED SHUNT DATA", section::switched_shunt},
+    {"BEGIN AREA INTERCHANGE DATA", section::unknown},
+    {"BEGIN TWO-TERMINAL DC LINE DATA", section::unknown},
+    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", section::unknown},
+    {"BEGIN IMPEDANCE CORRECTION DATA", section::unknown},
+    {"BEGIN MULTI-TERMINAL DC LINE DATA", section::unknown},
+    {"BEGIN MULTI-SECTION LINE GROUP DATA", section::unknown},
+    {"BEGIN ZONE DATA", section::unknown},
+    {"BEGIN INTER-AREA TRANSFER DATA", section::unknown},
+    {"BEGIN OWNER DATA", section::unknown},
+    {"BEGIN FACTS CONTROL DEVICE DATA", section::unknown},
+    {"BEGIN LOAD DATA", section::load},
+    {"BEGIN GENERATOR DATA", section::generator},
+    {"BEGIN BRANCH DATA", section::branch},
+    {"BEGIN TRANSFORMER ADJUSTMENT DATA", section::txadj},
+    {"BEGIN TRANSFORMER DATA", section::tx},
 }};
 
-static Section findSectionType(const std::string& line)
+static section findSectionType(const std::string& line)
 {
     const auto upperLine = convertToUpperCase(line);
     for (const auto& sectionName : sectionNames) {
-        if ((line.find(sectionName.first) != std::string::npos) ||
-            (upperLine.find(sectionName.first) != std::string::npos)) {
+        if (line.contains(sectionName.first) || upperLine.contains(sectionName.first)) {
             return sectionName.second;
         }
     }
-    return Section::unknown;
+    return section::unknown;
 }
 
 static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
@@ -534,8 +534,8 @@ static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& o
         voltageMagnitude = numeric_conversion<double>(strvec[8], 0.0);
         voltageAngle = numeric_conversion<double>(strvec[9], 0.0);
         // load the fixed shunt data
-        const double realAdmittance = numeric_conversion<double>(strvec[4], 0.0);
-        const double reactiveAdmittance = numeric_conversion<double>(strvec[5], 0.0);
+        const auto realAdmittance = numeric_conversion<double>(strvec[4], 0.0);
+        const auto reactiveAdmittance = numeric_conversion<double>(strvec[5], 0.0);
         if ((realAdmittance != 0) || (reactiveAdmittance != 0)) {
             auto* fixedLoad = ldfactory->makeTypeObject();
             bus->add(fixedLoad);
@@ -973,8 +973,8 @@ static void rawReadTXadj(coreObject* parentObject,
     if (code == 3) {
         // not sure why I need this but
         tapAngle = tapAngle * 180 / kPI;
-        maxTap = std::max(tapAngle, maxTap);
-        minTap = std::min(tapAngle, minTap);
+        maxTap = (std::max)(tapAngle, maxTap);
+        minTap = (std::min)(tapAngle, minTap);
         adjTX->set("maxtapangle", maxTap, deg);
         adjTX->set("mintapangle", minTap, deg);
     } else {

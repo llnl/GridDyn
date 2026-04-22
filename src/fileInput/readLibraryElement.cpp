@@ -9,10 +9,11 @@
 #include "formatInterpreters/readerElement.h"
 #include "readElement.h"
 #include "readerHelper.h"
+#include <array>
 #include <cassert>
 #include <functional>
-#include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // A bunch of includes to load these kinds of objects
@@ -36,11 +37,10 @@ namespace griddyn {
 namespace {
 #define READSIGNATURE [](std::shared_ptr<readerElement> & currentElement, readerInfo & readerInf)
 
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    const std::map<std::string,  // NOLINT(bugprone-throwing-static-initialization)
-                   std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>,
-                   std::less<>>
-        loadFunctionMap{// clang-format off
+    using load_function_t = std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>;
+
+    const std::array<std::pair<std::string_view, load_function_t>, 16>
+        loadFunctionMap{{// clang-format off
     {"genmodel", READSIGNATURE{return ElementReader (currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, nullptr);}},
     {"exciter", READSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, nullptr);}},
     {"governor", READSIGNATURE{return ElementReader (currentElement, static_cast<Governor *>(nullptr), "governor", readerInf, nullptr);}},
@@ -56,10 +56,9 @@ namespace {
     {"scheduler", READSIGNATURE{return ElementReader (currentElement, static_cast<scheduler *>(nullptr), "scheduler", readerInf, nullptr);}},
     {"agc", READSIGNATURE{return ElementReader (currentElement, static_cast<AGControl *>(nullptr), "agc", readerInf, nullptr);}},
     {"econ", READSIGNATURE{return readEconElement (currentElement, readerInf, nullptr);}},
-    {"reservedispatcher",READSIGNATURE{return ElementReader (currentElement, static_cast<reserveDispatcher *>(nullptr), "reserveDispatcher", readerInf, nullptr);}},
+    {"reservedispatcher",READSIGNATURE{return ElementReader (currentElement, static_cast<reserveDispatcher *>(nullptr), "reserveDispatcher", readerInf, nullptr);}}
 // clang-format on
-}
-;
+}};
 }  // namespace
 
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
@@ -81,10 +80,13 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
             auto obname = readerInf.objectNameTranslate(fieldName);
-            auto rval = loadFunctionMap.find(obname);
-            if (rval != loadFunctionMap.end()) {
+            const auto reader = std::find_if(
+                loadFunctionMap.begin(),
+                loadFunctionMap.end(),
+                [&obname](const auto& entry) { return entry.first == obname; });
+            if (reader != loadFunctionMap.end()) {
                 const std::string bname = element->getName();
-                obj = rval->second(element, readerInf);
+                obj = reader->second(element, readerInf);
                 assert(bname == element->getName());
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,

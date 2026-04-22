@@ -7,11 +7,12 @@
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "readElement.h"
+#include <array>
 #include <cstdio>
 #include <functional>
 #include <iterator>
-#include <map>
 #include <string>
+#include <string_view>
 
 // A bunch of includes to load these kinds of objects
 #include "griddyn/Area.h"
@@ -36,15 +37,13 @@ namespace {
 #define READERSIGNATURE \
     [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf, coreObject* parentObject)
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-const std::map<std::string,  // NOLINT(bugprone-throwing-static-initialization)
-               std::function<coreObject*(std::shared_ptr<readerElement>&,
-                                         readerInfo&,
-                                         coreObject* parent)>,
-               std::less<>>
-loadFunctionMap{
+using load_function_t = std::function<coreObject*(std::shared_ptr<readerElement>&,
+                                                  readerInfo&,
+                                                  coreObject* parent)>;
+
+const std::array<std::pair<std::string_view, load_function_t>, 19> loadFunctionMap{{
   {"genmodel", READERSIGNATURE{return ElementReader(currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, parentObject);}},
-      {"exciter", READERSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, parentObject);}},
+  {"exciter", READERSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, parentObject);}},
     {"governor", READERSIGNATURE{return ElementReader (currentElement, static_cast<Governor *>(nullptr), "governor", readerInf, parentObject);}},
     {"pss", READERSIGNATURE{return ElementReader (currentElement, static_cast<Stabilizer *>(nullptr), "pss", readerInf, parentObject);}},
     {"source", READERSIGNATURE{return ElementReader (currentElement, static_cast<Source *>(nullptr), "source", readerInf, parentObject);}},
@@ -62,7 +61,7 @@ loadFunctionMap{
     {"econ", READERSIGNATURE{readEconElement (currentElement, readerInf, parentObject);return parentObject;}},
     {"array", READERSIGNATURE{readArrayElement (currentElement, readerInf, parentObject);return parentObject;}},
     {"if", READERSIGNATURE{loadConditionElement (currentElement, readerInf, parentObject);return parentObject;}}
-};
+}};
 // clang-format on
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
@@ -124,9 +123,12 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
             } else if (obname == "event") {
                 loadEventElement(element, parentObject, readerInf);
             } else {
-                auto rval = loadFunctionMap.find(obname);  // NOLINT(bugprone-throwing-static-initialization)
-                if (rval != loadFunctionMap.end()) {
-                    const auto* obj = rval->second(element, readerInf, parentObject);
+                const auto reader = std::find_if(
+                    loadFunctionMap.begin(),
+                    loadFunctionMap.end(),
+                    [&obname](const auto& entry) { return entry.first == obname; });
+                if (reader != loadFunctionMap.end()) {
+                    const auto* obj = reader->second(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   obj->getName() << " not owned by any other object");

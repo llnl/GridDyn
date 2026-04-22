@@ -33,56 +33,60 @@
 #include "griddyn/loads/zipLoad.h"
 
 namespace griddyn {
-#define READSIGNATURE [](std::shared_ptr<readerElement> & cd, readerInfo & ri)
+namespace {
+#define READSIGNATURE \
+    [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string,
                       std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>,
                       std::less<>>
     loadFunctionMap{
         // clang-format off
-    {"genmodel", READSIGNATURE{return ElementReader (cd, static_cast<GenModel *>(nullptr), "genmodel", ri, nullptr);}},
-    {"exciter", READSIGNATURE{return ElementReader (cd, static_cast<Exciter *>(nullptr), "exciter", ri, nullptr);}},
-    {"governor", READSIGNATURE{return ElementReader (cd, static_cast<Governor *>(nullptr), "governor", ri, nullptr);}},
-    {"pss", READSIGNATURE{return ElementReader (cd, static_cast<Stabilizer *>(nullptr), "pss", ri, nullptr);}},
-    {"source", READSIGNATURE{return ElementReader (cd, static_cast<Source *>(nullptr), "source", ri, nullptr);}},
-    {"controlblock", READSIGNATURE{return ElementReader (cd, static_cast<Block *>(nullptr), "controlblock", ri, nullptr);}},
-    {"generator", READSIGNATURE{return ElementReader (cd, static_cast<Generator *>(nullptr), "generator", ri, nullptr);}},
-    {"load", READSIGNATURE{return ElementReader (cd, static_cast<Load *>(nullptr), "load", ri, nullptr);}},
-    {"bus", READSIGNATURE{return readBusElement (cd, ri, nullptr);}},
-    {"relay", READSIGNATURE{return readRelayElement (cd, ri, nullptr);}},
-    {"area", READSIGNATURE{return readAreaElement (cd, ri, nullptr);}},
-    {"link", READSIGNATURE{return readLinkElement (cd, ri, nullptr, false);}},
-    {"scheduler", READSIGNATURE{return ElementReader (cd, static_cast<scheduler *>(nullptr), "scheduler", ri, nullptr);}},
-    {"agc", READSIGNATURE{return ElementReader (cd, static_cast<AGControl *>(nullptr), "agc", ri, nullptr);}},
-    {"econ", READSIGNATURE{return readEconElement (cd, ri, nullptr);}},
-    {"reservedispatcher",READSIGNATURE{return ElementReader (cd, static_cast<reserveDispatcher *>(nullptr), "reserveDispatcher", ri, nullptr);}},
+    {"genmodel", READSIGNATURE{return ElementReader (currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, nullptr);}},
+    {"exciter", READSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, nullptr);}},
+    {"governor", READSIGNATURE{return ElementReader (currentElement, static_cast<Governor *>(nullptr), "governor", readerInf, nullptr);}},
+    {"pss", READSIGNATURE{return ElementReader (currentElement, static_cast<Stabilizer *>(nullptr), "pss", readerInf, nullptr);}},
+    {"source", READSIGNATURE{return ElementReader (currentElement, static_cast<Source *>(nullptr), "source", readerInf, nullptr);}},
+    {"controlblock", READSIGNATURE{return ElementReader (currentElement, static_cast<Block *>(nullptr), "controlblock", readerInf, nullptr);}},
+    {"generator", READSIGNATURE{return ElementReader (currentElement, static_cast<Generator *>(nullptr), "generator", readerInf, nullptr);}},
+    {"load", READSIGNATURE{return ElementReader (currentElement, static_cast<Load *>(nullptr), "load", readerInf, nullptr);}},
+    {"bus", READSIGNATURE{return readBusElement (currentElement, readerInf, nullptr);}},
+    {"relay", READSIGNATURE{return readRelayElement (currentElement, readerInf, nullptr);}},
+    {"area", READSIGNATURE{return readAreaElement (currentElement, readerInf, nullptr);}},
+    {"link", READSIGNATURE{return readLinkElement (currentElement, readerInf, nullptr, false);}},
+    {"scheduler", READSIGNATURE{return ElementReader (currentElement, static_cast<scheduler *>(nullptr), "scheduler", readerInf, nullptr);}},
+    {"agc", READSIGNATURE{return ElementReader (currentElement, static_cast<AGControl *>(nullptr), "agc", readerInf, nullptr);}},
+    {"econ", READSIGNATURE{return readEconElement (currentElement, readerInf, nullptr);}},
+    {"reservedispatcher",READSIGNATURE{return ElementReader (currentElement, static_cast<reserveDispatcher *>(nullptr), "reserveDispatcher", readerInf, nullptr);}},
 // clang-format on
 }
 ;
+}  // namespace
 
-void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& ri)
+void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
-    auto riScope = ri.newScope();
+    auto riScope = readerInf.newScope();
     // readerInfo xm2;
-    std::string baseName = element->getName();
+    const std::string baseName = element->getName();
     element->bookmark();
 
-    loadDefines(element, ri);
-    loadDirectories(element, ri);
+    loadDefines(element, readerInf);
+    loadDirectories(element, readerInf);
     // loop through the other children
     element->moveToFirstChild();
 
     while (element->isValid()) {
         coreObject* obj = nullptr;
-        std::string fieldName = gmlc::utilities::convertToLowerCase(element->getName());
+        const std::string fieldName = gmlc::utilities::convertToLowerCase(element->getName());
         // std::cout<<"library model :"<<fieldName<<":\n";
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
-            auto obname = ri.objectNameTranslate(fieldName);
+            auto obname = readerInf.objectNameTranslate(fieldName);
             auto rval = loadFunctionMap.find(obname);
             if (rval != loadFunctionMap.end()) {
-                std::string bname = element->getName();
-                obj = rval->second(element, ri);
+                const std::string bname = element->getName();
+                obj = rval->second(element, readerInf);
                 assert(bname == element->getName());
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,
@@ -90,8 +94,8 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& ri)
             }
         }
         if (obj != nullptr) {
-            std::vector<gridParameter> pf;
-            bool found = ri.addLibraryObject(obj, pf);
+            std::vector<gridParameter> paramFields;
+            const bool found = readerInf.addLibraryObject(obj, paramFields);
             if (found) {
                 LEVELPRINT(READER_VERBOSE_PRINT,
                            "adding " << fieldName << " " << obj->getName() << " to Library");
@@ -106,12 +110,12 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& ri)
 
     element->restore();
     assert(element->getName() == baseName);
-    ri.closeScope(riScope);
+    readerInf.closeScope(riScope);
 }
 
 static const char defineString[] = "define";
 
-void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
+void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
     if (!element->hasElement(defineString)) {
         return;
@@ -144,7 +148,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
             locked = ((lockstr == "true") || (lockstr == "1"));
         }
 
-        auto kcheck = ri.checkDefines(rep);
+        auto kcheck = readerInf.checkDefines(rep);
         if (def == kcheck) {
             WARNPRINT(READER_WARN_ALL,
                       "illegal recursive definition " << def << " name and value are equivalent");
@@ -153,7 +157,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
         }
         // check for overloading
         if (element->hasAttribute("eval")) {
-            double val = interpretString(rep, ri);
+            const double val = interpretString(rep, readerInf);
             if (std::isnormal(val)) {
                 if (std::abs(trunc(val) - val) < 1e-9) {
                     rep = std::to_string(static_cast<int>(val));
@@ -164,9 +168,9 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
         }
 
         if (locked) {
-            ri.addLockedDefinition(def, rep);
+            readerInf.addLockedDefinition(def, rep);
         } else {
-            ri.addDefinition(def, rep);
+            readerInf.addDefinition(def, rep);
         }
 
         element->moveToNextSibling(defineString);  // next define
@@ -176,7 +180,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& ri)
 
 static const char directoryString[] = "directory";
 
-void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& ri)
+void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
     // loop through all directory elements
     if (!element->hasElement(directoryString)) {
@@ -184,17 +188,18 @@ void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& ri)
     }
     element->moveToFirstChild(directoryString);
     while (element->isValid()) {
-        std::string dfld = (element->hasAttribute("value")) ? element->getAttributeText("value") :
-                                                              element->getText();
+        const std::string dfld = (element->hasAttribute("value")) ?
+            element->getAttributeText("value") :
+            element->getText();
 
-        ri.addDirectory(dfld);
+        readerInf.addDirectory(dfld);
         element->moveToNextSibling(directoryString);
     }
     element->moveToParent();
 }
 
 static const char customString[] = "custom";
-void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& ri)
+void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
     if (!element->hasElement(customString)) {
         return;
@@ -208,15 +213,15 @@ void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& ri)
             continue;
         }
         auto args = element->getAttributeValue("args");
-        int nargs = (args != kNullVal) ? static_cast<int>(args) : 0;
-        ri.addCustomElement(name, element, nargs);
+        const int nargs = (args != kNullVal) ? static_cast<int>(args) : 0;
+        readerInf.addCustomElement(name, element, nargs);
         element->moveToNextSibling(directoryString);
     }
     element->moveToParent();
 }
 
 static const char translateString[] = "translate";
-void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
+void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
     if (!element->hasElement(translateString)) {
         return;
@@ -231,7 +236,7 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
             def = element->getAttributeText("string");
         }
 
-        std::string component = element->getAttributeText("component");
+        const std::string component = element->getAttributeText("component");
 
         if ((def.empty()) && (component.empty())) {
             WARNPRINT(READER_WARN_ALL, "neither name nor component specified in translation");
@@ -239,7 +244,7 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
             continue;
         }
 
-        auto kcheck = ri.objectNameTranslate(component);
+        auto kcheck = readerInf.objectNameTranslate(component);
         if (def == kcheck) {
             WARNPRINT(READER_WARN_ALL,
                       "illegal recursive object name translation "
@@ -248,7 +253,7 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
             continue;
         }
 
-        std::string type = element->getAttributeText("type");
+        const std::string type = element->getAttributeText("type");
 
         if (type.empty()) {
             if ((def.empty()) && (component.empty())) {
@@ -257,14 +262,14 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& ri)
                 element->moveToNextSibling(translateString);
                 continue;
             }
-            ri.addTranslate(def, component);
+            readerInf.addTranslate(def, component);
         } else {
             if (def.empty()) {
-                ri.addTranslateType(component, type);
+                readerInf.addTranslateType(component, type);
             } else if (component.empty()) {
-                ri.addTranslateType(def, type);
+                readerInf.addTranslateType(def, type);
             } else {
-                ri.addTranslate(def, component, type);
+                readerInf.addTranslate(def, component, type);
             }
         }
 

@@ -32,7 +32,7 @@
 
 namespace griddyn {
 namespace {
-// clang-format off
+    // clang-format off
 #define READERSIGNATURE \
     [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf, coreObject* parentObject)
 

@@ -150,8 +150,8 @@ namespace {
                              nullptr);
     }
 
-    const std::array<load_function_entry, 16>
-        loadFunctionMap{{// clang-format off
+    const std::array<load_function_entry, 16> loadFunctionMap{{
+        // clang-format off
     {"genmodel", &loadGenModel},
     {"exciter", &loadExciter},
     {"governor", &loadGovernor},
@@ -168,10 +168,8 @@ namespace {
     {"agc", &loadAgc},
     {"econ", &loadEcon},
     {"reservedispatcher", &loadReserveDispatcher}
-// clang-format on
-}
-}
-;
+        // clang-format on
+    }};
 }  // namespace
 
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
@@ -193,10 +191,10 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
             auto obname = readerInf.objectNameTranslate(fieldName);
-            const auto* const reader = std::find_if(
-                loadFunctionMap.data(),
-                loadFunctionMap.data() + loadFunctionMap.size(),
-                [&obname](const auto& entry) { return entry.name == obname; });
+            const auto* const reader =
+                std::find_if(loadFunctionMap.data(),
+                             loadFunctionMap.data() + loadFunctionMap.size(),
+                             [&obname](const auto& entry) { return entry.name == obname; });
             if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
                 const std::string bname = element->getName();
                 obj = reader->loader(element, readerInf);

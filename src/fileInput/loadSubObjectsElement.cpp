@@ -123,10 +123,10 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
             } else if (obname == "event") {
                 loadEventElement(element, parentObject, readerInf);
             } else {
-                const auto reader = std::find_if(
-                    loadFunctionMap.begin(),
-                    loadFunctionMap.end(),
-                    [&obname](const auto& entry) { return entry.first == obname; });
+                const auto reader =
+                    std::find_if(loadFunctionMap.begin(),
+                                 loadFunctionMap.end(),
+                                 [&obname](const auto& entry) { return entry.first == obname; });
                 if (reader != loadFunctionMap.end()) {
                     const auto* obj = reader->second(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {

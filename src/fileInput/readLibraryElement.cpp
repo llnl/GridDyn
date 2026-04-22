@@ -37,10 +37,11 @@ namespace griddyn {
 namespace {
 #define READSIGNATURE [](std::shared_ptr<readerElement> & currentElement, readerInfo & readerInf)
 
-    using load_function_t = std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>;
+    using load_function_t =
+        std::function<coreObject*(std::shared_ptr<readerElement>&, readerInfo&)>;
 
-    const std::array<std::pair<std::string_view, load_function_t>, 16>
-        loadFunctionMap{{// clang-format off
+    const std::array<std::pair<std::string_view, load_function_t>, 16> loadFunctionMap{
+        {// clang-format off
     {"genmodel", READSIGNATURE{return ElementReader (currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, nullptr);}},
     {"exciter", READSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, nullptr);}},
     {"governor", READSIGNATURE{return ElementReader (currentElement, static_cast<Governor *>(nullptr), "governor", readerInf, nullptr);}},
@@ -58,7 +59,9 @@ namespace {
     {"econ", READSIGNATURE{return readEconElement (currentElement, readerInf, nullptr);}},
     {"reservedispatcher",READSIGNATURE{return ElementReader (currentElement, static_cast<reserveDispatcher *>(nullptr), "reserveDispatcher", readerInf, nullptr);}}
 // clang-format on
-}};
+}
+}
+;
 }  // namespace
 
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
@@ -80,10 +83,10 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
             auto obname = readerInf.objectNameTranslate(fieldName);
-            const auto reader = std::find_if(
-                loadFunctionMap.begin(),
-                loadFunctionMap.end(),
-                [&obname](const auto& entry) { return entry.first == obname; });
+            const auto reader =
+                std::find_if(loadFunctionMap.begin(),
+                             loadFunctionMap.end(),
+                             [&obname](const auto& entry) { return entry.first == obname; });
             if (reader != loadFunctionMap.end()) {
                 const std::string bname = element->getName();
                 obj = reader->second(element, readerInf);

@@ -80,15 +80,15 @@ static void rawReadTXadj(coreObject* parentObject,
 
 namespace {
     enum class section_t : std::uint8_t {
-    unknown,
-    bus,
-    branch,
-    load,
-    fixed_shunt,
-    generator,
-    tx,
-    switched_shunt,
-    txadj
+        unknown,
+        bus,
+        branch,
+        load,
+        fixed_shunt,
+        generator,
+        tx,
+        switched_shunt,
+        txadj
     };
 }  // namespace
 
@@ -711,7 +711,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
             auto* oBus = static_cast<gridBus*>(gen->find("bus"));
             gridBus* nBus = busfactory->makeTypeObject();
             auto* lnk = new acLine(resistance * opt.base / machineBase,
-                reactance * opt.base /
+                                   reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as
                                                       // opposed to the machine base
 

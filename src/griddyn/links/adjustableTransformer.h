@@ -105,7 +105,7 @@ class adjustableTransformer: public acLine {
 @param[in] cBus  the specified control Bus*/
     void setControlBus(gridBus* cBus);
     /**@ brief set the control bus to a specified bus number
-@param[in] busNumber-- this can be 1 or 2 for already attached buses or the user id of a bus in
+@param[in] busNumber this can be 1 or 2 for already attached buses or the user id of a bus in
 which cases the parent of the link is searched for the bus*/
     void setControlBus(index_t busNumber = 2);
 
@@ -178,20 +178,20 @@ which cases the parent of the link is searched for the bus*/
     /** @brief compute the Jacobian elements based on the MW control
 @param[in] sD  the stateData of the current state of the system
 @param[out] md the matrixData object to store the Jacobian information
-@param[in]  the solverMode corresponding to the stateData
+@param[in] sMode the solverMode corresponding to the stateData
 */
     void MWJac(const stateData& sD, matrixData<double>& md, const solverMode& sMode);
     /** @brief compute the Jacobian elements based on the MVar control
 @param[in] sD  the stateData of the current state of the system
 @param[out] md the matrixData object to store the Jacobian information
-@param[in]  the solverMode corresponding to the stateData
+@param[in] sMode the solverMode corresponding to the stateData
 */
     void MVarJac(const stateData& sD, matrixData<double>& md, const solverMode& sMode);
     /** @brief compute the partial derivatives of the power flows based on the tap angle
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
 @param[in] sD  the stateData of the current state of the system
 @param[out] md the matrixData object to store the Jacobian information
-@param[in]  the solverMode corresponding to the stateData
+@param[in] sMode the solverMode corresponding to the stateData
 */
     void tapAnglePartial(index_t busId,
                          const stateData& sD,
@@ -201,7 +201,7 @@ which cases the parent of the link is searched for the bus*/
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
 @param[in] sD  the stateData of the current state of the system
 @param[out] md the matrixData object to store the Jacobian information
-@param[in]  the solverMode corresponding to the stateData
+@param[in] sMode the solverMode corresponding to the stateData
 */
     void tapPartial(index_t busId,
                     const stateData& sD,

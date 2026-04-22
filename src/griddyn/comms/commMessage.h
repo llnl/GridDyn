@@ -231,7 +231,7 @@ class MessageTypeRegistry {
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
     @param[in] type the message type to store in the registry*/
-    void registerType(std::string_view name, std::uint32_t);
+    void registerType(std::string_view name, std::uint32_t type);
 
     uint32_t getType(std::string_view name) const;
     std::string getTypeString(int32_t type) const;
@@ -295,10 +295,10 @@ class corePayloadFactory {
     static corePayloadFactory& instance();
     /** insert a factory in the coreMessageFactory
     @param[in] name the string used to find the message factory in subsequent operations
-    @param[in] mf pointer to a message factory to store in the core factory*/
+    @param[in] messageFactory pointer to a message factory to store in the core factory*/
     void registerFactory(std::string_view name, payloadFactory* messageFactory);
     /** insert a factory in the coreMessageFactory
-    @param[in] mf pointer to a message factory to store in the core factory*/
+    @param[in] messageFactory pointer to a message factory to store in the core factory*/
     void registerFactory(payloadFactory* messageFactory);
     /** get a list of all the valid message types*/
     std::vector<std::string> getPayloadTypeNames();

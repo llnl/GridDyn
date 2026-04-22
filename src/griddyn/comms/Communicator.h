@@ -35,7 +35,7 @@ class Communicator:
     */
     virtual std::unique_ptr<Communicator> clone() const;
     /** function to clone the communicator to another object
-    @param[in] obj an object to copy data to
+    @param[in] comm an object to copy data to
     */
     virtual void cloneTo(Communicator* comm) const;
     /** transmit a commMessage somewhere

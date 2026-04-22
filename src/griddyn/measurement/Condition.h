@@ -45,7 +45,6 @@ class Condition: public objectOperatorInterface {
   public:
     /** default constructor
     @param[in] valGrabber the grabber for the LHS of the equation
-    @param[in] valGrabberSt the state portion of the grabber for the LHS of the equation
     */
     explicit Condition(std::shared_ptr<grabberSet> valGrabber = nullptr);
     /** destructor*/
@@ -55,17 +54,15 @@ class Condition: public objectOperatorInterface {
     */
     virtual std::unique_ptr<Condition> clone() const;
     /** clone the condition to a given object
-    @param[out] pointer to a Condition object to clone the information to
+    @param[out] cond a Condition object to clone the information to
     */
     virtual void cloneTo(Condition* cond) const;
     /** load the grabbers for the Left hand side of the condition equation
     @param[in] valGrabber a gridGrabber
-    @param[in] valGrabberSt a stateGrabber default nullptr
     */
     void setConditionLHS(std::shared_ptr<grabberSet> valGrabber);
     /** load the grabbers for the Right hand side of the condition equation
     @param[in] valGrabber a gridGrabber
-    @param[in] valGrabberSt a stateGrabber default nullptr
     */
     void setConditionRHS(std::shared_ptr<grabberSet> valGrabber);
     /**run the comparison between condition sides from gridGrabbers

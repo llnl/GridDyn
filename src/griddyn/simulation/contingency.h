@@ -213,7 +213,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
 /** @brief perform a contingency analysis
 @param[in] contList the list of specific contingencies to test
 @param[in] output a string containing the output specs (either fileName or some other string
-@param[in] count the number of contingencies to run, 0 means all
+@param[in] count1 the number of contingencies to run, 0 means all
 */
 void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
                             const std::string& output,

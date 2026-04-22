@@ -33,7 +33,7 @@ class powerFlowErrorRecovery {
     virtual ~powerFlowErrorRecovery();
 
     /** @brief attempt the various fixes in order
-  @param[in] optional error code value
+  @param[in] error_code optional error code value
   @return recovery_return_codes::more_options if attemptFix can be called again without reset
   recovery_return_codes::out_of_options if no more fix attempts are available
   */

@@ -49,7 +49,6 @@ class gridGrabber: public objectOperatorInterface {
 
     virtual ~gridGrabber() = default;
     /** clone function
-     *@param[in] ggb a pointer to another gridGrabber function if we are cloning on existing object
      *@return a shared_ptr to another GridGrabber*/
     virtual std::unique_ptr<gridGrabber> clone() const;
     /** cloneTo function
@@ -70,9 +69,9 @@ class gridGrabber: public objectOperatorInterface {
     /** @brief get the descriptions of the data
      *@param[out] desc_list the list of descriptions
      **/
-    virtual coreTime getTime() const;
-    /** get a description of the grabber*/
     virtual void getDesc(std::vector<std::string>& desc_list) const;
+    /** get the current time associated with the grabber*/
+    virtual coreTime getTime() const;
     /** get a single description of the grabber*/
     virtual const std::string& getDesc() const;
     /** set the description text*/

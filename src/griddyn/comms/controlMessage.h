@@ -57,7 +57,6 @@ class controlMessagePayload: public CommPayload {
     controlMessagePayload() = default;
 
     /** constructor
-@param[in] type the type of the message
 @param[in] fld the name of the field in question
 @param[in] val the value associated with the field
 @param[in] time the time for a schedule

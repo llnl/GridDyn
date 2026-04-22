@@ -111,7 +111,7 @@ class Generator: public gridSecondary {
 
     virtual void add(coreObject* obj) override;
     /** @brief additional add function specific to subModels
-    @param[in] a submodel to add
+    @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
     virtual void add(gridSubModel* obj);
 

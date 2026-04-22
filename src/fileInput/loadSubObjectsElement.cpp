@@ -9,10 +9,8 @@
 #include "readElement.h"
 #include <array>
 #include <cstdio>
-#include <functional>
 #include <iterator>
 #include <string>
-#include <string_view>
 
 // A bunch of includes to load these kinds of objects
 #include "griddyn/Area.h"
@@ -33,36 +31,186 @@
 
 namespace griddyn {
 namespace {
-    // clang-format off
-#define READERSIGNATURE \
-    [](std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf, coreObject* parentObject)
+using load_function_t =
+    coreObject* (*)(std::shared_ptr<readerElement>&, readerInfo&, coreObject* parent);
 
-using load_function_t = std::function<coreObject*(std::shared_ptr<readerElement>&,
-                                                  readerInfo&,
-                                                  coreObject* parent)>;
+struct load_function_entry {
+    const char* name;
+    load_function_t loader;
+};
 
-const std::array<std::pair<std::string_view, load_function_t>, 19> loadFunctionMap{{
-  {"genmodel", READERSIGNATURE{return ElementReader(currentElement, static_cast<GenModel *>(nullptr), "genmodel", readerInf, parentObject);}},
-  {"exciter", READERSIGNATURE{return ElementReader (currentElement, static_cast<Exciter *>(nullptr), "exciter", readerInf, parentObject);}},
-    {"governor", READERSIGNATURE{return ElementReader (currentElement, static_cast<Governor *>(nullptr), "governor", readerInf, parentObject);}},
-    {"pss", READERSIGNATURE{return ElementReader (currentElement, static_cast<Stabilizer *>(nullptr), "pss", readerInf, parentObject);}},
-    {"source", READERSIGNATURE{return ElementReader (currentElement, static_cast<Source *>(nullptr), "source", readerInf, parentObject);}},
-    {"scheduler", READERSIGNATURE{return ElementReader (currentElement, static_cast<scheduler *>(nullptr), "scheduler", readerInf, parentObject);}},
-    {"agc", READERSIGNATURE{return ElementReader (currentElement, static_cast<AGControl *>(nullptr), "agc", readerInf, parentObject);}},
-    {"reservedispatcher",READERSIGNATURE{return ElementReader (currentElement, static_cast<reserveDispatcher *>(nullptr), "reservedispatcher", readerInf, parentObject);}},
-    {"block", READERSIGNATURE{return ElementReader (currentElement, static_cast<Block *>(nullptr), "block", readerInf, parentObject);}},
-    {"generator", READERSIGNATURE{return ElementReader (currentElement, static_cast<Generator *>(nullptr), "generator", readerInf, parentObject);}},
-    {"load", READERSIGNATURE{return ElementReader (currentElement, static_cast<Load *>(nullptr), "load", readerInf, parentObject);}},
-    {"extra", READERSIGNATURE{ return ElementReader(currentElement, static_cast<coreObject *>(nullptr), "extra", readerInf, parentObject); } },
-    {"bus", READERSIGNATURE{return readBusElement (currentElement, readerInf, parentObject);}},
-    {"relay", READERSIGNATURE{return readRelayElement (currentElement, readerInf, parentObject);}},
-    {"area", READERSIGNATURE{return readAreaElement (currentElement, readerInf, parentObject);}},
-    {"link", READERSIGNATURE{return readLinkElement (currentElement, readerInf, parentObject, false);}},
-    {"econ", READERSIGNATURE{readEconElement (currentElement, readerInf, parentObject);return parentObject;}},
-    {"array", READERSIGNATURE{readArrayElement (currentElement, readerInf, parentObject);return parentObject;}},
-    {"if", READERSIGNATURE{loadConditionElement (currentElement, readerInf, parentObject);return parentObject;}}
+static coreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement,
+                                readerInfo& readerInf,
+                                coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, parentObject);
+}
+
+static coreObject* loadExciter(std::shared_ptr<readerElement>& currentElement,
+                               readerInfo& readerInf,
+                               coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, parentObject);
+}
+
+static coreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement,
+                                readerInfo& readerInf,
+                                coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Governor*>(nullptr), "governor", readerInf, parentObject);
+}
+
+static coreObject* loadPss(std::shared_ptr<readerElement>& currentElement,
+                           readerInfo& readerInf,
+                           coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Stabilizer*>(nullptr), "pss", readerInf, parentObject);
+}
+
+static coreObject* loadSource(std::shared_ptr<readerElement>& currentElement,
+                              readerInfo& readerInf,
+                              coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Source*>(nullptr), "source", readerInf, parentObject);
+}
+
+static coreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement,
+                                 readerInfo& readerInf,
+                                 coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, parentObject);
+}
+
+static coreObject* loadAgc(std::shared_ptr<readerElement>& currentElement,
+                           readerInfo& readerInf,
+                           coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<AGControl*>(nullptr), "agc", readerInf, parentObject);
+}
+
+static coreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
+                                         readerInfo& readerInf,
+                                         coreObject* parentObject)
+{
+    return ElementReader(currentElement,
+                         static_cast<reserveDispatcher*>(nullptr),
+                         "reservedispatcher",
+                         readerInf,
+                         parentObject);
+}
+
+static coreObject* loadBlock(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Block*>(nullptr), "block", readerInf, parentObject);
+}
+
+static coreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement,
+                                 readerInfo& readerInf,
+                                 coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Generator*>(nullptr), "generator", readerInf, parentObject);
+}
+
+static coreObject* loadLoad(std::shared_ptr<readerElement>& currentElement,
+                            readerInfo& readerInf,
+                            coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<Load*>(nullptr), "load", readerInf, parentObject);
+}
+
+static coreObject* loadExtra(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+{
+    return ElementReader(
+        currentElement, static_cast<coreObject*>(nullptr), "extra", readerInf, parentObject);
+}
+
+static coreObject* loadBus(std::shared_ptr<readerElement>& currentElement,
+                           readerInfo& readerInf,
+                           coreObject* parentObject)
+{
+    return readBusElement(currentElement, readerInf, parentObject);
+}
+
+static coreObject* loadRelay(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+{
+    return readRelayElement(currentElement, readerInf, parentObject);
+}
+
+static coreObject* loadArea(std::shared_ptr<readerElement>& currentElement,
+                            readerInfo& readerInf,
+                            coreObject* parentObject)
+{
+    return readAreaElement(currentElement, readerInf, parentObject);
+}
+
+static coreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
+                            readerInfo& readerInf,
+                            coreObject* parentObject)
+{
+    return readLinkElement(currentElement, readerInf, parentObject, false);
+}
+
+static coreObject* loadEcon(std::shared_ptr<readerElement>& currentElement,
+                            readerInfo& readerInf,
+                            coreObject* parentObject)
+{
+    readEconElement(currentElement, readerInf, parentObject);
+    return parentObject;
+}
+
+static coreObject* loadArray(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             coreObject* parentObject)
+{
+    readArrayElement(currentElement, readerInf, parentObject);
+    return parentObject;
+}
+
+static coreObject* loadIf(std::shared_ptr<readerElement>& currentElement,
+                          readerInfo& readerInf,
+                          coreObject* parentObject)
+{
+    loadConditionElement(currentElement, readerInf, parentObject);
+    return parentObject;
+}
+
+const std::array<load_function_entry, 19> loadFunctionMap{{
+    {"genmodel", &loadGenModel},
+    {"exciter", &loadExciter},
+    {"governor", &loadGovernor},
+    {"pss", &loadPss},
+    {"source", &loadSource},
+    {"scheduler", &loadScheduler},
+    {"agc", &loadAgc},
+    {"reservedispatcher", &loadReserveDispatcher},
+    {"block", &loadBlock},
+    {"generator", &loadGenerator},
+    {"load", &loadLoad},
+    {"extra", &loadExtra},
+    {"bus", &loadBus},
+    {"relay", &loadRelay},
+    {"area", &loadArea},
+    {"link", &loadLink},
+    {"econ", &loadEcon},
+    {"array", &loadArray},
+    {"if", &loadIf}
 }};
-// clang-format on
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 const IgnoreListType customIgnore{"args",
@@ -123,12 +271,12 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
             } else if (obname == "event") {
                 loadEventElement(element, parentObject, readerInf);
             } else {
-                const auto reader = std::find_if(
-                    loadFunctionMap.begin(),
-                    loadFunctionMap.end(),
-                    [&obname](const auto& entry) { return entry.first == obname; });
-                if (reader != loadFunctionMap.end()) {
-                    const auto* obj = reader->second(element, readerInf, parentObject);
+                const auto* const reader = std::find_if(
+                    loadFunctionMap.data(),
+                    loadFunctionMap.data() + loadFunctionMap.size(),
+                    [&obname](const auto& entry) { return entry.name == obname; });
+                if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
+                    const auto* obj = reader->loader(element, readerInf, parentObject);
                     if ((obj->isRoot()) && (obj != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   obj->getName() << " not owned by any other object");

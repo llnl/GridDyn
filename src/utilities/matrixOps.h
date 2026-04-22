@@ -15,8 +15,7 @@
 @details assumes vec has the appropriate size otherwise undefined behavior will occur
 @param[in] md the matrix to multiply size MxN
 @param[in] vec the vector data to multiply at least size N
-@param[out] res the location to store the results
-@return a vector with the results the vector will be of length M
+@param[out] res the location to store the results, with length M
 */
 void matrixDataMultiply(matrixData<double>& md, const double vec[], double res[]);
 

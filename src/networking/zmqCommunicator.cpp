@@ -150,13 +150,13 @@ void zmqCommunicator::disconnect()
 void zmqCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
-        txDescriptor.addOperation(zmqlib::socket_ops::connect, val);
+        txDescriptor.addOperation(zmqlib::socket_ops::connect, std::string{val});
     } else if (param == "rxconnection") {
-        rxDescriptor.addOperation(zmqlib::socket_ops::connect, val);
+        rxDescriptor.addOperation(zmqlib::socket_ops::connect, std::string{val});
     } else if (param == "rxsubscription") {
-        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, val);
+        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, std::string{val});
     } else if (param == "txsubscription") {
-        txDescriptor.addOperation(zmqlib::socket_ops::subscribe, val);
+        txDescriptor.addOperation(zmqlib::socket_ops::subscribe, std::string{val});
     } else if ((param == "proxy") || (param == "proxyname")) {
         proxyName = val;
         setFlag("useproxy", true);

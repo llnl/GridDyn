@@ -283,9 +283,9 @@ class fmi2CoSimObject: public fmi2Object {
     */
     void getOutputDerivatives(int order, fmi2Real dOdt[]) const;
     /** advance a time step
-    @param[in] currentCommunicationPoint
-    @param[in] communicationStepSize
-    @param[in] noSetFMUStatePriorToCurrentPoint
+    @param[in] currentCommunicationPoint the current communication point
+    @param[in] communicationStepSize the size of the communication step
+    @param[in] noSetFMUStatePriorToCurrentPoint flag indicating whether setting the FMU state is skipped before the current point
     */
     void doStep(fmi2Real currentCommunicationPoint,
                 fmi2Real communicationStepSize,

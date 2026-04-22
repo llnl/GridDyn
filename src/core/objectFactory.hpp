@@ -100,14 +100,14 @@ class coreObjectFactory {
 
     /** @brief register a type factory with the coreObjectFactory
     @param[in] name the string identifier to the factory
-    @param[in] tf the type factory to place in the map
+    @param[in] componentFac the type factory to place in the map
     */
     void registerFactory(std::string_view name,
                          const std::shared_ptr<componentFactory>& componentFac);
 
     /** @brief register a type factory with the coreObjectFactory
     gets the name to use in the mapping from the type factory itself
-    @param[in] tf the type factory to place in the map
+    @param[in] componentFac the type factory to place in the map
     */
     void registerFactory(const std::shared_ptr<componentFactory>& componentFac);
 

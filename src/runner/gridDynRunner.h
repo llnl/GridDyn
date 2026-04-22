@@ -64,7 +64,7 @@ class GriddynRunner {
 
     /**
     * Run simulation to completion but return immediately
-    @details @see getStatus to query the status and result of the asynchronous call
+    Query the status and result of the asynchronous call with `getStatus`.
     */
     virtual void RunAsync();
 
@@ -82,7 +82,6 @@ class GriddynRunner {
      * return early.
      *
      * @param time maximum time simulation may advance to.
-     * @return time simulation successfully advanced to.
      */
     virtual void StepAsync(coreTime time);
 
@@ -112,9 +111,7 @@ class GriddynRunner {
 
   protected:
     /**
-     * Get the next GridDyn Event time
-     *
-     * @return the next event time
+     * Stop any active recording associated with the runner.
      */
     void StopRecording(void);
 

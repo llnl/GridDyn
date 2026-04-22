@@ -64,11 +64,11 @@ class gridGrabber: public objectOperatorInterface {
      *@return the value produced by the grabber*/
     virtual double grabData();
     /** @brief grab a vector of data
-     *@param[out] data the vector to store the data in
+     *@param[out] vdata the vector to store the data in
      */
     virtual void grabVectorData(std::vector<double>& vdata);
     /** @brief get the descriptions of the data
-     *@param[out] desc_list  the list of descriptions
+     *@param[out] desc_list the list of descriptions
      **/
     virtual coreTime getTime() const;
     /** get a description of the grabber*/
@@ -169,7 +169,6 @@ class opGrabber: public gridGrabber {
     /** update a specific object
      *@param[in] obj  the new object
      *@param[in] num  1 for updating bgrabber 1 2 for bgrabber 2
-     *@return 0 if successful, error code otherwise
      */
     virtual void updateObject(coreObject* obj, int num);
     virtual coreObject* getObject() const override;

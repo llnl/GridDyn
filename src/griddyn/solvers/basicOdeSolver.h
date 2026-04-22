@@ -43,12 +43,13 @@ class basicOdeSolver: public SolverInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(coreTime t0) override;
 
-    virtual double get(const std::string& param) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
+    virtual double get(std::string_view param) const override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
 
     virtual int
         solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal) override;
 };
 
 }  // namespace griddyn::solvers
+

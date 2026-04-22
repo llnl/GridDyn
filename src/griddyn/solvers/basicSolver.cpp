@@ -101,7 +101,7 @@ namespace solvers {
         solverCallCount = 0;
     }
 
-    double basicSolver::get(const std::string& param) const
+    double basicSolver::get(std::string_view param) const
     {
         if (param == "alpha") {
             return alpha;
@@ -111,7 +111,7 @@ namespace solvers {
         }
         return SolverInterface::get(param);
     }
-    void basicSolver::set(const std::string& param, const std::string& val)
+    void basicSolver::set(std::string_view param, std::string_view val)
     {
         if (param == "algorithm") {
             auto lcs = convertToLowerCase(val);
@@ -126,7 +126,7 @@ namespace solvers {
             SolverInterface::set(param, val);
         }
     }
-    void basicSolver::set(const std::string& param, double val)
+    void basicSolver::set(std::string_view param, double val)
     {
         if (param == "alpha") {
             alpha = val;
@@ -227,3 +227,4 @@ namespace solvers {
 
 }  // namespace solvers
 }  // namespace griddyn
+

@@ -219,7 +219,7 @@ const double* sundialsInterface::type_data() const noexcept
     return nvecdata(use_omp, types);
 }
 
-double sundialsInterface::get(const std::string& param) const
+double sundialsInterface::get(std::string_view param) const
 {
     if (param == "maxnnz") {
         return static_cast<double>(maxNNZ);
@@ -496,3 +496,4 @@ writeArray(sd->solveTime, 1, val, sd->mode.offsetIndex, a1, sd->jacFile);
 }
 
 }  // namespace griddyn::solvers
+

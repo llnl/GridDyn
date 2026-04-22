@@ -106,7 +106,7 @@ class sundialsInterface: public SolverInterface {
     virtual const double* type_data() const noexcept override;
     virtual void allocate(count_t stateCount, count_t numRoots) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
-    virtual double get(const std::string& param) const override;
+    virtual double get(std::string_view param) const override;
 
     /** @brief get the dedicated memory space of the solver
 @return a void pointer to the memory location of the solver specific memory
@@ -136,3 +136,4 @@ int sundialsJac(realtype time,
                 N_Vector tmp2);
 
 }  // namespace griddyn::solvers
+

@@ -112,7 +112,7 @@ void idaInterface::setMaxNonZeros(count_t nonZeros)
     a1.clear();
 }
 
-void idaInterface::set(const std::string& param, double val)
+void idaInterface::set(std::string_view param, double val)
 {
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
@@ -123,7 +123,7 @@ void idaInterface::set(const std::string& param, double val)
     }
 }
 
-double idaInterface::get(const std::string& param) const
+double idaInterface::get(std::string_view param) const
 {
     long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
@@ -598,3 +598,4 @@ int idaJac(realtype time,
 }
 
 }  // namespace griddyn::solvers
+

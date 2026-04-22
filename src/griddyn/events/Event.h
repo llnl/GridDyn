@@ -91,9 +91,9 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     virtual bool isArmed() const override { return armed; }
     event_execution_mode executionMode() const override { return event_execution_mode::normal; }
     bool initNeeded() const { return initRequired; }
-    virtual void set(const std::string& param, double val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
     /** set the trigger time of an event
      */
     virtual void setTime(coreTime time);
@@ -154,3 +154,5 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
+
+

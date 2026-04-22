@@ -93,9 +93,9 @@ class Communicator:
     virtual void initialize();
     /** disconnect the communicator from the communications medium*/
     virtual void disconnect();
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
 
   private:
     std::uint64_t m_id;  //!< individual comm id
@@ -110,3 +110,4 @@ std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
                                                const std::uint64_t id);
 }  // namespace griddyn
+

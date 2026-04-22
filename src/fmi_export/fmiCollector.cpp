@@ -42,14 +42,14 @@ change_code fmiCollector::trigger(coreTime time)
     return change_code::no_change;
 }
 
-void fmiCollector::set(const std::string& param, double val)
+void fmiCollector::set(std::string_view param, double val)
 {
     if (param.empty()) {
     } else {
         collector::set(param, val);
     }
 }
-void fmiCollector::set(const std::string& param, const std::string& val)
+void fmiCollector::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -97,3 +97,4 @@ void fmiCollector::dataPointAdded(const collectorPoint& cp)
 }
 
 }  // namespace griddyn::fmi
+

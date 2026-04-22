@@ -148,7 +148,7 @@ std::vector<std::string> collector::getColumnDescriptions() const
     return res;
 }
 
-void collector::set(const std::string& param, double val)
+void collector::set(std::string_view param, double val)
 {
     if (param == "period") {
         reqPeriod = val;
@@ -173,7 +173,7 @@ void collector::set(const std::string& param, double val)
     }
 }
 
-void collector::set(const std::string& param, const std::string& val)
+void collector::set(std::string_view param, std::string_view val)
 {
     if (param.front() == '#') {
     } else {
@@ -181,7 +181,7 @@ void collector::set(const std::string& param, const std::string& val)
     }
 }
 
-void collector::setFlag(const std::string& flag, bool val)
+void collector::setFlag(std::string_view flag, bool val)
 {
     if (flag == "vector_name") {
         vectorName = val;
@@ -480,3 +480,4 @@ std::unique_ptr<collector> makeCollector(const std::string& type, const std::str
 }
 
 }  // namespace griddyn
+

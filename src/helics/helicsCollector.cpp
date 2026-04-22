@@ -130,12 +130,12 @@ change_code helicsCollector::trigger(coreTime time)
     return out;
 }
 
-void helicsCollector::set(const std::string& param, double val)
+void helicsCollector::set(std::string_view param, double val)
 {
     collector::set(param, val);
 }
 
-void helicsCollector::set(const std::string& param, const std::string& val)
+void helicsCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "complex") {
         auto asLoc = val.find("as");
@@ -197,3 +197,4 @@ const std::string& helicsCollector::getSinkName() const
 }
 
 }  // namespace griddyn::helicsLib
+

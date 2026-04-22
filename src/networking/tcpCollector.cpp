@@ -54,7 +54,7 @@ change_code tcpCollector::trigger(coreTime time)
     return out;
 }
 
-void tcpCollector::set(const std::string& param, double val)
+void tcpCollector::set(std::string_view param, double val)
 {
     if (param == "port") {
         port = std::to_string(val);
@@ -63,7 +63,7 @@ void tcpCollector::set(const std::string& param, double val)
     }
 }
 
-void tcpCollector::set(const std::string& param, const std::string& val)
+void tcpCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "server") {
         server = val;
@@ -80,3 +80,4 @@ const std::string& tcpCollector::getSinkName() const
 }
 
 }  // namespace griddyn::tcpLib
+

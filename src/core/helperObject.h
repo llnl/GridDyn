@@ -35,35 +35,35 @@ class helperObject {
     /** @brief default destructor  so it can be overridden*/
     virtual ~helperObject();
 
-    virtual void set(const std::string& param, const std::string& val);
+    virtual void set(std::string_view param, std::string_view val);
     /**
      * @brief sets a numeric parameter of an object
      * @param[in] param the name of the parameter to change
      * @param[in] val the value of the parameter to set
      */
-    virtual void set(const std::string& param, double val);
+    virtual void set(std::string_view param, double val);
     /** @brief get flags
     @param flag -the name of the flag to be queried
     @param val the value to the set the flag ;
     */
-    virtual void setFlag(const std::string& flag, bool val = true);
+    virtual void setFlag(std::string_view flag, bool val = true);
     /** @brief get flags
     @param flag the name of the flag to query.
     @return the value of the flag queried
     */
-    virtual bool getFlag(const std::string& flag) const;
+    virtual bool getFlag(std::string_view flag) const;
     /**
      * @brief get a parameter from the object
      * @param[in] param the name of the parameter to get
      * @return val the value of the parameter returns kNullVal if no property is found
      */
-    virtual double get(const std::string& param) const;
+    virtual double get(std::string_view param) const;
     /**
      * helper function wrapper to return an int (instead of a double) from the get function
      * @param[in] param the name of the parameter to get
      * @return val the value of the parameter
      */
-    inline int getInt(const std::string& param) const { return static_cast<int>(get(param)); }
+    inline int getInt(std::string_view param) const { return static_cast<int>(get(param)); }
 
     /** @brief set the name*/
     void setName(std::string_view newName)

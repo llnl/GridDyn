@@ -250,7 +250,7 @@ void kinsolInterface::sparseReInit(sparse_reinit_modes sparseReinitMode)
     KLUReInit(sparseReinitMode);
 }
 
-void kinsolInterface::set(const std::string& param, const std::string& val)
+void kinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -258,7 +258,7 @@ void kinsolInterface::set(const std::string& param, const std::string& val)
     }
 }
 
-void kinsolInterface::set(const std::string& param, double val)
+void kinsolInterface::set(std::string_view param, double val)
 {
     if (param.empty()) {
     } else if (param == "maxiterations") {
@@ -270,7 +270,7 @@ void kinsolInterface::set(const std::string& param, double val)
     }
 }
 
-double kinsolInterface::get(const std::string& param) const
+double kinsolInterface::get(std::string_view param) const
 {
     long int val = -1;
     if (param == "jac calls") {
@@ -432,3 +432,4 @@ int kinsolJac(N_Vector state,
 }
 
 }  // namespace griddyn::solvers
+

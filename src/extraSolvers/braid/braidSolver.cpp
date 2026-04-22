@@ -217,7 +217,7 @@ void braidSolver::initialize(coreTime t0)
         static_cast<double>(tStart), stopTime, N_unistep_, m_gds, y0_, &mode, discontinuities);
 }
 
-double braidSolver::get(const std::string& param) const
+double braidSolver::get(std::string_view param) const
 {
     if (param == "deltat") {
         return deltaT;
@@ -225,18 +225,18 @@ double braidSolver::get(const std::string& param) const
         return SolverInterface::get(param);
     }
 }
-void braidSolver::set(const std::string& param, const std::string& val)
+void braidSolver::set(std::string_view param, std::string_view val)
 {
     if ((param == "configfile") || (param == "file") || (param == "config_file")) {
-        configFile = val;
+        configFile = std::string{val};
     } else if (param == "discontinuities") {
-        discontinuities = gmlc::utilities::str2vector<double>(val, 0.0);
+        discontinuities = gmlc::utilities::str2vector<double>(std::string{val}, 0.0);
         std::sort(discontinuities.begin(), discontinuities.end(), std::less<>());
     } else {
         SolverInterface::set(param, val);
     }
 }
-void braidSolver::set(const std::string& param, double val)
+void braidSolver::set(std::string_view param, double val)
 {
     if ((param == "delta") || (param == "deltat") || (param == "step") || (param == "steptime")) {
         deltaT = val;
@@ -506,3 +506,4 @@ int braidSolver::calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constr
     return 0;
 }
 }  // namespace griddyn::braid
+

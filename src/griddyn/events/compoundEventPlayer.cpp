@@ -55,7 +55,7 @@ void compoundEventPlayer::setTimeValue(const std::vector<coreTime>& /* times */,
 {
 }
 
-void compoundEventPlayer::set(const std::string& param, double val)
+void compoundEventPlayer::set(std::string_view param, double val)
 {
     if (param[0] == '#') {
     } else {
@@ -63,7 +63,7 @@ void compoundEventPlayer::set(const std::string& param, double val)
     }
 }
 
-void compoundEventPlayer::set(const std::string& param, const std::string& val)
+void compoundEventPlayer::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -203,3 +203,4 @@ void compoundEventPlayer::loadEventFile(const std::string& fileName)
     }
 }
 }  // namespace griddyn::events
+

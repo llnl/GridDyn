@@ -50,7 +50,7 @@ void dimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
 {
 }
 
-void dimeCommunicator::set(const std::string& param, const std::string& val)
+void dimeCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -58,12 +58,12 @@ void dimeCommunicator::set(const std::string& param, const std::string& val)
     }
 }
 
-void dimeCommunicator::set(const std::string& param, double val)
+void dimeCommunicator::set(std::string_view param, double val)
 {
     zmqCommunicator::set(param, val);
 }
 
-void dimeCommunicator::setFlag(const std::string& flag, bool val)
+void dimeCommunicator::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
@@ -72,3 +72,4 @@ void dimeCommunicator::setFlag(const std::string& flag, bool val)
 }
 
 }  // namespace griddyn::dimeLib
+

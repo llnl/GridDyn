@@ -53,7 +53,7 @@ void Recorder::cloneTo(collector* col) const
     nrec->autosave = autosave;
 }
 
-void Recorder::set(const std::string& param, double val)
+void Recorder::set(std::string_view param, double val)
 {
     if (param == "precision") {
         precision = static_cast<decltype(precision)>(val);
@@ -66,7 +66,7 @@ void Recorder::set(const std::string& param, double val)
     }
 }
 
-void Recorder::set(const std::string& param, const std::string& val)
+void Recorder::set(std::string_view param, std::string_view val)
 {
     if ((param == "file") || (param == "fileName")) {
         fileName_ = val;
@@ -171,3 +171,4 @@ const std::string& Recorder::getSinkName() const
     return getFileName();
 }
 }  // namespace griddyn
+

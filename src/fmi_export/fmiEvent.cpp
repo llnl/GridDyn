@@ -40,7 +40,7 @@ void fmiEvent::cloneTo(Event* evnt) const
     // gp->valueref = valueref;
 }
 
-void fmiEvent::set(const std::string& param, double val)
+void fmiEvent::set(std::string_view param, double val)
 {
     if ((param == "vr") || (param == "valuereference")) {
         // valueref = static_cast<unsigned int>(val);
@@ -49,7 +49,7 @@ void fmiEvent::set(const std::string& param, double val)
     }
 }
 
-void fmiEvent::set(const std::string& param, const std::string& val)
+void fmiEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
@@ -111,3 +111,4 @@ void fmiEvent::findCoordinator()
 }
 
 }  // namespace griddyn::fmi
+

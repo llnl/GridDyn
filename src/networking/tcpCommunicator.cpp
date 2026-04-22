@@ -142,7 +142,7 @@ void tcpCommunicator::disconnect()
     // txSocket = nullptr;
 }
 
-void tcpCommunicator::set(const std::string& param, const std::string& val)
+void tcpCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
         // txDescriptor.addOperation(socket_ops::connect, val);
@@ -164,12 +164,12 @@ void tcpCommunicator::set(const std::string& param, const std::string& val)
     }
 }
 
-void tcpCommunicator::set(const std::string& param, double val)
+void tcpCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }
 
-void tcpCommunicator::setFlag(const std::string& flag, bool val)
+void tcpCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
         flags.set(transmit_only, val);
@@ -209,3 +209,4 @@ void tcpCommunicator::setFlag(const std::string& flag, bool val)
  */
 
 }  // namespace griddyn::tcpLib
+

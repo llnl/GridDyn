@@ -147,7 +147,7 @@ void zmqCommunicator::disconnect()
     txSocket = nullptr;
 }
 
-void zmqCommunicator::set(const std::string& param, const std::string& val)
+void zmqCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
         txDescriptor.addOperation(zmqlib::socket_ops::connect, val);
@@ -169,12 +169,12 @@ void zmqCommunicator::set(const std::string& param, const std::string& val)
     }
 }
 
-void zmqCommunicator::set(const std::string& param, double val)
+void zmqCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }
 
-void zmqCommunicator::setFlag(const std::string& flag, bool val)
+void zmqCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
         flags.set(transmit_only, val);
@@ -213,3 +213,4 @@ void zmqCommunicator::messageHandler(const zmq::multipart_t& msg)
 }
 
 }  // namespace griddyn::zmqInterface
+

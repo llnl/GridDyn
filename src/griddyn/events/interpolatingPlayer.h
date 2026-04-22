@@ -40,9 +40,9 @@ class interpolatingPlayer: public Player {
     virtual change_code trigger() override;
     virtual change_code trigger(coreTime time) override;
 
-    virtual void set(const std::string& param, double val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
     virtual std::string to_string() const override;
 
     // friendly helper functions for sorting
@@ -51,3 +51,4 @@ class interpolatingPlayer: public Player {
 };
 }  // namespace griddyn::events
 #endif
+

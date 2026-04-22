@@ -88,7 +88,7 @@ void compoundEvent::setValue(double val, units::unit newUnits)
     }
 }
 
-void compoundEvent::set(const std::string& param, double val)
+void compoundEvent::set(std::string_view param, double val)
 {
     if (param[0] == '#') {
     } else {
@@ -96,7 +96,7 @@ void compoundEvent::set(const std::string& param, double val)
     }
 }
 
-void compoundEvent::set(const std::string& param, const std::string& val)
+void compoundEvent::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -191,3 +191,4 @@ bool compoundEvent::setTarget(coreObject* gdo, const std::string& var)
     return armed;
 }
 }  // namespace griddyn::events
+

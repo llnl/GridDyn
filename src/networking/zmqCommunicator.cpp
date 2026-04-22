@@ -161,9 +161,9 @@ void zmqCommunicator::set(std::string_view param, std::string_view val)
         proxyName = val;
         setFlag("useproxy", true);
     } else if ((param == "txtype") || (param == "sockettype")) {
-        txDescriptor.type = zmqlib::socketTypeFromString(val);
+        txDescriptor.type = zmqlib::socketTypeFromString(std::string{val});
     } else if (param == "rxtype") {
-        rxDescriptor.type = zmqlib::socketTypeFromString(val);
+        rxDescriptor.type = zmqlib::socketTypeFromString(std::string{val});
     } else {
         Communicator::set(param, val);
     }

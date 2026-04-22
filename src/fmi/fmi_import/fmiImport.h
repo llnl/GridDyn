@@ -132,7 +132,7 @@ class fmiLibrary {
     fmiLibrary();
     ~fmiLibrary();
     /** construct an fmilibrary object from the fmu path
-    @param[in] the path to the fmu
+    @param[in] fmupath the path to the fmu
     */
     explicit fmiLibrary(const std::string& fmupath);
     /** construct an fmilibrary object from the fmu path
@@ -147,7 +147,7 @@ class fmiLibrary {
     @return true if loaded false if not*/
     bool isSoLoaded(fmutype_t type = fmutype_t::unknown) const;
     /** load the FMU from the fmu path
-    @param[in] path the fmu*/
+    @param[in] fmupath the fmu*/
     void loadFMU(const std::string& fmupath);
     /** load the FMU from the fmu path
     @param[in] fmupath the fmu
@@ -205,7 +205,6 @@ class fmiLibrary {
 
 /** logging function to capture log messages
 @details converts to a string then calls a component specific logging function
-@param[in] category the category of the message
 @param[in] message the log message text
 */
 void loggerFunc(fmi2ComponentEnvironment /* compEnv */,

@@ -29,7 +29,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
     /** @brief default constructor*/
     matrixDataOrdered() noexcept {}
     /** @brief constructor
-    @param[in] rowCount  the number of rows and columns in the matrix
+    @param[in] RowCount  the number of rows and columns in the matrix
     */
     explicit matrixDataOrdered(index_t RowCount):
         matrixData<ValueT>(RowCount, RowCount), dVec(RowCount)

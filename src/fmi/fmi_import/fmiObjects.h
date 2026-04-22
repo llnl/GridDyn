@@ -273,7 +273,7 @@ class fmi2CoSimObject: public fmi2Object {
                     std::shared_ptr<const fmiCommonFunctions> comFunc,
                     std::shared_ptr<const fmiCoSimFunctions> csFunc);
     /** set the input derivatives of particular order
-    @param[in] order
+    @param[in] order the derivative order to set
     @param[in] dIdt the input derivatives must be of the size as the number of inputs
     */
     void setInputDerivatives(int order, const fmi2Real dIdt[]);

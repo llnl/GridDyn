@@ -101,7 +101,7 @@ class AsioServiceManager {
     @details will run a single thread for the io_service,  it will not stop the thread until either
     the service manager is closed or the haltServiceLoop function is called and there is no more
     work
-    @param in the name of the service
+    @param[in] serviceName the name of the service
     */
     static LoopHandle runServiceLoop(const std::string& serviceName = std::string());
 

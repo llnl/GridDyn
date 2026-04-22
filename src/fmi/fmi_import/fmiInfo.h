@@ -166,7 +166,6 @@ class fmiInfo {
     /** check if a given flag is set*/
     bool checkFlag(fmuCapabilityFlags flag) const;
     /** get the counts for various items in a fmu
-    @details
     @param[in] countType the type of counts to get
     @return the count*/
     int getCounts(const std::string& countType) const;

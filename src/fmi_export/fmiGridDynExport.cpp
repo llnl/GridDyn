@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <memory>
 #include <mutex>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -372,7 +373,7 @@ fmi2Status fmi2SetString(fmi2Component comp,
             runner->recordDirectory = value[ii];
             runner->getSim()->set("recorddirectory", runner->recordDirectory);
         } else {
-            printf(" setting string %d to %s\n", vr[ii], value[ii]);
+            std::println(" setting string {} to {}", vr[ii], value[ii]);
             auto res = runner->SetString(vr[ii], value[ii]);
             if (!res) {
                 ret = fmi2Warning;

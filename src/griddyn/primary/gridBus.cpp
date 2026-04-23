@@ -25,6 +25,7 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <print>
 #include <queue>
 #include <string>
 #include <vector>
@@ -1060,12 +1061,12 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
     outputs[frequencyInLocation] = getFreq(sD, sMode);
 #if DEBUG_KEY_BUS > 0
     if (getID() == DEBUG_KEY_BUS) {
-        printf("%d V=%f, A=%f voltage=%f, angle=%f \n",
-               DEBUG_KEY_BUS,
-               outputs[voltageInLocation],
-               outputs[angleInLocation] * 180.0 / kPI,
-               voltage,
-               angle * 180 / kPI);
+        std::println("{} V={}, A={} voltage={}, angle={} ",
+                     DEBUG_KEY_BUS,
+                     outputs[voltageInLocation],
+                     outputs[angleInLocation] * 180.0 / kPI,
+                     voltage,
+                     angle * 180 / kPI);
     }
 #endif
     auto cid = getID();
@@ -1076,11 +1077,11 @@ void gridBus::updateLocalCache(const IOdata& /*inputs*/,
             S.linkQ += link->getReactivePower(cid);
 #if DEBUG_KEY_BUS > 0
             if (getID() == DEBUG_KEY_BUS) {
-                printf("%d linkP=%f, linkQ=%f line %s\n",
-                       DEBUG_KEY_BUS,
-                       link->getRealPower(cid),
-                       link->getReactivePower(cid),
-                       link->getName().c_str());
+                std::println("{} linkP={}, linkQ={} line {}",
+                             DEBUG_KEY_BUS,
+                             link->getRealPower(cid),
+                             link->getReactivePower(cid),
+                             link->getName().c_str());
             }
 #endif
         }
@@ -1169,7 +1170,7 @@ void gridBus::updateLocalCache()
     {
     if (std::abs(linkP + loadP) > 0.001)
     {
-    printf("Bus %s has spurious generation requirement of %f\n",  name.c_str(), linkP + loadP);
+    std::println("Bus {} has spurious generation requirement of {}", name.c_str(), linkP + loadP);
     }
     }*/
 }
@@ -1488,24 +1489,24 @@ bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues, bool printDiff)
     if (bus1->dynType != bus2->dynType) {
         cmp = false;
         if (printDiff) {
-            printf("dynamic type is different\n");
+            std::println("dynamic type is different");
         }
     }
 
     if (std::abs(bus1->localBaseVoltage - bus2->localBaseVoltage) > 0.00001) {
         cmp = false;
         if (printDiff) {
-            printf("base voltage is different b1=%f <> b2=%f\n",
-                   bus1->localBaseVoltage,
-                   bus2->localBaseVoltage);
+            std::println("base voltage is different b1={} <> b2={}",
+                         bus1->localBaseVoltage,
+                         bus2->localBaseVoltage);
         }
     }
     if (std::abs(bus1->systemBasePower - bus2->systemBasePower) > 0.00001) {
         cmp = false;
         if (printDiff) {
-            printf("base power is different b1=%f <> b2=%f\n",
-                   bus1->systemBasePower,
-                   bus2->systemBasePower);
+            std::println("base power is different b1={} <> b2={}",
+                         bus1->systemBasePower,
+                         bus2->systemBasePower);
         }
     }
     if (cmpValues) {
@@ -1514,71 +1515,71 @@ bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues, bool printDiff)
         if (std::abs(bus1->getVoltage() - bus2->getVoltage()) > 0.001) {
             cmp = false;
             if (printDiff) {
-                printf("bus voltages are different b1=%f <> b2=%f\n",
-                       bus1->getVoltage(),
-                       bus2->getVoltage());
+                std::println("bus voltages are different b1={} <> b2={}",
+                             bus1->getVoltage(),
+                             bus2->getVoltage());
             }
         }
         if (std::abs(bus1->getAngle() - bus2->getAngle()) > 0.001) {
             cmp = false;
             if (printDiff) {
-                printf("bus angles are different b1=%f <> b2=%f\n",
-                       bus1->getAngle(),
-                       bus2->getAngle());
+                std::println("bus angles are different b1={} <> b2={}",
+                             bus1->getAngle(),
+                             bus2->getAngle());
             }
         }
         auto diff = std::abs(bus1->getLoadReal() - bus2->getLoadReal());
         if ((diff > 0.02) && (diff / std::abs(bus1->getLoadReal()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("real load is different b1=%f <> b2=%f\n",
-                       bus1->getLoadReal(),
-                       bus2->getLoadReal());
+                std::println("real load is different b1={} <> b2={}",
+                             bus1->getLoadReal(),
+                             bus2->getLoadReal());
             }
         }
         diff = std::abs(bus1->getLoadReactive() - bus2->getLoadReactive());
         if ((diff > 0.02) && (diff / std::abs(bus1->getLoadReactive()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("reactive load is different b1=%f <> b2=%f\n",
-                       bus1->getLoadReactive(),
-                       bus2->getLoadReactive());
+                std::println("reactive load is different b1={} <> b2={}",
+                             bus1->getLoadReactive(),
+                             bus2->getLoadReactive());
             }
         }
         diff = std::abs(bus1->getGenerationReal() - bus2->getGenerationReal());
         if ((diff > 0.02) && (diff / std::abs(bus1->getGenerationReal()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("real generation is different b1=%f <> b2=%f\n",
-                       bus1->getGenerationReal(),
-                       bus2->getGenerationReal());
+                std::println("real generation is different b1={} <> b2={}",
+                             bus1->getGenerationReal(),
+                             bus2->getGenerationReal());
             }
         }
         diff = std::abs(bus1->getGenerationReactive() - bus2->getGenerationReactive());
         if ((diff > 0.02) && (diff / std::abs(bus1->getGenerationReactive()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("reactive generation is different b1=%f <> b2=%f\n",
-                       bus1->getGenerationReactive(),
-                       bus2->getGenerationReactive());
+                std::println("reactive generation is different b1={} <> b2={}",
+                             bus1->getGenerationReactive(),
+                             bus2->getGenerationReactive());
             }
         }
         diff = std::abs(bus1->getLinkReal() - bus2->getLinkReal());
         if ((diff > 0.02) && (diff / std::abs(bus1->getLinkReal()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("real link is different b1=%f <> b2=%f\n",
-                       bus1->getLinkReal(),
-                       bus2->getLinkReal());
+                std::println("real link is different b1={} <> b2={}",
+                             bus1->getLinkReal(),
+                             bus2->getLinkReal());
             }
         }
         diff = std::abs(bus1->getLinkReactive() - bus2->getLinkReactive());
         if ((diff > 0.02) && (diff / std::abs(bus1->getLinkReactive()) > 0.01)) {
             cmp = false;
             if (printDiff) {
-                printf("reactive link is different b1=%f <> b2=%f\n",
-                       bus1->getLinkReactive(),
-                       bus2->getLinkReactive());
+                std::println("reactive link is different b1={} <> b2={}",
+                             bus1->getLinkReactive(),
+                             bus2->getLinkReactive());
             }
         }
     } else {

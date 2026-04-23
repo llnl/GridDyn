@@ -25,6 +25,7 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <print>
 #include <fmilib.h>
 
 #define BUFFER 1000
@@ -42,7 +43,7 @@ static void fmi1logger(fmi1_component_t c,
     va_list argp;
     va_start(argp, message);
     len = vsnprintf(msg, BUFFER, message, argp);
-    printf("fmiStatus = %d;  %s (%s): %s\n", status, instanceName, category, message);
+    std::println("fmiStatus = {};  {} ({}): {}", status, instanceName, category, message);
 }
 
 int fmi1_test(fmi_import_context_t* context, const char* dirPath)
@@ -62,24 +63,24 @@ int fmi1_test(fmi_import_context_t* context, const char* dirPath)
     fmu = fmi1_import_parse_xml(context, dirPath);
 
     if (!fmu) {
-        printf("Error parsing XML, exiting\n");
+        std::println("Error parsing XML, exiting");
         return (CTEST_RETURN_FAIL);
     }
     modelIdentifier = fmi1_import_get_model_identifier(fmu);
     modelName = fmi1_import_get_model_name(fmu);
     GUID = fmi1_import_get_GUID(fmu);
 
-    printf("Model name: %s\n", modelName);
-    printf("Model identifier: %s\n", modelIdentifier);
-    printf("Model GUID: %s\n", GUID);
+    std::println("Model name: {}", modelName);
+    std::println("Model identifier: {}", modelIdentifier);
+    std::println("Model GUID: {}", GUID);
 
     status = fmi1_import_create_dllfmu(fmu, callBackFunctions, 0);
     if (status == jm_status_error) {
-        printf("Could not create the DLL loading mechanism(C-API).\n");
+        std::println("Could not create the DLL loading mechanism(C-API).");
         return (CTEST_RETURN_FAIL);
     }
 
-    printf("Version returned from FMU:   %s\n", fmi1_import_get_version(fmu));
+    std::println("Version returned from FMU:   {}", fmi1_import_get_version(fmu));
 
     fmi1_import_destroy_dllfmu(fmu);
 

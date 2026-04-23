@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -97,7 +98,7 @@ void importlogger(jm_callbacks* c,
                   jm_log_level_enu_t log_level,
                   jm_string message)
 {
-    printf("module = %s, log level = %d: %s\n", module, log_level, message);
+    std::println("module = {}, log level = {}: {}", module, log_level, message);
 }
 
 // main
@@ -134,7 +135,7 @@ int main(int argc, char* argv[])
         ret = fmi2_test(context, extractPath.c_str());
     } else {
         fmi_import_free_context(context);
-        printf("Only versions 1.0 and 2.0 are supported so far\n");
+        std::println("Only versions 1.0 and 2.0 are supported so far");
         return (CTEST_RETURN_FAIL);
     }
 

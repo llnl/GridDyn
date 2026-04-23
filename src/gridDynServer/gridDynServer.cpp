@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -85,9 +86,9 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
     initialize();
 
     if (ip_protocol == udp) {
-        printf("\n\t\t|-------------------------------------------------------|\n");
-        printf("\t\t|\t\tWelcome to PMU SERVER - UDP\t\t|\n");
-        printf("\t\t|-------------------------------------------------------|\n");
+        std::println("\n\t\t|-------------------------------------------------------|");
+        std::println("\t\t|\t\tWelcome to PMU SERVER - UDP\t\t|");
+        std::println("\t\t|-------------------------------------------------------|");
 
         // create a local endpoint and initialize a socket
         local_endpoint_udp = udp::endpoint(udp::v4(), port);
@@ -100,9 +101,9 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
                                                    std::size_t size) { pmu_udp(error, size); });
         /* end of UDP protocol */
     } else {
-        printf("\n\t\t|-------------------------------------------------------|\n");
-        printf("\t\t|\t\tWelcome to PMU SERVER - TCP\t\t|\n");
-        printf("\t\t|-------------------------------------------------------|\n");
+        std::println("\n\t\t|-------------------------------------------------------|");
+        std::println("\t\t|\t\tWelcome to PMU SERVER - TCP\t\t|");
+        std::println("\t\t|-------------------------------------------------------|");
 
         // create a local endpoint and initialize a socket
         local_endpoint_tcp = tcp::endpoint(tcp::v4(), port);
@@ -121,16 +122,16 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
                                        });
 
 #ifdef ENABLE_TCP
-        printf("\n\t\t|-------------------------------------------------------|\n");
-        printf("\t\t|\t\tWelcome to PMU SERVER - TCP\t\t|\n");
-        printf("\t\t|-------------------------------------------------------|\n");
+        std::println("\n\t\t|-------------------------------------------------------|");
+        std::println("\t\t|\t\tWelcome to PMU SERVER - TCP\t\t|");
+        std::println("\t\t|-------------------------------------------------------|");
 
         if ((TCP_sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) /* Create TCP socket */
         {
             perror("socket");
             exit(1);
         } else {
-            printf("\n-> TCP Socket : Successfully created\n");
+            std::println("\n-> TCP Socket : Successfully created");
         }
 
         if (setsockopt(TCP_sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) ==
@@ -152,7 +153,7 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
             perror("bind");
             exit(1);
         } else {
-            printf("\n-> TCP Socket Bind : Successful\n");
+            std::println("\n-> TCP Socket Bind : Successful");
         }
 
         if (listen(TCP_sockfd, BACKLOG) == -1) /* Listen on port on TCP socket */
@@ -170,7 +171,7 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
             exit(1);
         }
 
-        printf("\n-> TCP SERVER Listening on port: %d\n", PORT);
+        std::println("\n-> TCP SERVER Listening on port: {}", PORT);
 
         /* Create Thread for TCP on given port default mode */
         if ((err = pthread_create(&TCP_thread, NULL, pmu_tcp, NULL))) {
@@ -409,14 +410,14 @@ void gridDynServer::pmu_tcp(pmu_tcp_session* active_session,
 
         else /* If Received Command Frame Id code not matched */
         {
-            printf(
-                "\n-> Received Command Frame not from authentic PDC, ID code not matched in command frame from PDC...!!!\n");
+            std::println(
+                "\n-> Received Command Frame not from authentic PDC, ID code not matched in command frame from PDC...!!!");
         }
     } /* end of processing with received Command frame */
 
     else /* If it is other than command frame */
     {
-        printf("\n-> Received Frame is not a command frame...!!!\n");
+        std::println("\n-> Received Frame is not a command frame...!!!");
     }
     active_session->socket_.async_read_some(
         boost::asio::buffer(active_session->recv_buffer_),

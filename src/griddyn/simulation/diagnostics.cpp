@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <fstream>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -230,21 +231,21 @@ int JacobianCheck(gridDynSimulation* gds,
             }
             ++errors;
             if ((std::abs(val1) > 0.001) || (std::abs(val2) > 0.001)) {
-                printf("Mismatched Jacobian A [%u,%u] jac=%5.4f, a1=%5.4f a2=%5.4f %4.2f%%\n",
-                       static_cast<unsigned int>(rowk),
-                       static_cast<unsigned int>(colk),
-                       val1,
-                       val2,
-                       val3,
-                       std::abs((val1 - val2) / val1) * 100);
+                std::println("Mismatched Jacobian A [{},{}] jac={:5.4f}, a1={:5.4f} a2={:5.4f} {:4.2f}%",
+                             static_cast<unsigned int>(rowk),
+                             static_cast<unsigned int>(colk),
+                             val1,
+                             val2,
+                             val3,
+                             std::abs((val1 - val2) / val1) * 100);
             } else {
-                printf("Mismatched Jacobian A [%u,%u] jac=%6e, a1=%6e a2=%6e %4.2f%%\n",
-                       static_cast<unsigned int>(rowk),
-                       static_cast<unsigned int>(colk),
-                       val1,
-                       val2,
-                       val3,
-                       std::abs((val1 - val2) / val1) * 100);
+                std::println("Mismatched Jacobian A [{},{}] jac={:6e}, a1={:6e} a2={:6e} {:4.2f}%",
+                             static_cast<unsigned int>(rowk),
+                             static_cast<unsigned int>(colk),
+                             val1,
+                             val2,
+                             val3,
+                             std::abs((val1 - val2) / val1) * 100);
             }
         }
     }
@@ -278,13 +279,13 @@ int JacobianCheck(gridDynSimulation* gds,
                 continue;
             }
             ++errors;
-            printf("Mismatched Jacobian B [%u,%u] jac=%f, a1=%f a2=%5f %4.2f%%\n",
-                   static_cast<unsigned int>(rowk),
-                   static_cast<unsigned int>(colk),
-                   val1,
-                   val2,
-                   val3,
-                   std::abs((val2 - val1) / val2) * 100);
+            std::println("Mismatched Jacobian B [{},{}] jac={}, a1={} a2={:5f} {:4.2f}%",
+                         static_cast<unsigned int>(rowk),
+                         static_cast<unsigned int>(colk),
+                         val1,
+                         val2,
+                         val3,
+                         std::abs((val2 - val1) / val2) * 100);
         }
     }
 
@@ -339,12 +340,12 @@ int residualCheck(gridDynSimulation* gds,
     for (index_t kk = 0; kk < nsize; ++kk) {
         if (std::abs(resid[kk]) > residTol) {
             if (useStateNames) {
-                printf("non zero resid[%d](%s)=%6e\n",
-                       static_cast<int>(kk),
-                       stv[kk].c_str(),
-                       resid[kk]);
+                std::println("non zero resid[{}]({})={:6e}",
+                             static_cast<int>(kk),
+                             stv[kk].c_str(),
+                             resid[kk]);
             } else {
-                printf("non-zeros resid[%d]=%6e\n", static_cast<int>(kk), resid[kk]);
+                std::println("non-zeros resid[{}]={:6e}", static_cast<int>(kk), resid[kk]);
             }
             ++errors;
         }
@@ -400,16 +401,16 @@ int algebraicCheck(gridDynSimulation* gds,
         }
         if (std::abs(update[kk] - sD.state[kk]) > algTol) {
             if (useStateNames) {
-                printf("mismatching updates[%d](%s)=%6e vs %6e\n",
-                       static_cast<int>(kk),
-                       stv[kk].c_str(),
-                       update[kk],
-                       sD.state[kk]);
+                std::println("mismatching updates[{}]({})={:6e} vs {:6e}",
+                             static_cast<int>(kk),
+                             stv[kk].c_str(),
+                             update[kk],
+                             sD.state[kk]);
             } else {
-                printf("mismatching updates[%d]=%6e vs %6e\n",
-                       static_cast<int>(kk),
-                       update[kk],
-                       sD.state[kk]);
+                std::println("mismatching updates[{}]={:6e} vs {:6e}",
+                             static_cast<int>(kk),
+                             update[kk],
+                             sD.state[kk]);
             }
             ++errors;
         }
@@ -463,12 +464,12 @@ int derivativeCheck(gridDynSimulation* gds,
         }
         if (std::abs(deriv[kk] - sD.dstate_dt[kk]) > derivTol) {
             if (useStateNames) {
-                printf("mismatching derivative[%d](%s)=%6e\n",
-                       static_cast<int>(kk),
-                       stv[kk].c_str(),
-                       deriv[kk]);
+                std::println("mismatching derivative[{}]({})={:6e}",
+                             static_cast<int>(kk),
+                             stv[kk].c_str(),
+                             deriv[kk]);
             } else {
-                printf("mismatching derivative[%d]=%6e\n", static_cast<int>(kk), deriv[kk]);
+                std::println("mismatching derivative[{}]={:6e}", static_cast<int>(kk), deriv[kk]);
             }
             ++errors;
         }
@@ -540,7 +541,7 @@ void dynamicSolverConvergenceTest(gridDynSimulation* gds,
 
                     ++ctr;
                     state[vsi[ctr]] += inc;
-                    printf("inc %d-%f\n", ctr, state[vsi[ctr]]);
+                    std::println("inc {}-{}", ctr, state[vsi[ctr]]);
                     if (ctr == static_cast<int>(cvs) - 1) {
                         break;
                     }
@@ -703,16 +704,16 @@ objectCountInfo getObjectInformation(const gridComponent* comp,
 void printObjCountInfo(const objectCountInfo& oi, int clevel, int maxLevel)
 {
     for (int ii = 0; ii < clevel; ++ii) {
-        printf("  ");
+        std::print("  ");
     }
-    printf("%s:: st %d(%d) list %d(%d) NNZ %d(%d)\n",
-           oi.name.c_str(),
-           oi.totalStates,
-           oi.localStates,
-           oi.totalJacListed,
-           oi.localJacListed,
-           oi.totalJacActual,
-           oi.localJacActual);
+    std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
+                 oi.name.c_str(),
+                 oi.totalStates,
+                 oi.localStates,
+                 oi.totalJacListed,
+                 oi.localJacListed,
+                 oi.totalJacActual,
+                 oi.localJacActual);
     if (clevel < maxLevel) {
         for (auto& soi : oi.subObjectInfo) {
             printObjCountInfo(soi, clevel + 1, maxLevel);
@@ -734,23 +735,23 @@ bool checkObjectEquivalence(const coreObject* obj1, const coreObject* obj2, bool
 {
     if ((obj1 == nullptr) || (obj2 == nullptr)) {
         if (printMessage) {
-            printf("at least one object is null\n");
+            std::println("at least one object is null");
         }
         return false;
     }
     if (typeid(*obj1) != typeid(*obj2)) {
         if (printMessage) {
-            printf("object 1 name (%s) not matching type of object 2(%s)\n",
-                   obj1->getName().c_str(),
-                   obj2->getName().c_str());
+            std::println("object 1 name ({}) not matching type of object 2({})",
+                         obj1->getName().c_str(),
+                         obj2->getName().c_str());
         }
         return false;
     }
     if (obj1->getName() != obj2->getName()) {
         if (printMessage) {
-            printf("object 1 name (%s) not matching object 2(%s)\n",
-                   obj1->getName().c_str(),
-                   obj2->getName().c_str());
+            std::println("object 1 name ({}) not matching object 2({})",
+                         obj1->getName().c_str(),
+                         obj2->getName().c_str());
         }
         return false;
     }
@@ -758,23 +759,23 @@ bool checkObjectEquivalence(const coreObject* obj1, const coreObject* obj2, bool
     if (obj1->getParent()->getName() !=
         obj2->getParent()->getName()) {  // these do not affect equivalence but should be noted
         if (printMessage) {
-            printf("object 1 (%s) has a different parent than object 2(%s)\n",
-                   obj1->getName().c_str(),
-                   obj2->getName().c_str());
+            std::println("object 1 ({}) has a different parent than object 2({})",
+                         obj1->getName().c_str(),
+                         obj2->getName().c_str());
         }
     }
 
     if (obj1 == obj2) {  // these do not affect equivalence but should be noted
         if (printMessage) {
-            printf("object 1 and object 2 (%s) have same id\n", obj1->getName().c_str());
+            std::println("object 1 and object 2 ({}) have same id", obj1->getName().c_str());
         }
         return true;
     }
     if (obj1->get("subobjectcount") != obj2->get("subobjectcount")) {
         if (printMessage) {
-            printf("object 1 (%s) has a different number of subobjects than object 2(%s)\n",
-                   obj1->getName().c_str(),
-                   obj2->getName().c_str());
+            std::println("object 1 ({}) has a different number of subobjects than object 2({})",
+                         obj1->getName().c_str(),
+                         obj2->getName().c_str());
         }
         return false;
     }
@@ -785,9 +786,9 @@ bool checkObjectEquivalence(const coreObject* obj1, const coreObject* obj2, bool
         coreObject* sub2 = obj2->find(sub1->getName());
         if (sub2 == nullptr) {
             if (printMessage) {
-                printf("object 2 (%s) does not have a subobject named %s\n",
-                       obj1->getName().c_str(),
-                       sub1->getName().c_str());
+                std::println("object 2 ({}) does not have a subobject named {}",
+                             obj1->getName().c_str(),
+                             sub1->getName().c_str());
             }
             continue;
         }
@@ -807,13 +808,13 @@ void printStateSizesPretty(const gridComponent* obj,
                            const std::string& inset)
 {
     auto& off = obj->getOffsets(sMode);
-    printf("%s%s:: ssize=%d, alg=%d, diff=%d local=%d\n",
-           inset.c_str(),
-           obj->getName().c_str(),
-           obj->stateSize(sMode),
-           obj->algSize(sMode),
-           obj->diffSize(sMode),
-           off.local.totalSize());
+    std::println("{}{}:: ssize={}, alg={}, diff={}, local={}",
+                 inset.c_str(),
+                 obj->getName().c_str(),
+                 obj->stateSize(sMode),
+                 obj->algSize(sMode),
+                 obj->diffSize(sMode),
+                 off.local.totalSize());
     auto subObj = dynamic_cast<gridComponent*>(obj->getSubObject("subobject", 0));
     int ii = 1;
     while (subObj != nullptr) {

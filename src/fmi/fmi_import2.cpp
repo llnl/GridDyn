@@ -15,6 +15,7 @@
 #include <fmilib.h>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -36,16 +37,16 @@ static void fmi2logger(fmi2_component_environment_t env,
     va_list argp;
     va_start(argp, message);
     len = vsnprintf(msg, BUFFER, message, argp);
-    printf("fmiStatus = %s;  %s (%s): %s\n",
-           fmi2_status_to_string(status),
-           instanceName,
-           category,
-           msg);
+    std::println("fmiStatus = {};  {} ({}): {}",
+                 fmi2_status_to_string(status),
+                 instanceName,
+                 category,
+                 msg);
 }
 
 static void stepFinished(fmi2_component_environment_t env, fmi2_status_t status)
 {
-    printf("stepFinished is called with fmiStatus = %s\n", fmi2_status_to_string(status));
+    std::println("stepFinished is called with fmiStatus = {}", fmi2_status_to_string(status));
 }
 
 void fmi2_runModel(fmi2_import_t* fmu);
@@ -69,27 +70,27 @@ int fmi2_test(fmi_import_context_t* context, const char* dirPath)
     fmu = fmi2_import_parse_xml(context, dirPath, 0);
 
     if (!fmu) {
-        printf("Error parsing XML, exiting\n");
+        std::println("Error parsing XML, exiting");
         return (CTEST_RETURN_FAIL);
     }
     modelName = fmi2_import_get_model_name(fmu);
     GUID = fmi2_import_get_GUID(fmu);
-    printf("Model GUID: %s\n", GUID);
-    printf("Model name: %s\n", modelName);
+    std::println("Model GUID: {}", GUID);
+    std::println("Model name: {}", modelName);
     if (fmi2_import_get_fmu_kind(fmu) != fmi2_fmu_kind_cs) {
         modelIdentifier = fmi2_import_get_model_identifier_ME(fmu);
-        printf("Model identifier for ME: %s\n", modelIdentifier);
+        std::println("Model identifier for ME: {}", modelIdentifier);
         fmukind = fmi2_fmu_kind_me;
     } else if (fmi2_import_get_fmu_kind(fmu) != fmi2_fmu_kind_me) {
         modelIdentifier = fmi2_import_get_model_identifier_CS(fmu);
-        printf("Model identifier for CS: %s\n", modelIdentifier);
+        std::println("Model identifier for CS: {}", modelIdentifier);
         fmukind = fmi2_fmu_kind_cs;
     } else {
-        printf("Unexpected FMU kind, exiting\n");
+        std::println("Unexpected FMU kind, exiting");
         return (CTEST_RETURN_FAIL);
     }
     auto mod_desc = fmi2_import_get_description(fmu);
-    printf("Model description: %s\n", mod_desc);
+    std::println("Model description: {}", mod_desc);
 
     auto cs = fmi2_import_get_number_of_continuous_states(fmu);
     auto ev = fmi2_import_get_number_of_event_indicators(fmu);
@@ -112,7 +113,7 @@ int fmi2_test(fmi_import_context_t* context, const char* dirPath)
         iv = fmi2_import_get_variable(vl, kk);
         auto name = fmi2_import_get_variable_name(iv);
         auto desc = fmi2_import_get_variable_description(iv);
-        printf("variable %d: %s:: %s ", fmi2_import_get_variable_vr(iv), name, desc);
+        std::print("variable {}: {}:: {} ", fmi2_import_get_variable_vr(iv), name, desc);
 
         auto btype = fmi2_import_get_variable_base_type(iv);
         auto vari = fmi2_import_get_variability(iv);
@@ -128,11 +129,11 @@ int fmi2_test(fmi_import_context_t* context, const char* dirPath)
 
     status = fmi2_import_create_dllfmu(fmu, fmukind, &callBackFunctions);
     if (status == jm_status_error) {
-        printf("Could not create the DLL loading mechanism(C-API).\n");
+        std::println("Could not create the DLL loading mechanism(C-API).");
         return (CTEST_RETURN_FAIL);
     }
 
-    printf("Version returned from FMU:   %s\n", fmi2_import_get_version(fmu));
+    std::println("Version returned from FMU:   {}", fmi2_import_get_version(fmu));
 
     fmi2_runModel(fmu);
     fmi2_import_destroy_dllfmu(fmu);

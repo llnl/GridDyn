@@ -7,6 +7,7 @@
 #include "fmiObjects.h"
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -28,20 +29,21 @@ fmi2ModelExchangeObject::fmi2ModelExchangeObject(
 
 void fmi2ModelExchangeObject::setMode(fmuMode mode)
 {
-    printf("setting mode %d\n", static_cast<int>(mode));
+    std::println("setting mode {}", static_cast<int>(mode));
     fmi2Status ret = fmi2Error;
     switch (currentMode) {
         case fmuMode::instantiatedMode:
         case fmuMode::initializationMode:
 
             if (mode == fmuMode::continuousTimeMode) {
-                printf(" entering event mode\n");
+                std::println(" entering event mode");
                 fmi2Object::setMode(fmuMode::eventMode);
-                printf(" now in event event mode\n");
+                std::println(" now in event event mode");
                 if (numStates > 0) {
-                    printf("now entering continuous time mode\n");
+                    std::println("now entering continuous time mode");
                     ret = ModelExchangeFunctions->fmi2EnterContinuousTimeMode(comp);
-                    printf("entered continuous time mode return code %d\n", ret);
+                    std::println("entered continuous time mode return code {}",
+                                 static_cast<int>(ret));
                 } else {
                     ret = fmi2OK;
                 }
@@ -59,9 +61,10 @@ void fmi2ModelExchangeObject::setMode(fmuMode mode)
                 ret = ModelExchangeFunctions->fmi2EnterEventMode(comp);
             } else if (mode == fmuMode::continuousTimeMode) {
                 if (numStates > 0) {
-                    printf("now entering continuous time mode\n");
+                    std::println("now entering continuous time mode");
                     ret = ModelExchangeFunctions->fmi2EnterContinuousTimeMode(comp);
-                    printf("entered continuous time mode return code %d\n", ret);
+                    std::println("entered continuous time mode return code {}",
+                                 static_cast<int>(ret));
                 } else {
                     ret = fmi2OK;
                 }

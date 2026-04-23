@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <cstdio>
+#include <print>
 
 #ifdef CHECK_TIMING
 
@@ -40,12 +40,12 @@ int rk_MACRO, sz_MACRO;
                 max_MACRO = (max_MACRO > alldt_MACRO[i_MACRO]) ? max_MACRO : alldt_MACRO[i_MACRO]; \
                 avg_MACRO += alldt_MACRO[i_MACRO];                                                 \
             }                                                                                      \
-            printf("CHECK_TIMING (%8.3f) -- %20s : %8.3f | %8.3f | %8.3f\n",                       \
-                   MPI_Wtime() - global_time_MACRO,                                                \
-                   str,                                                                            \
-                   min_MACRO,                                                                      \
-                   avg_MACRO / sz_MACRO,                                                           \
-                   max_MACRO);                                                                     \
+            std::println("CHECK_TIMING ({:8.3f}) -- {:>20} : {:8.3f} | {:8.3f} | {:8.3f}",       \
+                         MPI_Wtime() - global_time_MACRO,                                          \
+                         str,                                                                      \
+                         min_MACRO,                                                                \
+                         avg_MACRO / sz_MACRO,                                                     \
+                         max_MACRO);                                                               \
         }
 #    define MPI_TIMER_CLEAN()                                                                      \
         if (rk_MACRO == 0) {                                                                       \

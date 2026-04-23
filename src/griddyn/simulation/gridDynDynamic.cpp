@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <vector>
 // #include <fstream>
 // #include <iostream>
@@ -1026,20 +1027,20 @@ int gridDynSimulation::residualFunction(coreTime time,
 #    if DEBUG_RESID > 1
         for (index_t kk = 0; kk < ss; kk++) {
 #        if (DEBUG_RESID == 3)
-            printf("%d[%f] %d r=%e state=%f\n",
-                   static_cast<int>(residCount),
-                   static_cast<double>(time),
-                   static_cast<int>(kk),
-                   resid[kk],
-                   state[kk]);
+            std::println("{}[{}] {} r={} state={}",
+                         static_cast<int>(residCount),
+                         static_cast<double>(time),
+                         static_cast<int>(kk),
+                         resid[kk],
+                         state[kk]);
 #        else
             if (std::abs(resid[kk]) > resid_print_tol) {
-                printf("%d[%f] %d r=%e state=%f\n",
-                       static_cast<int>(residCount),
-                       static_cast<double>(time),
-                       static_cast<int>(kk),
-                       resid[kk],
-                       state[kk]);
+                std::println("{}[{}] {} r={} state={}",
+                             static_cast<int>(residCount),
+                             static_cast<double>(time),
+                             static_cast<int>(kk),
+                             resid[kk],
+                             state[kk]);
             }
 #        endif
         }
@@ -1051,23 +1052,23 @@ int gridDynSimulation::residualFunction(coreTime time,
         std::fill(dbigger.begin(), dbigger.end(), 0);
 
 #    if DEBUG_RESID > 1
-        printf("time change %e\n", static_cast<double>(time - ptime));
+        std::println("time change {}", static_cast<double>(time - ptime));
         for (index_t kk = 0; kk < ss; kk++) {
 #        if (DEBUG_RESID == 3)
-            printf("%d[%f] %d r=%e state=%f\n",
-                   static_cast<int>(residCount),
-                   static_cast<double>(time),
-                   static_cast<int>(kk),
-                   resid[kk],
-                   state[kk]);
+            std::println("{}[{}] {} r={} state={}",
+                         static_cast<int>(residCount),
+                         static_cast<double>(time),
+                         static_cast<int>(kk),
+                         resid[kk],
+                         state[kk]);
 #        else
             if (std::abs(resid[kk]) > resid_print_tol) {
-                printf("%d[%f] %d r=%e state=%f\n",
-                       static_cast<int>(residCount),
-                       static_cast<double>(time),
-                       static_cast<int>(kk),
-                       resid[kk],
-                       state[kk]);
+                std::println("{}[{}] {} r={} state={}",
+                             static_cast<int>(residCount),
+                             static_cast<double>(time),
+                             static_cast<int>(kk),
+                             resid[kk],
+                             state[kk]);
             }
 #        endif
         }
@@ -1077,36 +1078,36 @@ int gridDynSimulation::residualFunction(coreTime time,
         for (index_t kk = 0; kk < ss; kk++) {
 #    if DEBUG_RESID > 1
 #        if (DEBUG_RESID == 3)
-            printf("%d[%f] %d r=%e state=%f dr=%e ds=%e\n",
-                   static_cast<int>(residCount),
-                   static_cast<double>(time),
-                   static_cast<int>(kk),
-                   resid[kk],
-                   state[kk],
-                   resid[kk] - rvals[kk],
-                   state[kk] - lstate[kk]);
+            std::println("{}[{}] {} r={} state={} dr={} ds={}",
+                         static_cast<int>(residCount),
+                         static_cast<double>(time),
+                         static_cast<int>(kk),
+                         resid[kk],
+                         state[kk],
+                         resid[kk] - rvals[kk],
+                         state[kk] - lstate[kk]);
 #        else
             if ((std::abs(resid[kk]) > resid_print_tol) ||
                 (std::abs(state[kk] - lstate[kk]) > 1e-5)) {
-                printf("%d[%f] %d r=%e state=%f dr=%e ds=%e\n",
-                       static_cast<int>(residCount),
-                       static_cast<double>(time),
-                       static_cast<int>(kk),
-                       resid[kk],
-                       state[kk],
-                       resid[kk] - rvals[kk],
-                       state[kk] - lstate[kk]);
+                std::println("{}[{}] {} r={} state={} dr={} ds={}",
+                             static_cast<int>(residCount),
+                             static_cast<double>(time),
+                             static_cast<int>(kk),
+                             resid[kk],
+                             state[kk],
+                             resid[kk] - rvals[kk],
+                             state[kk] - lstate[kk]);
             }
 #        endif
 #    endif
             if (std::abs(resid[kk]) - 1e-7 > std::abs(rvals[kk])) {
                 dbigger[kk] += 1;
                 if (dbigger[kk] > 2) {
-                    printf("residual[%d] getting bigger from %e to %e at time=%f\n",
-                           static_cast<int>(kk),
-                           rvals[kk],
-                           resid[kk],
-                           static_cast<double>(time));
+                    std::println("residual[{}] getting bigger from {} to {} at time={}",
+                                 static_cast<int>(kk),
+                                 rvals[kk],
+                                 resid[kk],
+                                 static_cast<double>(time));
                 }
             } else {
                 dbigger[kk] = 0;
@@ -1117,7 +1118,7 @@ int gridDynSimulation::residualFunction(coreTime time,
     }
     // compute the maximum resid and location
     auto me = std::max_element(resid, resid + ss);
-    printf(" max residual at %d = %f\n", static_cast<int>(me - resid), *me);
+    std::println(" max residual at {} = {}", static_cast<int>(me - resid), *me);
 #endif
     if (opFlags[invalid_state_flag]) {
         opFlags.reset(invalid_state_flag);

@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <print>
 #include <utility>
 
 namespace griddyn::paradae {
@@ -175,28 +176,28 @@ void NewtonStats::ShowStats()
         if (rank == 0) {
             cout << endl << "Stats Braid iter of # Newton iterations (min,avg,max):" << endl;
             for (int i = 0; i < avg_.GetM() - 1; i++)
-                printf("Iter  %2i : %2i | %5.2f | %3i   (%10i calls)\n",
-                       i,
-                       int(min_(i)),
-                       avg_(i),
-                       int(max_(i)),
-                       int(nbcalls(i)));
-            printf("Last     : %2i | %5.2f | %3i   (%10i calls)\n",
-                   int(min_(avg_.GetM() - 1)),
-                   avg_(avg_.GetM() - 1),
-                   int(max_(avg_.GetM() - 1)),
-                   int(nbcalls(avg_.GetM() - 1)));
+                std::println("Iter  {:2} : {:2} | {:5.2f} | {:3}   ({:10} calls)",
+                             i,
+                             int(min_(i)),
+                             avg_(i),
+                             int(max_(i)),
+                             int(nbcalls(i)));
+            std::println("Last     : {:2} | {:5.2f} | {:3}   ({:10} calls)",
+                         int(min_(avg_.GetM() - 1)),
+                         avg_(avg_.GetM() - 1),
+                         int(max_(avg_.GetM() - 1)),
+                         int(nbcalls(avg_.GetM() - 1)));
         }
         this->PerLevelStats(min_, avg_, max_, nbcalls);
         if (rank == 0) {
             cout << endl << "Stats per grid level of # Newton iterations (min,avg,max):" << endl;
             for (int i = 0; i < avg_.GetM(); i++)
-                printf("Level %2i : %2i | %5.2f | %3i   (%10i calls)\n",
-                       i,
-                       int(min_(i)),
-                       avg_(i),
-                       int(max_(i)),
-                       int(nbcalls(i)));
+                std::println("Level {:2} : {:2} | {:5.2f} | {:3}   ({:10} calls)",
+                             i,
+                             int(min_(i)),
+                             avg_(i),
+                             int(max_(i)),
+                             int(nbcalls(i)));
         }
     }
 }

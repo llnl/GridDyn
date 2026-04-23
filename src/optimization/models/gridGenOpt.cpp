@@ -339,9 +339,12 @@ void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
     using units::currency;
     using units::hr;
     using units::puMW;
+    if (param.empty()) {
+        return;
+    }
     if (param[0] == 'p') {
         try {
-            auto num = std::stoul(param.substr(1));
+            auto num = std::stoul(std::string{param.substr(1)});
             if (num > Pcoeff.size()) {
                 Pcoeff.resize(num + 1);
             }
@@ -353,7 +356,7 @@ void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
         }
     } else if (param[0] == 'q') {
         try {
-            auto num = std::stoul(param.substr(1));
+            auto num = std::stoul(std::string{param.substr(1)});
             if (num > Qcoeff.size()) {
                 Qcoeff.resize(num + 1);
             }

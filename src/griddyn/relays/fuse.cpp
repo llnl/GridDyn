@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 
@@ -330,13 +331,13 @@ void fuse::residual(const IOdata& /*inputs*/,
         }
         double I1 = getConditionValue(0, sD, sMode);
         resid[offset] = I2Tequation(I1) - *dst;
-        printf("tt=%f::I1=%f,limit=%f, r[%d]=%f deriv=%f\n",
-               static_cast<double>(sD.time),
-               I1,
-               limit,
-               offset,
-               resid[offset],
-               *dst);
+        std::println("tt={}::I1={},limit={}, r[{}]={} deriv={}",
+                     static_cast<double>(sD.time),
+                     I1,
+                     limit,
+                     offset,
+                     resid[offset],
+                     *dst);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
         resid[offset] = -sD.dstate_dt[offset];

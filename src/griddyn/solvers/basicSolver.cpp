@@ -11,6 +11,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -171,7 +172,7 @@ namespace solvers {
                     break;
                 }
             }
-            printf("Iteration %d max change=%f\n", iterations, md);
+            std::println("Iteration {} max change={}", iterations, md);
         } else if (algorithm == mode_t::gauss_seidel) {
             alpha = 1.2;
             while (md > tolerance) {
@@ -202,7 +203,7 @@ namespace solvers {
                     break;
                 }
             }
-            printf("Iteration %d max change=%f\n", iterations, md);
+            std::println("Iteration {} max change={}", iterations, md);
         }
         if (iterations < max_iterations) {
             return FUNCTION_EXECUTION_SUCCESS;

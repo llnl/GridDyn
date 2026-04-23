@@ -23,6 +23,7 @@
 #include <cmath>
 #include <complex>
 #include <cstdio>
+#include <print>
 #include <queue>
 #include <string>
 #include <vector>
@@ -813,26 +814,26 @@ bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus, bool printDiff)
     }
     if (typeid(lnk1) != typeid(lnk2)) {
         if (printDiff) {
-            std::printf("Links are of different types\n");
+            std::println("Links are of different types");
         }
         return false;
     }
     if ((dynamic_cast<acLine*>(lnk1) != nullptr) && (dynamic_cast<acLine*>(lnk2) != nullptr)) {
         if (std::abs(lnk1->get("r") - lnk2->get("r")) > 0.0001) {
             if (printDiff) {
-                std::printf("Links have different r\n");
+                std::println("Links have different r");
             }
             return false;
         }
         if (std::abs(lnk1->get("x") - lnk2->get("x")) > 0.0001) {
             if (printDiff) {
-                std::printf("Links have different x\n");
+                std::println("Links have different x");
             }
             return false;
         }
         if (std::abs(lnk1->get("b") - lnk2->get("b")) > 0.0001) {
             if (printDiff) {
-                std::printf("Links have different b\n");
+                std::println("Links have different b");
             }
             return false;
         }

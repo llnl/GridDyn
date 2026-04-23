@@ -32,6 +32,7 @@
 #include <cassert>
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 
 namespace griddyn::solvers {
@@ -319,7 +320,7 @@ void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize)
         }
 
         if (indval + 1 != svsize) {
-            printf("sz=%d, svsize=%d, colval+1=%d\n", sz, svsize, indval + 1);
+            std::println("sz={}, svsize={}, colval+1={}", sz, svsize, indval + 1);
         }
         assert(indval + 1 == svsize);
         M->indexptrs[indval + 1] = sz;
@@ -489,7 +490,7 @@ writeArray(sd->solveTime, 1, val, sd->mode.offsetIndex, a1, sd->jacFile);
 #if (CHECK_JACOBIAN > 0)
     auto mv = findMissing(a1);
     for (auto& me : mv) {
-        printf("no entries for element %d\n", me);
+        std::println("no entries for element {}", me);
     }
 #endif
     return FUNCTION_EXECUTION_SUCCESS;

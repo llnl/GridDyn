@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -1411,7 +1412,7 @@ void Area::rootTest(const IOdata& inputs,
     }
 #ifdef DEBUG_PRINT
     for (size_t kk = 0; kk < rootSize(sMode); ++kk) {
-        printf("t=%f root[%d]=%e\n", time, kk, roots[kk]);
+        std::println("t={} root[{}]={}", time, kk, roots[kk]);
     }
 #endif
 }

@@ -13,6 +13,7 @@
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <cstdio>
+#include <print>
 #include <string>
 
 namespace griddyn::genmodels {
@@ -144,16 +145,16 @@ void GenModelGENROU::derivative(const IOdata& inputs,
     rvd[1] = 0.5 * (Pmt - Pe - D * (gmd[1] - 1.0)) / H;
     // Edp and Eqp
     if (std::abs(gmp[1]) > 0.0001) {
-        printf("[%d]t=%f gmp[1]=%f Pdiff=%f A=%f, B=%f, C=%f Xdp=%3.3f, Xqp=%3.3f\n",
-               static_cast<int>(getID()),
-               static_cast<double>(sD.time),
-               gmp[1],
-               Pmt - Pe,
-               gmd[4] * gm[0],
-               gmd[5] * gm[1],
-               (Xdpp - Xqpp) * gm[0] * gm[1],
-               Xdp,
-               Xqp);
+        std::println("[{}]t={} gmp[1]={} Pdiff={} A={}, B={}, C={} Xdp={:3.3f}, Xqp={:3.3f}",
+                     static_cast<int>(getID()),
+                     static_cast<double>(sD.time),
+                     gmp[1],
+                     Pmt - Pe,
+                     gmd[4] * gm[0],
+                     gmd[5] * gm[1],
+                     (Xdpp - Xqpp) * gm[0] * gm[1],
+                     Xdp,
+                     Xqp);
     }
 }
 

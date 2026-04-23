@@ -7,6 +7,7 @@
 #include "fmiObjects.h"
 #include <cstdio>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -80,7 +81,7 @@ void fmi2Object::setMode(fmuMode newMode)
             if ((newMode == fmuMode::eventMode) || (newMode == fmuMode::stepMode)) {
                 // printf("calling exit initMode\n");
                 if (!commonFunctions->fmi2ExitInitializationMode) {
-                    printf("function is not present\n");
+                    std::println("function is not present");
                 }
                 ret = commonFunctions->fmi2ExitInitializationMode(comp);
                 // printf("finished exit initMode return %d\n", ret);

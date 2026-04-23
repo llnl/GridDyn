@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <map>
 #include <memory>
+#include <print>
 
 #include <boost/dll/import.hpp>
 #include <boost/dll/shared_library.hpp>
@@ -220,10 +221,10 @@ void fmiLibrary::loadSharedLibrary(fmutype_t type)
         if (lib->is_loaded()) {
             loaded = true;
         } else {
-            printf("unable to load shared file %s\n", sopath.string().c_str());  // NOLINT
+            std::println("unable to load shared file {}", sopath.string().c_str());  // NOLINT
         }
     } else {
-        printf("unable to locate shared file \n");  // NOLINT
+        std::println("unable to locate shared file ");  // NOLINT
     }
     if (loaded) {
         loadBaseFunctions();
@@ -290,7 +291,7 @@ path fmiLibrary::findSoPath(fmutype_t type)
         if (exists(sopath)) {
             return sopath;
         }
-        printf("checking %s but doesn't exist\n", sopath.string().c_str());  // NOLINT
+        std::println("checking {} but doesn't exist", sopath.string().c_str());  // NOLINT
 #ifdef MACOS
         sopath /= "darwin64";
         sopath /= identifier + ".so";
@@ -450,5 +451,5 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
     va_start(arglist, message);  // NOLINT
     static_cast<void>(std::vsnprintf(temp.data(), string_buffer_size, message, arglist));
     va_end(arglist);
-    std::printf("%s\n", temp.data());  // NOLINT
+    std::println("{}", temp.data());  // NOLINT
 }

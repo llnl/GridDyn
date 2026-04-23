@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <string>
 
 namespace griddyn::fmi {
@@ -34,12 +35,12 @@ void CymeDistLoadME::set(std::string_view param, std::string_view val)
 {
     if ((param == "config") || (param == "configfile") || (param == "configuration_file")) {
         const std::string sval{val};
-        printf("loading config file %s\n", sval.c_str());
+        std::println("loading config file {}", sval.c_str());
         loadConfigFile(sval);
     } else {
         const std::string sparam{param};
         const std::string sval{val};
-        printf("setting parameter %s to %s\n", sparam.c_str(), sval.c_str());
+        std::println("setting parameter {} to {}", sparam.c_str(), sval.c_str());
         fmiMELoad3phase::set(param, val);
     }
 }

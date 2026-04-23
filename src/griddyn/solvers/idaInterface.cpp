@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <map>
 #include <memory>
+#include <print>
 #include <string>
 #include <sunlinsol/sunlinsol_dense.h>
 #include <vector>
@@ -443,7 +444,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bo
 #if SHOW_MISSING_ELEMENTS > 0
             auto mvec = findMissing(&a1);
             if (mvec.size() > 0) {
-                printf("missing rows in Jacobian from calcIC mode 1\n");
+                std::println("missing rows in Jacobian from calcIC mode 1");
             }
 #endif
             switch (retval) {

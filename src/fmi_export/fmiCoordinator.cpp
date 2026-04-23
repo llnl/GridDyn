@@ -11,6 +11,7 @@
 #include "gmlc/containers/mapOps.hpp"
 #include <algorithm>
 #include <cstdio>
+#include <print>
 #include <string>
 #include <utility>
 
@@ -121,7 +122,7 @@ bool fmiCoordinator::sendInput(index_t vr, const char* s)
         (res->second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
         while ((res != paramVR.end()) && (res->first == vr) &&
                (res->second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
-            printf("updating string value %s to %s\n", res->second.name.c_str(), s);
+            std::println("updating string value {} to {}", res->second.name.c_str(), s);
             res->second.evnt->updateStringValue(s);
             res->second.evnt->trigger();
             ++res;

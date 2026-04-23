@@ -163,9 +163,7 @@ class coreObject {
      * @param[in] val the value of the parameter to set
      * @param[in] unitType a type indicating the units of the val a defunit default value
      */
-    virtual void set(std::string_view param,
-                     double val,
-                     units::unit unitType = units::defunit);
+    virtual void set(std::string_view param, double val, units::unit unitType = units::defunit);
     /** @brief get flags
     @param flag -the name of the flag to be queried
     @param val the value to the set the flag ;

@@ -1017,9 +1017,7 @@ void gridDynSimulation::set(std::string_view param, double val, units::unit unit
     }
 }
 
-void gridDynSimulation::solverSet(const std::string& solverName,
-                                  std::string_view field,
-                                  double val)
+void gridDynSimulation::solverSet(const std::string& solverName, std::string_view field, double val)
 {
     auto sd = getSolverInterface(solverName);
     sd->set(field, val);

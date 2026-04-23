@@ -69,7 +69,7 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                     dYpdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                     break;
                 default:
-                throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(std::string{param}));
             }
         } else {
             zipLoad::set(param, val, unitType);

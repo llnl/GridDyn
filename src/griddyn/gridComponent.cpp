@@ -1376,8 +1376,8 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
 {
     const auto& so = offsets.getOffsets(sMode);
     if (field.compare(0, 5, "state") == 0) {
-        auto num =
-            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
+        auto num = static_cast<index_t>(
+            gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (stateSize(sMode) > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1387,8 +1387,8 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
         return kInvalidLocation;
     }
     if (field.compare(0, 3, "alg") == 0) {
-        auto num =
-            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
+        auto num = static_cast<index_t>(
+            gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (so.total.algSize > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1401,8 +1401,8 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
         return kInvalidLocation;
     }
     if (field.compare(0, 4, "diff") == 0) {
-        auto num =
-            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
+        auto num = static_cast<index_t>(
+            gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (so.total.diffSize > num) {
             if (so.diffOffset != kNullLocation) {
                 return so.diffOffset + num;

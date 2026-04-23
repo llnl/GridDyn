@@ -247,8 +247,8 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         if (!(me)) {
             try {
                 // printf("loading instance of fmi %s\n", val.c_str());
-                me = fmiLibraryManager::instance().createModelExchangeObject(
-                    std::string{val}, getName());
+                me = fmiLibraryManager::instance().createModelExchangeObject(std::string{val},
+                                                                             getName());
             }
             catch (const std::filesystem::filesystem_error& fse) {
                 // printf("error loading object %s\n",fse.what());

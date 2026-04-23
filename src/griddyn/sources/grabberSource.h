@@ -43,9 +43,8 @@ namespace sources {
 
         virtual void setFlag(std::string_view flag, bool val) override;
         virtual void set(std::string_view param, std::string_view val) override;
-        virtual void set(std::string_view param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
+        virtual void
+            set(std::string_view param, double val, units::unit unitType = units::defunit) override;
         virtual double get(std::string_view param,
                            units::unit unitType = units::defunit) const override;
 

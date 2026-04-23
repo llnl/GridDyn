@@ -46,9 +46,8 @@ conversions to positive sequence values.
         virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
 
         virtual void set(std::string_view param, std::string_view val) override;
-        virtual void set(std::string_view param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
+        virtual void
+            set(std::string_view param, double val, units::unit unitType = units::defunit) override;
         virtual void setFlag(std::string_view flag, bool val = true) override;
 
         virtual double get(std::string_view param,

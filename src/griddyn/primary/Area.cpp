@@ -404,10 +404,7 @@ coreObject* Area::getSubObject(std::string_view typeName, index_t num) const
     return nullptr;
 }
 
-void Area::setAll(std::string_view type,
-                  std::string_view param,
-                  double val,
-                  units::unit unitType)
+void Area::setAll(std::string_view type, std::string_view param, double val, units::unit unitType)
 {
     if (type == "all") {
         set(param, val, unitType);

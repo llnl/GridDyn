@@ -242,8 +242,8 @@ void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
 
     if ((param == "fmu") || (param == "file")) {
         if (!(cs)) {
-            cs = fmiLibraryManager::instance().createCoSimulationObject(
-                std::string{val}, getName());
+            cs =
+                fmiLibraryManager::instance().createCoSimulationObject(std::string{val}, getName());
         } else {
             // return INVALID_PARAMETER_VALUE;
             return;

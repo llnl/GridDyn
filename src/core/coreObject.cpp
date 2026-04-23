@@ -165,8 +165,7 @@ void coreObject::set(std::string_view param, std::string_view val)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val);
-                LOG_WARNING(std::string("parameters should be lower case \"") +
-                            std::string{param} +
+                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
                             "\" is not");
             } else {
                 LOG_WARNING("parameter " + std::string{param} + " not found");
@@ -315,8 +314,7 @@ void coreObject::set(std::string_view param, double val, units::unit unitType)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val, unitType);
-                LOG_WARNING(std::string("parameters should be lower case \"") +
-                            std::string{param} +
+                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
                             "\" is not");
             } else {
                 throw;

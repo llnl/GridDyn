@@ -362,13 +362,13 @@ Generator* Area::getGen(index_t x)
     return nullptr;
 }
 
-coreObject* Area::find(const std::string& objName) const
+coreObject* Area::find(std::string_view objName) const
 {
     coreObject* obj = obList->find(objName);
     if (obj == nullptr) {
         auto rlc = objName.find_first_of(":/?@#$!%");
         if (rlc != std::string::npos) {
-            obj = locateObject(objName, this, false, false);
+            obj = locateObject(std::string{objName}, this, false, false);
         }
     }
 
@@ -384,7 +384,7 @@ coreObject* Area::find(const std::string& objName) const
     return obj;
 }
 
-coreObject* Area::getSubObject(const std::string& typeName, index_t num) const
+coreObject* Area::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         return getBus(num);
@@ -404,8 +404,8 @@ coreObject* Area::getSubObject(const std::string& typeName, index_t num) const
     return nullptr;
 }
 
-void Area::setAll(const std::string& type,
-                  const std::string& param,
+void Area::setAll(std::string_view type,
+                  std::string_view param,
                   double val,
                   units::unit unitType)
 {
@@ -471,7 +471,7 @@ void Area::setAll(const std::string& type,
     }
 }
 
-coreObject* Area::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if ((typeName == "area") && (searchID == getUserID())) {
         return const_cast<Area*>(this);
@@ -793,7 +793,7 @@ void Area::converge(coreTime time,
     }
 }
 
-void Area::setFlag(const std::string& flag, bool val)
+void Area::setFlag(std::string_view flag, bool val)
 {
     if (flag == "reverse_converge") {
         opFlags.set(reverse_converge, val);
@@ -805,7 +805,7 @@ void Area::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void Area::set(const std::string& param, const std::string& val)
+void Area::set(std::string_view param, std::string_view val)
 {
     gridPrimary::set(param, val);
 }
@@ -820,7 +820,7 @@ void Area::getParameterStrings(stringVec& pstr, paramStringType pstype) const
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void Area::set(const std::string& param, double val, unit unitType)
+void Area::set(std::string_view param, double val, unit unitType)
 {
     if (param == "basepower") {
         systemBasePower = convert(val, unitType, MW);
@@ -841,7 +841,7 @@ void Area::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double Area::get(const std::string& param, unit unitType) const
+double Area::get(std::string_view param, unit unitType) const
 {
     double val = 0.0;
     size_t vali = 0;
@@ -889,8 +889,8 @@ double Area::get(const std::string& param, unit unitType) const
         }
     } else if (param == "subobjectcount") {
         vali = primaryObjects.size();
-    } else if (auto fptr = getObjectFunction(this, param).first) {
-        auto unit = getObjectFunction(this, param).second;
+    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
+        auto unit = getObjectFunction(this, std::string{param}).second;
         coreObject* tobj = const_cast<Area*>(this);
         val = convert(fptr(tobj), unit, unitType);
     } else {

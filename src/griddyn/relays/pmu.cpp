@@ -45,7 +45,7 @@ coreObject* pmu::clone(coreObject* obj) const
     return nobj;
 }
 
-void pmu::setFlag(const std::string& flag, bool val)
+void pmu::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
         opFlags.set(transmit_active, val);
@@ -58,7 +58,7 @@ void pmu::setFlag(const std::string& flag, bool val)
     }
 }
 
-void pmu::set(const std::string& param, const std::string& val)
+void pmu::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -69,7 +69,7 @@ void pmu::set(const std::string& param, const std::string& val)
 using units::convert;
 using units::unit;
 
-void pmu::set(const std::string& param, double val, unit unitType)
+void pmu::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "tv") || (param == "voltagedelay")) {
         Tv = val;
@@ -98,7 +98,7 @@ void pmu::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double pmu::get(const std::string& param, units::unit unitType) const
+double pmu::get(std::string_view param, units::unit unitType) const
 {
     if ((param == "tv") || (param == "voltagedelay")) {
         return Tv;

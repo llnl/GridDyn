@@ -438,11 +438,11 @@ stringVec GenModelClassical::localStateNames() const
     return genModelClassicStateNames;
 }
 // set parameters
-void GenModelClassical::set(const std::string& param, const std::string& val)
+void GenModelClassical::set(std::string_view param, std::string_view val)
 {
     coreObject::set(param, val);
 }
-void GenModelClassical::set(const std::string& param, double val, units::unit unitType)
+void GenModelClassical::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -463,7 +463,7 @@ void GenModelClassical::set(const std::string& param, double val, units::unit un
                 break;
 
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }

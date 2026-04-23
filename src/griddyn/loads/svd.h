@@ -67,9 +67,9 @@ class svd: public rampLoad {
 
     virtual void getVariableType(double sdata[], const solverMode& sMode) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** define which bus the svd is controlling voltage on if it is not otherwise specified it
      * is assumed to be the parent bus
      */

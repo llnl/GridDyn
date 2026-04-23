@@ -20,7 +20,7 @@ class nullObject final: public coreObject {
     */
     explicit nullObject(std::uint64_t nullCode = 500) noexcept;
     /** @brief nullObject constructor which takes a string*/
-    explicit nullObject(const std::string& objName);
+    explicit nullObject(std::string_view objName);
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     /**
@@ -34,12 +34,12 @@ class nullObject final: public coreObject {
     virtual void log(coreObject* object, print_level level, const std::string& message) override;
 
     /** return a nullptr*/
-    virtual coreObject* find(const std::string& object) const override;
+    virtual coreObject* find(std::string_view object) const override;
 
     /**
     returns a nullptr
     */
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     /** @brief set the parent
     @details nullObjects do not allow the parents to be set*/

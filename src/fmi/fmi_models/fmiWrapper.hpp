@@ -224,7 +224,7 @@ provided with the default to the regular call
         // printf("finished pflow Init B wrapper\n");
     }
 
-    void set(const std::string& param, const std::string& val) override
+    void set(std::string_view param, std::string_view val) override
     {
         using gmlc::utilities::convertToLowerCase;
         using gmlc::utilities::stringOps::findCloseStringMatch;
@@ -298,7 +298,7 @@ provided with the default to the regular call
             BaseObj::set(param, val);
         }
     }
-    void set(const std::string& param, double val, units::unit unitType) override
+    void set(std::string_view param, double val, units::unit unitType) override
     {
         bool valid = false;
         try {
@@ -318,7 +318,7 @@ provided with the default to the regular call
         }
 
         if (!valid) {
-            throw(unrecognizedParameter(param));
+            throw(unrecognizedParameter(std::string{param}));
         }
     }
 

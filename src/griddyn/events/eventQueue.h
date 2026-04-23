@@ -147,7 +147,7 @@ class eventQueue {
   @param[in] val the value to set the parameter to
   @throw invalid parameter if the parameter is not recognized
   */
-    virtual void set(const std::string& param, double val);
+    virtual void set(std::string_view param, double val);
 
     /** @brief set the null event time
      the null event is an event that does nothing setting this time is a way to mark events that

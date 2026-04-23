@@ -199,7 +199,7 @@ void dcBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMod
 }
 
 // set properties
-void dcBus::set(const std::string& param, const std::string& val)
+void dcBus::set(std::string_view param, std::string_view val)
 {
     auto val_lowerCase = gmlc::utilities::convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
@@ -228,7 +228,7 @@ void dcBus::set(const std::string& param, const std::string& val)
         } else if (val_lowerCase == "normal") {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
@@ -242,14 +242,14 @@ void dcBus::set(const std::string& param, const std::string& val)
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else {
         gridBus::set(param, val);
     }
 }
 
-void dcBus::set(const std::string& param, double val, unit unitType)
+void dcBus::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
     } else {

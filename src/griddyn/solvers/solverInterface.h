@@ -367,6 +367,6 @@ std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solver
 @param[in] type the type of SolverInterface to create
 @return a unique_ptr to a SolverInterface object
 */
-std::unique_ptr<SolverInterface> makeSolver(const std::string& type, const std::string& name = "");
+std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn

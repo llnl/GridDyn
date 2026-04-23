@@ -56,11 +56,11 @@ class scheduler: public Source {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
-    virtual double get(const std::string& param,
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     /** tie the scheduler to a dispatcher */
     virtual void dispatcherLink();
@@ -134,11 +134,11 @@ class schedulerRamp: public scheduler {
 
     virtual double getRampTime() const;
     virtual double getRamp() const;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     virtual void setReserveTarget(double target);
@@ -205,11 +205,11 @@ class schedulerReg: public schedulerRamp {
 
     void regSettings(bool active, double upFrac = -1.0, double downFrac = -1.0);
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual void dispatcherLink() override;
     virtual double getMax(coreTime time = maxTime) const override;

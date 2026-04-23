@@ -49,7 +49,7 @@ coreObject* randomSource::clone(coreObject* obj) const
 }
 
 // set properties
-void randomSource::set(const std::string& param, const std::string& val)
+void randomSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "trigger_dist") || (param == "time_dist")) {
         timeDistribution = convertToLowerCase(val);
@@ -68,7 +68,7 @@ void randomSource::set(const std::string& param, const std::string& val)
     }
 }
 
-void randomSource::setFlag(const std::string& flag, bool val)
+void randomSource::setFlag(std::string_view flag, bool val)
 {
     /*
 independent_flag=object_flag3,
@@ -96,11 +96,11 @@ armed_flag=object_flag8,*/
     }
 }
 
-void randomSource::set(const std::string& param, double val, units::unit unitType)
+void randomSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "min_t") {
         if (val <= 0.0) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         param1_t = val;
         timeParamUpdate();
@@ -113,13 +113,13 @@ void randomSource::set(const std::string& param, double val, units::unit unitTyp
     } else if (param == "mean_t") {
         if (val <= 0.0) {
             LOG_WARNING("mean_t parameter must be > 0");
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         param1_t = val;
     } else if (param == "scale_t") {
         if (val <= 0.0) {
             LOG_WARNING("scale_t parameter must be > 0");
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         param2_t = val;
     } else if (param == "param1_t") {

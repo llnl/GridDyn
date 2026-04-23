@@ -250,11 +250,11 @@ stringVec GenModel5::localStateNames() const
     return genModel5Names;
 }
 // set parameters
-void GenModel5::set(const std::string& param, const std::string& val)
+void GenModel5::set(std::string_view param, std::string_view val)
 {
     return GenModel4::set(param, val);
 }
-void GenModel5::set(const std::string& param, double val, units::unit unitType)
+void GenModel5::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "tqopp") || (param == "tq0pp")) {
         Tqopp = val;

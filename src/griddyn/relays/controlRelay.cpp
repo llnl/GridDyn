@@ -38,7 +38,7 @@ coreObject* controlRelay::clone(coreObject* obj) const
     return nobj;
 }
 
-void controlRelay::setFlag(const std::string& flag, bool val)
+void controlRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "noreply") {
         opFlags.set(no_message_reply, val);
@@ -85,16 +85,16 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void controlRelay::set(const std::string& param, const std::string& val)
+void controlRelay::set(std::string_view param, std::string_view val)
 {
     if (param == "measurement") {
-        addMeasurement(val);
+        addMeasurement(std::string{val});
     } else {
         Relay::set(param, val);
     }
 }
 
-void controlRelay::set(const std::string& param, double val, units::unit unitType)
+void controlRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "autoname") {
         autoName = static_cast<int>(val);

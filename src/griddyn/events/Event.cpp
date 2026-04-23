@@ -425,10 +425,10 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
 }
 
 std::unique_ptr<Event>
-    make_event(const std::string& field, double val, coreTime eventTime, coreObject* rootObject)
+    make_event(std::string_view field, double val, coreTime eventTime, coreObject* rootObject)
 {
     auto ev = std::make_unique<Event>(eventTime);
-    objInfo fdata(field, rootObject);
+    objInfo fdata(std::string{field}, rootObject);
     ev->setTarget(fdata.m_obj, fdata.m_field);
     ev->setValue(val, fdata.m_unitType);
     return ev;

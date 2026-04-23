@@ -54,7 +54,7 @@ void controlSystem::dynObjectInitializeB(const IOdata& /*inputs*/,
 {
 }
 
-void controlSystem::set(const std::string& param, const std::string& val)
+void controlSystem::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -62,7 +62,7 @@ void controlSystem::set(const std::string& param, const std::string& val)
     }
 }
 
-void controlSystem::set(const std::string& param, double val, units::unit unitType)
+void controlSystem::set(std::string_view param, double val, units::unit unitType)
 {
     if (param[0] == '#') {
     } else {
@@ -70,7 +70,7 @@ void controlSystem::set(const std::string& param, double val, units::unit unitTy
     }
 }
 
-index_t controlSystem::findIndex(const std::string& /*field*/, const solverMode& /*sMode*/) const
+index_t controlSystem::findIndex(std::string_view /*field*/, const solverMode& /*sMode*/) const
 {
     return kInvalidLocation;
 }

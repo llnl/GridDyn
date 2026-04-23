@@ -37,7 +37,7 @@ coreObject* differentialRelay::clone(coreObject* obj) const
     return nobj;
 }
 
-void differentialRelay::setFlag(const std::string& flag, bool val)
+void differentialRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "relative") {
         opFlags.set(relative_differential_flag, val);
@@ -49,7 +49,7 @@ void differentialRelay::setFlag(const std::string& flag, bool val)
     }
 }
 
-bool differentialRelay::getFlag(const std::string& flag) const
+bool differentialRelay::getFlag(std::string_view flag) const
 {
     if (flag == "relative") {
         return opFlags[relative_differential_flag];
@@ -57,7 +57,7 @@ bool differentialRelay::getFlag(const std::string& flag) const
     return Relay::getFlag(flag);
 }
 
-void differentialRelay::set(const std::string& param, const std::string& val)
+void differentialRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -75,7 +75,7 @@ void differentialRelay::getParameterStrings(stringVec& pstr, paramStringType pst
     getParamString<differentialRelay, Relay>(this, pstr, locNumStrings, locStrStrings, {}, pstype);
 }
 
-void differentialRelay::set(const std::string& param, double val, units::unit unitType)
+void differentialRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "delay") {
         m_delayTime = val;

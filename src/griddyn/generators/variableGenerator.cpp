@@ -103,12 +103,12 @@ void variableGenerator::add(gridSubModel* obj)
 }
 
 // set properties
-void variableGenerator::set(const std::string& param, const std::string& val)
+void variableGenerator::set(std::string_view param, std::string_view val)
 {
     DynamicGenerator::set(param, val);
 }
 
-void variableGenerator::set(const std::string& param, double val, unit unitType)
+void variableGenerator::set(std::string_view param, double val, unit unitType)
 {
     if (param == "vcutout") {
         mp_Vcutout = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
@@ -149,7 +149,7 @@ void variableGenerator::jacobianElements(const IOdata& inputs,
     }
 }
 
-coreObject* variableGenerator::find(const std::string& object) const
+coreObject* variableGenerator::find(std::string_view object) const
 {
     if (object == "source") {
         return m_source;
@@ -160,7 +160,7 @@ coreObject* variableGenerator::find(const std::string& object) const
     return DynamicGenerator::find(object);
 }
 
-coreObject* variableGenerator::getSubObject(const std::string& typeName, index_t num) const
+coreObject* variableGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     auto* out = DynamicGenerator::getSubObject(typeName, num);
     if (out == nullptr) {

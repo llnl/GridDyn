@@ -133,7 +133,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
 @return a unique ptr to the created event
 */
 std::unique_ptr<Event>
-    make_event(const std::string& field, double val, coreTime eventTime, coreObject* rootObject);
+    make_event(std::string_view field, double val, coreTime eventTime, coreObject* rootObject);
 /** construct an event from an event Info structure
 @param[in] gdEI the information associated with an event
 @param[in] rootObject the high level object to base any object searches from

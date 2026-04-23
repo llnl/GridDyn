@@ -238,7 +238,7 @@ stringVec fmiMESubModel::getInputNames() const
     return me->getInputNames();
 }
 
-void fmiMESubModel::set(const std::string& param, const std::string& val)
+void fmiMESubModel::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::stringOps::splitline;
     using gmlc::utilities::stringOps::trim;
@@ -247,7 +247,8 @@ void fmiMESubModel::set(const std::string& param, const std::string& val)
         if (!(me)) {
             try {
                 // printf("loading instance of fmi %s\n", val.c_str());
-                me = fmiLibraryManager::instance().createModelExchangeObject(val, getName());
+                me = fmiLibraryManager::instance().createModelExchangeObject(
+                    std::string{val}, getName());
             }
             catch (const std::filesystem::filesystem_error& fse) {
                 // printf("error loading object %s\n",fse.what());
@@ -261,7 +262,7 @@ void fmiMESubModel::set(const std::string& param, const std::string& val)
                 paramBuffer.apply(me);
             }
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "outputs") {
         auto ssep = splitline(val);
@@ -276,10 +277,10 @@ void fmiMESubModel::set(const std::string& param, const std::string& val)
         // updateDependencyInfo();
     } else {
         if (me) {
-            bool isparam = me->isParameter(param, fmi_variable_type_t::string);
+            bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
             if (isparam) {
                 makeSettableState();
-                me->set(param, val);
+                me->set(std::string{param}, std::string{val});
                 resetState();
             } else {
                 gridSubModel::set(param, val);
@@ -289,22 +290,22 @@ void fmiMESubModel::set(const std::string& param, const std::string& val)
                 gridSubModel::set(param, val);
             }
             catch (const unrecognizedParameter&) {
-                paramBuffer.set(param, val);
+                paramBuffer.set(std::string{param}, std::string{val});
             }
         }
     }
 }
 
-void fmiMESubModel::set(const std::string& param, double val, units::unit unitType)
+void fmiMESubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == "localintegrationtime")) {
         localIntegrationTime = val;
     } else {
         if (me) {
-            bool isparam = me->isParameter(param, fmi_variable_type_t::numeric);
+            bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
             if (isparam) {
                 makeSettableState();
-                me->set(param, val);
+                me->set(std::string{param}, val);
                 resetState();
             } else {
                 gridSubModel::set(param, val, unitType);
@@ -314,19 +315,19 @@ void fmiMESubModel::set(const std::string& param, double val, units::unit unitTy
                 gridSubModel::set(param, val, unitType);
             }
             catch (const unrecognizedParameter&) {
-                paramBuffer.set(param, val, unitType);
+                paramBuffer.set(std::string{param}, val, unitType);
             }
         }
     }
 }
 
-double fmiMESubModel::get(const std::string& param, units::unit unitType) const
+double fmiMESubModel::get(std::string_view param, units::unit unitType) const
 {
     if (param == "localintegrationtime") {
         return static_cast<double>(localIntegrationTime);
     }
-    if ((me) && (me->isVariable(param, fmi_variable_type_t::numeric))) {
-        return me->get<double>(param);
+    if ((me) && (me->isVariable(std::string{param}, fmi_variable_type_t::numeric))) {
+        return me->get<double>(std::string{param});
     }
     return gridSubModel::get(param, unitType);
 }
@@ -457,7 +458,7 @@ void fmiMESubModel::getStateName(stringVec& stNames,
     }
 }
 
-index_t fmiMESubModel::findIndex(const std::string& field, const solverMode& /*sMode*/) const
+index_t fmiMESubModel::findIndex(std::string_view field, const solverMode& /*sMode*/) const
 {
     auto fmistNames = me->getStateNames();
     auto fnd = std::find(fmistNames.begin(), fmistNames.end(), field);

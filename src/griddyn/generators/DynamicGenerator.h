@@ -91,12 +91,12 @@ class DynamicGenerator: public Generator {
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual double get (const std::string &param, units::unit unitType = units::defunit) const
     // override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
 
     virtual void add(coreObject* obj) override;
     /** @brief additional add function specific to subModels
@@ -166,9 +166,9 @@ class DynamicGenerator: public Generator {
                                     const stateData& sD,
                                     const solverMode& sMode) const override;
 
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
-    virtual coreObject* find(const std::string& object) const override;
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
+    virtual coreObject* find(std::string_view object) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual double getFreq(const stateData& sD,
                            const solverMode& sMode,
                            index_t* freqOffset = nullptr) const override;

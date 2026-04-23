@@ -45,7 +45,7 @@ coreObject* zonalRelay::clone(coreObject* obj) const
     return nobj;
 }
 
-void zonalRelay::setFlag(const std::string& flag, bool val)
+void zonalRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(nondirectional_flag, val);
@@ -58,27 +58,27 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void zonalRelay::set(const std::string& param, const std::string& val)
+void zonalRelay::set(std::string_view param, std::string_view val)
 {
     if (param == "levels") {
-        auto dvals = gmlc::utilities::str2vector<double>(val, kNullVal);
+        auto dvals = gmlc::utilities::str2vector<double>(std::string{val}, kNullVal);
         // check to make sure all the levels are valid
         for (auto level : dvals) {
             if (level < -0.00001) {
-                throw(invalidParameterValue(param));
+                throw(invalidParameterValue(std::string{param}));
             }
         }
-        set("zones", static_cast<double>(dvals.size()));
+        Relay::set("zones", static_cast<double>(dvals.size()), units::defunit);
         m_zoneLevels = std::move(dvals);
     } else if (param == "delay") {
-        auto dvals = gmlc::utilities::str2vector<coreTime>(val, negTime);
+        auto dvals = gmlc::utilities::str2vector<coreTime>(std::string{val}, negTime);
         if (dvals.size() != m_zoneDelays.size()) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         // check to make sure all the values are valid
         for (auto ld : dvals) {
             if (ld < timeZero) {
-                throw(invalidParameterValue(param));
+                throw(invalidParameterValue(std::string{param}));
             }
         }
         m_zoneDelays = std::move(dvals);
@@ -87,7 +87,7 @@ void zonalRelay::set(const std::string& param, const std::string& val)
     }
 }
 
-void zonalRelay::set(const std::string& param, double val, units::unit unitType)
+void zonalRelay::set(std::string_view param, double val, units::unit unitType)
 {
     index_t zn;
     if (param == "zones") {
@@ -133,7 +133,7 @@ void zonalRelay::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double zonalRelay::get(const std::string& param, units::unit unitType) const
+double zonalRelay::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "condition") {

@@ -241,13 +241,13 @@ stringVec ExciterIEEEtype1::localStateNames() const
 {
     return ieeeType1Fields;
 }
-void ExciterIEEEtype1::set(const std::string& param, const std::string& val)
+void ExciterIEEEtype1::set(std::string_view param, std::string_view val)
 {
     return Exciter::set(param, val);
 }
 
 // set parameters
-void ExciterIEEEtype1::set(const std::string& param, double val, units::unit unitType)
+void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "ke") {
         Ke = val;

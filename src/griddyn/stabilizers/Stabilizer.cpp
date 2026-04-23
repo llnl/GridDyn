@@ -44,17 +44,17 @@ void Stabilizer::residual(const IOdata& /*inputs*/,
 {
 }
 
-index_t Stabilizer::findIndex(const std::string& /*field*/, const solverMode& /*sMode*/) const
+index_t Stabilizer::findIndex(std::string_view /*field*/, const solverMode& /*sMode*/) const
 {
     return kInvalidLocation;
 }
 
-void Stabilizer::set(const std::string& param, const std::string& val)
+void Stabilizer::set(std::string_view param, std::string_view val)
 {
     return coreObject::set(param, val);
 }
 // set parameters
-void Stabilizer::set(const std::string& param, double val, units::unit unitType)
+void Stabilizer::set(std::string_view param, double val, units::unit unitType)
 {
     {
         coreObject::set(param, val, unitType);

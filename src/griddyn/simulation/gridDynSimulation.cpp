@@ -795,7 +795,7 @@ count_t gridDynSimulation::nonZeros(const solverMode& sMode) const
 }
 
 // --------------- set properties ---------------
-void gridDynSimulation::set(const std::string& param, const std::string& val)
+void gridDynSimulation::set(std::string_view param, std::string_view val)
 {
     if (param == "powerflowfile") {
         powerFlowFile = val;
@@ -804,13 +804,13 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
         powerFlowInputFile = val;
         controlFlags.set(save_power_flow_input_data);
     } else if (param == "defpowerflow") {
-        setDefaultMode(solution_modes_t::powerflow_mode, getSolverMode(val));
+        setDefaultMode(solution_modes_t::powerflow_mode, getSolverMode(std::string{val}));
     } else if (param == "defdae") {
-        setDefaultMode(solution_modes_t::dae_mode, getSolverMode(val));
+        setDefaultMode(solution_modes_t::dae_mode, getSolverMode(std::string{val}));
     } else if (param == "defdynalg") {
-        setDefaultMode(solution_modes_t::algebraic_mode, getSolverMode(val));
+        setDefaultMode(solution_modes_t::algebraic_mode, getSolverMode(std::string{val}));
     } else if (param == "defdyndiff") {
-        setDefaultMode(solution_modes_t::differential_mode, getSolverMode(val));
+        setDefaultMode(solution_modes_t::differential_mode, getSolverMode(std::string{val}));
     } else if (param == "action") {
         auto v = gmlc::utilities::stringOps::splitline(val, ';');
         gmlc::utilities::stringOps::trim(v);
@@ -832,7 +832,7 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
         } else if (order == "differential_first") {
             default_ordering = offset_ordering::differential_first;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
@@ -843,14 +843,14 @@ void gridDynSimulation::set(const std::string& param, const std::string& val)
         } else if (method == "decoupled") {
             defaultDynamicSolverMethod = dynamic_solver_methods::decoupled;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else {
         gridSimulation::set(param, val);
     }
 }
 
-std::string gridDynSimulation::getString(const std::string& param) const
+std::string gridDynSimulation::getString(std::string_view param) const
 {
     if (param == "powerflowfile") {
         return powerFlowFile;
@@ -954,9 +954,9 @@ static const std::unordered_map<std::string, int> flagControlMap{
     {"droop_power_flow", droop_power_flow},
 };
 
-void gridDynSimulation::setFlag(const std::string& flag, bool val)
+void gridDynSimulation::setFlag(std::string_view flag, bool val)
 {
-    auto mpf = flagControlMap.find(flag);
+    auto mpf = flagControlMap.find(std::string{flag});
     if (mpf != flagControlMap.end()) {
         if (mpf->second >= 0) {
             controlFlags.set(mpf->second, val);
@@ -976,7 +976,7 @@ void gridDynSimulation::setFlag(const std::string& flag, bool val)
     }
 }
 
-void gridDynSimulation::set(const std::string& param, double val, units::unit unitType)
+void gridDynSimulation::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "tolerance") || (param == "rtol")) {
         tols.rtol = val;
@@ -1018,7 +1018,7 @@ void gridDynSimulation::set(const std::string& param, double val, units::unit un
 }
 
 void gridDynSimulation::solverSet(const std::string& solverName,
-                                  const std::string& field,
+                                  std::string_view field,
                                   double val)
 {
     auto sd = getSolverInterface(solverName);
@@ -1026,14 +1026,14 @@ void gridDynSimulation::solverSet(const std::string& solverName,
 }
 
 void gridDynSimulation::solverSet(const std::string& solverName,
-                                  const std::string& field,
+                                  std::string_view field,
                                   const std::string& val)
 {
     auto sd = getSolverInterface(solverName);
     sd->set(field, val);
 }
 
-double gridDynSimulation::get(const std::string& param, units::unit unitType) const
+double gridDynSimulation::get(std::string_view param, units::unit unitType) const
 {
     count_t val = kInvalidCount;
     double fval = kNullVal;

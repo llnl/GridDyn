@@ -178,7 +178,7 @@ void schedulerRamp::setReserveTarget(double target)
     }
 }
 
-void schedulerRamp::set(const std::string& param, const std::string& val)
+void schedulerRamp::set(std::string_view param, std::string_view val)
 {
     if (param == "rampmode") {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
@@ -200,7 +200,7 @@ void schedulerRamp::set(const std::string& param, const std::string& val)
 
 void schedulerRamp::dispatcherLink() {}
 
-void schedulerRamp::set(const std::string& param, double val, units::unit unitType)
+void schedulerRamp::set(std::string_view param, double val, units::unit unitType)
 {
     double temp;
     if (param == "ramp") {
@@ -459,7 +459,7 @@ void schedulerRamp::insertTarget(tsched ts)
     }
 }
 
-double schedulerRamp::get(const std::string& param, units::unit unitType) const
+double schedulerRamp::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "reserve") {

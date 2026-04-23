@@ -434,7 +434,7 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
     }
 }
 
-void collector::add(const std::string& field, coreObject* obj)
+void collector::add(std::string_view field, coreObject* obj)
 {
     if (field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
@@ -444,13 +444,15 @@ void collector::add(const std::string& field, coreObject* obj)
             add(fld, obj);
         }
     } else {  // now we get to the interesting bit
-        auto fldGrabbers = makeGrabbers(field, obj);
+        auto fldGrabbers = makeGrabbers(std::string{field}, obj);
         for (auto& ggb : fldGrabbers) {
             add(std::shared_ptr<gridGrabber>(std::move(ggb)));
         }
         if (fldGrabbers.empty()) {
-            obj->log(obj, print_level::warning, "no grabbers created from " + field);
-            addWarning("no grabbers created from " + field);
+            obj->log(obj,
+                     print_level::warning,
+                     std::string{"no grabbers created from "} + std::string{field});
+            addWarning(std::string{"no grabbers created from "} + std::string{field});
             throw(addFailureException());
         }
     }
@@ -471,7 +473,7 @@ const std::string& collector::getSinkName() const
     static const std::string emptyString;
     return emptyString;
 }
-std::unique_ptr<collector> makeCollector(const std::string& type, const std::string& name)
+std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name)
 {
     if (name.empty()) {
         return coreClassFactory<collector>::instance()->createObject(type);

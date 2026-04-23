@@ -15,6 +15,7 @@
 #include <atomic>
 #include <memory>
 #include <string>
+#include <string_view>
 
 // disable a funny warning (bug in visual studio 2015)
 #ifdef _MSC_VER
@@ -72,7 +73,7 @@ class coreObject {
     the name can be followed by a few symbols see # appends the id, $ appends the userid, and @
     appends the locIndex
     */
-    explicit coreObject(const std::string& objName = "object_#");
+    explicit coreObject(std::string_view objName = "object_#");
 
     // don't allow copy constructors and equal operator as they would introduce all sorts of other
     // complicated issues in the system
@@ -117,21 +118,21 @@ class coreObject {
     * @param[in] object the name of the object to search for.
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* find(const std::string& object) const;
+    virtual coreObject* find(std::string_view object) const;
     /**
     * @brief retrieve a subObject of type typeName and index num.
     * @param[in] typeName a string indicating which type of object to retrieve
     * @param[in] num the index of the object to retrieve  (index is 0 based)
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const;
     /**
     * @brief locate a subObject of type typeName and searchID.
     * @param[in] typeName a string indicating which type of object to retrieve
     * @param[in] searchID the id of the object to search for
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const;
     /**
      * @brief adds an object to another object for instance adding a load to the bus.
      * @param[in] obj the object to add
@@ -155,44 +156,46 @@ class coreObject {
      * @param[in] param the name of the parameter to change
      * @param[in] val the value of the parameter to set
      */
-    virtual void set(const std::string& param, const std::string& val);
+    virtual void set(std::string_view param, std::string_view val);
     /**
      * @brief sets a numeric parameter of an object
      * @param[in] param the name of the parameter to change
      * @param[in] val the value of the parameter to set
      * @param[in] unitType a type indicating the units of the val a defunit default value
      */
-    virtual void set(const std::string& param, double val, units::unit unitType = units::defunit);
+    virtual void set(std::string_view param,
+                     double val,
+                     units::unit unitType = units::defunit);
     /** @brief get flags
     @param flag -the name of the flag to be queried
     @param val the value to the set the flag ;
     */
-    virtual void setFlag(const std::string& flag, bool val = true);
+    virtual void setFlag(std::string_view flag, bool val = true);
     /** @brief get flags
     @param flag the name of the flag to query.
     @return the value of the flag queried
     */
-    virtual bool getFlag(const std::string& flag) const;
+    virtual bool getFlag(std::string_view flag) const;
     /**
      * @brief get a parameter from the object
      * @param[in] param the name of the parameter to get
      * @param[in] unitType a type indicating the units of the val a defunit default value
      * @return val the value of the parameter returns kNullVal if no property is found
      */
-    virtual double get(const std::string& param, units::unit unitType = units::defunit) const;
+    virtual double get(std::string_view param, units::unit unitType = units::defunit) const;
     /**
      * helper function wrapper to return an int (instead of a double) from the get function
      * @param[in] param the name of the parameter to get
      * @return val the value of the parameter
      */
-    int getInt(const std::string& param) const;
+    int getInt(std::string_view param) const;
 
     /**
      * get a string property from an object
      * @param[in] param the name of the parameter to get
      * @return the string property  return "NA" if no property is found
      */
-    virtual std::string getString(const std::string& param) const;
+    virtual std::string getString(std::string_view param) const;
 
     /**
      * @brief get the parameters that can be used with the set/get functions
@@ -237,7 +240,7 @@ class coreObject {
     void makeNewOID();
 
     /** @brief set the name*/
-    void setName(const std::string& newName)
+    void setName(std::string_view newName)
     {
         name = newName;
         nameUpdate();
@@ -247,7 +250,7 @@ class coreObject {
     const std::string& getName() const noexcept { return name; }
     /** add a description to the object
     @param[in] description a string describing the object*/
-    void setDescription(const std::string& description);
+    void setDescription(std::string_view description);
     /** fetch the core object description
     @return a string describing the object may be empty if no description was entered*/
     std::string getDescription() const;
@@ -323,7 +326,7 @@ class coreObject {
 @param[in] obj the object to set the flags on
 @param[in] flags  the list of flags to set
 */
-void setMultipleFlags(coreObject* obj, const std::string& flags);
+void setMultipleFlags(coreObject* obj, std::string_view flags);
 /**
 * @brief function to compare update times for object sorting
 * @param[in] o1 the first object to compare

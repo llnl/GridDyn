@@ -35,12 +35,12 @@ namespace sources {
                                           IOdata& fieldSet) override;
 
       public:
-        virtual void setFlag(const std::string& flag, bool val) override;
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
+        virtual void setFlag(std::string_view flag, bool val) override;
+        virtual void set(std::string_view param, std::string_view val) override;
+        virtual void set(std::string_view param,
                          double val,
                          units::unit unitType = units::defunit) override;
-        virtual double get(const std::string& param,
+        virtual double get(std::string_view param,
                            units::unit unitType = units::defunit) const override;
 
         // virtual void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const
@@ -105,8 +105,8 @@ namespace sources {
 
         virtual void setLevel(double newLevel) override;
 
-        virtual coreObject* find(const std::string& object) const override;
-        virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
+        virtual coreObject* find(std::string_view object) const override;
+        virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
     };
 }  // namespace sources
 }  // namespace griddyn

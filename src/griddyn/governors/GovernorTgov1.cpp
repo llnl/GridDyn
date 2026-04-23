@@ -239,7 +239,7 @@ void GovernorTgov1::rootTrigger(coreTime /*time*/,
     }
 }
 
-index_t GovernorTgov1::findIndex(const std::string& field, const solverMode& sMode) const
+index_t GovernorTgov1::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if ((field == "pm") || (field == "pmech")) {
@@ -254,12 +254,12 @@ index_t GovernorTgov1::findIndex(const std::string& field, const solverMode& sMo
 }
 
 // set parameters
-void GovernorTgov1::set(const std::string& param, const std::string& val)
+void GovernorTgov1::set(std::string_view param, std::string_view val)
 {
     GovernorIeeeSimple::set(param, val);
 }
 
-void GovernorTgov1::set(const std::string& param, double val, unit unitType)
+void GovernorTgov1::set(std::string_view param, double val, unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
     if (param == "dt") {

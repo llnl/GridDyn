@@ -76,13 +76,13 @@ void frequencySensitiveLoad::getParameterStrings(stringVec& pstr, paramStringTyp
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void frequencySensitiveLoad::setFlag(const std::string& flag, bool val)
+void frequencySensitiveLoad::setFlag(std::string_view flag, bool val)
 {
     subLoad->setFlag(flag, val);
 }
 
 // set properties
-void frequencySensitiveLoad::set(const std::string& param, const std::string& val)
+void frequencySensitiveLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -90,7 +90,7 @@ void frequencySensitiveLoad::set(const std::string& param, const std::string& va
     }
 }
 
-double frequencySensitiveLoad::get(const std::string& param, unit unitType) const
+double frequencySensitiveLoad::get(std::string_view param, unit unitType) const
 {
     if (param == "dpdf") {
         return dPdf;
@@ -104,7 +104,7 @@ double frequencySensitiveLoad::get(const std::string& param, unit unitType) cons
     return subLoad->get(param, unitType);
 }
 
-void frequencySensitiveLoad::set(const std::string& param, double val, unit unitType)
+void frequencySensitiveLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param == "dpdf") {
         dPdf = val;

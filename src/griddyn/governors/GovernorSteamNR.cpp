@@ -108,7 +108,7 @@ void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
     md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
 }
 
-index_t GovernorSteamNR::findIndex(const std::string& field, const solverMode& /*sMode*/) const
+index_t GovernorSteamNR::findIndex(std::string_view field, const solverMode& /*sMode*/) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {
@@ -120,12 +120,12 @@ index_t GovernorSteamNR::findIndex(const std::string& field, const solverMode& /
 }
 
 // set parameters
-void GovernorSteamNR::set(const std::string& param, const std::string& val)
+void GovernorSteamNR::set(std::string_view param, std::string_view val)
 {
     coreObject::set(param, val);
 }
 
-void GovernorSteamNR::set(const std::string& param, double val, units::unit unitType)
+void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
 

@@ -46,10 +46,10 @@ class blockSequence: public Block {
     virtual void add(coreObject* obj) override;
     virtual void add(Block* blk);
 
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void blockResidual(double input,
                                double didt,
@@ -104,8 +104,8 @@ class blockSequence: public Block {
                                   const stateData& sD,
                                   const solverMode& sMode) override;
 
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 };
 }  // namespace griddyn::blocks

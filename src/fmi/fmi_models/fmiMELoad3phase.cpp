@@ -33,7 +33,7 @@ coreObject* fmiMELoad3phase::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiMELoad3phase::setFlag(const std::string& flag, bool val)
+void fmiMELoad3phase::setFlag(std::string_view flag, bool val)
 {
     if (flag == "current_output") {
         opFlags[current_output] = val;
@@ -51,14 +51,14 @@ void fmiMELoad3phase::setFlag(const std::string& flag, bool val)
     }
 }
 
-void fmiMELoad3phase::set(const std::string& param, const std::string& val)
+void fmiMELoad3phase::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
         fmiMEWrapper<loads::ThreePhaseLoad>::set(param, val);
     }
 }
-void fmiMELoad3phase::set(const std::string& param, double val, units::unit unitType)
+void fmiMELoad3phase::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {

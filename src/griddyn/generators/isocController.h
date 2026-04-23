@@ -38,9 +38,9 @@ class isocController: public gridSubModel {
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** set the upper and lower limits usable for the isocController
     @param[in] maxV  the upper limit on the value
     @param[in] minV  the lower limit on the value

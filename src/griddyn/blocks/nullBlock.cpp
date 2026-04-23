@@ -150,7 +150,7 @@ void nullBlock::rootTrigger(coreTime /*time*/,
 {
 }
 
-void nullBlock::setFlag(const std::string& flag, bool val)
+void nullBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
         opFlags[differential_input] = val;
@@ -161,16 +161,16 @@ void nullBlock::setFlag(const std::string& flag, bool val)
 }
 
 // set parameters
-void nullBlock::set(const std::string& param, const std::string& val)
+void nullBlock::set(std::string_view param, std::string_view val)
 {
     gridSubModel::set(param, val);
 }
-void nullBlock::set(const std::string& param, double val, units::unit unitType)
+void nullBlock::set(std::string_view param, double val, units::unit unitType)
 {
     gridSubModel::set(param, val, unitType);
 }
 
-double nullBlock::get(const std::string& param, units::unit unitType) const
+double nullBlock::get(std::string_view param, units::unit unitType) const
 {
     return gridSubModel::get(param, unitType);
 }

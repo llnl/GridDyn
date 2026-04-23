@@ -97,11 +97,11 @@ Area* subsystem::getArea(index_t num) const
     return (num == 0) ? static_cast<Area*>(getSubObjects()[0]) : subarea.getArea(num - 1);
 }
 
-coreObject* subsystem::find(const std::string& objName) const
+coreObject* subsystem::find(std::string_view objName) const
 {
     return subarea.find(objName);
 }
-coreObject* subsystem::getSubObject(const std::string& typeName, index_t num) const
+coreObject* subsystem::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "area") {
         return getArea(num);
@@ -109,15 +109,15 @@ coreObject* subsystem::getSubObject(const std::string& typeName, index_t num) co
     return subarea.getSubObject(typeName, num);
 }
 
-void subsystem::setAll(const std::string& type,
-                       const std::string& param,
+void subsystem::setAll(std::string_view type,
+                       std::string_view param,
                        double val,
                        units::unit unitType)
 {
     subarea.setAll(type, param, val, unitType);
 }
 
-coreObject* subsystem::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* subsystem::findByUserID(std::string_view typeName, index_t searchID) const
 {
     return subarea.findByUserID(typeName, searchID);
 }
@@ -186,13 +186,13 @@ void subsystem::resize(count_t newSize)
 }
 
 // set properties
-void subsystem::set(const std::string& param, const std::string& val)
+void subsystem::set(std::string_view param, std::string_view val)
 
 {
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
     if (iparam == "bus") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             if (num > static_cast<int>(m_terminals)) {
                 resize(num);
@@ -209,29 +209,29 @@ void subsystem::set(const std::string& param, const std::string& val)
             }
             updateBus(bus, num);
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "from") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "to") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (iparam == "connection") {
         auto pos1 = val.find_first_of(":,");
         index_t term1 = kNullLocation;
         if (pos1 != std::string::npos) {
-            term1 = numeric_conversion<index_t>(val.substr(pos1 + 1), 0);
+            term1 = numeric_conversion<index_t>(std::string{val.substr(pos1 + 1)}, 0);
         }
-        auto lnk = dynamic_cast<Link*>(locateObject(val, this, false));
+        auto lnk = dynamic_cast<Link*>(locateObject(std::string{val}, this, false));
         if (lnk != nullptr) {
             if (num > static_cast<int>(m_terminals)) {
                 resize(num);
@@ -261,7 +261,7 @@ void subsystem::set(const std::string& param, const std::string& val)
                 }
             }
             if (cterm[num] == 0) {
-                throw(invalidParameterValue(param));
+                throw(invalidParameterValue(std::string{param}));
             }
         }
     } else {
@@ -274,7 +274,7 @@ void subsystem::set(const std::string& param, const std::string& val)
     }
 }
 
-void subsystem::set(const std::string& param, double val, unit unitType)
+void subsystem::set(std::string_view param, double val, unit unitType)
 {
     if (param == "terminals") {
         resize(static_cast<count_t>(val));
@@ -288,7 +288,7 @@ void subsystem::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double subsystem::get(const std::string& param, unit unitType) const
+double subsystem::get(std::string_view param, unit unitType) const
 {
     double val = subarea.get(param, unitType);
     if (val == kNullVal) {

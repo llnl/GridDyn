@@ -184,30 +184,30 @@ Source* sourceLoad::findSource(const std::string& srcname) const
     return nullptr;
 }
 
-void sourceLoad::setFlag(const std::string& flag, bool val)
+void sourceLoad::setFlag(std::string_view flag, bool val)
 {
     auto sfnd = flag.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(flag.substr(0, sfnd));
+        auto src = findSource(std::string{flag.substr(0, sfnd)});
         if (src != nullptr) {
             src->setFlag(flag.substr(sfnd + 1, std::string::npos), val);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(unrecognizedParameter(std::string{flag}));
         }
     } else {
         zipLoad::setFlag(flag, val);
     }
 }
 
-void sourceLoad::set(const std::string& param, const std::string& val)
+void sourceLoad::set(std::string_view param, std::string_view val)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(param.substr(0, sfnd));
+        auto src = findSource(std::string{param.substr(0, sfnd)});
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(unrecognizedParameter(std::string{param}));
         }
     } else {
         zipLoad::set(param, val);
@@ -236,18 +236,18 @@ void sourceLoad::setState(coreTime time,
     prevTime = time;
 }
 
-void sourceLoad::set(const std::string& param, double val, units::unit unitType)
+void sourceLoad::set(std::string_view param, double val, units::unit unitType)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(param.substr(0, sfnd));
+        auto src = findSource(std::string{param.substr(0, sfnd)});
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val, unitType);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(unrecognizedParameter(std::string{param}));
         }
     } else {
-        auto ind = source_lookup.find(param.substr(0, sfnd));
+        auto ind = source_lookup.find(std::string{param.substr(0, sfnd)});
         if (ind != source_lookup.end()) {
             if ((static_cast<int>(sources.size()) < ind->second) &&
                 (sources[ind->second] != nullptr)) {
@@ -255,12 +255,12 @@ void sourceLoad::set(const std::string& param, double val, units::unit unitType)
             } else if (!opFlags[pFlow_initialized]) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else {
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
             }
             return;
         }
 
-        auto keyind = sourcekey_lookup.find(param.substr(0, sfnd));
+        auto keyind = sourcekey_lookup.find(std::string{param.substr(0, sfnd)});
 
         if (keyind != sourcekey_lookup.end()) {
             if ((static_cast<int>(sources.size()) > keyind->second) &&
@@ -357,9 +357,9 @@ Source* sourceLoad::makeSource(sourceLoc loc)
     return src;
 }
 
-coreObject* sourceLoad::find(const std::string& obj) const
+coreObject* sourceLoad::find(std::string_view obj) const
 {
-    auto src = findSource(obj);
+    auto src = findSource(std::string{obj});
     if (src == nullptr) {
         return gridComponent::find(obj);
     }

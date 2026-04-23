@@ -170,7 +170,7 @@ count_t motorLoad5::LocalJacobianCount(const solverMode& sMode) const
 }
 
 // set properties
-void motorLoad5::set(const std::string& param, const std::string& val)
+void motorLoad5::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -178,7 +178,7 @@ void motorLoad5::set(const std::string& param, const std::string& val)
     }
 }
 
-void motorLoad5::set(const std::string& param, double val, units::unit unitType)
+void motorLoad5::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "r2") {
         r2 = val;
@@ -482,7 +482,7 @@ void motorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 4, refDiff + 4, -cj);
 }
 
-index_t motorLoad5::findIndex(const std::string& field, const solverMode& sMode) const
+index_t motorLoad5::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "erpp") {

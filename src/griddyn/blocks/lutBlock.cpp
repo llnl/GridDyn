@@ -79,11 +79,11 @@ void lutBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void lutBlock::set(const std::string& param, const std::string& val)
+void lutBlock::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::str2vector;
     if (param == "lut") {
-        auto v2 = str2vector(val, -kBigNum, ";,:");
+        auto v2 = str2vector(std::string{val}, -kBigNum, ";,:");
         lut.clear();
         lut.emplace_back(-kBigNum, 0.0);
         lut.emplace_back(kBigNum, 0.0);
@@ -94,7 +94,7 @@ void lutBlock::set(const std::string& param, const std::string& val)
         lut[0].second = lut[1].second;
         (*lut.end()).second = (*(lut.end() - 1)).second;
     } else if (param == "element") {
-        auto v2 = str2vector(val, -kBigNum, ";,:");
+        auto v2 = str2vector(std::string{val}, -kBigNum, ";,:");
         for (size_t mm = 0; mm < v2.size(); mm += 2) {
             lut.emplace_back(v2[mm], v2[mm + 1]);
         }
@@ -102,7 +102,7 @@ void lutBlock::set(const std::string& param, const std::string& val)
         lut[0].second = lut[1].second;
         (*lut.end()).second = (*(lut.end() - 1)).second;
     } else if (param == "file") {
-        gmlc::utilities::TimeSeries<double, double> ts(val);
+        gmlc::utilities::TimeSeries<double, double> ts(std::string{val});
 
         lut.clear();
         lut.emplace_back(-kBigNum, 0.0);
@@ -118,7 +118,7 @@ void lutBlock::set(const std::string& param, const std::string& val)
     }
 }
 
-void lutBlock::set(const std::string& param, double val, units::unit unitType)
+void lutBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param[0] == '#') {
     } else {

@@ -31,13 +31,13 @@ class differentialRelay: public Relay {
   public:
     explicit differentialRelay(const std::string& objName = "diffRelay_$");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
-    virtual bool getFlag(const std::string& flag) const override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
+    virtual bool getFlag(std::string_view flag) const override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 

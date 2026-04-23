@@ -145,7 +145,7 @@ count_t motorLoad3::LocalJacobianCount(const solverMode& sMode) const
 }
 
 // set properties
-void motorLoad3::set(const std::string& param, const std::string& val)
+void motorLoad3::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -153,7 +153,7 @@ void motorLoad3::set(const std::string& param, const std::string& val)
     }
 }
 
-void motorLoad3::set(const std::string& param, double val, units::unit unitType)
+void motorLoad3::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "rs") {
         r = val;
@@ -501,7 +501,7 @@ void motorLoad3::ioPartialDerivatives(const IOdata& inputs,
                       vm * ir / voltage - vr * im / voltage);
 }
 
-index_t motorLoad3::findIndex(const std::string& field, const solverMode& sMode) const
+index_t motorLoad3::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "slip") {

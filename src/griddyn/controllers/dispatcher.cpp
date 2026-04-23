@@ -44,11 +44,11 @@ void dispatcher::add(scheduler* /*sched*/)
 void dispatcher::remove(coreObject* /*obj*/) {}
 void dispatcher::remove(scheduler* /*sched*/) {}
 
-void dispatcher::set(const std::string& param, const std::string& val)
+void dispatcher::set(std::string_view param, std::string_view val)
 {
     return coreObject::set(param, val);
 }
-void dispatcher::set(const std::string& param, double val, units::unit unitType)
+void dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     return coreObject::set(param, val, unitType);
 }

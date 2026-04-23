@@ -135,20 +135,20 @@ see gridComponent::dynInitializeA for more details
   public:
     virtual void getParameterStrings(stringVec& pstr,
                                      paramStringType pstype = paramStringType::all) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** check if the parameter being set is for a subobject, determine which sub object and perform
      * the set operation*/
-    bool subObjectSet(const std::string& param, double val, units::unit unitType);
+    bool subObjectSet(std::string_view param, double val, units::unit unitType);
     /** check if the parameter being set is for a subobject, determine which sub object and perform
      * the set operation*/
-    bool subObjectSet(const std::string& param, const std::string& val);
+    bool subObjectSet(std::string_view param, std::string_view val);
     /** check if the parameter being set is for a subobject, determine which sub object and perform
      * the setFlag operation*/
-    bool subObjectSet(const std::string& flag, bool val);
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    bool subObjectSet(std::string_view flag, bool val);
+    virtual void setFlag(std::string_view flag, bool val = true) override;
     /** there are few flags that parents should be able to set in their children, this function
     allows that to take place
     @param[in] flagID  the numerical location of the flag
@@ -156,8 +156,8 @@ see gridComponent::dynInitializeA for more details
     @param[in] checkParent the identifier of the parent, it must match the objects parent
     */
     void parentSetFlag(index_t flagID, bool val, coreObject* checkParent);
-    virtual bool getFlag(const std::string& flag) const override;
-    virtual double get(const std::string& param,
+    virtual bool getFlag(std::string_view flag) const override;
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     /** check if the parameter being get is for a subobject, determine which sub object and perform
     the setFlag operation
@@ -165,7 +165,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] unitType the type of units to convert the output to
     @return a value corresponding to the request or a null value
     */
-    double subObjectGet(const std::string& param, units::unit unitType) const;
+    double subObjectGet(std::string_view param, units::unit unitType) const;
     /** add a grid object to the subObject container
     @param[in] obj the component to add
     */
@@ -192,11 +192,11 @@ see gridComponent::dynInitializeA for more details
     */
     inline std::uint64_t cascadingFlags() const { return (opFlags.to_ullong() & flagMask); }
 
-    virtual coreObject* find(const std::string& object) const override;
+    virtual coreObject* find(std::string_view object) const override;
 
-    virtual coreObject* getSubObject(const std::string& typeName, index_t objectNum) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t objectNum) const override;
 
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     /** @brief set the offsets of an object for a particular solver mode using a single offset.
     @param[in] newOffset the offset index all variables are sequential.
@@ -498,7 +498,7 @@ see gridComponent::dynInitializeA for more details
     @return the index of the state  some number if valid  kInvalidLocation if not found,
     kNullLocation if not initialized yet(try again later)
     */
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const;
 
     /**
      *@brief set all the values of particular type of object to some value
@@ -507,8 +507,8 @@ see gridComponent::dynInitializeA for more details
      * @param[in] val the value to set it to
      * @param[in] unitType the units of the val
      */
-    virtual void setAll(const std::string& type,
-                        const std::string& param,
+    virtual void setAll(std::string_view type,
+                        std::string_view param,
                         double val,
                         units::unit unitType = units::defunit);
     /** @brief get the local state names
@@ -735,7 +735,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] outputName the name of the output
     @return the index number of the output
     */
-    index_t lookupOutputIndex(const std::string& outputName) const;
+    index_t lookupOutputIndex(std::string_view outputName) const;
     /**
     *@brief get a single output based on local data
     @param[in] outputNum the index of the output being requested

@@ -53,7 +53,7 @@ coreObject* breaker::clone(coreObject* obj) const
     return nobj;
 }
 
-void breaker::setFlag(const std::string& flag, bool val)
+void breaker::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(nondirectional_flag, val);
@@ -66,7 +66,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void breaker::set(const std::string& param, const std::string& val)
+void breaker::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -74,7 +74,7 @@ void breaker::set(const std::string& param, const std::string& val)
     }
 }
 
-void breaker::set(const std::string& param, double val, units::unit unitType)
+void breaker::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "reclosetime") {
         recloseTime1 = val;

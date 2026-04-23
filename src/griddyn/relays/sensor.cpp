@@ -143,7 +143,7 @@ std::shared_ptr<grabberSet> sensor::getGrabberSet(index_t grabberNum)
     throw(std::out_of_range("invalid index"));
 }
 
-void sensor::setFlag(const std::string& flag, bool val)
+void sensor::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "direct_io") || (flag == "direct")) {
         opFlags.set(direct_IO, val);
@@ -158,7 +158,7 @@ void sensor::setFlag(const std::string& flag, bool val)
     }
 }
 
-void sensor::set(const std::string& param, const std::string& val)
+void sensor::set(std::string_view param, std::string_view val)
 {
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam);
@@ -197,16 +197,16 @@ void sensor::set(const std::string& param, const std::string& val)
         }
         m_inputSize = static_cast<count_t>(inputStrings.size());
     } else if (param == "condition") {
-        add(std::shared_ptr<Condition>(make_condition(val, this)));
+        add(std::shared_ptr<Condition>(make_condition(std::string{val}, this)));
     } else if (iparam == "filter") {
-        auto blk = make_block(val);
+        auto blk = make_block(std::string{val});
         if (blk) {
             if (num >= 0) {
                 blk->locIndex = num;
             }
             add(blk.release());
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if ((iparam == "outputname") || (param == "outputnames") || (param == "outputstring")) {
         if (num >= 0) {
@@ -224,15 +224,15 @@ void sensor::set(const std::string& param, const std::string& val)
         }
         m_outputSize = static_cast<count_t>(outputStrings.size());
     } else if ((iparam == "output") || (param == "outputs")) {
-        setupOutput(num, val);
+        setupOutput(num, std::string{val});
     } else if ((iparam == "blockinput") || (iparam == "process")) {
-        auto seq = gmlc::utilities::str2vector<int>(val, -1, ",: ");
+        auto seq = gmlc::utilities::str2vector<int>(std::string{val}, -1, ",: ");
         if (num >= 0) {
             if (seq.size() == 2u) {
                 ensureSizeAtLeast(blockInputs, static_cast<size_t>(seq[1]) + 1, -1);
                 blockInputs[seq[1]] = seq[0];
             } else {
-                throw(invalidParameterValue(param));
+                throw(invalidParameterValue(std::string{param}));
             }
         } else {
             ensureSizeAtLeast(blockInputs, seq.size(), -1);
@@ -289,7 +289,7 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
     }
 }
 
-void sensor::set(const std::string& param, double val, units::unit unitType)
+void sensor::set(std::string_view param, double val, units::unit unitType)
 {
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
@@ -306,7 +306,7 @@ void sensor::set(const std::string& param, double val, units::unit unitType)
         opFlags.set(direct_IO, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         if (num < 0) {
             outputs.push_back(static_cast<int>(val));
@@ -320,7 +320,7 @@ void sensor::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double sensor::get(const std::string& param, units::unit unitType) const
+double sensor::get(std::string_view param, units::unit unitType) const
 {
     index_t ind = lookupOutputIndex(param);
     if (ind != kNullLocation) {

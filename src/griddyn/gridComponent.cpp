@@ -393,9 +393,9 @@ static const std::map<std::string, operation_flags> user_settable_flags{
 
 // there isn't that many flags that we want to be user settable, most are controlled by the model so
 // allowing them to be set by an external function might not be the best thing
-void gridComponent::setFlag(const std::string& flag, bool val)
+void gridComponent::setFlag(std::string_view flag, bool val)
 {
-    auto ffind = user_settable_flags.find(flag);
+    auto ffind = user_settable_flags.find(std::string{flag});
     if (ffind != user_settable_flags.end()) {
         opFlags.set(ffind->second, val);
         if (flag == "sampled_only") {
@@ -498,9 +498,9 @@ static const std::map<std::string, operation_flags> flagmap{
     {"three_phase_capable", three_phase_capable},
     {"three_phase_terminal2", three_phase_terminal2}};
 
-bool gridComponent::getFlag(const std::string& flag) const
+bool gridComponent::getFlag(std::string_view flag) const
 {
-    auto flagfind = flagmap.find(flag);
+    auto flagfind = flagmap.find(std::string{flag});
     if (flagfind != flagmap.end()) {
         return opFlags[flagfind->second];
     }
@@ -543,14 +543,14 @@ void gridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype)
     getParamString<gridComponent, coreObject>(this, pstr, locNumStrings, locStrStrings, {}, pstype);
 }
 
-void gridComponent::set(const std::string& param, const std::string& val)
+void gridComponent::set(std::string_view param, std::string_view val)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
 
     if (param == "status") {
-        auto v2 = convertToLowerCase(val);
+        auto v2 = convertToLowerCase(std::string{val});
         if ((v2 == "on") || (v2 == "in") || (v2 == "enabled")) {
             if (!isEnabled()) {
                 enable();
@@ -583,14 +583,14 @@ void gridComponent::set(const std::string& param, const std::string& val)
     }
 }
 
-auto hasParameterPath(const std::string& param)
+auto hasParameterPath(std::string_view param)
 {
-    return (param.find_last_of(":?") != std::string::npos);
+    return (param.find_last_of(":?") != std::string_view::npos);
 }
-bool gridComponent::subObjectSet(const std::string& param, double val, units::unit unitType)
+bool gridComponent::subObjectSet(std::string_view param, double val, units::unit unitType)
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(param, this);
+        objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             if (pinfo.m_unitType != units::defunit) {
                 pinfo.m_obj->set(pinfo.m_field, val, pinfo.m_unitType);
@@ -599,58 +599,58 @@ bool gridComponent::subObjectSet(const std::string& param, double val, units::un
             }
             return true;
         }
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
     return false;
 }
 
-bool gridComponent::subObjectSet(const std::string& param, const std::string& val)
+bool gridComponent::subObjectSet(std::string_view param, std::string_view val)
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(param, this);
+        objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->set(pinfo.m_field, val);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(unrecognizedParameter(std::string{param}));
         }
         return true;
     }
     return false;
 }
 
-bool gridComponent::subObjectSet(const std::string& flag, bool val)
+bool gridComponent::subObjectSet(std::string_view flag, bool val)
 {
     if (hasParameterPath(flag)) {
-        objInfo pinfo(flag, this);
+        objInfo pinfo(std::string{flag}, this);
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->setFlag(pinfo.m_field, val);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(unrecognizedParameter(std::string{flag}));
         }
         return true;
     }
     return false;
 }
 
-double gridComponent::subObjectGet(const std::string& param, units::unit unitType) const
+double gridComponent::subObjectGet(std::string_view param, units::unit unitType) const
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(param, this);
+        objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             if (pinfo.m_unitType != units::defunit) {
                 return pinfo.m_obj->get(pinfo.m_field, pinfo.m_unitType);
             }
             return pinfo.m_obj->get(pinfo.m_field, unitType);
         }
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
     return kNullVal;
 }
 
-void gridComponent::set(const std::string& param, double val, units::unit unitType)
+void gridComponent::set(std::string_view param, double val, units::unit unitType)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
 
     if ((param == "enabled") || (param == "status")) {
@@ -696,8 +696,8 @@ void gridComponent::set(const std::string& param, double val, units::unit unitTy
     }
 }
 
-void gridComponent::setAll(const std::string& type,
-                           const std::string& param,
+void gridComponent::setAll(std::string_view type,
+                           std::string_view param,
                            double val,
                            units::unit unitType)
 {
@@ -708,7 +708,7 @@ void gridComponent::setAll(const std::string& type,
     }
 }
 
-double gridComponent::get(const std::string& param, units::unit unitType) const
+double gridComponent::get(std::string_view param, units::unit unitType) const
 {
     double out = kNullVal;
     if (param == "basepower") {
@@ -1372,11 +1372,12 @@ units::unit gridComponent::outputUnits(index_t /*outputNum*/) const
     return units::defunit;
 }
 
-index_t gridComponent::findIndex(const std::string& field, const solverMode& sMode) const
+index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode) const
 {
     const auto& so = offsets.getOffsets(sMode);
     if (field.compare(0, 5, "state") == 0) {
-        auto num = static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (stateSize(sMode) > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1386,7 +1387,8 @@ index_t gridComponent::findIndex(const std::string& field, const solverMode& sMo
         return kInvalidLocation;
     }
     if (field.compare(0, 3, "alg") == 0) {
-        auto num = static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (so.total.algSize > num) {
             if (so.algOffset != kNullLocation) {
                 return so.algOffset + num;
@@ -1399,7 +1401,8 @@ index_t gridComponent::findIndex(const std::string& field, const solverMode& sMo
         return kInvalidLocation;
     }
     if (field.compare(0, 4, "diff") == 0) {
-        auto num = static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(field, 0));
+        auto num =
+            static_cast<index_t>(gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (so.total.diffSize > num) {
             if (so.diffOffset != kNullLocation) {
                 return so.diffOffset + num;
@@ -1543,7 +1546,7 @@ void gridComponent::updateLocalCache(const IOdata& inputs,
     }
 }
 
-coreObject* gridComponent::find(const std::string& object) const
+coreObject* gridComponent::find(std::string_view object) const
 {
     auto foundobj =
         std::find_if(subObjectList.begin(), subObjectList.end(), [object](gridComponent* comp) {
@@ -1554,13 +1557,13 @@ coreObject* gridComponent::find(const std::string& object) const
     }
     // return nullptr if this is an indexed name
     auto rlc2 = object.find_last_of("#$!");
-    if (rlc2 != std::string::npos) {
+    if (rlc2 != std::string_view::npos) {
         return nullptr;
     }
     return coreObject::find(object);
 }
 
-coreObject* gridComponent::getSubObject(const std::string& typeName, index_t objectNum) const
+coreObject* gridComponent::getSubObject(std::string_view typeName, index_t objectNum) const
 {
     if ((typeName == "sub") || (typeName == "subobject") || (typeName == "object")) {
         if (isValidIndex(objectNum, subObjectList)) {
@@ -1570,7 +1573,7 @@ coreObject* gridComponent::getSubObject(const std::string& typeName, index_t obj
     return nullptr;
 }
 
-coreObject* gridComponent::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridComponent::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if ((typeName == "sub") || (typeName == "subobject") || (typeName == "object")) {
         auto foundobj = std::find_if(subObjectList.begin(),
@@ -1747,7 +1750,7 @@ change_code gridComponent::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-index_t gridComponent::lookupOutputIndex(const std::string& outputName) const
+index_t gridComponent::lookupOutputIndex(std::string_view outputName) const
 {
     const auto& outputStr = outputNames();
     index_t outputsize = (std::min)(static_cast<index_t>(outputStr.size()), m_outputSize);

@@ -48,7 +48,7 @@ coreObject* fuse::clone(coreObject* obj) const
     return nobj;
 }
 
-void fuse::setFlag(const std::string& flag, bool val)
+void fuse::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
@@ -56,7 +56,7 @@ void fuse::setFlag(const std::string& flag, bool val)
     }
 }
 
-void fuse::set(const std::string& param, const std::string& val)
+void fuse::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -64,7 +64,7 @@ void fuse::set(const std::string& param, const std::string& val)
     }
 }
 
-void fuse::set(const std::string& param, double val, units::unit unitType)
+void fuse::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "limit") {
         limit = convert(val, unitType, puA, systemBasePower, Vbase);
@@ -77,7 +77,7 @@ void fuse::set(const std::string& param, double val, units::unit unitType)
             minBlowTime = val;
         } else {
             LOG_WARNING("minimum blow time must be greater or equal to 0.001");
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else {
         Relay::set(param, val, unitType);

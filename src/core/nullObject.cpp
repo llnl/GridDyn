@@ -14,7 +14,7 @@ nullObject::nullObject(std::uint64_t nullCode) noexcept: coreObject(nullCode)
     parent = this;
 }
 
-nullObject::nullObject(const std::string& objName): coreObject(objName)
+nullObject::nullObject(std::string_view objName): coreObject(objName)
 {
     parent = this;
 }
@@ -31,11 +31,11 @@ coreObject* nullObject::clone(coreObject* obj) const
 
 void nullObject::alert(coreObject* /*obj*/, int /*code*/) {}
 void nullObject::log(coreObject* /*obj*/, print_level /*level*/, const std::string& /*message*/) {}
-coreObject* nullObject::find(const std::string& /*object*/) const
+coreObject* nullObject::find(std::string_view /*object*/) const
 {
     return nullptr;
 }
-coreObject* nullObject::findByUserID(const std::string& /*typeName*/, index_t /*searchID*/) const
+coreObject* nullObject::findByUserID(std::string_view /*typeName*/, index_t /*searchID*/) const
 {
     return nullptr;
 }

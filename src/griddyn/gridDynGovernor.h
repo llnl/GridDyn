@@ -57,14 +57,14 @@ class Governor: public gridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param,
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param,
                      double val,
                      gridUnits::units_t unitType = gridUnits::defUnit) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual double get(const std::string& param,
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual double get(std::string_view param,
                        gridUnits::units_t unitType = gridUnits::defUnit) const override;
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],

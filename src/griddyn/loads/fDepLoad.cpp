@@ -39,7 +39,7 @@ coreObject* fDepLoad::clone(coreObject* obj) const
 }
 
 // set properties
-void fDepLoad::set(const std::string& param, const std::string& val)
+void fDepLoad::set(std::string_view param, std::string_view val)
 {
     if (param == "loadtype") {
         auto vtype = gmlc::utilities::convertToLowerCase(val);
@@ -84,7 +84,7 @@ void fDepLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-void fDepLoad::set(const std::string& param, double val, units::unit unitType)
+void fDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "betap") {
         betaP = val;

@@ -36,13 +36,13 @@ class pmu: public sensor {
   public:
     pmu(const std::string& objName = "pmu_$");
     coreObject* clone(coreObject* obj = nullptr) const override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;

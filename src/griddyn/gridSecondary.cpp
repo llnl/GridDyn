@@ -99,11 +99,11 @@ void gridSecondary::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     prevTime = time0;
 }
 
-void gridSecondary::set(const std::string& param, const std::string& val)
+void gridSecondary::set(std::string_view param, std::string_view val)
 {
     gridComponent::set(param, val);
 }
-void gridSecondary::set(const std::string& param, double val, units::unit unitType)
+void gridSecondary::set(std::string_view param, double val, units::unit unitType)
 {
     if (!param.empty()) {
         gridComponent::set(param, val, unitType);

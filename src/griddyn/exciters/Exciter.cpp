@@ -247,12 +247,12 @@ stringVec Exciter::localStateNames() const
     return {"ef"};
 }
 
-void Exciter::set(const std::string& param, const std::string& val)
+void Exciter::set(std::string_view param, std::string_view val)
 {
     gridSubModel::set(param, val);
 }
 
-void Exciter::set(const std::string& param, double val, units::unit unitType)
+void Exciter::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "vref") {
         Vref = val;

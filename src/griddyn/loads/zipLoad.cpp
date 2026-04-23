@@ -149,7 +149,7 @@ void zipLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
     getParamString<zipLoad, Load>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void zipLoad::setFlag(const std::string& flag, bool val)
+void zipLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
@@ -174,7 +174,7 @@ void zipLoad::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void zipLoad::set(const std::string& param, const std::string& val)
+void zipLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -182,7 +182,7 @@ void zipLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-double zipLoad::get(const std::string& param, unit unitType) const
+double zipLoad::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {
@@ -232,7 +232,7 @@ double zipLoad::get(const std::string& param, unit unitType) const
     return val;
 }
 
-void zipLoad::set(const std::string& param, double val, unit unitType)
+void zipLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
         return;
@@ -258,7 +258,7 @@ void zipLoad::set(const std::string& param, double val, unit unitType)
                 setYq(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         checkFaultChange();
         return;

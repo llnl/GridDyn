@@ -24,11 +24,11 @@ coreObject* rampSource::clone(coreObject* obj) const
 }
 
 // set properties
-void rampSource::set(const std::string& param, const std::string& val)
+void rampSource::set(std::string_view param, std::string_view val)
 {
     Source::set(param, val);
 }
-void rampSource::set(const std::string& param, double val, units::unit unitType)
+void rampSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "dodt") || (param == "ramp") || (param == "rate")) {
         mp_dOdt = val;

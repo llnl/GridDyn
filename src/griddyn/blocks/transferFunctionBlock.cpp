@@ -199,7 +199,7 @@ double transferFunctionBlock::step(coreTime time, double inputA)
     return out;
 }
 
-index_t transferFunctionBlock::findIndex(const std::string& field, const solverMode& sMode) const
+index_t transferFunctionBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {
@@ -211,18 +211,18 @@ index_t transferFunctionBlock::findIndex(const std::string& field, const solverM
 }
 
 // set parameters
-void transferFunctionBlock::set(const std::string& param, const std::string& val)
+void transferFunctionBlock::set(std::string_view param, std::string_view val)
 {
     if (param == "a") {
-        a = gmlc::utilities::str2vector<double>(val, 0);
+        a = gmlc::utilities::str2vector<double>(std::string{val}, 0);
     } else if (param == "b") {
-        b = gmlc::utilities::str2vector<double>(val, 0);
+        b = gmlc::utilities::str2vector<double>(std::string{val}, 0);
     } else {
         Block::set(param, val);
     }
 }
 
-void transferFunctionBlock::set(const std::string& param, double val, units::unit unitType)
+void transferFunctionBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
     std::string pstr;
@@ -240,7 +240,7 @@ void transferFunctionBlock::set(const std::string& param, double val, units::uni
                     }
                     a[num] = val;
                 } else {
-                    throw(unrecognizedParameter(param));
+                    throw(unrecognizedParameter(std::string{param}));
                 }
                 break;
             case 'b':
@@ -251,14 +251,14 @@ void transferFunctionBlock::set(const std::string& param, double val, units::uni
                     }
                     b[num] = val;
                 } else {
-                    throw(unrecognizedParameter(param));
+                    throw(unrecognizedParameter(std::string{param}));
                 }
                 break;
             case 'k':
                 K = val;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
     }
 

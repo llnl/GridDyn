@@ -48,12 +48,12 @@ coreObject* Source::clone(coreObject* obj) const
     return gS;
 }
 
-void Source::set(const std::string& param, const std::string& val)
+void Source::set(std::string_view param, std::string_view val)
 {
     if (param == "purpose") {
         purpose_ = val;
     } else if ((param == "units") || (param == "outputunits")) {
-        outputUnits_ = units::unit_cast_from_string(val);
+        outputUnits_ = units::unit_cast_from_string(std::string{val});
     } else {
         gridSubModel::set(param, val);
     }
@@ -63,7 +63,7 @@ void Source::setLevel(double newLevel)
 {
     m_tempOut = m_output = newLevel;
 }
-void Source::set(const std::string& param, double val, units::unit unitType)
+void Source::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "val") || (param == "setval") || (param == "level") || (param == "value") ||
         (param == "output")) {

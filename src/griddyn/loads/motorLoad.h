@@ -60,10 +60,10 @@ class motorLoad: public Load {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void setState(coreTime time,
                           const double state[],
@@ -133,7 +133,7 @@ class motorLoad: public Load {
 */
     double dmechds(double slip) const;
 
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,

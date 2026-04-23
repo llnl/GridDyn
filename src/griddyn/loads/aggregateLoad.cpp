@@ -169,7 +169,7 @@ void aggregateLoad::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::set(const std::string& param, const std::string& val)
+void aggregateLoad::set(std::string_view param, std::string_view val)
 {
     std::string iparam;
     int num = trailingStringInt(param, iparam, -1);
@@ -208,7 +208,7 @@ void aggregateLoad::set(const std::string& param, const std::string& val)
             }
         }
     } else if (param == "fraction") {
-        auto fval = gmlc::utilities::str2vector<double>(val, -1.0);
+        auto fval = gmlc::utilities::str2vector<double>(std::string{val}, -1.0);
         for (size_t nn = 0; nn < fval.size(); ++nn) {
             if (nn + 1 >= fraction.size()) {
                 LOG_WARNING("fraction specification count exceeds load count");
@@ -230,7 +230,7 @@ void aggregateLoad::set(const std::string& param, const std::string& val)
         zipLoad::set(param, val);
     }
 }
-void aggregateLoad::set(const std::string& param, double val, units::unit unitType)
+void aggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
     std::string iparam;
     int num = trailingStringInt(param, iparam, -1);
@@ -244,7 +244,7 @@ void aggregateLoad::set(const std::string& param, double val, units::unit unitTy
         }
         if (num >= static_cast<int>(fraction.size())) {
             LOG_WARNING("fraction specification count exceeds load count");
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         fraction[num] = val;
     } else {

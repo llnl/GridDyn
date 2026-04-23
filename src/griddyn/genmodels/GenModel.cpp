@@ -201,11 +201,11 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
 }
 
 // set parameters
-void GenModel::set(const std::string& param, const std::string& val)
+void GenModel::set(std::string_view param, std::string_view val)
 {
     return gridSubModel::set(param, val);
 }
-void GenModel::set(const std::string& param, double val, units::unit unitType)
+void GenModel::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -216,7 +216,7 @@ void GenModel::set(const std::string& param, double val, units::unit unitType)
                 Rs = val;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }

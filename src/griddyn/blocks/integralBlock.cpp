@@ -116,11 +116,11 @@ double integralBlock::step(coreTime time, double inputA)
 }
 
 // set parameters
-void integralBlock::set(const std::string& param, const std::string& val)
+void integralBlock::set(std::string_view param, std::string_view val)
 {
     Block::set(param, val);
 }
-void integralBlock::set(const std::string& param, double val, units::unit unitType)
+void integralBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "iv") || (param == "initial_value")) {
         iv = val;

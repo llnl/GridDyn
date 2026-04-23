@@ -142,7 +142,7 @@ void gridSimulation::saveRecorders()
 }
 
 static const char consoleprint[] = "consoleprintlevel";
-void gridSimulation::set(const std::string& param, const std::string& val)
+void gridSimulation::set(std::string_view param, std::string_view val)
 {
     std::string temp;
     if ((param == "recorddirectory") || (param == "outputdirectory")) {
@@ -164,7 +164,7 @@ void gridSimulation::set(const std::string& param, const std::string& val)
         logPrintLevel = consolePrintLevel;
     } else if (param == "logfile") {
         logFile = val;
-        gridLog->openFile(val);
+        gridLog->openFile(std::string{val});
     } else if (param == "statefile") {
         stateFile = val;
     } else if (param == "sourcefile") {
@@ -174,7 +174,7 @@ void gridSimulation::set(const std::string& param, const std::string& val)
     }
 }
 
-std::string gridSimulation::getString(const std::string& param) const
+std::string gridSimulation::getString(std::string_view param) const
 {
     if (param == "logfile") {
         return logFile;
@@ -191,7 +191,7 @@ std::string gridSimulation::getString(const std::string& param) const
     return Area::getString(param);
 }
 
-void gridSimulation::set(const std::string& param, double val, units::unit unitType)
+void gridSimulation::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestart") || (param == "start") || (param == "starttime")) {
         startTime = units::convert(val, unitType, units::second);
@@ -202,21 +202,21 @@ void gridSimulation::set(const std::string& param, double val, units::unit unitT
     } else if (param == "printlevel") {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         consolePrintLevel = testLevel;
         logPrintLevel = testLevel;
     } else if (param == consoleprint) {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         consolePrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
     } else if (param == "logprintlevel") {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         logPrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
@@ -379,7 +379,7 @@ void gridSimulation::alert(coreObject* object, int code)
     }
 }
 
-double gridSimulation::get(const std::string& param, units::unit unitType) const
+double gridSimulation::get(std::string_view param, units::unit unitType) const
 {
     count_t ival = kInvalidCount;
     double fval = kNullVal;

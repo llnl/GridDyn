@@ -30,18 +30,21 @@ coreObject* CymeDistLoadME::clone(coreObject* /* obj */) const
     return nullptr;
 }
 
-void CymeDistLoadME::set(const std::string& param, const std::string& val)
+void CymeDistLoadME::set(std::string_view param, std::string_view val)
 {
     if ((param == "config") || (param == "configfile") || (param == "configuration_file")) {
-        printf("loading config file %s\n", val.c_str());
-        loadConfigFile(val);
+        const std::string sval{val};
+        printf("loading config file %s\n", sval.c_str());
+        loadConfigFile(sval);
     } else {
-        printf("setting parameter %s to %s\n", param.c_str(), val.c_str());
+        const std::string sparam{param};
+        const std::string sval{val};
+        printf("setting parameter %s to %s\n", sparam.c_str(), sval.c_str());
         fmiMELoad3phase::set(param, val);
     }
 }
 
-void CymeDistLoadME::set(const std::string& param, double val, units::unit unitType)
+void CymeDistLoadME::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "configindex") || (param == "config")) {
         configIndex = static_cast<int>(val);

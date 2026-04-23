@@ -297,14 +297,14 @@ class gridDynSimulation: public gridSimulation {
     */
     virtual int execute(const gridDynAction& cmd);
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual std::string getString(const std::string& param) const override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    virtual std::string getString(std::string_view param) const override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
 
     /** @brief get a vector of the states
     @param[in]  sMode the solverMode to get the states for
@@ -538,7 +538,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] field the field to set on the solver
     @param[in] val the value to the set the property to
     */
-    virtual void solverSet(const std::string& solverName, const std::string& field, double val);
+    virtual void solverSet(const std::string& solverName, std::string_view field, double val);
 
     /** @brief set a string parameter in a particular solver
      finds a solver by name then calls the solver set function
@@ -547,7 +547,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] val the value to the set the property to
     */
     virtual void
-        solverSet(const std::string& solverName, const std::string& field, const std::string& val);
+        solverSet(const std::string& solverName, std::string_view field, const std::string& val);
 
     /** @brief get the current solverMode from the simulation
     @param[in] sMode  input solverMode to check

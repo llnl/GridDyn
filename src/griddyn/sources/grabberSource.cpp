@@ -31,18 +31,18 @@ coreObject* grabberSource::clone(coreObject* obj) const
     return src;
 }
 
-void grabberSource::setFlag(const std::string& flag, bool val)
+void grabberSource::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
         Source::setFlag(flag, val);
     }
 }
-void grabberSource::set(const std::string& param, const std::string& val)
+void grabberSource::set(std::string_view param, std::string_view val)
 {
     if (param == "field") {
         if (opFlags[dyn_initialized]) {
-            updateField(val);
+            updateField(std::string{val});
         } else {
             field = val;
         }
@@ -57,7 +57,7 @@ void grabberSource::set(const std::string& param, const std::string& val)
     }
 }
 
-void grabberSource::set(const std::string& param, double val, units::unit unitType)
+void grabberSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "gain") || (param == "multiplier")) {
         multiplier = val;
@@ -69,7 +69,7 @@ void grabberSource::set(const std::string& param, double val, units::unit unitTy
     }
 }
 
-double grabberSource::get(const std::string& param, units::unit unitType) const
+double grabberSource::get(std::string_view param, units::unit unitType) const
 {
     if (param == "multiplier") {
         return multiplier;

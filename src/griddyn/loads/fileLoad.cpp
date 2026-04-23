@@ -161,7 +161,7 @@ void fileLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& s
     rampLoad::timestep(time, inputs, sMode);
 }
 
-void fileLoad::setFlag(const std::string& flag, bool val)
+void fileLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
         opFlags.set(use_absolute_time_flag, val);
@@ -200,7 +200,7 @@ static int columnCode(const std::string& ldc)
     return code;
 }
 
-void fileLoad::set(const std::string& param, const std::string& val)
+void fileLoad::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {
         fileName_ = val;
@@ -239,7 +239,7 @@ void fileLoad::set(const std::string& param, const std::string& val)
             }
         }
     } else if (param == "units") {
-        inputUnits = units::unit_cast_from_string(val);
+        inputUnits = units::unit_cast_from_string(std::string{val});
     } else if ((param == "mode") || (param == "timemode")) {
         setFlag(val, true);
     } else {
@@ -247,7 +247,7 @@ void fileLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-void fileLoad::set(const std::string& param, double val, units::unit unitType)
+void fileLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "scalefactor") || (param == "scaling")) {
         scaleFactor = val;

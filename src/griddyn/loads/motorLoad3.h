@@ -33,9 +33,9 @@ class motorLoad3: public motorLoad {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void setState(coreTime time,
                           const double state[],
@@ -91,7 +91,7 @@ class motorLoad3: public motorLoad {
     virtual void getStateName(stringVec& stNames,
                               const solverMode& sMode,
                               const std::string& prefix) const override;
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,

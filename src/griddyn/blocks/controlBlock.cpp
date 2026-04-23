@@ -175,7 +175,7 @@ double controlBlock::step(coreTime time, double input)
     return out;
 }
 
-index_t controlBlock::findIndex(const std::string& field, const solverMode& sMode) const
+index_t controlBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {
@@ -187,11 +187,11 @@ index_t controlBlock::findIndex(const std::string& field, const solverMode& sMod
 }
 
 // set parameters
-void controlBlock::set(const std::string& param, const std::string& val)
+void controlBlock::set(std::string_view param, std::string_view val)
 {
     Block::set(param, val);
 }
-void controlBlock::set(const std::string& param, double val, units::unit unitType)
+void controlBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
 

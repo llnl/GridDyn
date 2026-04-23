@@ -106,7 +106,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
         fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->setState(time, state, dstate_dt, sMode);
     }
 
-    index_t findIndex(const std::string& field, const solverMode& sMode) const override
+    index_t findIndex(std::string_view field, const solverMode& sMode) const override
     {
         return fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->findIndex(field, sMode);
     }

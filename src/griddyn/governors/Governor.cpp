@@ -242,7 +242,7 @@ void Governor::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-index_t Governor::findIndex(const std::string& field, const solverMode& sMode) const
+index_t Governor::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {
@@ -255,7 +255,7 @@ index_t Governor::findIndex(const std::string& field, const solverMode& sMode) c
     return ret;
 }
 
-void Governor::setFlag(const std::string& flag, bool val)
+void Governor::setFlag(std::string_view flag, bool val)
 {
     try {
         gridSubModel::setFlag(flag, val);
@@ -265,7 +265,7 @@ void Governor::setFlag(const std::string& flag, bool val)
     }
 }
 // set parameters
-void Governor::set(const std::string& param, const std::string& val)
+void Governor::set(std::string_view param, std::string_view val)
 {
     try {
         gridSubModel::set(param, val);
@@ -275,7 +275,7 @@ void Governor::set(const std::string& param, const std::string& val)
     }
 }
 
-void Governor::set(const std::string& param, double val, unit unitType)
+void Governor::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "k") || (param == "droop")) {
         K = val;
@@ -328,7 +328,7 @@ void Governor::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double Governor::get(const std::string& param, units::unit unitType) const
+double Governor::get(std::string_view param, units::unit unitType) const
 {
     double out = kNullVal;
     if (param == "k") {

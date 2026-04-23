@@ -49,11 +49,11 @@ eventually will replace most of the shaped loads*/
         virtual void remove(coreObject* obj) override;
         virtual void remove(Source* src);
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
+        virtual void set(std::string_view param, std::string_view val) override;
+        virtual void set(std::string_view param,
                          double val,
                          units::unit unitType = units::defunit) override;
-        virtual void setFlag(const std::string& flag, bool val = true) override;
+        virtual void setFlag(std::string_view flag, bool val = true) override;
 
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -69,7 +69,7 @@ eventually will replace most of the shaped loads*/
         virtual void
             timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
-        coreObject* find(const std::string& obj) const override;
+        coreObject* find(std::string_view obj) const override;
 
       private:
         void getSourceLoads();

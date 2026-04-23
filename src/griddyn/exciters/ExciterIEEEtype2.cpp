@@ -214,13 +214,13 @@ change_code ExciterIEEEtype2::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void ExciterIEEEtype2::set(const std::string& param, const std::string& val)
+void ExciterIEEEtype2::set(std::string_view param, std::string_view val)
 {
     return ExciterIEEEtype1::set(param, val);
 }
 
 // set parameters
-void ExciterIEEEtype2::set(const std::string& param, double val, units::unit unitType)
+void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "tf1") {
         Tf = val;

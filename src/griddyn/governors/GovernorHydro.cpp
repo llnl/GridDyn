@@ -104,7 +104,7 @@ void GovernorHydro::jacobianElements(const IOdata& /*inputs*/,
     md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
 }
 
-index_t GovernorHydro::findIndex(const std::string& field, const solverMode& /*sMode*/) const
+index_t GovernorHydro::findIndex(std::string_view field, const solverMode& /*sMode*/) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {
@@ -116,11 +116,11 @@ index_t GovernorHydro::findIndex(const std::string& field, const solverMode& /*s
 }
 
 // set parameters
-void GovernorHydro::set(const std::string& param, const std::string& val)
+void GovernorHydro::set(std::string_view param, std::string_view val)
 {
     coreObject::set(param, val);
 }
-void GovernorHydro::set(const std::string& param, double val, units::unit unitType)
+void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
     if (param == "k") {

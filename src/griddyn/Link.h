@@ -274,15 +274,15 @@ class Link: public gridPrimary {
     virtual double getMaxTransfer() const;
 
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     gridBus* getBus(index_t busInd) const override;
 
-    coreObject* getSubObject(const std::string& typeName, index_t num) const override;
+    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
     // test for various conditions of overload and automatically trip the line if needed
     virtual bool testAndTrip(int tripLevel);

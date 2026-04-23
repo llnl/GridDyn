@@ -177,22 +177,22 @@ void Link::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 }
 
 // set properties
-void Link::set(const std::string& param, const std::string& val)
+void Link::set(std::string_view param, std::string_view val)
 {
     if ((param == "bus1") || (param == "from")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
 
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if ((param == "bus2") || (param == "to")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "status") {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
@@ -320,7 +320,7 @@ void Link::reconnect()
     }
 }
 
-void Link::set(const std::string& param, double val, unit unitType)
+void Link::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "state") || (param == "switch") || (param == "switch1") || (param == "breaker") ||
         (param == "breaker_open") || (param == "breaker1") || (param == "breaker_open1")) {
@@ -352,7 +352,7 @@ void Link::set(const std::string& param, double val, unit unitType)
     }
 }
 
-coreObject* Link::getSubObject(const std::string& typeName, index_t num) const
+coreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         return (num == 1) ? B1 : ((num == 2) ? B2 : nullptr);
@@ -360,7 +360,7 @@ coreObject* Link::getSubObject(const std::string& typeName, index_t num) const
     return nullptr;
 }
 
-double Link::get(const std::string& param, unit unitType) const
+double Link::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
 
@@ -390,7 +390,7 @@ double Link::get(const std::string& param, unit unitType) const
     } else if (param == "circuit") {
         val = circuitNum;
     } else {
-        auto fptr = getObjectFunction(this, param);
+        auto fptr = getObjectFunction(this, std::string{param});
         if (fptr.first) {
             coreObject* tobj = const_cast<Link*>(this);
             val = convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);

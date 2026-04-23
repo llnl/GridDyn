@@ -161,18 +161,18 @@ class gridBus: public gridPrimary {
     virtual void reconnect(gridBus* mapBus);
     virtual void reconnect() override;
     // parameter set functions
-    virtual void setAll(const std::string& objtype,
-                        const std::string& param,
+    virtual void setAll(std::string_view objtype,
+                        std::string_view param,
                         double val,
                         units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr,
                                      paramStringType pstype = paramStringType::all) const override;
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     // solver functions
@@ -244,9 +244,9 @@ class gridBus: public gridPrimary {
     if none exists
     */
     Link* findLink(gridBus* bs) const;
-    coreObject* find(const std::string& objName) const override;
-    coreObject* getSubObject(const std::string& typeName, index_t num) const override;
-    coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    coreObject* find(std::string_view objName) const override;
+    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     Link* getLink(index_t x) const override;
     /**

@@ -55,12 +55,12 @@ class randomSource: public rampSource {
     bool isTriggered() { return opFlags[triggered_flag]; }
     virtual void reset(reset_levels level = reset_levels::minimal) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void updateA(coreTime time) override;
 
-    void setFlag(const std::string& flag, bool val = true) override;
+    void setFlag(std::string_view flag, bool val = true) override;
 
     virtual void updateOutput(coreTime time) override;
 

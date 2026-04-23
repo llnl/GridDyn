@@ -64,14 +64,14 @@ void commSource::setLevel(double val)
     }
 }
 
-void commSource::set(const std::string& param, const std::string& val)
+void commSource::set(std::string_view param, std::string_view val)
 {
     if (!(cManager.set(param, val))) {
         Source::set(param, val);
     }
 }
 
-void commSource::set(const std::string& param, double val, units::unit unitType)
+void commSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "ramp") || (param == "maxramp")) {
         maxRamp = std::abs(val);
@@ -82,7 +82,7 @@ void commSource::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-void commSource::setFlag(const std::string& flag, bool val)
+void commSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "ramp") {
         opFlags.set(useRamp, val);

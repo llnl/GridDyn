@@ -467,8 +467,8 @@ void SolverInterface::check_flag(void* flagvalue,
             if (printError) {
                 m_gds->log(m_gds,
                            print_level::error,
-                           std::string{funcname} + " failed with flag = " +
-                               std::to_string(*errflag));
+                           std::string{funcname} +
+                               " failed with flag = " + std::to_string(*errflag));
             }
             throw(solverException(*errflag));
         }

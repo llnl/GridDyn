@@ -10,21 +10,21 @@
 #include <string>
 
 namespace griddyn {
-objInfo::objInfo(const std::string& Istring, const coreObject* obj)
+objInfo::objInfo(std::string_view Istring, const coreObject* obj)
 {
     LoadInfo(Istring, obj);
 }
-void objInfo::LoadInfo(const std::string& Istring, const coreObject* obj)
+void objInfo::LoadInfo(std::string_view Istring, const coreObject* obj)
 {
     // get the object which to grab from
     size_t rlc = Istring.find_last_of(":?");
     if (rlc != std::string::npos) {
         m_obj = locateObject(Istring.substr(0, rlc), obj);
 
-        m_field = Istring.substr(rlc + 1, std::string::npos);
+        m_field = std::string{Istring.substr(rlc + 1, std::string::npos)};
     } else {
         m_obj = const_cast<coreObject*>(obj);
-        m_field = Istring;
+        m_field = std::string{Istring};
     }
 
     rlc = m_field.find_first_of('(');
@@ -40,21 +40,20 @@ void objInfo::LoadInfo(const std::string& Istring, const coreObject* obj)
     gmlc::utilities::stringOps::trimString(m_field);
 }
 
-// TODO(PT):: convert to using stringView
-coreObject* locateObject(const std::string& Istring,
+coreObject* locateObject(std::string_view Istring,
                          const coreObject* rootObj,
                          bool rootSearch,
                          bool directFind)
 {
     coreObject* obj = nullptr;
-    std::string mname = Istring;
+    std::string_view mname = Istring;
     std::string secName = "_";
     // get the object which to grab from
     auto rlc = Istring.find_first_of(":/?");
     char sep = ' ';
     if (rlc != std::string::npos) {
         mname = Istring.substr(0, rlc);
-        secName = Istring.substr(rlc + 1);
+        secName = std::string{Istring.substr(rlc + 1)};
         sep = Istring[rlc];
     }
 
@@ -62,7 +61,7 @@ coreObject* locateObject(const std::string& Istring,
         obj = const_cast<coreObject*>(rootObj);
     } else if ((mname[0] == '@') || (mname[0] == '/')) {
         // implies searching the parent object as well
-        mname.erase(0);
+        mname.remove_prefix(1);
         obj = rootObj->find(mname);
         if (obj == nullptr) {
             obj = rootObj->getParent()->find(mname);
@@ -74,11 +73,11 @@ coreObject* locateObject(const std::string& Istring,
         if (obj == nullptr) {
             auto rlc2 = mname.find_last_of("#$!");
             if (rlc2 != std::string::npos) {
-                auto type = gmlc::utilities::convertToLowerCase(mname.substr(0, rlc2));
+                auto type = gmlc::utilities::convertToLowerCase(std::string{mname.substr(0, rlc2)});
                 if (type.empty()) {
                     type = "subobject";
                 }
-                auto num = mname.substr(rlc2 + 1);
+                auto num = std::string{mname.substr(rlc2 + 1)};
                 auto onum = gmlc::utilities::numeric_conversion<int>(num, -1);
                 if (onum >= 0) {
                     switch (mname[rlc2]) {

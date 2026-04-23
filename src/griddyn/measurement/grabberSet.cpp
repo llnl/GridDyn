@@ -11,10 +11,11 @@
 #include "utilities/valuePredictor.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
-grabberSet::grabberSet(const std::string& fld, coreObject* obj, bool step_only)
+grabberSet::grabberSet(std::string_view fld, coreObject* obj, bool step_only)
 {
     auto ggb = makeGrabbers(fld, obj);
     if (!ggb.empty()) {
@@ -68,7 +69,7 @@ void grabberSet::updateGrabbers(std::shared_ptr<gridGrabber> ggrab,
     stGrab = std::move(stgrab);
 }
 
-void grabberSet::updateField(const std::string& fld)
+void grabberSet::updateField(std::string_view fld)
 {
     if (grab) {
         grab->updateField(fld);

@@ -10,6 +10,7 @@
 #include "../Relay.h"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -80,13 +81,13 @@ namespace relays {
         /** add a measurement point to the relay
     @param[in] measure a string representing the measurement
     */
-        void addMeasurement(const std::string& measure);
+        void addMeasurement(std::string_view measure);
         /** retrieve a numbered measurement*/
         double getMeasurement(index_t num) const;
         /** retrieve the value of a named measurement*/
-        double getMeasurement(const std::string& pointName) const;
+        double getMeasurement(std::string_view pointName) const;
         /** locate a numerical index of a measurement from its name*/
-        index_t findMeasurement(const std::string& pointName) const;
+        index_t findMeasurement(std::string_view pointName) const;
 
       protected:
         virtual void actionTaken(index_t ActionNum,

@@ -19,6 +19,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 using gmlc::utilities::str2vector;
@@ -96,14 +97,14 @@ bool Event::checkArmed()
     return false;
 }
 
-void Event::loadField(coreObject* searchObj, const std::string& newField)
+void Event::loadField(coreObject* searchObj, std::string_view newField)
 {
     auto renameloc = newField.find(" as ");  // spaces are important
                                              // extract out a rename
 
     objInfo fdata;
     if (renameloc != std::string::npos) {
-        setName(trim(newField.substr(renameloc + 4)));
+        setName(trim(std::string{newField.substr(renameloc + 4)}));
         fdata = objInfo(newField.substr(0, renameloc), searchObj);
     } else {
         fdata = objInfo(newField, searchObj);
@@ -278,7 +279,7 @@ void Event::getObjects(std::vector<coreObject*>& objects) const
     objects.push_back(getObject());
 }
 
-bool Event::setTarget(coreObject* gdo, const std::string& var)
+bool Event::setTarget(coreObject* gdo, std::string_view var)
 {
     if (gdo != nullptr) {
         m_obj = gdo;
@@ -345,7 +346,7 @@ event_types findEventType(EventInfo& gdEI)
     return event_types::basic;
 }
 
-EventInfo::EventInfo(const std::string& eventString, coreObject* rootObj)
+EventInfo::EventInfo(std::string_view eventString, coreObject* rootObj)
 {
     loadString(eventString, rootObj);
 }
@@ -353,10 +354,10 @@ EventInfo::EventInfo(const std::string& eventString, coreObject* rootObj)
 // @time1[,time2,time3,... + period] |[rootobj::obj1:]field(units) const =
 // val1,[val2,val3,...];[rootobj::obj1:]field(units) const = val1,[val2,val3,...];  or
 // [rootobj::obj:]field(units) = val1,[val2,val3,...] @time1[,time2,time3,...|+ period] or
-void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
+void EventInfo::loadString(std::string_view eventString, coreObject* rootObj)
 {
     if (eventString.find_first_of(';') != std::string::npos) {
-        auto svector = gmlc::utilities::stringOps::splitlineBracket(eventString, ";");
+        auto svector = gmlc::utilities::stringOps::splitlineBracket(std::string{eventString}, ";");
         if (svector.size() > 1) {
             for (const auto& estring : svector) {
                 if (!estring.empty()) {
@@ -369,12 +370,12 @@ void EventInfo::loadString(const std::string& eventString, coreObject* rootObj)
     std::string objString;
     auto posA = eventString.find_first_of('@');
     if (posA == std::string::npos) {
-        objString = eventString;
+        objString = std::string{eventString};
     } else {
         auto posT = eventString.find_first_of('|', posA + 2);
         std::string tstring = (posT != std::string::npos) ?
-            eventString.substr(posA + 1, posT - posA - 1) :
-            eventString.substr(posA + 1, std::string::npos);
+            std::string{eventString.substr(posA + 1, posT - posA - 1)} :
+            std::string{eventString.substr(posA + 1, std::string::npos)};
         trimString(tstring);
         auto cstr = tstring.find_first_of(',');
         if (cstr == std::string::npos) {
@@ -434,7 +435,7 @@ std::unique_ptr<Event>
     return ev;
 }
 
-std::unique_ptr<Event> make_event(const std::string& eventString, coreObject* rootObject)
+std::unique_ptr<Event> make_event(std::string_view eventString, coreObject* rootObject)
 {
     EventInfo gdEI(eventString, rootObject);
     return make_event(gdEI, rootObject);

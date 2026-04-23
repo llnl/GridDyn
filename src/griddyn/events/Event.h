@@ -13,6 +13,7 @@
 #include "units/units.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -33,9 +34,9 @@ class EventInfo {
     std::vector<units::unit> units;  //!< units associated with an event
   public:
     EventInfo() = default;
-    EventInfo(const std::string& eventString, coreObject* rootObj);
+    EventInfo(std::string_view eventString, coreObject* rootObj);
 
-    void loadString(const std::string& eventString, coreObject* rootObj);
+    void loadString(std::string_view eventString, coreObject* rootObj);
 };
 
 /** basic event class enabling a property change in an object
@@ -109,7 +110,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     @param[in] var the new target field for the event
     @return true if the event is armed
     */
-    virtual bool setTarget(coreObject* gdo, const std::string& var = "");
+    virtual bool setTarget(coreObject* gdo, std::string_view var = {});
 
     virtual void updateObject(coreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
@@ -119,7 +120,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
 
   protected:
     /** update the target and field of an event*/
-    void loadField(coreObject* searchObj, const std::string& newField);
+    void loadField(coreObject* searchObj, std::string_view newField);
     /** run a check to see if the event can be armed*/
     // Note: please remove calls to checkArmed in the constructor before making this virtual
     bool checkArmed();
@@ -145,7 +146,7 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, coreObject* rootObject);
 @param[in] rootObject the high level object to base any object searches from
 @return a unique ptr to the created event
 */
-std::unique_ptr<Event> make_event(const std::string& eventString, coreObject* rootObject);
+std::unique_ptr<Event> make_event(std::string_view eventString, coreObject* rootObject);
 
 /** equality operator*/
 inline bool operator==(const Event& event1, const Event& event2)

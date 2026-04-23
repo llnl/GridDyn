@@ -11,6 +11,7 @@
 #include "griddyn/griddyn-config.h"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
@@ -47,7 +48,7 @@ void Communicator::transmit(std::uint64_t destID, std::shared_ptr<commMessage> m
     communicationsCore::instance()->send(m_id, destID, std::move(message));
 }
 
-void Communicator::transmit(const std::string& destName, std::shared_ptr<commMessage> message)
+void Communicator::transmit(std::string_view destName, std::shared_ptr<commMessage> message)
 {
     communicationsCore::instance()->send(m_id, destName, std::move(message));
 }
@@ -75,7 +76,7 @@ void Communicator::receive(std::uint64_t sourceID,
 }
 
 void Communicator::receive(std::uint64_t sourceID,
-                           const std::string& destName,
+                           std::string_view destName,
                            std::shared_ptr<commMessage> message)
 {
     if (destName == getName()) {
@@ -119,7 +120,7 @@ void Communicator::ping(std::uint64_t destID)
     ccore->send(m_id, destID, std::move(message));
 }
 
-void Communicator::ping(const std::string& destName)
+void Communicator::ping(std::string_view destName)
 {
     auto message = std::make_unique<commMessage>(commMessage::pingMessageType);
     auto ccore = communicationsCore::instance();

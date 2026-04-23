@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 /** @file
@@ -58,7 +59,7 @@ class stateGrabber: public objectOperatorInterface {
     stateGrabber() = default;
     explicit stateGrabber(coreObject* obj);
 
-    stateGrabber(const std::string& fld, coreObject* obj);
+    stateGrabber(std::string_view fld, coreObject* obj);
     stateGrabber(index_t noffset, coreObject* obj);
     /** clone the grabber*/
     virtual std::unique_ptr<stateGrabber> clone() const;
@@ -70,7 +71,7 @@ class stateGrabber: public objectOperatorInterface {
     /** update the target field of a grabber
     @param[in] fld the new target string of a grabber
     */
-    virtual void updateField(const std::string& fld);
+    virtual void updateField(std::string_view fld);
     /** retrieve the target data associated with a grabber
     @param[in] sD the stateData to grab the data from
     @param[in] sMode the solver mode associated with the stateData
@@ -92,17 +93,17 @@ class stateGrabber: public objectOperatorInterface {
 
   protected:
     /** load bus specific grabber info*/
-    void busLoadInfo(const std::string& fld);
+    void busLoadInfo(std::string_view fld);
     /** load link specific grabber info*/
-    void linkLoadInfo(const std::string& fld);
+    void linkLoadInfo(std::string_view fld);
     /** load relay specific grabber info*/
-    void relayLoadInfo(const std::string& fld);
+    void relayLoadInfo(std::string_view fld);
     /** load gridSecondary specific grabber info*/
-    void secondaryLoadInfo(const std::string& fld);
+    void secondaryLoadInfo(std::string_view fld);
     /** load area specific grabber info*/
-    void areaLoadInfo(const std::string& fld);
+    void areaLoadInfo(std::string_view fld);
     /** load generic object info*/
-    void objectLoadInfo(const std::string& fld);
+    void objectLoadInfo(std::string_view fld);
 };
 
 using fstateobjectPair =
@@ -114,7 +115,7 @@ using fstateobjectPair =
 @param[in] obj the root object to start any searches from
 @return a vector of unique_ptrs to stateGrabbers containing all the generated grabbers
 */
-std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(const std::string& command,
+std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
                                                              coreObject* obj);
 
 /**
@@ -157,7 +158,7 @@ class stateFunctionGrabber: public stateGrabber {
     virtual void updateObject(coreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
     virtual coreObject* getObject() const override;
-    virtual void updateField(const std::string& fld) override;
+    virtual void updateField(std::string_view fld) override;
 };
 
 /** a state grabber with operation or two argument functions*/
@@ -190,7 +191,7 @@ class stateOpGrabber: public stateGrabber {
     */
     void updateObject(coreObject* obj, int num);
     virtual coreObject* getObject() const override;
-    virtual void updateField(const std::string& opName) override;
+    virtual void updateField(std::string_view opName) override;
 };
 
 }  // namespace griddyn

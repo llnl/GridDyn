@@ -16,9 +16,9 @@
 
 namespace griddyn {
 
-std::unique_ptr<Condition> make_condition(const std::string& condString, coreObject* rootObject)
+std::unique_ptr<Condition> make_condition(std::string_view condString, coreObject* rootObject)
 {
-    auto cString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(condString);
+    auto cString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(std::string{condString});
     // size_t posA = condString.find_first_of("&|");
     // TODO(phlpt): Handle parenthesized and &| conditions.
 
@@ -72,9 +72,9 @@ static const std::unordered_map<std::string, comparison_type> compStrMap{
     {"??", comparison_type::null},
 };
 
-comparison_type comparisonFromString(const std::string& compStr)
+comparison_type comparisonFromString(std::string_view compStr)
 {
-    return mapFind(compStrMap, compStr, comparison_type::null);
+    return mapFind(compStrMap, std::string{compStr}, comparison_type::null);
 }
 
 std::string to_string(comparison_type comp)
@@ -100,7 +100,7 @@ std::string to_string(comparison_type comp)
 }
 
 std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          const std::string& compare,
+                                          std::string_view compare,
                                           double level,
                                           coreObject* rootObject)
 {
@@ -203,7 +203,7 @@ void Condition::updateObject(coreObject* obj, object_update_mode mode)
     }
 }
 
-void Condition::setComparison(const std::string& compStr)
+void Condition::setComparison(std::string_view compStr)
 {
     setComparison(comparisonFromString(compStr));
 }

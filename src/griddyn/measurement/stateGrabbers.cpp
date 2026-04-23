@@ -20,24 +20,25 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
 
 static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>
-    sgInterpret([](const std::string& fld, coreObject* obj) {
+    sgInterpret([](std::string_view fld, coreObject* obj) {
         return std::make_unique<stateGrabber>(fld, obj);
     });
 
 static const char specialChars[] = R"(:(+-/*\^?)";
 static const char sepChars[] = ",;";
 
-std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(const std::string& command,
+std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
                                                              coreObject* obj)
 {
     std::vector<std::unique_ptr<stateGrabber>> v;
-    auto gsplit = gmlc::utilities::stringOps::splitlineBracket(command, sepChars);
+    auto gsplit = gmlc::utilities::stringOps::splitlineBracket(std::string{command}, sepChars);
     gmlc::utilities::stringOps::trim(gsplit);
     for (auto& cmd : gsplit) {
         if (cmd.find_first_of(specialChars) != std::string::npos) {
@@ -56,7 +57,7 @@ std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(const std::string& 
 }
 
 stateGrabber::stateGrabber(coreObject* obj): cobj(dynamic_cast<gridComponent*>(obj)) {}
-stateGrabber::stateGrabber(const std::string& fld, coreObject* obj): stateGrabber(obj)
+stateGrabber::stateGrabber(std::string_view fld, coreObject* obj): stateGrabber(obj)
 {
     stateGrabber::updateField(fld);
 }
@@ -89,10 +90,10 @@ void stateGrabber::cloneTo(stateGrabber* ggb) const
     ggb->cobj = cobj;
 }
 
-void stateGrabber::updateField(const std::string& fld)
+void stateGrabber::updateField(std::string_view fld)
 {
     field = fld;
-    auto fd = gmlc::utilities::convertToLowerCase(fld);
+    auto fd = gmlc::utilities::convertToLowerCase(std::string{fld});
     loaded = true;
     if (dynamic_cast<gridBus*>(cobj) != nullptr) {
         busLoadInfo(fd);
@@ -332,14 +333,14 @@ static const std::map<std::string, fstateobjectPair> linkFunctions{
 
 // clang-format on
 
-void stateGrabber::objectLoadInfo(const std::string& fld)
+void stateGrabber::objectLoadInfo(std::string_view fld)
 {
-    auto funcfind = objectFunctions.find(fld);
+    auto funcfind = objectFunctions.find(std::string{fld});
     if (funcfind != objectFunctions.end()) {
         fptr = funcfind->second.first;
     } else {
         std::string fieldStr;
-        int num = gmlc::utilities::stringOps::trailingStringInt(fld, fieldStr, 0);
+        int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
         if ((fieldStr == "value") || (fieldStr == "output") || (fieldStr == "o")) {
             fptr = [num](gridComponent* comp, const stateData& sD, const solverMode& sMode) {
                 return comp->getOutput(noInputs, sD, sMode, static_cast<index_t>(num));
@@ -363,9 +364,10 @@ void stateGrabber::objectLoadInfo(const std::string& fld)
     }
 }
 
-void stateGrabber::busLoadInfo(const std::string& fld)
+void stateGrabber::busLoadInfo(std::string_view fld)
 {
-    std::string nfstr = mapFind(stringTranslate, fld, fld);
+    auto fldString = std::string{fld};
+    std::string nfstr = mapFind(stringTranslate, fldString, fldString);
 
     auto funcfind = busFunctions.find(nfstr);
     if (funcfind != busFunctions.end()) {
@@ -382,9 +384,10 @@ void stateGrabber::busLoadInfo(const std::string& fld)
     }
 }
 
-void stateGrabber::linkLoadInfo(const std::string& fld)
+void stateGrabber::linkLoadInfo(std::string_view fld)
 {
-    std::string nfstr = mapFind(stringTranslate, fld, fld);
+    auto fldString = std::string{fld};
+    std::string nfstr = mapFind(stringTranslate, fldString, fldString);
 
     auto funcfind = linkFunctions.find(nfstr);
     if (funcfind != linkFunctions.end()) {
@@ -403,10 +406,10 @@ void stateGrabber::linkLoadInfo(const std::string& fld)
         objectLoadInfo(nfstr);
     }
 }
-void stateGrabber::relayLoadInfo(const std::string& fld)
+void stateGrabber::relayLoadInfo(std::string_view fld)
 {
     std::string fieldStr;
-    int num = gmlc::utilities::stringOps::trailingStringInt(fld, fieldStr, 0);
+    int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
     if ((fieldStr == "block") || (fieldStr == "b")) {
         if (dynamic_cast<sensor*>(cobj) != nullptr) {
             fptr = [num](gridComponent* comp, const stateData& sD, const solverMode& sMode) {
@@ -441,7 +444,7 @@ void stateGrabber::relayLoadInfo(const std::string& fld)
     }
 }
 
-void stateGrabber::secondaryLoadInfo(const std::string& fld)
+void stateGrabber::secondaryLoadInfo(std::string_view fld)
 {
     if ((fld == "realpower") || (fld == "power") || (fld == "p")) {
         cacheUpdateRequired = true;
@@ -493,7 +496,7 @@ void stateGrabber::secondaryLoadInfo(const std::string& fld)
     }
 }
 
-void stateGrabber::areaLoadInfo(const std::string& /*fld*/) {}
+void stateGrabber::areaLoadInfo(std::string_view /*fld*/) {}
 double stateGrabber::grabData(const stateData& sD, const solverMode& sMode)
 {
     if (loaded) {
@@ -578,10 +581,11 @@ stateFunctionGrabber::stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, st
     loaded = bgrabber->loaded;
 }
 
-void stateFunctionGrabber::updateField(const std::string& fld)
+void stateFunctionGrabber::updateField(std::string_view fld)
 {
     if (!fld.empty()) {
-        if (isFunctionName(fld, function_type::arg)) {
+        const std::string fldString{fld};
+        if (isFunctionName(fldString, function_type::arg)) {
             function_name = fld;
             opptr = get1ArgFunction(function_name);
         } else {
@@ -667,10 +671,11 @@ stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
     loaded = ((bgrabber1->loaded) && (bgrabber2->loaded));
 }
 
-void stateOpGrabber::updateField(const std::string& opName)
+void stateOpGrabber::updateField(std::string_view opName)
 {
     if (!opName.empty()) {
-        if (isFunctionName(opName, function_type::arg2)) {
+        const std::string opNameString{opName};
+        if (isFunctionName(opNameString, function_type::arg2)) {
             op_name = opName;
             opptr = get2ArgFunction(op_name);
         } else {

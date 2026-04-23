@@ -10,6 +10,7 @@
 #include "core/objectOperatorInterface.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 
 template<class Y>
 class matrixData;
@@ -44,7 +45,7 @@ class grabberSet: public objectOperatorInterface {
     @param[in] obj the object to get the field from
     @param[in] step_only if set to true the underlying stateGrabber is not constructed
     */
-    grabberSet(const std::string& fld, coreObject* obj, bool step_only = false);
+    grabberSet(std::string_view fld, coreObject* obj, bool step_only = false);
     /** create a grabber from an offset index
     @param[in] noffset the offset into the state to grab
     @param[in] obj the object to get the field from
@@ -66,7 +67,7 @@ class grabberSet: public objectOperatorInterface {
      *@param[in]  fld the new field to capture
      *@throw unrecognized parameter exception if fld is not available
      */
-    virtual void updateField(const std::string& fld);
+    virtual void updateField(std::string_view fld);
     /** replace the grabbers with a new pair
      */
     virtual void updateGrabbers(std::shared_ptr<gridGrabber> ggrab,

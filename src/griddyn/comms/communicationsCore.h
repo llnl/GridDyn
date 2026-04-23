@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace griddyn {
@@ -41,7 +42,7 @@ class communicationsCore {
   @return SEND_SUCCESS if the message send was successful DESTINATION_NOT_FOUND otherwise
   */
     virtual int
-        send(std::uint64_t source, const std::string& dest, std::shared_ptr<commMessage> message);
+        send(std::uint64_t source, std::string_view dest, std::shared_ptr<commMessage> message);
     /** send a message to a specified destination
   @param[in] source -the identity of the source of the message
   @param[in] dest the name of the destination
@@ -55,7 +56,7 @@ class communicationsCore {
     /** lookup an id by name
   @param[in] commName the name of the communicator
   @return the id associated with the communicator*/
-    virtual std::uint64_t lookup(const std::string& commName) const;
+    virtual std::uint64_t lookup(std::string_view commName) const;
     /** lookup an name by id
   @param[in] did the id associated with a communicator
   @the name of the communicator*/

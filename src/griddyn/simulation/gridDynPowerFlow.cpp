@@ -408,7 +408,7 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
     return generatorAdjust(cPower);
 }
 
-void gridDynSimulation::continuationPowerFlow(const std::string& contName)
+void gridDynSimulation::continuationPowerFlow(std::string_view contName)
 {
     std::shared_ptr<continuationSequence> cS;
     for (auto& clN : continList) {

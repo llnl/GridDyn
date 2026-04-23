@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 class commMessage;
@@ -43,7 +44,7 @@ class Communicator:
      * @param[in] destName the identifier of the receiving location specified as a string
      * @param[in] message  the message to send
      */
-    virtual void transmit(const std::string& destName, std::shared_ptr<commMessage> message);
+    virtual void transmit(std::string_view destName, std::shared_ptr<commMessage> message);
     /** transmit a commMessage somewhere
      * transmits a data block to somewhere Else
      * @param[in] destID the identifier of the receiving location specified as a id code
@@ -65,14 +66,14 @@ class Communicator:
      * @param[in] message  the message to send
      */
     virtual void receive(std::uint64_t sourceID,
-                         const std::string& destName,
+                         std::string_view destName,
                          std::shared_ptr<commMessage> message);
 
     // ping functions
     /** transmit a ping message to the specified ID*/
     void ping(std::uint64_t destID);
     /** transmit a ping message to the named destination*/
-    void ping(const std::string& destName);
+    void ping(std::string_view destName);
     /** query for the last time a ping response was received*/
     griddyn::coreTime getLastPingTime() const;
 

@@ -101,7 +101,7 @@ void helicsEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
     findCoordinator();
 }
 
-bool helicsEvent::setTarget(coreObject* gdo, const std::string& var)
+bool helicsEvent::setTarget(coreObject* gdo, std::string_view var)
 {
     auto ret = reversibleEvent::setTarget(gdo, var);
     if (ret) {

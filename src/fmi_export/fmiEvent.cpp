@@ -70,7 +70,7 @@ void fmiEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
     findCoordinator();
 }
 
-bool fmiEvent::setTarget(coreObject* gdo, const std::string& var)
+bool fmiEvent::setTarget(coreObject* gdo, std::string_view var)
 {
     auto ret = reversibleEvent::setTarget(gdo, var);
     if (ret) {

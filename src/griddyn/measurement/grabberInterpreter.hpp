@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -31,19 +32,19 @@ class grabberInterpreter {
                   "functions class and base class must have a parent child relationship");
 
   private:
-    std::function<std::unique_ptr<baseX>(const std::string&, coreObject*)> createX;
+    std::function<std::unique_ptr<baseX>(std::string_view, coreObject*)> createX;
 
   public:
     explicit grabberInterpreter(
-        std::function<std::unique_ptr<baseX>(const std::string&, coreObject*)> fc): createX(fc)
+        std::function<std::unique_ptr<baseX>(std::string_view, coreObject*)> fc): createX(fc)
     {
     }
-    std::unique_ptr<baseX> interpretGrabberBlock(const std::string& command, coreObject* obj)
+    std::unique_ptr<baseX> interpretGrabberBlock(std::string_view command, coreObject* obj)
     {
         // this is to resolve an issue with URI specified parameters and the division operator but
         // still allow normal division operator in most cases  for URI specified the % must be used
         // for division or the function form
-        const std::string& mdivstr =
+        const std::string_view mdivstr =
             (command.find_last_of('?') == std::string::npos) ? mdiv1String : mdiv2String;
         std::unique_ptr<baseX> ggb = nullptr;
 
@@ -90,11 +91,11 @@ class grabberInterpreter {
         }
 
         if ((!outer_chunks.empty()) && (outer_chunks[0].first != std::string::npos)) {
-            std::string cmdBlock = command.substr(0, outer_chunks[0].first);
+            std::string cmdBlock{command.substr(0, outer_chunks[0].first)};
             if (isFunctionName(cmdBlock)) {
-                std::string fcallstr = gmlc::utilities::stringOps::trim(
+                std::string fcallstr = gmlc::utilities::stringOps::trim(std::string{
                     command.substr(outer_chunks[0].first + 1,
-                                   outer_chunks[0].second - outer_chunks[0].first - 1));
+                                   outer_chunks[0].second - outer_chunks[0].first - 1)});
 
                 auto gstr = gmlc::utilities::stringOps::splitlineBracket(fcallstr);
                 if (gstr.size() == 1) {
@@ -121,7 +122,7 @@ class grabberInterpreter {
     }
 
   private:
-    std::unique_ptr<baseX> singleBlockInterpreter(const std::string& command, coreObject* obj)
+    std::unique_ptr<baseX> singleBlockInterpreter(std::string_view command, coreObject* obj)
     {
         coreObject* mobj = obj;
         std::string field(command);
@@ -154,13 +155,13 @@ class grabberInterpreter {
     }
 
     std::unique_ptr<baseX>
-        addSubGrabberBlocks(const std::string& command, coreObject* obj, size_t rlc)
+        addSubGrabberBlocks(std::string_view command, coreObject* obj, size_t rlc)
     {
         std::unique_ptr<baseX> ggb = nullptr;
-        std::string Ablock = command.substr(0, rlc);
+        std::string Ablock{command.substr(0, rlc)};
         gmlc::utilities::stringOps::trimString(Ablock);
         char op = command[rlc];
-        std::string Bblock = command.substr(rlc + 1, std::string::npos);
+        std::string Bblock{command.substr(rlc + 1, std::string::npos)};
         gmlc::utilities::stringOps::trimString(Bblock);
         // check if either Ablock or Bblock is a constant
         double valA = gmlc::utilities::numeric_conversionComplete(Ablock, kNullVal);
@@ -175,8 +176,9 @@ class grabberInterpreter {
         {
             if (ggbB)  // both are grabber blocks
             {
-                ggb =
-                    std::make_unique<opX>(std::move(ggbA), std::move(ggbB), command.substr(rlc, 1));
+                ggb = std::make_unique<opX>(std::move(ggbA),
+                                            std::move(ggbB),
+                                            std::string{command.substr(rlc, 1)});
             } else if (valB != kNullVal) {
                 ggb = std::move(ggbA);
                 if (op == '+') {
@@ -213,14 +215,14 @@ class grabberInterpreter {
     }
 
     std::unique_ptr<baseX>
-        multDivGrabberBlocks(const std::string& command, coreObject* obj, size_t rlc)
+        multDivGrabberBlocks(std::string_view command, coreObject* obj, size_t rlc)
     {
         std::unique_ptr<baseX> ggb = nullptr;
 
-        std::string Ablock = command.substr(0, rlc);
+        std::string Ablock{command.substr(0, rlc)};
         gmlc::utilities::stringOps::trimString(Ablock);
         char op = command[rlc];
-        std::string Bblock = command.substr(rlc + 1, std::string::npos);
+        std::string Bblock{command.substr(rlc + 1, std::string::npos)};
         gmlc::utilities::stringOps::trimString(Bblock);
         // check if either Ablock or Bblock is a constant
         double valA = gmlc::utilities::numeric_conversionComplete(Ablock, kNullVal);
@@ -235,8 +237,9 @@ class grabberInterpreter {
             // we know Ablock is std::make_shared<grabber
             if (ggbB) {
                 // both are grabber blocks
-                ggb =
-                    std::make_unique<opX>(std::move(ggbA), std::move(ggbB), command.substr(rlc, 1));
+                ggb = std::make_unique<opX>(std::move(ggbA),
+                                            std::move(ggbB),
+                                            std::string{command.substr(rlc, 1)});
             } else if (valB != kNullVal) {
                 if (op == '*') {
                     ggb = std::move(ggbA);
@@ -250,7 +253,7 @@ class grabberInterpreter {
                     ggbB->bias = valB;
                     ggb = std::make_unique<opX>(std::move(ggbA),
                                                 std::move(ggbB),
-                                                command.substr(rlc, 1));
+                                                std::string{command.substr(rlc, 1)});
                 }
             } else {
                 return nullptr;  // we can't interpret this
@@ -267,7 +270,7 @@ class grabberInterpreter {
                     ggbA->bias = valA;
                     ggb = std::make_unique<opX>(std::move(ggbA),
                                                 std::move(ggbB),
-                                                command.substr(rlc, 1));
+                                                std::string{command.substr(rlc, 1)});
                 }
             } else if (valB != kNullVal) {
                 // both are numeric
@@ -293,7 +296,7 @@ class grabberInterpreter {
     }
 
     // TODO(phlpt): Merge this helper with the stringOps-library version.
-    size_t pChunckEnd(const std::string& cmd, size_t start)
+    size_t pChunckEnd(std::string_view cmd, size_t start)
     {
         int open = 1;
         size_t rlc = start;

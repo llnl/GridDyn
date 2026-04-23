@@ -93,10 +93,9 @@ class grabberInterpreter {
         if ((!outer_chunks.empty()) && (outer_chunks[0].first != std::string::npos)) {
             std::string cmdBlock{command.substr(0, outer_chunks[0].first)};
             if (isFunctionName(cmdBlock)) {
-                std::string fcallstr = gmlc::utilities::stringOps::trim(
-                    std::string{command.substr(outer_chunks[0].first + 1,
-                                               outer_chunks[0].second -
-                                                   outer_chunks[0].first - 1)});
+                std::string fcallstr = gmlc::utilities::stringOps::trim(std::string{
+                    command.substr(outer_chunks[0].first + 1,
+                                   outer_chunks[0].second - outer_chunks[0].first - 1)});
 
                 auto gstr = gmlc::utilities::stringOps::splitlineBracket(fcallstr);
                 if (gstr.size() == 1) {

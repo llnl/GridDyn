@@ -1452,8 +1452,7 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(index_t i
     return (isValidIndex(index, solverInterfaces)) ? solverInterfaces[index] : nullptr;
 }
 
-std::shared_ptr<SolverInterface>
-    gridDynSimulation::getSolverInterface(std::string_view solverName)
+std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(std::string_view solverName)
 {
     // just run through the list of SolverInterface objects and find the first one that matches the
     // name

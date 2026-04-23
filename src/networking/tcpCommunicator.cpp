@@ -43,7 +43,7 @@ void tcpCommunicator::cloneTo(Communicator* comm) const
     //   zmqComm->flags = flags;
 }
 
-void tcpCommunicator::transmit(const std::string& destName,
+void tcpCommunicator::transmit(std::string_view destName,
                                std::shared_ptr<commMessage> /* message */)
 {
     //  zmq::multipart_t txmsg;

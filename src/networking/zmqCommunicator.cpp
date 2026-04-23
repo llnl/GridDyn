@@ -53,11 +53,11 @@ void zmqCommunicator::cloneTo(Communicator* comm) const
     zmqComm->flags = flags;
 }
 
-void zmqCommunicator::transmit(const std::string& destName, std::shared_ptr<commMessage> message)
+void zmqCommunicator::transmit(std::string_view destName, std::shared_ptr<commMessage> message)
 {
     zmq::multipart_t txmsg;
     if (!flags[no_transmit_dest]) {
-        txmsg.addstr(destName);
+        txmsg.addstr(std::string{destName});
     }
     addHeader(txmsg, message);
     addMessageBody(txmsg, message);

@@ -31,7 +31,7 @@ namespace tcpLib {
         virtual std::unique_ptr<Communicator> clone() const override;
 
         virtual void cloneTo(Communicator* comm) const override;
-        virtual void transmit(const std::string& destName,
+        virtual void transmit(std::string_view destName,
                               std::shared_ptr<commMessage> message) override;
 
         virtual void transmit(std::uint64_t destID, std::shared_ptr<commMessage> message) override;

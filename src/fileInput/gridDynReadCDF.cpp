@@ -234,8 +234,7 @@ static void
             temp = line.substr(90, 7);
             realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
             temp = line.substr(98, 7);
-            reactivePower =
-                gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
             bus->set("vmax", realPower);
             bus->set("vmin", reactivePower);
             // get the desired voltage
@@ -247,11 +246,9 @@ static void
             bus->set("type", "pv");
             // get the Qmax and Qmin
             temp = line.substr(90, 7);
-            realPower =
-                gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+            realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
             temp = line.substr(98, 7);
-            reactivePower =
-                gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
             if (realPower > 0) {
                 bus->set("qmax", realPower / base);
             }

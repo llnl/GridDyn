@@ -42,7 +42,7 @@ coreObject* txLifeSpan::clone(coreObject* obj) const
     return nobj;
 }
 
-void txLifeSpan::setFlag(const std::string& flag, bool val)
+void txLifeSpan::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "useiec") || (flag == "iec")) {
         opFlags.set(useIECmethod, val);
@@ -55,9 +55,9 @@ void txLifeSpan::setFlag(const std::string& flag, bool val)
     }
 }
 
-void txLifeSpan::set(const std::string& param, const std::string& val)
+void txLifeSpan::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else if ((param == "input") || (param == "input0")) {
         sensor::set(param, val);
     } else {
@@ -65,7 +65,7 @@ void txLifeSpan::set(const std::string& param, const std::string& val)
     }
 }
 
-void txLifeSpan::set(const std::string& param, double val, units::unit unitType)
+void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "initial") || (param == "initiallife")) {
         initialLife = units::convert(val, unitType, units::hr);
@@ -78,7 +78,7 @@ void txLifeSpan::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double txLifeSpan::get(const std::string& param, units::unit unitType) const
+double txLifeSpan::get(std::string_view param, units::unit unitType) const
 {
     return sensor::get(param, unitType);
 }

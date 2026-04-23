@@ -89,17 +89,17 @@ class gridLinkOpt: public gridOptObject {
 
     virtual void setOffsets(const optimOffsets& newOffsets, const optimMode& oMode) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     // find components
-    virtual coreObject* find(const std::string& objName) const override;
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* find(std::string_view objName) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     virtual gridOptObject* getBus(index_t index) const override;
     virtual gridOptObject* getArea(index_t index) const override;

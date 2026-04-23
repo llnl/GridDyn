@@ -106,11 +106,11 @@ void sineSource::updateOutput(coreTime time)
     prevTime = time;
 }
 
-void sineSource::set(const std::string& param, const std::string& val)
+void sineSource::set(std::string_view param, std::string_view val)
 {
     pulseSource::set(param, val);
 }
-void sineSource::set(const std::string& param, double val, units::unit unitType)
+void sineSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amp = val;

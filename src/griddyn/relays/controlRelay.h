@@ -68,12 +68,11 @@ namespace relays {
       public:
         explicit controlRelay(const std::string& objName = "controlRelay_$");
         virtual coreObject* clone(coreObject* obj = nullptr) const override;
-        virtual void setFlag(const std::string& flag, bool val = true) override;
-        virtual void set(const std::string& param, const std::string& val) override;
+        virtual void setFlag(std::string_view flag, bool val = true) override;
+        virtual void set(std::string_view param, std::string_view val) override;
 
-        virtual void set(const std::string& param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
+        virtual void
+            set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void updateObject(coreObject* obj,

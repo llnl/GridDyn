@@ -90,7 +90,7 @@ void compoundEvent::setValue(double val, units::unit newUnits)
 
 void compoundEvent::set(std::string_view param, double val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Event::set(param, val);
     }
@@ -98,7 +98,7 @@ void compoundEvent::set(std::string_view param, double val)
 
 void compoundEvent::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Event::set(param, val);
     }

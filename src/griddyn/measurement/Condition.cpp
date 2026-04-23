@@ -99,7 +99,7 @@ std::string to_string(comparison_type comp)
     }
 }
 
-std::unique_ptr<Condition> make_condition(const std::string& field,
+std::unique_ptr<Condition> make_condition(std::string_view field,
                                           const std::string& compare,
                                           double level,
                                           coreObject* rootObject)
@@ -108,13 +108,13 @@ std::unique_ptr<Condition> make_condition(const std::string& field,
     // get the state grabbers part
 }
 
-std::unique_ptr<Condition> make_condition(const std::string& field,
+std::unique_ptr<Condition> make_condition(std::string_view field,
                                           comparison_type comp,
                                           double level,
                                           coreObject* rootObject)
 {
     try {
-        auto gset = std::make_shared<grabberSet>(field, rootObject);
+        auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);
         auto gc = std::make_unique<Condition>(std::move(gset));
         gc->setConditionRHS(level);
 

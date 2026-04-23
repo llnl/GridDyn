@@ -87,7 +87,7 @@ void ThreePhaseLoad::getParameterStrings(stringVec& pstr, paramStringType pstype
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void ThreePhaseLoad::setFlag(const std::string& flag, bool val)
+void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "ignore_phase") || (flag == "ignorevoltagephase")) {
         opFlags.set(use_abs_angle, !val);
@@ -105,9 +105,9 @@ void ThreePhaseLoad::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void ThreePhaseLoad::set(const std::string& param, const std::string& val)
+void ThreePhaseLoad::set(std::string_view param, std::string_view val)
 {
-    if (param[0] != '#') {
+    if (!param.empty() && param[0] != '#') {
         Load::set(param, val);
     }
 }
@@ -117,7 +117,7 @@ double ThreePhaseLoad::getBaseAngle() const
     return (opFlags[use_abs_angle]) ? bus->getAngle() : 0.0;
 }
 
-double ThreePhaseLoad::get(const std::string& param, unit unitType) const
+double ThreePhaseLoad::get(std::string_view param, unit unitType) const
 {
     if (param.length() == 2) {
         switch (param[0]) {
@@ -222,7 +222,7 @@ double ThreePhaseLoad::get(const std::string& param, unit unitType) const
     return Load::get(param, unitType);
 }
 
-void ThreePhaseLoad::set(const std::string& param, double val, unit unitType)
+void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 2) {
         switch (param[0]) {

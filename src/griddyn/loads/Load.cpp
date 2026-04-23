@@ -76,7 +76,7 @@ void Load::getParameterStrings(stringVec& pstr, paramStringType pstype) const
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void Load::setFlag(const std::string& flag, bool val)
+void Load::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
@@ -93,15 +93,15 @@ void Load::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void Load::set(const std::string& param, const std::string& val)
+void Load::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         gridSecondary::set(param, val);
     }
 }
 
-double Load::get(const std::string& param, unit unitType) const
+double Load::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {
@@ -120,8 +120,8 @@ double Load::get(const std::string& param, unit unitType) const
 
     if (param == "pf") {
         val = pfq;
-    } else if (auto fptr = getObjectFunction(this, param).first) {
-        auto unit = getObjectFunction(this, param).second;
+    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
+        auto unit = getObjectFunction(this, std::string{param}).second;
         coreObject* tobj = const_cast<Load*>(this);
         val = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
@@ -130,7 +130,7 @@ double Load::get(const std::string& param, unit unitType) const
     return val;
 }
 
-void Load::set(const std::string& param, double val, unit unitType)
+void Load::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
         return;
@@ -144,7 +144,7 @@ void Load::set(const std::string& param, double val, unit unitType)
                 setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         checkFaultChange();
         return;

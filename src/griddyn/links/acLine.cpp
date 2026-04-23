@@ -174,7 +174,7 @@ void acLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 }
 
 // set properties
-void acLine::set(const std::string& param, const std::string& val)
+void acLine::set(std::string_view param, std::string_view val)
 {
     if (param == "approximation") {
         if (val == "auto") {
@@ -230,7 +230,7 @@ void acLine::set(const std::string& param, const std::string& val)
     }
 }
 
-void acLine::set(const std::string& param, double val, unit unitType)
+void acLine::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -255,7 +255,7 @@ void acLine::set(const std::string& param, double val, unit unitType)
                 opFlags.set(fixed_target_power);
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }
@@ -298,7 +298,7 @@ void acLine::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double acLine::get(const std::string& param, unit unitType) const
+double acLine::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {

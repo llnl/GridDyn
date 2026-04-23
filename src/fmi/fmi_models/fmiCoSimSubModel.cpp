@@ -235,14 +235,15 @@ stringVec fmiCoSimSubModel::getInputNames() const
     return cs->getInputNames();
 }
 
-void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
+void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::stringOps::splitline;
     using gmlc::utilities::stringOps::trim;
 
     if ((param == "fmu") || (param == "file")) {
         if (!(cs)) {
-            cs = fmiLibraryManager::instance().createCoSimulationObject(val, getName());
+            cs =
+                fmiLibraryManager::instance().createCoSimulationObject(std::string{val}, getName());
         } else {
             // return INVALID_PARAMETER_VALUE;
             return;
@@ -259,10 +260,10 @@ void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
         m_inputSize = cs->inputSize();
         //    updateDependencyInfo();
     } else {
-        bool isparam = cs->isParameter(param, fmi_variable_type_t::string);
+        bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::string);
         if (isparam) {
             makeSettableState();
-            cs->set(param, val);
+            cs->set(std::string{param}, std::string{val});
             resetState();
         } else {
             gridSubModel::set(param, val);
@@ -270,15 +271,15 @@ void fmiCoSimSubModel::set(const std::string& param, const std::string& val)
     }
 }
 static const char localIntegrationtimeString[] = "localintegrationtime";
-void fmiCoSimSubModel::set(const std::string& param, double val, units::unit unitType)
+void fmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == localIntegrationtimeString)) {
         localIntegrationTime = val;
     } else {
-        bool isparam = cs->isParameter(param, fmi_variable_type_t::numeric);
+        bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::numeric);
         if (isparam) {
             makeSettableState();
-            cs->set(param, val);
+            cs->set(std::string{param}, val);
             resetState();
         } else {
             gridSubModel::set(param, val, unitType);
@@ -286,13 +287,13 @@ void fmiCoSimSubModel::set(const std::string& param, double val, units::unit uni
     }
 }
 
-double fmiCoSimSubModel::get(const std::string& param, units::unit unitType) const
+double fmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 {
     if (param == localIntegrationtimeString) {
         return localIntegrationTime;
     }
-    if (cs->isVariable(param, fmi_variable_type_t::numeric)) {
-        return cs->get<double>(param);
+    if (cs->isVariable(std::string{param}, fmi_variable_type_t::numeric)) {
+        return cs->get<double>(std::string{param});
     }
     return gridSubModel::get(param, unitType);
 }

@@ -526,7 +526,7 @@ std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solver
     return sd;
 }
 
-std::unique_ptr<SolverInterface> makeSolver(const std::string& type, const std::string& name)
+std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name)
 {
     if (name.empty()) {
         return coreClassFactory<SolverInterface>::instance()->createObject(type);

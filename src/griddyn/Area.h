@@ -172,18 +172,18 @@ class Area: public gridPrimary {
     virtual void updateTheta(coreTime time);
 
     // parameter set functions
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr,
                                      paramStringType pstype = paramStringType::all) const override;
-    void setAll(const std::string& type,
-                const std::string& param,
+    void setAll(std::string_view type,
+                std::string_view param,
                 double val,
                 units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     /** @brief determine if an object is already a member of the area
     @param[in] object  the object to check
@@ -191,9 +191,9 @@ class Area: public gridPrimary {
     */
     virtual bool isMember(const coreObject* object) const;
     // find components
-    virtual coreObject* find(const std::string& objName) const override;
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* find(std::string_view objName) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     // solver functions
 
     virtual void alert(coreObject* obj, int code) override;

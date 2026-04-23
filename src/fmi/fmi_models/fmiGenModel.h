@@ -21,9 +21,9 @@ class fmiGenModel: public fmiMEWrapper<GenModel> {
     // virtual void dynObjectInitializeB (const IOdata &inputs, const IOdata &desiredOutput,
     // IOdata &fieldSet) override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 };
 
 }  // namespace griddyn::fmi

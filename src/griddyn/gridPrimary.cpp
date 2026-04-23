@@ -49,11 +49,11 @@ void gridPrimary::dynInitializeB(const IOdata& inputs,
     }
 }
 
-void gridPrimary::set(const std::string& param, const std::string& val)
+void gridPrimary::set(std::string_view param, std::string_view val)
 {
     gridComponent::set(param, val);
 }
-void gridPrimary::set(const std::string& param, double val, units::unit unitType)
+void gridPrimary::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "zone") || (param == "zone number")) {
         zone = static_cast<int>(val);
@@ -62,7 +62,7 @@ void gridPrimary::set(const std::string& param, double val, units::unit unitType
     }
 }
 
-double gridPrimary::get(const std::string& param, units::unit unitType) const
+double gridPrimary::get(std::string_view param, units::unit unitType) const
 {
     if (param == "zone") {
         return static_cast<double>(zone);

@@ -47,14 +47,14 @@ void fmiMELoad::updateLocalCache(const IOdata& inputs, const stateData& sD, cons
     setQ(act[QoutLocation]);
 }
 
-void fmiMELoad::set(const std::string& param, const std::string& val)
+void fmiMELoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
         fmiMEWrapper<Load>::set(param, val);
     }
 }
-void fmiMELoad::set(const std::string& param, double val, units::unit unitType)
+void fmiMELoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {

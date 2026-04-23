@@ -201,12 +201,12 @@ void AGControl::remove(coreObject* obj)
     }
 }
 
-void AGControl::set(const std::string& param, const std::string& val)
+void AGControl::set(std::string_view param, std::string_view val)
 {
     coreObject::set(param, val);
 }
 
-void AGControl::set(const std::string& param, double val, units::unit unitType)
+void AGControl::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "deadband") {
         deadband = val;

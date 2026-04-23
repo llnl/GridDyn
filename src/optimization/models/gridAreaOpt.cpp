@@ -584,7 +584,7 @@ void gridAreaOpt::setAll(const std::string& type,
 }
 
 // set properties
-void gridAreaOpt::set(const std::string& param, const std::string& val)
+void gridAreaOpt::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -592,7 +592,7 @@ void gridAreaOpt::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridAreaOpt::set(const std::string& param, double val, unit unitType)
+void gridAreaOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angletolerance") || (param == "atol")) {
@@ -601,7 +601,7 @@ void gridAreaOpt::set(const std::string& param, double val, unit unitType)
     }
 }
 
-coreObject* gridAreaOpt::find(const std::string& objName) const
+coreObject* gridAreaOpt::find(std::string_view objName) const
 {
     coreObject* obj = nullptr;
     if (objName == getName()) {
@@ -624,7 +624,7 @@ coreObject* gridAreaOpt::find(const std::string& objName) const
     return obj;
 }
 
-coreObject* gridAreaOpt::getSubObject(const std::string& typeName, index_t num) const
+coreObject* gridAreaOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num - 1);
@@ -641,7 +641,7 @@ coreObject* gridAreaOpt::getSubObject(const std::string& typeName, index_t num) 
     return nullptr;
 }
 
-coreObject* gridAreaOpt::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridAreaOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     coreObject* A1;
     if (typeName == "area") {
@@ -713,7 +713,7 @@ gridOptObject* gridAreaOpt::getRelay(index_t index) const
     return (isValidIndex(index, relayList)) ? relayList[index] : nullptr;
 }
 
-double gridAreaOpt::get(const std::string& param, units::unit unitType) const
+double gridAreaOpt::get(std::string_view param, units::unit unitType) const
 {
     double fval = kNullVal;
     size_t ival = kNullLocation;

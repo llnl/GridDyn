@@ -35,7 +35,7 @@ coreObject* loadRelay::clone(coreObject* obj) const
     return nobj;
 }
 
-void loadRelay::setFlag(const std::string& flag, bool val)
+void loadRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(nondirectional_flag, val);
@@ -48,15 +48,15 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void loadRelay::set(const std::string& param, const std::string& val)
+void loadRelay::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Relay::set(param, val);
     }
 }
 
-void loadRelay::set(const std::string& param, double val, units::unit unitType)
+void loadRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         cutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());

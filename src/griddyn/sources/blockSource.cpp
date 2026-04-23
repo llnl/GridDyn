@@ -89,7 +89,7 @@ void blockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void blockSource::setFlag(const std::string& flag, bool val)
+void blockSource::setFlag(std::string_view flag, bool val)
 {
     if (subObjectSet(flag, val)) {
         return;
@@ -105,7 +105,7 @@ void blockSource::setFlag(const std::string& flag, bool val)
     }
 }
 
-void blockSource::set(const std::string& param, const std::string& val)
+void blockSource::set(std::string_view param, std::string_view val)
 {
     if (subObjectSet(param, val)) {
         return;
@@ -120,7 +120,7 @@ void blockSource::set(const std::string& param, const std::string& val)
         }
     }
 }
-void blockSource::set(const std::string& param, double val, units::unit unitType)
+void blockSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (subObjectSet(param, val, unitType)) {
         return;
@@ -138,7 +138,7 @@ void blockSource::set(const std::string& param, double val, units::unit unitType
         }
     }
 }
-double blockSource::get(const std::string& param, units::unit unitType) const
+double blockSource::get(std::string_view param, units::unit unitType) const
 {
     double rval = Source::get(param, unitType);
     if (rval == kNullVal) {
@@ -371,7 +371,7 @@ double blockSource::getDoutdt(const IOdata& inputs,
     return Source::getDoutdt(inputs, sD, sMode, outputNum);
 }
 
-coreObject* blockSource::find(const std::string& object) const
+coreObject* blockSource::find(std::string_view object) const
 {
     if (object == "source") {
         return src;
@@ -382,7 +382,7 @@ coreObject* blockSource::find(const std::string& object) const
     return gridComponent::find(object);
 }
 
-coreObject* blockSource::getSubObject(const std::string& typeName, index_t num) const
+coreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "source") {
         return (num == 0) ? src : nullptr;

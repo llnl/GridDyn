@@ -68,18 +68,18 @@ void infiniteBus::setState(coreTime time,
 }
 
 // set properties
-void infiniteBus::set(const std::string& param, const std::string& val)
+void infiniteBus::set(std::string_view param, std::string_view val)
 {
     if (param == "type") {
         if (val != "infinite") {
-            throw(invalidParameterValue(param + ':' + val));
+            throw(invalidParameterValue(std::string{param} + ':' + std::string{val}));
         }
     } else {
         gridBus::set(param, val);
     }
 }
 
-void infiniteBus::set(const std::string& param, double val, unit unitType)
+void infiniteBus::set(std::string_view param, double val, unit unitType)
 {
     if (param == "dvdt") {
         dvdt = convert(val, unitType, puV, systemBasePower, localBaseVoltage);

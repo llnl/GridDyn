@@ -200,12 +200,12 @@ void reserveDispatcher::remove(coreObject* obj)
     }
 }
 
-void reserveDispatcher::set(const std::string& param, const std::string& val)
+void reserveDispatcher::set(std::string_view param, std::string_view val)
 {
     coreObject::set(param, val);
 }
 
-void reserveDispatcher::set(const std::string& param, double val, units::unit unitType)
+void reserveDispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "threshold") || (param == "thresholdstart")) {
         thresholdStart = val;

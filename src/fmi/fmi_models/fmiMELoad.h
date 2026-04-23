@@ -26,9 +26,9 @@ class fmiMELoad: public fmiMEWrapper<Load> {
     fmiMELoad(const std::string& objName = "fmiLoad_$");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,

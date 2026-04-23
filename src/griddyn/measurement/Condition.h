@@ -157,7 +157,7 @@ std::unique_ptr<Condition> make_condition(const std::string& condString, coreObj
 @param level the threshold level for the comparson
 * @param[in] rootObject the root object to find the other objects
 */
-std::unique_ptr<Condition> make_condition(const std::string& field,
+std::unique_ptr<Condition> make_condition(std::string_view field,
                                           const std::string& compare,
                                           double level,
                                           coreObject* rootObject);
@@ -168,7 +168,7 @@ std::unique_ptr<Condition> make_condition(const std::string& field,
 @param level the threshold level for the comparson
 * @param[in] rootObject the root object to find the other objects
 */
-std::unique_ptr<Condition> make_condition(const std::string& field,
+std::unique_ptr<Condition> make_condition(std::string_view field,
                                           comparison_type comp,
                                           double level,
                                           coreObject* rootObject);

@@ -26,7 +26,7 @@ coreObject* fmiGenModel::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiGenModel::set(const std::string& param, const std::string& val)
+void fmiGenModel::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -34,7 +34,7 @@ void fmiGenModel::set(const std::string& param, const std::string& val)
     }
 }
 
-void fmiGenModel::set(const std::string& param, double val, units::unit unitType)
+void fmiGenModel::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {

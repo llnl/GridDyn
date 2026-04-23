@@ -35,10 +35,10 @@ class fileSource: public rampSource {
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     int setFile(const std::string& fileName, index_t column);
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

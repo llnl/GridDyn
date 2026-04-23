@@ -165,11 +165,11 @@ class acLine: public Link {
     virtual double getAngle(const double state[], const solverMode& sMode) const override;
 
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     /** @brief check if two buses should be merged and the line effects ignored
      */

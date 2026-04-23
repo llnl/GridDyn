@@ -40,11 +40,11 @@ coreObject* rampLoad::clone(coreObject* obj) const
 }
 
 // set properties
-void rampLoad::set(const std::string& param, const std::string& val)
+void rampLoad::set(std::string_view param, std::string_view val)
 {
     zipLoad::set(param, val);
 }
-void rampLoad::set(const std::string& param, double val, unit unitType)
+void rampLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 4) {
         if ((param[0] == 'd') && (param[2] == 'd') && (param[3] == 't')) {
@@ -69,7 +69,7 @@ void rampLoad::set(const std::string& param, double val, unit unitType)
                     dYpdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                     break;
                 default:
-                    throw(unrecognizedParameter(param));
+                    throw(unrecognizedParameter(std::string{param}));
             }
         } else {
             zipLoad::set(param, val, unitType);
@@ -89,7 +89,7 @@ void rampLoad::set(const std::string& param, double val, unit unitType)
                             dYpdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                             break;
                         default:
-                            throw(unrecognizedParameter(param));
+                            throw(unrecognizedParameter(std::string{param}));
                     }
                     break;
                 case 'q':
@@ -103,11 +103,11 @@ void rampLoad::set(const std::string& param, double val, unit unitType)
                             dYqdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                             break;
                         default:
-                            throw(unrecognizedParameter(param));
+                            throw(unrecognizedParameter(std::string{param}));
                     }
                     break;
                 default:
-                    throw(unrecognizedParameter(param));
+                    throw(unrecognizedParameter(std::string{param}));
             }
         } else {
             zipLoad::set(param, val, unitType);

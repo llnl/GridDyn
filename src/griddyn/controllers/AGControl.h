@@ -81,9 +81,9 @@ class AGControl: public gridSubModel {
     virtual void add(coreObject* obj) override;
     virtual void add(schedulerReg* sched);
     virtual void remove(coreObject* obj) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     double getACE() { return ACE; }
     double getfACE() { return fACE; }

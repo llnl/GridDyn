@@ -487,7 +487,7 @@ Yq = LV[5];
     return retP;
 }
 
-void approximatingLoad::set(const std::string& param, const std::string& val)
+void approximatingLoad::set(std::string_view param, std::string_view val)
 {
     if (param == "detail") {
         auto v2 = convertToLowerCase(val);
@@ -528,14 +528,14 @@ void approximatingLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-void approximatingLoad::set(const std::string& param, double val, units::unit unitType)
+void approximatingLoad::set(std::string_view param, double val, units::unit unitType)
 {
     // TODO(phlpt): Convert some of these to a setFlags function.
     if ((param == "spread") || (param == "band")) {
         if (std::abs(val) > kMin_Res) {
             spread = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
         opFlags.set(uses_bounds_flag, (val > 0));

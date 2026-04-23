@@ -432,12 +432,12 @@ gridSubModel* DynamicGenerator::replaceModel(gridSubModel* newObject,
 }
 
 // set properties
-void DynamicGenerator::set(const std::string& param, const std::string& val)
+void DynamicGenerator::set(std::string_view param, std::string_view val)
 {
     if (param == "dynmodel") {
-        auto dmodel = dynModelFromString(val);
+        auto dmodel = dynModelFromString(std::string{val});
         if (dmodel == dynModel_t::invalid) {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
         buildDynModel(dmodel);
     } else {
@@ -543,7 +543,7 @@ void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
     // }
 }
 
-void DynamicGenerator::setFlag(const std::string& flag, bool val)
+void DynamicGenerator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "isoc") || (flag == "isochronous")) {
         opFlags.set(isochronous_operation, val);
@@ -567,7 +567,7 @@ void DynamicGenerator::setFlag(const std::string& flag, bool val)
     }
 }
 
-void DynamicGenerator::set(const std::string& param, double val, unit unitType)
+void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 1) {
         switch (param.front()) {
@@ -589,7 +589,7 @@ void DynamicGenerator::set(const std::string& param, double val, unit unitType)
                 if (genModel != nullptr) {
                     genModel->set(param, val, unitType);
                 } else {
-                    throw(unrecognizedParameter(param));
+                    throw(unrecognizedParameter(std::string{param}));
                 }
                 break;
             default:
@@ -668,7 +668,7 @@ void DynamicGenerator::set(const std::string& param, double val, unit unitType)
                     subobj->setFlag("no_gridcomponent_set", false);
                 }
             }
-            throw(unrecognizedParameter(param));
+            throw(unrecognizedParameter(std::string{param}));
         }
     }
 }
@@ -895,7 +895,7 @@ void DynamicGenerator::rootTrigger(coreTime time,
     }
 }
 
-index_t DynamicGenerator::findIndex(const std::string& field, const solverMode& sMode) const
+index_t DynamicGenerator::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     for (auto* subobj : getSubObjects()) {
@@ -907,7 +907,7 @@ index_t DynamicGenerator::findIndex(const std::string& field, const solverMode& 
     return ret;
 }
 
-coreObject* DynamicGenerator::find(const std::string& object) const
+coreObject* DynamicGenerator::find(std::string_view object) const
 {
     if (object == "genmodel") {
         return genModel;
@@ -933,7 +933,7 @@ coreObject* DynamicGenerator::find(const std::string& object) const
     return Generator::find(object);
 }
 
-coreObject* DynamicGenerator::getSubObject(const std::string& typeName, index_t num) const
+coreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "submodelcode")  // undocumented for internal use
     {

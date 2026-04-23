@@ -73,13 +73,13 @@ class fmiMESubModel: public gridSubModel {
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
     virtual stringVec getOutputNames() const;
     virtual stringVec getInputNames() const;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
     virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
 
     virtual count_t LocalJacobianCount(const solverMode& sMode) const override;

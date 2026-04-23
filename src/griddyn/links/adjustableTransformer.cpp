@@ -101,7 +101,7 @@ void adjustableTransformer::getParameterStrings(stringVec& pstr, paramStringType
 }
 
 // set properties
-void adjustableTransformer::set(const std::string& param, const std::string& val)
+void adjustableTransformer::set(std::string_view param, std::string_view val)
 {
     if ((param == "controlmode") || (param == "mode") || (param == "control_mode")) {
         auto cmstr = convertToLowerCase(val);
@@ -138,7 +138,7 @@ void adjustableTransformer::set(const std::string& param, const std::string& val
             throw(invalidParameterValue(cmstr));
         }
     } else if ((param == "bus") || (param == "controlbus")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(val, getParent()));
+        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             controlBus = bus;
         } else {
@@ -149,7 +149,7 @@ void adjustableTransformer::set(const std::string& param, const std::string& val
     }
 }
 
-void adjustableTransformer::set(const std::string& param, double val, unit unitType)
+void adjustableTransformer::set(std::string_view param, double val, unit unitType)
 {
     if (param == "tap") {
         tap = val;
@@ -259,7 +259,7 @@ void adjustableTransformer::set(const std::string& param, double val, unit unitT
         LOG_ERROR(
             "faults not allowed on adjustable transformers change shunt conductance  or impedance to "
             "simulate a fault");
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     } else if (param == "maxtapangle") {
         maxTapAngle = convert(val, unitType, rad);
         if (tapAngle > maxTapAngle) {
@@ -291,7 +291,7 @@ void adjustableTransformer::set(const std::string& param, double val, unit unitT
     }
 }
 
-double adjustableTransformer::get(const std::string& param, units::unit unitType) const
+double adjustableTransformer::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
 

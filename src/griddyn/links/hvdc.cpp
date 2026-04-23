@@ -75,7 +75,7 @@ coreObject* hvdc::clone(coreObject* obj) const
 }
 
 // set properties
-void hvdc::set(const std::string& param, const std::string& val)
+void hvdc::set(std::string_view param, std::string_view val)
 {
     if (param == "from") {
         subsystem::set("bus1", val);
@@ -88,7 +88,7 @@ void hvdc::set(const std::string& param, const std::string& val)
     }
 }
 
-void hvdc::set(const std::string& param, double val, unit unitType)
+void hvdc::set(std::string_view param, double val, unit unitType)
 {
     if (param == "r") {
         getLink(0)->set("r", val, unitType);
@@ -115,7 +115,7 @@ void hvdc::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double hvdc::get(const std::string& param, unit unitType) const
+double hvdc::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "#") {

@@ -137,12 +137,12 @@ class acBus: public gridBus {
     // parameter set functions
     virtual void getParameterStrings(stringVec& pstr,
                                      paramStringType pstype = paramStringType::all) const override;
-    virtual void setFlag(const std::string& flag, bool val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     // solver functions

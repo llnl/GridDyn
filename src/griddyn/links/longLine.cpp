@@ -39,11 +39,11 @@ void longLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     return subsystem::pFlowObjectInitializeA(time0, flags);
 }
 
-void longLine::set(const std::string& param, const std::string& val)
+void longLine::set(std::string_view param, std::string_view val)
 {
     return Link::set(param, val);
 }
-void longLine::set(const std::string& param, double val, units::unit unitType)
+void longLine::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -61,7 +61,7 @@ void longLine::set(const std::string& param, double val, units::unit unitType)
                 break;
 
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }
@@ -107,7 +107,7 @@ void longLine::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double longLine::get(const std::string& param, units::unit unitType) const
+double longLine::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "segmentationlength") {

@@ -57,7 +57,7 @@ coreObject* txThermalModel::clone(coreObject* obj) const
     return nobj;
 }
 
-void txThermalModel::setFlag(const std::string& flag, bool val)
+void txThermalModel::setFlag(std::string_view flag, bool val)
 {
     if (flag == "auto") {
         opFlags.set(auto_parameter_load, val);
@@ -70,7 +70,7 @@ void txThermalModel::setFlag(const std::string& flag, bool val)
     }
 }
 
-void txThermalModel::set(const std::string& param, const std::string& val)
+void txThermalModel::set(std::string_view param, std::string_view val)
 {
     if ((param == "txtype") || (param == "cooling")) {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
@@ -122,7 +122,7 @@ void txThermalModel::set(const std::string& param, const std::string& val)
     }
 }
 
-void txThermalModel::set(const std::string& param, double val, units::unit unitType)
+void txThermalModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "ambient") || (param == "ambienttemp")) {
         ambientTemp = units::convert(val, unitType, units::degC);
@@ -179,7 +179,7 @@ void txThermalModel::set(const std::string& param, double val, units::unit unitT
     }
 }
 
-double txThermalModel::get(const std::string& param, units::unit unitType) const
+double txThermalModel::get(std::string_view param, units::unit unitType) const
 {
     return sensor::get(param, unitType);
 }

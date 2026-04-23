@@ -987,7 +987,7 @@ void acBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
     getParamString<acBus, gridBus>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void acBus::setFlag(const std::string& flag, bool val)
+void acBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "compute_frequency") {
         if (!opFlags[dyn_initialized]) {
@@ -1007,7 +1007,7 @@ void acBus::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void acBus::set(const std::string& param, const std::string& val)
+void acBus::set(std::string_view param, std::string_view val)
 {
     auto val_lowerCase = convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
@@ -1037,7 +1037,7 @@ void acBus::set(const std::string& param, const std::string& val)
         } else if (val_lowerCase == "normal") {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
@@ -1052,14 +1052,14 @@ void acBus::set(const std::string& param, const std::string& val)
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else {
         gridBus::set(param, val);
     }
 }
 
-void acBus::set(const std::string& param, double val, unit unitType)
+void acBus::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||
         (param == "v0") || (param == "voltage0")) {
@@ -2580,7 +2580,7 @@ double acBus::getSched() const
     return 0;
 }
 
-double acBus::get(const std::string& param, unit unitType) const
+double acBus::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "vtarget") {

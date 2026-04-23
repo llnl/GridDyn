@@ -37,10 +37,10 @@ class gridOptObject: public coreObject {
   public:
     gridOptObject(const std::string& objName = "optObject_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     /** set the offsets of an object for a particular optimization mode.
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.

@@ -23,10 +23,10 @@ class GovernorReheat: public Governor {
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],

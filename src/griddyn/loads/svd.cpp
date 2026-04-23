@@ -224,7 +224,7 @@ change_code svd::powerFlowAdjust(const IOdata& /*inputs */,
 void svd::reset(reset_levels /*level*/) {}
 // for identifying which variables are algebraic vs differential
 void svd::getVariableType(double /*sdata*/[], const solverMode& /*sMode*/) {}
-void svd::set(const std::string& param, const std::string& val)
+void svd::set(std::string_view param, std::string_view val)
 {
     if ((param == "blocks") || (param == "block")) {
         auto bin = gmlc::utilities::stringOps::splitline(val);
@@ -256,7 +256,7 @@ void svd::set(const std::string& param, const std::string& val)
         zipLoad::set(param, val);
     }
 }
-void svd::set(const std::string& param, double val, unit unitType)
+void svd::set(std::string_view param, double val, unit unitType)
 {
     if (param == "qlow") {
         Qlow = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);

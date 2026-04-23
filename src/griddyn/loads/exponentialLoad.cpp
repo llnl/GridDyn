@@ -31,11 +31,11 @@ coreObject* exponentialLoad::clone(coreObject* obj) const
 }
 
 // set properties
-void exponentialLoad::set(const std::string& param, const std::string& val)
+void exponentialLoad::set(std::string_view param, std::string_view val)
 {
     Load::set(param, val);
 }
-void exponentialLoad::set(const std::string& param, double val, units::unit unitType)
+void exponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "alphap") || (param == "ap")) {
         alphaP = val;

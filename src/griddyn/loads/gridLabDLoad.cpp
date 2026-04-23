@@ -854,7 +854,7 @@ Yq = LV[5];
     return retP;
 }
 
-void gridLabDLoad::set(const std::string& param, const std::string& val)
+void gridLabDLoad::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::convertToLowerCase;
     using gmlc::utilities::numeric_conversion;
@@ -874,7 +874,7 @@ void gridLabDLoad::set(const std::string& param, const std::string& val)
             }
             gridlabDfile[num] = val;
         } else {
-            gridlabDfile.push_back(val);
+            gridlabDfile.push_back(std::string{val});
             workdir.resize(gridlabDfile.size());
 #ifndef GRIDDYN_ENABLE_MPI
             dummy_load.resize(gridlabDfile.size());
@@ -940,14 +940,14 @@ void gridLabDLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridLabDLoad::set(const std::string& param, double val, units::unit unitType)
+void gridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 {
     // TODO(phlpt): Convert some of these to a setFlags function.
     if ((param == "spread") || (param == "band")) {
         if (std::abs(val) > kMin_Res) {
             spread = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
         opFlags.set(uses_bounds_flag, (val > 0));

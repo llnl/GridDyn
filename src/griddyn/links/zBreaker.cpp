@@ -33,7 +33,7 @@ coreObject* zBreaker::clone(coreObject* obj) const
 }
 // parameter set functions
 
-void zBreaker::set(const std::string& param, const std::string& val)
+void zBreaker::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -41,7 +41,7 @@ void zBreaker::set(const std::string& param, const std::string& val)
     }
 }
 
-void zBreaker::set(const std::string& param, double val, unit unitType)
+void zBreaker::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
     } else {

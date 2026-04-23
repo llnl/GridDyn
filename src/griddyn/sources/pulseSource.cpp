@@ -103,7 +103,7 @@ double pulseSource::getDoutdt(const IOdata& /*inputs*/,
     return ((o2 - o1) / 0.0001);
 }
 
-void pulseSource::set(const std::string& param, const std::string& val)
+void pulseSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "type") || (param == "pulsetype")) {
         auto vtype = gmlc::utilities::convertToLowerCase(val);
@@ -136,7 +136,7 @@ void pulseSource::setLevel(double val)
     cycleTime = cycleTime - period;
 }
 
-void pulseSource::set(const std::string& param, double val, unit unitType)
+void pulseSource::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amplitude = val;

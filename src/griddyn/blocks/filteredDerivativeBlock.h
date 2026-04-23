@@ -35,9 +35,9 @@ class filteredDerivativeBlock: public Block {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const solverMode &sMode) const;
 
     virtual void blockDerivative(double input,

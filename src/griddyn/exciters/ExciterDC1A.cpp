@@ -242,13 +242,13 @@ stringVec ExciterDC1A::localStateNames() const
 {
     return dc1aFields;
 }
-void ExciterDC1A::set(const std::string& param, const std::string& val)
+void ExciterDC1A::set(std::string_view param, std::string_view val)
 {
     return ExciterIEEEtype1::set(param, val);
 }
 
 // set parameters
-void ExciterDC1A::set(const std::string& param, double val, units::unit unitType)
+void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "tb") {
         Tb = val;

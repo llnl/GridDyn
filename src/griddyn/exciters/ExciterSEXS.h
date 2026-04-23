@@ -34,8 +34,8 @@ class ExciterSEXS: public Exciter {
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
 
-    void set(const std::string& param, const std::string& val) override;
-    void set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+    void set(std::string_view param, std::string_view val) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     stringVec localStateNames() const override;
 

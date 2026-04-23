@@ -97,9 +97,9 @@ class adjustableTransformer: public acLine {
     coreObject* clone(coreObject* obj = nullptr) const override;
 
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
-    void set(const std::string& param, const std::string& val) override;
-    void set(const std::string& param, double val, units::unit unitType = units::defunit) override;
-    double get(const std::string& param, units::unit unitType = units::defunit) const override;
+    void set(std::string_view param, std::string_view val) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     // adjuster specific functions
     /**@ brief set the control bus to a specified bus pointer
 @param[in] cBus  the specified control Bus*/

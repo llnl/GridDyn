@@ -288,10 +288,10 @@ void Generator::setRemoteBus(coreObject* newRemoteBus)
     }
 }
 // set properties
-void Generator::set(const std::string& param, const std::string& val)
+void Generator::set(std::string_view param, std::string_view val)
 {
     if (param == "remote") {
-        setRemoteBus(locateObject(val, getRoot(), false));
+        setRemoteBus(locateObject(std::string{val}, getRoot(), false));
     } else if (param == "remote_power_control") {
         opFlags.set(remote_power_control);
         opFlags.reset(local_power_control);
@@ -301,7 +301,7 @@ void Generator::set(const std::string& param, const std::string& val)
         } else if (val == "min") {
             P = Pmin;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else if (param == "q") {
         if (val == "max") {
@@ -309,14 +309,14 @@ void Generator::set(const std::string& param, const std::string& val)
         } else if (val == "min") {
             Q = Qmin;
         } else {
-            throw(invalidParameterValue(val));
+            throw(invalidParameterValue(std::string{val}));
         }
     } else {
         gridSecondary::set(param, val);
     }
 }
 
-double Generator::get(const std::string& param, unit unitType) const
+double Generator::get(std::string_view param, unit unitType) const
 {
     double ret = kNullVal;
     if (param == "vcontrolfrac") {
@@ -335,8 +335,8 @@ double Generator::get(const std::string& param, unit unitType) const
         ret = convert(getQmax(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "qmin") {
         ret = convert(getQmin(), puMW, unitType, systemBasePower, localBaseVoltage);
-    } else if (auto fptr = getObjectFunction(this, param).first) {
-        auto unit = getObjectFunction(this, param).second;
+    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
+        auto unit = getObjectFunction(this, std::string{param}).second;
         coreObject* tobj = const_cast<Generator*>(this);
         ret = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
@@ -412,7 +412,7 @@ void Generator::generationAdjust(double adjustment)
     }
 }
 
-void Generator::setFlag(const std::string& flag, bool val)
+void Generator::setFlag(std::string_view flag, bool val)
 {
     if (flag == "capabilitycurve") {
         opFlags.set(use_capability_curve, val);
@@ -443,7 +443,7 @@ void Generator::setFlag(const std::string& flag, bool val)
     }
 }
 
-void Generator::set(const std::string& param, double val, unit unitType)
+void Generator::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -461,7 +461,7 @@ void Generator::set(const std::string& param, double val, unit unitType)
                 m_Xs = val;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }
@@ -716,7 +716,7 @@ void Generator::getStateName(stringVec& stNames,
     }
 }
 
-coreObject* Generator::find(const std::string& object) const
+coreObject* Generator::find(std::string_view object) const
 {
     if (object == "bus") {
         return bus;

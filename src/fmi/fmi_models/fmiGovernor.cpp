@@ -26,7 +26,7 @@ coreObject* fmiGovernor::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiGovernor::set(const std::string& param, const std::string& val)
+void fmiGovernor::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -34,7 +34,7 @@ void fmiGovernor::set(const std::string& param, const std::string& val)
     }
 }
 
-void fmiGovernor::set(const std::string& param, double val, units::unit unitType)
+void fmiGovernor::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {

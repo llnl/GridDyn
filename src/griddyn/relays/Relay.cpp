@@ -330,15 +330,16 @@ void Relay::updateCondition(std::shared_ptr<Condition> gc, index_t conditionNumb
 
 void Relay::resetRelay() {}
 
-void Relay::set(const std::string& param, const std::string& val)
+void Relay::set(std::string_view param, std::string_view val)
 {
     if (param == "condition") {
         add(std::shared_ptr<Condition>(
-            make_condition(val, (m_sourceObject != nullptr) ? m_sourceObject : getParent())));
+            make_condition(std::string{val},
+                           (m_sourceObject != nullptr) ? m_sourceObject : getParent())));
     } else if (param == "action") {
         bool isAlarm = false;
         if ((val.front() == 'a') || (val.front() == 'A')) {
-            auto e = make_alarm(val);
+            auto e = make_alarm(std::string{val});
             if (e) {
                 isAlarm = true;
                 add(std::shared_ptr<eventAdapter>(std::move(e)));
@@ -346,7 +347,8 @@ void Relay::set(const std::string& param, const std::string& val)
         }
         if (!isAlarm) {
             add(std::shared_ptr<Event>(
-                make_event(val, (m_sinkObject != nullptr) ? m_sinkObject : getParent())));
+                make_event(std::string{val},
+                           (m_sinkObject != nullptr) ? m_sinkObject : getParent())));
         }
     } else {
         if (cManager.set(param, val)) {
@@ -357,7 +359,7 @@ void Relay::set(const std::string& param, const std::string& val)
     }
 }
 
-void Relay::set(const std::string& param, double val, units::unit unitType)
+void Relay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "samplingperiod") || (param == "ts") || (param == "sampleperiod")) {
         coreObject::set("period", val, unitType);  // NOLINT
@@ -374,9 +376,9 @@ void Relay::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double Relay::get(const std::string& param, units::unit unitType) const
+double Relay::get(std::string_view param, units::unit unitType) const
 {
-    auto fptr = getObjectFunction(this, param);
+    auto fptr = getObjectFunction(this, std::string{param});
     if (fptr.first) {
         coreObject* tobj = const_cast<Relay*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
@@ -384,7 +386,7 @@ double Relay::get(const std::string& param, units::unit unitType) const
     return gridPrimary::get(param, unitType);
 }
 
-void Relay::setFlag(const std::string& flag, bool val)
+void Relay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "continuous") {
         opFlags.set(continuous_flag, val);
@@ -542,7 +544,7 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gridComponent::dynObjectInitializeA(time0, flags);
 }
 
-coreObject* Relay::find(const std::string& objName) const
+coreObject* Relay::find(std::string_view objName) const
 {
     if (objName == "target") {
         return (m_sourceObject != nullptr) ? m_sourceObject : m_sinkObject;

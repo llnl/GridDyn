@@ -39,9 +39,9 @@ class variableGenerator: public DynamicGenerator {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void add(coreObject* obj) override;
 
@@ -67,8 +67,8 @@ class variableGenerator: public DynamicGenerator {
         return 0.0;
     }  // get the available adjustment Up within the specified timeframe
     virtual void generationAdjust(double /*adjustment*/) override {}
-    virtual coreObject* find(const std::string& object) const override;
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
+    virtual coreObject* find(std::string_view object) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,

@@ -202,7 +202,7 @@ double pidBlock::step(coreTime time, double inputA)
     return m_output;
 }
 
-index_t pidBlock::findIndex(const std::string& field, const solverMode& sMode) const
+index_t pidBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "integral") {
@@ -217,11 +217,11 @@ index_t pidBlock::findIndex(const std::string& field, const solverMode& sMode) c
 }
 
 // set parameters
-void pidBlock::set(const std::string& param, const std::string& val)
+void pidBlock::set(std::string_view param, std::string_view val)
 {
     Block::set(param, val);
 }
-void pidBlock::set(const std::string& param, double val, units::unit unitType)
+void pidBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "p") || (param == "proportional")) {
         m_P = val;

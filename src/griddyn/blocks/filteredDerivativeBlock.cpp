@@ -146,17 +146,17 @@ void filteredDerivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void filteredDerivativeBlock::set(const std::string& param, const std::string& val)
+void filteredDerivativeBlock::set(std::string_view param, std::string_view val)
 {
     Block::set(param, val);
 }
-void filteredDerivativeBlock::set(const std::string& param, double val, units::unit unitType)
+void filteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "t1") {
         m_T1 = val;
     } else if (param == "t2") {
         if (std::abs(val) < kMin_Res) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         m_T2 = val;
     } else {

@@ -185,7 +185,7 @@ void GovernorReheat::jacobianElements(const IOdata& inputs,
     md.assign(refI, refI + 3, T4 / T5 * (T3 / T2));
 }
 
-index_t GovernorReheat::findIndex(const std::string& field, const solverMode& /*sMode*/) const
+index_t GovernorReheat::findIndex(std::string_view field, const solverMode& /*sMode*/) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {
@@ -201,12 +201,12 @@ index_t GovernorReheat::findIndex(const std::string& field, const solverMode& /*
 }
 
 // set parameters
-void GovernorReheat::set(const std::string& param, const std::string& val)
+void GovernorReheat::set(std::string_view param, std::string_view val)
 {
     Governor::set(param, val);
 }
 
-void GovernorReheat::set(const std::string& param, double val, unit unitType)
+void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
     if ((param == "ts") || (param == "t1")) {

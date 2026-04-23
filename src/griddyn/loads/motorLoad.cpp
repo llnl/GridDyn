@@ -133,7 +133,7 @@ std::pair<count_t, count_t> motorLoad::LocalRootCount(const solverMode& /*sMode*
 }
 
 // set properties
-void motorLoad::set(const std::string& param, const std::string& val)
+void motorLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -141,7 +141,7 @@ void motorLoad::set(const std::string& param, const std::string& val)
     }
 }
 
-void motorLoad::set(const std::string& param, double val, units::unit unitType)
+void motorLoad::set(std::string_view param, double val, units::unit unitType)
 {
     bool slipCheck = false;
 
@@ -177,7 +177,7 @@ void motorLoad::set(const std::string& param, double val, units::unit unitType)
                 slipCheck = true;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
     } else {
         if (param == "r1") {
@@ -427,7 +427,7 @@ void motorLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-index_t motorLoad::findIndex(const std::string& field, const solverMode& sMode) const
+index_t motorLoad::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "slip") {

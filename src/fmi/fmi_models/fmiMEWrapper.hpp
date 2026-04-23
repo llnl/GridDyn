@@ -138,7 +138,7 @@ class fmiMEWrapper: public fmiWrapper<fmiMESubModel, BaseObj> {
         fmiWrapper<fmiMESubModel, BaseObj>::fmisub->setState(time, state, dstate_dt, sMode);
     }
 
-    virtual index_t findIndex(const std::string& field, const solverMode& sMode) const override
+    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override
     {
         if (fmiWrapper<fmiMESubModel, BaseObj>::fmisub == nullptr) {
             return kInvalidLocation;

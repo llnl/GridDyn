@@ -21,7 +21,7 @@ namespace griddyn {
 // and the id as secondary
 std::atomic<id_type_t> coreObject::s_obcnt(101);
 
-coreObject::coreObject(const std::string& objName): m_refCount(0), m_oid(s_obcnt++), name(objName)
+coreObject::coreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++), name(objName)
 {
     static nullObject nullObject0(0);
     // not using updateName since in many cases the id has not been set yet
@@ -148,7 +148,7 @@ void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) co
     }
 }
 
-void coreObject::set(const std::string& param, const std::string& val)
+void coreObject::set(std::string_view param, std::string_view val)
 {
     if ((param == "name") || (param == "rename") || (param == "id")) {
         setName(val);
@@ -165,19 +165,19 @@ void coreObject::set(const std::string& param, const std::string& val)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val);
-                LOG_WARNING(std::string("parameters should be lower case \"") + param +
+                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
                             "\" is not");
             } else {
-                LOG_WARNING("parameter " + param + " not found");
-                throw(unrecognizedParameter(param));
+                LOG_WARNING("parameter " + std::string{param} + " not found");
+                throw(unrecognizedParameter(std::string{param}));
             }
         }
     }
 }
 
-void coreObject::setDescription(const std::string& description)  // NOLINT
+void coreObject::setDescription(std::string_view description)  // NOLINT
 {
-    descriptionDictionary.update(m_oid, description);
+    descriptionDictionary.update(m_oid, std::string{description});
 }
 
 std::string coreObject::getDescription() const
@@ -222,7 +222,7 @@ void coreObject::setParent(coreObject* parentObj)
     parent = parentObj;
 }
 
-void coreObject::setFlag(const std::string& flag, bool val)
+void coreObject::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "enable") || (flag == "status") || (flag == "enabled")) {
         if (isEnabled() != val) {
@@ -253,14 +253,15 @@ void coreObject::setFlag(const std::string& flag, bool val)
         auto lower = gmlc::utilities::convertToLowerCase(flag);
         if (lower != flag) {
             setFlag(lower, val);
-            LOG_WARNING(std::string("flags should be lower case \"") + flag + "\" is not");
+            LOG_WARNING(std::string("flags should be lower case \"") + std::string{flag} +
+                        "\" is not");
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(unrecognizedParameter(std::string{flag}));
         }
     }
 }
 
-bool coreObject::getFlag(const std::string& flag) const
+bool coreObject::getFlag(std::string_view flag) const
 {
     bool ret = false;
     if (flag == "enabled") {
@@ -271,7 +272,7 @@ bool coreObject::getFlag(const std::string& flag) const
     return ret;
 }
 
-double coreObject::get(const std::string& param, units::unit unitType) const
+double coreObject::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "eventcode") {
@@ -288,7 +289,7 @@ double coreObject::get(const std::string& param, units::unit unitType) const
     return val;
 }
 
-void coreObject::set(const std::string& param, double val, units::unit unitType)
+void coreObject::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "updateperiod") || (param == "period")) {
         updatePeriod = units::convert(val, unitType, units::second);
@@ -313,7 +314,7 @@ void coreObject::set(const std::string& param, double val, units::unit unitType)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val, unitType);
-                LOG_WARNING(std::string("parameters should be lower case \"") + param +
+                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
                             "\" is not");
             } else {
                 throw;
@@ -322,7 +323,7 @@ void coreObject::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-std::string coreObject::getString(const std::string& param) const
+std::string coreObject::getString(std::string_view param) const
 {
     std::string out("NA");
     if (param == "name") {
@@ -337,11 +338,11 @@ std::string coreObject::getString(const std::string& param) const
     return out;
 }
 
-coreObject* coreObject::getSubObject(const std::string& /*typeName*/, index_t /*num*/) const
+coreObject* coreObject::getSubObject(std::string_view /*typeName*/, index_t /*num*/) const
 {
     return nullptr;
 }
-coreObject* coreObject::findByUserID(const std::string& /*typeName*/, index_t searchID) const
+coreObject* coreObject::findByUserID(std::string_view /*typeName*/, index_t searchID) const
 {
     if (searchID == id) {
         return const_cast<coreObject*>(this);
@@ -397,12 +398,12 @@ void coreObject::makeNewOID()
 // NOTE: there is some potential for recursion here if the parent object searches in lower objects
 // But in some cases you search up, and others you want to search down so we will rely on
 // intelligence on the part of the implementer
-coreObject* coreObject::find(const std::string& object) const
+coreObject* coreObject::find(std::string_view object) const
 {
     return (parent->find(object));
 }
 
-int coreObject::getInt(const std::string& param) const
+int coreObject::getInt(std::string_view param) const
 {
     return static_cast<int>(get(param));
 }
@@ -443,9 +444,9 @@ void removeReference(coreObject* objToDelete, const coreObject* parent)
     }
 }
 
-void setMultipleFlags(coreObject* obj, const std::string& flags)
+void setMultipleFlags(coreObject* obj, std::string_view flags)
 {
-    auto lcflags = gmlc::utilities::convertToLowerCase(flags);
+    auto lcflags = gmlc::utilities::convertToLowerCase(std::string{flags});
     auto flgs = gmlc::utilities::string_viewOps::split(lcflags);
     gmlc::utilities::string_viewOps::trim(flgs);
     for (const auto& flag : flgs) {

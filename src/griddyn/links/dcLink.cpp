@@ -84,11 +84,11 @@ double dcLink::getMaxTransfer() const
     return ((r > 0.0) ? (1.0 / r) : kBigNum);
 }
 // set properties
-void dcLink::set(const std::string& param, const std::string& val)
+void dcLink::set(std::string_view param, std::string_view val)
 {
     return Link::set(param, val);
 }
-void dcLink::set(const std::string& param, double val, unit unitType)
+void dcLink::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "r") || (param == "rdc")) {
         r = val;

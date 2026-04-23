@@ -77,7 +77,7 @@ void parameterOperator::getObjects(std::vector<coreObject*>& objects) const
 
 void parameterOperator::checkField() {}
 
-std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& param,
+std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param,
                                                           gridComponent* rootObject)
 {
     using gmlc::utilities::string_viewOps::trim;

@@ -66,21 +66,21 @@ class gridDynOptimization: public gridDynSimulation {
             optimization_mode = omode;
         }
     }
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    void setFlag(const std::string& flag, bool val = true) override;
+    void setFlag(std::string_view flag, bool val = true) override;
     void setFlags(size_t param, int val);
     // void get(std::string param,int &val);
     // void get(std::string param, double &val);
 
-    virtual coreObject* find(const std::string& objName) const override;
-    virtual coreObject* getSubObject(const std::string& typeName, index_t num) const override;
-    virtual coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    virtual coreObject* find(std::string_view objName) const override;
+    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     /** find the economic data for a corresponding grid core object
     @input coreObject the object for which to find the corresponding econ Data
     */

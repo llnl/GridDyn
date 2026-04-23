@@ -50,10 +50,9 @@ namespace loads {
         virtual void updateA(coreTime time) override;
         virtual coreTime updateB() override;
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
+        virtual void set(std::string_view param, std::string_view val) override;
+        virtual void
+            set(std::string_view param, double val, units::unit unitType = units::defunit) override;
         virtual void add(coreObject* obj) override;
 
         virtual void rootTest(const IOdata& inputs,

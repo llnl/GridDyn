@@ -184,12 +184,12 @@ class gridSimulation: public Area {
     */
     virtual int step();
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual std::string getString(const std::string& param) const override;
-    virtual double get(const std::string& param,
+    virtual std::string getString(std::string_view param) const override;
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     void alert(coreObject* object, int code) override;

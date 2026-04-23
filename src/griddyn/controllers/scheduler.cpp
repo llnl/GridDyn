@@ -231,9 +231,9 @@ double scheduler::getMin(coreTime /*time*/) const
     return Pmin;
 }
 
-void scheduler::set(const std::string& param, const std::string& val)
+void scheduler::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         if (!cManager.set(param, val)) {
             Source::set(param, val);
@@ -241,7 +241,7 @@ void scheduler::set(const std::string& param, const std::string& val)
     }
 }
 
-void scheduler::set(const std::string& param, double val, unit unitType)
+void scheduler::set(std::string_view param, double val, unit unitType)
 {
     if (param == "min") {
         Pmin = convert(val, unitType, puMW, m_Base);
@@ -260,14 +260,14 @@ void scheduler::set(const std::string& param, double val, unit unitType)
     }
 }
 
-void scheduler::setFlag(const std::string& flag, bool val)
+void scheduler::setFlag(std::string_view flag, bool val)
 {
     if (!cManager.setFlag(flag, val)) {
         Source::setFlag(flag, val);
     }
 }
 
-double scheduler::get(const std::string& param, unit unitType) const
+double scheduler::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "min") {

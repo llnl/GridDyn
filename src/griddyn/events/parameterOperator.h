@@ -44,7 +44,7 @@ class parameterOperator: public helperObject, public objectOperatorInterface {
 };
 
 /** construct a parameter operator object from a field and root object*/
-std::unique_ptr<parameterOperator> make_parameterOperator(const std::string& param,
+std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param,
                                                           gridComponent* rootObject);
 
 /** helper class defining a set of parameters for various operations*/

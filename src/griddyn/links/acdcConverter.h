@@ -84,10 +84,9 @@ namespace links {
 
         virtual double quickupdateP() override { return 0; }
 
-        virtual void set(const std::string& param, const std::string& val) override;
-        virtual void set(const std::string& param,
-                         double val,
-                         units::unit unitType = units::defunit) override;
+        virtual void set(std::string_view param, std::string_view val) override;
+        virtual void
+            set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
         // dynInitializeB dynamics
         // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags);

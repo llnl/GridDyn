@@ -9,45 +9,45 @@
 #include <string>
 
 #define AUTOGEN_GET /*autogen:get*/                                                                \
-    virtual double get(const std::string& param, units::unit unitType = units::defunit) const;
+    virtual double get(std::string_view param, units::unit unitType = units::defunit) const;
 
 #define AUTOGEN_GET_WITH_CUSTOM /*autogen:get_c*/                                                  \
-    virtual double get(const std::string& param, units::unit unitType = units::defunit) const;     \
+    virtual double get(std::string_view param, units::unit unitType = units::defunit) const;       \
                                                                                                    \
   private:                                                                                         \
-    double custom_get(const std::string& param, units::unit unitType) const;                       \
+    double custom_get(std::string_view param, units::unit unitType) const;                         \
                                                                                                    \
   public:
 
 #define AUTOGEN_SET /*autogen:set*/                                                                \
-    virtual void set(const std::string& param, double val, units::unit unitType = units::defunit)  \
+    virtual void set(std::string_view param, double val, units::unit unitType = units::defunit)    \
         override;
 
 #define AUTOGEN_SET_WITH_CUSTOM /*autogen:set_c*/                                                  \
-    virtual void set(const std::string& param, double val, units::unit unitType = units::defunit)  \
+    virtual void set(std::string_view param, double val, units::unit unitType = units::defunit)    \
         override;                                                                                  \
                                                                                                    \
   private:                                                                                         \
-    void custom_set(const std::string& param, double val, units::unit unitType);                   \
+    void custom_set(std::string_view param, double val, units::unit unitType);                     \
                                                                                                    \
   public:
 
 #define AUTOGEN_SET_STRING /*autogen:setstring*/                                                   \
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
 #define AUTOGEN_SET_STRING_WITH_CUSTOM /*autogen:setstring_c*/                                     \
-    virtual void set(const std::string& param, const std::string& val) override;                   \
+    virtual void set(std::string_view param, std::string_view val) override;                       \
                                                                                                    \
   private:                                                                                         \
-    void custom_set(const std::string& param, const std::string& val);                             \
+    void custom_set(std::string_view param, std::string_view val);                                 \
                                                                                                    \
   public:
 
 #define AUTOGEN_GET_STRING /*autogen:getstring*/                                                   \
-    virtual std::string getString(const std::string& param) const override;
+    virtual std::string getString(std::string_view param) const override;
 
 #define AUTOGEN_GET_STRING_WITH_CUSTOM /*autogen:getstring_c*/                                     \
-    virtual std::string getString(const std::string& param) const override;                        \
+    virtual std::string getString(std::string_view param) const override;                          \
                                                                                                    \
   private:                                                                                         \
     std::string custom_get(const std::string& param) const;                                        \
@@ -58,24 +58,24 @@
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
 
 #define AUTOGEN_SET_FLAG /*autogen:setflag*/                                                       \
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
 
 #define AUTOGEN_SET_FLAG_WITH_CUSTOM /*autogen:setflag_c*/                                         \
-    virtual void setFlag(const std::string& flag, bool val = true) override;                       \
+    virtual void setFlag(std::string_view flag, bool val = true) override;                         \
                                                                                                    \
   private:                                                                                         \
-    void custom_setFlag(const std::string& flag, bool val);                                        \
+    void custom_setFlag(std::string_view flag, bool val);                                          \
                                                                                                    \
   public:
 
 #define AUTOGEN_GET_FLAG /*autogen:getflag*/                                                       \
-    virtual bool getFlag(const std::string& flag) const override;
+    virtual bool getFlag(std::string_view flag) const override;
 
 #define AUTOGEN_GET_FLAG_WITH_CUSTOM /*autogen:getflag_c*/                                         \
-    virtual bool getFlag(const std::string& flag) const override;                                  \
+    virtual bool getFlag(std::string_view flag) const override;                                    \
                                                                                                    \
   private:                                                                                         \
-    bool custom_getFlag(const std::string& flag) const;                                            \
+    bool custom_getFlag(std::string_view flag) const;                                              \
                                                                                                    \
   public:
 

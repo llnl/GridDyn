@@ -36,7 +36,7 @@ class gridSubModel: public gridComponent {
                                 const IOdata& desiredOutput,
                                 IOdata& fieldSet) override final;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 };
 

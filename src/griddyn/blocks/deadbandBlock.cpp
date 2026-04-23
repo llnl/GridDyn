@@ -509,7 +509,7 @@ change_code deadbandBlock::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void deadbandBlock::setFlag(const std::string& flag, bool val)
+void deadbandBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "shifted") {
         opFlags.set(uses_shiftedoutput, val);
@@ -523,15 +523,15 @@ void deadbandBlock::setFlag(const std::string& flag, bool val)
     }
 }
 // set parameters
-void deadbandBlock::set(const std::string& param, const std::string& val)
+void deadbandBlock::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Block::set(param, val);
     }
 }
 
-void deadbandBlock::set(const std::string& param, double val, units::unit unitType)
+void deadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "level") || (param == "dblevel") || (param == "deadbandlevel")) {
         deadbandLevel = val;

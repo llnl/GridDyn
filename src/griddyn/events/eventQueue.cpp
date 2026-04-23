@@ -244,13 +244,13 @@ void eventQueue::getEventObjects(std::vector<coreObject*>& objV) const
     objV.erase(eq, objV.end());
 }
 
-void eventQueue::set(const std::string& param, double val)
+void eventQueue::set(std::string_view param, double val)
 {
     if (param == "timetol") {
         if (val > 0) {
             timeTols = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "nulleventperiod") {
         nullEvent->m_period = val;
@@ -258,7 +258,7 @@ void eventQueue::set(const std::string& param, double val)
         nullEvent->m_nextTime = val;
         sort();
     } else {
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
 }
 

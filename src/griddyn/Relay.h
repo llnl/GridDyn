@@ -243,13 +243,13 @@ class Relay: public gridPrimary, objectOperatorInterface {
     level to actually reset
     */
     void setResetMargin(index_t conditionNumber, double margin);
-    virtual void setFlag(const std::string& flag, bool val = true) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     virtual void updateA(coreTime time) override;
@@ -291,7 +291,7 @@ class Relay: public gridPrimary, objectOperatorInterface {
     virtual coreObject* getObject() const override;
     virtual void getObjects(std::vector<coreObject*>& objects) const override;
 
-    virtual coreObject* find(const std::string& objName) const override;
+    virtual coreObject* find(std::string_view objName) const override;
 
   protected:
     /** update the number of root finding functions used in the relay

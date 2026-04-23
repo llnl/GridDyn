@@ -324,12 +324,12 @@ stringVec GenModelInverter::localStateNames() const
     return genModelNames;
 }
 // set parameters
-void GenModelInverter::set(const std::string& param, const std::string& val)
+void GenModelInverter::set(std::string_view param, std::string_view val)
 {
     return gridSubModel::set(param, val);
 }
 
-void GenModelInverter::set(const std::string& param, double val, units::unit unitType)
+void GenModelInverter::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -342,7 +342,7 @@ void GenModelInverter::set(const std::string& param, double val, units::unit uni
                 reCalcImpedences();
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
 
         return;

@@ -683,7 +683,7 @@ void Block::rootTrigger(coreTime /*time*/,
     }
 }
 
-void Block::setFlag(const std::string& flag, bool val)
+void Block::setFlag(std::string_view flag, bool val)
 {
     if (flag == "use_limits") {
         if (!opFlags[dyn_initialized]) {
@@ -723,11 +723,11 @@ void Block::setFlag(const std::string& flag, bool val)
 }
 
 // set parameters
-void Block::set(const std::string& param, const std::string& val)
+void Block::set(std::string_view param, std::string_view val)
 {
     gridSubModel::set(param, val);
 }
-void Block::set(const std::string& param, double val, units::unit unitType)
+void Block::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
 
@@ -768,7 +768,7 @@ void Block::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double Block::get(const std::string& param, units::unit unitType) const
+double Block::get(std::string_view param, units::unit unitType) const
 {
     if (param == "maxstepsize") {
         return kBigNum;

@@ -68,12 +68,12 @@ void ExciterSEXS::dynObjectInitializeB(const IOdata& inputs,
     m_dstate_dt[1] = 0.0;
 }
 
-void ExciterSEXS::set(const std::string& param, const std::string& val)
+void ExciterSEXS::set(std::string_view param, std::string_view val)
 {
     Exciter::set(param, val);
 }
 
-void ExciterSEXS::set(const std::string& param, double val, units::unit unitType)
+void ExciterSEXS::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "tb") {
         Tb = val;

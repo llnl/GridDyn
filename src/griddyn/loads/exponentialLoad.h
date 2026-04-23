@@ -28,9 +28,9 @@ class exponentialLoad: public Load {
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& sD,

@@ -181,7 +181,7 @@ void gridLinkOpt::setOffsets(const optimOffsets& /*newOffset*/, const optimMode&
 gridLinkOpt::~gridLinkOpt() = default;
 
 // set properties
-void gridLinkOpt::set(const std::string& param, const std::string& val)
+void gridLinkOpt::set(std::string_view param, std::string_view val)
 {
     if (param == "#") {
     } else {
@@ -189,7 +189,7 @@ void gridLinkOpt::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridLinkOpt::set(const std::string& param, double val, unit unitType)
+void gridLinkOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angletolerance") || (param == "atol")) {
@@ -198,7 +198,7 @@ void gridLinkOpt::set(const std::string& param, double val, unit unitType)
     }
 }
 
-coreObject* gridLinkOpt::find(const std::string& objName) const
+coreObject* gridLinkOpt::find(std::string_view objName) const
 {
     if ((objName == getName()) || (objName == "link")) {
         return const_cast<gridLinkOpt*>(this);
@@ -213,7 +213,7 @@ coreObject* gridLinkOpt::find(const std::string& objName) const
     return (coreObject::find(objName));
 }
 
-coreObject* gridLinkOpt::getSubObject(const std::string& typeName, index_t num) const
+coreObject* gridLinkOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         if (num == 1) {
@@ -226,7 +226,7 @@ coreObject* gridLinkOpt::getSubObject(const std::string& typeName, index_t num) 
     return nullptr;
 }
 
-coreObject* gridLinkOpt::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridLinkOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "bus") {
         if (B1->getUserID() == searchID) {
@@ -256,7 +256,7 @@ gridOptObject* gridLinkOpt::getArea(index_t /*index*/) const
     return dynamic_cast<gridOptObject*>(getParent());
 }
 
-double gridLinkOpt::get(const std::string& param, units::unit unitType) const
+double gridLinkOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param[0] != '#') {

@@ -54,7 +54,7 @@ void ThreeWindingTransformer::add(coreObject* /*obj*/)
 // remove components
 void ThreeWindingTransformer::remove(coreObject* /*obj*/) {}
 
-void ThreeWindingTransformer::set(const std::string& param, const std::string& val)
+void ThreeWindingTransformer::set(std::string_view param, std::string_view val)
 {
     if (param == "primary") {
         subsystem::set("from", val);
@@ -67,7 +67,7 @@ void ThreeWindingTransformer::set(const std::string& param, const std::string& v
     }
 }
 
-void ThreeWindingTransformer::set(const std::string& param, double val, units::unit unitType)
+void ThreeWindingTransformer::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -85,7 +85,7 @@ void ThreeWindingTransformer::set(const std::string& param, double val, units::u
                 break;
 
             default:
-                throw(unrecognizedParameter(param));
+                throw(unrecognizedParameter(std::string{param}));
         }
         return;
     }
@@ -131,7 +131,7 @@ void ThreeWindingTransformer::set(const std::string& param, double val, units::u
     }
 }
 
-double ThreeWindingTransformer::get(const std::string& param, units::unit unitType) const
+double ThreeWindingTransformer::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "NULL") {

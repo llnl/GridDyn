@@ -432,8 +432,8 @@ void gridBus::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode
     gridComponent::timestep(time, inputs, sMode);
 }
 
-void gridBus::setAll(const std::string& objtype,
-                     const std::string& param,
+void gridBus::setAll(std::string_view objtype,
+                     std::string_view param,
                      double val,
                      units::unit unitType)
 {
@@ -486,7 +486,7 @@ void gridBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void gridBus::setFlag(const std::string& flag, bool val)
+void gridBus::setFlag(std::string_view flag, bool val)
 {
     if (flag == "connected") {
         if (val) {
@@ -504,7 +504,7 @@ void gridBus::setFlag(const std::string& flag, bool val)
 }
 
 // set properties
-void gridBus::set(const std::string& param, const std::string& val)
+void gridBus::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -512,7 +512,7 @@ void gridBus::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridBus::set(const std::string& param, double val, unit unitType)
+void gridBus::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltage") || (param == "vol")) {
         if (voltage < 0.25) {
@@ -1239,7 +1239,7 @@ Link* gridBus::findLink(gridBus* bs) const
     return lnk;
 }
 
-coreObject* gridBus::find(const std::string& objName) const
+coreObject* gridBus::find(std::string_view objName) const
 {
     if ((objName == getName()) || (objName == "bus")) {
         return const_cast<gridBus*>(this);
@@ -1270,7 +1270,7 @@ coreObject* gridBus::find(const std::string& objName) const
     return gridComponent::find(objName);
 }
 
-coreObject* gridBus::getSubObject(const std::string& typeName, index_t num) const
+coreObject* gridBus::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num);
@@ -1285,7 +1285,7 @@ coreObject* gridBus::getSubObject(const std::string& typeName, index_t num) cons
     return gridComponent::getSubObject(typeName, num);
 }
 
-coreObject* gridBus::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridBus::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
         for (auto& LD : attachedLoads) {
@@ -1338,7 +1338,7 @@ void gridBus::registerPowerControl(gridComponent* /*obj*/) {}
 
 void gridBus::removePowerControl(gridComponent* /*obj*/) {}
 
-double gridBus::get(const std::string& param, unit unitType) const
+double gridBus::get(std::string_view param, unit unitType) const
 {
     double val;
     if (param == "voltage") {
@@ -1376,7 +1376,7 @@ double gridBus::get(const std::string& param, unit unitType) const
             val += ld->get(param, unitType);
         }
     } else {
-        auto fptr = getObjectFunction(this, param);
+        auto fptr = getObjectFunction(this, std::string{param});
         if (fptr.first) {
             coreObject* tobj = const_cast<gridBus*>(this);
             val =

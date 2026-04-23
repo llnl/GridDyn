@@ -102,12 +102,12 @@ class Generator: public gridSecondary {
                             double dstate_dt[],
                             const solverMode& sMode) override;  // for initial setting of the state
 
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
-    virtual double get(const std::string& param,
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
 
     virtual void add(coreObject* obj) override;
     /** @brief additional add function specific to subModels
@@ -206,7 +206,7 @@ class Generator: public gridSecondary {
     virtual change_code powerFlowAdjust(const IOdata& inputs,
                                         std::uint32_t flags,
                                         check_level_t level) override;  // only applicable in pFlow
-    virtual coreObject* find(const std::string& object) const override;
+    virtual coreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
     @param[in] sD the current stateData
     @param[in] sMode the solvermode corresponding to the state

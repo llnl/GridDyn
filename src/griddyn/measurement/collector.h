@@ -111,7 +111,7 @@ class collector: public helperObject, public eventInterface, public objectOperat
     virtual void add(std::shared_ptr<gridGrabber> ggb, int requestedColumn = -1);
     virtual void add(std::shared_ptr<stateGrabber> sst, int requestedColumn = -1);
     virtual void add(const gridGrabberInfo& gdRI, coreObject* obj);
-    virtual void add(const std::string& field, coreObject* obj);
+    virtual void add(std::string_view field, coreObject* obj);
     virtual void add(std::shared_ptr<gridGrabber> ggb,
                      std::shared_ptr<stateGrabber> sst,
                      int requestedColumn = -1);
@@ -185,6 +185,6 @@ class collector: public helperObject, public eventInterface, public objectOperat
 @param[in] type the type of collector to create
 @return a shared_ptr to a collector object
 */
-std::unique_ptr<collector> makeCollector(const std::string& type, const std::string& name = "");
+std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn

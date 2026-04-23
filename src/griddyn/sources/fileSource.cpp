@@ -103,7 +103,7 @@ void fileSource::timestep(coreTime time, const IOdata& inputs, const solverMode&
     rampSource::timestep(time, inputs, sMode);
 }
 
-void fileSource::setFlag(const std::string& flag, bool val)
+void fileSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
         opFlags.set(use_absolute_time_flag, val);
@@ -117,16 +117,16 @@ void fileSource::setFlag(const std::string& flag, bool val)
         rampSource::setFlag(flag, val);
     }
 }
-void fileSource::set(const std::string& param, const std::string& val)
+void fileSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {
-        setFile(val, 0);
+        setFile(std::string{val}, 0);
     } else {
         Source::set(param, val);
     }
 }
 
-void fileSource::set(const std::string& param, double val, units::unit unitType)
+void fileSource::set(std::string_view param, double val, units::unit unitType)
 {
     {
         Source::set(param, val, unitType);

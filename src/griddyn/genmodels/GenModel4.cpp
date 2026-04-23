@@ -252,16 +252,16 @@ stringVec GenModel4::localStateNames() const
     return genModel4Names;
 }
 // set parameters
-void GenModel4::set(const std::string& param, const std::string& val)
+void GenModel4::set(std::string_view param, std::string_view val)
 {
     if (param == "saturation_type") {
-        sat.setType(val);
+        sat.setType(std::string{val});
     } else {
         GenModel3::set(param, val);
     }
 }
 
-void GenModel4::set(const std::string& param, double val, units::unit unitType)
+void GenModel4::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "xd") {
         Xd = val;

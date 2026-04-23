@@ -117,7 +117,7 @@ double functionBlock::step(coreTime time, double input)
 }
 
 // set parameters
-void functionBlock::set(const std::string& param, const std::string& val)
+void functionBlock::set(std::string_view param, std::string_view val)
 {
     if ((param == "function") || (param == "func")) {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
@@ -127,7 +127,7 @@ void functionBlock::set(const std::string& param, const std::string& val)
     }
 }
 
-void functionBlock::set(const std::string& param, double val, units::unit unitType)
+void functionBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "gain") {
         gain = val;

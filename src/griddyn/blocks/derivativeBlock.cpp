@@ -150,15 +150,15 @@ void derivativeBlock::blockJacobianElements(double input,
 }
 
 // set parameters
-void derivativeBlock::set(const std::string& param, const std::string& val)
+void derivativeBlock::set(std::string_view param, std::string_view val)
 {
     Block::set(param, val);
 }
-void derivativeBlock::set(const std::string& param, double val, units::unit unitType)
+void derivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "t1") || (param == "t")) {
         if (std::abs(val) < kMin_Res) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         m_T1 = val;
     } else {

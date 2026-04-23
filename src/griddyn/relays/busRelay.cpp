@@ -34,7 +34,7 @@ coreObject* busRelay::clone(coreObject* obj) const
     return nobj;
 }
 
-void busRelay::setFlag(const std::string& flag, bool val)
+void busRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
@@ -46,7 +46,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void busRelay::set(const std::string& param, const std::string& val)
+void busRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -54,7 +54,7 @@ void busRelay::set(const std::string& param, const std::string& val)
     }
 }
 
-void busRelay::set(const std::string& param, double val, units::unit unitType)
+void busRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         cutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());

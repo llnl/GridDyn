@@ -266,7 +266,7 @@ change_code blockSequence::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void blockSequence::setFlag(const std::string& flag, bool val)
+void blockSequence::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
         opFlags.set(differential_inputActual, val);
@@ -275,7 +275,7 @@ void blockSequence::setFlag(const std::string& flag, bool val)
     }
 }
 // set parameters
-void blockSequence::set(const std::string& param, const std::string& val)
+void blockSequence::set(std::string_view param, std::string_view val)
 {
     if (param == "sequence") {
     } else {
@@ -283,9 +283,9 @@ void blockSequence::set(const std::string& param, const std::string& val)
     }
 }
 
-void blockSequence::set(const std::string& param, double val, units::unit unitType)
+void blockSequence::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Block::set(param, val, unitType);
     }
@@ -308,7 +308,7 @@ double blockSequence::subBlockOutput(const std::string& blockname) const
     return kNullVal;
 }
 
-coreObject* blockSequence::getSubObject(const std::string& typeName, index_t num) const
+coreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "block") {
         if (num < static_cast<index_t>(blocks.size())) {
@@ -318,7 +318,7 @@ coreObject* blockSequence::getSubObject(const std::string& typeName, index_t num
     return gridComponent::getSubObject(typeName, num);
 }
 
-coreObject* blockSequence::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* blockSequence::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "block") {
         for (auto& blk : blocks) {

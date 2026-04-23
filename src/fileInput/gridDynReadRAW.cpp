@@ -410,7 +410,8 @@ static int getPSSversion(const std::string& line)
     if (sloc != std::string::npos) {
         auto dloc = line.find_first_of('-', sloc + 3);
         auto sploc = line.find_first_of(' ', dloc);
-        ver = gmlc::utilities::numConv<int>(std::string_view{line}.substr(dloc + 1, sploc - dloc - 2));
+        ver = gmlc::utilities::numConv<int>(
+            std::string_view{line}.substr(dloc + 1, sploc - dloc - 2));
     } else {
         sloc = line.find("VER", slp);
         if (sloc != std::string::npos) {

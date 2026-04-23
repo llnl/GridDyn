@@ -103,7 +103,7 @@ change_code reversibleEvent::trigger(coreTime time)
     return Event::trigger(time);
 }
 
-bool reversibleEvent::setTarget(coreObject* gdo, const std::string& var)
+bool reversibleEvent::setTarget(coreObject* gdo, std::string_view var)
 {
     auto res = Event::setTarget(gdo, var);
     if (ggrab) {

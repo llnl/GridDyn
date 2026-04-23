@@ -19,6 +19,7 @@
 #include <memory>
 #include <queue>
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 #define SINGLE (1)
@@ -235,7 +236,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] contName the name of the continuation analysis to perform
     @details this function will likely be changing as the continuation analysis develops further
     */
-    void continuationPowerFlow(const std::string& contName);
+    void continuationPowerFlow(std::string_view contName);
 
     /** @brief function to get the system constraints
       constraints allowable are >0,  <0, >=0,  <=0
@@ -289,7 +290,7 @@ class gridDynSimulation: public gridSimulation {
     *@param[in] cmd  the command to execute
     @return the return code from the execution (typically 0 upon success)
     */
-    virtual int execute(const std::string& cmd);
+    virtual int execute(std::string_view cmd);
 
     /** @brief execute a specific command from a griddynAction
     *@param[in] cmd  the command to execute as an action
@@ -460,7 +461,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] solverType the name of the SolverInterface to get the solverMode for
     @return the solverMode named by the string or a blank one if none can be found
     */
-    solverMode getSolverMode(const std::string& solverType);
+    solverMode getSolverMode(std::string_view solverType);
 
     /** @brief get the SolverInterface referenced by a particular index into the SolverInterface
   array
@@ -494,7 +495,7 @@ class gridDynSimulation: public gridSimulation {
     particular type
     @return a shared pointer to a SolverInterface
     */
-    std::shared_ptr<SolverInterface> getSolverInterface(const std::string& solverName);
+    std::shared_ptr<SolverInterface> getSolverInterface(std::string_view solverName);
 
     using gridSimulation::add;  // use the add functions from gridSimulation
 
@@ -506,7 +507,7 @@ class gridDynSimulation: public gridSimulation {
     /** @brief  add an action to the queue
     @param[in] actionString a string containing the action to add
     */
-    void add(const std::string& actionString);
+    void add(std::string_view actionString);
 
     /** @brief  add an action to the run queue
     @param[in] newAction the action to add to the queue
@@ -538,7 +539,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] field the field to set on the solver
     @param[in] val the value to the set the property to
     */
-    virtual void solverSet(const std::string& solverName, std::string_view field, double val);
+    virtual void solverSet(std::string_view solverName, std::string_view field, double val);
 
     /** @brief set a string parameter in a particular solver
      finds a solver by name then calls the solver set function
@@ -547,7 +548,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] val the value to the set the property to
     */
     virtual void
-        solverSet(const std::string& solverName, std::string_view field, const std::string& val);
+        solverSet(std::string_view solverName, std::string_view field, std::string_view val);
 
     /** @brief get the current solverMode from the simulation
     @param[in] sMode  input solverMode to check
@@ -591,7 +592,7 @@ class gridDynSimulation: public gridSimulation {
     solverMode or the name of a solver
     @return the solverMode named by the string or a blank one if none can be found
     */
-    const solverMode* getSolverModePtr(const std::string& solverType) const;
+    const solverMode* getSolverModePtr(std::string_view solverType) const;
 
     /** @brief get a pointer to a solverMode dependent on a particular index of the solver data
     structure

@@ -8,6 +8,7 @@
 
 #include "coreObject.h"
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 /** @brief class for constructing some info about an object
@@ -27,14 +28,14 @@ class objInfo {
     @param[in] Istring the input string containing the object and field reference
     @param[in] obj the object used as the basis for the search if needed
     */
-    objInfo(const std::string& Istring, const coreObject* obj);
+    objInfo(std::string_view Istring, const coreObject* obj);
 
     /** @brief load a string similar to the constructor except with an existing object
      the string should be of the form objA::subObject:field(units) const
     @param[in] Istring the input string containing the object and field reference
             @param[in] obj the object used as the basis for the search if needed
             */
-    void LoadInfo(const std::string& Istring, const coreObject* obj);
+    void LoadInfo(std::string_view Istring, const coreObject* obj);
 };
 
 /** @brief locate a specific object by name
@@ -50,7 +51,7 @@ will attempt to locate a root object and start the search over from there.
 @param[in] directFind if direct find is set to false then the find function is not called unless the
 search string was modified to prevent recursion in some find calls
 */
-coreObject* locateObject(const std::string& Istring,
+coreObject* locateObject(std::string_view Istring,
                          const coreObject* rootObj,
                          bool rootSearch = true,
                          bool directFind = true);

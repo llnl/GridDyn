@@ -21,6 +21,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -358,7 +359,7 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
     }
 }
 
-void SolverInterface::setApproximation(const std::string& approx)
+void SolverInterface::setApproximation(std::string_view approx)
 {
     if ((approx == "normal") || (approx == "none")) {
         setLinkApprox(mode, approxKeyMask::none);
@@ -388,7 +389,7 @@ void SolverInterface::setApproximation(const std::string& approx)
     } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
         setLinkApprox(mode, approxKeyMask::fast_decoupled);
     } else {
-        throw(invalidParameterValue(approx));
+        throw(invalidParameterValue(std::string{approx}));
     }
 }
 
@@ -445,7 +446,7 @@ void SolverInterface::printStates(bool getNames)
 }
 
 void SolverInterface::check_flag(void* flagvalue,
-                                 const std::string& funcname,
+                                 std::string_view funcname,
                                  int opt,
                                  bool printError) const
 {
@@ -453,7 +454,9 @@ void SolverInterface::check_flag(void* flagvalue,
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
-            m_gds->log(m_gds, print_level::error, funcname + " failed - returned nullptr pointer");
+            m_gds->log(m_gds,
+                       print_level::error,
+                       std::string{funcname} + " failed - returned nullptr pointer");
         }
         throw(std::bad_alloc());
     }
@@ -464,7 +467,8 @@ void SolverInterface::check_flag(void* flagvalue,
             if (printError) {
                 m_gds->log(m_gds,
                            print_level::error,
-                           funcname + " failed with flag = " + std::to_string(*errflag));
+                           std::string{funcname} + " failed with flag = " +
+                               std::to_string(*errflag));
             }
             throw(solverException(*errflag));
         }
@@ -478,16 +482,16 @@ int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, step_mode 
 }
 void SolverInterface::logSolverStats(print_level /*logLevel*/, bool /*iconly*/) const {}
 void SolverInterface::logErrorWeights(print_level /*logLevel*/) const {}
-void SolverInterface::logMessage(int errorCode, const std::string& message)
+void SolverInterface::logMessage(int errorCode, std::string_view message)
 {
     if ((errorCode > 0) && (printLevel == solver_print_level::s_debug_print)) {
-        m_gds->log(m_gds, print_level::debug, message);
+        m_gds->log(m_gds, print_level::debug, std::string{message});
     }
     if (errorCode != 0) {
         lastErrorCode = errorCode;
         lastErrorString = message;
         if (printLevel == solver_print_level::s_error_log) {
-            m_gds->log(m_gds, print_level::warning, message);
+            m_gds->log(m_gds, print_level::warning, std::string{message});
         }
     }
 }

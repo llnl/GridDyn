@@ -47,7 +47,7 @@ void controlRelay::setFlag(std::string_view flag, bool val)
     }
 }
 
-void controlRelay::addMeasurement(const std::string& measure)
+void controlRelay::addMeasurement(std::string_view measure)
 {
     auto vals = makeGrabbers(measure,
                              (m_sourceObject != nullptr)   ? m_sourceObject :
@@ -69,15 +69,15 @@ double controlRelay::getMeasurement(index_t num) const
     return kNullVal;
 }
 
-double controlRelay::getMeasurement(const std::string& pointName) const
+double controlRelay::getMeasurement(std::string_view pointName) const
 {
     auto ind = findMeasurement(pointName);
     return (ind != kNullLocation) ? measurement_points_[ind]->grabData() : kNullVal;
 }
 
-index_t controlRelay::findMeasurement(const std::string& pointName) const
+index_t controlRelay::findMeasurement(std::string_view pointName) const
 {
-    auto fnd = pointNames_.find(pointName);
+    auto fnd = pointNames_.find(std::string{pointName});
     return (fnd != pointNames_.end()) ? fnd->second : kNullLocation;
 }
 /*

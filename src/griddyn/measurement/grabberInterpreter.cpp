@@ -16,22 +16,23 @@
 #include "gridGrabbers.h"
 #include "objectGrabbers.h"
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
 
 void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v);
-void allGrabbers(const std::string& mode,
+void allGrabbers(std::string_view mode,
                  coreObject* obj,
                  std::vector<std::unique_ptr<gridGrabber>>& v);
 
-void perObjectGrabbers(const std::string& cmd,
+void perObjectGrabbers(std::string_view cmd,
                        coreObject* obj,
                        std::vector<std::unique_ptr<gridGrabber>>& v);
 
 static grabberInterpreter<gridGrabber, opGrabber, functionGrabber>
-    gInterpret([](const std::string& fld, coreObject* obj) { return createGrabber(fld, obj); });
+    gInterpret([](std::string_view fld, coreObject* obj) { return createGrabber(fld, obj); });
 
 bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& blocks, size_t loc)
 {
@@ -48,10 +49,10 @@ bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& block
     }
     return true;
 }
-std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& command, coreObject* obj)
+std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command, coreObject* obj)
 {
     std::vector<std::unique_ptr<gridGrabber>> v;
-    auto gstr = gmlc::utilities::stringOps::splitlineBracket(command);
+    auto gstr = gmlc::utilities::stringOps::splitlineBracket(std::string{command});
     gmlc::utilities::stringOps::trim(gstr);
     for (auto& cmd : gstr) {
         auto renameloc = cmd.find(" as ");  // spaces are important
@@ -77,7 +78,9 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(const std::string& comman
                 } else if (ggb->field.compare(0, 5, "state") == 0) {
                     v.push_back(std::move(ggb));
                 } else {
-                    obj->log(obj, print_level::warning, "Unable to load recorder " + command);
+                    obj->log(obj,
+                             print_level::warning,
+                             std::string{"Unable to load recorder "} + std::string{command});
                 }
             }
         } else {
@@ -182,7 +185,7 @@ void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
         return;
     }
 }
-void perObjectGrabbers(const std::string& cmd,
+void perObjectGrabbers(std::string_view cmd,
                        coreObject* obj,
                        std::vector<std::unique_ptr<gridGrabber>>& v)
 {
@@ -193,11 +196,13 @@ void perObjectGrabbers(const std::string& cmd,
     if (bstart == std::string::npos) {
         return;
     }
-    auto fieldlist = cmd.substr(bstart + 1);
-    while (fieldlist.back() != ']') {
+    std::string fieldlist{cmd.substr(bstart + 1)};
+    while (!fieldlist.empty() && fieldlist.back() != ']') {
         fieldlist.pop_back();
     }
-    fieldlist.pop_back();
+    if (!fieldlist.empty()) {
+        fieldlist.pop_back();
+    }
 
     auto objType = cmd.substr(4, bstart - 4);
     index_t index = 0;
@@ -212,7 +217,7 @@ void perObjectGrabbers(const std::string& cmd,
     }
 }
 
-void allGrabbers(const std::string& mode,
+void allGrabbers(std::string_view mode,
                  coreObject* obj,
                  std::vector<std::unique_ptr<gridGrabber>>& v)
 {

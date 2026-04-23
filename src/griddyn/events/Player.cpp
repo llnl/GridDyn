@@ -216,7 +216,7 @@ change_code Player::trigger(coreTime time)
 
 void Player::initialize() {}
 
-bool Player::setTarget(coreObject* gdo, const std::string& var)
+bool Player::setTarget(coreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;

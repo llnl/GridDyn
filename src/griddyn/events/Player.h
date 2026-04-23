@@ -66,7 +66,7 @@ namespace events {
         void loadEventFile(const std::string& fileName);
         virtual std::string to_string() const override;
 
-        virtual bool setTarget(coreObject* gdo, const std::string& var = "") override;
+        virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
 
         virtual void initialize() override;
         // friendly helper functions for sorting

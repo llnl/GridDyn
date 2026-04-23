@@ -10,6 +10,7 @@
 #include "gmlc/containers/mapOps.hpp"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
@@ -50,10 +51,10 @@ void communicationsCore::unregisterCommunicator(Communicator* comm)
 }
 
 int communicationsCore::send(std::uint64_t source,
-                             const std::string& dest,
+                             std::string_view dest,
                              std::shared_ptr<commMessage> message)
 {
-    auto res = m_stringMap.find(dest);
+    auto res = m_stringMap.find(std::string{dest});
     if (res != m_stringMap.end()) {
         res->second->receive(source, dest, std::move(message));
         return SEND_SUCCESS;
@@ -73,9 +74,9 @@ int communicationsCore::send(std::uint64_t source,
     return DESTINATION_NOT_FOUND;
 }
 
-std::uint64_t communicationsCore::lookup(const std::string& commName) const
+std::uint64_t communicationsCore::lookup(std::string_view commName) const
 {
-    auto res = m_stringMap.find(commName);
+    auto res = m_stringMap.find(std::string{commName});
     return (res != m_stringMap.end()) ? res->second->getID() : 0;
 }
 std::string communicationsCore::lookup(std::uint64_t did) const

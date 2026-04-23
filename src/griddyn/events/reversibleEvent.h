@@ -37,7 +37,7 @@ namespace events {
         virtual change_code trigger() override;
         virtual change_code trigger(coreTime time) override;
 
-        virtual bool setTarget(coreObject* gdo, const std::string& var = "") override;
+        virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
 
         virtual void updateStringValue(const std::string& newStr);
 

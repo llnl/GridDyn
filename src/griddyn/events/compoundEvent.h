@@ -38,7 +38,7 @@ class compoundEvent: public Event {
     virtual void setValue(const std::vector<double>& val);
     virtual std::string to_string() const override;
 
-    virtual bool setTarget(coreObject* gdo, const std::string& var = "") override;
+    virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
     virtual void updateObject(coreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
     virtual coreObject* getObject() const override;

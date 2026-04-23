@@ -11,6 +11,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -26,7 +27,7 @@ enum class comparison_type {
     null,
 };
 /** generate a value of the comparison type enumeration from a string*/
-comparison_type comparisonFromString(const std::string& compStr);
+comparison_type comparisonFromString(std::string_view compStr);
 /** convert the comparison type to a string description*/
 std::string to_string(comparison_type comp);
 
@@ -110,7 +111,7 @@ class Condition: public objectOperatorInterface {
     void setComparison(comparison_type ct);
     /** set the comparison operator
     @param[in] compStr the comparison type as a string*/
-    void setComparison(const std::string& compStr);
+    void setComparison(std::string_view compStr);
 
     /** set the level of the right side of the condition operate as a constant value
     @param[in] val the threshold
@@ -149,7 +150,7 @@ class Condition: public objectOperatorInterface {
  * @param[in] condString a condition string  like bus1:Voltage>bus2::voltage
  * @param[in] rootObject the root object to find the other objects
  */
-std::unique_ptr<Condition> make_condition(const std::string& condString, coreObject* rootObject);
+std::unique_ptr<Condition> make_condition(std::string_view condString, coreObject* rootObject);
 /** make a condition object
 * function to create a condition object from a field a comparison type and threshold
 * @param field the field to get from the rootObject
@@ -158,7 +159,7 @@ std::unique_ptr<Condition> make_condition(const std::string& condString, coreObj
 * @param[in] rootObject the root object to find the other objects
 */
 std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          const std::string& compare,
+                                          std::string_view compare,
                                           double level,
                                           coreObject* rootObject);
 /** make a condition object

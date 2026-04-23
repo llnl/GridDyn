@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -38,11 +39,11 @@ using units::puMW;
 using units::puOhm;
 using units::puV;
 using units::rad;
-gridGrabber::gridGrabber(const std::string& fld)
+gridGrabber::gridGrabber(std::string_view fld)
 {
     gridGrabber::updateField(fld);
 }
-gridGrabber::gridGrabber(const std::string& fld, coreObject* obj)
+gridGrabber::gridGrabber(std::string_view fld, coreObject* obj)
 {
     gridGrabber::updateObject(obj);
     gridGrabber::updateField(fld);
@@ -78,7 +79,7 @@ static const std::map<std::string, std::function<double(coreObject*)>> coreFunct
     {"constant", [](coreObject* /*obj*/) { return 0.0; }},
 };
 
-void gridGrabber::updateField(const std::string& fld)
+void gridGrabber::updateField(std::string_view fld)
 {
     if (fld == "null")  // this is an escape hatch for the clone function
     {
@@ -220,7 +221,7 @@ bool gridGrabber::checkIfLoaded()
     return false;
 }
 
-std::unique_ptr<gridGrabber> createGrabber(const std::string& fld, coreObject* obj)
+std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, coreObject* obj)
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
@@ -285,7 +286,7 @@ std::unique_ptr<gridGrabber> createGrabber(int noffset, coreObject* obj)
     return ggb;
 }
 
-void customGrabber::setGrabberFunction(const std::string& fld,
+void customGrabber::setGrabberFunction(std::string_view fld,
                                        std::function<double(coreObject*)> nfptr)
 {
     fptr = std::move(nfptr);
@@ -326,7 +327,7 @@ functionGrabber::functionGrabber(std::shared_ptr<gridGrabber> ggb, std::string f
     }
 }
 
-void functionGrabber::updateField(const std::string& fld)
+void functionGrabber::updateField(std::string_view fld)
 {
     function_name = fld;
 
@@ -459,7 +460,7 @@ opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
     loaded = opGrabber::checkIfLoaded();
 }
 
-void opGrabber::updateField(const std::string& fld)
+void opGrabber::updateField(std::string_view fld)
 {
     op_name = fld;
 

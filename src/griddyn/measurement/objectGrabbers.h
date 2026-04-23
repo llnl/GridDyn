@@ -12,6 +12,7 @@
 #include "gridGrabbers.h"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -55,7 +56,7 @@ class objectGrabber: public gridGrabber {
   protected:
     X* tobject;  //!< a class specific object pointer
   public:
-    objectGrabber(const std::string& fld = objEmptyString, X* newObj = nullptr)
+    objectGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
     {
         if (newObj) {
             updateObject(newObj);
@@ -82,22 +83,23 @@ class objectGrabber: public gridGrabber {
         ngb->tobject = tobject;
     }
 
-    void updateField(const std::string& fld) override
+    void updateField(std::string_view fld) override
     {
         field = fld;
-        auto fret = getObjectFunction(tobject, fld);
+        const std::string fldString{fld};
+        auto fret = getObjectFunction(tobject, fldString);
         if (fret.first) {
             fptr = fret.first;
             inputUnits = fret.second;
             loaded = checkIfLoaded();
             return;
         }
-        auto fvecret = getObjectVectorFunction(tobject, fld);
+        auto fvecret = getObjectVectorFunction(tobject, fldString);
         if (fvecret.first) {
             fptrV = fvecret.first;
             inputUnits = fvecret.second;
             vectorGrab = true;
-            fptrN = getObjectVectorDescFunction(tobject, fld);
+            fptrN = getObjectVectorDescFunction(tobject, fldString);
             loaded = checkIfLoaded();
             return;
         }
@@ -125,7 +127,7 @@ class objectOffsetGrabber: public gridGrabber {
     index_t offset = kInvalidLocation;
 
   public:
-    objectOffsetGrabber(const std::string& fld = objEmptyString, X* newObj = nullptr)
+    objectOffsetGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
     {
         if (newObj) {
             updateObject(newObj);
@@ -161,26 +163,27 @@ class objectOffsetGrabber: public gridGrabber {
         ngb->tobject = tobject;
     }
 
-    void updateField(const std::string& fld) override
+    void updateField(std::string_view fld) override
     {
         field = fld;
-        auto fret = getObjectFunction(tobject, fld);
+        const std::string fldString{fld};
+        auto fret = getObjectFunction(tobject, fldString);
         if (fret.first) {
             fptr = fret.first;
             inputUnits = fret.second;
             loaded = gridGrabber::checkIfLoaded();
             return;
         }
-        auto fvecret = getObjectVectorFunction(tobject, fld);
+        auto fvecret = getObjectVectorFunction(tobject, fldString);
         if (fvecret.first) {
             fptrV = fvecret.first;
             inputUnits = fvecret.second;
             vectorGrab = true;
-            fptrN = getObjectVectorDescFunction(tobject, fld);
+            fptrN = getObjectVectorDescFunction(tobject, fldString);
             loaded = gridGrabber::checkIfLoaded();
             return;
         }
-        offset = tobject->findIndex(fld, cLocalSolverMode);
+        offset = tobject->findIndex(fldString, cLocalSolverMode);
 
         if (offset == kInvalidLocation) {
             gridGrabber::updateField(fld);

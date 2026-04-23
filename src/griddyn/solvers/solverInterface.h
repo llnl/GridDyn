@@ -11,6 +11,7 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 enum class solver_print_level {
@@ -314,7 +315,7 @@ class SolverInterface: public helperObject {
     */
     virtual void setSimulationData(const solverMode& sMode);
 
-    void setApproximation(const std::string& approx);
+    void setApproximation(std::string_view approx);
     /** @brief load up masks to the states
       masks isolate specific values and don't let the solver alter them  for newton based solvers
     this implies overriding specific information in the Jacobian calculations and the residual
@@ -339,7 +340,7 @@ class SolverInterface: public helperObject {
     */
     void addMaskElements(const std::vector<index_t>& newMsk);
 
-    void logMessage(int errorCode, const std::string& message);
+    void logMessage(int errorCode, std::string_view message);
 
     int getLastError() const { return lastErrorCode; }
     const std::string& getLastErrorString() const { return lastErrorString; }
@@ -352,7 +353,7 @@ class SolverInterface: public helperObject {
     @param[in] printError  boolean flag indicating whether to print a message on error or not
     */
     virtual void check_flag(void* flagvalue,
-                            const std::string& funcname,
+                            std::string_view funcname,
                             int opt,
                             bool printError = true) const;
 };

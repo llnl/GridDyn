@@ -524,9 +524,9 @@ int gridDynSimulation::run(coreTime t_end)
     return execute(gda);
 }
 
-void gridDynSimulation::add(const std::string& actionString)
+void gridDynSimulation::add(std::string_view actionString)
 {
-    actionQueue.emplace(actionString);
+    actionQueue.emplace(std::string{actionString});
 }
 
 void gridDynSimulation::add(gridDynAction& newAction)
@@ -534,9 +534,9 @@ void gridDynSimulation::add(gridDynAction& newAction)
     actionQueue.push(newAction);
 }
 
-int gridDynSimulation::execute(const std::string& cmd)
+int gridDynSimulation::execute(std::string_view cmd)
 {
-    gridDynAction gda(cmd);
+    gridDynAction gda(std::string{cmd});
     return execute(gda);
 }
 
@@ -1017,15 +1017,15 @@ void gridDynSimulation::set(std::string_view param, double val, units::unit unit
     }
 }
 
-void gridDynSimulation::solverSet(const std::string& solverName, std::string_view field, double val)
+void gridDynSimulation::solverSet(std::string_view solverName, std::string_view field, double val)
 {
     auto sd = getSolverInterface(solverName);
     sd->set(field, val);
 }
 
-void gridDynSimulation::solverSet(const std::string& solverName,
+void gridDynSimulation::solverSet(std::string_view solverName,
                                   std::string_view field,
-                                  const std::string& val)
+                                  std::string_view val)
 {
     auto sd = getSolverInterface(solverName);
     sd->set(field, val);
@@ -1304,7 +1304,7 @@ void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
     updateSolver(sMode);
 }
 
-solverMode gridDynSimulation::getSolverMode(const std::string& solverType)
+solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
 {
     solverMode sMode(kInvalidCount);
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
@@ -1410,7 +1410,7 @@ const solverMode& gridDynSimulation::getSolverMode(index_t index) const
     return cEmptySolverMode;
 }
 
-const solverMode* gridDynSimulation::getSolverModePtr(const std::string& solverType) const
+const solverMode* gridDynSimulation::getSolverModePtr(std::string_view solverType) const
 {
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
         (solverType == "powerflow")) {
@@ -1453,7 +1453,7 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(index_t i
 }
 
 std::shared_ptr<SolverInterface>
-    gridDynSimulation::getSolverInterface(const std::string& solverName)
+    gridDynSimulation::getSolverInterface(std::string_view solverName)
 {
     // just run through the list of SolverInterface objects and find the first one that matches the
     // name

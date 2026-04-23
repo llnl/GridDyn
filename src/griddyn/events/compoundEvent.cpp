@@ -173,7 +173,7 @@ change_code compoundEvent::trigger(coreTime time)
     return ret;
 }
 
-bool compoundEvent::setTarget(coreObject* gdo, const std::string& var)
+bool compoundEvent::setTarget(coreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;

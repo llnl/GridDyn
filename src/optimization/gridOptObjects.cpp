@@ -210,7 +210,7 @@ void gridOptObject::setOffset(index_t offset, index_t constraintOffset, const op
     offsets.setConstraintOffset(constraintOffset, oMode);
 }
 
-void gridOptObject::set(const std::string& param, const std::string& val)
+void gridOptObject::set(std::string_view param, std::string_view val)
 {
     if (param == "status") {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
@@ -230,7 +230,7 @@ void gridOptObject::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridOptObject::set(const std::string& param, double val, units::unit unitType)
+void gridOptObject::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "#") {
     } else {

@@ -285,7 +285,7 @@ void blockSequence::set(std::string_view param, std::string_view val)
 
 void blockSequence::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Block::set(param, val, unitType);
     }

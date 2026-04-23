@@ -98,7 +98,7 @@ double basicOdeSolver::get(std::string_view param) const
 }
 void basicOdeSolver::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         SolverInterface::set(param, val);
     }

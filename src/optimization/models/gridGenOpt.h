@@ -88,11 +88,11 @@ class gridGenOpt: public gridOptObject {
                             const std::string& prefix = "") override;
 
     // parameter set functions
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
     virtual void
-        set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     virtual void loadCostCoeff(std::vector<double> const& coeff, int mode);

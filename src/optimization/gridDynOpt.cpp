@@ -67,7 +67,7 @@ void gridDynOptimization::setupOptOffsets(const optimMode& oMode, int setupMode)
 }
 
 // --------------- set properties ---------------
-void gridDynOptimization::set(const std::string& param, const std::string& val)
+void gridDynOptimization::set(std::string_view param, std::string_view val)
 {
     if (param == "flags") {
         auto v = gmlc::utilities::stringOps::splitline(val);
@@ -100,7 +100,7 @@ void gridDynOptimization::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridDynOptimization::setFlag(const std::string& flag, bool val)
+void gridDynOptimization::setFlag(std::string_view flag, bool val)
 {
     // int nval = static_cast<int> (val);
     /*
@@ -124,7 +124,7 @@ void gridDynOptimization::setFlags(size_t param, int val)
     controlFlags.set(param, (val > 0));
 }
 
-void gridDynOptimization::set(const std::string& param, double val, units::unit unitType)
+void gridDynOptimization::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "optimtol") {
         tols.rtol = val;
@@ -139,7 +139,7 @@ void gridDynOptimization::set(const std::string& param, double val, units::unit 
     }
 }
 
-double gridDynOptimization::get(const std::string& param, units::unit unitType) const
+double gridDynOptimization::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "voltagetolerance") {
@@ -153,7 +153,7 @@ double gridDynOptimization::get(const std::string& param, units::unit unitType) 
     return val;
 }
 
-coreObject* gridDynOptimization::find(const std::string& objName) const
+coreObject* gridDynOptimization::find(std::string_view objName) const
 {
     if (objName == "optroot") {
         return areaOpt;
@@ -164,14 +164,14 @@ coreObject* gridDynOptimization::find(const std::string& objName) const
     return gridDynSimulation::find(objName);
 }
 
-coreObject* gridDynOptimization::getSubObject(const std::string& typeName, index_t num) const
+coreObject* gridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName.substr(0, 3) == "opt") {
         return areaOpt->getSubObject(typeName.substr(3), num);
     }
     return gridDynSimulation::getSubObject(typeName, num);
 }
-coreObject* gridDynOptimization::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName.substr(0, 3) == "opt") {
         return areaOpt->findByUserID(typeName.substr(3), searchID);

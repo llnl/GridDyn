@@ -50,7 +50,7 @@ std::string commType;
 */
 void loadRelay::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Relay::set(param, val);
     }

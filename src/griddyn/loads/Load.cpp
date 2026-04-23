@@ -95,7 +95,7 @@ void Load::setFlag(std::string_view flag, bool val)
 // set properties
 void Load::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         gridSecondary::set(param, val);
     }

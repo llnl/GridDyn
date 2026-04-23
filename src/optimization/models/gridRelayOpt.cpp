@@ -184,7 +184,7 @@ void gridRelayOpt::setOffsets(const optimOffsets& /*newOffset*/, const optimMode
 gridRelayOpt::~gridRelayOpt() = default;
 
 // set properties
-void gridRelayOpt::set(const std::string& param, const std::string& val)
+void gridRelayOpt::set(std::string_view param, std::string_view val)
 {
     if (param == "#") {
     } else {
@@ -192,7 +192,7 @@ void gridRelayOpt::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridRelayOpt::set(const std::string& param, double val, unit unitType)
+void gridRelayOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angleetolerance") || (param == "atol")) {
@@ -201,7 +201,7 @@ void gridRelayOpt::set(const std::string& param, double val, unit unitType)
     }
 }
 
-coreObject* gridRelayOpt::find(const std::string& objName) const
+coreObject* gridRelayOpt::find(std::string_view objName) const
 {
     coreObject* obj = nullptr;
     if ((objName == getName()) || (objName == "relay")) {
@@ -211,7 +211,7 @@ coreObject* gridRelayOpt::find(const std::string& objName) const
     return obj;
 }
 
-coreObject* gridRelayOpt::getSubObject(const std::string& typeName, index_t /*num*/) const
+coreObject* gridRelayOpt::getSubObject(std::string_view typeName, index_t /*num*/) const
 {
     return nullptr;
     /*
@@ -227,7 +227,7 @@ coreObject* gridRelayOpt::getSubObject(const std::string& typeName, index_t /*nu
     */
 }
 
-coreObject* gridRelayOpt::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridRelayOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "relay") {
         if (searchID == getUserID()) {
@@ -237,7 +237,7 @@ coreObject* gridRelayOpt::findByUserID(const std::string& typeName, index_t sear
     return nullptr;
 }
 
-double gridRelayOpt::get(const std::string& param, units::unit unitType) const
+double gridRelayOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param[0] == '#') {

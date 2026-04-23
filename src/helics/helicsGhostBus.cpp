@@ -109,7 +109,7 @@ void helicsGhostBus::set(const std::string& param, const std::string& val)
 
 void helicsGhostBus::set(const std::string& param, double val, units::unit unitType)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         gridBus::set(param, val, unitType);
     }

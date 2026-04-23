@@ -525,7 +525,7 @@ void deadbandBlock::setFlag(std::string_view flag, bool val)
 // set parameters
 void deadbandBlock::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         Block::set(param, val);
     }

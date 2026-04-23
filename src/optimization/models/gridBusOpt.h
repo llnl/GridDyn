@@ -98,19 +98,19 @@ class gridBusOpt: public gridOptObject {
                 const std::string& param,
                 double val,
                 units::unit unitType = units::defunit);
-    void set(const std::string& param, const std::string& val) override;
-    void set(const std::string& param, double val, units::unit unitType = units::defunit) override;
+    void set(std::string_view param, std::string_view val) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // parameter get functions
-    virtual double get(const std::string& param,
+    virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
     // void alert (coreObject *object, int code);
 
     // find components
     gridLinkOpt* findLink(gridBus* bs) const;
-    coreObject* find(const std::string& objName) const override;
-    coreObject* getSubObject(const std::string& typeName, index_t num) const override;
-    coreObject* findByUserID(const std::string& typeName, index_t searchID) const override;
+    coreObject* find(std::string_view objName) const override;
+    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     gridOptObject* getLink(index_t x) const override;
     gridOptObject* getLoad(index_t x = 0) const;

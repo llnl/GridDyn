@@ -262,7 +262,7 @@ void transferFunctionBlock::set(std::string_view param, double val, units::unit 
         }
     }
 
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
         // m_T1 = val;
     } else {
         Block::set(param, val, unitType);

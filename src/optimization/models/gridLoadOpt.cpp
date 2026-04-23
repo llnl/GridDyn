@@ -175,7 +175,7 @@ void gridLoadOpt::getObjName(stringVec& /*objNames*/,
 gridLoadOpt::~gridLoadOpt() = default;
 
 // set properties
-void gridLoadOpt::set(const std::string& param, const std::string& val)
+void gridLoadOpt::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -183,7 +183,7 @@ void gridLoadOpt::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridLoadOpt::set(const std::string& param, double val, unit unitType)
+void gridLoadOpt::set(std::string_view param, double val, unit unitType)
 {
     if (param[0] == '#') {
     } else {
@@ -191,7 +191,7 @@ void gridLoadOpt::set(const std::string& param, double val, unit unitType)
     }
 }
 
-double gridLoadOpt::get(const std::string& param, units::unit unitType) const
+double gridLoadOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "#") {

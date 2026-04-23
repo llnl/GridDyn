@@ -325,7 +325,7 @@ void gridGenOpt::getObjName(stringVec& objNames, const optimMode& oMode, const s
 }
 
 // set properties
-void gridGenOpt::set(const std::string& param, const std::string& val)
+void gridGenOpt::set(std::string_view param, std::string_view val)
 {
     if (param == "#") {
     } else {
@@ -333,7 +333,7 @@ void gridGenOpt::set(const std::string& param, const std::string& val)
     }
 }
 
-void gridGenOpt::set(const std::string& param, double val, units::unit unitType)
+void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
 {
     using units::convert;
     using units::currency;
@@ -415,7 +415,7 @@ void gridGenOpt::set(const std::string& param, double val, units::unit unitType)
     }
 }
 
-double gridGenOpt::get(const std::string& param, units::unit unitType) const
+double gridGenOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "#") {

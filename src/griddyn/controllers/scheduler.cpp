@@ -233,7 +233,7 @@ double scheduler::getMin(coreTime /*time*/) const
 
 void scheduler::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         if (!cManager.set(param, val)) {
             Source::set(param, val);

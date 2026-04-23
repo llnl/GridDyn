@@ -461,14 +461,14 @@ void gridBusOpt::setAll(const std::string& type,
 }
 
 // set properties
-void gridBusOpt::set(const std::string& param, const std::string& val)
+void gridBusOpt::set(std::string_view param, std::string_view val)
 {
     if (param[0] != '#') {
         gridOptObject::set(param, val);
     }
 }
 
-void gridBusOpt::set(const std::string& param, double val, unit unitType)
+void gridBusOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angletolerance") || (param == "atol")) {
@@ -477,7 +477,7 @@ void gridBusOpt::set(const std::string& param, double val, unit unitType)
     }
 }
 
-coreObject* gridBusOpt::find(const std::string& objName) const
+coreObject* gridBusOpt::find(std::string_view objName) const
 {
     coreObject* obj = nullptr;
     if ((objName == getName()) || (objName == "bus")) {
@@ -500,7 +500,7 @@ coreObject* gridBusOpt::find(const std::string& objName) const
     return obj;
 }
 
-coreObject* gridBusOpt::getSubObject(const std::string& typeName, index_t num) const
+coreObject* gridBusOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num - 1);
@@ -514,7 +514,7 @@ coreObject* gridBusOpt::getSubObject(const std::string& typeName, index_t num) c
     return nullptr;
 }
 
-coreObject* gridBusOpt::findByUserID(const std::string& typeName, index_t searchID) const
+coreObject* gridBusOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
         for (auto& LD : loadList) {
@@ -547,7 +547,7 @@ gridOptObject* gridBusOpt::getGen(index_t x) const
     return (isValidIndex(x, genList)) ? genList[x] : nullptr;
 }
 
-double gridBusOpt::get(const std::string& param, units::unit unitType) const
+double gridBusOpt::get(std::string_view param, units::unit unitType) const
 {
     double fval = kNullVal;
     count_t ival = kInvalidCount;

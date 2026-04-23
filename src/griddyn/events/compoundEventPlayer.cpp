@@ -57,7 +57,7 @@ void compoundEventPlayer::setTimeValue(const std::vector<coreTime>& /* times */,
 
 void compoundEventPlayer::set(std::string_view param, double val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         compoundEvent::set(param, val);
     }
@@ -65,7 +65,7 @@ void compoundEventPlayer::set(std::string_view param, double val)
 
 void compoundEventPlayer::set(std::string_view param, std::string_view val)
 {
-    if (param[0] == '#') {
+    if (param.empty() || param[0] == '#') {
     } else {
         compoundEvent::set(param, val);
     }

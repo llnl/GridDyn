@@ -25,8 +25,8 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-#include <print>
 #include <fmilib.h>
+#include <print>
 
 #define BUFFER 1000
 

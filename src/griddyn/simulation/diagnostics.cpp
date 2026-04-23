@@ -231,13 +231,14 @@ int JacobianCheck(gridDynSimulation* gds,
             }
             ++errors;
             if ((std::abs(val1) > 0.001) || (std::abs(val2) > 0.001)) {
-                std::println("Mismatched Jacobian A [{},{}] jac={:5.4f}, a1={:5.4f} a2={:5.4f} {:4.2f}%",
-                             static_cast<unsigned int>(rowk),
-                             static_cast<unsigned int>(colk),
-                             val1,
-                             val2,
-                             val3,
-                             std::abs((val1 - val2) / val1) * 100);
+                std::println(
+                    "Mismatched Jacobian A [{},{}] jac={:5.4f}, a1={:5.4f} a2={:5.4f} {:4.2f}%",
+                    static_cast<unsigned int>(rowk),
+                    static_cast<unsigned int>(colk),
+                    val1,
+                    val2,
+                    val3,
+                    std::abs((val1 - val2) / val1) * 100);
             } else {
                 std::println("Mismatched Jacobian A [{},{}] jac={:6e}, a1={:6e} a2={:6e} {:4.2f}%",
                              static_cast<unsigned int>(rowk),

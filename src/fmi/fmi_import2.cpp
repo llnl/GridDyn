@@ -37,11 +37,8 @@ static void fmi2logger(fmi2_component_environment_t env,
     va_list argp;
     va_start(argp, message);
     len = vsnprintf(msg, BUFFER, message, argp);
-    std::println("fmiStatus = {};  {} ({}): {}",
-                 fmi2_status_to_string(status),
-                 instanceName,
-                 category,
-                 msg);
+    std::println(
+        "fmiStatus = {};  {} ({}): {}", fmi2_status_to_string(status), instanceName, category, msg);
 }
 
 static void stepFinished(fmi2_component_environment_t env, fmi2_status_t status)

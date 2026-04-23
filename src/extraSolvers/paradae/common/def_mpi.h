@@ -40,7 +40,7 @@ int rk_MACRO, sz_MACRO;
                 max_MACRO = (max_MACRO > alldt_MACRO[i_MACRO]) ? max_MACRO : alldt_MACRO[i_MACRO]; \
                 avg_MACRO += alldt_MACRO[i_MACRO];                                                 \
             }                                                                                      \
-            std::println("CHECK_TIMING ({:8.3f}) -- {:>20} : {:8.3f} | {:8.3f} | {:8.3f}",       \
+            std::println("CHECK_TIMING ({:8.3f}) -- {:>20} : {:8.3f} | {:8.3f} | {:8.3f}",         \
                          MPI_Wtime() - global_time_MACRO,                                          \
                          str,                                                                      \
                          min_MACRO,                                                                \

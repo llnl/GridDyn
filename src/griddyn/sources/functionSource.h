@@ -40,7 +40,7 @@ class functionSource: public Source {
                              index_t outputNum = 0) const override;
     /** set the generation function
 @details the function should not have state as the input time is not unidirectional
-@param[in] a function that takes a time as a double as an argument and produces and double as an
+@param[in] calcFunc function that takes time as a double argument and produces a double as an
 output which is used as the output of the source
 */
     void setFunction(std::function<double(double)> calcFunc);

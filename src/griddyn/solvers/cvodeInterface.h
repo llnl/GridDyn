@@ -51,9 +51,9 @@ class cvodeInterface: public sundialsInterface {
 
     virtual void logSolverStats(print_level logLevel, bool iconly = false) const override;
     virtual void logErrorWeights(print_level logLevel) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
-    virtual double get(const std::string& param) const override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual double get(std::string_view param) const override;
 
     // declare friend some helper functions
     friend int cvodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data);

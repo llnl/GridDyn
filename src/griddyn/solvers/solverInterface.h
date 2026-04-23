@@ -229,28 +229,28 @@ class SolverInterface: public helperObject {
   @param[in] param  a string with the desired name of the parameter or result
   @return the value of the requested parameter
   */
-    virtual double get(const std::string& param) const override;
+    virtual double get(std::string_view param) const override;
     /** @brief set a string parameter in the solver
     @param[in] param  a string with the desired name of the parameter
     @param[in] val the value of the property to set
     */
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     /** @brief set a numerical parameter on a solver
   @param[in] param  a string with the desired name of the parameter
   @param[in] val the value of the property to set
   */
-    virtual void set(const std::string& param, double val) override;
+    virtual void set(std::string_view param, double val) override;
 
     /** @brief set a flag parameter on a solver
     @param[in] flag  a string with the name of the flag to set
     @param[in] val the value of the property to set
     */
-    virtual void setFlag(const std::string& flag, bool val = true) override;
+    virtual void setFlag(std::string_view flag, bool val = true) override;
     /** @brief get a flag parameter from a solver
     @param[in] flag  a string with the name of the flag to set
     */
-    virtual bool getFlag(const std::string& flag) const override;
+    virtual bool getFlag(std::string_view flag) const override;
     /** get the last time the solver was called*/
     coreTime getSolverTime() const { return solveTime; }
     /** @brief perform the solver calculations

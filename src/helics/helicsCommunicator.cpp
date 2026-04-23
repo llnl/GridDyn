@@ -25,7 +25,7 @@ helicsCommunicator::helicsCommunicator(const std::string& name, std::uint64_t id
 {
 }
 
-void helicsCommunicator::set(const std::string& param, const std::string& val)
+void helicsCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "federate") {
         coordName = val;
@@ -36,7 +36,7 @@ void helicsCommunicator::set(const std::string& param, const std::string& val)
     }
 }
 
-void helicsCommunicator::set(const std::string& param, double val)
+void helicsCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }

@@ -59,7 +59,7 @@ class grabberSet: public objectOperatorInterface {
      *@return a unique_ptr to another GrabberSet*/
     virtual std::unique_ptr<grabberSet> clone() const;
     /** cloneTo function
-     *@param[in] ggb a pointer to another grabberSet function to clone the data to
+     *@param[in] gset a pointer to another grabberSet function to clone the data to
      */
     virtual void cloneTo(grabberSet* gset) const;
     /** update the field of grabber
@@ -82,12 +82,12 @@ class grabberSet: public objectOperatorInterface {
     /** @brief get the descriptions of the data
      *@param[out] desc_list  the list of descriptions
      **/
+    virtual void getDesc(std::vector<std::string>& desc_list) const;
     virtual double grabData(const stateData& sD, const solverMode& sMode);
     virtual void outputPartialDerivatives(const stateData& sD,
                                           matrixData<double>& md,
                                           const solverMode& sMode);
     // virtual void getDoutDt(const stateData &sD, const solverMode &sMode) const;
-    virtual void getDesc(std::vector<std::string>& desc_list) const;
     /** get a description of the grabberSet*/
     virtual const std::string& getDesc() const;
     /** get a description of the grabber Set*/

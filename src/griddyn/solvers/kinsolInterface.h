@@ -37,9 +37,9 @@ class kinsolInterface: public sundialsInterface {
 
     void logSolverStats(print_level logLevel, bool iconly = false) const override;
     void logErrorWeights(print_level /*logLevel*/) const override {}
-    virtual double get(const std::string& param) const override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
+    virtual double get(std::string_view param) const override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
     // wrapper functions used by kinsol and ida to call the internal functions
     friend int kinsolFunc(N_Vector state, N_Vector resid, void* user_data);
     friend int kinsolJac(N_Vector state,

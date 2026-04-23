@@ -35,7 +35,7 @@ class Communicator:
     */
     virtual std::unique_ptr<Communicator> clone() const;
     /** function to clone the communicator to another object
-    @param[in] obj an object to copy data to
+    @param[in] comm an object to copy data to
     */
     virtual void cloneTo(Communicator* comm) const;
     /** transmit a commMessage somewhere
@@ -93,9 +93,9 @@ class Communicator:
     virtual void initialize();
     /** disconnect the communicator from the communications medium*/
     virtual void disconnect();
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
 
   private:
     std::uint64_t m_id;  //!< individual comm id

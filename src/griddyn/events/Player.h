@@ -47,8 +47,8 @@ namespace events {
         virtual change_code trigger() override;
         virtual change_code trigger(coreTime time) override;
 
-        virtual void set(const std::string& param, double val) override;
-        virtual void set(const std::string& param, const std::string& val) override;
+        virtual void set(std::string_view param, double val) override;
+        virtual void set(std::string_view param, std::string_view val) override;
         void setTime(coreTime time) override;
         /** set a time and value pair as part of the player
     @param[in] time the time associated with the value

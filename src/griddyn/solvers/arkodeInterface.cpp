@@ -115,7 +115,7 @@ void arkodeInterface::setMaxNonZeros(count_t nonZeroCount)
     a1.clear();
 }
 
-void arkodeInterface::set(const std::string& param, const std::string& val)
+void arkodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -123,7 +123,7 @@ void arkodeInterface::set(const std::string& param, const std::string& val)
     }
 }
 
-void arkodeInterface::set(const std::string& param, double val)
+void arkodeInterface::set(std::string_view param, double val)
 {
     bool checkStepUpdate = false;
     if (param == "step") {
@@ -158,7 +158,7 @@ void arkodeInterface::set(const std::string& param, double val)
     }
 }
 
-double arkodeInterface::get(const std::string& param) const
+double arkodeInterface::get(std::string_view param) const
 {
     int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {

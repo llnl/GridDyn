@@ -76,7 +76,7 @@ class matrixDataSparse: public matrixData<ValueT> {
 
     /** @brief scale a subset of the elements
         @param[in] factor the scaling factor
-        @param[in] start the starting index
+        @param[in] startIndex the starting index
         @param[in] count the number of elements to scale
     */
 
@@ -186,7 +186,7 @@ class matrixDataSparse: public matrixData<ValueT> {
                        std::vector<ValueT> mult);
 
     /** @brief remove invalid rows or those given by the testrow
-        @param[in] rowTest,  the row index to remove*/
+        @param[in] rowTest the row index to remove*/
     void filter(index_t rowTest = kNullLocation);
 
     void cascade(matrixDataSparse<ValueT>& a2, index_t element);

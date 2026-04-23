@@ -49,8 +49,8 @@ class idaInterface: public sundialsInterface {
 
     void logSolverStats(print_level logLevel, bool iconly = false) const override;
     void logErrorWeights(print_level logLevel) const override;
-    virtual void set(const std::string& param, double val) override;
-    virtual double get(const std::string& param) const override;
+    virtual void set(std::string_view param, double val) override;
+    virtual double get(std::string_view param) const override;
 
     void setConstraints() override;
 

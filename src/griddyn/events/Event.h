@@ -72,7 +72,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     */
     virtual std::unique_ptr<Event> clone() const;
     /** duplicate the event to a valid event
-    @param a pointer to an event object
+    @param[in] evnt a pointer to an event object
     */
     virtual void cloneTo(Event* evnt) const;
     /** update the information in an event from an event info
@@ -91,9 +91,9 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     virtual bool isArmed() const override { return armed; }
     event_execution_mode executionMode() const override { return event_execution_mode::normal; }
     bool initNeeded() const { return initRequired; }
-    virtual void set(const std::string& param, double val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
     /** set the trigger time of an event
      */
     virtual void setTime(coreTime time);
@@ -105,8 +105,8 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     /** generate a string description of the event*/
     virtual std::string to_string() const;
     /** update the event target
-    @param[in] obj the new target object for the event
-    @param[in] field the new target field for the event
+    @param[in] gdo the new target object for the event
+    @param[in] var the new target field for the event
     @return true if the event is armed
     */
     virtual bool setTarget(coreObject* gdo, const std::string& var = "");

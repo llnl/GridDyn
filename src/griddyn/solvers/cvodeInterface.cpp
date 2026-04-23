@@ -115,7 +115,7 @@ void cvodeInterface::setMaxNonZeros(count_t nonZeroCount)
     a1.clear();
 }
 
-void cvodeInterface::set(const std::string& param, const std::string& val)
+void cvodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
@@ -123,7 +123,7 @@ void cvodeInterface::set(const std::string& param, const std::string& val)
     }
 }
 
-void cvodeInterface::set(const std::string& param, double val)
+void cvodeInterface::set(std::string_view param, double val)
 {
     bool checkStepUpdate = false;
     if (param == "step") {
@@ -157,7 +157,7 @@ void cvodeInterface::set(const std::string& param, double val)
     }
 }
 
-double cvodeInterface::get(const std::string& param) const
+double cvodeInterface::get(std::string_view param) const
 {
     int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {

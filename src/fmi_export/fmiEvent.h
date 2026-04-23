@@ -40,8 +40,8 @@ class fmiEvent: public events::reversibleEvent {
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* evnt) const override;
-    virtual void set(const std::string& param, double val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject) override;
 

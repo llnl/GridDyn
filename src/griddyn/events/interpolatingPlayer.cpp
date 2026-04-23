@@ -45,7 +45,7 @@ void interpolatingPlayer::cloneTo(Event* gE) const
     nE->useSlopeField = useSlopeField;
 }
 
-void interpolatingPlayer::set(const std::string& param, double val)
+void interpolatingPlayer::set(std::string_view param, double val)
 {
     if (param == "sampleperiod") {
         samplePeriod = val;
@@ -53,14 +53,14 @@ void interpolatingPlayer::set(const std::string& param, double val)
         if (val > 0) {
             samplePeriod = 1.0 / val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else {
         Player::set(param, val);
     }
 }
 
-void interpolatingPlayer::set(const std::string& param, const std::string& val)
+void interpolatingPlayer::set(std::string_view param, std::string_view val)
 {
     if (param == "slopefield") {
         slopeField = val;
@@ -71,7 +71,7 @@ void interpolatingPlayer::set(const std::string& param, const std::string& val)
     }
 }
 
-void interpolatingPlayer::setFlag(const std::string& flag, bool val)
+void interpolatingPlayer::setFlag(std::string_view flag, bool val)
 {
     if (flag == "useslopefield") {
         useSlopeField = val;

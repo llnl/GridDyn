@@ -67,7 +67,7 @@ void Player::cloneTo(Event* gE) const
     nE->timeOffset = timeOffset;
 }
 
-void Player::set(const std::string& param, double val)
+void Player::set(std::string_view param, double val)
 {
     if (param == "period") {
         value = val;
@@ -80,10 +80,10 @@ void Player::set(const std::string& param, double val)
     }
 }
 
-void Player::set(const std::string& param, const std::string& val)
+void Player::set(std::string_view param, std::string_view val)
 {
     if (param == "file") {
-        loadEventFile(val);
+        loadEventFile(std::string{val});
     } else {
         Event::set(param, val);
     }

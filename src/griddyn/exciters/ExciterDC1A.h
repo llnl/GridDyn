@@ -58,7 +58,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     /** @brief the Jacobian entries for the limiter
 @param[in] V the voltage
 @param[in] Vloc the location of the voltage
-@param[in] refloc  the location of the reference
+@param[in] refLoc  the location of the reference
 @param[in] cj  the differential scale variable
 @param[out] md the array structure to store the Jacobian data in
 */

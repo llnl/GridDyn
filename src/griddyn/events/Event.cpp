@@ -142,7 +142,7 @@ void Event::cloneTo(Event* evnt) const
     evnt->triggerTime = triggerTime;
 }
 
-void Event::setFlag(const std::string& flag, bool val)
+void Event::setFlag(std::string_view flag, bool val)
 {
     if (flag == "armed") {
         armed = val;
@@ -150,7 +150,7 @@ void Event::setFlag(const std::string& flag, bool val)
         helperObject::setFlag(flag, val);
     }
 }
-void Event::set(const std::string& param, double val)
+void Event::set(std::string_view param, double val)
 {
     if (param == "value") {
         value = val;
@@ -163,14 +163,14 @@ void Event::set(const std::string& param, double val)
     }
 }
 
-void Event::set(const std::string& param, const std::string& val)
+void Event::set(std::string_view param, std::string_view val)
 {
     if (param == "field") {
-        setTarget(m_obj, val);
+        setTarget(m_obj, std::string{val});
     } else if (param == "units") {
-        units::unit newUnits = unit_cast(units::unit_from_string(val));
+        units::unit newUnits = unit_cast(units::unit_from_string(std::string{val}));
         if (!is_valid(newUnits)) {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
         unitType = newUnits;
     } else {

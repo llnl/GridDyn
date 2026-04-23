@@ -54,12 +54,12 @@ change_code dimeCollector::trigger(coreTime time)
     return out;
 }
 
-void dimeCollector::set(const std::string& param, double val)
+void dimeCollector::set(std::string_view param, double val)
 {
     collector::set(param, val);
 }
 
-void dimeCollector::set(const std::string& param, const std::string& val)
+void dimeCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "server") {
         server = val;

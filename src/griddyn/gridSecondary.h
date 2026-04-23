@@ -113,7 +113,7 @@ class gridSecondary: public gridComponent {
     @param[in] inputs the inputs for the secondary object
     * @param[in] sD the current state data for the simulation
     * @param[in] sMode the mode the solver is in
-    @param[in] num the number of the state being requested
+    @param[in] outputNum the number of the state being requested
     @return the value of the state being requested
     **/
     virtual double getOutput(const IOdata& inputs,
@@ -123,14 +123,14 @@ class gridSecondary: public gridComponent {
 
     /**
     *@brief get a single state based on local data
-    @param[in] the number of the state being requested
+    @param[in] outputNum the number of the state being requested
     @return the value of the state being requested
     **/
     virtual double getOutput(index_t outputNum = 0) const override;
 
     /**
     *@brief predict what the outputs will be at a specific time in the future
-    @param[in] ptime the time for which to make a prediction
+    @param[in] predictionTime the time for which to make a prediction
     @param[in] inputs the inputs for the secondary object
     * @param[in] sD the current state data for the simulation
     * @param[in] sMode the mode the solver is in
@@ -150,7 +150,7 @@ class gridSecondary: public gridComponent {
 
     /**
     *@brief get the available downwards generating capacity of a system
-    @param[in] the time period within which to do the adjustment
+    @param[in] time the time period within which to do the adjustment
     @return the available up capacity of the gridSecondary unit
     **/
     virtual double getAdjustableCapacityDown(coreTime time = maxTime) const;

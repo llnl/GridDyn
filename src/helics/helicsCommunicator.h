@@ -37,8 +37,8 @@ class helicsCommunicator:
     virtual void initialize() override;  //!< XXX: Must be called by client
     virtual void disconnect() override;
 
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void set(const std::string& param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void set(std::string_view param, double val) override;
 
   private:
     std::string target;

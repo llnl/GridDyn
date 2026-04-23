@@ -53,8 +53,8 @@ class Recorder: public collector {
     */
     void addSpace(coreTime span);
 
-    void set(const std::string& param, double val) override;
-    void set(const std::string& param, const std::string& val) override;
+    void set(std::string_view param, double val) override;
+    void set(std::string_view param, std::string_view val) override;
 
     virtual void flush() override;
     virtual const std::string& getSinkName() const override;

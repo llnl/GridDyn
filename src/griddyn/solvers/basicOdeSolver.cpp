@@ -89,21 +89,21 @@ void basicOdeSolver::initialize(coreTime t0)
     solveTime = t0;
 }
 
-double basicOdeSolver::get(const std::string& param) const
+double basicOdeSolver::get(std::string_view param) const
 {
     if (param == "deltat") {
         return deltaT;
     }
     return SolverInterface::get(param);
 }
-void basicOdeSolver::set(const std::string& param, const std::string& val)
+void basicOdeSolver::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
         SolverInterface::set(param, val);
     }
 }
-void basicOdeSolver::set(const std::string& param, double val)
+void basicOdeSolver::set(std::string_view param, double val)
 {
     if ((param == "delta") || (param == "deltat") || (param == "step") || (param == "steptime")) {
         deltaT = val;

@@ -118,9 +118,9 @@ class collector: public helperObject, public eventInterface, public objectOperat
 
     bool isArmed() const override { return armed; }
 
-    virtual void set(const std::string& param, double val) override;
-    virtual void set(const std::string& param, const std::string& val) override;
-    virtual void setFlag(const std::string& flag, bool val) override;
+    virtual void set(std::string_view param, double val) override;
+    virtual void set(std::string_view param, std::string_view val) override;
+    virtual void setFlag(std::string_view flag, bool val) override;
 
     virtual void setTime(coreTime time);
 

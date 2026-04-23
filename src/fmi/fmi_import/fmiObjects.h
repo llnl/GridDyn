@@ -273,7 +273,7 @@ class fmi2CoSimObject: public fmi2Object {
                     std::shared_ptr<const fmiCommonFunctions> comFunc,
                     std::shared_ptr<const fmiCoSimFunctions> csFunc);
     /** set the input derivatives of particular order
-    @param[in] order
+    @param[in] order the derivative order to set
     @param[in] dIdt the input derivatives must be of the size as the number of inputs
     */
     void setInputDerivatives(int order, const fmi2Real dIdt[]);
@@ -283,9 +283,10 @@ class fmi2CoSimObject: public fmi2Object {
     */
     void getOutputDerivatives(int order, fmi2Real dOdt[]) const;
     /** advance a time step
-    @param[in] currentCommunicationPoint
-    @param[in] communicationStepSize
-    @param[in] noSetFMUStatePriorToCurrentPoint
+    @param[in] currentCommunicationPoint the current communication point
+    @param[in] communicationStepSize the size of the communication step
+    @param[in] noSetFMUStatePriorToCurrentPoint flag indicating whether setting the FMU state is
+    skipped before the current point
     */
     void doStep(fmi2Real currentCommunicationPoint,
                 fmi2Real communicationStepSize,

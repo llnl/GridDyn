@@ -160,7 +160,7 @@ void SolverInterface::setSimulationData(gridDynSimulation* gds)
     }
 }
 
-double SolverInterface::get(const std::string& param) const
+double SolverInterface::get(std::string_view param) const
 {
     double res;
     if (param == "solvercount") {
@@ -183,7 +183,7 @@ double SolverInterface::get(const std::string& param) const
     return res;
 }
 
-void SolverInterface::set(const std::string& param, const std::string& val)
+void SolverInterface::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::convertToLowerCase;
 
@@ -215,11 +215,11 @@ void SolverInterface::set(const std::string& param, const std::string& val)
         }
     } else if ((param == "pair") || (param == "pairedmode")) {
         if (m_gds != nullptr) {
-            auto nsmode = m_gds->getSolverMode(val);
+            auto nsmode = m_gds->getSolverMode(std::string{val});
             mode.pairedOffsetIndex = nsmode.offsetIndex;
         }
     } else if (param == "mask") {
-        auto sep = gmlc::utilities::str2vector<int>(val, -1, ",;");
+        auto sep = gmlc::utilities::str2vector<int>(std::string{val}, -1, ",;");
         maskElements.resize(sep.size());
         for (size_t kk = 0; kk < sep.size(); ++kk) {
             maskElements[kk] = sep[kk];
@@ -227,20 +227,20 @@ void SolverInterface::set(const std::string& param, const std::string& val)
     } else if (param == "mode") {
         setMultipleFlags(this, val);
     } else if ((param == "file") || (param == "logfile")) {
-        solverLogFile = val;
+        solverLogFile = std::string{val};
     } else if (param == "jacfile") {
-        jacFile = val;
+        jacFile = std::string{val};
     } else if (param == "statefile") {
-        stateFile = val;
+        stateFile = std::string{val};
     } else if (param == "capturefile") {
-        jacFile = val;
-        stateFile = val;
+        jacFile = std::string{val};
+        stateFile = std::string{val};
     } else {
         helperObject::set(param, val);
     }
 }
 
-void SolverInterface::set(const std::string& param, double val)
+void SolverInterface::set(std::string_view param, double val)
 {
     if ((param == "pair") || (param == "pairedmode")) {
         mode.pairedOffsetIndex = static_cast<index_t>(val);
@@ -258,14 +258,14 @@ void SolverInterface::set(const std::string& param, double val)
                 printLevel = solver_print_level::s_debug_print;
                 break;
             default:
-                throw(invalidParameterValue(param));
+                throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "solverprintlevel") {
         auto lv = static_cast<int>(val);
         if ((lv >= 0) && (lv <= 3)) {
             solverPrintLevel = lv;
         } else {
-            throw(invalidParameterValue(param));
+            throw(invalidParameterValue(std::string{param}));
         }
     } else if (param == "maskElement") {
         addMaskElement(static_cast<index_t>(val));
@@ -297,9 +297,9 @@ static const std::map<std::string, int> solverFlagMap{{"filecapture", fileCaptur
                                                       {"print_residuals", print_residuals},
                                                       {"block_mode_only", block_mode_only}};
 
-void SolverInterface::setFlag(const std::string& flag, bool val)
+void SolverInterface::setFlag(std::string_view flag, bool val)
 {
-    auto flgInd = mapFind(solverFlagMap, flag, -60);
+    auto flgInd = mapFind(solverFlagMap, std::string{flag}, -60);
     if (flgInd > -32) {
         if (flgInd > 0) {
             flags.set(flgInd, val);
@@ -351,9 +351,9 @@ void SolverInterface::setFlag(const std::string& flag, bool val)
         printLevel = solver_print_level::s_error_log;
     } else {
         if (val) {
-            setApproximation(flag);
+            setApproximation(std::string{flag});
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(unrecognizedParameter(std::string{flag}));
         }
     }
 }
@@ -392,9 +392,9 @@ void SolverInterface::setApproximation(const std::string& approx)
     }
 }
 
-bool SolverInterface::getFlag(const std::string& flag) const
+bool SolverInterface::getFlag(std::string_view flag) const
 {
-    auto flgInd = mapFind(solverFlagMap, flag, -60);
+    auto flgInd = mapFind(solverFlagMap, std::string{flag}, -60);
     if (flgInd > -32) {
         if (flgInd > 0) {
             return flags[flgInd];

@@ -49,7 +49,7 @@ void helicsEvent::cloneTo(Event* evnt) const
     fe->key = key;
 }
 
-void helicsEvent::set(const std::string& param, double val)
+void helicsEvent::set(std::string_view param, double val)
 {
     if ((param == "element") || (param == "vectorelement")) {
         vectorElement = static_cast<int32_t>(val);
@@ -60,7 +60,7 @@ void helicsEvent::set(const std::string& param, double val)
     }
 }
 
-void helicsEvent::set(const std::string& param, const std::string& val)
+void helicsEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {

@@ -29,7 +29,7 @@ helperObject::helperObject(std::string objectName): m_oid(s_obcnt++), um_name(st
 {
 }
 
-void helperObject::set(const std::string& param, const std::string& val)
+void helperObject::set(std::string_view param, std::string_view val)
 {
     if ((param == "name") || (param == "id")) {
         setName(val);
@@ -38,11 +38,11 @@ void helperObject::set(const std::string& param, const std::string& val)
     } else if ((param == "flags") || (param == "flag")) {
         setMultipleFlags(this, val);
     } else {
-        throw(unrecognizedParameter(param));
+        throw(unrecognizedParameter(std::string{param}));
     }
 }
 
-void helperObject::set(const std::string& param, double val)
+void helperObject::set(std::string_view param, double val)
 {
     setFlag(param, (val > 0.1));
 }
@@ -55,15 +55,15 @@ std::string helperObject::getDescription() const
 {
     return descriptionDictionary.query(m_oid);
 }
-void helperObject::setFlag(const std::string& flag, bool /*val*/)
+void helperObject::setFlag(std::string_view flag, bool /*val*/)
 {
-    throw(unrecognizedParameter(flag));
+    throw(unrecognizedParameter(std::string{flag}));
 }
-bool helperObject::getFlag(const std::string& flag) const
+bool helperObject::getFlag(std::string_view flag) const
 {
-    throw(unrecognizedParameter(flag));
+    throw(unrecognizedParameter(std::string{flag}));
 }
-double helperObject::get(const std::string& param) const
+double helperObject::get(std::string_view param) const
 {
     return getFlag(param) ? 1.0 : 0.0;
 }

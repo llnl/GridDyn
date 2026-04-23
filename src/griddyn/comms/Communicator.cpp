@@ -131,7 +131,7 @@ coreTime Communicator::getLastPingTime() const
 {
     return lastReplyRX - lastPingSend;
 }
-void Communicator::set(const std::string& param, const std::string& val)
+void Communicator::set(std::string_view param, std::string_view val)
 {
     if ((param == "id") || (param == "name")) {
         setName(val);
@@ -139,7 +139,7 @@ void Communicator::set(const std::string& param, const std::string& val)
         helperObject::set(param, val);
     }
 }
-void Communicator::set(const std::string& param, double val)
+void Communicator::set(std::string_view param, double val)
 {
     if ((param == "id") || (param == "name")) {
         setCommID(static_cast<uint64_t>(val));
@@ -148,7 +148,7 @@ void Communicator::set(const std::string& param, double val)
     }
 }
 
-void Communicator::setFlag(const std::string& flag, bool val)
+void Communicator::setFlag(std::string_view flag, bool val)
 {
     if (flag == "autopingenabled") {
         autoPingEnabled = val;

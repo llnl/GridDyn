@@ -7,8 +7,10 @@
 
 #include "Communicator.h"
 #include "core/propertyBuffer.h"
+#include <charconv>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -72,7 +74,13 @@ bool commManager::set(std::string_view param, std::string_view val)
         commType = std::string{val};
     } else if ((param == "commdest") || (param == "destination")) {
         if (val.front() == '#') {
-            commDestId = std::stoull(std::string{val.substr(1)});
+            const auto destId = val.substr(1);
+            const auto* begin = destId.data();
+            const auto* end = begin + destId.size();
+            auto result = std::from_chars(begin, end, commDestId);
+            if ((result.ec != std::errc{}) || (result.ptr != end)) {
+                throw std::invalid_argument("invalid communicator destination id");
+            }
         } else {
             commDestName = std::string{val};
         }

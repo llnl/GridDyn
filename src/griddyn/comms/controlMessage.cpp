@@ -7,11 +7,28 @@
 
 #include "../gridDynDefinitions.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include <charconv>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
 namespace griddyn::comms {
 namespace {
+    std::uint64_t parseActionId(std::string_view text)
+    {
+        if (text.empty()) {
+            throw std::invalid_argument("empty action id");
+        }
+        const auto* begin = text.data();
+        const auto* end = begin + text.size();
+        std::uint64_t value{0};
+        const auto result = std::from_chars(begin, end, value);
+        if ((result.ec != std::errc{}) || (result.ptr != end)) {
+            throw std::invalid_argument("invalid action id");
+        }
+        return value;
+    }
+
     dPayloadFactory<controlMessagePayload,
                     BASE_CONTROL_MESSAGE_NUMBER,
                     BASE_CONTROL_MESSAGE_NUMBER + 16>
@@ -130,11 +147,12 @@ void controlMessagePayload::from_string(uint32_t type,
     auto vstring = fromString.substr(offset);
     if (vstring[0] == '(') {
         const auto closeParen = vstring.find_first_of(')');
-        idstring = std::string{vstring.substr(1, closeParen - 1)};
+        const auto idview = vstring.substr(1, closeParen - 1);
+        idstring = std::string{idview};
         if (idstring.empty()) {
             m_actionID = 0;
         } else {
-            m_actionID = std::stoull(idstring);
+            m_actionID = parseActionId(idview);
         }
     }
 
@@ -212,7 +230,7 @@ void controlMessagePayload::from_string(uint32_t type,
         if (vstring.empty()) {
             m_actionID = 0;
         } else {
-            m_actionID = std::stoull(std::string{vstring});
+            m_actionID = parseActionId(vstring);
         }
     }
 }

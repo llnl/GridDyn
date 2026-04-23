@@ -9,6 +9,7 @@
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Load.h"
 #include "griddyn/gridBus.h"
@@ -116,9 +117,9 @@ static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
 {
     auto pos = line.find_first_of(',');
-    auto temp1 = trim(line.substr(0, pos));
+    const auto temp1 = gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(0, pos));
 
-    auto index = std::stoul(temp1);
+    auto index = gmlc::utilities::numConv<std::size_t>(temp1);
 
     if (index >= busList.size()) {
         std::cerr << "Invalid bus number" << index << '\n';
@@ -409,16 +410,16 @@ static int getPSSversion(const std::string& line)
     if (sloc != std::string::npos) {
         auto dloc = line.find_first_of('-', sloc + 3);
         auto sploc = line.find_first_of(' ', dloc);
-        ver = std::stoi(line.substr(dloc + 1, sploc - dloc - 2));
+        ver = gmlc::utilities::numConv<int>(std::string_view{line}.substr(dloc + 1, sploc - dloc - 2));
     } else {
         sloc = line.find("VER", slp);
         if (sloc != std::string::npos) {
-            ver = std::stoi(line.substr(sloc + 3, 4));
+            ver = gmlc::utilities::numConv<int>(std::string_view{line}.substr(sloc + 3, 4));
             return ver;
         }
         sloc = line.find("version", slp);
         if (sloc != std::string::npos) {
-            ver = std::stoi(line.substr(sloc + 7, 4));
+            ver = gmlc::utilities::numConv<int>(std::string_view{line}.substr(sloc + 7, 4));
             return ver;
         }
     }
@@ -484,7 +485,7 @@ static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& o
     bus->setName(temp2);
 
     // get the localBaseVoltage
-    baseVoltage = std::stod(strvec[2]);
+    baseVoltage = gmlc::utilities::numConv<double>(strvec[2]);
     if (baseVoltage > 0.0) {
         bus->set("basevoltage", baseVoltage);
     }
@@ -493,7 +494,7 @@ static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& o
     if (strvec[3].empty()) {
         type = 1;
     } else {
-        type = std::stoi(strvec[3]);
+        type = gmlc::utilities::numConv<int>(strvec[3]);
     }
 
     switch (type) {
@@ -571,7 +572,7 @@ static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderIn
     loadObject->setName(prefix);
 
     // get the status
-    auto status = std::stoi(strvec[2]);
+    auto status = gmlc::utilities::numConv<int>(strvec[2]);
     if (status == 0) {
         loadObject->disable();
     }
@@ -619,7 +620,7 @@ static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicRe
     loadObject->setName(name);
 
     // get the status
-    auto status = std::stoi(strvec[2]);
+    auto status = gmlc::utilities::numConv<int>(strvec[2]);
     if (status == 0) {
         loadObject->disable();
     }
@@ -648,7 +649,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
     auto prefix = gen->getParent()->getName() + "_Gen_" + temp;
     gen->setName(prefix);
     // get the status
-    auto status = std::stoi(strvec[14]);
+    auto status = gmlc::utilities::numConv<int>(strvec[14]);
     if (status == 0) {
         gen->disable();
     }
@@ -759,9 +760,9 @@ static auto generateBranchName(const stringVector& strvec,
                                const std::string& prefix,
                                int cctIndex = -1)
 {
-    const int ind1 = std::stoi(trim(strvec[0]));
+    const int ind1 = gmlc::utilities::numConv<int>(strvec[0]);
 
-    int ind2 = std::stoi(trim(strvec[1]));
+    int ind2 = gmlc::utilities::numConv<int>(strvec[1]);
 
     // negative bus number indicates direction of measurement in PSS/E this is irrelevant in GridDyn
     // since it can do both directions
@@ -867,12 +868,12 @@ static void rawReadBranch(coreObject* parentObject,
     }
     int status;
     if (opt.version >= 29) {
-        status = std::stoi(strvec[13]);
+        status = gmlc::utilities::numConv<int>(strvec[13]);
         if (status == 0) {
             lnk->disable();
         }
     } else {
-        status = std::stoi(strvec[15]);
+        status = gmlc::utilities::numConv<int>(strvec[15]);
         if (status == 0) {
             lnk->disable();
         }
@@ -1074,7 +1075,7 @@ static int rawReadTxV33(coreObject* parentObject,
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_", 3);
 
-    const int ind3 = std::stoi(strvec[2]);
+    const int ind3 = gmlc::utilities::numConv<int>(strvec[2]);
     int tline = 4;
     if (ind3 != 0) {
         tline = 5;
@@ -1086,7 +1087,7 @@ static int rawReadTxV33(coreObject* parentObject,
 
     auto* bus1 = busList[ind1];
     auto* bus2 = busList[ind2];
-    const int code = std::stoi(strvec3[6]);
+    const int code = gmlc::utilities::numConv<int>(strvec3[6]);
     switch (abs(code)) {
         case 0:
         default:
@@ -1178,7 +1179,7 @@ static int rawReadTxV33(coreObject* parentObject,
     }
     // get line capacitance
 
-    auto status = std::stoi(strvec[11]);
+    auto status = gmlc::utilities::numConv<int>(strvec[11]);
     if (status == 0) {
         lnk->disable();
     } else if (status > 1) {
@@ -1188,7 +1189,7 @@ static int rawReadTxV33(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
     auto tap = numeric_conversion<double>(strvec3[0], 0.0);
 
-    const int tapcode = std::stoi(strvec[4]);
+    const int tapcode = gmlc::utilities::numConv<int>(strvec[4]);
     if (tapcode == 2) {
         auto wv2 = numeric_conversion<double>(strvec4[0], 0.0);
         tap = (tap / bv1 / (wv2 / bv2));
@@ -1318,7 +1319,7 @@ static int rawReadTX(coreObject* parentObject,
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_", 3);
 
-    const int ind3 = std::stoi(strvec[2]);
+    const int ind3 = gmlc::utilities::numConv<int>(strvec[2]);
     int tline = 4;
     if (ind3 != 0) {
         tline = 5;
@@ -1330,7 +1331,7 @@ static int rawReadTX(coreObject* parentObject,
 
     auto* bus1 = busList[ind1];
     auto* bus2 = busList[ind2];
-    const int code = std::stoi(strvec3[6]);
+    const int code = gmlc::utilities::numConv<int>(strvec3[6]);
     switch (abs(code)) {
         case 0:
         default:
@@ -1389,7 +1390,7 @@ static int rawReadTX(coreObject* parentObject,
     lnk->set("x", reactance);
     // get line capacitance
 
-    auto status = std::stoi(strvec[11]);
+    auto status = gmlc::utilities::numConv<int>(strvec[11]);
     if (status == 0) {
         lnk->disable();
     } else if (status > 1) {
@@ -1475,7 +1476,7 @@ static void rawReadSwitchedShunt(coreObject* parentObject,
 {
     auto strvec = splitline(line);
 
-    auto index = std::stoul(strvec[0]);
+    auto index = gmlc::utilities::numConv<std::size_t>(strvec[0]);
     gridBus* rbus = nullptr;
     loads::svd* loadObject = nullptr;
     double temp;

@@ -694,7 +694,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
     auto rbus = numeric_conversion<int>(strvec[7], 0);
 
     if (rbus != 0) {
-        gridBus* remoteBus =
+        auto* remoteBus =
             static_cast<gridBus*>(gen->getParent()->getParent()->findByUserID("bus", rbus));
         gen->add(remoteBus);
     }

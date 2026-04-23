@@ -27,12 +27,13 @@ using gmlc::utilities::stringOps::trim;
 using units::deg;
 using units::MW;
 
-void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
-void cdfReadBranch(coreObject* parentObject,
-                   std::string line,
-                   double base,
-                   std::vector<gridBus*> busList,
-                   const basicReaderInfo& bri);
+static void
+    cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
+static void cdfReadBranch(coreObject* parentObject,
+                          std::string line,
+                          double base,
+                          std::vector<gridBus*> busList,
+                          const basicReaderInfo& bri);
 
 void loadCDF(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
 {
@@ -78,7 +79,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
     }
     // loop over the sections
     while (std::getline(file, line)) {
-        if (line.compare(0, 3, "BUS") == 0) {
+        if (line.starts_with("BUS")) {
             bool morebus = true;
             while (morebus) {
                 if (std::getline(file, line)) {
@@ -93,7 +94,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
                     index = gmlc::utilities::numConv<index_t>(std::string_view{line}.substr(0, 4));
                     if (static_cast<size_t>(index) >= busList.size()) {
                         if (index < 100000000) {
-                            busList.resize(2 * static_cast<size_t>(index) + 1, nullptr);
+                            busList.resize((2 * static_cast<size_t>(index)) + 1, nullptr);
                         } else {
                             std::cerr << "Bus index overload " << index << '\n';
                         }
@@ -116,7 +117,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
                     morebus = false;
                 }
             }
-        } else if (line.compare(0, 6, "BRANCH") == 0) {
+        } else if (line.starts_with("BRANCH")) {
             bool morebranch = true;
             while (morebranch) {
                 if (std::getline(file, line)) {
@@ -169,9 +170,10 @@ Columns 115-122 Shunt susceptance B (per unit) (F) *
 Columns 124-127 Remote controlled bus number
 */
 
-void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri)
+static void
+    cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri)
 {
-    zipLoad* ld = nullptr;
+    zipLoad* load = nullptr;
     Generator* gen = nullptr;
 
     std::string temp = trim(line.substr(5, 12));
@@ -219,22 +221,23 @@ void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const ba
 
     // get the bus type
     temp = line.substr(24, 2);
-    double P, Q;
-    int code = gmlc::utilities::numConv<int>(std::string_view{line}.substr(24, 2));
+    double realPower{0.0};
+    double reactivePower{0.0};
+    const int code = gmlc::utilities::numConv<int>(std::string_view{line}.substr(24, 2));
     switch (code) {
         case 0:  // PQ
             bus->set("type", "pq");
-
             break;
         case 1:  // PQ Voltage limits
             bus->set("type", "pq");
             // get the Vmax and Vmin
             temp = line.substr(90, 7);
-            P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+            realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
             temp = line.substr(98, 7);
-            Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
-            bus->set("vmax", P);
-            bus->set("vmin", Q);
+            reactivePower =
+                gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            bus->set("vmax", realPower);
+            bus->set("vmin", reactivePower);
             // get the desired voltage
             temp = line.substr(27, 6);
             val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(27, 6));
@@ -244,14 +247,16 @@ void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const ba
             bus->set("type", "pv");
             // get the Qmax and Qmin
             temp = line.substr(90, 7);
-            P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+            realPower =
+                gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
             temp = line.substr(98, 7);
-            Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
-            if (P > 0) {
-                bus->set("qmax", P / base);
+            reactivePower =
+                gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            if (realPower > 0) {
+                bus->set("qmax", realPower / base);
             }
-            if (Q < 0) {
-                bus->set("qmin", Q / base);
+            if (reactivePower < 0) {
+                bus->set("qmin", reactivePower / base);
             }
             // get the desired voltage
             temp = line.substr(84, 6);
@@ -268,64 +273,67 @@ void cdfReadBusLine(gridBus* bus, const std::string& line, double base, const ba
             val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(33, 7));
             bus->set("atarget", val, deg);
             break;
+        default:
+            bus->set("type", "pq");
+            break;
     }
     temp = line.substr(40, 9);
-    P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(40, 9));
+    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(40, 9));
     temp = line.substr(49, 9);
-    Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(49, 9));
+    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(49, 9));
 
-    if ((P != 0) || (Q != 0)) {
-        ld = new zipLoad(P / base, Q / base);
-        bus->add(ld);
+    if ((realPower != 0) || (reactivePower != 0)) {
+        load = new zipLoad(realPower / base, reactivePower / base);
+        bus->add(load);
     }
     // get the shunt impedance
-    P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(106, 8));
-    Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(114, 8));
-    if ((P != 0) || (Q != 0)) {
-        if (ld == nullptr) {
-            ld = new zipLoad();
-            bus->add(ld);
+    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(106, 8));
+    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(114, 8));
+    if ((realPower != 0) || (reactivePower != 0)) {
+        if (load == nullptr) {
+            load = new zipLoad();
+            bus->add(load);
         }
-        if (P != 0) {
-            ld->set("yp", P);
+        if (realPower != 0) {
+            load->set("yp", realPower);
         }
-        if (Q != 0) {
-            ld->set("yq", -Q);
+        if (reactivePower != 0) {
+            load->set("yq", -reactivePower);
         }
     }
     // get the generation
-    P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(58, 9));
-    Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(67, 8));
+    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(58, 9));
+    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(67, 8));
 
-    if ((P != 0) || (Q != 0) || (code == 3)) {
+    if ((realPower != 0) || (reactivePower != 0) || (code == 3)) {
         gen = new Generator();
         bus->add(gen);
-        gen->set("p", P / base);
-        gen->set("q", Q / base);
+        gen->set("p", realPower / base);
+        gen->set("q", reactivePower / base);
         // get the Qmax and Qmin
         temp = line.substr(90, 7);
-        P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+        realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
         temp = line.substr(98, 7);
-        Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
-        if (P != 0) {
-            gen->set("qmax", P / base);
+        reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+        if (realPower != 0) {
+            gen->set("qmax", realPower / base);
         }
-        if (Q != 0) {
-            gen->set("qmin", Q / base);
+        if (reactivePower != 0) {
+            gen->set("qmin", reactivePower / base);
         }
     } else if (bus->getType() != gridBus::busType::PQ) {
         temp = line.substr(90, 7);
-        P = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+        realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
         temp = line.substr(98, 7);
-        Q = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
-        if ((P != 0) || (Q != 0)) {
+        reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+        if ((realPower != 0) || (reactivePower != 0)) {
             gen = new Generator();
             bus->add(gen);
-            if (P != 0) {
-                gen->set("qmax", P / base);
+            if (realPower != 0) {
+                gen->set("qmax", realPower / base);
             }
-            if (Q != 0) {
-                gen->set("qmin", Q / base);
+            if (reactivePower != 0) {
+                gen->set("qmin", reactivePower / base);
             }
         }
     }
@@ -366,18 +374,19 @@ Columns 113-119 Minimum voltage, MVAR or MW limit (F)
 Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 */
 
-void cdfReadBranch(coreObject* parentObject,
-                   std::string line,
-                   double base,
-                   std::vector<gridBus*> busList,
-                   const basicReaderInfo& bri)
+static void cdfReadBranch(coreObject* parentObject,
+                          std::string line,
+                          double base,
+                          std::vector<gridBus*> busList,
+                          const basicReaderInfo& bri)
 {
     Link* lnk = nullptr;
-    int code;
     // int cntrl = 0;
     int cbus = 0;
-    int ind1, ind2;
-    double R, X;
+    int ind1;
+    int ind2;
+    double resistance;
+    double reactance;
     double val;
     std::string temp = trim(line.substr(0, 4));
     ind1 = gmlc::utilities::numConv<int>(
@@ -391,8 +400,8 @@ void cdfReadBranch(coreObject* parentObject,
     ind2 = numeric_conversion<int>(temp, 0);
 
     temp2 = temp2 + trim(temp);
-    auto bus1 = busList[ind1];
-    auto bus2 = busList[ind2];
+    auto* bus1 = busList[ind1];
+    auto* bus2 = busList[ind2];
 
     if (line[16] != '1')  // check if there is a circuit indicator
     {
@@ -400,16 +409,11 @@ void cdfReadBranch(coreObject* parentObject,
         temp2.push_back(line[16]);
     }
     // get the branch type
-    code = numeric_conversion<int>(line.substr(18, 1), 0);
+    const int code = numeric_conversion<int>(line.substr(18, 1), 0);
     switch (code) {
         case 0:  // ac line
-            lnk = new acLine();
-            //      lnk->set ("type", "ac");
-            lnk->set("basepower", base);
-            break;
         case 1:  // transformer
             lnk = new acLine();
-            //   lnk->set ("type", "transformer");
             lnk->set("basepower", base);
             break;
         case 2:
@@ -433,47 +437,47 @@ void cdfReadBranch(coreObject* parentObject,
             }
 
             // get Vmin and Vmax
-            R = numeric_conversion(line.substr(112, 7), 0.0);
-            X = numeric_conversion(line.substr(119, 7), 0.0);
+            resistance = numeric_conversion(line.substr(112, 7), 0.0);
+            reactance = numeric_conversion(line.substr(119, 7), 0.0);
 
-            lnk->set("vmin", R);
-            lnk->set("vmax", X);
+            lnk->set("vmin", resistance);
+            lnk->set("vmax", reactance);
             // get tapMin and tapMax
-            R = numeric_conversion(line.substr(90, 7), 0.0);
-            X = numeric_conversion(line.substr(97, 7), 0.0);
-            lnk->set("mintap", R);
-            lnk->set("maxtap", X);
+            resistance = numeric_conversion(line.substr(90, 7), 0.0);
+            reactance = numeric_conversion(line.substr(97, 7), 0.0);
+            lnk->set("mintap", resistance);
+            lnk->set("maxtap", reactance);
             break;
         case 3:
             lnk = new links::adjustableTransformer();
             lnk->set("basepower", base);
             lnk->set("mode", "mvar");
-            R = numeric_conversion(line.substr(112, 7), 0.0);
-            X = numeric_conversion(line.substr(119, 7), 0.0);
-            lnk->set("qmin", R, MW);
-            lnk->set("qmax", X, MW);
+            resistance = numeric_conversion(line.substr(112, 7), 0.0);
+            reactance = numeric_conversion(line.substr(119, 7), 0.0);
+            lnk->set("qmin", resistance, MW);
+            lnk->set("qmax", reactance, MW);
             // get tapMin and tapMax
-            R = numeric_conversion(line.substr(90, 7), 0.0);
-            X = numeric_conversion(line.substr(97, 7), 0.0);
-            lnk->set("mintap", R);
-            lnk->set("maxtap", X);
+            resistance = numeric_conversion(line.substr(90, 7), 0.0);
+            reactance = numeric_conversion(line.substr(97, 7), 0.0);
+            lnk->set("mintap", resistance);
+            lnk->set("maxtap", reactance);
             break;
         case 4:
             lnk = new links::adjustableTransformer();
             lnk->set("basepower", base);
             lnk->set("mode", "mw");
-            R = numeric_conversion(line.substr(112, 7), 0.0);
-            X = numeric_conversion(line.substr(119, 7), 0.0);
-            lnk->set("pmin", R, MW);
-            lnk->set("pmax", X, MW);
+            resistance = numeric_conversion(line.substr(112, 7), 0.0);
+            reactance = numeric_conversion(line.substr(119, 7), 0.0);
+            lnk->set("pmin", resistance, MW);
+            lnk->set("pmax", reactance, MW);
             // get tapAngleMin and tapAngleMax
-            R = numeric_conversion(line.substr(90, 7), 0.0);
-            X = numeric_conversion(line.substr(97, 7), 0.0);
-            lnk->set("mintapangle", R, deg);
-            lnk->set("maxtapangle", X, deg);
+            resistance = numeric_conversion(line.substr(90, 7), 0.0);
+            reactance = numeric_conversion(line.substr(97, 7), 0.0);
+            lnk->set("mintapangle", resistance, deg);
+            lnk->set("maxtapangle", reactance, deg);
             break;
         default:
-            std::cout << "unrecognized line code " << std::to_string(code) << std::endl;
+            std::cout << "unrecognized line code " << std::to_string(code) << '\n';
             return;
     }
 
@@ -486,11 +490,11 @@ void cdfReadBranch(coreObject* parentObject,
     // controls are put in place
 
     // get the branch impedance
-    R = numeric_conversion(line.substr(19, 10), 0.0);
-    X = numeric_conversion(line.substr(29, 10), 0.0);
+    resistance = numeric_conversion(line.substr(19, 10), 0.0);
+    reactance = numeric_conversion(line.substr(29, 10), 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", resistance);
+    lnk->set("x", reactance);
     // get line capacitance
     temp = line.substr(40, 11);
     gmlc::utilities::stringOps::trimString(temp);
@@ -529,32 +533,24 @@ void cdfReadBranch(coreObject* parentObject,
     }
 }
 
-double convertBV(std::string& bv)
+double convertBV(std::string& baseVoltageCode)
 {
     double val = 0.0;
-    gmlc::utilities::stringOps::trimString(bv);
-    if (bv == "V1") {
+    gmlc::utilities::stringOps::trimString(baseVoltageCode);
+    if ((baseVoltageCode == "V1") || (baseVoltageCode == "HV")) {
         val = 345;
-    } else if (bv == "V2") {
+    } else if ((baseVoltageCode == "V2") || (baseVoltageCode == "LV")) {
         val = 138;
-    } else if (bv == "HV") {
-        val = 345;
-    } else if (bv == "LV") {
-        val = 138;
-    } else if (bv == "ZV") {
+    } else if ((baseVoltageCode == "ZV") || (baseVoltageCode == "V7")) {
         val = 1;
-    } else if (bv == "TV") {
+    } else if ((baseVoltageCode == "TV") || (baseVoltageCode == "V4")) {
         val = 33;
-    } else if (bv == "V3") {
+    } else if (baseVoltageCode == "V3") {
         val = 161;
-    } else if (bv == "V4") {
-        val = 33;
-    } else if (bv == "V5") {
+    } else if (baseVoltageCode == "V5") {
         val = 14;
-    } else if (bv == "V6") {
+    } else if (baseVoltageCode == "V6") {
         val = 11;
-    } else if (bv == "V7") {
-        val = 1;
     }
     return val;
 }

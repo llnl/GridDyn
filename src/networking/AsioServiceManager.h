@@ -21,9 +21,16 @@
 #include <utility>
 #include <vector>
 
-#include <boost/asio/io_service.hpp>
+// The choice for noexcept isn't set correctly in asio::io_context on some older setups.
+#ifdef BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+#    undef BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+#endif
 
-/** class defining a (potential) singleton ASIO io_service manager for all boost::asio usage*/
+#define BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT noexcept(true)
+#include <boost/asio/io_context.hpp>
+#undef BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+
+/** class defining a (potential) singleton ASIO io_context manager for all boost::asio usage*/
 class AsioServiceManager {
   private:
     static std::map<std::string, std::shared_ptr<AsioServiceManager>>
@@ -31,8 +38,8 @@ class AsioServiceManager {
     std::atomic<int> runCounter{
         0};  //!< counter for the number of times the runServiceLoop has been called
     std::string name;  //!< service name
-    std::unique_ptr<boost::asio::io_service> iserv;  //!< pointer to the actual context
-    std::unique_ptr<boost::asio::io_service::work>
+    std::unique_ptr<boost::asio::io_context> iserv;  //!< pointer to the actual context
+    std::unique_ptr<boost::asio::io_context::work>
         nullwork;  //!< pointer to an object used to keep a service running
     bool leakOnDelete = false;  //!< this is done to prevent some warning messages for use in DLL's
     std::atomic<bool> running{false};
@@ -71,13 +78,13 @@ class AsioServiceManager {
     */
     static std::shared_ptr<AsioServiceManager>
         getExistingServicePointer(const std::string& serviceName = std::string());
-    /** get the boost io_service associated with the service manager
+    /** get the boost io_context associated with the service manager
      */
-    static boost::asio::io_service& getService(const std::string& serviceName = std::string());
-    /** get the boost io_service associated with the service manager but only if the service exists
+    static boost::asio::io_context& getService(const std::string& serviceName = std::string());
+    /** get the boost io_context associated with the service manager but only if the service exists
     if it doesn't this will throw and invalid_argument exception
     */
-    static boost::asio::io_service&
+    static boost::asio::io_context&
         getExistingService(const std::string& serviceName = std::string());
 
     static void closeService(const std::string& serviceName = std::string());
@@ -94,11 +101,11 @@ class AsioServiceManager {
     /** get the name  of the current service manager*/
     const std::string& getName() const { return name; }
 
-    /** get the underlying boost::io_service reference*/
-    boost::asio::io_service& getBaseService() const { return *iserv; }
+    /** get the underlying boost::io_context reference*/
+    boost::asio::io_context& getBaseService() const { return *iserv; }
 
     /** run a single thread for the service manager to execute asynchronous services in
-    @details will run a single thread for the io_service,  it will not stop the thread until either
+    @details will run a single thread for the io_context,  it will not stop the thread until either
     the service manager is closed or the haltServiceLoop function is called and there is no more
     work
     @param[in] serviceName the name of the service

@@ -57,12 +57,12 @@ std::shared_ptr<AsioServiceManager>
     return nullptr;
 }
 
-boost::asio::io_service& AsioServiceManager::getService(const std::string& serviceName)
+boost::asio::io_context& AsioServiceManager::getService(const std::string& serviceName)
 {
     return getServicePointer(serviceName)->getBaseService();
 }
 
-boost::asio::io_service& AsioServiceManager::getExistingService(const std::string& serviceName)
+boost::asio::io_context& AsioServiceManager::getExistingService(const std::string& serviceName)
 {
     auto ptr = getExistingServicePointer(serviceName);
     if (ptr) {
@@ -116,7 +116,7 @@ AsioServiceManager::~AsioServiceManager()
 }
 
 AsioServiceManager::AsioServiceManager(const std::string& serviceName):
-    name(serviceName), iserv(std::make_unique<boost::asio::io_service>())
+    name(serviceName), iserv(std::make_unique<boost::asio::io_context>())
 {
 }
 
@@ -131,7 +131,7 @@ AsioServiceManager::LoopHandle AsioServiceManager::runServiceLoop(const std::str
         std::lock_guard<std::mutex> nullLock(ptr->runningLoopLock);
         if (!ptr->running) {
             // std::cout << "run Service loop " << ptr->runCounter << "\n";
-            ptr->nullwork = std::make_unique<boost::asio::io_service::work>(ptr->getBaseService());
+            ptr->nullwork = std::make_unique<boost::asio::io_context::work>(ptr->getBaseService());
             ptr->running = true;
             ptr->loopRet = std::async(std::launch::async, [ptr]() { serviceProcessingLoop(ptr); });
         } else {
@@ -141,7 +141,7 @@ AsioServiceManager::LoopHandle AsioServiceManager::runServiceLoop(const std::str
                     ptr->loopRet.get();
                 }
                 ptr->nullwork =
-                    std::make_unique<boost::asio::io_service::work>(ptr->getBaseService());
+                    std::make_unique<boost::asio::io_context::work>(ptr->getBaseService());
                 ptr->running = true;
                 ptr->loopRet =
                     std::async(std::launch::async, [ptr]() { serviceProcessingLoop(ptr); });

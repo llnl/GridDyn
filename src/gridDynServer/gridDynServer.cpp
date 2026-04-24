@@ -81,7 +81,7 @@ void gridDynServer::set(std::string param, int val)
     }
 }
 
-void gridDynServer::start_server(boost::asio::io_service& ios)
+void gridDynServer::start_server(boost::asio::io_context& ios)
 {
     initialize();
 
@@ -109,7 +109,7 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
         local_endpoint_tcp = tcp::endpoint(tcp::v4(), port);
         tcpacc = new pmu_tcp_acc(ios, local_endpoint_tcp);
 
-        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_service_);
+        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_context_);
         // start to accept connections on this socket
         session_lock.lock();
         sess->index = active_tcp_sessions.size();
@@ -309,7 +309,7 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
 {
     /* std::cout << "RServer::startAccept()" << '\n';
         Connection::Pointer newConn =
-            Connection::create(acceptor.io_service());*/
+            Connection::create(acceptor.get_executor().context());*/
     if (!error) {
         // set up to read commands
         active_session->cstate = pmu_tcp_session::waiting;
@@ -319,7 +319,7 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
                 pmu_tcp(active_session, readError, size);
             });
         // reset to accept connections on a new socket
-        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_service_);
+        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_context_);
         session_lock.lock();
         sess->index = active_tcp_sessions.size();
         active_tcp_sessions.push_back(sess);

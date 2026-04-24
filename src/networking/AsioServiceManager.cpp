@@ -131,7 +131,8 @@ AsioServiceManager::LoopHandle AsioServiceManager::runServiceLoop(const std::str
         const std::scoped_lock nullLock(ptr->runningLoopLock);
         if (!ptr->running) {
             // std::cout << "run Service loop " << ptr->runCounter << "\n";
-            ptr->nullwork = std::make_unique<boost::asio::io_context::work>(ptr->getBaseService());
+            ptr->nullwork = std::make_unique<AsioServiceManager::WorkGuard>(
+                boost::asio::make_work_guard(ptr->getBaseService()));
             ptr->running = true;
             ptr->loopRet = std::async(std::launch::async, [ptr]() { serviceProcessingLoop(ptr); });
         } else {
@@ -140,8 +141,8 @@ AsioServiceManager::LoopHandle AsioServiceManager::runServiceLoop(const std::str
                 if (ptr->loopRet.valid()) {
                     ptr->loopRet.get();
                 }
-                ptr->nullwork =
-                    std::make_unique<boost::asio::io_context::work>(ptr->getBaseService());
+                ptr->nullwork = std::make_unique<AsioServiceManager::WorkGuard>(
+                    boost::asio::make_work_guard(ptr->getBaseService()));
                 ptr->running = true;
                 ptr->loopRet =
                     std::async(std::launch::async, [ptr]() { serviceProcessingLoop(ptr); });
@@ -166,7 +167,7 @@ void AsioServiceManager::haltServiceLoop()
                 nullwork.reset();
                 iserv->stop();
                 loopRet.get();
-                iserv->reset();  // prepare for future runs
+                iserv->restart();  // prepare for future runs
             }
         }
     } else {

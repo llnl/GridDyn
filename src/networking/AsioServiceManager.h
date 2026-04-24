@@ -27,20 +27,21 @@
 #endif
 
 #define BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT noexcept(true)
+#include <boost/asio/executor_work_guard.hpp>
 #include <boost/asio/io_context.hpp>
 #undef BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
 
 /** class defining a (potential) singleton ASIO io_context manager for all boost::asio usage*/
 class AsioServiceManager {
   private:
+    using WorkGuard = boost::asio::executor_work_guard<boost::asio::io_context::executor_type>;
     static std::map<std::string, std::shared_ptr<AsioServiceManager>>
         services;  //!< container for pointers to all the available contexts
     std::atomic<int> runCounter{
         0};  //!< counter for the number of times the runServiceLoop has been called
     std::string name;  //!< service name
     std::unique_ptr<boost::asio::io_context> iserv;  //!< pointer to the actual context
-    std::unique_ptr<boost::asio::io_context::work>
-        nullwork;  //!< pointer to an object used to keep a service running
+    std::unique_ptr<WorkGuard> nullwork;  //!< pointer to an object used to keep a service running
     bool leakOnDelete = false;  //!< this is done to prevent some warning messages for use in DLL's
     std::atomic<bool> running{false};
     std::mutex runningLoopLock;  // lock protecting the nullwork object the return future

@@ -239,42 +239,6 @@ void idaInterface::logErrorWeights(print_level logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-static const std::map<int, std::string> idaRetCodes{
-    {IDA_MEM_NULL, "The solver memory argument was NULL"},
-    {IDA_ILL_INPUT, "One of the function inputs is illegal"},
-    {IDA_NO_MALLOC, "The solver memory was not allocated by a call to IDAMalloc"},
-    {IDA_TOO_MUCH_WORK, "The solver took mxstep internal steps but could not reach tout"},
-    {IDA_TOO_MUCH_ACC,
-     "The solver could not satisfy the accuracy demanded by the user for some internal step"},
-    {IDA_ERR_FAIL,
-     "Error test failures occurred too many times during one internal time step or minimum step size was reached"},
-    {IDA_CONV_FAIL,
-     "Convergence test failures occurred too many times during one internal time step or minimum "
-     "step size was reached"},
-    {IDA_LINIT_FAIL, "The linear solver's initialization function failed"},
-    {IDA_LSETUP_FAIL, "The linear solver's setup function failed in an unrecoverable manner"},
-    {IDA_LSOLVE_FAIL, "The linear solver's solve function failed in an unrecoverable manner"},
-    {IDA_RES_FAIL, "The user - provided residual function failed in an unrecoverable manner"},
-    {IDA_CONSTR_FAIL,
-     "12    The inequality constraints were violated and the solver was unable to recover"},
-    {IDA_MEM_FAIL, "14    A memory allocation failed"},
-    {IDA_BAD_T, "The time t is outside the last step taken"},
-    {IDA_BAD_EWT, "Zero value of some error weight component"},
-    {IDA_FIRST_RES_FAIL,
-     "The user - provided residual function failed recoverably on the first call"},
-    {IDA_LINESEARCH_FAIL, "The line search failed"},
-    {IDA_NO_RECOVERY,
-     "The residual function, linear solver setup function, or linear solver solve function had a "
-     "recoverable failure, but IDACalcIC could not recover"},
-    {IDA_RTFUNC_FAIL, "The rootfinding function failed in an unrecoverable manner"},
-    {IDA_REP_RES_ERR,
-     "The user-provided residual function repeatedly returned a recoverable error flag, but the solver "
-     "was unable to recover"},
-    {IDA_MEM_FAIL, "Memory Allocation failed"},
-    {IDA_BAD_K, "Bad K"},
-    {IDA_BAD_DKY, "Bad DKY"},
-};
-
 void idaInterface::initialize(coreTime t0)
 {
     if (!flags[allocated_flag]) {

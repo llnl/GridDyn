@@ -36,21 +36,25 @@
 #include <string>
 
 namespace griddyn::solvers {
-static childClassFactory<kinsolInterface, SolverInterface>
-    kinFactory(stringVec{"kinsol", "algebraic"});
-static childClassFactory<idaInterface, SolverInterface>
-    idaFactory(stringVec{"ida", "dae", "dynamic"});
+static void ensureSundialsFactories()
+{
+    static childClassFactory<kinsolInterface, SolverInterface>
+        kinFactory(stringVec{"kinsol", "algebraic"});
+    static childClassFactory<idaInterface, SolverInterface>
+        idaFactory(stringVec{"ida", "dae", "dynamic"});
 #ifdef GRIDDYN_ENABLE_CVODE
-static childClassFactory<cvodeInterface, SolverInterface>
-    cvodeFactory(stringVec{"cvode", "dyndiff", "differential"});
+    static childClassFactory<cvodeInterface, SolverInterface>
+        cvodeFactory(stringVec{"cvode", "dyndiff", "differential"});
 #endif
 
 #ifdef GRIDDYN_ENABLE_ARKODE
-static childClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
+    static childClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
 #endif
+}
 
 sundialsInterface::sundialsInterface(const std::string& objName): SolverInterface(objName)
 {
+    ensureSundialsFactories();
     tolerance = 1e-8;
     int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
     check_flag(&retval, "SUNContext_Create", 1);
@@ -59,6 +63,7 @@ sundialsInterface::sundialsInterface(const std::string& objName): SolverInterfac
 sundialsInterface::sundialsInterface(gridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
+    ensureSundialsFactories();
     tolerance = 1e-8;
     int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
     check_flag(&retval, "SUNContext_Create", 1);

@@ -260,32 +260,6 @@ void cvodeInterface::logErrorWeights(print_level logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-static const std::map<int, std::string> cvodeRetCodes{
-    {CV_MEM_NULL, "The solver memory argument was NULL"},
-    {CV_ILL_INPUT, "One of the function inputs is illegal"},
-    {CV_NO_MALLOC, "The solver memory was not allocated by a call to CVodeMalloc"},
-    {CV_TOO_MUCH_WORK, "The solver took mxstep internal steps but could not reach tout"},
-    {CV_TOO_MUCH_ACC,
-     "The solver could not satisfy the accuracy demanded by the user for some internal step"},
-    {CV_TOO_CLOSE, "t0 and tout are too close and user didn't specify a step size"},
-    {CV_LINIT_FAIL, "The linear solver's initialization function failed"},
-    {CV_LSETUP_FAIL, "The linear solver's setup function failed in an unrecoverable manner"},
-    {CV_LSOLVE_FAIL, "The linear solver's solve function failed in an unrecoverable manner"},
-    {CV_ERR_FAILURE, "The error test occurred too many times"},
-    {CV_MEM_FAIL, "A memory allocation failed"},
-    {CV_CONV_FAILURE, "convergence test failed too many times"},
-    {CV_BAD_T, "The time t is outside the last step taken"},
-    {CV_FIRST_RHSFUNC_ERR, "The user - provided rhs function failed recoverably on the first call"},
-    {CV_REPTD_RHSFUNC_ERR,
-     "convergence test failed with repeated recoverable errors in the rhs function"},
-    {CV_RTFUNC_FAIL, "The rootFinding function failed in an unrecoverable manner"},
-    {CV_UNREC_RHSFUNC_ERR,
-     "The user-provided right hand side function repeatedly returned a recoverable error "
-     "flag, but the solver was unable to recover"},
-    {CV_BAD_K, "Bad K"},
-    {CV_BAD_DKY, "Bad DKY"},
-};
-
 void cvodeInterface::initialize(coreTime time0)
 {
     if (!flags[allocated_flag]) {

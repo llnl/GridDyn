@@ -22,18 +22,18 @@ std::atomic<int> TcpConnection::idcounter{10};
 void TcpConnection::startReceive()
 {
     if (triggerhalt) {
-        receivingHalt.trigger();
+        static_cast<void>(receivingHalt.trigger());
         return;
     }
     if (state == connection_state_t::prestart) {
-        receivingHalt.activate();
-        connected.activate();
+        static_cast<void>(receivingHalt.activate());
+        static_cast<void>(connected.activate());
         state = connection_state_t::waiting;
     }
     connection_state_t exp = connection_state_t::waiting;
     if (state.compare_exchange_strong(exp, connection_state_t::operating)) {
         if (!receivingHalt.isActive()) {
-            receivingHalt.activate();
+            static_cast<void>(receivingHalt.activate());
         }
         if (!triggerhalt) {
             socket_.async_receive(asio::buffer(data.data() + residBufferSize,
@@ -48,11 +48,11 @@ void TcpConnection::startReceive()
             }
         } else {
             state = connection_state_t::halted;
-            receivingHalt.trigger();
+            static_cast<void>(receivingHalt.trigger());
         }
     } else if (exp != connection_state_t::operating) {
         /*either halted or closed*/
-        receivingHalt.trigger();
+        static_cast<void>(receivingHalt.trigger());
     }
 }
 
@@ -89,7 +89,7 @@ void TcpConnection::handle_read(const error_type& error, size_t bytes_transferre
 {
     if (triggerhalt.load(std::memory_order_acquire)) {
         state = connection_state_t::halted;
-        receivingHalt.trigger();
+        static_cast<void>(receivingHalt.trigger());
         return;
     }
     if (!error) {
@@ -109,7 +109,7 @@ void TcpConnection::handle_read(const error_type& error, size_t bytes_transferre
         startReceive();
     } else if (error == boost::asio::error::operation_aborted) {
         state = connection_state_t::halted;
-        receivingHalt.trigger();
+        static_cast<void>(receivingHalt.trigger());
         return;
     } else {
         // there was an error
@@ -133,17 +133,17 @@ void TcpConnection::handle_read(const error_type& error, size_t bytes_transferre
                 startReceive();
             } else {
                 state = connection_state_t::halted;
-                receivingHalt.trigger();
+                static_cast<void>(receivingHalt.trigger());
             }
         } else if (error != asio::error::eof) {
             if (error != asio::error::connection_reset) {
                 std::cerr << "receive error " << error.message() << std::endl;
             }
             state = connection_state_t::halted;
-            receivingHalt.trigger();
+            static_cast<void>(receivingHalt.trigger());
         } else {
             state = connection_state_t::halted;
-            receivingHalt.trigger();
+            static_cast<void>(receivingHalt.trigger());
         }
     }
 }
@@ -162,12 +162,12 @@ void TcpConnection::closeNoWait()
     switch (state.load()) {
         case connection_state_t::prestart:
             if (receivingHalt.isActive()) {
-                receivingHalt.trigger();
+                static_cast<void>(receivingHalt.trigger());
             }
             break;
         case connection_state_t::halted:
         case connection_state_t::closed:
-            receivingHalt.trigger();
+            static_cast<void>(receivingHalt.trigger());
             break;
         default:
             break;
@@ -226,20 +226,22 @@ TcpConnection::TcpConnection(asio::io_context& io_context,
     idcode(idcounter++)
 {
     tcp::resolver resolver(io_context);
-    tcp::resolver::query query(tcp::v4(), connection, port);
-    tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    socket_.async_connect(*endpoint_iterator,
-                          [this](const error_type& error) { connect_handler(error); });
+    auto endpoint_results = resolver.resolve(connection, port);
+    asio::async_connect(socket_,
+                        endpoint_results,
+                        [this](const error_type& error, const tcp::endpoint&) {
+                            connect_handler(error);
+                        });
 }
 
 void TcpConnection::connect_handler(const error_type& error)
 {
     if (!error) {
-        connected.activate();
+        static_cast<void>(connected.activate());
     } else {
         std::cerr << "connection error " << error.message() << ": code =" << error.value() << '\n';
         connectionError = true;
-        connected.activate();
+        static_cast<void>(connected.activate());
     }
 }
 size_t TcpConnection::send(const void* buffer, size_t dataLength)
@@ -288,7 +290,7 @@ bool TcpConnection::waitUntilConnected(std::chrono::milliseconds timeOut)
         connected.waitActivation();
         return isConnected();
     }
-    connected.wait_forActivation(timeOut);
+    static_cast<void>(connected.wait_forActivation(timeOut));
     return isConnected();
 }
 
@@ -355,7 +357,7 @@ bool TcpAcceptor::start(TcpConnection::pointer conn)
 {
     if (!conn) {
         if (accepting.isActive()) {
-            accepting.trigger();
+            static_cast<void>(accepting.trigger());
         }
         std::cout << "tcpconnection is not valid" << std::endl;
         return false;
@@ -363,7 +365,7 @@ bool TcpAcceptor::start(TcpConnection::pointer conn)
     if (state != accepting_state_t::connected) {
         conn->close();
         if (accepting.isActive()) {
-            accepting.trigger();
+            static_cast<void>(accepting.trigger());
         }
         std::cout << "acceptor is not in a connected state" << std::endl;
         return false;
@@ -390,7 +392,7 @@ void TcpAcceptor::close()
 {
     state = accepting_state_t::halted;
     acceptor_.close();
-    accepting.wait();
+    static_cast<void>(accepting.wait());
 }
 
 std::string TcpAcceptor::to_string() const
@@ -417,7 +419,7 @@ void TcpAcceptor::handle_accept(TcpAcceptor::pointer ptr,
             accepting.reset();
             acceptCall(std::move(ptr), std::move(new_connection));
             if (!accepting.isActive()) {
-                accepting.trigger();
+                static_cast<void>(accepting.trigger());
             }
         } else {
             asio::socket_base::linger optionLinger(true, 0);
@@ -463,16 +465,11 @@ TcpServer::TcpServer(asio::io_context& io_context,
         endpoints.emplace_back(asio::ip::tcp::v4(), portNum);
     } else {
         tcp::resolver resolver(io_context);
-        tcp::resolver::query query(tcp::v4(),
-                                   address,
-                                   std::to_string(portNum),
-                                   tcp::resolver::query::canonical_name);
-        tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-        tcp::resolver::iterator end;
-        if (endpoint_iterator != end) {
-            while (endpoint_iterator != end) {
-                endpoints.push_back(*endpoint_iterator);
-                ++endpoint_iterator;
+        auto endpoint_results =
+            resolver.resolve(address, std::to_string(portNum), tcp::resolver::canonical_name);
+        if (endpoint_results.begin() != endpoint_results.end()) {
+            for (const auto& endpoint_result : endpoint_results) {
+                endpoints.push_back(endpoint_result.endpoint());
             }
         } else {
             halted = true;
@@ -490,13 +487,10 @@ TcpServer::TcpServer(asio::io_context& io_context,
     ioctx(io_context), bufferSize(nominalBufferSize), reuse_address(port_reuse)
 {
     tcp::resolver resolver(io_context);
-    tcp::resolver::query query(tcp::v4(), address, port, tcp::resolver::query::canonical_name);
-    tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    tcp::resolver::iterator end;
-    if (endpoint_iterator != end) {
-        while (endpoint_iterator != end) {
-            endpoints.push_back(*endpoint_iterator);
-            ++endpoint_iterator;
+    auto endpoint_results = resolver.resolve(address, port, tcp::resolver::canonical_name);
+    if (endpoint_results.begin() != endpoint_results.end()) {
+        for (const auto& endpoint_result : endpoint_results) {
+            endpoints.push_back(endpoint_result.endpoint());
         }
     } else {
         halted = true;

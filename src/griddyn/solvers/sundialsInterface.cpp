@@ -88,7 +88,7 @@ sundialsInterface::~sundialsInterface()
     }
     if (flags[initialized_flag]) {
         if (m_sundialsInfoFile != nullptr) {
-            fclose(m_sundialsInfoFile);
+            static_cast<void>(fclose(m_sundialsInfoFile));
         }
         if (LS != nullptr) {
             SUNLinSolFree(LS);

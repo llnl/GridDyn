@@ -37,7 +37,7 @@ class idaInterface: public sundialsInterface {
 
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
 
-    virtual void allocate(count_t size, count_t numRoots = 0) override;
+    virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     void setMaxNonZeros(count_t nonZeros) override;
     virtual void initialize(coreTime t0) override;
     virtual void sparseReInit(sparse_reinit_modes sparseReInitMode) override;

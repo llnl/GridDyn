@@ -58,10 +58,7 @@ class arkodeInterface: public sundialsInterface {
     virtual double get(std::string_view param) const override;
 
     // declare friend some helper functions
-    friend int arkodeFunc(sunrealtype time,
-                          N_Vector state,
-                          N_Vector dstate_dt,
-                          void* user_data);
+    friend int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
     friend int arkodeJac(sunrealtype time,
                          N_Vector state,
                          N_Vector dstate_dt,
@@ -70,8 +67,7 @@ class arkodeInterface: public sundialsInterface {
                          N_Vector tmp1,
                          N_Vector tmp2,
                          N_Vector tmp3);
-    friend int
-        arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+    friend int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
   protected:
     /** load up masking element if needed*/

@@ -31,11 +31,7 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int idaFunc(sunrealtype time,
-            N_Vector state,
-            N_Vector dstate_dt,
-            N_Vector resid,
-            void* user_data);
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data);
 
 int idaJac(sunrealtype time,
            sunrealtype cj,
@@ -531,11 +527,7 @@ void idaInterface::loadMaskElements()
 }
 
 // IDA C Functions
-int idaFunc(sunrealtype time,
-            N_Vector state,
-            N_Vector dstate_dt,
-            N_Vector resid,
-            void* user_data)
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data)
 {
     auto sd = reinterpret_cast<idaInterface*>(user_data);
     // printf("time=%f\n", time);

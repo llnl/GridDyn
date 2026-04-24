@@ -352,9 +352,9 @@ void sundialsErrorHandlerFunc(int line,
         return;
     }
     auto sd = reinterpret_cast<SolverInterface*>(user_data);
-    std::string message =
-        "SUNDIALS ERROR(" + std::to_string(error_code) + ") in " + std::string(function) +
-        " [" + std::string(file) + ':' + std::to_string(line) + "]::" + std::string(msg);
+    std::string message = "SUNDIALS ERROR(" + std::to_string(error_code) + ") in " +
+        std::string(function) + " [" + std::string(file) + ':' + std::to_string(line) +
+        "]::" + std::string(msg);
     sd->logMessage(error_code, message);
 }
 

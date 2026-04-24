@@ -55,12 +55,11 @@ class idaInterface: public sundialsInterface {
     void setConstraints() override;
 
     // declare friend some helper functions
-    friend int
-        idaFunc(sunrealtype time,
-                N_Vector state,
-                N_Vector dstate_dt,
-                N_Vector resid,
-                void* user_data);
+    friend int idaFunc(sunrealtype time,
+                       N_Vector state,
+                       N_Vector dstate_dt,
+                       N_Vector resid,
+                       void* user_data);
 
     friend int idaJac(sunrealtype time,
                       sunrealtype cj,

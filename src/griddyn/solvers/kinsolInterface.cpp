@@ -136,28 +136,6 @@ void kinsolInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     }
 }
 
-static const std::map<int, std::string> kinRetCodes{
-    {KIN_MEM_NULL, "Null solver Memory"},
-    {KIN_ILL_INPUT, "Illegal Input"},
-    {KIN_NO_MALLOC, "No memory allocation"},
-    {KIN_MEM_FAIL, "Memory Allocation failed"},
-    {KIN_LINESEARCH_NONCONV, "Linesearch failed to converge"},
-    {KIN_MAXITER_REACHED, "Max iteration reached"},
-    {KIN_MXNEWT_5X_EXCEEDED,
-     "Five consecutive steps have been taken that satisfy a scaled step length test"},
-    {KIN_LINESEARCH_BCFAIL,
-     "The linesearch algorithm was unable to satisfy the beta -condition for nbcfails iterations"},
-    {KIN_LINSOLV_NO_RECOVERY,
-     "The user-supplied routine preconditioner solve function failed recoverably, but the "
-     "preconditioner is already current"},
-    {KIN_LINIT_FAIL, "The linear solver's initialization function failed"},
-    {KIN_LSETUP_FAIL, "The linear solver's setup function failed in an unrecoverable manner"},
-    {KIN_LSOLVE_FAIL, "The linear solver's solve function failed in an unrecoverable manner"},
-    {KIN_SYSFUNC_FAIL, "The system function failed in an unrecoverable manner"},
-    {KIN_FIRST_SYSFUNC_ERR, "The system function failed recoverably at the first call"},
-    {KIN_REPTD_SYSFUNC_ERR, "The system function had repeated recoverable errors"},
-};
-
 void kinsolInterface::initialize(coreTime /*t0*/)
 {
     if (!flags[allocated_flag]) {
@@ -174,8 +152,6 @@ void kinsolInterface::initialize(coreTime /*t0*/)
                 m_sundialsInfoFile = fopen("kinsol.out", "w");
             }
         }
-        int retval = KINSetPrintLevel(solverMem, solverPrintLevel);
-        check_flag(&retval, "KINSetPrintLevel", 1);
     }
 
     int retval = KINSetUserData(solverMem, this);
@@ -238,9 +214,6 @@ void kinsolInterface::initialize(coreTime /*t0*/)
 
     retval = KINSetNumMaxIters(solverMem, max_iterations);  // residual calls
     check_flag(&retval, "KINSetNumMaxIters", 1);
-
-    retval = KINSetErrHandlerFn(solverMem, sundialsErrorHandlerFunc, this);
-    check_flag(&retval, "KINSetErrHandlerFn", 1);
 
     flags.set(initialized_flag);
 }

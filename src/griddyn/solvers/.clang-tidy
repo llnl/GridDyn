@@ -1,0 +1,25 @@
+---
+InheritParentConfig: true
+Checks: >-
+  -bugprone-branch-clone,
+  -hicpp-vararg,
+  -misc-const-correctness,
+  -misc-use-internal-linkage,
+  -modernize-use-integer-sign-comparison,
+  -modernize-use-std-print,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-qualified-auto,
+  -readability-redundant-parentheses
+WarningsAsErrors: >-
+  -bugprone-branch-clone,
+  -cert-err33-c,
+  -hicpp-vararg,
+  -misc-const-correctness,
+  -misc-use-internal-linkage,
+  -modernize-use-integer-sign-comparison,
+  -modernize-use-std-print,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-qualified-auto,
+  -readability-redundant-parentheses

@@ -34,7 +34,7 @@ class Recorder: public collector {
 
     virtual std::unique_ptr<collector> clone() const override;
     /** duplicate the collector to a valid event
-    @param a pointer to a collector object
+    @param[in] col pointer to a collector object
     */
     virtual void cloneTo(collector* col) const override;
 

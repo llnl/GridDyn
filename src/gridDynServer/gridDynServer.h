@@ -20,7 +20,7 @@ class pmu_udp_socket {
     // PMU not allowed to have multiple packets in flight at the same time
     std::mutex send_lock;
     boost::asio::ip::udp::socket socket_;
-    pmu_udp_socket(boost::asio::io_service& ios, boost::asio::ip::udp::endpoint ep):
+    pmu_udp_socket(boost::asio::io_context& ios, boost::asio::ip::udp::endpoint ep):
         socket_(ios, ep)
     {
         index = 0;
@@ -33,9 +33,9 @@ class pmu_udp_socket {
 class pmu_tcp_acc {
   public:
     boost::asio::ip::tcp::acceptor acceptor_;
-    boost::asio::io_service& io_service_;
-    pmu_tcp_acc(boost::asio::io_service& ios, boost::asio::ip::tcp::endpoint ep):
-        io_service_(ios), acceptor_(ios, ep)
+    boost::asio::io_context& io_context_;
+    pmu_tcp_acc(boost::asio::io_context& ios, boost::asio::ip::tcp::endpoint ep):
+        io_context_(ios), acceptor_(ios, ep)
     {
     }
 };
@@ -50,7 +50,7 @@ class pmu_tcp_session {
     std::mutex send_lock;
 
     std::vector<unsigned char> recv_buffer_;
-    pmu_tcp_session(boost::asio::io_service& ios): socket_(ios)
+    pmu_tcp_session(boost::asio::io_context& ios): socket_(ios)
     {
         index = 0;
         recv_buffer_.resize(65536);
@@ -86,7 +86,7 @@ class gridDynServer {
     pmu_udp_socket* udpsock;
     pmu_tcp_acc* tcpacc;
 
-    // boost::asio::io_service ioserve;
+    // boost::asio::io_context ioserve;
     boost::asio::ip::udp::endpoint remote_endpoint_udp;
     boost::asio::ip::udp::endpoint remote_endpoint_udp_send;
     boost::asio::ip::udp::endpoint local_endpoint_udp;
@@ -122,7 +122,7 @@ class gridDynServer {
     virtual void command_loop() {}
 
     // function for starting the PMU server
-    virtual void start_server(boost::asio::io_service& ios);
+    virtual void start_server(boost::asio::io_context& ios);
     // halt the server
     virtual void stop_server();
     // initialize the server

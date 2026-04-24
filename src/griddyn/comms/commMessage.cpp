@@ -7,6 +7,7 @@
 #include "commMessage.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include <charconv>
 #include <functional>
 #include <map>
 #include <memory>
@@ -267,7 +268,14 @@ uint32_t MessageTypeRegistry::getType(std::string_view name) const
         return fnd->second;
     }
     if (name.starts_with("type_")) {
-        return std::stoul(std::string{name.substr(5)});
+        std::uint32_t type{commMessage::unknownMessageType};
+        const auto typeId = name.substr(5);
+        const auto* begin = typeId.data();
+        const auto* end = begin + typeId.size();
+        const auto result = std::from_chars(begin, end, type);
+        if ((result.ec == std::errc{}) && (result.ptr == end)) {
+            return type;
+        }
     }
     return commMessage::unknownMessageType;
 }

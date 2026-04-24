@@ -16,12 +16,27 @@
 #include "utilities/matrixData.hpp"
 #include "utilities/vectData.hpp"
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
+namespace {
+    bool parseIndexSuffix(std::string_view text, std::size_t& index)
+    {
+        if (text.empty()) {
+            return false;
+        }
+        const auto* begin = text.data();
+        const auto* end = begin + text.size();
+        const auto result = std::from_chars(begin, end, index);
+        return (result.ec == std::errc{}) && (result.ptr == end);
+    }
+}  // namespace
+
 static optObjectFactory<gridGenOpt, Generator> opgen("basic", "gen", 0, true);
 
 gridGenOpt::gridGenOpt(const std::string& objName): gridOptObject(objName) {}
@@ -343,28 +358,22 @@ void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
         return;
     }
     if (param[0] == 'p') {
-        try {
-            auto num = std::stoul(std::string{param.substr(1)});
+        std::size_t num;
+        if (parseIndexSuffix(param.substr(1), num)) {
             if (num > Pcoeff.size()) {
                 Pcoeff.resize(num + 1);
             }
             Pcoeff[num] = val;
             return;
         }
-        catch (std::invalid_argument const&) {
-            // if it doesn't work just let it pass through to the lower statements
-        }
     } else if (param[0] == 'q') {
-        try {
-            auto num = std::stoul(std::string{param.substr(1)});
+        std::size_t num;
+        if (parseIndexSuffix(param.substr(1), num)) {
             if (num > Qcoeff.size()) {
                 Qcoeff.resize(num + 1);
             }
             Qcoeff[num] = val;
             return;
-        }
-        catch (std::invalid_argument const&) {
-            // if it doesn't work just let it pass through to the lower statements
         }
     }
 

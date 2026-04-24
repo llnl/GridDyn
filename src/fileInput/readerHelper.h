@@ -32,7 +32,7 @@ class basicReaderInfo;
 
 void paramStringProcess(gridParameter& param, readerInfo& ri);
 
-double convertBV(std::string& bv);
+double convertBV(std::string& baseVoltageCode);
 
 using mArray = std::vector<std::vector<double>>;
 

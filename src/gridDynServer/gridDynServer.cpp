@@ -20,15 +20,8 @@ using boost::asio::ip::tcp;
 using boost::asio::ip::udp;
 
 gridDynServer::gridDynServer():
-    port(4612),
-    ip_protocol(udp),
-    timeBase(1000000),
-    vid(0),
-    current_connections(0),
-    max_connections(0),
-    intervalError(0.0),
-    udpsock(nullptr),
-    tcpacc(nullptr)
+    port(4612), ip_protocol(udp), timeBase(1000000), vid(0), current_connections(0),
+    max_connections(0), intervalError(0.0), udpsock(nullptr), tcpacc(nullptr)
 {
 }
 
@@ -234,8 +227,7 @@ void gridDynServer::send_data()
                     active_tcp_sessions[sessionIndex]->socket_.async_send(
                         boost::asio::buffer(dataFrame),
                         [session = active_tcp_sessions[sessionIndex]](
-                            const boost::system::error_code& error,
-                                                            std::size_t size) {
+                            const boost::system::error_code& error, std::size_t size) {
                             session->data_sent(error, size);
                         });
                 } else {

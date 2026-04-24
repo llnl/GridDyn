@@ -38,11 +38,18 @@ else()
     )
 endif()
 
-# Map deprecated SUNDIALS cache options to their current names if present from older build trees,
-# then clear the deprecated cache keys to avoid warning spam.
-set(_sundials_deprecated_options
+# Clear deprecated SUNDIALS cache keys from older build trees to avoid warning spam.
+set(_sundials_deprecated_cache_vars
+    SUNDIALS_BUILD_WITH_MONITORING
+    SUNDIALS_BUILD_WITH_PROFILING
     F2003_INTERFACE_ENABLE
     BUILD_FORTRAN_MODULE_INTERFACE
+    BUILD_ARKODE
+    BUILD_CVODE
+    BUILD_CVODES
+    BUILD_IDA
+    BUILD_IDAS
+    BUILD_KINSOL
     MPI_ENABLE
     ENABLE_MPI
     OPENMP_ENABLE
@@ -55,6 +62,8 @@ set(_sundials_deprecated_options
     ENABLE_PTHREAD
     CUDA_ENABLE
     ENABLE_CUDA
+    ENABLE_HIP
+    ENABLE_SYCL
     LAPACK_ENABLE
     ENABLE_LAPACK
     SUPERLUDIST_ENABLE
@@ -63,6 +72,7 @@ set(_sundials_deprecated_options
     ENABLE_SUPERLUMT
     KLU_ENABLE
     ENABLE_KLU
+    KLU_WORKS
     HYPRE_ENABLE
     ENABLE_HYPRE
     PETSC_ENABLE
@@ -71,17 +81,31 @@ set(_sundials_deprecated_options
     ENABLE_TRILINOS
     RAJA_ENABLE
     ENABLE_RAJA
+    ENABLE_GINKGO
+    ENABLE_MAGMA
+    ENABLE_XBRAID
+    ENABLE_ONEMKL
+    ENABLE_KOKKOS
+    ENABLE_KOKKOS_KERNELS
+    EXAMPLES_ENABLE_C
+    EXAMPLES_ENABLE_CXX
+    EXAMPLES_ENABLE_CUDA
+    EXAMPLES_ENABLE_F2003
+    BUILD_NVECTOR_MANYVECTOR
+    BUILD_BENCHMARKS
+    SUNDIALS_ENABLE_NVECTOR_MANYVECTOR
+    BUILD_SUNLINSOL_KLU
+    SUNDIALS_ENABLE_SUNLINSOL_KLU
+    ENABLE_ALL_WARNINGS
+    ENABLE_WARNINGS_AS_ERRORS
+    ENABLE_ADDRESS_SANITIZER
+    SUNDIALS_TEST_DEVTESTS
+    SUNDIALS_TEST_UNITTESTS
+    SUNDIALS_TEST_NODIFF
+    SUNDIALS_TEST_PROFILE
 )
-list(LENGTH _sundials_deprecated_options _sundials_opt_len)
-math(EXPR _sundials_last_pair "${_sundials_opt_len} - 2")
-foreach(_sundials_idx RANGE 0 ${_sundials_last_pair} 2)
-    math(EXPR _sundials_new_idx "${_sundials_idx} + 1")
-    list(GET _sundials_deprecated_options ${_sundials_idx} _old_var)
-    list(GET _sundials_deprecated_options ${_sundials_new_idx} _new_var)
-    if(DEFINED ${_old_var} AND (NOT DEFINED ${_new_var}))
-        set(${_new_var} "${${_old_var}}" CACHE INTERNAL "")
-    endif()
-    unset(${_old_var} CACHE)
+foreach(_sundials_cache_var IN LISTS _sundials_deprecated_cache_vars)
+    unset(${_sundials_cache_var} CACHE)
 endforeach()
 
 option(${PROJECT_NAME}_ENABLE_IDA "Enable IDA for use in the computation" ON)
@@ -89,52 +113,60 @@ option(${PROJECT_NAME}_ENABLE_CVODE "Enable Cvode for use in the computation" ON
 option(${PROJECT_NAME}_ENABLE_ARKODE "Enable arkode for use in the computation" OFF)
 option(${PROJECT_NAME}_ENABLE_KINSOL "Enable kinsol for use in the computation" ON)
 
-set(BUILD_CVODES OFF CACHE INTERNAL "")
-set(BUILD_IDAS OFF CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_CVODES OFF CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_IDAS OFF CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_IDA ${${PROJECT_NAME}_ENABLE_IDA} CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_KINSOL ${${PROJECT_NAME}_ENABLE_KINSOL} CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_CVODE ${${PROJECT_NAME}_ENABLE_CVODE} CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_ARKODE ${${PROJECT_NAME}_ENABLE_ARKODE} CACHE INTERNAL "")
 
-if(${PROJECT_NAME}_ENABLE_IDA)
-    set(BUILD_IDA ON CACHE INTERNAL "")
-else()
-    set(BUILD_IDA OFF CACHE INTERNAL "")
-endif()
-
-if(${PROJECT_NAME}_ENABLE_KINSOL)
-    set(BUILD_KINSOL ON CACHE INTERNAL "")
-else()
-    set(BUILD_KINSOL OFF CACHE INTERNAL "")
-endif()
-
-if(${PROJECT_NAME}_ENABLE_CVODE)
-    set(BUILD_CVODE ON CACHE INTERNAL "")
-else()
-    set(BUILD_CVODE OFF CACHE INTERNAL "")
-endif()
-
-if(${PROJECT_NAME}_ENABLE_ARKODE)
-    set(BUILD_ARKODE ON CACHE INTERNAL "")
-else()
-    set(BUILD_ARKODE OFF CACHE INTERNAL "")
-endif()
-
-set(EXAMPLES_ENABLE_C OFF CACHE INTERNAL "")
-set(EXAMPLES_ENABLE_CXX OFF CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_C_EXAMPLES OFF CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_CXX_EXAMPLES OFF CACHE INTERNAL "")
 set(EXAMPLES_INSTALL OFF CACHE INTERNAL "")
 set(SUNDIALS_INDEX_SIZE 32 CACHE INTERNAL "")
 set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
 set(BUILD_STATIC_LIBS ON CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_NVECTOR_MANYVECTOR ON CACHE INTERNAL "")
+set(SUNDIALS_ENABLE_SUNLINSOL_KLU ${${PROJECT_NAME}_ENABLE_KLU} CACHE INTERNAL "")
+set(SUNDIALS_TEST_ENABLE_DEV_TESTS OFF CACHE INTERNAL "")
+set(SUNDIALS_TEST_ENABLE_UNIT_TESTS OFF CACHE INTERNAL "")
+set(SUNDIALS_TEST_ENABLE_DIFF_OUTPUT OFF CACHE INTERNAL "")
+set(SUNDIALS_TEST_ANSWER_DIR "" CACHE INTERNAL "")
 
 if(${PROJECT_NAME}_ENABLE_OPENMP_SUNDIALS)
-    set(ENABLE_OPENMP ON CACHE INTERNAL "")
+    set(SUNDIALS_ENABLE_OPENMP ON CACHE INTERNAL "")
 endif()
 
 if(${PROJECT_NAME}_ENABLE_KLU)
-    set(ENABLE_KLU ON CACHE INTERNAL "")
-    set(KLU_WORKS ON CACHE INTERNAL "")
+    set(SUNDIALS_ENABLE_KLU ON CACHE INTERNAL "")
+    set(SUNDIALS_ENABLE_KLU_CHECKS ON CACHE INTERNAL "")
 else()
-    set(ENABLE_KLU OFF CACHE INTERNAL "")
+    set(SUNDIALS_ENABLE_KLU OFF CACHE INTERNAL "")
 endif()
 
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
+
+function(griddyn_prefix_sundials_folders directory_path)
+    get_property(_dir_targets DIRECTORY "${directory_path}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_dir_target IN LISTS _dir_targets)
+        get_target_property(_current_folder "${_dir_target}" FOLDER)
+        if(NOT _current_folder OR _current_folder STREQUAL "_current_folder-NOTFOUND")
+            set(_new_folder "sundials")
+        elseif(_current_folder MATCHES "^sundials($|/)")
+            set(_new_folder "${_current_folder}")
+        else()
+            set(_new_folder "sundials/${_current_folder}")
+        endif()
+        set_target_properties("${_dir_target}" PROPERTIES FOLDER "${_new_folder}")
+    endforeach()
+
+    get_property(_subdirs DIRECTORY "${directory_path}" PROPERTY SUBDIRECTORIES)
+    foreach(_subdir IN LISTS _subdirs)
+        griddyn_prefix_sundials_folders("${_subdir}")
+    endforeach()
+endfunction()
+
+griddyn_prefix_sundials_folders("${sundials_BINARY_DIR}")
 
 add_library(sundials_all INTERFACE)
 target_include_directories(
@@ -144,8 +176,8 @@ target_include_directories(
 add_library(SUNDIALS::SUNDIALS ALIAS sundials_all)
 
 set(SUNDIALS_LIBRARIES
-    sundials_generic_static
-    sundials_generic_obj_static
+    sundials_core_static
+    sundials_core_obj_static
     sundials_nvecserial_obj_static
     sundials_nvecserial_static
     sundials_nvecmanyvector_obj_static
@@ -198,27 +230,15 @@ if(${PROJECT_NAME}_ENABLE_ARKODE)
     list(APPEND SUNDIALS_LIBRARIES sundials_arkode_static)
 endif()
 
-set(_griddyn_sundials_targets sundials_all)
-foreach(_sd_target IN LISTS SUNDIALS_LIBRARIES)
-    if(TARGET ${_sd_target})
-        list(APPEND _griddyn_sundials_targets ${_sd_target})
-    endif()
-endforeach()
-
-list(REMOVE_DUPLICATES _griddyn_sundials_targets)
-if(_griddyn_sundials_targets)
-    set_target_properties(${_griddyn_sundials_targets} PROPERTIES FOLDER sundials)
-endif()
+set_target_properties(sundials_all PROPERTIES FOLDER sundials)
 
 target_link_libraries(sundials_all INTERFACE ${SUNDIALS_LIBRARIES})
 
 if(TARGET sundials_nvecopenmp_static)
-    set_target_properties(sundials_nvecopenmp_static PROPERTIES FOLDER sundials)
     target_link_libraries(sundials_all INTERFACE sundials_nvecopenmp_static)
 endif()
 
 if(TARGET sundials_sunlinsolklu_static)
-    set_target_properties(sundials_sunlinsolklu_static PROPERTIES FOLDER sundials)
     target_link_libraries(sundials_all INTERFACE sundials_sunlinsolklu_static)
 endif()
 

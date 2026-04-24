@@ -174,8 +174,6 @@ void kinsolInterface::initialize(coreTime /*t0*/)
                 m_sundialsInfoFile = fopen("kinsol.out", "w");
             }
         }
-        int retval = KINSetPrintLevel(solverMem, solverPrintLevel);
-        check_flag(&retval, "KINSetPrintLevel", 1);
     }
 
     int retval = KINSetUserData(solverMem, this);
@@ -238,9 +236,6 @@ void kinsolInterface::initialize(coreTime /*t0*/)
 
     retval = KINSetNumMaxIters(solverMem, max_iterations);  // residual calls
     check_flag(&retval, "KINSetNumMaxIters", 1);
-
-    retval = KINSetErrHandlerFn(solverMem, sundialsErrorHandlerFunc, this);
-    check_flag(&retval, "KINSetErrHandlerFn", 1);
 
     flags.set(initialized_flag);
 }

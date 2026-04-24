@@ -27,9 +27,9 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int cvodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
 
-int cvodeJac(realtype time,
+int cvodeJac(sunrealtype time,
              N_Vector state,
              N_Vector dstate_dt,
              SUNMatrix J,
@@ -38,7 +38,7 @@ int cvodeJac(realtype time,
              N_Vector tmp2,
              N_Vector tmp3);
 
-int cvodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_data);
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
 cvodeInterface::cvodeInterface(const std::string& objName): sundialsInterface(objName)
 {
@@ -186,7 +186,7 @@ void cvodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) const
     long nni = 0;
     int klast, kcur;
     long nst, nre, netf, ncfn, nge;
-    realtype tolsfac, hlast, hcur;
+    sunrealtype tolsfac, hlast, hcur;
 
     int retval = CVodeGetNumRhsEvals(solverMem, &nre);
     check_flag(&retval, "CVodeGetNumRhsEvals", 1);
@@ -239,8 +239,8 @@ void cvodeInterface::logErrorWeights(print_level logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
-    realtype* eldata = NVECTOR_DATA(use_omp, ele);
-    realtype* ewdata = NVECTOR_DATA(use_omp, eweight);
+    sunrealtype* eldata = NVECTOR_DATA(use_omp, ele);
+    sunrealtype* ewdata = NVECTOR_DATA(use_omp, eweight);
     int retval = CVodeGetErrWeights(solverMem, eweight);
     check_flag(&retval, "CVodeGetErrWeights", 1);
     retval = CVodeGetEstLocalErrors(solverMem, ele);
@@ -353,9 +353,6 @@ void cvodeInterface::initialize(coreTime time0)
     retval = CVodeSetMaxNonlinIters(solverMem, 20);
     check_flag(&retval, "CVodeSetMaxNonlinIters", 1);
 
-    retval = CVodeSetErrHandlerFn(solverMem, sundialsErrorHandlerFunc, this);
-    check_flag(&retval, "CVodeSetErrHandlerFn", 1);
-
     if (maxStep > 0.0) {
         retval = CVodeSetMaxStep(solverMem, maxStep);
         check_flag(&retval, "CVodeSetMaxStep", 1);
@@ -440,7 +437,7 @@ void cvodeInterface::loadMaskElements()
 }
 
 // CVode C Functions
-int cvodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
 {
     auto sd = reinterpret_cast<cvodeInterface*>(user_data);
     sd->funcCallCount++;
@@ -481,7 +478,7 @@ int cvodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data
     return ret;
 }
 
-int cvodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_data)
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data)
 {
     auto sd = reinterpret_cast<cvodeInterface*>(user_data);
     sd->m_gds->rootFindingFunction(
@@ -490,7 +487,7 @@ int cvodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_data
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int cvodeJac(realtype time,
+int cvodeJac(sunrealtype time,
              N_Vector state,
              N_Vector dstate_dt,
              SUNMatrix J,

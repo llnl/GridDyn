@@ -56,10 +56,14 @@ class idaInterface: public sundialsInterface {
 
     // declare friend some helper functions
     friend int
-        idaFunc(realtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data);
+        idaFunc(sunrealtype time,
+                N_Vector state,
+                N_Vector dstate_dt,
+                N_Vector resid,
+                void* user_data);
 
-    friend int idaJac(realtype time,
-                      realtype cj,
+    friend int idaJac(sunrealtype time,
+                      sunrealtype cj,
                       N_Vector state,
                       N_Vector dstate_dt,
                       N_Vector resid,
@@ -69,10 +73,10 @@ class idaInterface: public sundialsInterface {
                       N_Vector tmp2,
                       N_Vector tmp3);
 
-    friend int idaRootFunc(realtype time,
+    friend int idaRootFunc(sunrealtype time,
                            N_Vector state,
                            N_Vector dstate_dt,
-                           realtype* gout,
+                           sunrealtype* gout,
                            void* user_data);
 
   protected:

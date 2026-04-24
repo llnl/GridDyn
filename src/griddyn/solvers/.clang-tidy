@@ -1,6 +1,6 @@
 ---
 InheritParentConfig: true
-Checks: '
+Checks: >-
   -bugprone-branch-clone,
   -hicpp-vararg,
   -misc-const-correctness,
@@ -11,8 +11,7 @@ Checks: '
   -readability-isolate-declaration,
   -readability-qualified-auto,
   -readability-redundant-parentheses
-'
-WarningsAsErrors: '
+WarningsAsErrors: >-
   -bugprone-branch-clone,
   -cert-err33-c,
   -hicpp-vararg,
@@ -24,4 +23,3 @@ WarningsAsErrors: '
   -readability-isolate-declaration,
   -readability-qualified-auto,
   -readability-redundant-parentheses
-'

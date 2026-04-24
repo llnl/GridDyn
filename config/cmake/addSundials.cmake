@@ -40,10 +40,9 @@ else()
     )
 endif()
 
-# clang-tidy walks source directories for nested configuration files. The
-# SUNDIALS submodule ships a .clang-tidy that uses options unsupported by the
-# clang-tidy version in GridDyn CI, so hide it during configure in the same way
-# we already override the KLU helper module above.
+# clang-tidy walks source directories for nested configuration files. The SUNDIALS submodule ships a
+# .clang-tidy that uses options unsupported by the clang-tidy version in GridDyn CI, so hide it
+# during configure in the same way we already override the KLU helper module above.
 if(EXISTS "${sundials_clang_tidy}")
     if(NOT EXISTS "${sundials_clang_tidy_backup}")
         file(RENAME "${sundials_clang_tidy}" "${sundials_clang_tidy_backup}")

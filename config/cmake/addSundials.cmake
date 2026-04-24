@@ -24,6 +24,8 @@ endif()
 set(sundials_klu_module_dir "${sundials_SOURCE_DIR}/cmake/tpl")
 set(sundials_klu_module "${sundials_klu_module_dir}/SundialsKLU.cmake")
 set(sundials_klu_backup "${sundials_klu_module_dir}/SundialsKLUorig.cmake")
+set(sundials_clang_tidy "${sundials_SOURCE_DIR}/.clang-tidy")
+set(sundials_clang_tidy_backup "${sundials_SOURCE_DIR}/.clang-tidy.griddyn-orig")
 
 if(EXISTS "${sundials_klu_module}")
     if(NOT EXISTS "${sundials_klu_backup}")
@@ -36,6 +38,18 @@ else()
     message(WARNING "Unable to find SUNDIALS KLU module at ${sundials_klu_module}; "
                     "GridDyn will not override the bundled KLU detection logic."
     )
+endif()
+
+# clang-tidy walks source directories for nested configuration files. The
+# SUNDIALS submodule ships a .clang-tidy that uses options unsupported by the
+# clang-tidy version in GridDyn CI, so hide it during configure in the same way
+# we already override the KLU helper module above.
+if(EXISTS "${sundials_clang_tidy}")
+    if(NOT EXISTS "${sundials_clang_tidy_backup}")
+        file(RENAME "${sundials_clang_tidy}" "${sundials_clang_tidy_backup}")
+    endif()
+else()
+    message(STATUS "SUNDIALS local .clang-tidy already hidden at ${sundials_clang_tidy_backup}")
 endif()
 
 # Clear deprecated SUNDIALS cache keys from older build trees to avoid warning spam.

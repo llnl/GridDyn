@@ -69,7 +69,8 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
         // std::cout<<line<<'\n';
 
         temp1 = line.substr(31, 5);  // get the base power
-        base = gmlc::utilities::numConv<double>(std::string_view{line}.substr(31, 5));
+        base = gmlc::utilities::numConv<double>(
+            gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(31, 5)));
         parentObject->set("basepower", base);
         temp1 = line.substr(45, 27);
         gmlc::utilities::stringOps::trimString(temp1);
@@ -91,7 +92,8 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
                     if (temp1.length() < 4) {
                         continue;
                     }
-                    index = gmlc::utilities::numConv<index_t>(std::string_view{line}.substr(0, 4));
+                    index = gmlc::utilities::numConv<index_t>(
+                        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(0, 4)));
                     if (static_cast<size_t>(index) >= busList.size()) {
                         if (index < 100000000) {
                             busList.resize((2 * static_cast<size_t>(index)) + 1, nullptr);
@@ -195,7 +197,8 @@ static void
     // skip the load flow area and loss zone for now
     // get the localBaseVoltage
     temp = line.substr(76, 6);
-    double val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(76, 6));
+    double val = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(76, 6)));
     if (val > 0.0) {
         bus->set("basevoltage", val);
     } else if (!temp2.empty()) {
@@ -212,18 +215,21 @@ static void
     // voltage and angle common to all bus types
     // get the actual voltage
     temp = line.substr(27, 6);
-    val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(27, 6));
+    val = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(27, 6)));
     bus->set("voltage", val);
     // get the angle
     temp = line.substr(33, 7);
-    val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(33, 7));
+    val = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(33, 7)));
     bus->set("angle", val / 180 * kPI);
 
     // get the bus type
     temp = line.substr(24, 2);
     double realPower{0.0};
     double reactivePower{0.0};
-    const int code = gmlc::utilities::numConv<int>(std::string_view{line}.substr(24, 2));
+    const int code = gmlc::utilities::numConv<int>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(24, 2)));
     switch (code) {
         case 0:  // PQ
             bus->set("type", "pq");
@@ -232,23 +238,28 @@ static void
             bus->set("type", "pq");
             // get the Vmax and Vmin
             temp = line.substr(90, 7);
-            realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+            realPower = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));
             temp = line.substr(98, 7);
-            reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            reactivePower = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(98, 7)));
             bus->set("vmax", realPower);
             bus->set("vmin", reactivePower);
             // get the desired voltage
             temp = line.substr(27, 6);
-            val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(27, 6));
+            val = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(27, 6)));
             bus->set("voltage", val);
             break;
         case 2:  // pv bus
             bus->set("type", "pv");
             // get the Qmax and Qmin
             temp = line.substr(90, 7);
-            realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+            realPower = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));
             temp = line.substr(98, 7);
-            reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+            reactivePower = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(98, 7)));
             if (realPower > 0) {
                 bus->set("qmax", realPower / base);
             }
@@ -257,17 +268,20 @@ static void
             }
             // get the desired voltage
             temp = line.substr(84, 6);
-            val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(84, 6));
+            val = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(84, 6)));
             bus->set("vtarget", val);
             break;
         case 3:  // swing bus
             bus->set("type", "slk");
             // get the desired voltage
             temp = line.substr(84, 6);
-            val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(84, 6));
+            val = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(84, 6)));
             bus->set("vtarget", val);
             temp = line.substr(33, 7);
-            val = gmlc::utilities::numConv<double>(std::string_view{line}.substr(33, 7));
+            val = gmlc::utilities::numConv<double>(
+                gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(33, 7)));
             bus->set("atarget", val, deg);
             break;
         default:
@@ -275,17 +289,21 @@ static void
             break;
     }
     temp = line.substr(40, 9);
-    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(40, 9));
+    realPower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(40, 9)));
     temp = line.substr(49, 9);
-    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(49, 9));
+    reactivePower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(49, 9)));
 
     if ((realPower != 0) || (reactivePower != 0)) {
         load = new zipLoad(realPower / base, reactivePower / base);
         bus->add(load);
     }
     // get the shunt impedance
-    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(106, 8));
-    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(114, 8));
+    realPower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(106, 8)));
+    reactivePower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(114, 8)));
     if ((realPower != 0) || (reactivePower != 0)) {
         if (load == nullptr) {
             load = new zipLoad();
@@ -299,8 +317,10 @@ static void
         }
     }
     // get the generation
-    realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(58, 9));
-    reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(67, 8));
+    realPower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(58, 9)));
+    reactivePower = gmlc::utilities::numConv<double>(
+        gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(67, 8)));
 
     if ((realPower != 0) || (reactivePower != 0) || (code == 3)) {
         gen = new Generator();
@@ -309,9 +329,11 @@ static void
         gen->set("q", reactivePower / base);
         // get the Qmax and Qmin
         temp = line.substr(90, 7);
-        realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+        realPower = gmlc::utilities::numConv<double>(
+            gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));
         temp = line.substr(98, 7);
-        reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+        reactivePower = gmlc::utilities::numConv<double>(
+            gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(98, 7)));
         if (realPower != 0) {
             gen->set("qmax", realPower / base);
         }
@@ -320,9 +342,11 @@ static void
         }
     } else if (bus->getType() != gridBus::busType::PQ) {
         temp = line.substr(90, 7);
-        realPower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(90, 7));
+        realPower = gmlc::utilities::numConv<double>(
+            gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));
         temp = line.substr(98, 7);
-        reactivePower = gmlc::utilities::numConv<double>(std::string_view{line}.substr(98, 7));
+        reactivePower = gmlc::utilities::numConv<double>(
+            gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(98, 7)));
         if ((realPower != 0) || (reactivePower != 0)) {
             gen = new Generator();
             bus->add(gen);

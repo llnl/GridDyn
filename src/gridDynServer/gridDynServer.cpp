@@ -58,8 +58,8 @@ void gridDynServer::set(std::string_view param, int val)
                    normalizedParam.end(),
                    normalizedParam.begin(),
                    [](unsigned char character) {
-        return static_cast<char>(std::tolower(character));
-    });
+                       return static_cast<char>(std::tolower(character));
+                   });
     if (normalizedParam == "port") {
         port = val;
     } else if (normalizedParam == "ip_protocol") {

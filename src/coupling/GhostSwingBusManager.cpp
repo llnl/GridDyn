@@ -92,7 +92,7 @@ GhostSwingBusManager::~GhostSwingBusManager()
 }
 
 // for Transmission
-int GhostSwingBusManager::createGridlabDInstance(const std::string& arguments)
+int GhostSwingBusManager::createGridlabDInstance(std::string_view arguments)
 {
     assert(arguments.size() <=
            PATH_MAX * 4);  // there is a bug in Visual studio where the sizeof doesn't

@@ -12,6 +12,7 @@
 #include <future>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // limit violation definitions
@@ -68,7 +69,7 @@ enum class contingency_mode_t {
 
 class Contingency;
 /** convert a string to a contingency mode*/
-contingency_mode_t getContingencyMode(const std::string& mode);
+contingency_mode_t getContingencyMode(std::string_view mode);
 /** class defining some extra optional info used for building contingency lists */
 class extraContingencyInfo {
   public:

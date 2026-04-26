@@ -9,13 +9,14 @@
 #include "core/coreExceptions.h"
 #include "gmlc/utilities/stringConversion.h"
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 using gmlc::utilities::makeLowerCase;
 
 gridDynAction::gridDynAction(gd_action_t action) noexcept: command(action) {}
 
-gridDynAction::gridDynAction(const std::string& operation)
+gridDynAction::gridDynAction(std::string_view operation)
 {
     process(operation);
 }
@@ -31,11 +32,11 @@ void gridDynAction::reset()
     val_int2 = -1;
 }
 
-void gridDynAction::process(const std::string& operation)
+void gridDynAction::process(std::string_view operation)
 {
     /* (s) string,  (d) double,  (i) int, (X)* optional, (s|d|i), string or double or int*/
     auto ssep = gmlc::utilities::stringOps::splitline(
-        operation, " ", gmlc::utilities::stringOps::delimiter_compression::on);
+        std::string{operation}, " ", gmlc::utilities::stringOps::delimiter_compression::on);
     size_t sz = ssep.size();
     for (size_t kk = 0; kk < sz; ++kk) {
         if (ssep[kk][0] == '#')  // clear all the comments

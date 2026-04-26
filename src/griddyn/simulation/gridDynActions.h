@@ -8,9 +8,9 @@
 
 #include "../gridDynDefinitions.hpp"
 #include <string>
+#include <string_view>
 
 namespace griddyn {
-// TODO(phlpt): Use variant and string_view.
 
 /** @brief class to define action and parameters for GridDyn operations
  */
@@ -61,11 +61,11 @@ class gridDynAction {
     /*IMPLICIT*/ gridDynAction(gd_action_t action) noexcept;
     /** @brief constructor with action string
     @param[in] operation  a string containing the information for a specific action*/
-    /*IMPLICIT*/ gridDynAction(const std::string& operation);
+    /*IMPLICIT*/ gridDynAction(std::string_view operation);
 
     /** @brief fill an actions parameters based on a string
     @param[in] operation  a string containing the information for a specific action*/
-    void process(const std::string& operation);
+    void process(std::string_view operation);
 
     /** @brief reset the action to base state*/
     void reset();

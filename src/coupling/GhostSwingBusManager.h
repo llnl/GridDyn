@@ -16,6 +16,7 @@
 #include <complex>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -64,7 +65,7 @@ class GhostSwingBusManager {
      *
      * Returns taskId for the new instance.
      */
-    int createGridlabDInstance(const std::string& arguments);
+    int createGridlabDInstance(std::string_view arguments);
 
     /**
      * End the simulation.

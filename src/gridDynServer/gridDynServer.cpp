@@ -51,22 +51,26 @@ void gridDynServer::stop_server()
     }
 }
 
-void gridDynServer::set(std::string param, int val)
+void gridDynServer::set(std::string_view param, int val)
 {
-    std::transform(param.begin(), param.end(), param.begin(), [](unsigned char character) {
+    std::string normalizedParam{param};
+    std::transform(normalizedParam.begin(),
+                   normalizedParam.end(),
+                   normalizedParam.begin(),
+                   [](unsigned char character) {
         return static_cast<char>(std::tolower(character));
     });
-    if (param == "port") {
+    if (normalizedParam == "port") {
         port = val;
-    } else if (param == "ip_protocol") {
+    } else if (normalizedParam == "ip_protocol") {
         if ((val == 0) || (val == 1)) {
             ip_protocol = static_cast<ip_protocol_t>(val);
         } else {
             std::cout << "invalid ip protocol\n";
         }
-    } else if (param == "timebase") {
+    } else if (normalizedParam == "timebase") {
         timeBase = val;
-    } else if (param == "max_connections") {
+    } else if (normalizedParam == "max_connections") {
         max_connections = val;
     }
 }

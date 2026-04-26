@@ -14,6 +14,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -57,7 +58,7 @@ std::string Violation::to_string() const
     return violationString;
 }
 
-static const std::unordered_map<std::string, contingency_mode_t> contMap{
+static const std::unordered_map<std::string_view, contingency_mode_t> contMap{
     {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
     {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
     {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
@@ -79,7 +80,7 @@ static const std::unordered_map<std::string, contingency_mode_t> contMap{
     {"CUSTOM", contingency_mode_t::custom},
 };
 
-contingency_mode_t getContingencyMode(const std::string& mode)
+contingency_mode_t getContingencyMode(std::string_view mode)
 {
     auto rec = contMap.find(mode);
     return (rec != contMap.end()) ? rec->second : contingency_mode_t::unknown;

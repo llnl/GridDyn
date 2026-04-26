@@ -11,14 +11,15 @@
 #include <complex>
 #include <future>
 #include <string>
+#include <string_view>
 
 namespace griddyn::helicsLib {
 helics::Time gd2helicsTime(coreTime evntTime);
 
 coreTime helics2gdTime(helics::Time ftime);
 
-std::future<int> runBroker(const std::string& cmd_args);
-std::future<int> runPlayer(const std::string& cmd_args);
-std::future<int> runRecorder(const std::string& cmd_args);
+std::future<int> runBroker(std::string_view cmd_args);
+std::future<int> runPlayer(std::string_view cmd_args);
+std::future<int> runRecorder(std::string_view cmd_args);
 
 }  // namespace griddyn::helicsLib

@@ -12,6 +12,7 @@
 #include "griddyn/griddyn-config.h"  // Needed for ENABLE_OPENMP_SUNDIALS define
 #include "nvector/nvector_serial.h"
 #include <sundials/sundials_context.h>
+#include <sundials/sundials_errors.h>
 
 #ifdef GRIDDYN_ENABLE_OPENMP_SUNDIALS
 #    include "nvector/nvector_openmp.h"
@@ -34,8 +35,8 @@
 #include <sundials/sundials_types.h>
 #include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix */
 
-#define ONE RCONST(1.0)
-#define ZERO RCONST(0.0)
+#define ONE SUN_RCONST(1.0)
+#define ZERO SUN_RCONST(0.0)
 
 #define MEASURE_TIMINGS 0
 
@@ -45,11 +46,13 @@ inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
     return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;
 }
 
-void sundialsErrorHandlerFunc(int error_code,
-                              const char* module,
+void sundialsErrorHandlerFunc(int line,
                               const char* function,
-                              char* msg,
-                              void* user_data);
+                              const char* file,
+                              const char* msg,
+                              SUNErrCode error_code,
+                              void* user_data,
+                              SUNContext sunctx);
 
 #ifdef GRIDDYN_ENABLE_KLU
 /** @brief check if the matrix is setup already
@@ -113,8 +116,8 @@ class sundialsInterface: public SolverInterface {
 */
     void* getSolverMem() const { return solverMem; }
 
-    friend int sundialsJac(realtype time,
-                           realtype cj,
+    friend int sundialsJac(sunrealtype time,
+                           sunrealtype cj,
                            N_Vector state,
                            N_Vector dstate_dt,
                            SUNMatrix J,
@@ -124,10 +127,11 @@ class sundialsInterface: public SolverInterface {
 
   protected:
     void KLUReInit(sparse_reinit_modes sparseReInitMode);
+    void registerErrorHandler();
 };
 
-int sundialsJac(realtype time,
-                realtype cj,
+int sundialsJac(sunrealtype time,
+                sunrealtype cj,
                 N_Vector state,
                 N_Vector dstate_dt,
                 SUNMatrix J,

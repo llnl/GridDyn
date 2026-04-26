@@ -27,8 +27,8 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int arkodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
-int arkodeJac(realtype time,
+int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+int arkodeJac(sunrealtype time,
               N_Vector state,
               N_Vector dstate_dt,
               SUNMatrix J,
@@ -37,7 +37,7 @@ int arkodeJac(realtype time,
               N_Vector tmp2,
               N_Vector tmp3);
 
-int arkodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_data);
+int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
 arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(objName)
 {
@@ -186,7 +186,7 @@ void arkodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     }
     int nni = 0;
     int nst, nre, nfi, netf, ncfn, nge;
-    realtype tolsfac, hlast, hcur;
+    sunrealtype tolsfac, hlast, hcur;
 
     int retval = ARKodeGetNumRhsEvals(solverMem, &nre, &nfi);
     check_flag(&retval, "ARKodeGetNumResEvals", 1);
@@ -234,8 +234,8 @@ void arkodeInterface::logErrorWeights(print_level logLevel) const
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
 
-    realtype* eldata = NVECTOR_DATA(use_omp, ele);
-    realtype* ewdata = NVECTOR_DATA(use_omp, eweight);
+    sunrealtype* eldata = NVECTOR_DATA(use_omp, ele);
+    sunrealtype* ewdata = NVECTOR_DATA(use_omp, eweight);
     int retval = ARKodeGetErrWeights(solverMem, eweight);
     check_flag(&retval, "ARKodeGetErrWeights", 1);
     retval = ARKodeGetEstLocalErrors(solverMem, ele);
@@ -349,9 +349,6 @@ void arkodeInterface::initialize(coreTime time0)
     retval = ARKodeSetMaxNonlinIters(solverMem, 20);
     check_flag(&retval, "ARKodeSetMaxNonlinIters", 1);
 
-    retval = ARKodeSetErrHandlerFn(solverMem, sundialsErrorHandlerFunc, this);
-    check_flag(&retval, "ARKodeSetErrHandlerFn", 1);
-
     if (maxStep > 0.0) {
         retval = ARKodeSetMaxStep(solverMem, maxStep);
         check_flag(&retval, "ARKodeSetMaxStep", 1);
@@ -434,7 +431,7 @@ void arkodeInterface::loadMaskElements()
 }
 
 // CVode C Functions
-int arkodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
+int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
 {
     auto sd = reinterpret_cast<arkodeInterface*>(user_data);
     sd->funcCallCount++;
@@ -474,7 +471,7 @@ int arkodeFunc(realtype time, N_Vector state, N_Vector dstate_dt, void* user_dat
     return ret;
 }
 
-int arkodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_data)
+int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data)
 {
     auto sd = reinterpret_cast<arkodeInterface*>(user_data);
     sd->m_gds->rootFindingFunction(
@@ -483,7 +480,7 @@ int arkodeRootFunc(realtype time, N_Vector state, realtype* gout, void* user_dat
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int arkodeJac(realtype time,
+int arkodeJac(sunrealtype time,
               N_Vector state,
               N_Vector dstate_dt,
               SUNMatrix J,

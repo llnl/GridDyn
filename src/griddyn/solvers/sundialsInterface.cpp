@@ -36,31 +36,38 @@
 #include <string>
 
 namespace griddyn::solvers {
-static childClassFactory<kinsolInterface, SolverInterface>
-    kinFactory(stringVec{"kinsol", "algebraic"});
-static childClassFactory<idaInterface, SolverInterface>
-    idaFactory(stringVec{"ida", "dae", "dynamic"});
+static void ensureSundialsFactories()
+{
+    static childClassFactory<kinsolInterface, SolverInterface> kinFactory(
+        stringVec{"kinsol", "algebraic"});
+    static childClassFactory<idaInterface, SolverInterface> idaFactory(
+        stringVec{"ida", "dae", "dynamic"});
 #ifdef GRIDDYN_ENABLE_CVODE
-static childClassFactory<cvodeInterface, SolverInterface>
-    cvodeFactory(stringVec{"cvode", "dyndiff", "differential"});
+    static childClassFactory<cvodeInterface, SolverInterface> cvodeFactory(
+        stringVec{"cvode", "dyndiff", "differential"});
 #endif
 
 #ifdef GRIDDYN_ENABLE_ARKODE
-static childClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
+    static childClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
 #endif
+}
 
 sundialsInterface::sundialsInterface(const std::string& objName): SolverInterface(objName)
 {
+    ensureSundialsFactories();
     tolerance = 1e-8;
-    int retval = SUNContext_Create(nullptr, &sunctx);
+    int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
     check_flag(&retval, "SUNContext_Create", 1);
+    registerErrorHandler();
 }
 sundialsInterface::sundialsInterface(gridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
+    ensureSundialsFactories();
     tolerance = 1e-8;
-    int retval = SUNContext_Create(nullptr, &sunctx);
+    int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
     check_flag(&retval, "SUNContext_Create", 1);
+    registerErrorHandler();
 }
 
 sundialsInterface::~sundialsInterface()
@@ -86,7 +93,7 @@ sundialsInterface::~sundialsInterface()
     }
     if (flags[initialized_flag]) {
         if (m_sundialsInfoFile != nullptr) {
-            fclose(m_sundialsInfoFile);
+            static_cast<void>(fclose(m_sundialsInfoFile));
         }
         if (LS != nullptr) {
             SUNLinSolFree(LS);
@@ -228,6 +235,15 @@ double sundialsInterface::get(std::string_view param) const
     return SolverInterface::get(param);
 }
 
+void sundialsInterface::registerErrorHandler()
+{
+    if (sunctx == nullptr) {
+        return;
+    }
+    int retval = SUNContext_PushErrHandler(sunctx, sundialsErrorHandlerFunc, this);
+    check_flag(&retval, "SUNContext_PushErrHandler", 1);
+}
+
 void sundialsInterface::KLUReInit(sparse_reinit_modes sparseReInitModes)
 {
 #ifdef GRIDDYN_ENABLE_KLU
@@ -329,18 +345,21 @@ void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize)
 }
 
 // Error handling function for Sundials
-void sundialsErrorHandlerFunc(int error_code,
-                              const char* module,
+void sundialsErrorHandlerFunc(int line,
                               const char* function,
-                              char* msg,
-                              void* user_data)
+                              const char* file,
+                              const char* msg,
+                              SUNErrCode error_code,
+                              void* user_data,
+                              SUNContext /*sunctx*/)
 {
     if (error_code == 0) {
         return;
     }
     auto sd = reinterpret_cast<SolverInterface*>(user_data);
-    std::string message = "SUNDIALS ERROR(" + std::to_string(error_code) + ") in Module (" +
-        std::string(module) + ") function " + std::string(function) + "::" + std::string(msg);
+    std::string message = "SUNDIALS ERROR(" + std::to_string(error_code) + ") in " +
+        std::string(function) + " [" + std::string(file) + ':' + std::to_string(line) +
+        "]::" + std::string(msg);
     sd->logMessage(error_code, message);
 }
 
@@ -357,8 +376,8 @@ bool MatrixNeedsSetup(count_t callCount, SUNMatrix J)
 }
 #define CHECK_JACOBIAN 0
 
-int sundialsJac(realtype time,
-                realtype cj,
+int sundialsJac(sunrealtype time,
+                sunrealtype cj,
                 N_Vector state,
                 N_Vector dstate_dt,
                 SUNMatrix J,

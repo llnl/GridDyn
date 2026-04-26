@@ -19,30 +19,21 @@
 using boost::asio::ip::tcp;
 using boost::asio::ip::udp;
 
-gridDynServer::gridDynServer()
+gridDynServer::gridDynServer():
+    port(4612), ip_protocol(udp), timeBase(1000000), vid(0), current_connections(0),
+    max_connections(0), intervalError(0.0), udpsock(nullptr), tcpacc(nullptr)
 {
-    port = 4612;  // typical port number
-    ip_protocol = udp;  // use udp protocol as default
-    timeBase = 1000000;
-    intervalError = 0.0;
-    tcpacc = NULL;
-    udpsock = NULL;
 }
 
 gridDynServer::~gridDynServer()
 {
-    if (udpsock != NULL) {
-        delete udpsock;
-    }
-    unsigned int kk;
-    for (kk = 0; kk < active_tcp_sessions.size(); kk++) {
-        if (active_tcp_sessions[kk] != NULL) {
-            delete active_tcp_sessions[kk];
+    delete udpsock;
+    for (size_t sessionIndex = 0; sessionIndex < active_tcp_sessions.size(); ++sessionIndex) {
+        if (active_tcp_sessions[sessionIndex] != nullptr) {
+            delete active_tcp_sessions[sessionIndex];
         }
     }
-    if (tcpacc != NULL) {
-        delete tcpacc;
-    }
+    delete tcpacc;
 }
 void gridDynServer::stop_server()
 {
@@ -50,10 +41,9 @@ void gridDynServer::stop_server()
         udpsock->socket_.close();
     } else if (ip_protocol == tcp) {
         tcpacc->acceptor_.close();
-        unsigned int kk;
-        for (kk = 0; kk < active_tcp_sessions.size(); kk++) {
-            if (active_tcp_sessions[kk] != NULL) {
-                active_tcp_sessions[kk]->socket_.close();
+        for (size_t sessionIndex = 0; sessionIndex < active_tcp_sessions.size(); ++sessionIndex) {
+            if (active_tcp_sessions[sessionIndex] != nullptr) {
+                active_tcp_sessions[sessionIndex]->socket_.close();
             }
         }
         // sleep for a little while to make sure everything is shutdown
@@ -63,25 +53,25 @@ void gridDynServer::stop_server()
 
 void gridDynServer::set(std::string param, int val)
 {
-    std::transform(param.begin(), param.end(), param.begin(), [](unsigned char ch) {
-        return static_cast<char>(std::tolower(ch));
+    std::transform(param.begin(), param.end(), param.begin(), [](unsigned char character) {
+        return static_cast<char>(std::tolower(character));
     });
-    if (param.compare("port") == 0) {
+    if (param == "port") {
         port = val;
-    } else if (param.compare("ip_protocol") == 0) {
-        if ((val == 0) | (val == 1)) {
-            ip_protocol = (ip_protocol_t)val;
+    } else if (param == "ip_protocol") {
+        if ((val == 0) || (val == 1)) {
+            ip_protocol = static_cast<ip_protocol_t>(val);
         } else {
             std::cout << "invalid ip protocol\n";
         }
-    } else if (param.compare("timeBase") == 0) {
+    } else if (param == "timebase") {
         timeBase = val;
-    } else if (param.compare("max_connections") == 0) {
+    } else if (param == "max_connections") {
         max_connections = val;
     }
 }
 
-void gridDynServer::start_server(boost::asio::io_service& ios)
+void gridDynServer::start_server(boost::asio::io_context& ios)
 {
     initialize();
 
@@ -109,7 +99,7 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
         local_endpoint_tcp = tcp::endpoint(tcp::v4(), port);
         tcpacc = new pmu_tcp_acc(ios, local_endpoint_tcp);
 
-        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_service_);
+        auto* sess = new pmu_tcp_session(tcpacc->io_context_);
         // start to accept connections on this socket
         session_lock.lock();
         sess->index = active_tcp_sessions.size();
@@ -192,7 +182,6 @@ void gridDynServer::start_server(boost::asio::io_service& ios)
 
 void gridDynServer::send_data()
 {
-    unsigned int kk;
     auto cTime = std::chrono::system_clock::now();
     auto sTime = std::chrono::milliseconds(0);
     constexpr auto maxSleepTime = std::chrono::seconds(1);
@@ -200,7 +189,7 @@ void gridDynServer::send_data()
     bool skipped_some = false;
     bool data_sent = false;
     double accumError = 0.0;
-    while (1) {
+    while (true) {
         cTime = std::chrono::system_clock::now();
 
         while (sTime > std::chrono::milliseconds(0)) {
@@ -226,32 +215,33 @@ void gridDynServer::send_data()
             skipped_some = false;
             data_sent = false;
             session_lock.lock();
-            for (kk = 0; kk < active_tcp_sessions.size(); kk++) {
-                if (active_tcp_sessions[kk] == NULL) {
+            for (size_t sessionIndex = 0; sessionIndex < active_tcp_sessions.size();
+                 ++sessionIndex) {
+                if (active_tcp_sessions[sessionIndex] == nullptr) {
                     continue;
                 }
-                if (active_tcp_sessions[kk]->cstate != pmu_tcp_session::sending) {
+                if (active_tcp_sessions[sessionIndex]->cstate != pmu_tcp_session::sending) {
                     continue;
                 }
-                if (active_tcp_sessions[kk]->send_lock.try_lock()) {
-                    active_tcp_sessions[kk]->socket_.async_send(
+                if (active_tcp_sessions[sessionIndex]->send_lock.try_lock()) {
+                    active_tcp_sessions[sessionIndex]->socket_.async_send(
                         boost::asio::buffer(dataFrame),
-                        [session = active_tcp_sessions[kk]](const boost::system::error_code& error,
-                                                            std::size_t size) {
+                        [session = active_tcp_sessions[sessionIndex]](
+                            const boost::system::error_code& error, std::size_t size) {
                             session->data_sent(error, size);
                         });
                 } else {
                     skipped_some = true;
-                    skipped.push_back(kk);
+                    skipped.push_back(static_cast<int>(sessionIndex));
                 }
                 data_sent = true;
             }
             if (skipped_some) {
-                for (kk = 0; kk < skipped.size(); kk++) {
-                    if (active_tcp_sessions[skipped[kk]]->send_lock.try_lock()) {
-                        active_tcp_sessions[skipped[kk]]->socket_.async_send(
+                for (size_t skipIndex = 0; skipIndex < skipped.size(); ++skipIndex) {
+                    if (active_tcp_sessions[skipped[skipIndex]]->send_lock.try_lock()) {
+                        active_tcp_sessions[skipped[skipIndex]]->socket_.async_send(
                             boost::asio::buffer(dataFrame),
-                            [session = active_tcp_sessions[skipped[kk]]](
+                            [session = active_tcp_sessions[skipped[skipIndex]]](
                                 const boost::system::error_code& error, std::size_t size) {
                                 session->data_sent(error, size);
                             });
@@ -260,7 +250,7 @@ void gridDynServer::send_data()
                 skipped.resize(0);
             }
             session_lock.unlock();
-            if (data_sent == false)  // nobody to send data to
+            if (!data_sent)  // nobody to send data to
             {
                 break;
             }
@@ -271,30 +261,19 @@ void gridDynServer::send_data()
             accumError -= 1.0;
         }
     }
-    return;
-
 } /* end of function udp_send_data() */
 
-void gridDynServer::pmu_udp(const boost::system::error_code& error, std::size_t size)
+void gridDynServer::pmu_udp(const boost::system::error_code& error, std::size_t /*size*/)
 {
-    unsigned char c;
-    int id_pdc;
-
     if (error) {
         if (error.value() == 995) {
             return;
-        } else {
-            std::cout << "READ ERROR: ";
-            std::cout << boost::system::system_error(error).what();
-            std::cout << '\n';
-
-            return;
         }
+        std::cout << "READ ERROR: ";
+        std::cout << boost::system::system_error(error).what();
+        std::cout << '\n';
+        return;
     }
-
-    c = recv_buffer_[1];
-    c <<= 1;  // get rid of the undefined bit
-    c >>= 5;  // get rid of the version number
 
     udpsock->socket_.async_receive_from(boost::asio::buffer(recv_buffer_),
                                         remote_endpoint_udp,
@@ -309,7 +288,7 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
 {
     /* std::cout << "RServer::startAccept()" << '\n';
         Connection::Pointer newConn =
-            Connection::create(acceptor.io_service());*/
+            Connection::create(acceptor.get_executor().context());*/
     if (!error) {
         // set up to read commands
         active_session->cstate = pmu_tcp_session::waiting;
@@ -319,7 +298,7 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
                 pmu_tcp(active_session, readError, size);
             });
         // reset to accept connections on a new socket
-        pmu_tcp_session* sess = new pmu_tcp_session(tcpacc->io_service_);
+        auto* sess = new pmu_tcp_session(tcpacc->io_context_);
         session_lock.lock();
         sess->index = active_tcp_sessions.size();
         active_tcp_sessions.push_back(sess);
@@ -331,7 +310,7 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
 
     } else {
         session_lock.lock();
-        active_tcp_sessions[active_session->index] = NULL;
+        active_tcp_sessions[active_session->index] = nullptr;
         session_lock.unlock();
         delete active_session;
     }
@@ -339,31 +318,29 @@ void gridDynServer::tcp_accept(pmu_tcp_session* active_session,
 
 void gridDynServer::pmu_tcp(pmu_tcp_session* active_session,
                             const boost::system::error_code& error,
-                            std::size_t size)
+                            std::size_t /*size*/)
 {
-    unsigned char c;
-    int id_pdc = 0;
+    unsigned int commandByte = active_session->recv_buffer_[1];
+    const int id_pdc = 0;
     if (error) {
         active_session->cstate = pmu_tcp_session::halted;
         session_lock.lock();
-        active_tcp_sessions[active_session->index] = NULL;
+        active_tcp_sessions[active_session->index] = nullptr;
         session_lock.unlock();
         active_session->send_lock.lock();
         delete active_session;
         return;
     }
 
-    c = active_session->recv_buffer_[1];
-    c <<= 1;  // get rid of the undefined bit
-    c >>= 5;  // get rid of the version number
+    commandByte <<= 1U;  // get rid of the undefined bit
+    commandByte >>= 5U;  // get rid of the version number
 
-    if (c == 0x04) /* Check if it is a command frame from PDC */
+    if (commandByte == 0x04U) /* Check if it is a command frame from PDC */
     {
         if (id_pdc == vid) /* Check if it is coming from authentic PDC/iPDC */
         {
-            c = active_session->recv_buffer_[15];
-            c = c & 0x0F;
-            switch (c) {
+            commandByte = static_cast<unsigned int>(active_session->recv_buffer_[15]) & 0x0FU;
+            switch (commandByte) {
                 case 0x01: /* turn off data transmission*/
                     active_session->cstate = pmu_tcp_session::waiting;
                     break;
@@ -404,6 +381,8 @@ void gridDynServer::pmu_tcp(pmu_tcp_session* active_session,
                         });
                     break;
                 case 0x08: /*extended frame configuration*/
+                    break;
+                default:
                     break;
             }
         }

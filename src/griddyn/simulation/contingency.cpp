@@ -19,71 +19,53 @@
 
 namespace griddyn {
 namespace {
-using ViolationMapEntry = std::pair<int, std::string_view>;
-constexpr std::array<ViolationMapEntry, 11> kViolationMap{{
-    {NO_VIOLATION, "no violation"},
-    {VOLTAGE_OVER_LIMIT_VIOLATION, "voltage over limit"},
-    {VOLTAGE_UNDER_LIMIT_VIOLATION, "voltage under limit"},
-    {MVA_EXCEED_RATING_A, "MVA over limitA"},
-    {MVA_EXCEED_RATING_B, "MVA over limitB"},
-    {MVA_EXCEED_ERATING, "MVA over emergency limit"},
-    {MINIMUM_ANGLE_EXCEEDED, "min angle exceeded"},
-    {MAXIMUM_ANGLE_EXCEEDED, "max angle exceeded"},
-    {MINIMUM_CURRENT_EXCEEDED, "current below low limit"},
-    {MAXIMUM_CURRENT_EXCEEDED, "current max exceeded"},
-    {CONVERGENCE_FAILURE, "solver failed to converge"},
-}};
+    using ViolationMapEntry = std::pair<int, std::string_view>;
+    constexpr std::array<ViolationMapEntry, 11> kViolationMap{{
+        {NO_VIOLATION, "no violation"},
+        {VOLTAGE_OVER_LIMIT_VIOLATION, "voltage over limit"},
+        {VOLTAGE_UNDER_LIMIT_VIOLATION, "voltage under limit"},
+        {MVA_EXCEED_RATING_A, "MVA over limitA"},
+        {MVA_EXCEED_RATING_B, "MVA over limitB"},
+        {MVA_EXCEED_ERATING, "MVA over emergency limit"},
+        {MINIMUM_ANGLE_EXCEEDED, "min angle exceeded"},
+        {MAXIMUM_ANGLE_EXCEEDED, "max angle exceeded"},
+        {MINIMUM_CURRENT_EXCEEDED, "current below low limit"},
+        {MAXIMUM_CURRENT_EXCEEDED, "current max exceeded"},
+        {CONVERGENCE_FAILURE, "solver failed to converge"},
+    }};
 
-std::string_view getViolationText(int code) noexcept
-{
-    for (const auto& entry : kViolationMap) {
-        if (entry.first == code) {
-            return entry.second;
+    std::string_view getViolationText(int code) noexcept
+    {
+        for (const auto& entry : kViolationMap) {
+            if (entry.first == code) {
+                return entry.second;
+            }
         }
+        return {};
     }
-    return {};
-}
 
-using ContingencyModeEntry = std::pair<std::string_view, contingency_mode_t>;
-constexpr std::array<ContingencyModeEntry, 37> kContingencyModeMap{{
-    {"n-1", contingency_mode_t::N_1},
-    {"N-1", contingency_mode_t::N_1},
-    {"n_1", contingency_mode_t::N_1},
-    {"N_1", contingency_mode_t::N_1},
-    {"n-1-1", contingency_mode_t::N_1_1},
-    {"N-1-1", contingency_mode_t::N_1_1},
-    {"n_1_1", contingency_mode_t::N_1_1},
-    {"N_1_1", contingency_mode_t::N_1_1},
-    {"n-2", contingency_mode_t::N_2},
-    {"N-2", contingency_mode_t::N_2},
-    {"n_2", contingency_mode_t::N_2},
-    {"N_2", contingency_mode_t::N_2},
-    {"n-2-line", contingency_mode_t::N_2_LINE},
-    {"N-2-LINE", contingency_mode_t::N_2_LINE},
-    {"n_2_line", contingency_mode_t::N_2_LINE},
-    {"N_2_LINE", contingency_mode_t::N_2_LINE},
-    {"N_2_Line", contingency_mode_t::N_2_LINE},
-    {"n-3-line", contingency_mode_t::N_3_LINE},
-    {"N-3-LINE", contingency_mode_t::N_3_LINE},
-    {"n_3_line", contingency_mode_t::N_3_LINE},
-    {"N_3_LINE", contingency_mode_t::N_3_LINE},
-    {"N_3_Line", contingency_mode_t::N_3_LINE},
-    {"line", contingency_mode_t::line},
-    {"Line", contingency_mode_t::line},
-    {"LINE", contingency_mode_t::line},
-    {"gen", contingency_mode_t::gen},
-    {"Gen", contingency_mode_t::gen},
-    {"GEN", contingency_mode_t::gen},
-    {"bus", contingency_mode_t::bus},
-    {"Bus", contingency_mode_t::bus},
-    {"BUS", contingency_mode_t::bus},
-    {"load", contingency_mode_t::load},
-    {"Load", contingency_mode_t::load},
-    {"LOAD", contingency_mode_t::load},
-    {"custom", contingency_mode_t::custom},
-    {"Custom", contingency_mode_t::custom},
-    {"CUSTOM", contingency_mode_t::custom},
-}};
+    using ContingencyModeEntry = std::pair<std::string_view, contingency_mode_t>;
+    constexpr std::array<ContingencyModeEntry, 37> kContingencyModeMap{{
+        {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
+        {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
+        {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
+        {"n_1_1", contingency_mode_t::N_1_1},       {"N_1_1", contingency_mode_t::N_1_1},
+        {"n-2", contingency_mode_t::N_2},           {"N-2", contingency_mode_t::N_2},
+        {"n_2", contingency_mode_t::N_2},           {"N_2", contingency_mode_t::N_2},
+        {"n-2-line", contingency_mode_t::N_2_LINE}, {"N-2-LINE", contingency_mode_t::N_2_LINE},
+        {"n_2_line", contingency_mode_t::N_2_LINE}, {"N_2_LINE", contingency_mode_t::N_2_LINE},
+        {"N_2_Line", contingency_mode_t::N_2_LINE}, {"n-3-line", contingency_mode_t::N_3_LINE},
+        {"N-3-LINE", contingency_mode_t::N_3_LINE}, {"n_3_line", contingency_mode_t::N_3_LINE},
+        {"N_3_LINE", contingency_mode_t::N_3_LINE}, {"N_3_Line", contingency_mode_t::N_3_LINE},
+        {"line", contingency_mode_t::line},         {"Line", contingency_mode_t::line},
+        {"LINE", contingency_mode_t::line},         {"gen", contingency_mode_t::gen},
+        {"Gen", contingency_mode_t::gen},           {"GEN", contingency_mode_t::gen},
+        {"bus", contingency_mode_t::bus},           {"Bus", contingency_mode_t::bus},
+        {"BUS", contingency_mode_t::bus},           {"load", contingency_mode_t::load},
+        {"Load", contingency_mode_t::load},         {"LOAD", contingency_mode_t::load},
+        {"custom", contingency_mode_t::custom},     {"Custom", contingency_mode_t::custom},
+        {"CUSTOM", contingency_mode_t::custom},
+    }};
 }  // namespace
 
 /*std::string m_objectName;        //the  name of the object with the violation
@@ -390,8 +372,8 @@ void Contingency::updateObject(coreObject* newObj, object_update_mode mode)
     }
 }
 
-std::shared_ptr<Contingency> Contingency::clone(
-    const std::shared_ptr<Contingency>& existingContingency) const
+std::shared_ptr<Contingency>
+    Contingency::clone(const std::shared_ptr<Contingency>& existingContingency) const
 {
     auto newContingency = existingContingency;
     if (!newContingency) {

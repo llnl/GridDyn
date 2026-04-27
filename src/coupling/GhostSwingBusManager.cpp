@@ -135,8 +135,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 {
     // populate message structure
     if (g_printStuff) {
-        std::cout << "taskId: " << taskId << " voltage[0]: "
-                  << '\n'
+        std::cout << "taskId: " << taskId << " voltage[0]: " << '\n'
                   << "** LEB: vector size = " << voltage.size() << '\n';
     }
 

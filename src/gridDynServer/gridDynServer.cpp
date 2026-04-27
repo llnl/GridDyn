@@ -5,8 +5,8 @@
  */
 
 #include "gridDynServer.h"
-#include "gmlc/utilities/stringOps.h"
 
+#include "gmlc/utilities/stringOps.h"
 #include <chrono>
 #include <cstdint>
 #include <cstdio>

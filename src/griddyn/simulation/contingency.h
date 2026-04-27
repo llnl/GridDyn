@@ -182,8 +182,8 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     void updateObject(coreObject* newObj,
                       object_update_mode mode = object_update_mode::match) override;
 
-    std::shared_ptr<Contingency> clone(
-        const std::shared_ptr<Contingency>& existingContingency = nullptr) const;
+    std::shared_ptr<Contingency>
+        clone(const std::shared_ptr<Contingency>& existingContingency = nullptr) const;
 };
 // Contingency execution functions
 /** @brief build a list of contingencies

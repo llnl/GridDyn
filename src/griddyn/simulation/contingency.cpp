@@ -10,27 +10,63 @@
 #include "../gridDynSimulation.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
-#include <map>
+#include <array>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <unordered_map>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
-static const std::map<int, std::string> violation_map{
-    {NO_VIOLATION, "no violation"},
-    {VOLTAGE_OVER_LIMIT_VIOLATION, "voltage over limit"},
-    {VOLTAGE_UNDER_LIMIT_VIOLATION, "voltage under limit"},
-    {MVA_EXCEED_RATING_A, "MVA over limitA"},
-    {MVA_EXCEED_RATING_B, "MVA over limitB"},
-    {MVA_EXCEED_ERATING, "MVA over emergency limit"},
+namespace {
+    using ViolationMapEntry = std::pair<int, std::string_view>;
+    constexpr std::array<ViolationMapEntry, 11> kViolationMap{{
+        {NO_VIOLATION, "no violation"},
+        {VOLTAGE_OVER_LIMIT_VIOLATION, "voltage over limit"},
+        {VOLTAGE_UNDER_LIMIT_VIOLATION, "voltage under limit"},
+        {MVA_EXCEED_RATING_A, "MVA over limitA"},
+        {MVA_EXCEED_RATING_B, "MVA over limitB"},
+        {MVA_EXCEED_ERATING, "MVA over emergency limit"},
+        {MINIMUM_ANGLE_EXCEEDED, "min angle exceeded"},
+        {MAXIMUM_ANGLE_EXCEEDED, "max angle exceeded"},
+        {MINIMUM_CURRENT_EXCEEDED, "current below low limit"},
+        {MAXIMUM_CURRENT_EXCEEDED, "current max exceeded"},
+        {CONVERGENCE_FAILURE, "solver failed to converge"},
+    }};
 
-    {MINIMUM_ANGLE_EXCEEDED, "min angle exceeded"},
-    {MAXIMUM_ANGLE_EXCEEDED, "max angle exceeded"},
-    {MINIMUM_CURRENT_EXCEEDED, "current below low limit"},
-    {MAXIMUM_CURRENT_EXCEEDED, "current max exceeded"},
-    {CONVERGENCE_FAILURE, "solver failed to converge"}};
+    std::string_view getViolationText(int code) noexcept
+    {
+        for (const auto& entry : kViolationMap) {
+            if (entry.first == code) {
+                return entry.second;
+            }
+        }
+        return {};
+    }
+
+    using ContingencyModeEntry = std::pair<std::string_view, contingency_mode_t>;
+    constexpr std::array<ContingencyModeEntry, 37> kContingencyModeMap{{
+        {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
+        {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
+        {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
+        {"n_1_1", contingency_mode_t::N_1_1},       {"N_1_1", contingency_mode_t::N_1_1},
+        {"n-2", contingency_mode_t::N_2},           {"N-2", contingency_mode_t::N_2},
+        {"n_2", contingency_mode_t::N_2},           {"N_2", contingency_mode_t::N_2},
+        {"n-2-line", contingency_mode_t::N_2_LINE}, {"N-2-LINE", contingency_mode_t::N_2_LINE},
+        {"n_2_line", contingency_mode_t::N_2_LINE}, {"N_2_LINE", contingency_mode_t::N_2_LINE},
+        {"N_2_Line", contingency_mode_t::N_2_LINE}, {"n-3-line", contingency_mode_t::N_3_LINE},
+        {"N-3-LINE", contingency_mode_t::N_3_LINE}, {"n_3_line", contingency_mode_t::N_3_LINE},
+        {"N_3_LINE", contingency_mode_t::N_3_LINE}, {"N_3_Line", contingency_mode_t::N_3_LINE},
+        {"line", contingency_mode_t::line},         {"Line", contingency_mode_t::line},
+        {"LINE", contingency_mode_t::line},         {"gen", contingency_mode_t::gen},
+        {"Gen", contingency_mode_t::gen},           {"GEN", contingency_mode_t::gen},
+        {"bus", contingency_mode_t::bus},           {"Bus", contingency_mode_t::bus},
+        {"BUS", contingency_mode_t::bus},           {"load", contingency_mode_t::load},
+        {"Load", contingency_mode_t::load},         {"LOAD", contingency_mode_t::load},
+        {"custom", contingency_mode_t::custom},     {"Custom", contingency_mode_t::custom},
+        {"CUSTOM", contingency_mode_t::custom},
+    }};
+}  // namespace
 
 /*std::string m_objectName;        //the  name of the object with the violation
 double level;        //the value of the parameter exceeding some limit
@@ -46,9 +82,9 @@ std::string Violation::to_string() const
         return "";
     }
     std::string violationString = m_objectName + '[';
-    auto vfind = violation_map.find(violationCode);
-    if (vfind != violation_map.end()) {
-        violationString += vfind->second + '(' + std::to_string(violationCode) + ")]";
+    const auto violationText = getViolationText(violationCode);
+    if (!violationText.empty()) {
+        violationString += std::string(violationText) + '(' + std::to_string(violationCode) + ")]";
     } else {
         violationString += "unknown violation(" + std::to_string(violationCode) + ")]";
     }
@@ -57,32 +93,14 @@ std::string Violation::to_string() const
     return violationString;
 }
 
-static const std::unordered_map<std::string, contingency_mode_t> contMap{
-    {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
-    {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
-    {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
-    {"n_1_1", contingency_mode_t::N_1_1},       {"N_1_1", contingency_mode_t::N_1_1},
-    {"n-2", contingency_mode_t::N_2},           {"N-2", contingency_mode_t::N_2},
-    {"n_2", contingency_mode_t::N_2},           {"N_2", contingency_mode_t::N_2},
-    {"n-2-line", contingency_mode_t::N_2_LINE}, {"N-2-LINE", contingency_mode_t::N_2_LINE},
-    {"n_2_line", contingency_mode_t::N_2_LINE}, {"N_2_LINE", contingency_mode_t::N_2_LINE},
-    {"N_2_Line", contingency_mode_t::N_2_LINE}, {"n-3-line", contingency_mode_t::N_3_LINE},
-    {"N-3-LINE", contingency_mode_t::N_3_LINE}, {"n_3_line", contingency_mode_t::N_3_LINE},
-    {"N_3_LINE", contingency_mode_t::N_3_LINE}, {"N_3_Line", contingency_mode_t::N_3_LINE},
-    {"line", contingency_mode_t::line},         {"Line", contingency_mode_t::line},
-    {"LINE", contingency_mode_t::line},         {"gen", contingency_mode_t::gen},
-    {"Gen", contingency_mode_t::gen},           {"GEN", contingency_mode_t::gen},
-    {"bus", contingency_mode_t::bus},           {"Bus", contingency_mode_t::bus},
-    {"BUS", contingency_mode_t::bus},           {"load", contingency_mode_t::load},
-    {"Load", contingency_mode_t::load},         {"LOAD", contingency_mode_t::load},
-    {"custom", contingency_mode_t::custom},     {"Custom", contingency_mode_t::custom},
-    {"CUSTOM", contingency_mode_t::custom},
-};
-
-contingency_mode_t getContingencyMode(const std::string& mode)
+contingency_mode_t getContingencyMode(std::string_view mode)
 {
-    auto rec = contMap.find(mode);
-    return (rec != contMap.end()) ? rec->second : contingency_mode_t::unknown;
+    for (const auto& entry : kContingencyModeMap) {
+        if (entry.first == mode) {
+            return entry.second;
+        }
+    }
+    return contingency_mode_t::unknown;
 }
 
 std::atomic_int Contingency::contingencyCount{0};
@@ -93,13 +111,13 @@ Contingency::Contingency(): future_ret(promise_val.get_future())
     name = "contingency_" + std::to_string(id);
 }
 
-Contingency::Contingency(gridDynSimulation* sim, std::shared_ptr<Event> ge):
+Contingency::Contingency(gridDynSimulation* sim, std::shared_ptr<Event> gridEvent):
     gds(sim), future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
     name = "contingency_" + std::to_string(id);
     eventList.resize(1);
-    eventList[0].push_back(std::move(ge));
+    eventList[0].push_back(std::move(gridEvent));
 }
 
 void Contingency::execute()
@@ -111,14 +129,14 @@ void Contingency::execute()
     preEventLoad = contSim->getLoadReal();
     preEventGen = contSim->getGenerationReal();
     int stage = 0;
-    for (auto& evList : eventList) {
-        for (auto& ev : evList) {
-            if (!ev) {
+    for (auto& eventStageList : eventList) {
+        for (auto& eventPtr : eventStageList) {
+            if (!eventPtr) {
                 continue;
             }
-            ev->updateObject(contSim.get(), object_update_mode::match);
-            ev->trigger();
-            ev->updateObject(
+            eventPtr->updateObject(contSim.get(), object_update_mode::match);
+            eventPtr->trigger();
+            eventPtr->updateObject(
                 gds, object_update_mode::match);  // map the event back to the original simulation
         }
         contSim->pFlowInitialize();
@@ -175,40 +193,40 @@ void Contingency::setContingencyRoot(gridDynSimulation* gdSim)
     }
 }
 
-void Contingency::add(std::shared_ptr<Event> ge, index_t stage)
+void Contingency::add(std::shared_ptr<Event> gridEvent, index_t stage)
 {
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
-    eventList[stage].push_back(std::move(ge));
+    eventList[stage].push_back(std::move(gridEvent));
 }
 
-void Contingency::merge(const Contingency& c2, index_t stage)
+void Contingency::merge(const Contingency& other, index_t stage)
 {
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
-    for (const auto& evlist : c2.eventList) {
-        for (const auto& ev : evlist) {
-            eventList[stage].push_back(ev);
+    for (const auto& eventStageList : other.eventList) {
+        for (const auto& eventPtr : eventStageList) {
+            eventList[stage].push_back(eventPtr);
         }
     }
 }
 
-bool Contingency::mergeIfUnique(const Contingency& c2, index_t stage)
+bool Contingency::mergeIfUnique(const Contingency& other, index_t stage)
 {
     gmlc::utilities::ensureSizeAtLeast(eventList, static_cast<std::size_t>(stage) + 1);
     bool newEvent = false;
-    for (const auto& evlist : c2.eventList) {
-        for (const auto& ev : evlist) {
+    for (const auto& eventStageList : other.eventList) {
+        for (const auto& eventPtr : eventStageList) {
             bool matched = false;
             for (const auto& compEV : eventList[stage]) {
                 if (!compEV) {
                     continue;
                 }
-                if (*ev == *compEV) {
+                if (*eventPtr == *compEV) {
                     matched = true;
                 }
             }
             if (!matched) {
                 newEvent = true;
-                eventList[stage].push_back(ev);
+                eventList[stage].push_back(eventPtr);
             }
         }
     }
@@ -222,102 +240,102 @@ std::string Contingency::generateOutputLine() const
 
 std::string Contingency::generateHeader() const
 {
-    std::stringstream ss;
-    ss << "index, name, event";
+    std::stringstream stream;
+    stream << "index, name, event";
 
     if (!simplifiedOutput) {
         stringVec busNames;
         gds->getBusName(busNames);
-        for (auto& bn : busNames) {
-            ss << ", " << bn << ":V";
+        for (const auto& busName : busNames) {
+            stream << ", " << busName << ":V";
         }
-        for (auto& bn : busNames) {
-            ss << ", " << bn << ":A";
+        for (const auto& busName : busNames) {
+            stream << ", " << busName << ":A";
         }
         stringVec linkNames;
         gds->getLinkName(linkNames);
-        for (auto& ln : linkNames) {
-            ss << ", " << ln << ":flow";
+        for (const auto& linkName : linkNames) {
+            stream << ", " << linkName << ":flow";
         }
     }
-    ss << ", min Voltage, islands, loadLossEvent, loadLoss, genLossEvent, genLoss, violations";
-    return ss.str();
+    stream << ", min Voltage, islands, loadLossEvent, loadLoss, genLossEvent, genLoss, violations";
+    return stream.str();
 }
 
 const char commaQuote[] = R"(, ")";
 
 std::string Contingency::generateContingencyString() const
 {
-    std::stringstream ss;
-    ss << id << ", " << name << commaQuote;
-    for (auto& ev : eventList[0]) {
-        if (ev) {
-            ss << ev->to_string() << ';';
+    std::stringstream stream;
+    stream << id << ", " << name << commaQuote;
+    for (const auto& eventPtr : eventList[0]) {
+        if (eventPtr) {
+            stream << eventPtr->to_string() << ';';
         }
     }
-    ss << '"';
-    return ss.str();
+    stream << '"';
+    return stream.str();
 }
 
 std::string Contingency::generateFullOutputLine() const
 {
-    std::stringstream ss;
-    ss << id << ", " << name << commaQuote;
-    for (auto& ev : eventList[0]) {
-        if (ev) {
-            ss << ev->to_string() << ';';
+    std::stringstream stream;
+    stream << id << ", " << name << commaQuote;
+    for (const auto& eventPtr : eventList[0]) {
+        if (eventPtr) {
+            stream << eventPtr->to_string() << ';';
         }
     }
-    ss << '"';
+    stream << '"';
 
-    ss.precision(4);
-    for (auto& bn : busVoltages) {
-        ss << ", " << bn;
+    stream.precision(4);
+    for (const auto& busVoltage : busVoltages) {
+        stream << ", " << busVoltage;
     }
-    ss.precision(5);
-    for (auto& bn : busAngles) {
-        ss << ", " << bn;
+    stream.precision(5);
+    for (const auto& busAngle : busAngles) {
+        stream << ", " << busAngle;
     }
-    ss.precision(4);
+    stream.precision(4);
 
-    for (auto& ln : Lineflows) {
-        ss << ", " << ln;
+    for (const auto& lineFlow : Lineflows) {
+        stream << ", " << lineFlow;
     }
-    ss << ", " << lowV;
-    ss << ", " << islands;
-    ss << ", " << preEventLoad - contingencyLoad;
-    ss << ", " << preContingencyLoad - contingencyLoad;
-    ss << ", " << preEventGen - contingencyGen;
-    ss << ", " << preContingencyGen - contingencyGen;
-    ss << commaQuote;
-    for (auto& viol : Violations) {
-        ss << viol.to_string() << ';';
+    stream << ", " << lowV;
+    stream << ", " << islands;
+    stream << ", " << preEventLoad - contingencyLoad;
+    stream << ", " << preContingencyLoad - contingencyLoad;
+    stream << ", " << preEventGen - contingencyGen;
+    stream << ", " << preContingencyGen - contingencyGen;
+    stream << commaQuote;
+    for (const auto& violation : Violations) {
+        stream << violation.to_string() << ';';
     }
-    ss << '"';
-    return ss.str();
+    stream << '"';
+    return stream.str();
 }
 
 std::string Contingency::generateViolationsOutputLine() const
 {
-    std::stringstream ss;
-    ss << id << ", " << name << commaQuote;
-    for (auto& ev : eventList[0]) {
-        if (ev) {
-            ss << ev->to_string() << ';';
+    std::stringstream stream;
+    stream << id << ", " << name << commaQuote;
+    for (const auto& eventPtr : eventList[0]) {
+        if (eventPtr) {
+            stream << eventPtr->to_string() << ';';
         }
     }
-    ss << ", " << lowV;
-    ss << ", " << islands;
-    ss << ", " << preEventLoad - contingencyLoad;
-    ss << ", " << preContingencyLoad - contingencyLoad;
-    ss << ", " << preEventGen - contingencyGen;
-    ss << ", " << preContingencyGen - contingencyGen;
-    ss << commaQuote;
-    for (auto& viol : Violations) {
-        ss << viol.to_string() << ';';
+    stream << ", " << lowV;
+    stream << ", " << islands;
+    stream << ", " << preEventLoad - contingencyLoad;
+    stream << ", " << preContingencyLoad - contingencyLoad;
+    stream << ", " << preEventGen - contingencyGen;
+    stream << ", " << preContingencyGen - contingencyGen;
+    stream << commaQuote;
+    for (const auto& violation : Violations) {
+        stream << violation.to_string() << ';';
     }
-    ss << '"';
-    return ss.str();
+    stream << '"';
+    return stream.str();
 }
 
 coreObject* Contingency::getObject() const
@@ -327,9 +345,11 @@ coreObject* Contingency::getObject() const
 
 void Contingency::getObjects(std::vector<coreObject*>& objects) const
 {
-    for (auto& evL : eventList) {
-        for (auto& evnt : evL) {
-            evnt->getObjects(objects);
+    for (const auto& stageEvents : eventList) {
+        for (const auto& eventPtr : stageEvents) {
+            if (eventPtr) {
+                eventPtr->getObjects(objects);
+            }
         }
     }
 }
@@ -337,9 +357,11 @@ void Contingency::getObjects(std::vector<coreObject*>& objects) const
 void Contingency::updateObject(coreObject* newObj, object_update_mode mode)
 {
     // update all the events
-    for (auto& evList : eventList) {
-        for (auto& evnt : evList) {
-            evnt->updateObject(newObj, mode);
+    for (auto& stageEvents : eventList) {
+        for (auto& eventPtr : stageEvents) {
+            if (eventPtr) {
+                eventPtr->updateObject(newObj, mode);
+            }
         }
     }
     // update the simulation if appropriate
@@ -350,22 +372,23 @@ void Contingency::updateObject(coreObject* newObj, object_update_mode mode)
     }
 }
 
-std::shared_ptr<Contingency> Contingency::clone(std::shared_ptr<Contingency> con) const
+std::shared_ptr<Contingency>
+    Contingency::clone(const std::shared_ptr<Contingency>& existingContingency) const
 {
-    auto newCont = con;
-    if (!con) {
-        newCont = std::make_shared<Contingency>(gds);
+    auto newContingency = existingContingency;
+    if (!newContingency) {
+        newContingency = std::make_shared<Contingency>(gds);
     }
-    newCont->completed = false;
-    newCont->name = name;
-    for (int kk = 0; kk < static_cast<int>(eventList.size()); ++kk) {
-        for (auto& evnt : eventList[kk]) {
-            if (evnt) {
-                newCont->add(evnt->clone(), kk);
+    newContingency->completed = false;
+    newContingency->name = name;
+    for (std::size_t stageIndex = 0; stageIndex < eventList.size(); ++stageIndex) {
+        for (const auto& eventPtr : eventList[stageIndex]) {
+            if (eventPtr) {
+                newContingency->add(eventPtr->clone(), static_cast<index_t>(stageIndex));
             }
         }
     }
-    return newCont;
+    return newContingency;
 }
 
 }  // namespace griddyn

@@ -16,6 +16,7 @@
 #include <complex>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -64,7 +65,7 @@ class GhostSwingBusManager {
      *
      * Returns taskId for the new instance.
      */
-    int createGridlabDInstance(const std::string& arguments);
+    int createGridlabDInstance(std::string_view arguments);
 
     /**
      * End the simulation.
@@ -152,6 +153,7 @@ class GhostSwingBusManager {
      * True if initialization send has completed.
      */
     std::vector<bool> m_initializeCompleted;
+    std::vector<std::string> m_modelSpecificationMessages;
 
 #else
     /**

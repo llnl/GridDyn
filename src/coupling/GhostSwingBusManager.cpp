@@ -71,6 +71,7 @@ GhostSwingBusManager::GhostSwingBusManager(int* argc, char** argv[])
     m_numTasks = servicer->getCommSize();
 
     m_initializeCompleted.resize(m_numTasks);
+    m_modelSpecificationMessages.resize(m_numTasks);
     requests = new MPIRequests;
     requests->m_mpiSendRequests.resize(m_numTasks);
     requests->m_mpiRecvRequests.resize(m_numTasks);
@@ -92,24 +93,25 @@ GhostSwingBusManager::~GhostSwingBusManager()
 }
 
 // for Transmission
-int GhostSwingBusManager::createGridlabDInstance(const std::string& arguments)
+int GhostSwingBusManager::createGridlabDInstance(std::string_view arguments)
 {
     assert(arguments.size() <=
            PATH_MAX * 4);  // there is a bug in Visual studio where the sizeof doesn't
     // compile
 
-    int taskId = m_nextTaskId++;
+    const int taskId = m_nextTaskId++;
     if (g_printStuff) {
         std::cout << "Task: " << taskId << " creating new GridLAB-D instance with args "
-                  << arguments << std::endl;
+                  << arguments << '\n';
     }
 
 #ifdef GRIDDYN_ENABLE_MPI
-    auto* arguments_c = const_cast<char*>(arguments.c_str());
+    m_modelSpecificationMessages[taskId] = arguments;
+    auto* arguments_c = m_modelSpecificationMessages[taskId].data();
     m_initializeCompleted[taskId] = false;
     auto token = servicer->getToken();
     MPI_Isend(arguments_c,
-              static_cast<int>(arguments.size()),
+              static_cast<int>(m_modelSpecificationMessages[taskId].size()),
               MPI_CHAR,
               taskId,
               MODELSPECTAG,
@@ -133,12 +135,12 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 {
     // populate message structure
     if (g_printStuff) {
-        std::cout << "taskId: " << taskId << " voltage[0]: " << std::endl
-                  << "** LEB: vector size = " << voltage.size() << std::endl;
+        std::cout << "taskId: " << taskId << " voltage[0]: " << '\n'
+                  << "** LEB: vector size = " << voltage.size() << '\n';
     }
 
     // calculate number of ThreePhaseVoltages in voltage
-    int numThreePhaseVoltage = static_cast<int>(voltage.size()) / 3;
+    const int numThreePhaseVoltage = static_cast<int>(voltage.size()) / 3;
 
     if (g_printStuff) {
         std::cout << "Sending voltage message deltaTime = " << deltaTime << " to task " << taskId
@@ -150,7 +152,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
             if (g_printStuff) {
                 std::cout << "\tvoltage[" << i << "][" << j << "] = " << voltage[(i * 3) + j]
                           << " abs = " << std::abs(voltage[(i * 3) + j])
-                          << " arg = " << std::arg(voltage[(i * 3) + j]) << std::endl;
+                          << " arg = " << std::arg(voltage[(i * 3) + j]) << '\n';
             }
             m_voltSendMessage[taskId].voltage[i].real[j] = voltage[(i * 3) + j].real();
             m_voltSendMessage[taskId].voltage[i].imag[j] = voltage[(i * 3) + j].imag();
@@ -190,10 +192,8 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 
 #else
 
-    try {
+    if (dummy_load_eval[taskId]) {
         dummy_load_eval[taskId](&(m_voltSendMessage[taskId]), &(m_currReceiveMessage[taskId]));
-    }
-    catch (const std::bad_function_call&) {
     }
 
 #endif
@@ -202,7 +202,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
 void GhostSwingBusManager::sendStopMessage(int taskId)
 {
     if (g_printStuff) {
-        std::cout << "Sending STOP message to Distribution task " << taskId << std::endl;
+        std::cout << "Sending STOP message to Distribution task " << taskId << '\n';
     }
 #ifdef GRIDDYN_ENABLE_MPI
     // Blocking send to gridlabd task
@@ -214,9 +214,8 @@ void GhostSwingBusManager::sendStopMessage(int taskId)
 // Transmission
 void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
 {
-    int numThreePhaseCurrent;
     if (g_printStuff) {
-        std::cout << "Transmission *waiting* to get current from Task: " << taskId << std::endl;
+        std::cout << "Transmission *waiting* to get current from Task: " << taskId << '\n';
     }
 
 #ifdef GRIDDYN_ENABLE_MPI
@@ -231,13 +230,14 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
     }
 #endif
 
-    numThreePhaseCurrent = m_currReceiveMessage[taskId].numThreePhaseCurrent;
+    const int numThreePhaseCurrent = m_currReceiveMessage[taskId].numThreePhaseCurrent;
     if (g_printStuff) {
         std::cout << "Current received from Task:" << taskId
-                  << ", numThreePhaseCurrent = " << numThreePhaseCurrent << std::endl;
+                  << ", numThreePhaseCurrent = " << numThreePhaseCurrent << '\n';
     }
-    current.resize(numThreePhaseCurrent *
-                   3);  // resize vector to number of three phase currents received.
+    const std::size_t currentSize =
+        (numThreePhaseCurrent > 0) ? static_cast<std::size_t>(numThreePhaseCurrent) * 3U : 0U;
+    current.resize(currentSize);  // resize vector to number of three phase currents received.
     for (int i = 0; i < numThreePhaseCurrent; ++i) {
         for (int j = 0; j < 3; ++j) {
             current[(i * 3) + j].real(m_currReceiveMessage[taskId].current[i].real[j]);
@@ -246,7 +246,7 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
                 std::cout << "\tcurrReceiveMessage, current[" << (i * 3) + j
                           << "] = " << current[(i * 3) + j]
                           << " abs = " << std::abs(current[(i * 3) + j])
-                          << " arg = " << std::arg(current[(i * 3) + j]) << std::endl;
+                          << " arg = " << std::arg(current[(i * 3) + j]) << '\n';
             }
         }
     }
@@ -262,7 +262,7 @@ void GhostSwingBusManager::endSimulation()
 #ifdef GRIDDYN_ENABLE_MPI
 
     if (g_printStuff) {
-        std::cout << "end task : " << m_taskId << std::endl;
+        std::cout << "end task : " << m_taskId << '\n';
     }
 #endif
     // clear the shared_ptr, the object will probably get deleted at this point and will be unable

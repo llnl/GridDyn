@@ -8,6 +8,7 @@
 
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -130,6 +131,6 @@ class gridDynServer {
     // returns the PMU id
     virtual int id() { return 0; }
     // helper function to set various parameters
-    virtual void set(std::string param, int val);
-    virtual void set(std::string param, std::string val) { return; }
+    virtual void set(std::string_view param, int val);
+    virtual void set(std::string_view param, std::string_view val) { return; }
 };

@@ -120,7 +120,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     /** default constructor*/
     Contingency();
     /** construct from a sim and event*/
-    Contingency(gridDynSimulation* sim, std::shared_ptr<Event> ge = nullptr);
+    Contingency(gridDynSimulation* sim, std::shared_ptr<Event> gridEvent = nullptr);
     /** run the contingency
      */
     virtual void execute() override;
@@ -132,18 +132,18 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     */
     void setContingencyRoot(gridDynSimulation* gdSim);
     /** add an event to a contingency
-    @param[in] ge the new Event to add to the contingency
+    @param[in] gridEvent the new Event to add to the contingency
       @param[in] stage  the stage to execute the contingency
     */
-    void add(std::shared_ptr<Event> ge, index_t stage = 0);
+    void add(std::shared_ptr<Event> gridEvent, index_t stage = 0);
 
     /** merge two contingencies */
-    void merge(const Contingency& c2, index_t stage = 0);
+    void merge(const Contingency& other, index_t stage = 0);
     /**
     merge two contingencies if they are unige
     @return true if they were merged
     */
-    bool mergeIfUnique(const Contingency& c2, index_t stage = 0);
+    bool mergeIfUnique(const Contingency& other, index_t stage = 0);
 
     /** generate a header string for a csv file including the data field names this
     @details this header line would be general to all similar contingencies
@@ -182,7 +182,8 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     void updateObject(coreObject* newObj,
                       object_update_mode mode = object_update_mode::match) override;
 
-    std::shared_ptr<Contingency> clone(std::shared_ptr<Contingency> con = nullptr) const;
+    std::shared_ptr<Contingency> clone(
+        const std::shared_ptr<Contingency>& existingContingency = nullptr) const;
 };
 // Contingency execution functions
 /** @brief build a list of contingencies

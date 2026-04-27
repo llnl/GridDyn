@@ -153,6 +153,7 @@ class GhostSwingBusManager {
      * True if initialization send has completed.
      */
     std::vector<bool> m_initializeCompleted;
+    std::vector<std::string> m_modelSpecificationMessages;
 
 #else
     /**

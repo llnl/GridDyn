@@ -5,9 +5,8 @@
  */
 
 #include "gridDynServer.h"
+#include "gmlc/utilities/stringOps.h"
 
-#include <algorithm>
-#include <cctype>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -53,13 +52,7 @@ void gridDynServer::stop_server()
 
 void gridDynServer::set(std::string_view param, int val)
 {
-    std::string normalizedParam{param};
-    std::transform(normalizedParam.begin(),
-                   normalizedParam.end(),
-                   normalizedParam.begin(),
-                   [](unsigned char character) {
-                       return static_cast<char>(std::tolower(character));
-                   });
+    auto normalizedParam = gmlc::utilities::convertToLowerCase(param);
     if (normalizedParam == "port") {
         port = val;
     } else if (normalizedParam == "ip_protocol") {

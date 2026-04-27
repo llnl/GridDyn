@@ -36,27 +36,35 @@ void gridDynAction::process(std::string_view operation)
 {
     /* (s) string,  (d) double,  (i) int, (X)* optional, (s|d|i), string or double or int*/
     auto ssep = gmlc::utilities::stringOps::splitline(
-        std::string{operation}, " ", gmlc::utilities::stringOps::delimiter_compression::on);
-    size_t sz = ssep.size();
-    for (size_t kk = 0; kk < sz; ++kk) {
+        operation, " ", gmlc::utilities::stringOps::delimiter_compression::on);
+    size_t tokenCount = ssep.size();
+    for (size_t kk = 0; kk < tokenCount; ++kk) {
         if (ssep[kk][0] == '#')  // clear all the comments
         {
-            sz = kk;
+            tokenCount = kk;
         }
     }
     reset();
-    if (sz == 0) {
+    if (tokenCount == 0) {
         // check if there was no command
         return;
     }
-    std::string cmd = gmlc::utilities::convertToLowerCase(ssep[0]);
+    const std::string commandToken = gmlc::utilities::convertToLowerCase(ssep[0]);
+    const auto parseStopAndStep = [&]() {
+        if (tokenCount > 1) {
+            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
+            if (tokenCount > 2) {
+                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
+            }
+        }
+    };
 
-    if (cmd == "ignore") {
+    if (commandToken == "ignore") {
         // ignore XXXXXX
         command = gd_action_t::ignore;
-    } else if (cmd == "set") {
+    } else if (commandToken == "set") {
         // set parameter(s) value(d)
-        if (sz >= 3) {
+        if (tokenCount >= 3) {
             command = gd_action_t::set;
             string1 = ssep[1];
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
@@ -64,26 +72,26 @@ void gridDynAction::process(std::string_view operation)
                 string2 = ssep[2];
             }
         } else {
-            throw(invalidParameterValue(cmd));
+            throw(invalidParameterValue(commandToken));
         }
-    } else if (cmd == "setall") {
+    } else if (commandToken == "setall") {
         // setall  objecttype(s) parameter(s) value(d)
         command = gd_action_t::setall;
-        if (sz >= 4) {
-            double test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
+        if (tokenCount >= 4) {
+            const auto test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
             if (test == kNullVal) {
-                throw(invalidParameterValue(cmd));
+                throw(invalidParameterValue(commandToken));
             }
             string1 = ssep[1];
             string2 = ssep[2];
             val_double = test;
         } else {
-            throw(invalidParameterValue(cmd));
+            throw(invalidParameterValue(commandToken));
         }
-    } else if (cmd == "setsolver") {
+    } else if (commandToken == "setsolver") {
         // setsolver mode(s) solver(s|i)
         command = gd_action_t::setsolver;
-        if (sz >= 3) {
+        if (tokenCount >= 3) {
             string1 = ssep[1];
             val_int1 = gmlc::utilities::numeric_conversion<int>(
                 ssep[2],
@@ -92,138 +100,126 @@ void gridDynAction::process(std::string_view operation)
                 string1 = ssep[2];
             }
         } else {
-            throw(invalidParameterValue(cmd));
+            throw(invalidParameterValue(commandToken));
         }
-    } else if (cmd == "print") {
+    } else if (commandToken == "print") {
         // print parameter(s) setstring(s)
         command = gd_action_t::print;
-        if (sz >= 3) {
+        if (tokenCount >= 3) {
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
-            throw(invalidParameterValue(cmd));
+            throw(invalidParameterValue(commandToken));
         }
-    } else if (cmd == "powerflow") {
+    } else if (commandToken == "powerflow") {
         // powerflow
         command = gd_action_t::powerflow;
-    } else if (cmd == "step") {
+    } else if (commandToken == "step") {
         // step solutionType*
         command = gd_action_t::step;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             string1 = ssep[1];
         }
-    } else if (cmd == "eventmode") {
+    } else if (commandToken == "eventmode") {
         // eventmode tstop*  tstep*
         command = gd_action_t::eventmode;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (sz > 2) {
+            if (tokenCount > 2) {
                 val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
-    } else if (cmd == "initialize") {
+    } else if (commandToken == "initialize") {
         // initialize
         command = gd_action_t::initialize;
-    } else if (cmd == "dynamic") {
+    } else if (commandToken == "dynamic") {
         // dynamic "dae"|"part"|"decoupled" stoptime(d)* steptime(d)*
-        if (sz == 1) {
+        if (tokenCount == 1) {
             command = gd_action_t::dynamicDAE;
         } else {
             makeLowerCase(ssep[1]);
             if (ssep[1] == "dae") {
                 command = gd_action_t::dynamicDAE;
-                if (sz > 2) {
+                if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
             } else if ((ssep[1] == "part") || (ssep[1] == "partitioned")) {
                 command = gd_action_t::dynamicPart;
-                if (sz > 2) {
+                if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
-                if (sz > 3) {
+                if (tokenCount > 3) {
                     val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
             } else if (ssep[1] == "decoupled") {
                 command = gd_action_t::dynamicDecoupled;
-                if (sz > 2) {
+                if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
-                if (sz > 3) {
+                if (tokenCount > 3) {
                     val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
             } else {
-                double test = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
+                const auto test = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 if (test == kNullVal) {
-                    throw(invalidParameterValue(cmd));
+                    throw(invalidParameterValue(commandToken));
                 }
-                if (sz > 2) {
+                if (tokenCount > 2) {
                     val_double = test;
                     val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
                 command = gd_action_t::dynamicDAE;
             }
         }
-    } else if (cmd == "dynamicdae") {
+    } else if (commandToken == "dynamicdae") {
         // dynamicdae stoptime(d)*
         command = gd_action_t::dynamicDAE;
 
-        if (sz > 1) {
+        if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
         }
-    } else if (cmd == "dynamicpart") {
+    } else if (commandToken == "dynamicpart") {
         // dynamicpart stoptime(d)* steptime(d)*
         command = gd_action_t::dynamicPart;
-
-        if (sz > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (sz > 2) {
-                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-            }
-        }
-    } else if (cmd == "dynamicdecoupled") {
+        parseStopAndStep();
+    } else if (commandToken == "dynamicdecoupled") {
         // dynamicdecoupled stop(d)* step(d)*
-        command = gd_action_t::dynamicPart;
-
-        if (sz > 1) {
-            val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (sz > 2) {
-                val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
-            }
-        }
-    } else if (cmd == "reset") {
+        command = gd_action_t::dynamicDecoupled;
+        parseStopAndStep();
+    } else if (commandToken == "reset") {
         // reset level(i)
-        if (sz > 1) {
+        if (tokenCount > 1) {
             auto test_int = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
             if (test_int == -435) {
-                throw(invalidParameterValue(cmd));
+                throw(invalidParameterValue(commandToken));
             }
             val_int1 = test_int;
         } else {
             val_int1 = 0;
         }
         command = gd_action_t::reset;
-    } else if (cmd == "iterate") {
+    } else if (commandToken == "iterate") {
         // iterate interval(d)* stoptime(d)*
         command = gd_action_t::iterate;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
-            if (sz > 2) {
+            if (tokenCount > 2) {
                 val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             }
         }
-    } else if (cmd == "check") {
+    } else if (commandToken == "check") {
         // check
         command = gd_action_t::check;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             string1 = ssep[1];
-            if (sz > 2) {
+            if (tokenCount > 2) {
                 string2 = ssep[2];
             }
         }
-    } else if (cmd == "run") {
+    } else if (commandToken == "run") {
         // run time(d)*
-        if (sz > 1) {
-            double test = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
+        if (tokenCount > 1) {
+            const auto test = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (test == kNullVal) {
                 throw(invalidParameterValue("time"));
             }
@@ -232,39 +228,39 @@ void gridDynAction::process(std::string_view operation)
             val_double = kNullVal;
         }
         command = gd_action_t::run;
-    } else if (cmd == "save") {
+    } else if (commandToken == "save") {
         // save subject(s) file(s)
-        if (sz > 2) {
+        if (tokenCount > 2) {
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
-            throw(invalidParameterValue(cmd));
+            throw(invalidParameterValue(commandToken));
         }
         command = gd_action_t::save;
-    } else if (cmd == "load") {
+    } else if (commandToken == "load") {
         // load subject(s) file(s)
-        if (sz > 2) {
+        if (tokenCount > 2) {
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
             throw(invalidParameterValue("load"));
         }
         command = gd_action_t::load;
-    } else if (cmd == "add") {
+    } else if (commandToken == "add") {
         // add addstring(s)
-        if (sz > 1) {
+        if (tokenCount > 1) {
             string1 = ssep[1];
-            for (size_t kk = 2; kk < sz; ++kk) {
+            for (size_t kk = 2; kk < tokenCount; ++kk) {
                 string1 += " " + ssep[kk];
             }
         } else {
             throw(invalidParameterValue("add"));
         }
         command = gd_action_t::add;
-    } else if (cmd == "rollback") {
+    } else if (commandToken == "rollback") {
         // rollback point(s|d)
         command = gd_action_t::rollback;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
                 string1 = ssep[1];
@@ -272,10 +268,10 @@ void gridDynAction::process(std::string_view operation)
         } else {
             string1 = "last";
         }
-    } else if (cmd == "checkpoint") {
+    } else if (commandToken == "checkpoint") {
         // checkpoint name(s)
         command = gd_action_t::checkpoint;
-        if (sz > 1) {
+        if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
                 string1 = ssep[1];
@@ -283,7 +279,7 @@ void gridDynAction::process(std::string_view operation)
         } else {
             string1 = "";
         }
-    } else if (cmd == "contingency") {
+    } else if (commandToken == "contingency") {
         // contingency mode|fileName output_file|method start count
         command = gd_action_t::contingency;
         size_t nindex{1};
@@ -292,22 +288,22 @@ void gridDynAction::process(std::string_view operation)
             ++nindex;
         }
         string1 = ssep[nindex];
-        if (sz > nindex + 1) {
+        if (tokenCount > nindex + 1) {
             string2 = ssep[nindex + 1];
         }
-        if (sz > nindex + 2) {
+        if (tokenCount > nindex + 2) {
             val_int1 = gmlc::utilities::numeric_conversion<int>(ssep[nindex + 2], 0);
         } else {
             val_int1 = 0;
         }
-        if (sz > nindex + 3) {
+        if (tokenCount > nindex + 3) {
             val_int2 = gmlc::utilities::numeric_conversion<int>(ssep[nindex + 3], 0);
         } else {
             val_int2 = 0;
         }
-    } else if (cmd == "continuation") {
+    } else if (commandToken == "continuation") {
     } else {
-        throw(unrecognizedParameter(cmd));
+        throw(unrecognizedParameter(commandToken));
     }
 }
 

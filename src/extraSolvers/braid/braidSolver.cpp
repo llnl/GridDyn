@@ -214,9 +214,14 @@ void braidSolver::initialize(coreTime t0)
 
     m_gds->guessState(t0, y0_.GetData(), y0p_.GetData(), mode);  // cDaeSolverMode);
     // y0_.dump("new_code_init_con.txt");
-    equation = new EquationGridDyn(
-        static_cast<double>(tStart), stopTime, N_unistep_, m_gds, y0_, &mode, discontinuities,
-        rootsfound);
+    equation = new EquationGridDyn(static_cast<double>(tStart),
+                                   stopTime,
+                                   N_unistep_,
+                                   m_gds,
+                                   y0_,
+                                   &mode,
+                                   discontinuities,
+                                   rootsfound);
 }
 
 double braidSolver::get(std::string_view param) const

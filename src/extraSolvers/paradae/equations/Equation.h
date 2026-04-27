@@ -107,8 +107,8 @@ class Equation {
                                 Vector& rv) {};
     // Change the state depending on which root is found (should be private?)
     virtual void root_crossings(const Vector& iroot, Vector& state) {};
-    virtual void
-        root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot) {};
+    virtual void root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot) {
+    };
     // initialize the state
     virtual void root_init_state(const Real t, Vector& state) {};
     // Check if a root has been crossed. If so, estimate the time t and change the state.

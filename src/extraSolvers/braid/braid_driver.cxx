@@ -282,8 +282,7 @@ void my_Step_OnAllPoints(braid_App app,
 
         if (return_code == WARN_ROOT && level == 0) {
             const auto& roots = app->ode->GetEq()->GetRoots();
-            const auto dist =
-                min(app->alloc_data.troot - tstart, tstop - app->alloc_data.troot);
+            const auto dist = min(app->alloc_data.troot - tstart, tstop - app->alloc_data.troot);
             if (dist > roots.tol) {
                 app->alloc_data.SetNextAtRoot();
                 app->alloc_data.Rotate();

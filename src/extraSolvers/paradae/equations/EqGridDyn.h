@@ -53,8 +53,7 @@ class EquationGridDyn: public Equation_DAE_full {
                                 const Vector& dy,
                                 const Vector& state,
                                 Vector& rv);
-    virtual void
-        root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot);
+    virtual void root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot);
     virtual ~EquationGridDyn() {};
 };
 

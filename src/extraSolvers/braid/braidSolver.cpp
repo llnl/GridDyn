@@ -188,8 +188,9 @@ void braidSolver::allocate(count_t stateCount, count_t numRoots)
         svsize = stateCount;
         flags.reset(initialized_flag);
         flags.set(allocated_flag);
-        rootsfound.resize(numRoots);
     }
+    rootCount = numRoots;
+    rootsfound.resize(numRoots);
 }
 
 void braidSolver::initialize(coreTime t0)
@@ -214,7 +215,8 @@ void braidSolver::initialize(coreTime t0)
     m_gds->guessState(t0, y0_.GetData(), y0p_.GetData(), mode);  // cDaeSolverMode);
     // y0_.dump("new_code_init_con.txt");
     equation = new EquationGridDyn(
-        static_cast<double>(tStart), stopTime, N_unistep_, m_gds, y0_, &mode, discontinuities);
+        static_cast<double>(tStart), stopTime, N_unistep_, m_gds, y0_, &mode, discontinuities,
+        rootsfound);
 }
 
 double braidSolver::get(std::string_view param) const
@@ -504,5 +506,19 @@ int braidSolver::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
 int braidSolver::calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints)
 {
     return 0;
+}
+
+void braidSolver::getRoots()
+{
+    if (equation == nullptr) {
+        return;
+    }
+    const auto& rootData = equation->GetRoots();
+    if (rootData.GetNURoots() != static_cast<int>(rootsfound.size())) {
+        rootsfound.resize(rootData.GetNURoots());
+    }
+    for (int ii = 0; ii < rootData.GetNURoots(); ++ii) {
+        rootsfound[ii] = static_cast<int>(rootData.iroot(rootData.n_sroots + ii));
+    }
 }
 }  // namespace griddyn::braid

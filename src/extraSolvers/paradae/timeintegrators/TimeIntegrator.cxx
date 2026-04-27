@@ -101,6 +101,7 @@ bool TimeIntegrator::CheckRoots(DATA_Struct& val)
             val.snext.CopyData(val.sroot);
             P.GetValueY(thi, val.xroot);
             P.GetValueDY(thi, val.dxroot);
+            equation->root_action(val.troot, val.xroot, val.dxroot, equation->GetRoots().iroot);
         }
     }
     return root_crossed;

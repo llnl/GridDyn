@@ -17,21 +17,22 @@ Equation::Equation(): nb_calls(0), nb_calls_root(0), nb_calls_jac(0), name("unde
 
 bool Equation::CheckAllRoots(IPoly& P, Real tlo, Vector& glo, Real& thi, Vector& ghi, Vector& state)
 {
-    SVector iroot(roots.GetNRoots());
     bool scheduled_roots = false, unscheduled_roots = false;
     Real t_scheduled = thi;
     Real t_unscheduled = thi;
     int idx_scheduled = -1;
+    roots.iroot.Fill(0);
 
     if (roots.HasSRoots()) scheduled_roots = CheckScheduledRoots(tlo, t_scheduled, idx_scheduled);
 
     if (roots.HasURoots())
-        unscheduled_roots = CheckUnscheduledRoots(P, tlo, glo, t_unscheduled, ghi, iroot, state);
+        unscheduled_roots =
+            CheckUnscheduledRoots(P, tlo, glo, t_unscheduled, ghi, roots.iroot, state);
 
     if (scheduled_roots && unscheduled_roots) {
         if (abs(t_scheduled - t_unscheduled) < roots.tol) {
             thi = (std::min)(t_scheduled, t_unscheduled);
-            iroot(idx_scheduled) = 1;
+            roots.iroot(idx_scheduled) = 1;
         } else if (t_unscheduled < t_scheduled)
             scheduled_roots = false;
         else
@@ -39,14 +40,13 @@ bool Equation::CheckAllRoots(IPoly& P, Real tlo, Vector& glo, Real& thi, Vector&
     }
     if (scheduled_roots && !unscheduled_roots) {
         thi = t_scheduled;
-        iroot.Fill(0);
-        iroot(idx_scheduled) = 1;
+        roots.iroot.Fill(0);
+        roots.iroot(idx_scheduled) = 1;
     }
     if (unscheduled_roots && !scheduled_roots) {
         thi = t_unscheduled;
     }
     if (scheduled_roots || unscheduled_roots) {
-        this->root_crossings(iroot, state);
         return true;
     }
     return false;

@@ -9,6 +9,7 @@
 #include "../math/paradaeArrayData.h"
 #include "coupling/GhostSwingBus.h"
 #include "fileInput/fileInput.h"
+#include "griddyn/gridDynDefinitions.hpp"
 #include "griddyn/gridDynSimulation.h"
 #include "griddyn/simulation/gridSimulation.h"
 #include "runner/gridDynRunner.h"
@@ -30,7 +31,8 @@ EquationGridDyn::EquationGridDyn(Real t0_,
                                  gridDynSimulation* gds_,
                                  const Vector& y0_,
                                  solverMode* mode_,
-                                 vector<double>& discontinuities)
+                                 vector<double>& discontinuities,
+                                 vector<int>& rootsfound)
 {
     // n=gds_->stateSize(cDaeSolverMode);
     n = gds_->stateSize(*mode_);
@@ -57,11 +59,15 @@ EquationGridDyn::EquationGridDyn(Real t0_,
     //}
 
     // New code, import discontinuity locations from XML file
-    roots = RootManager(discontinuities.size(), 1, 0, 1e-10);
+    roots = RootManager(discontinuities.size(), static_cast<int>(rootsfound.size()), 0, 1e-10);
     roots.n_sactive = discontinuities.size();
+    roots.n_uactive = static_cast<int>(rootsfound.size());
     for (int i = 0; i < discontinuities.size(); i++) {
         roots.is_active(i) = 1;
         roots.t_sroot(i) = discontinuities[i];
+    }
+    for (int i = 0; i < roots.n_uactive; ++i) {
+        roots.is_active(roots.n_sroots + i) = 1;
     }
 
     // This will print out all of the variable names
@@ -111,6 +117,29 @@ void EquationGridDyn::jacobian_ypcdy(const Real t,
 void EquationGridDyn::init(const Real t, Vector& y)
 {
     y.CopyData(y0);
+}
+
+void EquationGridDyn::root_functions(const Real t,
+                                     const Vector& y,
+                                     const Vector& dy,
+                                     const Vector& state,
+                                     Vector& rv)
+{
+    gds->rootFindingFunction(t, y.GetData(), dy.GetData(), rv.GetData(), *mode);
+}
+
+void EquationGridDyn::root_action(const Real troot,
+                                  Vector& yroot,
+                                  Vector& dyroot,
+                                  const Vector& iroot)
+{
+    std::vector<int> rootMask(roots.n_uroots, 0);
+    for (int ii = 0; ii < roots.n_uroots; ++ii) {
+        rootMask[ii] = static_cast<int>(iroot(roots.n_sroots + ii));
+    }
+    gds->setState(troot, yroot.GetData(), dyroot.GetData(), *mode);
+    gds->rootTrigger(troot, noInputs, rootMask, *mode);
+    gds->guessState(troot, yroot.GetData(), dyroot.GetData(), *mode);
 }
 /*
 void EquationGridDyn::root_init_state(const Real t, Vector& state)

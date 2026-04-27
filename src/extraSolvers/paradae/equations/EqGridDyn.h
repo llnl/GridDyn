@@ -30,7 +30,8 @@ class EquationGridDyn: public Equation_DAE_full {
                     griddyn::gridDynSimulation* gds_,
                     const Vector& y0_,
                     griddyn::solverMode* mode_,
-                    vector<double>& discontinuities);
+                    vector<double>& discontinuities,
+                    vector<int>& rootsfound);
     static EquationGridDyn Default(const MapParam& param);
     griddyn::solverMode* mode;  //!< to the solverMode
 
@@ -47,6 +48,12 @@ class EquationGridDyn: public Equation_DAE_full {
                                 const Real cj,
                                 Matrix& J);
     virtual void init(const Real t, Vector& y);
+    virtual void root_functions(const Real t,
+                                const Vector& y,
+                                const Vector& dy,
+                                const Vector& state,
+                                Vector& rv);
+    virtual void root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot);
     virtual ~EquationGridDyn() {};
 };
 

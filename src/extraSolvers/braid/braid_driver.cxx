@@ -281,7 +281,31 @@ void my_Step_OnAllPoints(braid_App app,
             refinement = max(refinement, app->alloc_data.used_dt / app->alloc_data.next_dt);
 
         if (return_code == WARN_ROOT && level == 0) {
-            refinement = min(refinement, app->ode->GetTI()->GetMaxRFactor());
+            const auto& roots = app->ode->GetEq()->GetRoots();
+            const auto dist = min(app->alloc_data.troot - tstart, tstop - app->alloc_data.troot);
+            if (dist > roots.tol) {
+                app->alloc_data.SetNextAtRoot();
+                app->alloc_data.Rotate();
+                app->alloc_data.next_dt = tstop - app->alloc_data.t;
+                if (app->ode->GetEq()->HasEvents()) {
+                    app->ode->GetEq()->root_functions(app->alloc_data.t,
+                                                      app->alloc_data.xprev,
+                                                      app->alloc_data.dxprev,
+                                                      app->alloc_data.sprev,
+                                                      app->alloc_data.gprev);
+                }
+                return_code = app->ode->GetTI()->AdvanceStep(app->alloc_data);
+                if (return_code == WARN_ROOT) {
+                    const auto dist2 =
+                        min(app->alloc_data.troot - app->alloc_data.t,
+                            app->alloc_data.t + app->alloc_data.used_dt - app->alloc_data.troot);
+                    if (dist2 > roots.tol) {
+                        refinement = max(refinement, 2.0);
+                    }
+                }
+            } else {
+                refinement = min(refinement, app->ode->GetTI()->GetMaxRFactor());
+            }
         }
 
         app->alloc_data.Rotate();

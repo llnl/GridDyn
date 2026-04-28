@@ -24,14 +24,12 @@ class optFactory {
     int m_level = 0;
     optFactory([[maybe_unused]] std::string_view component,
                std::string_view objName,
-               int level = 0):
-        name(objName), m_level(level)
+               int level = 0): name(objName), m_level(level)
     {
     }
     optFactory([[maybe_unused]] const stringVec& component,
                std::string_view objName,
-               int level = 0):
-        name(objName), m_level(level)
+               int level = 0): name(objName), m_level(level)
     {
     }
     virtual gridOptObject* makeObject(coreObject* obj) = 0;

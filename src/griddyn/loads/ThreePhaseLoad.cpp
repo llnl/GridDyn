@@ -359,14 +359,12 @@ IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*inputs*/,
     return getReactivePower3Phase(type);
 }
 /** get the 3 phase real output power that based on the given voltage
-@param[in] V the bus voltage
 @return the real power consumed by the load*/
 IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*V*/, phase_type_t type) const
 {
     return getRealPower3Phase(type);
 }
 /** get the 3 phase reactive output power that based on the given voltage
-@param[in] V the bus voltage
 @return the reactive power consumed by the load*/
 IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*V*/, phase_type_t type) const
 {

@@ -27,7 +27,6 @@
 #include <vector>
 
 namespace griddyn {
-static constexpr bool unimplemented = false;
 
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewVector;

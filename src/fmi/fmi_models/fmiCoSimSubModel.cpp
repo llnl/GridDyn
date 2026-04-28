@@ -20,7 +20,6 @@
 #include <utility>
 
 namespace griddyn::fmi {
-static const bool unimplemented = false;
 
 fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
                                    std::shared_ptr<fmi2CoSimObject> fmi):
@@ -578,10 +577,13 @@ double fmiCoSimSubModel::getOutput(index_t outputNum) const
     return out;
 }
 
-void fmiCoSimSubModel::updateLocalCache(const IOdata& inputs,
-                                        const stateData& sD,
-                                        const solverMode& sMode)
+void fmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
+                                        [[maybe_unused]] const stateData& sD,
+                                        [[maybe_unused]] const solverMode& sMode)
 {
+    static_cast<void>(inputs);
+    static_cast<void>(sD);
+    static_cast<void>(sMode);
     /*
 fmi2Boolean eventMode;
 fmi2Boolean terminateSim;

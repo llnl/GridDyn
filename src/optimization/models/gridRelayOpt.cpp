@@ -211,7 +211,8 @@ coreObject* gridRelayOpt::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* gridRelayOpt::getSubObject(std::string_view typeName, index_t /*num*/) const
+coreObject* gridRelayOpt::getSubObject([[maybe_unused]] std::string_view typeName,
+                                       index_t /*num*/) const
 {
     return nullptr;
     /*

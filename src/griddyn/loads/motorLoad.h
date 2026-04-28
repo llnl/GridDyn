@@ -149,20 +149,20 @@ class motorLoad: public Load {
 
   protected:
     /** @brief compute the slip based on an elecrical load
-@param[in] Pout  the electrical load of the motor
+@param[in] Ptarget  the electrical load of the motor
 @return the computed slip
 */
     double computeSlip(double Ptarget) const;
 
     /** @brief compute the real load of the motor based on voltage and slip
-@param[in] Vin  the the motor terminal voltage
+@param[in] vin  the the motor terminal voltage
 @param[in] slip the slip of the motor
 @return the computed real electrical load
 */
     double rPower(double vin, double slip) const;
 
     /** @brief compute the reactive load of the motor based on voltage and slip
-@param[in] Vin  the the motor terminal voltage
+@param[in] vin  the the motor terminal voltage
 @param[in] slip the slip of the motor
 @return the computed reactive electrical load
 */

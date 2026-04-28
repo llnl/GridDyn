@@ -959,9 +959,7 @@ void fmiMESubModel::probeFMU()
         }
         stateInfo.refMode = mode;
     }
-    int outputCounter = -1;
     for (auto& outputInfo : outputInformation) {
-        ++outputCounter;
         auto mode = refMode_t::direct;
         for (auto dep : outputInfo.stateDep) {
             auto depIndex = stateInformation[dep].varIndex;

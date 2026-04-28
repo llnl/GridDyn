@@ -167,7 +167,6 @@ void gridDynSimulationGetStateVariableTypes(GridDynSimulation sim,
         return;
     }
     runner->getSim()->getVariableType(types, sMode);
-    griddyn_ok;
 }
 
 void gridDynSimulationResidual(GridDynSimulation sim,

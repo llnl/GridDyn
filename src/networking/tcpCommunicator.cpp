@@ -83,52 +83,7 @@ void tcpCommunicator::transmit(std::uint64_t /*destID*/, std::shared_ptr<commMes
 
 void tcpCommunicator::initialize()
 {
-    // don't initialize twice if we already initialized
-    return;
-
-    // set up transmission sockets and information
-
-    if (flags[use_tx_proxy]) {
-        //    auto localProxy = zmqProxyHub::getProxy(proxyName);
-        //    if (!localProxy->isRunning())
-        //    {
-        //        localProxy->startProxy();
-        //    }
-        //    txDescriptor.addOperation(socket_ops::connect,
-        //    localProxy->getIncomingConnection());
-    }
-
-    if (flags[use_rx_proxy]) {
-        // auto localProxy = zmqProxyHub::getProxy(proxyName);
-        // if (!localProxy->isRunning())
-        //{
-        //    localProxy->startProxy();
-        //}
-        // rxDescriptor.addOperation(socket_ops::connect, localProxy->getIncomingConnection());
-    }
-
-    // txDescriptor.addOperation(socket_ops::subscribe, getName());
-    // rxDescriptor.addOperation(socket_ops::subscribe, getName());
-
-    // auto id = getID();
-    // txDescriptor.addOperation(socket_ops::subscribe, std::string(reinterpret_cast<char
-    // *>(&id), sizeof(id)));
-    // //I know this is ugly rxDescriptor.addOperation(socket_ops::subscribe,
-    // std::string(reinterpret_cast<char
-    // *>(&id), sizeof(id)));  //I know this is ugly decltype(id) broadcastId = 0;
-    // txDescriptor.addOperation(socket_ops::subscribe, std::string(reinterpret_cast<char
-    // *>(&broadcastId), sizeof(broadcastId)));  //I know this is ugly
-    // rxDescriptor.addOperation(socket_ops::subscribe, std::string(reinterpret_cast<char
-    // *>(&broadcastId), sizeof(broadcastId)));  //I know this is ugly
-
-    // rxDescriptor.callback = [this](const multipart_t &msg) {messageHandler(msg); };
-    // set up the rx socket reactor
-    // if (!flags[transmit_only])
-    //{
-    //    zmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
-    //}
-
-    // txSocket = txDescriptor.makeSocketPtr(zmqContextManager::getContext(contextName));
+    // tcpCommunicator transport setup is currently disabled.
 }
 
 void tcpCommunicator::disconnect()

@@ -61,7 +61,7 @@ namespace events {
     */
         void setTimeValue(const std::vector<coreTime>& time, const std::vector<double>& val);
         /** load a file containing the time/value data for the player
-    @param[in] filename the file to load
+    @param[in] fileName the file to load
     */
         void loadEventFile(const std::string& fileName);
         virtual std::string to_string() const override;

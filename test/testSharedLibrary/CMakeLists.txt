@@ -41,7 +41,7 @@ if(CXX_STANDARD_FLAG)
     endif(MSVC)
 endif(CXX_STANDARD_FLAG)
 
-target_link_libraries(shared_library_tests PUBLIC gtest gtest_main gmock)
+target_link_libraries(shared_library_tests PUBLIC gmock_main)
 
 add_test(NAME shared_library_tests COMMAND shared_library_tests)
 set_target_properties(shared_library_tests PROPERTIES FOLDER tests)

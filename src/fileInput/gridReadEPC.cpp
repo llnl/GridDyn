@@ -27,6 +27,7 @@
 #include <vector>
 
 namespace griddyn {
+// NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,modernize-use-integer-sign-comparison,bugprone-implicit-widening-of-multiplication-result,readability-isolate-declaration,modernize-use-starts-ends-with,bugprone-branch-clone,readability-qualified-auto)
 
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewVector;
@@ -195,7 +196,6 @@ void loadEPC(coreObject* parentObject, const std::string& fileName, const basicR
     std::ifstream file(fileName.c_str(), std::ios::in);
 
     std::string temp1;  // temporary storage for substrings
-    std::string pref2;  // temp storage to 2nd order prefix.
     std::vector<gridBus*> busList;
     std::vector<dcBus*> dcbusList;
     int index;
@@ -1185,4 +1185,5 @@ void epcReadTX(coreObject* parentObject,
     }
 }
 
+// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,modernize-use-integer-sign-comparison,bugprone-implicit-widening-of-multiplication-result,readability-isolate-declaration,modernize-use-starts-ends-with,bugprone-branch-clone,readability-qualified-auto)
 }  // namespace griddyn

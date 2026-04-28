@@ -485,6 +485,16 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/sundials/CMakeLists.txt")
     submod_update(ThirdParty/sundials)
 endif()
 
+set(concurrency_clang_tidy "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy")
+set(concurrency_clang_tidy_backup
+    "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy.griddyn-orig"
+)
+if(EXISTS "${concurrency_clang_tidy}")
+    if(NOT EXISTS "${concurrency_clang_tidy_backup}")
+        file(RENAME "${concurrency_clang_tidy}" "${concurrency_clang_tidy_backup}")
+    endif()
+endif()
+
 if(GRIDDYN_ENABLE_KLU)
     if(NOT DEFINED GRIDDYN_USE_SYSTEM_SUITESPARSE_ONLY OR NOT GRIDDYN_USE_SYSTEM_SUITESPARSE_ONLY)
         if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/suitesparse-cmake/CMakeLists.txt")

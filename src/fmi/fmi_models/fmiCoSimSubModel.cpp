@@ -20,6 +20,9 @@
 #include <utility>
 
 namespace griddyn::fmi {
+// NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
+
+static constexpr bool unimplemented = false;
 
 fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
                                    std::shared_ptr<fmi2CoSimObject> fmi):
@@ -142,7 +145,7 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
 
             gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             pstr.reserve(pstr.size() + strpcnt + 1);
-            pstr.push_back("#");
+            pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
                               fmi_variable_type_t::string,
@@ -259,7 +262,7 @@ void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
         m_inputSize = cs->inputSize();
         //    updateDependencyInfo();
     } else {
-        bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::string);
+        const bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::string);
         if (isparam) {
             makeSettableState();
             cs->set(std::string{param}, std::string{val});
@@ -275,7 +278,7 @@ void fmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
     if ((param == "timestep") || (param == localIntegrationtimeString)) {
         localIntegrationTime = val;
     } else {
-        bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+        const bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::numeric);
         if (isparam) {
             makeSettableState();
             cs->set(std::string{param}, val);
@@ -300,9 +303,9 @@ double fmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode*/)
 {
     double res = 0.0;
-    double ich = 1.0;
-    fmiVariableSet vx = cs->getVariableSet(depIndex);
-    fmiVariableSet vy = cs->getVariableSet(refIndex);
+    const double ich = 1.0;
+    const fmiVariableSet dependentSet = cs->getVariableSet(depIndex);
+    const fmiVariableSet referenceSet = cs->getVariableSet(refIndex);
     if (opFlags[has_derivative_function]) {
         res = cs->getPartialDerivative(depIndex, refIndex, ich);
     } else {
@@ -314,22 +317,22 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
     fmi2Boolean evmd;
     fmi2Boolean term;
 
-    cs->get (vx, &out1);
-    cs->get (vy, &out1);
+    cs->get (dependentSet, &out1);
+    cs->get (referenceSet, &out1);
     val2 = val1 + gap;
     if (mode == refMode_t::direct)
     {
-        cs->set (vy, &val2);
-        cs->get (vx, &out2);
-        cs->set (vy, &val1);
+        cs->set (referenceSet, &val2);
+        cs->get (dependentSet, &out2);
+        cs->set (referenceSet, &val1);
         res = (out2 - out1) / gap;
     }
     else if (mode == refMode_t::level1)
     {
-        cs->set (vy, &val2);
+        cs->set (referenceSet, &val2);
         cs->getDerivatives (tempdState.data ());
-        cs->get (vx, &out2);
-        cs->set (vy, &val1);
+        cs->get (dependentSet, &out2);
+        cs->set (referenceSet, &val1);
         cs->getDerivatives (tempdState.data ());
         res = (out2 - out1) / gap;
     }
@@ -702,4 +705,5 @@ void fmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
     }
 }
 
+// NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi

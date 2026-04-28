@@ -278,8 +278,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         // updateDependencyInfo();
     } else {
         if (me) {
-            const bool isparam =
-                me->isParameter(std::string{param}, fmi_variable_type_t::string);
+            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, std::string{val});
@@ -304,8 +303,7 @@ void fmiMESubModel::set(std::string_view param, double val, units::unit unitType
         localIntegrationTime = val;
     } else {
         if (me) {
-            const bool isparam =
-                me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, val);

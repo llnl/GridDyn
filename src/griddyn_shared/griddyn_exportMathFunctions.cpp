@@ -86,7 +86,8 @@ void gridDynSimulationGetResults(GridDynSimulation sim,
         return;
     }
     fvecfunc.first(runner->getSim().get(), dataVec);
-    const auto copySize = static_cast<size_t>((std::max)(0, (std::min)(maxSize, static_cast<int>(dataVec.size()))));
+    const auto copySize =
+        static_cast<size_t>((std::max)(0, (std::min)(maxSize, static_cast<int>(dataVec.size()))));
     for (size_t index = 0; index < copySize; ++index) {
         data[index] = dataVec[index];
     }

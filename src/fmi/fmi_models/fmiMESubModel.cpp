@@ -22,6 +22,7 @@
 #include <vector>
 
 namespace griddyn::fmi {
+// NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 using gmlc::utilities::vectorMultAdd;
 
 fmiMESubModel::fmiMESubModel(const std::string& newName,
@@ -94,7 +95,7 @@ void fmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
                 loadOutputJac();
                 for (index_t pp = 0; pp < m_outputSize; ++pp) {
                     if (outputInformation[pp].refMode >= refMode_t::level4) {
-                        double val = me->getOutput(pp);
+                        const double val = me->getOutput(pp);
                         oEst[pp]->update(prevTime, val, inputs, m_state.data());
                     }
                 }
@@ -146,7 +147,7 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
 
             gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             pstr.reserve(pstr.size() + strpcnt + 1);
-            pstr.push_back("#");
+            pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
                               fmi_variable_type_t::string,
@@ -277,7 +278,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         // updateDependencyInfo();
     } else {
         if (me) {
-            bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
+            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, std::string{val});
@@ -302,7 +303,7 @@ void fmiMESubModel::set(std::string_view param, double val, units::unit unitType
         localIntegrationTime = val;
     } else {
         if (me) {
-            bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, val);
@@ -334,13 +335,13 @@ double fmiMESubModel::get(std::string_view param, units::unit unitType) const
 
 stateSizes fmiMESubModel::LocalStateSizes(const solverMode& sMode) const
 {
-    stateSizes SS;
+    stateSizes stateSizeInfo;
     if (hasDifferential(sMode)) {
-        SS.diffSize = m_stateSize;
+        stateSizeInfo.diffSize = m_stateSize;
     } else if (!isDynamic(sMode) && opFlags[pflow_init_required]) {
-        SS.algSize = m_stateSize;
+        stateSizeInfo.algSize = m_stateSize;
     }
-    return SS;
+    return stateSizeInfo;
 }
 
 count_t fmiMESubModel::LocalJacobianCount(const solverMode& sMode) const
@@ -959,9 +960,7 @@ void fmiMESubModel::probeFMU()
         }
         stateInfo.refMode = mode;
     }
-    int outputCounter = -1;
     for (auto& outputInfo : outputInformation) {
-        ++outputCounter;
         auto mode = refMode_t::direct;
         for (auto dep : outputInfo.stateDep) {
             auto depIndex = stateInformation[dep].varIndex;
@@ -1079,4 +1078,5 @@ void fmiMESubModel::loadOutputJac(int index)
     }
 }
 
+// NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi

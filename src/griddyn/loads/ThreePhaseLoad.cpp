@@ -17,6 +17,7 @@
 #include <vector>
 
 namespace griddyn::loads {
+// NOLINTBEGIN(readability-identifier-length,bugprone-throwing-static-initialization,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 using units::convert;
 using units::puA;
 using units::puMW;
@@ -25,11 +26,11 @@ using units::rad;
 using units::unit;
 
 ThreePhaseLoad::ThreePhaseLoad(const std::string& objName): Load(objName) {}
-ThreePhaseLoad::ThreePhaseLoad(double rP, double rQ, const std::string& objName):
-    Load(rP, rQ, objName)
+ThreePhaseLoad::ThreePhaseLoad(double realPower, double reactivePower, const std::string& objName):
+    Load(realPower, reactivePower, objName)
 {
-    Pa = Pb = Pc = rP / 3.0;
-    Qa = Pb = Pc = rQ / 3.0;
+    Pa = Pb = Pc = realPower / 3.0;
+    Qa = Qb = Qc = reactivePower / 3.0;
 }
 
 void ThreePhaseLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -359,14 +360,12 @@ IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*inputs*/,
     return getReactivePower3Phase(type);
 }
 /** get the 3 phase real output power that based on the given voltage
-@param[in] V the bus voltage
 @return the real power consumed by the load*/
 IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*V*/, phase_type_t type) const
 {
     return getRealPower3Phase(type);
 }
 /** get the 3 phase reactive output power that based on the given voltage
-@param[in] V the bus voltage
 @return the reactive power consumed by the load*/
 IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*V*/, phase_type_t type) const
 {
@@ -459,4 +458,5 @@ const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
     return Load::outputNames();
 }
 
+// NOLINTEND(readability-identifier-length,bugprone-throwing-static-initialization,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 }  // namespace griddyn::loads

@@ -36,7 +36,7 @@ endif()
 
 # Target must already exist
 macro(add_gtest TESTNAME)
-    target_link_libraries(${TESTNAME} PUBLIC gtest gmock gtest_main)
+    target_link_libraries(${TESTNAME} PUBLIC gmock_main)
 
     if(GOOGLE_TEST_INDIVIDUAL)
         gtest_discover_tests(${TESTNAME} TEST_PREFIX "${TESTNAME}." PROPERTIES FOLDER "Tests")

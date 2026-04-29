@@ -22,7 +22,7 @@ class solverMode;
 and other internal states
 @details numerically computes the elements of the Jacobian matrix of the internal states of the
 given object
-@param[in] obj the object to compute the partial derivatives for
+@param[in] comp the object to compute the partial derivatives for
 @param[in] inputs the inputs for the secondary object
 * @param[in] sD the current state data for the simulation
 * @param[out] md  the array to store the information in
@@ -39,9 +39,9 @@ void numericJacobianCalculation(gridComponent* comp,
 
 /**
 @brief function to copy the local state of an object from one data to another
-@param[in] obj  the object to copy the state for
+@param[in] comp  the object to copy the state for
 @param[in] state the current state vector
-@param[out]  the location to copy the state information
+@param[out] newstate the location to copy the state information
 @param[in] sMode the solver mode corresponding to the state
 */
 void copyObjectLocalState(const gridComponent* comp,
@@ -50,7 +50,7 @@ void copyObjectLocalState(const gridComponent* comp,
                           const solverMode& sMode);
 
 /** @brief get a vector of all the local state locations of an object
-@param[in] obj  the object get all the state locations
+@param[in] comp  the object get all the state locations
 @param[in] sMode the solver mode to get the locations for
 @return a vector containing the indices of the states
 */

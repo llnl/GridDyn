@@ -10,6 +10,8 @@
 #include "internal/griddyn_export_internal.h"
 #include "runner/gridDynRunner.h"
 #include "utilities/matrixDataCustomWriteOnly.hpp"
+#include <algorithm>
+#include <utility>
 #include <vector>
 
 using griddyn::Area;
@@ -84,8 +86,10 @@ void gridDynSimulationGetResults(GridDynSimulation sim,
         return;
     }
     fvecfunc.first(runner->getSim().get(), dataVec);
-    for (int ii = 0; (ii < maxSize) && (ii < static_cast<int>(dataVec.size())); ++ii) {
-        data[ii] = dataVec[ii];
+    const auto copySize =
+        static_cast<size_t>((std::max)(0, (std::min)(maxSize, static_cast<int>(dataVec.size()))));
+    for (size_t index = 0; index < copySize; ++index) {
+        data[index] = dataVec[index];
     }
     if (actualSize != nullptr) {
         *actualSize = (std::min)(maxSize, static_cast<int>(dataVec.size()));
@@ -167,7 +171,6 @@ void gridDynSimulationGetStateVariableTypes(GridDynSimulation sim,
         return;
     }
     runner->getSim()->getVariableType(types, sMode);
-    griddyn_ok;
 }
 
 void gridDynSimulationResidual(GridDynSimulation sim,
@@ -239,7 +242,7 @@ void gridDynSimulationJacobian(GridDynSimulation sim,
                                double time,
                                const double* states,
                                const double* dstate_dt,
-                               double cj,
+                               double cj,  // NOLINT(readability-identifier-length)
                                SolverKey key,
                                void (*insert)(int, int, double),
                                GridDynError* err)
@@ -255,9 +258,9 @@ void gridDynSimulationJacobian(GridDynSimulation sim,
         assignError(err, griddyn_error_invalid_object, invalidSolver);
         return;
     }
-    matrixDataCustomWriteOnly<double> md;
-    md.setFunction([insert](index_t row, index_t col, double val) {
+    matrixDataCustomWriteOnly<double> matrixData;
+    matrixData.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });
-    runner->getSim()->jacobianFunction(time, states, dstate_dt, md, cj, sMode);
+    runner->getSim()->jacobianFunction(time, states, dstate_dt, matrixData, cj, sMode);
 }

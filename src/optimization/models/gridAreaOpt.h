@@ -42,14 +42,14 @@ class gridAreaOpt: public gridOptObject {
     // add components
 
     void add(coreObject* obj) override;
-    void add(gridAreaOpt* area);
+    void add(gridAreaOpt* areaObj);
     void add(gridBusOpt* bus);
     void add(gridLinkOpt* lnk);
     void add(gridRelayOpt* relay);
 
     // remove components
     void remove(coreObject* obj) override;
-    void remove(gridAreaOpt* area);
+    void remove(gridAreaOpt* areaObj);
     void remove(gridBusOpt* bus);
     void remove(gridLinkOpt* lnk);
     void remove(gridRelayOpt* relay);

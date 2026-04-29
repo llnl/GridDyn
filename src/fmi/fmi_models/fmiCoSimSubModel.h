@@ -78,9 +78,9 @@ class fmiCoSimSubModel: public gridSubModel {
 
     virtual double getOutput(index_t outputNum = 0) const override;
 
-    virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode) override;
+    virtual void updateLocalCache([[maybe_unused]] const IOdata& inputs,
+                                  [[maybe_unused]] const stateData& sD,
+                                  [[maybe_unused]] const solverMode& sMode) override;
     bool isLoaded() const;
 
   protected:

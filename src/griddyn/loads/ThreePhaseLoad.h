@@ -37,7 +37,9 @@ conversions to positive sequence values.
         double multiplier = 1.0;  //!< phase multiplier for amplifying current inputs
       public:
         explicit ThreePhaseLoad(const std::string& objName = "load_$");
-        ThreePhaseLoad(double rP, double rQ, const std::string& objName = "load_$");
+        ThreePhaseLoad(double realPower,
+                       double reactivePower,
+                       const std::string& objName = "load_$");
 
         virtual coreObject* clone(coreObject* obj = nullptr) const override;
 

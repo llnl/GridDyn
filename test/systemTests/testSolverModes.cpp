@@ -13,6 +13,5 @@
 #include <string>
 
 using namespace griddyn;
-static const char solverMode_test_directory[] = GRIDDYN_TEST_DIRECTORY "/solvermode_tests/";
 
 class SolverModeTests: public gridDynSimulationTestFixture, public ::testing::Test {};

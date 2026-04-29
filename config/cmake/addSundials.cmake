@@ -243,6 +243,14 @@ if(${PROJECT_NAME}_ENABLE_ARKODE)
     list(APPEND SUNDIALS_LIBRARIES sundials_arkode_static)
 endif()
 
+if(NOT MSVC)
+    foreach(_sundials_target IN LISTS SUNDIALS_LIBRARIES)
+        if(TARGET ${_sundials_target})
+            target_compile_options(${_sundials_target} PRIVATE -Wno-deprecated-declarations)
+        endif()
+    endforeach()
+endif()
+
 set_target_properties(sundials_all PROPERTIES FOLDER sundials)
 
 target_link_libraries(sundials_all INTERFACE ${SUNDIALS_LIBRARIES})

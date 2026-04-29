@@ -33,9 +33,6 @@ class grabberSet: public objectOperatorInterface {
   private:
     std::shared_ptr<gridGrabber> grab;  //!< the non state grabber
     std::shared_ptr<stateGrabber> stGrab;  //!< the state grabber
-    index_t seqID = 0;  //!< the last sequence ID for the state grabber
-    bool usePredictor = false;  //!< indicator that the Grabber should use a predictor
-    double lastValue = 0;  //!< the last value captured related to seqID;
     std::unique_ptr<utilities::valuePredictor<coreTime, double, double>>
         predictor;  //!< pointer to a predictor object
 

@@ -6,8 +6,7 @@
 
 #include "tcpCollector.h"
 
-#include "AsioServiceManager.h"
-#include "TcpHelperClasses.h"
+#include "gmlc/networking/AsioContextManager.h"
 #include <memory>
 #include <string>
 
@@ -43,7 +42,8 @@ void tcpCollector::cloneTo(collector* col) const
 change_code tcpCollector::trigger(coreTime time)
 {
     if (!connection) {
-        connection = TcpConnection::create(AsioServiceManager::getService(), server, port);
+        connection = gmlc::networking::TcpConnection::create(
+            gmlc::networking::AsioContextManager::getContext(), server, port);
     }
     auto out = collector::trigger(time);
     // figure out what to do with the data

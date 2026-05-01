@@ -6,18 +6,17 @@
 
 #pragma once
 
+#include "gmlc/networking/TcpConnection.h"
 #include "griddyn/measurement/collector.h"
 #include <memory>
 #include <string>
 
 namespace griddyn::tcpLib {
-class TcpConnection;
-
 class tcpCollector: public collector {
   private:
     std::string server;
     std::string port;
-    std::shared_ptr<TcpConnection> connection;
+    std::shared_ptr<gmlc::networking::TcpConnection> connection;
 
   public:
     tcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);

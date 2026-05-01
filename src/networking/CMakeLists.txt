@@ -11,6 +11,16 @@
 set(networking_sources networkingInterface.cpp)
 set(networking_headers networkingInterface.h)
 
+if(NOT TARGET gmlc::networking)
+    add_subdirectory(
+        ${PROJECT_SOURCE_DIR}/ThirdParty/networking ${PROJECT_BINARY_DIR}/ThirdParty/networking
+        EXCLUDE_FROM_ALL
+    )
+endif()
+if(TARGET gmlc_networking)
+    set_target_properties(gmlc_networking PROPERTIES FOLDER Extern)
+endif()
+
 option(GRIDDYN_ENABLE_TCP "Enable TCP connection library" ON)
 
 option(GRIDDYN_ENABLE_DIME "Enable connection with Dime" OFF)
@@ -83,13 +93,9 @@ if(GRIDDYN_ENABLE_DIME)
 endif()
 
 if(GRIDDYN_ENABLE_TCP)
-    set(tcpInterface_sources AsioServiceManager.cpp tcpCommunicator.cpp tcpInterface.cpp
-                             TcpHelperClasses.cpp tcpCollector.cpp
-    )
+    set(tcpInterface_sources tcpCommunicator.cpp tcpInterface.cpp tcpCollector.cpp)
 
-    set(tcpInterface_headers AsioServiceManager.h tcpCommunicator.h tcpInterface.h
-                             TcpHelperClasses.h tcpCollector.h
-    )
+    set(tcpInterface_headers tcpCommunicator.h tcpInterface.h tcpCollector.h)
     list(APPEND networking_sources ${tcpInterface_sources})
     list(APPEND networking_headers ${tcpInterface_headers})
 endif()
@@ -120,6 +126,7 @@ endif()
 
 if(GRIDDYN_ENABLE_TCP)
     source_group("tcp" FILES ${tcpInterface_sources} ${tcpInterface_headers})
+    target_link_libraries(networking PRIVATE gmlc::networking)
 endif()
 
 list(APPEND optional_library_key_headers networking/networkingInterface.h)

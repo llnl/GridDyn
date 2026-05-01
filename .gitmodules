@@ -29,3 +29,6 @@
 [submodule "ThirdParty/googletest"]
 	path = ThirdParty/googletest
 	url = https://github.com/google/googletest.git
+[submodule "ThirdParty/networking"]
+	path = ThirdParty/networking
+	url = https://github.com/GMLC-TDC/networking

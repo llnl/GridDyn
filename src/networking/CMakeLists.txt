@@ -17,6 +17,9 @@ if(NOT TARGET gmlc::networking)
         EXCLUDE_FROM_ALL
     )
 endif()
+if(TARGET gmlc_networking)
+    set_target_properties(gmlc_networking PROPERTIES FOLDER Extern)
+endif()
 
 option(GRIDDYN_ENABLE_TCP "Enable TCP connection library" ON)
 

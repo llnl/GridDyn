@@ -13,8 +13,7 @@ set(networking_headers networkingInterface.h)
 
 if(NOT TARGET gmlc::networking)
     add_subdirectory(
-        ${PROJECT_SOURCE_DIR}/ThirdParty/networking
-        ${PROJECT_BINARY_DIR}/ThirdParty/networking
+        ${PROJECT_SOURCE_DIR}/ThirdParty/networking ${PROJECT_BINARY_DIR}/ThirdParty/networking
         EXCLUDE_FROM_ALL
     )
 endif()

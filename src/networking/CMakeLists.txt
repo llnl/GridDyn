@@ -101,10 +101,7 @@ if(GRIDDYN_ENABLE_TCP)
 endif()
 
 add_library(networking STATIC ${networking_sources} ${networking_headers})
-target_include_directories(
-    networking
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
-)
+target_include_directories(networking PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>)
 
 # TODO might not need this
 target_link_libraries(networking PRIVATE griddyn)

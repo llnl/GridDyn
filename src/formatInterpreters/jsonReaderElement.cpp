@@ -56,7 +56,8 @@ bool parseJsonStream(std::istream& stream, JsonValue& output, std::string& errs)
     try {
         output = JsonValue::parse(stream);
         return true;
-    } catch (const JsonValue::parse_error& err) {
+    }
+    catch (const JsonValue::parse_error& err) {
         errs = err.what();
         return false;
     }

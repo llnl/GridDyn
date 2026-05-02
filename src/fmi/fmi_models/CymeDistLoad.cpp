@@ -66,7 +66,8 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     bool ok = true;
     try {
         doc = nlohmann::ordered_json::parse(file);
-    } catch (const nlohmann::ordered_json::parse_error& err) {
+    }
+    catch (const nlohmann::ordered_json::parse_error& err) {
         errs = err.what();
         ok = false;
     }

@@ -8,7 +8,6 @@
 
 #include "nlohmann/json.hpp"
 #include "zmqLibrary/zmqContextManager.h"
-
 #include <cstring>
 #include <memory>
 #include <string>

@@ -215,32 +215,31 @@ void cvodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) const
     CVodeGetTolScaleFactor(solverMem, &tolsfac);
     check_flag(&retval, "CVodeGetTolScaleFactor", 1);
 
-    auto logstr = std::format(
-        "CVode Run Statistics: \n"
-        "Number of steps                    = {}\n"
-        "Number of residual evaluations     = {}\n"
-        "Number of Jacobian evaluations     = {}\n"
-        "Number of nonlinear iterations     = {}\n"
-        "Number of error test failures      = {}\n"
-        "Number of nonlinear conv. failures = {}\n"
-        "Number of root fn. evaluations     = {}\n"
-        "Current order used                 = {}\n"
-        "Current step                       = {}\n"
-        "Last order used                    = {}\n"
-        "Last step                          = {}\n"
-        "Tolerance scale factor             = {}\n",
-        nst,
-        nre,
-        jacCallCount,
-        nni,
-        netf,
-        ncfn,
-        nge,
-        kcur,
-        hcur,
-        klast,
-        hlast,
-        tolsfac);
+    auto logstr = std::format("CVode Run Statistics: \n"
+                              "Number of steps                    = {}\n"
+                              "Number of residual evaluations     = {}\n"
+                              "Number of Jacobian evaluations     = {}\n"
+                              "Number of nonlinear iterations     = {}\n"
+                              "Number of error test failures      = {}\n"
+                              "Number of nonlinear conv. failures = {}\n"
+                              "Number of root fn. evaluations     = {}\n"
+                              "Current order used                 = {}\n"
+                              "Current step                       = {}\n"
+                              "Last order used                    = {}\n"
+                              "Last step                          = {}\n"
+                              "Tolerance scale factor             = {}\n",
+                              nst,
+                              nre,
+                              jacCallCount,
+                              nni,
+                              netf,
+                              ncfn,
+                              nge,
+                              kcur,
+                              hcur,
+                              klast,
+                              hlast,
+                              tolsfac);
 
     if (m_gds != nullptr) {
         logging::log_to(m_gds, m_gds, logLevel, logstr);
@@ -261,8 +260,7 @@ void cvodeInterface::logErrorWeights(print_level logLevel) const
     check_flag(&retval, "CVodeGetEstLocalErrors", 1);
     std::string logstr = "Error Weight\tEstimated Local Errors\n";
     for (index_t kk = 0; kk < svsize; ++kk) {
-        std::format_to(
-            std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
+        std::format_to(std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
     }
 
     if (m_gds != nullptr) {

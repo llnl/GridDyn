@@ -416,105 +416,101 @@ inline bool isSameObject(const coreObject* o1, id_type_t id)
 print_level stringToPrintLevel(const std::string& level);
 
 namespace logging {
-[[nodiscard]] inline bool should_log(const coreObject* logger, print_level level)
-{
-    return (logger != nullptr) && logger->shouldLog(level);
-}
-
-inline void log_to(coreObject* logger,
-                   coreObject* object,
-                   print_level level,
-                   const std::string& message)
-{
-    if (!should_log(logger, level)) {
-        return;
+    [[nodiscard]] inline bool should_log(const coreObject* logger, print_level level)
+    {
+        return (logger != nullptr) && logger->shouldLog(level);
     }
-    logger->log(object, level, message);
-}
 
-inline void log_to(coreObject* logger,
-                   coreObject* object,
-                   print_level level,
-                   std::string_view message)
-{
-    if (!should_log(logger, level)) {
-        return;
+    inline void log_to(coreObject* logger,
+                       coreObject* object,
+                       print_level level,
+                       const std::string& message)
+    {
+        if (!should_log(logger, level)) {
+            return;
+        }
+        logger->log(object, level, message);
     }
-    logger->log(object, level, std::string{message});
-}
 
-inline void log_to(coreObject* logger,
-                   coreObject* object,
-                   print_level level,
-                   const char* message)
-{
-    if (!should_log(logger, level)) {
-        return;
+    inline void
+        log_to(coreObject* logger, coreObject* object, print_level level, std::string_view message)
+    {
+        if (!should_log(logger, level)) {
+            return;
+        }
+        logger->log(object, level, std::string{message});
     }
-    logger->log(object, level, std::string{message});
-}
 
-template<class... Args>
-inline void log_to(coreObject* logger,
-                   coreObject* object,
-                   print_level level,
-                   std::string_view formatText,
-                   Args&&... args)
-{
-    if (!should_log(logger, level)) {
-        return;
+    inline void
+        log_to(coreObject* logger, coreObject* object, print_level level, const char* message)
+    {
+        if (!should_log(logger, level)) {
+            return;
+        }
+        logger->log(object, level, std::string{message});
     }
-    auto formatArgs = std::make_tuple(std::forward<Args>(args)...);
-    logger->log(object,
-                level,
-                std::apply(
-                    [formatText](auto&... storedArgs) {
-                        return std::vformat(formatText, std::make_format_args(storedArgs...));
-                    },
-                    formatArgs));
-}
 
-template<class... Args>
-inline void log_self(coreObject* logger, print_level level, Args&&... args)
-{
-    log_to(logger, logger, level, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void log_to(coreObject* logger,
+                       coreObject* object,
+                       print_level level,
+                       std::string_view formatText,
+                       Args&&... args)
+    {
+        if (!should_log(logger, level)) {
+            return;
+        }
+        auto formatArgs = std::make_tuple(std::forward<Args>(args)...);
+        logger->log(object,
+                    level,
+                    std::apply(
+                        [formatText](auto&... storedArgs) {
+                            return std::vformat(formatText, std::make_format_args(storedArgs...));
+                        },
+                        formatArgs));
+    }
 
-template<class... Args>
-inline void error(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::error, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void log_self(coreObject* logger, print_level level, Args&&... args)
+    {
+        log_to(logger, logger, level, std::forward<Args>(args)...);
+    }
 
-template<class... Args>
-inline void warning(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::warning, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void error(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::error, std::forward<Args>(args)...);
+    }
 
-template<class... Args>
-inline void summary(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::summary, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void warning(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::warning, std::forward<Args>(args)...);
+    }
 
-template<class... Args>
-inline void normal(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::normal, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void summary(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::summary, std::forward<Args>(args)...);
+    }
 
-template<class... Args>
-inline void debug(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::debug, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void normal(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::normal, std::forward<Args>(args)...);
+    }
 
-template<class... Args>
-inline void trace(coreObject* logger, Args&&... args)
-{
-    log_self(logger, print_level::trace, std::forward<Args>(args)...);
-}
+    template<class... Args>
+    inline void debug(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::debug, std::forward<Args>(args)...);
+    }
+
+    template<class... Args>
+    inline void trace(coreObject* logger, Args&&... args)
+    {
+        log_self(logger, print_level::trace, std::forward<Args>(args)...);
+    }
 }  // namespace logging
 
 }  // namespace griddyn

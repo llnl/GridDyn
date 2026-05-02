@@ -369,8 +369,9 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                         return NO_SLACK_BUS_FOUND;
                     }
 
-                    logging::warning(
-                        this, "no SLK or PV bus found in network {} disconnecting buses", nn);
+                    logging::warning(this,
+                                     "no SLK or PV bus found in network {} disconnecting buses",
+                                     nn);
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
                             logging::normal(this,
@@ -732,7 +733,8 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                                 break;
                         }
                     } else {
-                        logging::summary(this, "No Differential states reverting to stepped power flow");
+                        logging::summary(this,
+                                         "No Differential states reverting to stepped power flow");
                         out = eventDrivenPowerflow(t_end, stepTime);
                     }
 

@@ -740,8 +740,11 @@ int gridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         if ((logPrintLevel >= print_level::debug) || (consolePrintLevel >= print_level::debug)) {
             stringVec snames;
             getStateName(snames, sMode);
-            logging::debug(
-                this, "state {}:{} error= {}", maxResid.second, snames[maxResid.second], maxResid.first);
+            logging::debug(this,
+                           "state {}:{} error= {}",
+                           maxResid.second,
+                           snames[maxResid.second],
+                           maxResid.first);
         }
         // converge (currentTime, dynData->state_data (), dynData->deriv_data (), sMode,
         // converge_mode::high_error_only, 0.05);

@@ -78,8 +78,9 @@ int gridDynSimulation::powerflow()
                     logging::warning(this, "solver error return code:{}", retval);
 
                     if (controlFlags[no_powerflow_error_recovery]) {
-                        logging::error(
-                            this, "unable to solve power flow ||{}", pFlowData->getLastErrorString());
+                        logging::error(this,
+                                       "unable to solve power flow ||{}",
+                                       pFlowData->getLastErrorString());
 
                         return retval;
                     }
@@ -109,8 +110,9 @@ int gridDynSimulation::powerflow()
                             }
                         }
 
-                        logging::error(
-                            this, "unable to solve power flow ||{}", pFlowData->getLastErrorString());
+                        logging::error(this,
+                                       "unable to solve power flow ||{}",
+                                       pFlowData->getLastErrorString());
                         return retval;
                     }
 
@@ -188,7 +190,8 @@ int gridDynSimulation::powerflow()
                 }
                 power_iteration_count++;
                 if (power_iteration_count > max_Padjust_iterations) {
-                    logging::warning(this, "WARNING::Power Adjust Loop iteration count limit exceeded");
+                    logging::warning(this,
+                                     "WARNING::Power Adjust Loop iteration count limit exceeded");
                     break;
                 }
             }

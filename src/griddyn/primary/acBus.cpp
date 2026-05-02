@@ -245,8 +245,8 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
                       // accounting purposes so add a
             // default one
             if (!CHECK_CONTROLFLAG(flags, no_auto_autogen)) {
-                logging::normal(
-                    this, "SLK BUS with No adjustable power elements, enabling auto_gen");
+                logging::normal(this,
+                                "SLK BUS with No adjustable power elements, enabling auto_gen");
                 opFlags.set(use_autogen);
             }
         }
@@ -1581,7 +1581,10 @@ void acBus::residual(const IOdata& inputs,
 
                 resid[Voffset] = S.sumQ();
                 if (std::abs(resid[Voffset]) > 0.5) {
-                    logging::trace(this, "sid={}::high voltage resid = {}", sD.seqID, resid[Voffset]);
+                    logging::trace(this,
+                                   "sid={}::high voltage resid = {}",
+                                   sD.seqID,
+                                   resid[Voffset]);
                 }
             } else {
                 resid[Voffset] = sD.state[Voffset] - voltage;

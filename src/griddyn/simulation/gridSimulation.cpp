@@ -135,8 +135,11 @@ void gridSimulation::saveRecorders()
             logging::normal(this, "collector successfully flushed to: {}", col->getSinkName());
         }
         catch (const std::exception& e) {
-            logging::error(
-                this, "unable to flush collector {} (to {}): {}", col->getName(), col->getSinkName(), e.what());
+            logging::error(this,
+                           "unable to flush collector {} (to {}): {}",
+                           col->getName(),
+                           col->getSinkName(),
+                           e.what());
         }
     }
 }

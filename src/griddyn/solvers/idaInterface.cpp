@@ -188,43 +188,41 @@ void idaInterface::logSolverStats(print_level logLevel, bool iconly) const
         check_flag(&retval, "IDAGetLastStep", 1);
         retval = IDAGetTolScaleFactor(solverMem, &tolsfac);
         check_flag(&retval, "IDAGetTolScaleFactor", 1);
-        logstr = std::format(
-            "IDA Run Statistics: \n"
-            "Number of steps                    = {}\n"
-            "Number of residual evaluations     = {}\n"
-            "Number of Jacobian evaluations     = {}\n"
-            "Number of nonlinear iterations     = {}\n"
-            "Number of error test failures      = {}\n"
-            "Number of nonlinear conv. failures = {}\n"
-            "Number of root fn. evaluations     = {}\n"
-            "Current order used                 = {}\n"
-            "Current step                       = {}\n"
-            "Last order used                    = {}\n"
-            "Last step                          = {}\n"
-            "Tolerance scale factor             = {}\n",
-            nst,
-            nre,
-            nje,
-            nni,
-            netf,
-            ncfn,
-            nge,
-            kcur,
-            hcur,
-            klast,
-            hlast,
-            tolsfac);
+        logstr = std::format("IDA Run Statistics: \n"
+                             "Number of steps                    = {}\n"
+                             "Number of residual evaluations     = {}\n"
+                             "Number of Jacobian evaluations     = {}\n"
+                             "Number of nonlinear iterations     = {}\n"
+                             "Number of error test failures      = {}\n"
+                             "Number of nonlinear conv. failures = {}\n"
+                             "Number of root fn. evaluations     = {}\n"
+                             "Current order used                 = {}\n"
+                             "Current step                       = {}\n"
+                             "Last order used                    = {}\n"
+                             "Last step                          = {}\n"
+                             "Tolerance scale factor             = {}\n",
+                             nst,
+                             nre,
+                             nje,
+                             nni,
+                             netf,
+                             ncfn,
+                             nge,
+                             kcur,
+                             hcur,
+                             klast,
+                             hlast,
+                             tolsfac);
     } else {
-        logstr = std::format(
-            "IDACalcIC Statistics: \n"
-            "Number of residual evaluations     = {}\n"
-            "Number of Jacobian evaluations     = {}\n"
-            "Number of nonlinear iterations     = {}\n"
-            "Number of nonlinear conv. failures = {}\n",
-            nre,
-            nje,
-            nni,
-            ncfn);
+        logstr = std::format("IDACalcIC Statistics: \n"
+                             "Number of residual evaluations     = {}\n"
+                             "Number of Jacobian evaluations     = {}\n"
+                             "Number of nonlinear iterations     = {}\n"
+                             "Number of nonlinear conv. failures = {}\n",
+                             nre,
+                             nje,
+                             nni,
+                             ncfn);
     }
 
     if (m_gds != nullptr) {
@@ -245,8 +243,7 @@ void idaInterface::logErrorWeights(print_level logLevel) const
     IDAGetEstLocalErrors(solverMem, ele);
     std::string logstr = "Error Weight\tEstimated Local Errors\n";
     for (count_t kk = 0; kk < svsize; ++kk) {
-        std::format_to(
-            std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
+        std::format_to(std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
     }
 
     if (m_gds != nullptr) {

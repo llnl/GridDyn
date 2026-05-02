@@ -464,8 +464,12 @@ void SolverInterface::check_flag(void* flagvalue,
         auto* errflag = reinterpret_cast<int*>(flagvalue);
         if (*errflag < 0) {
             if (printError) {
-                logging::log_to(
-                    m_gds, m_gds, print_level::error, "{} failed with flag = {}", funcname, *errflag);
+                logging::log_to(m_gds,
+                                m_gds,
+                                print_level::error,
+                                "{} failed with flag = {}",
+                                funcname,
+                                *errflag);
             }
             throw(solverException(*errflag));
         }

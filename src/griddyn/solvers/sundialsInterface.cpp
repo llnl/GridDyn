@@ -358,8 +358,8 @@ void sundialsErrorHandlerFunc(int line,
         return;
     }
     auto sd = reinterpret_cast<SolverInterface*>(user_data);
-    auto message = std::format(
-        "SUNDIALS ERROR({}) in {} [{}:{}]::{}", error_code, function, file, line, msg);
+    auto message =
+        std::format("SUNDIALS ERROR({}) in {} [{}:{}]::{}", error_code, function, file, line, msg);
     sd->logMessage(error_code, message);
 }
 

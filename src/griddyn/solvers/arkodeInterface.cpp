@@ -210,29 +210,28 @@ void arkodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     ARKodeGetLastStep(solverMem, &hlast);
     ARKodeGetTolScaleFactor(solverMem, &tolsfac);
 
-    auto logstr = std::format(
-        "Arkode Run Statistics: \n"
-        "Number of steps                    = {}\n"
-        "Number of rhs evaluations (explicit/implicit) = {}/{}\n"
-        "Number of Jacobian evaluations     = {}\n"
-        "Number of nonlinear iterations     = {}\n"
-        "Number of error test failures      = {}\n"
-        "Number of nonlinear conv. failures = {}\n"
-        "Number of root fn. evaluations     = {}\n"
-        "Current step                       = {}\n"
-        "Last step                          = {}\n"
-        "Tolerance scale factor             = {}\n",
-        nst,
-        nre,
-        nfi,
-        jacCallCount,
-        nni,
-        netf,
-        ncfn,
-        nge,
-        hcur,
-        hlast,
-        tolsfac);
+    auto logstr = std::format("Arkode Run Statistics: \n"
+                              "Number of steps                    = {}\n"
+                              "Number of rhs evaluations (explicit/implicit) = {}/{}\n"
+                              "Number of Jacobian evaluations     = {}\n"
+                              "Number of nonlinear iterations     = {}\n"
+                              "Number of error test failures      = {}\n"
+                              "Number of nonlinear conv. failures = {}\n"
+                              "Number of root fn. evaluations     = {}\n"
+                              "Current step                       = {}\n"
+                              "Last step                          = {}\n"
+                              "Tolerance scale factor             = {}\n",
+                              nst,
+                              nre,
+                              nfi,
+                              jacCallCount,
+                              nni,
+                              netf,
+                              ncfn,
+                              nge,
+                              hcur,
+                              hlast,
+                              tolsfac);
 
     if (m_gds != nullptr) {
         logging::log_to(m_gds, m_gds, logLevel, logstr);
@@ -254,8 +253,7 @@ void arkodeInterface::logErrorWeights(print_level logLevel) const
     check_flag(&retval, "ARKodeGetEstLocalErrors ", 1);
     std::string logstr = "Error Weight\tEstimated Local Errors\n";
     for (index_t kk = 0; kk < svsize; ++kk) {
-        std::format_to(
-            std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
+        std::format_to(std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
     }
 
     if (m_gds != nullptr) {

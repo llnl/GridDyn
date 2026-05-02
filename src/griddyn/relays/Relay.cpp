@@ -871,12 +871,11 @@ void Relay::actionTaken(index_t ActionNum,
     static_cast<void>(ActionNum);
     static_cast<void>(conditionNum);
     static_cast<void>(actionReturn);
-    logging::debug(
-        this,
-        "action {} taken based on condition {}  with return code {}",
-        ActionNum,
-        conditionNum,
-        static_cast<int>(actionReturn));
+    logging::debug(this,
+                   "action {} taken based on condition {}  with return code {}",
+                   ActionNum,
+                   conditionNum,
+                   static_cast<int>(actionReturn));
 }
 void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
 {
@@ -888,9 +887,10 @@ void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
                        conditionNum,
                        static_cast<double>(timeTriggered));
     } else {
-        logging::debug(
-            this,
-            "condition {} triggered at {:f}", conditionNum, static_cast<double>(timeTriggered));
+        logging::debug(this,
+                       "condition {} triggered at {:f}",
+                       conditionNum,
+                       static_cast<double>(timeTriggered));
     }
 }
 void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)

@@ -122,14 +122,13 @@ void kinsolInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     flag = KINGetNumLinFuncEvals(solverMem, &nfeD);
     check_flag(&flag, "KINGetNumLinFuncEvals", 1);
 
-    auto logstr = std::format(
-        "Kinsoln Statistics: \n"
-        "Number of nonlinear iterations    = {}\n"
-        "Number of function evaluations    = {}\n"
-        "Number of Jacobian evaluations    = {}\n",
-        nni,
-        nfe,
-        nje);
+    auto logstr = std::format("Kinsoln Statistics: \n"
+                              "Number of nonlinear iterations    = {}\n"
+                              "Number of function evaluations    = {}\n"
+                              "Number of Jacobian evaluations    = {}\n",
+                              nni,
+                              nfe,
+                              nje);
     if (nfeD > 0) {
         logstr += std::format("Number of Jacobian function calls = {}\n", nfeD);
     }

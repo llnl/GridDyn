@@ -74,9 +74,8 @@ else()
 endif()
 
 target_link_libraries(
-    utilities
-    PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
-           spdlog::spdlog
+    utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
+                     spdlog::spdlog
 )
 
 set_target_properties(utilities PROPERTIES FOLDER libraries)

@@ -12,7 +12,7 @@
 
 class jsonElement {
   public:
-    using JsonValue = nlohmann::ordered_json;
+    using JsonValue = nlohmann::json;
 
     int elementIndex = 0;
     std::string name;

@@ -63,7 +63,7 @@ class jsonReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<nlohmann::ordered_json> doc;  //!< document root
+    std::shared_ptr<nlohmann::json> doc;  //!< document root
     std::vector<std::shared_ptr<jsonElement>> parents;
     std::shared_ptr<jsonElement> current;
     int iteratorCount = 0;

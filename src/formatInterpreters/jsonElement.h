@@ -6,23 +6,26 @@
 
 #pragma once
 
-#include "json/json.h"
+#include "nlohmann/json.hpp"
+#include <cstddef>
 #include <string>
 
 class jsonElement {
   public:
+    using JsonValue = nlohmann::ordered_json;
+
     int elementIndex = 0;
     std::string name;
-    Json::ArrayIndex arrayIndex = 0;
+    std::size_t arrayIndex = 0;
     jsonElement() noexcept {}
-    jsonElement(Json::Value vElement, std::string newName);
+    jsonElement(JsonValue vElement, std::string newName);
 
     void clear();
-    const Json::Value& getElement() const { return (arraytype) ? element[arrayIndex] : element; }
-    Json::ArrayIndex count() const { return (arraytype) ? element.size() : Json::ArrayIndex(1); }
-    bool isNull() const { return (arraytype) ? element[arrayIndex].isNull() : element.isNull(); }
+    const JsonValue& getElement() const { return (arraytype) ? element[arrayIndex] : element; }
+    std::size_t count() const { return (arraytype) ? element.size() : std::size_t{1}; }
+    bool isNull() const { return (arraytype) ? element[arrayIndex].is_null() : element.is_null(); }
 
   private:
-    Json::Value element = Json::nullValue;
+    JsonValue element = nullptr;
     bool arraytype = false;
 };

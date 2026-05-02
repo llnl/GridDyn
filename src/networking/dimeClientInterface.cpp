@@ -6,19 +6,21 @@
 
 #include "dimeClientInterface.h"
 
+#include "nlohmann/json.hpp"
 #include "zmqLibrary/zmqContextManager.h"
 
-#ifdef _MSC_VER
-#    pragma warning(push)
-#    pragma warning(disable : 4702)
-#    include "json/json.h"
-#    pragma warning(pop)
-#else
-#    include "json/json.h"
-#endif
-
+#include <cstring>
 #include <memory>
 #include <string>
+
+namespace {
+using JsonValue = nlohmann::ordered_json;
+
+std::string toJsonString(const JsonValue& value)
+{
+    return value.dump();
+}
+}  // namespace
 
 dimeClientInterface::dimeClientInterface(const std::string& dimeName,
                                          const std::string& dimeAddress):
@@ -42,20 +44,12 @@ void dimeClientInterface::init()
     socket = std::make_unique<zmq::socket_t>(context->getBaseContext(), zmq::socket_type::req);
     socket->connect(address);
 
-    Json::Value outgoing;
+    JsonValue outgoing;
     outgoing["command"] = "connect";
     outgoing["name"] = name;
     outgoing["listen_to_events"] = false;
 
-    Json::StreamWriterBuilder builder;
-    builder["commentStyle"] = "None";
-    builder["indentation"] = "   ";  // or whatever you like
-    auto writer = builder.newStreamWriter();
-    std::stringstream sstr;
-    writer->write(outgoing, &sstr);
-    delete writer;
-
-    socket->send(sstr.str());
+    socket->send(toJsonString(outgoing));
 
     char buffer[3] = {};
     auto sz = socket->recv(buffer, 3, 0);
@@ -67,20 +61,10 @@ void dimeClientInterface::init()
 void dimeClientInterface::close()
 {
     if (socket) {
-        Json::Value outgoing;
+        JsonValue outgoing;
         outgoing["command"] = "exit";
         outgoing["name"] = name;
-
-        std::stringstream ss;
-
-        Json::StreamWriterBuilder builder;
-        builder["commentStyle"] = "None";
-        builder["indentation"] = "   ";  // or whatever you like
-        auto writer = builder.newStreamWriter();
-        writer->write(outgoing, &ss);
-        delete writer;
-
-        socket->send(ss.str());
+        socket->send(toJsonString(outgoing));
 
         socket->close();
     }
@@ -89,14 +73,14 @@ void dimeClientInterface::close()
 
 void dimeClientInterface::sync() {}
 
-void encodeVariableMessage(Json::Value& data, double val)
+void encodeVariableMessage(JsonValue& data, double val)
 {
-    Json::Value content;
+    JsonValue content;
     content["stdout"] = "";
     content["figures"] = "";
     content["datadir"] = "/tmp MatlabData/";
 
-    Json::Value response;
+    JsonValue response;
     response["content"] = content;
     response["result"] = val;
     response["success"] = true;
@@ -111,29 +95,19 @@ void dimeClientInterface::send_var(const std::string& varName,
                                    const std::string& recipient)
 {
     // outgoing = { 'command': 'send', 'name' : self.name, 'args' : var_name }
-    Json::Value outgoing;
+    JsonValue outgoing;
 
     outgoing["command"] = (recipient.empty()) ? "broadcast" : "send";
 
     outgoing["name"] = name;
     outgoing["args"] = varName;
-
-    std::stringstream ss;
-
-    Json::StreamWriterBuilder builder;
-    builder["commentStyle"] = "None";
-    builder["indentation"] = "   ";  // or whatever you like
-    auto writer = builder.newStreamWriter();
-    writer->write(outgoing, &ss);
-    delete writer;
-
-    socket->send(ss.str());
+    socket->send(toJsonString(outgoing));
 
     char buffer[3];
     auto sz = socket->recv(buffer, 3, 0);
     // TODO(phlpt): Check recv value.
 
-    Json::Value outgoingData;
+    JsonValue outgoingData;
     outgoingData["command"] = "response";
     outgoingData["name"] = name;
     if (!recipient.empty()) {
@@ -142,15 +116,7 @@ void dimeClientInterface::send_var(const std::string& varName,
 
     outgoingData["meta"]["var_name"] = varName;
     encodeVariableMessage(outgoingData, val);
-
-    std::stringstream().swap(ss);  // reset ss
-
-    builder["commentStyle"] = "None";
-    builder["indentation"] = "   ";  // or whatever you like
-    writer = builder.newStreamWriter();
-    writer->write(outgoing, &ss);
-    delete writer;
-    socket->send(ss.str());
+    socket->send(toJsonString(outgoingData));
 
     sz = socket->recv(buffer, 3, 0);
     if (sz != 2)  // TODO(phlpt): Check for "OK".

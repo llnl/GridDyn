@@ -9,8 +9,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "json/reader.h"
-#include "json/value.h"
+#include "nlohmann/json.hpp"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -62,11 +61,15 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
         logging::warning(this, "unable to open the configuration file {}", configFileName);
         return;
     }
-    Json::Value doc;
-
-    Json::CharReaderBuilder rbuilder;
+    nlohmann::ordered_json doc;
     std::string errs;
-    bool ok = Json::parseFromStream(rbuilder, file, &doc, &errs);
+    bool ok = true;
+    try {
+        doc = nlohmann::ordered_json::parse(file);
+    } catch (const nlohmann::ordered_json::parse_error& err) {
+        errs = err.what();
+        ok = false;
+    }
     if (!ok) {
         fprintf(stderr, "unable to parse json file %s\n", errs.c_str());
         return;
@@ -77,14 +80,14 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     // this is ambiguous when configIndex is int64_t. unsigned skips the < 0
     // check, so pass this as signed
     auto model = mval[static_cast<int>(configIndex)];
-    if (model.isObject()) {
-        auto fmu_path = model["fmu_path"].asString();
+    if (model.is_object()) {
+        auto fmu_path = model["fmu_path"].get<std::string>();
         fprintf(stderr, "setting fmu_path to %s\n", fmu_path.c_str());
         fmiMELoad3phase::set("fmu", fmu_path);
         logging::debug(this, "setting fmu to {}", model["fmu_path"].asString());
 
-        if (model.isMember("fmu_config_path")) {
-            auto config_path = model["fmu_config_path"].asString();
+        if (model.contains("fmu_config_path")) {
+            auto config_path = model["fmu_config_path"].get<std::string>();
             fprintf(stderr, "fmu config_path=%s\n", config_path.c_str());
             if (config_path.size() > 5) {
                 fmiMELoad3phase::set("_configurationFileName", config_path);

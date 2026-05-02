@@ -11,15 +11,20 @@
 
 static const char nullStr[] = "";
 
-jsonElement::jsonElement(Json::Value vElement, std::string newName):
+static bool isJsonNodeEmpty(const jsonElement::JsonValue& value)
+{
+    return value.is_null() || ((value.is_object() || value.is_array()) && value.empty());
+}
+
+jsonElement::jsonElement(JsonValue vElement, std::string newName):
     name(std::move(newName)), element(std::move(vElement))
 {
     elementIndex = 0;
 
-    if (element.isArray()) {
+    if (element.is_array()) {
         arraytype = true;
         arrayIndex = 0;
-        while ((arrayIndex < element.size()) && (element[arrayIndex].empty())) {
+        while ((arrayIndex < element.size()) && (isJsonNodeEmpty(element[arrayIndex]))) {
             ++arrayIndex;
         }
     }
@@ -27,7 +32,7 @@ jsonElement::jsonElement(Json::Value vElement, std::string newName):
 
 void jsonElement::clear()
 {
-    element = Json::nullValue;
+    element = nullptr;
     elementIndex = 0;
     arrayIndex = 0;
     arraytype = false;

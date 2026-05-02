@@ -90,13 +90,10 @@ set_target_properties(tinyxml PROPERTIES FOLDER Extern)
 add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_headers})
 
 target_include_directories(
-    # target_link_libraries(this, jsoncpp::jsoncpp) when available
     formatInterpreter PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )
 
 target_link_libraries(formatInterpreter PUBLIC tinyxml utilities)
-
-target_link_libraries(formatInterpreter PUBLIC jsoncpp_lib)
 set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 
 if(YAML_FOUND)

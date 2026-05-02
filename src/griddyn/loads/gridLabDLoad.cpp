@@ -399,7 +399,7 @@ void gridLabDLoad::updateLocalCache(const IOdata& inputs,
 void gridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
-    LOG_TRACE("calling gridlab load 1A");
+    logging::trace(this, "calling gridlab load 1A");
     GhostSwingBusManager::cvec Vg(3);
 
     auto dt = time - m_lastCallTime;
@@ -438,7 +438,7 @@ void gridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
 
 std::vector<double> gridLabDLoad::runGridLabB(bool unbalancedAlert)
 {
-    LOG_TRACE("calling gridlab-d load 1B");
+    logging::trace(this, "calling gridlab-d load 1B");
     assert(opFlags[waiting_flag]);  // this should not happen;
     GhostSwingBusManager::cvec Ig(3);
     GhostSwingBusManager::cvec Ig2(3);
@@ -504,7 +504,7 @@ std::vector<double> gridLabDLoad::runGridLabB(bool unbalancedAlert)
 void gridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
 {
     assert(opFlags[waiting_flag] == false);  // this should not happen;
-    LOG_TRACE("calling gridlab load 2A");
+    logging::trace(this, "calling gridlab load 2A");
     GhostSwingBusManager::cvec Vg(6);
 
     auto dt = time - m_lastCallTime;
@@ -547,7 +547,7 @@ void gridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
 std::vector<double> gridLabDLoad::run2GridLabB(bool unbalancedAlert)
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
-    LOG_TRACE("calling gridlab-d load 2B");
+    logging::trace(this, "calling gridlab-d load 2B");
     // Model linear dependence on V
     GhostSwingBusManager::cvec Ig(6);
     GhostSwingBusManager::cvec Ig2(6);
@@ -625,7 +625,7 @@ std::vector<double> gridLabDLoad::run2GridLabB(bool unbalancedAlert)
 void gridLabDLoad::run3GridLabA(coreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
-    LOG_TRACE("calling gridLab-d load 3A");
+    logging::trace(this, "calling gridLab-d load 3A");
 
     GhostSwingBusManager::cvec Vg(9);
     auto dt = time - m_lastCallTime;
@@ -676,7 +676,7 @@ std::vector<double> gridLabDLoad::run3GridLabB(bool unbalancedAlert)
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
 
-    LOG_TRACE("calling gridLab-d load 3B");
+    logging::trace(this, "calling gridLab-d load 3B");
     GhostSwingBusManager::cvec Ig(9);
     GhostSwingBusManager::cvec Ig2(9);
     GhostSwingBusManager::cvec Vg(9);

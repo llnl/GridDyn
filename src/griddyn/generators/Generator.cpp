@@ -191,7 +191,8 @@ void Generator::dynObjectInitializeB(const IOdata& /*inputs*/,
         }
     }
     if (std::abs(P) > 1.2 * machineBasePower) {
-        LOG_WARNING(
+        logging::warning(
+            this,
             "Requested Power output significantly greater than internal base power, may cause dynamic "
             "model instability, suggest updating base power");
     }

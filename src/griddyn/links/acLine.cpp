@@ -280,10 +280,10 @@ void acLine::set(std::string_view param, double val, unit unitType)
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
             if ((temp < 0.0) || (temp > 1.0)) {
-                LOG_NORMAL("fault cleared");
+                logging::normal(this, "fault cleared");
             }
         } else if ((temp > 0.0) && (temp < 1.0)) {
-            LOG_NORMAL("Line fault at " + std::to_string(temp) + " of line");
+            logging::normal(this, "Line fault at {} of line", temp);
         }
 
         fault = ((temp < 1.0) && (temp > 0.0)) ?
@@ -402,7 +402,7 @@ int acLine::fixPower(double rPower,
     if (vtol < 0) {
         vtol = 1e-5;
     } else if (measureTerminal > 2) {
-        LOG_WARNING("invalid measure terminal identification");
+        logging::warning(this, "invalid measure terminal identification");
         return ret;
     }
 
@@ -417,7 +417,7 @@ int acLine::fixPower(double rPower,
         // might be a bit odd in the case of comparing afix with PV but
         fixedTerminal = (static_cast<int>(B2->getType()) > static_cast<int>(B1->getType())) ? 2 : 1;
     } else if (measureTerminal > 2) {
-        LOG_WARNING("invalid fixed terminal identification");
+        logging::warning(this, "invalid fixed terminal identification");
         return ret;
     }
     ang = asin(-valp / b / (v1 * v2 / tap));
@@ -528,7 +528,7 @@ int acLine::fixPower(double rPower,
         } else {
             err = std::abs(dP) + std::abs(dQ);
             if (err >= pErr) {
-                LOG_WARNING("convergence break increasing");
+                logging::warning(this, "convergence break increasing");
                 break;
             }
             pErr = err;
@@ -541,7 +541,7 @@ int acLine::fixPower(double rPower,
         ang += 2 * kPI;
     }
     if (std::abs(ang) > kPI / 2) {
-        LOG_WARNING("large angle");
+        logging::warning(this, "large angle");
     }
     if (fixedTerminal == 2) {
         double newAng = (measureTerminal == 2) ? (B2->getAngle() - ang + tapAngle) :
@@ -552,7 +552,7 @@ int acLine::fixPower(double rPower,
         ret = B1->propogatePower(false);
     } else {
         if (v2 > 1.5) {
-            LOG_WARNING("high voltage");
+            logging::warning(this, "high voltage");
         }
         double newAng = (measureTerminal == 1) ? (B1->getAngle() - ang - tapAngle) :
                                                  (ang + B1->getAngle() - tapAngle);
@@ -796,9 +796,9 @@ change_code acLine::rootCheck(const IOdata& /*inputs*/,
     if (level == check_level_t::complete_state_check) {
         updateLocalCache(noInputs, sD, sMode);
         if (std::abs(linkInfo.theta1) > maxAngle) {
-            LOG_WARNING("max angle 1 exceeded");
+            logging::warning(this, "max angle 1 exceeded");
         } else if (std::abs(linkInfo.theta2) > maxAngle) {
-            LOG_WARNING("max angle 2 exceeded");
+            logging::warning(this, "max angle 2 exceeded");
         }
     }
     return ret;

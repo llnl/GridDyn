@@ -195,9 +195,9 @@ void txLifeSpan::actionTaken(index_t ActionNum,
 {
     if (m_sinkObject != nullptr) {
         if (ActionNum == 0) {
-            LOG_NORMAL(m_sinkObject->getName() + " lifespan exceeded fault produced");
+            logging::normal(this, "{} lifespan exceeded fault produced", m_sinkObject->getName());
         } else if (ActionNum == 1) {
-            LOG_NORMAL(m_sinkObject->getName() + " lifespan exceeded breakers tripped");
+            logging::normal(this, "{} lifespan exceeded breakers tripped", m_sinkObject->getName());
         }
     }
 }

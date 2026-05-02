@@ -253,11 +253,11 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
             }
             catch (const std::filesystem::filesystem_error& fse) {
                 // printf("error loading object %s\n",fse.what());
-                LOG_ERROR(std::string("file system error") + fse.what());
+                logging::error(this, "file system error{}", fse.what());
             }
             if (!me) {
                 // printf("unable to load ME object\n");
-                LOG_ERROR("Unable to load FMU " + getName());
+                logging::error(this, "Unable to load FMU {}", getName());
             }
             if (!paramBuffer.empty()) {
                 paramBuffer.apply(me);

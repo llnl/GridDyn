@@ -119,7 +119,7 @@ bool gridBus::checkCapable()
     if (excessCapacity <= 0.0) {
         return true;
     }
-    LOG_WARNING("BUS failed");
+    logging::warning(this, "BUS failed");
     return false;
 }
 
@@ -1001,7 +1001,7 @@ void gridBus::disconnect()
         outLocs[angleInLocation] = kNullLocation;
         outLocs[frequencyInLocation] = kNullLocation;
         alert(this, JAC_COUNT_DECREASE);
-        LOG_DEBUG("disconnecting bus");
+        logging::debug(this, "disconnecting bus");
         voltage = 0.0;
         angle = 0.0;
         for (auto& lnk : attachedLinks) {
@@ -1013,7 +1013,7 @@ void gridBus::disconnect()
 void gridBus::reconnect(gridBus* mapBus)
 {
     if (opFlags[disconnected]) {
-        LOG_DEBUG("reconnecting to network");
+        logging::debug(this, "reconnecting to network");
         opFlags.reset(disconnected);
         alert(this, JAC_COUNT_INCREASE);
         if (mapBus != nullptr) {

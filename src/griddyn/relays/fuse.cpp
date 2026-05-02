@@ -77,7 +77,7 @@ void fuse::set(std::string_view param, double val, units::unit unitType)
         if (val > 0.001) {
             minBlowTime = val;
         } else {
-            LOG_WARNING("minimum blow time must be greater or equal to 0.001");
+            logging::warning(this, "minimum blow time must be greater or equal to 0.001");
             throw(invalidParameterValue(std::string{param}));
         }
     } else {
@@ -174,8 +174,7 @@ change_code fuse::blowFuse()
     setConditionStatus(1, condition_status_t::disabled);
     setConditionStatus(2, condition_status_t::disabled);
     alert(this, FUSE_BLOWN_CURRENT);
-    LOG_NORMAL("Fuse " + std::to_string(m_terminal) + " blown on object " +
-               m_sourceObject->getName());
+    logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
     opFlags.set(fuse_blown_flag);
     change_code cchange = change_code::non_state_change;
     if (mp_I2T > 0.0) {

@@ -282,9 +282,9 @@ void sourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
             continue;
         }
         if (sL >= static_cast<int>(sources.size())) {
-            LOG_WARNING("no source given at called index");
+            logging::warning(this, "no source given at called index");
         } else if (sources[sL] == nullptr) {
-            LOG_WARNING("no source given at called index");
+            logging::warning(this, "no source given at called index");
         }
     }
     gridSecondary::pFlowObjectInitializeA(time0, flags);  // to initialize the submodels

@@ -471,6 +471,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/utilities/gmlc/utilities/demangl
     submod_update(ThirdParty/utilities)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/spdlog/CMakeLists.txt")
+    submod_update(ThirdParty/spdlog)
+endif()
+
 if(GRIDDYN_BUILD_TESTS AND BUILD_TESTING)
     if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/googletest/CMakeLists.txt")
         submod_update(ThirdParty/googletest)
@@ -621,6 +625,11 @@ add_library(GRIDDYN::jsoncpp_lib ALIAS jsoncpp_lib)
 # -----------------------------------------------------------
 include(addUnits)
 add_library(GRIDDYN::units ALIAS units-static)
+
+# --------------------------------------------------------------
+# Create the target for spdlog
+# -----------------------------------------------------------
+include(addSpdlog)
 
 # -----------------------------------------------------------------------------
 # create utilities target

@@ -409,11 +409,11 @@ void GenModelInverter::rootTrigger(coreTime /*time*/,
         if (rootMask[ro] > 0) {
             if (opFlags[at_angle_limits]) {
                 opFlags.reset(at_angle_limits);
-                LOG_DEBUG("reset angle limit");
+                logging::debug(this, "reset angle limit");
                 algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
             } else {
                 opFlags.set(at_angle_limits);
-                LOG_DEBUG("angle at limits");
+                logging::debug(this, "angle at limits");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;
                 } else {
@@ -440,7 +440,7 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
                                                 sin(maxAngle));
                 if (inputs[genModelPmechInLocation] - pmax < -0.0001) {
                     opFlags.reset(at_angle_limits);
-                    LOG_DEBUG("reset angle limit-from root check");
+                    logging::debug(this, "reset angle limit-from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return change_code::jacobian_change;
                 }
@@ -451,7 +451,7 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
                                                 sin(minAngle));
                 if (pmin - inputs[genModelPmechInLocation] < -0.0001) {
                     opFlags.reset(at_angle_limits);
-                    LOG_DEBUG("reset angle limit- from root check");
+                    logging::debug(this, "reset angle limit- from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return change_code::jacobian_change;
                 }
@@ -460,7 +460,7 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
             auto remAngle = std::min(angle - minAngle, maxAngle - angle);
             if (remAngle < 0.0000001) {
                 opFlags.set(at_angle_limits);
-                LOG_DEBUG("angle at limit from check");
+                logging::debug(this, "angle at limit from check");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;
                 } else {

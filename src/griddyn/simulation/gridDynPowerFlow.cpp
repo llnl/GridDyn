@@ -35,7 +35,7 @@ int gridDynSimulation::powerflow()
     double prevPower = 0;
     int retval = makeReady(gridState_t::INITIALIZED, sm);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
-        LOG_ERROR("Unable to get simulation ready for power flow");
+        logging::error(this, "Unable to get simulation ready for power flow");
         return retval;
     }
     // load the vectors
@@ -75,11 +75,11 @@ int gridDynSimulation::powerflow()
                 retval = pFlowData->solve(currentTime, returnTime);
 
                 if (retval < 0) {
-                    LOG_WARNING("solver error return code:" + std::to_string(retval));
+                    logging::warning(this, "solver error return code:{}", retval);
 
                     if (controlFlags[no_powerflow_error_recovery]) {
-                        LOG_ERROR("unable to solve power flow ||" +
-                                  pFlowData->getLastErrorString());
+                        logging::error(
+                            this, "unable to solve power flow ||{}", pFlowData->getLastErrorString());
 
                         return retval;
                     }
@@ -109,8 +109,8 @@ int gridDynSimulation::powerflow()
                             }
                         }
 
-                        LOG_ERROR("unable to solve power flow ||" +
-                                  pFlowData->getLastErrorString());
+                        logging::error(
+                            this, "unable to solve power flow ||{}", pFlowData->getLastErrorString());
                         return retval;
                     }
 
@@ -120,7 +120,7 @@ int gridDynSimulation::powerflow()
                     if (!std::all_of(pFlowData->state_data(),
                                      pFlowData->state_data() + pFlowData->size(),
                                      [](double a) { return std::isfinite(a); })) {
-                        LOG_WARNING("solver returned an infinite or nan");
+                        logging::warning(this, "solver returned an infinite or nan");
                         retval = -30;
                     }
                 }
@@ -133,7 +133,7 @@ int gridDynSimulation::powerflow()
                 voltage_iteration_count++;
 
                 if (voltage_iteration_count > max_Vadjust_iterations) {
-                    LOG_WARNING("WARNING::Voltage Loop iteration count limit exceeded");
+                    logging::warning(this, "WARNING::Voltage Loop iteration count limit exceeded");
                     break;
                 }
 
@@ -188,7 +188,7 @@ int gridDynSimulation::powerflow()
                 }
                 power_iteration_count++;
                 if (power_iteration_count > max_Padjust_iterations) {
-                    LOG_WARNING("WARNING::Power Adjust Loop iteration count limit exceeded");
+                    logging::warning(this, "WARNING::Power Adjust Loop iteration count limit exceeded");
                     break;
                 }
             }
@@ -268,13 +268,13 @@ void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
         opFlags &= RESET_CHANGE_FLAG_MASK;
     }
     catch (const std::bad_alloc&) {
-        LOG_ERROR("unable to allocate memory");
+        logging::error(this, "unable to allocate memory");
         pState = gridState_t::GD_ERROR;
         setErrorCode(-101);
         throw;
     }
     catch (const solverException& se) {
-        LOG_ERROR("Initialization error");
+        logging::error(this, "Initialization error");
         pState = gridState_t::GD_ERROR;
         setErrorCode(se.code());
         throw;
@@ -291,7 +291,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
             time0 = startTime - 0.001;
         }
     }
-    LOG_NORMAL("Initializing Power flow to time " + std::to_string(time0));
+    logging::normal(this, "Initializing Power flow to time {}", static_cast<double>(time0));
     // run any events up to time0
     EvQ->executeEvents(time0 - 0.001);
 
@@ -515,7 +515,7 @@ int gridDynSimulation::algUpdateFunction(coreTime time,
     auto dynDataa = getSolverInterface(sMode);
     for (size_t kk = 0; kk < dynDataa->getSize(); ++kk) {
         if (!std::isfinite(state[kk])) {
-            LOG_ERROR("state[" + std::to_string(kk) + "] is not finite");
+            logging::error(this, "state[{}] is not finite", kk);
             return FUNCTION_EXECUTION_FAILURE;
         }
     }

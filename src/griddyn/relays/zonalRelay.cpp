@@ -198,8 +198,8 @@ void zonalRelay::actionTaken(index_t ActionNum,
                              change_code /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
-    LOG_NORMAL(std::format(
-        "condition {} action {} taken terminal {}", conditionNum, ActionNum, m_terminal));
+    logging::normal(
+        this, "condition {} action {} taken terminal {}", conditionNum, ActionNum, m_terminal);
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
@@ -217,7 +217,7 @@ void zonalRelay::actionTaken(index_t ActionNum,
 
 void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL(std::format("condition {} triggered terminal {}", conditionNum, m_terminal));
+    logging::normal(this, "condition {} triggered terminal {}", conditionNum, m_terminal);
     if (conditionNum < m_condition_level) {
         m_condition_level = conditionNum;
     }
@@ -240,7 +240,7 @@ void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime
 
 void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL(std::format("condition {} cleared terminal {}", conditionNum, m_terminal));
+    logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
     for (index_t kk = 0; kk < m_zones; ++kk) {
         if (getConditionStatus(kk) == condition_status_t::active) {
             m_condition_level = kk + 1;

@@ -31,6 +31,10 @@ coreObject* nullObject::clone(coreObject* obj) const
 
 void nullObject::alert(coreObject* /*obj*/, int /*code*/) {}
 void nullObject::log(coreObject* /*obj*/, print_level /*level*/, const std::string& /*message*/) {}
+bool nullObject::shouldLog(print_level /*level*/) const
+{
+    return false;
+}
 coreObject* nullObject::find(std::string_view /*object*/) const
 {
     return nullptr;

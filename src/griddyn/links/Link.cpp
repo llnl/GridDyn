@@ -219,10 +219,10 @@ void Link::switchMode(index_t num, bool mode)
         opFlags.flip(switch2_open_flag);
 
         if (opFlags[pFlow_initialized]) {
-            LOG_DEBUG("Switch2 changed||state =" +
-                      ((opFlags[switch2_open_flag]) ? std::string("OPEN") : std::string("CLOSED")) +
-                      ", link status =" +
-                      ((isConnected()) ? std::string("CONNECTED") : std::string("DISCONNECTED")));
+            logging::debug(this,
+                           "Switch2 changed||state ={}, link status ={}",
+                           (opFlags[switch2_open_flag]) ? "OPEN" : "CLOSED",
+                           (isConnected()) ? "CONNECTED" : "DISCONNECTED");
             if (isConnected()) {
                 reconnect();
             } else {
@@ -245,10 +245,10 @@ void Link::switchMode(index_t num, bool mode)
         opFlags.flip(switch1_open_flag);
 
         if (opFlags[pFlow_initialized]) {
-            LOG_DEBUG("Switch1 changed||state =" +
-                      ((opFlags[switch1_open_flag]) ? std::string("OPEN") : std::string("CLOSED")) +
-                      ", link status =" +
-                      ((isConnected()) ? std::string("CONNECTED") : std::string("DISCONNECTED")));
+            logging::debug(this,
+                           "Switch1 changed||state ={}, link status ={}",
+                           (opFlags[switch1_open_flag]) ? "OPEN" : "CLOSED",
+                           (isConnected()) ? "CONNECTED" : "DISCONNECTED");
             if (isConnected()) {
                 reconnect();
             } else {
@@ -290,7 +290,7 @@ void Link::disconnect()
             B2->disconnect();
         }
         updateLocalCache();
-        LOG_DEBUG("disconnecting line");
+        logging::debug(this, "disconnecting line");
         alert(this, CONNECTIVITY_CHANGE);
     }
 }
@@ -306,7 +306,7 @@ void Link::reconnect()
             opFlags.reset(switch2_open_flag);
             switchChange(2);
         }
-        LOG_DEBUG("reconnecting line");
+        logging::debug(this, "reconnecting line");
         updateLocalCache();
     }
 

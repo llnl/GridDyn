@@ -59,7 +59,7 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     std::ifstream file(configFileName);
     if (!file.is_open()) {
         std::cerr << "unable to open the file:" << configFileName << std::endl;
-        LOG_WARNING(std::string("unable to open the configuration file ") + configFileName);
+        logging::warning(this, "unable to open the configuration file {}", configFileName);
         return;
     }
     Json::Value doc;
@@ -81,14 +81,14 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
         auto fmu_path = model["fmu_path"].asString();
         fprintf(stderr, "setting fmu_path to %s\n", fmu_path.c_str());
         fmiMELoad3phase::set("fmu", fmu_path);
-        LOG_DEBUG(std::string("setting fmu to ") + model["fmu_path"].asString());
+        logging::debug(this, "setting fmu to {}", model["fmu_path"].asString());
 
         if (model.isMember("fmu_config_path")) {
             auto config_path = model["fmu_config_path"].asString();
             fprintf(stderr, "fmu config_path=%s\n", config_path.c_str());
             if (config_path.size() > 5) {
                 fmiMELoad3phase::set("_configurationFileName", config_path);
-                LOG_DEBUG(std::string("setting config file to ") + config_path);
+                logging::debug(this, "setting config file to {}", config_path);
             }
         }
     }

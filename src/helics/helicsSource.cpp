@@ -44,7 +44,7 @@ void helicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     rampSource::pFlowObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
-        LOG_WARNING("no period specified defaulting to 10s");
+        logging::warning(this, "no period specified defaulting to 10s");
         updatePeriod = 10.0;
     }
     nextUpdateTime = time0;
@@ -65,7 +65,7 @@ void helicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     rampSource::dynObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
-        LOG_WARNING("no period specified defaulting to 10s");
+        logging::warning(this, "no period specified defaulting to 10s");
         updatePeriod = 10.0;
     }
     nextUpdateTime = time0;

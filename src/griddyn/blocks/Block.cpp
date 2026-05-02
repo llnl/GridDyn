@@ -699,8 +699,9 @@ void Block::setFlag(std::string_view flag, bool val)
                 opFlags[simplified] = val;
                 dynObjectInitializeA(prevTime, 0);
                 alert(this, STATE_COUNT_CHANGE);
-                LOG_WARNING("changing object state computations during simulation "
-                            "triggers solver reset");
+                logging::warning(this,
+                                 "changing object state computations during simulation "
+                                 "triggers solver reset");
             }
         } else {
             opFlags[simplified] = val;

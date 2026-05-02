@@ -123,7 +123,7 @@ int svd::checkSetting(double level)
         if (opFlags[reverse_toggled_flag]) {
             opFlags.flip(reverse_control_flag);
             opFlags.reset(reverse_toggled_flag);
-            LOG_WARNING("unable to match requested level");
+            logging::warning(this, "unable to match requested level");
         } else {
             opFlags.flip(reverse_control_flag);
             opFlags.set(reverse_toggled_flag);

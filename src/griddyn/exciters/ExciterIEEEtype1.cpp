@@ -198,14 +198,14 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             if (test < -0.001 * es[1] / Ka / Ta) {
                 ret = change_code::jacobian_change;
 
-                LOG_DEBUG("root change V=" + std::to_string(inputs[voltageInLocation]));
+                logging::debug(this, "root change V={}", inputs[voltageInLocation]);
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > -0.001 * es[1] / Ka / Ta) {
-                LOG_DEBUG("root change V=" + std::to_string(inputs[voltageInLocation]));
+                logging::debug(this, "root change V={}", inputs[voltageInLocation]);
                 ret = change_code::jacobian_change;
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
@@ -213,7 +213,7 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
         }
     } else {
         if (es[1] > Vrmax + 0.00001) {
-            LOG_DEBUG("root toggle V=" + std::to_string(inputs[voltageInLocation]));
+            logging::debug(this, "root toggle V={}", inputs[voltageInLocation]);
             opFlags.set(etrigger_high);
             opFlags.set(outside_vlim);
             m_state[1] = Vrmax;
@@ -221,7 +221,7 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             ret = change_code::jacobian_change;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
-            LOG_DEBUG("root toggle V=" + std::to_string(inputs[voltageInLocation]));
+            logging::debug(this, "root toggle V={}", inputs[voltageInLocation]);
 
             opFlags.reset(etrigger_high);
             opFlags.set(outside_vlim);

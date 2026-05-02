@@ -185,7 +185,7 @@ void GenModel4::jacobianElements(const IOdata& inputs,
         // Q
         if (VLoc != kNullLocation) {
             if (V == 0) {
-                LOG_WARNING("voltage=0");
+                logging::warning(this, "voltage=0");
             }
             md.assign(refAlg, VLoc, Vd / V);
             md.assign(refAlg + 1, VLoc, Vq / V);

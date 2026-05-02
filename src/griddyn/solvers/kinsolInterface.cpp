@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <format>
 #include <map>
 #include <memory>
 #include <print>
@@ -121,16 +122,20 @@ void kinsolInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     flag = KINGetNumLinFuncEvals(solverMem, &nfeD);
     check_flag(&flag, "KINGetNumLinFuncEvals", 1);
 
-    std::string logstr = "Kinsoln Statistics: \n";
-    logstr += "Number of nonlinear iterations    = " + std::to_string(nni) + '\n';
-    logstr += "Number of function evaluations    = " + std::to_string(nfe) + '\n';
-    logstr += "Number of Jacobian evaluations    = " + std::to_string(nje) + '\n';
+    auto logstr = std::format(
+        "Kinsoln Statistics: \n"
+        "Number of nonlinear iterations    = {}\n"
+        "Number of function evaluations    = {}\n"
+        "Number of Jacobian evaluations    = {}\n",
+        nni,
+        nfe,
+        nje);
     if (nfeD > 0) {
-        logstr += "Number of Jacobian function calls = " + std::to_string(nfeD) + '\n';
+        logstr += std::format("Number of Jacobian function calls = {}\n", nfeD);
     }
 
     if (m_gds != nullptr) {
-        m_gds->log(m_gds, logLevel, logstr);
+        logging::log_to(m_gds, m_gds, logLevel, logstr);
     } else {
         std::print("\n{}", logstr);
     }

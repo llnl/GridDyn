@@ -32,6 +32,7 @@ class nullObject final: public coreObject {
      * log just absorbs all log messages and does nothing
      */
     virtual void log(coreObject* object, print_level level, const std::string& message) override;
+    virtual bool shouldLog(print_level level) const override;
 
     /** return a nullptr*/
     virtual coreObject* find(std::string_view object) const override;

@@ -13,9 +13,12 @@
 // library for printf debug statements
 
 #include <atomic>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <tuple>
+#include <utility>
 
 // disable a funny warning (bug in visual studio 2015)
 #ifdef _MSC_VER
@@ -108,6 +111,13 @@ class coreObject {
      * @param[in] message the log message
      */
     virtual void log(coreObject* object, print_level level, const std::string& message);
+    /**
+     * @brief checks whether a particular log level is currently enabled for this object's logger
+     * chain.
+     * @param[in] level the requested log level
+     * @return true if a message at this level would be emitted
+     */
+    virtual bool shouldLog(print_level level) const;
 
     /**
      * @brief increment the reference counter for the object
@@ -405,32 +415,106 @@ inline bool isSameObject(const coreObject* o1, id_type_t id)
 */
 print_level stringToPrintLevel(const std::string& level);
 
-// logging Macros
+namespace logging {
+[[nodiscard]] inline bool should_log(const coreObject* logger, print_level level)
+{
+    return (logger != nullptr) && logger->shouldLog(level);
+}
 
-#define LOG_ERROR(message) log(this, print_level::error, message);
-#define LOG_WARNING(message) log(this, print_level::warning, message);
+inline void log_to(coreObject* logger,
+                   coreObject* object,
+                   print_level level,
+                   const std::string& message)
+{
+    if (!should_log(logger, level)) {
+        return;
+    }
+    logger->log(object, level, message);
+}
 
-#ifdef LOG_ENABLE
-#    define LOG_SUMMARY(message) log(this, print_level::summary, message);
-#    define LOG_NORMAL(message) log(this, print_level::normal, message);
+inline void log_to(coreObject* logger,
+                   coreObject* object,
+                   print_level level,
+                   std::string_view message)
+{
+    if (!should_log(logger, level)) {
+        return;
+    }
+    logger->log(object, level, std::string{message});
+}
 
-#    ifdef DEBUG_LOG_ENABLE
-#        define LOG_DEBUG(message) log(this, print_level::debug, message);
-#    else
-#        define LOG_DEBUG(message)
-#    endif
+inline void log_to(coreObject* logger,
+                   coreObject* object,
+                   print_level level,
+                   const char* message)
+{
+    if (!should_log(logger, level)) {
+        return;
+    }
+    logger->log(object, level, std::string{message});
+}
 
-#    ifdef TRACE_LOG_ENABLE
-#        define LOG_TRACE(message) log(this, print_level::trace, message);
-#    else
-#        define LOG_TRACE(message)
-#    endif
+template<class... Args>
+inline void log_to(coreObject* logger,
+                   coreObject* object,
+                   print_level level,
+                   std::string_view formatText,
+                   Args&&... args)
+{
+    if (!should_log(logger, level)) {
+        return;
+    }
+    auto formatArgs = std::make_tuple(std::forward<Args>(args)...);
+    logger->log(object,
+                level,
+                std::apply(
+                    [formatText](auto&... storedArgs) {
+                        return std::vformat(formatText, std::make_format_args(storedArgs...));
+                    },
+                    formatArgs));
+}
 
-#else
-#    define LOG_SUMMARY(message)
-#    define LOG_NORMAL(message)
-#    define LOG_DEBUG(message)
-#    define LOG_TRACE(message)
-#endif
+template<class... Args>
+inline void log_self(coreObject* logger, print_level level, Args&&... args)
+{
+    log_to(logger, logger, level, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void error(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::error, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void warning(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::warning, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void summary(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::summary, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void normal(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::normal, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void debug(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::debug, std::forward<Args>(args)...);
+}
+
+template<class... Args>
+inline void trace(coreObject* logger, Args&&... args)
+{
+    log_self(logger, print_level::trace, std::forward<Args>(args)...);
+}
+}  // namespace logging
 
 }  // namespace griddyn

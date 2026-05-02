@@ -93,7 +93,7 @@ void gridDynOptimization::set(std::string_view param, std::string_view val)
         } else if (temp == "bidstack") {
             optimization_mode = bidstack;
         } else {
-            LOG_WARNING("unknown optimization mode " + temp);
+            logging::warning(this, "unknown optimization mode {}", temp);
         }
     } else {
         gridDynSimulation::set(param, val);

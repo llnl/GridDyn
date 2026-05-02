@@ -394,8 +394,7 @@ void breaker::getStateName(stringVec& stNames,
 void breaker::tripBreaker(coreTime time)
 {
     alert(this, BREAKER_TRIP_CURRENT);
-    LOG_NORMAL("breaker " + std::to_string(m_terminal) + " tripped on " +
-               m_sourceObject->getName());
+    logging::normal(this, "breaker {} tripped on {}", m_terminal, m_sourceObject->getName());
     triggerAction(0);
     opFlags.set(breaker_tripped_flag);
     useCTI = false;
@@ -416,7 +415,7 @@ void breaker::resetBreaker(coreTime time)
     ++recloseAttempts;
     lastRecloseTime = time;
     alert(this, BREAKER_RECLOSE);
-    LOG_NORMAL("breaker " + std::to_string(m_terminal) + " reset on " + m_sourceObject->getName());
+    logging::normal(this, "breaker {} reset on {}", m_terminal, m_sourceObject->getName());
     opFlags.reset(breaker_tripped_flag);
     // timestep (time, solverMode::pFlow);
     triggerAction(1);  // reclose the breaker

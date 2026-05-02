@@ -194,6 +194,7 @@ class gridSimulation: public Area {
 
     void alert(coreObject* object, int code) override;
     virtual void log(coreObject* object, print_level level, const std::string& message) override;
+    virtual bool shouldLog(print_level level) const override;
 
     /** @brief save all the recorder data to files
      all the recorders have files associated with them that get automatically saved at certain

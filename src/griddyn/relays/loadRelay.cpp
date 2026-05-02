@@ -106,7 +106,7 @@ void loadRelay::actionTaken(index_t ActionNum,
                             change_code /*actionReturn*/,
                             coreTime /*actionTime*/)
 {
-    LOG_NORMAL(std::format("condition {} action {}", conditionNum, ActionNum));
+    logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
     ((void)(ActionNum));
     ((void)(conditionNum));
     /*
@@ -141,7 +141,7 @@ m_condition_level = conditionNum;
 
 void loadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL(std::format("condition {} triggered", conditionNum));
+    logging::normal(this, "condition {} triggered", conditionNum);
     ((void)(conditionNum));
     /*
 if (conditionNum < m_condition_level)
@@ -182,7 +182,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 
 void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL(std::format("condition {} cleared", conditionNum));
+    logging::normal(this, "condition {} cleared", conditionNum);
     ((void)(conditionNum));
     /*for (size_t kk = 0; kk < m_zones; ++kk)
 {

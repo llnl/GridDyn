@@ -319,19 +319,20 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         if (!slkfnd) {
             if (controlFlags[disable_auto_slack_bus]) {
                 if (controlFlags[disable_auto_disconnect]) {
-                    LOG_ERROR("no SLK bus found in network " + std::to_string(nn));
+                    logging::error(this, "no SLK bus found in network {}", nn);
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
-                            LOG_DEBUG("Network " + std::to_string(nn) + " bus " +
-                                      std::to_string(networkBus->getUserID()) + ":" +
-                                      networkBus->getName());
+                            logging::debug(this,
+                                           "Network {} bus {}:{}",
+                                           nn,
+                                           networkBus->getUserID(),
+                                           networkBus->getName());
                         }
                     }
                     return NO_SLACK_BUS_FOUND;
                 }
 
-                LOG_WARNING("no SLK bus found in network " + std::to_string(nn) +
-                            " disconnecting buses");
+                logging::warning(this, "no SLK bus found in network {} disconnecting buses", nn);
                 for (auto& bn : bnetwork) {
                     if (bn->Network == nn) {
                         bn->disconnect();
@@ -355,24 +356,29 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                     maxCapBus->set("type", "slk");
                 } else {
                     if (controlFlags[disable_auto_disconnect]) {
-                        LOG_ERROR("no SLK bus or PV bus found in network " + std::to_string(nn));
+                        logging::error(this, "no SLK bus or PV bus found in network {}", nn);
                         for (auto& networkBus : bnetwork) {
                             if (networkBus->Network == nn) {
-                                LOG_DEBUG("Network " + std::to_string(nn) + " bus " +
-                                          std::to_string(networkBus->getUserID()) + ":" +
-                                          networkBus->getName());
+                                logging::debug(this,
+                                               "Network {} bus {}:{}",
+                                               nn,
+                                               networkBus->getUserID(),
+                                               networkBus->getName());
                             }
                         }
                         return NO_SLACK_BUS_FOUND;
                     }
 
-                    LOG_WARNING("no SLK or PV bus found in network " + std::to_string(nn) +
-                                " disconnecting buses");
+                    logging::warning(this,
+                                     "no SLK or PV bus found in network {} disconnecting buses",
+                                     nn);
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
-                            LOG_NORMAL("Network " + std::to_string(nn) + " disconnect bus " +
-                                       std::to_string(networkBus->getUserID()) + ":" +
-                                       networkBus->getName());
+                            logging::normal(this,
+                                            "Network {} disconnect bus {}:{}",
+                                            nn,
+                                            networkBus->getUserID(),
+                                            networkBus->getName());
                             networkBus->disconnect();
                         }
                     }
@@ -614,13 +620,13 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             if (pState == gridState_t::STARTUP) {
                 out = pFlowInitialize(t_start);
                 if (out == 1) {
-                    LOG_ERROR("unable to initialize powerflow");
+                    logging::error(this, "unable to initialize powerflow");
                     out = FUNCTION_EXECUTION_FAILURE;
                 }
             } else if (pState == gridState_t::POWERFLOW_COMPLETE) {
                 out = dynInitialize(t_start);
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
-                    LOG_ERROR("unable to complete dynamic power initialization");
+                    logging::error(this, "unable to complete dynamic power initialization");
                     return FUNCTION_EXECUTION_FAILURE;
                 }
             }
@@ -651,7 +657,7 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
 
             if (!hasDynamics()) {
-                LOG_WARNING("No Differential states halting computation");
+                logging::warning(this, "No Differential states halting computation");
                 return out;
             }
             out = dynamicDAE(t_end);
@@ -667,7 +673,7 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
 
             if (!hasDynamics()) {
-                LOG_WARNING("No Differential states halting computation");
+                logging::warning(this, "No Differential states halting computation");
                 return out;
             }
             out = dynamicPartitioned(t_end, t_step);
@@ -695,7 +701,7 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
 
             if (!hasDynamics()) {
-                LOG_WARNING("No Differential states halting computation");
+                logging::warning(this, "No Differential states halting computation");
                 return out;
             }
             out = step(t_step, t_end);
@@ -727,7 +733,8 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                                 break;
                         }
                     } else {
-                        LOG_SUMMARY("No Differential states reverting to stepped power flow");
+                        logging::summary(this,
+                                         "No Differential states reverting to stepped power flow");
                         out = eventDrivenPowerflow(t_end, stepTime);
                     }
 
@@ -1176,21 +1183,21 @@ int gridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
             case gridState_t::INITIALIZED:
                 retval = pFlowInitialize(currentTime);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                    LOG_ERROR("Unable to initialize power flow solution");
+                    logging::error(this, "Unable to initialize power flow solution");
                     return retval;
                 }
                 break;
             case gridState_t::POWERFLOW_COMPLETE:
                 retval = powerflow();
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                    LOG_ERROR("unable to complete power flow");
+                    logging::error(this, "unable to complete power flow");
                     return retval;
                 }
                 break;
             case gridState_t::DYNAMIC_INITIALIZED:
                 retval = dynInitialize(currentTime);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                    LOG_ERROR("Unable to initialize dynamic solution");
+                    logging::error(this, "Unable to initialize dynamic solution");
                     return retval;
                 }
                 break;

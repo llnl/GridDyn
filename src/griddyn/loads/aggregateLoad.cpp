@@ -211,7 +211,7 @@ void aggregateLoad::set(std::string_view param, std::string_view val)
         auto fval = gmlc::utilities::str2vector<double>(std::string{val}, -1.0);
         for (size_t nn = 0; nn < fval.size(); ++nn) {
             if (nn + 1 >= fraction.size()) {
-                LOG_WARNING("fraction specification count exceeds load count");
+                logging::warning(this, "fraction specification count exceeds load count");
                 break;
             }
             fraction[nn + 1] = fval[nn];
@@ -243,7 +243,7 @@ void aggregateLoad::set(std::string_view param, double val, units::unit unitType
             num = 1;
         }
         if (num >= static_cast<int>(fraction.size())) {
-            LOG_WARNING("fraction specification count exceeds load count");
+            logging::warning(this, "fraction specification count exceeds load count");
             throw(invalidParameterValue(std::string{param}));
         }
         fraction[num] = val;

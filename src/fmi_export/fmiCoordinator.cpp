@@ -105,7 +105,7 @@ bool fmiCoordinator::sendInput(index_t vr, double val)
         }
         return true;
     }
-    LOG_WARNING("invalid value reference " + std::to_string(vr));
+    logging::warning(this, "invalid value reference {}", vr);
     return false;
 }
 
@@ -129,7 +129,7 @@ bool fmiCoordinator::sendInput(index_t vr, const char* s)
         }
         return true;
     }
-    LOG_WARNING("invalid value reference " + std::to_string(vr));
+    logging::warning(this, "invalid value reference {}", vr);
     return false;
 }
 

@@ -7,35 +7,32 @@
 #pragma once
 
 #include <atomic>
-#include <fstream>
-#include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <utility>
 
-namespace helics {
-class LoggingCore;
+namespace spdlog {
+class logger;
+}
 
+namespace helics {
 /** class implementing a thread safe Logger
-@details the Logger uses a queuing mechanism and condition variable to store messages to a queue and
-print/display them in a single thread allowing for asynchronous logging
+@details the Logger uses spdlog sinks to route formatted messages to the console and optional log
+files.
 */
 class Logger {
   private:
     std::atomic<bool> halted{true};  //!< indicator that the Logger was halted
-    std::mutex fileLock;  //!< mutex to protect the file itself
-    std::ofstream outFile;  //!< the stream to write the log messages
-    std::shared_ptr<LoggingCore> logCore;  //!< pointer to the core operation
-    int coreIndex = -1;  //!< index into the core
+    std::mutex loggerLock;  //!< mutex to protect logger state updates
+    std::shared_ptr<spdlog::logger> consoleLogger;  //!< console sink used for log output
+    std::shared_ptr<spdlog::logger> fileLogger;  //!< optional file sink used for log output
+    std::string fileLoggerName;  //!< registry name for the file logger
     std::atomic<int> consoleLevel{100};  //!< level below which we need to print to the console
     std::atomic<int> fileLevel{100};  //!< level below which we need to print to a file
   public:
     /** default constructor*/
     Logger();
-    /** construct and link to the specified logging Core*/
-    explicit Logger(std::shared_ptr<LoggingCore> core);
     /**destructor*/
     ~Logger();
     /** open a file to write the log messages
@@ -68,23 +65,24 @@ class Logger {
     void changeLevels(int cLevel, int fLevel);
 
   private:
-    /** actual loop function to run the Logger*/
-    void logFunction(std::string&& message);
+    /** ensure a shared console logger exists*/
+    void ensureConsoleLogger();
+    /** release the file logger if one exists*/
+    void resetFileLogger();
 };
 
 /** logging class that handle the logs immediately with no threading or synchronization*/
 class LoggerNoThread {
   private:
-    std::ofstream outFile;  //!< the file stream to write the log messages to
+    std::shared_ptr<spdlog::logger> consoleLogger;  //!< console sink used for log output
+    std::shared_ptr<spdlog::logger> fileLogger;  //!< optional file sink used for log output
+    std::string fileLoggerName;  //!< registry name for the file logger
   public:
     int consoleLevel = 100;  //!< level below which we need to print to the console
     int fileLevel = 100;  //!< level below which we need to print to a file
   public:
     /** default constructor*/
     LoggerNoThread();
-    /**this does nothing with the argument since it is not threaded here to match the API of
-     * Logger*/
-    explicit LoggerNoThread(const std::shared_ptr<LoggingCore>& core);
     /** open a file to write the log messages
     @param file the name of the file to write messages to*/
     void openFile(const std::string& file);
@@ -114,5 +112,11 @@ class LoggerNoThread {
     @param cLevel the level to print to the console
     @param fLevel the level to print to the file if it is open*/
     void changeLevels(int cLevel, int fLevel);
+
+  private:
+    /** ensure a shared console logger exists*/
+    void ensureConsoleLogger();
+    /** release the file logger if one exists*/
+    void resetFileLogger();
 };
 }  // namespace helics

@@ -215,7 +215,8 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
             if (activeSecondary == 0) {
                 if (activeLink < 2) {
-                    LOG_WARNING("No load no gen, 1 active line ,bus is irrelevant disconnecting");
+                    logging::warning(
+                        this, "No load no gen, 1 active line ,bus is irrelevant disconnecting");
                     disconnect();
                 }
             }
@@ -224,7 +225,7 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     // load up control objects
     if (type == busType::PV) {
         if (busController.vControlObjects.empty()) {
-            LOG_NORMAL("PV BUS with no controllers: converting to PQ");
+            logging::normal(this, "PV BUS with no controllers: converting to PQ");
             type = busType::PQ;
         }
     }
@@ -244,7 +245,8 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
                       // accounting purposes so add a
             // default one
             if (!CHECK_CONTROLFLAG(flags, no_auto_autogen)) {
-                LOG_NORMAL("SLK BUS with No adjustable power elements, enabling auto_gen");
+                logging::normal(this,
+                                "SLK BUS with No adjustable power elements, enabling auto_gen");
                 opFlags.set(use_autogen);
             }
         }
@@ -252,7 +254,7 @@ void acBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         if (CHECK_CONTROLFLAG(flags, auto_bus_disconnect)) {
             if ((attachedGens.empty()) && (attachedLoads.empty()) && (attachedLinks.size() == 1)) {
                 if (!opFlags[use_autogen]) {
-                    LOG_WARNING("No load no gen, 1 line ,bus is irrelevant disabling");
+                    logging::warning(this, "No load no gen, 1 line ,bus is irrelevant disabling");
                     disconnect();
                     return;
                 }
@@ -324,7 +326,7 @@ void acBus::pFlowObjectInitializeB()
     if (opFlags[use_autogen]) {
         if (busController.autogenP < kHalfBigNum) {
             busController.autogenPact = -(S.loadP + S.genP - busController.autogenP);
-            LOG_TRACE("autogen P=" + std::to_string(busController.autogenPact));
+            logging::trace(this, "autogen P={}", busController.autogenPact);
         }
         if (busController.autogenQ < kHalfBigNum) {
             busController.autogenQact = -(S.loadQ + S.genQ - busController.autogenQ);
@@ -598,7 +600,7 @@ change_code
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
                                 out = change_code::jacobian_change;
-                                LOG_TRACE("changing from PQ to PV from low voltage");
+                                logging::trace(this, "changing from PQ to PV from low voltage");
                             }
                         }
                     } else {
@@ -609,7 +611,7 @@ change_code
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
                                 out = change_code::jacobian_change;
-                                LOG_TRACE("changing from PQ to PV from high voltage");
+                                logging::trace(this, "changing from PQ to PV from high voltage");
                             }
                         }
                     }
@@ -647,7 +649,7 @@ change_code
                     type = busType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
                     out = change_code::jacobian_change;
-                    LOG_TRACE("changing from PV to PQ from Qmin");
+                    logging::trace(this, "changing from PV to PQ from Qmin");
                 } else if (S.genQ > busController.Qmax) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
@@ -656,7 +658,7 @@ change_code
                     type = busType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
                     out = change_code::jacobian_change;
-                    LOG_TRACE("changing from PV to PQ from Qmax");
+                    logging::trace(this, "changing from PV to PQ from Qmax");
                 }
                 break;
             case busType::afix:
@@ -772,7 +774,7 @@ void acBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     if (opFlags[compute_frequency]) {
         opFlags.set(uses_bus_frequency);
-        LOG_TRACE("computing bus frequency using frequency block");
+        logging::trace(this, "computing bus frequency using frequency block");
         if (!fblock) {
             fblock = make_owningPtr<blocks::derivativeBlock>(Tw);
             fblock->setName("frequency_calc");
@@ -1560,7 +1562,6 @@ void acBus::setState(coreTime time,
     //    assert(voltage > 0.0);
 }
 
-#define TRACE_LOG_ENABLE
 // residual
 void acBus::residual(const IOdata& inputs,
                      const stateData& sD,
@@ -1579,12 +1580,12 @@ void acBus::residual(const IOdata& inputs,
                 assert(!std::isnan(S.linkQ));
 
                 resid[Voffset] = S.sumQ();
-#ifdef TRACE_LOG_ENABLE
                 if (std::abs(resid[Voffset]) > 0.5) {
-                    LOG_TRACE("sid=" + std::to_string(sD.seqID) +
-                              "::high voltage resid = " + std::to_string(resid[Voffset]));
+                    logging::trace(this,
+                                   "sid={}::high voltage resid = {}",
+                                   sD.seqID,
+                                   resid[Voffset]);
                 }
-#endif
             } else {
                 resid[Voffset] = sD.state[Voffset] - voltage;
             }
@@ -1593,12 +1594,9 @@ void acBus::residual(const IOdata& inputs,
             if (useAngle(sMode)) {
                 assert(!std::isnan(S.linkP));
                 resid[Aoffset] = S.sumP();
-#ifdef TRACE_LOG_ENABLE
                 if (std::abs(resid[Aoffset]) > 0.5) {
-                    LOG_TRACE("sid=" + std::to_string(sD.seqID) +
-                              "::high angle resid = " + std::to_string(resid[Aoffset]));
+                    logging::trace(this, "sid={}::high angle resid = {}", sD.seqID, resid[Aoffset]);
                 }
-#endif
                 // assert(std::abs(resid[Aoffset])<0.1);
             } else {
                 resid[Aoffset] = sD.state[Aoffset] - angle;
@@ -1886,7 +1884,7 @@ void acBus::localConverge(const solverMode& sMode, int mode, double tol)
     }
     if ((S.loadP == 0) && (S.linkP == 0) && (S.loadQ == 0) && (S.linkQ == 0)) {
         if (!checkCapable()) {
-            LOG_WARNING("Bus disconnected");
+            logging::warning(this, "Bus disconnected");
             disconnect();
         }
         return;
@@ -2006,7 +2004,7 @@ void acBus::converge(coreTime time,
     double err = computeError(sD, sMode);
     if ((S.loadP == 0) && (S.linkP == 0) && (S.loadQ == 0) && (S.linkQ == 0)) {
         if (!checkCapable()) {
-            LOG_WARNING("Bus disconnected");
+            logging::warning(this, "Bus disconnected");
             disconnect();
         }
         return;
@@ -2619,14 +2617,14 @@ change_code acBus::rootCheck(const IOdata& inputs,
         if (vcurr < 1e-8) {
             disconnect();
             ret = change_code::jacobian_change;
-            LOG_DEBUG("Bus low voltage disconnect");
+            logging::debug(this, "Bus low voltage disconnect");
         }
         if (opFlags[prev_low_voltage_alert]) {
             if (sD.time <= lowVtime) {
                 disconnect();
                 opFlags.reset(prev_low_voltage_alert);
                 ret = change_code::jacobian_change;
-                LOG_DEBUG("Bus low voltage disconnect");
+                logging::debug(this, "Bus low voltage disconnect");
             } else {
                 opFlags.reset(prev_low_voltage_alert);
             }
@@ -2635,7 +2633,7 @@ change_code acBus::rootCheck(const IOdata& inputs,
     }
     if (level == check_level_t::complete_state_check) {
         if (vcurr < 1e-5) {
-            LOG_NORMAL("bus disconnecting from low voltage");
+            logging::normal(this, "bus disconnecting from low voltage");
             disconnect();
         } else if (isDAE(sMode)) {
             if (dynType == dynBusType::normal) {

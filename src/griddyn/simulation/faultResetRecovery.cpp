@@ -154,7 +154,7 @@ int faultResetRecovery::faultResetFix3()
     for (int vv = 1; vv < 10; ++vv) {
         double rv1 = static_cast<double>(vv) * 0.1;
         int kk = 0;
-        sim->log(sim, print_level::debug, "increment voltage by " + std::to_string(rv1));
+        logging::log_to(sim, sim, print_level::debug, "increment voltage by {}", rv1);
         for (index_t pp = 0; pp < solver->size(); ++pp) {
             if (vstates[pp] != 0.0) {
                 states[pp] = rv1 + (1.0 - rv1) * initVolts[kk];

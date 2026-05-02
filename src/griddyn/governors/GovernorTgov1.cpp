@@ -93,7 +93,7 @@ void GovernorTgov1::derivative(const IOdata& inputs,
         Loc.destDiffLoc[1] = 0.0;
     } else {
         Loc.destDiffLoc[1] = (-gs[1] + inputs[govpSetInLocation] - K * (omega - 1.0)) / T1;
-        //  LOG_WARNING(std::string("gov set =") + std::to_string(K * (omega - 1.0)));
+        // logging::warning(this, "gov set ={}", K * (omega - 1.0));
     }
 
     Loc.destDiffLoc[0] = (Loc.diffStateLoc[1] - Loc.diffStateLoc[0] - T2 * Loc.destDiffLoc[1]) / T3;
@@ -223,12 +223,12 @@ void GovernorTgov1::rootTrigger(coreTime /*time*/,
                 opFlags.reset(p_limited);
                 opFlags.reset(p_limit_high);
                 alert(this, JAC_COUNT_INCREASE);
-                LOG_DEBUG("at max power limit");
+                logging::debug(this, "at max power limit");
             } else {
                 if (opFlags[p_limit_high]) {
-                    LOG_DEBUG("at max power limit");
+                    logging::debug(this, "at max power limit");
                 } else {
-                    LOG_DEBUG("at min power limit");
+                    logging::debug(this, "at min power limit");
                 }
                 opFlags.set(p_limited);
                 alert(this, JAC_COUNT_DECREASE);

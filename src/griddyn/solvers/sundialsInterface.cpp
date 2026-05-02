@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <print>
 #include <string>
@@ -357,9 +358,8 @@ void sundialsErrorHandlerFunc(int line,
         return;
     }
     auto sd = reinterpret_cast<SolverInterface*>(user_data);
-    std::string message = "SUNDIALS ERROR(" + std::to_string(error_code) + ") in " +
-        std::string(function) + " [" + std::string(file) + ':' + std::to_string(line) +
-        "]::" + std::string(msg);
+    auto message =
+        std::format("SUNDIALS ERROR({}) in {} [{}:{}]::{}", error_code, function, file, line, msg);
     sd->logMessage(error_code, message);
 }
 

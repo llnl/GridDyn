@@ -9,6 +9,7 @@
 #include "core/helperObject.h"
 #include "griddyn/gridComponentHelperClasses.h"
 #include <exception>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -30,7 +31,7 @@ class solverException: public std::exception {
 
   public:
     explicit solverException(int ecode = 0):
-        errorCode(ecode), message("solver Exception:error code=" + std::to_string(errorCode))
+        errorCode(ecode), message(std::format("solver Exception:error code={}", errorCode))
     {
     }
     virtual const char* what() const noexcept override { return message.c_str(); }
@@ -45,7 +46,7 @@ class InvalidSolverOperation: public solverException {
   public:
     explicit InvalidSolverOperation(int ecode = 0): solverException(ecode)
     {
-        message = "invalid solver operation:error code=" + std::to_string(errorCode);
+        message = std::format("invalid solver operation:error code={}", errorCode);
     }
     virtual const char* what() const noexcept override { return message.c_str(); }
 };

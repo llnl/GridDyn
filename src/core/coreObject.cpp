@@ -165,10 +165,9 @@ void coreObject::set(std::string_view param, std::string_view val)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val);
-                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
-                            "\" is not");
+                logging::warning(this, "parameters should be lower case \"{}\" is not", param);
             } else {
-                LOG_WARNING("parameter " + std::string{param} + " not found");
+                logging::warning(this, "parameter {} not found", param);
                 throw(unrecognizedParameter(std::string{param}));
             }
         }
@@ -253,8 +252,7 @@ void coreObject::setFlag(std::string_view flag, bool val)
         auto lower = gmlc::utilities::convertToLowerCase(flag);
         if (lower != flag) {
             setFlag(lower, val);
-            LOG_WARNING(std::string("flags should be lower case \"") + std::string{flag} +
-                        "\" is not");
+            logging::warning(this, "flags should be lower case \"{}\" is not", flag);
         } else {
             throw(unrecognizedParameter(std::string{flag}));
         }
@@ -314,8 +312,7 @@ void coreObject::set(std::string_view param, double val, units::unit unitType)
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val, unitType);
-                LOG_WARNING(std::string("parameters should be lower case \"") + std::string{param} +
-                            "\" is not");
+                logging::warning(this, "parameters should be lower case \"{}\" is not", param);
             } else {
                 throw;
             }
@@ -389,6 +386,11 @@ void coreObject::alert(coreObject* object, int code)
 void coreObject::log(coreObject* object, print_level level, const std::string& message)
 {
     parent->log(object, level, message);
+}
+
+bool coreObject::shouldLog(print_level level) const
+{
+    return (parent != nullptr) ? parent->shouldLog(level) : true;
 }
 
 void coreObject::makeNewOID()

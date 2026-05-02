@@ -138,7 +138,7 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         m_sourceObject = getParent()->find("bus");
     }
     if (m_sourceObject == nullptr) {
-        LOG_WARNING("no pmu target specified");
+        logging::warning(this, "no pmu target specified");
         disable();
         return;
     }

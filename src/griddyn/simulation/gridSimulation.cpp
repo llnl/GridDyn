@@ -132,11 +132,14 @@ void gridSimulation::saveRecorders()
     for (auto& col : collectorList) {
         try {
             col->flush();
-            LOG_NORMAL("collector successfully flushed to: " + col->getSinkName());
+            logging::normal(this, "collector successfully flushed to: {}", col->getSinkName());
         }
         catch (const std::exception& e) {
-            LOG_ERROR("unable to flush collector " + col->getName() + " (to " + col->getSinkName() +
-                      "): " + std::string(e.what()));
+            logging::error(this,
+                           "unable to flush collector {} (to {}): {}",
+                           col->getName(),
+                           col->getSinkName(),
+                           e.what());
         }
     }
 }
@@ -307,6 +310,11 @@ void gridSimulation::log(coreObject* object, print_level level, const std::strin
     } else {
         customLogger(static_cast<int>(level), simtime + cname + "::" + key + message);
     }
+}
+
+bool gridSimulation::shouldLog(print_level level) const
+{
+    return !((level > consolePrintLevel) && (level > logPrintLevel));
 }
 
 static const std::map<int, std::string> alertStrings{

@@ -20,6 +20,8 @@
 
 #include <cassert>
 #include <cstdio>
+#include <format>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
@@ -208,22 +210,31 @@ void arkodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     ARKodeGetLastStep(solverMem, &hlast);
     ARKodeGetTolScaleFactor(solverMem, &tolsfac);
 
-    std::string logstr = "Arkode Run Statistics: \n";
-
-    logstr += "Number of steps                    = " + std::to_string(nst) + '\n';
-    logstr += "Number of rhs evaluations     = " + std::to_string(nre) + std::to_string(nfi) + '\n';
-    logstr += "Number of Jacobian evaluations     = " + std::to_string(jacCallCount) + '\n';
-    logstr += "Number of nonlinear iterations     = " + std::to_string(nni) + '\n';
-    logstr += "Number of error test failures      = " + std::to_string(netf) + '\n';
-    logstr += "Number of nonlinear conv. failures = " + std::to_string(ncfn) + '\n';
-    logstr += "Number of root fn. evaluations     = " + std::to_string(nge) + '\n';
-
-    logstr += "Current step                       = " + std::to_string(hcur) + '\n';
-    logstr += "Last step                          = " + std::to_string(hlast) + '\n';
-    logstr += "Tolerance scale factor             = " + std::to_string(tolsfac) + '\n';
+    auto logstr = std::format("Arkode Run Statistics: \n"
+                              "Number of steps                    = {}\n"
+                              "Number of rhs evaluations (explicit/implicit) = {}/{}\n"
+                              "Number of Jacobian evaluations     = {}\n"
+                              "Number of nonlinear iterations     = {}\n"
+                              "Number of error test failures      = {}\n"
+                              "Number of nonlinear conv. failures = {}\n"
+                              "Number of root fn. evaluations     = {}\n"
+                              "Current step                       = {}\n"
+                              "Last step                          = {}\n"
+                              "Tolerance scale factor             = {}\n",
+                              nst,
+                              nre,
+                              nfi,
+                              jacCallCount,
+                              nni,
+                              netf,
+                              ncfn,
+                              nge,
+                              hcur,
+                              hlast,
+                              tolsfac);
 
     if (m_gds != nullptr) {
-        m_gds->log(m_gds, logLevel, logstr);
+        logging::log_to(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -242,12 +253,11 @@ void arkodeInterface::logErrorWeights(print_level logLevel) const
     check_flag(&retval, "ARKodeGetEstLocalErrors ", 1);
     std::string logstr = "Error Weight\tEstimated Local Errors\n";
     for (index_t kk = 0; kk < svsize; ++kk) {
-        logstr += std::to_string(kk) + ':' + std::to_string(ewdata[kk]) + '\t' +
-            std::to_string(eldata[kk]) + '\n';
+        std::format_to(std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
     }
 
     if (m_gds != nullptr) {
-        m_gds->log(m_gds, logLevel, logstr);
+        logging::log_to(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }

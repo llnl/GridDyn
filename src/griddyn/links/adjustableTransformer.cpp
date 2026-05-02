@@ -250,20 +250,21 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
     } else if (param == "mintapangle") {
         minTapAngle = convert(val, unitType, rad);
         if (tapAngle < minTapAngle) {
-            LOG_WARNING("specified tap angle below minimum");
+            logging::warning(this, "specified tap angle below minimum");
             tapAngle = minTapAngle;
         }
     } else if (param == "fault") {
         // not faults not allowed on adjustable transformoers change shunt conductance  or
         // impedance to simulate a fault
-        LOG_ERROR(
+        logging::error(
+            this,
             "faults not allowed on adjustable transformers change shunt conductance  or impedance to "
             "simulate a fault");
         throw(unrecognizedParameter(std::string{param}));
     } else if (param == "maxtapangle") {
         maxTapAngle = convert(val, unitType, rad);
         if (tapAngle > maxTapAngle) {
-            LOG_WARNING("specified tap angle above maximum");
+            logging::warning(this, "specified tap angle above maximum");
             tapAngle = maxTapAngle;
         }
     } else if ((param == "stepsize") || (param == "tapchange")) {

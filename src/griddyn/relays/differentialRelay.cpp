@@ -160,7 +160,7 @@ void differentialRelay::actionTaken(index_t ActionNum,
                                     change_code /*actionReturn*/,
                                     coreTime /*actionTime*/)
 {
-    LOG_NORMAL("Relay Tripped");
+    logging::normal(this, "Relay Tripped");
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
@@ -172,7 +172,7 @@ void differentialRelay::actionTaken(index_t ActionNum,
 
 void differentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL("differential condition met");
+    logging::normal(this, "differential condition met");
     if (opFlags.test(use_commLink)) {
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
         auto P = std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
@@ -182,7 +182,7 @@ void differentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*
 
 void differentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*triggerTime*/)
 {
-    LOG_NORMAL("differential condition cleared");
+    logging::normal(this, "differential condition cleared");
 
     if (opFlags.test(use_commLink)) {
         auto P = std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_CLEARED);

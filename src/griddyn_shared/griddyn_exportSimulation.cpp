@@ -15,6 +15,8 @@
 #include <string>
 #include <utility>
 
+DECLARE_TRIPLINE()
+
 using griddyn::buildFlags;
 using griddyn::compiler;
 using griddyn::coreTime;

@@ -1,6 +1,3 @@
-[submodule "ThirdParty/fmtlib"]
-    path = ThirdParty/fmtlib
-    url = https://github.com/fmtlib/fmt.git
 [submodule "ThirdParty/containers"]
     path = ThirdParty/containers
     url = https://github.com/GMLC-TDC/containers.git
@@ -32,3 +29,6 @@
 [submodule "ThirdParty/networking"]
 	path = ThirdParty/networking
 	url = https://github.com/GMLC-TDC/networking
+[submodule "ThirdParty/spdlog"]
+	path = ThirdParty/spdlog
+	url = ../../gabime/spdlog.git

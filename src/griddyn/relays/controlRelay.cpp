@@ -126,7 +126,7 @@ void controlRelay::actionTaken(index_t ActionNum,
                                change_code /*actionReturn*/,
                                coreTime /*actionTime*/)
 {
-    LOG_NORMAL(std::format("condition {}-> action {} taken", conditionNum, ActionNum));
+    logging::normal(this, "condition {}-> action {} taken", conditionNum, ActionNum);
     (void)(ActionNum);
     (void)(conditionNum);
 }

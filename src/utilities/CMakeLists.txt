@@ -16,7 +16,6 @@ set(utilities_sources
     zipUtilities.cpp
     matrixCreation.cpp
     logger.cpp
-    loggerCore.cpp
     matrixDataSparse.cpp
     OperatingBoundary.cpp
     GlobalWorkQueue.cpp
@@ -48,7 +47,6 @@ set(utilities_headers
     matrixCreation.h
     indexTypes.hpp
     logger.h
-    loggerCore.hpp
     OperatingBoundary.h
     GlobalWorkQueue.hpp
 )
@@ -77,6 +75,7 @@ endif()
 
 target_link_libraries(
     utilities PUBLIC ${GRIDDYN_MINIZIP_TARGET} ${GRIDDYN_ZLIB_TARGET} gmlc_utilities griddyn_base
+                     spdlog::spdlog
 )
 
 set_target_properties(utilities PROPERTIES FOLDER libraries)

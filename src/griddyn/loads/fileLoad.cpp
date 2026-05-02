@@ -264,7 +264,7 @@ count_t fileLoad::loadFile()
         schedLoad.loadFile(fileName_);
     }
     catch (const std::exception& e) {
-        LOG_ERROR(std::string("unable to process file ") + e.what());
+        logging::error(this, "unable to process file {}", e.what());
     }
     if (!schedLoad.empty()) {
         schedLoad.addData(maxTime, schedLoad.lastData());

@@ -158,11 +158,11 @@ void Relay::setSink(coreObject* obj)
 void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, coreTime delayTime)
 {
     if (conditionNumber >= static_cast<index_t>(conditions.size())) {
-        LOG_WARNING("attempted set of invalid conditonNumber");
+        logging::warning(this, "attempted set of invalid conditonNumber");
         return;
     }
     if (actionNumber >= static_cast<index_t>(actions.size())) {
-        LOG_WARNING("attempted set of invalid actionNumber");
+        logging::warning(this, "attempted set of invalid actionNumber");
         return;
     }
     // search for an existing entry
@@ -487,7 +487,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                     });
             }
             catch (const std::invalid_argument&) {
-                LOG_WARNING("initial commlink name failed trying full object Name");
+                logging::warning(this, "initial commlink name failed trying full object Name");
                 cManager.setName(fullObjectName(this));
                 try {
                     commLink->initialize();
@@ -497,13 +497,13 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                         });
                 }
                 catch (const std::invalid_argument&) {
-                    LOG_WARNING("unable to initialize comm link");
+                    logging::warning(this, "unable to initialize comm link");
                     commLink = nullptr;
                     opFlags.reset(use_commLink);
                 }
             }
         } else {
-            LOG_WARNING("unrecognized commLink type ");
+            logging::warning(this, "unrecognized commLink type ");
             opFlags.reset(use_commLink);
         }
     }
@@ -863,53 +863,52 @@ change_code Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
     return eventReturn;
 }
 
-#ifdef DEBUG_LOG_ENABLE
 void Relay::actionTaken(index_t ActionNum,
                         index_t conditionNum,
                         change_code actionReturn,
                         coreTime /*actionTime*/)
 {
-    LOG_DEBUG(std::format("action {} taken based on condition {}  with return code {}",
-                          ActionNum,
-                          conditionNum,
-                          static_cast<int>(actionReturn)));
+    static_cast<void>(ActionNum);
+    static_cast<void>(conditionNum);
+    static_cast<void>(actionReturn);
+    logging::debug(this,
+                   "action {} taken based on condition {}  with return code {}",
+                   ActionNum,
+                   conditionNum,
+                   static_cast<int>(actionReturn));
 }
 void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
 {
+    static_cast<void>(conditionNum);
+    static_cast<void>(timeTriggered);
     if (conditionTriggerTimes[conditionNum] > timeZero) {
-        LOG_DEBUG(std::format("condition {} triggered again at {:f}",
-                              conditionNum,
-                              static_cast<double>(timeTriggered)))
+        logging::debug(this,
+                       "condition {} triggered again at {:f}",
+                       conditionNum,
+                       static_cast<double>(timeTriggered));
     } else {
-        LOG_DEBUG(std::format("condition {} triggered at {:f}",
-                              conditionNum,
-                              static_cast<double>(timeTriggered)));
+        logging::debug(this,
+                       "condition {} triggered at {:f}",
+                       conditionNum,
+                       static_cast<double>(timeTriggered));
     }
 }
 void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)
 {
+    static_cast<void>(conditionNum);
+    static_cast<void>(timeCleared);
     if (conditionTriggerTimes[conditionNum] > timeZero) {
-        LOG_DEBUG(std::format("condition {} cleared again at {:f}",
-                              conditionNum,
-                              static_cast<double>(timeCleared)));
+        logging::debug(this,
+                       "condition {} cleared again at {:f}",
+                       conditionNum,
+                       static_cast<double>(timeCleared));
     } else {
-        LOG_DEBUG(std::format("condition {} cleared at {:f}",
-                              conditionNum,
-                              static_cast<double>(timeCleared)));
+        logging::debug(this,
+                       "condition {} cleared at {:f}",
+                       conditionNum,
+                       static_cast<double>(timeCleared));
     }
 }
-
-#else
-
-void Relay::actionTaken(index_t /*ActionNum*/,
-                        index_t /*conditionNum*/,
-                        change_code /*actionReturn*/,
-                        coreTime /*actionTime*/)
-{
-}
-void Relay::conditionTriggered(index_t /*conditionNum*/, coreTime /*timeTriggered*/) {}
-void Relay::conditionCleared(index_t /*conditionNum*/, coreTime /*timeCleared*/) {}
-#endif
 
 void Relay::updateObject(coreObject* obj, object_update_mode mode)
 {

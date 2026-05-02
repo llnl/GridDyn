@@ -527,7 +527,8 @@ void sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             if ((dgs) && (!dgs->stateCapable())) {
                 // TODO(phlpt): Support partially continuous sensors.
                 opFlags.set(continuous_flag, false);
-                LOG_WARNING(
+                logging::warning(
+                    this,
                     "not all data sources support continuous operation , reverting to sampled mode");
                 break;
             }
@@ -559,7 +560,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
             } else if (dataSources.size() == 1) {
                 blockInputs[kk] = 0;
             } else {
-                LOG_WARNING("unable to uniquely determine filter block input");
+                logging::warning(this, "unable to uniquely determine filter block input");
             }
         }
     }

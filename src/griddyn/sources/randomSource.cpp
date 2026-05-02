@@ -112,13 +112,13 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
         param2_L = val;
     } else if (param == "mean_t") {
         if (val <= 0.0) {
-            LOG_WARNING("mean_t parameter must be > 0");
+            logging::warning(this, "mean_t parameter must be > 0");
             throw(invalidParameterValue(std::string{param}));
         }
         param1_t = val;
     } else if (param == "scale_t") {
         if (val <= 0.0) {
-            LOG_WARNING("scale_t parameter must be > 0");
+            logging::warning(this, "scale_t parameter must be > 0");
             throw(invalidParameterValue(std::string{param}));
         }
         param2_t = val;

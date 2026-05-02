@@ -181,17 +181,17 @@ void Exciter::rootTrigger(coreTime time,
     const auto rootOffset = offsets.getRootOffset(solverMode);
     if (rootMask[rootOffset] != 0) {
         if (opFlags[outside_vlim]) {
-            LOG_NORMAL("root trigger back in bounds");
+            logging::normal(this, "root trigger back in bounds");
             alert(this, JAC_COUNT_INCREASE);
             opFlags.reset(outside_vlim);
             opFlags.reset(etrigger_high);
         } else {
             opFlags.set(outside_vlim);
             if (opFlags[etrigger_high]) {
-                LOG_NORMAL("root trigger above bounds");
+                logging::normal(this, "root trigger above bounds");
                 m_state[limitState] -= 0.0001;
             } else {
-                LOG_NORMAL("root trigger below bounds");
+                logging::normal(this, "root trigger below bounds");
                 m_state[limitState] += 0.0001;
             }
             alert(this, JAC_COUNT_DECREASE);

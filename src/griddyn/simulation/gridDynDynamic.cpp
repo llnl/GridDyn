@@ -56,7 +56,7 @@ int gridDynSimulation::dynInitialize(coreTime tStart)
     if (tStart < startTime) {
         tStart = startTime;
     }
-    LOG_NORMAL("Initializing Dynamics to time " + std::to_string(tStart));
+    logging::normal(this, "Initializing Dynamics to time {}", static_cast<double>(tStart));
     // run any events before the simulation
     // In most cases this should be none but users can manipulate the times if they choose
     EvQ->executeEvents(tStart - 0.001);
@@ -65,7 +65,7 @@ int gridDynSimulation::dynInitialize(coreTime tStart)
 
     count_t ssize = stateSize(sm);
     if (ssize == 0) {
-        LOG_WARNING("State size==0 stopping computation\n");
+        logging::warning(this, "State size==0 stopping computation\n");
         return 0;  // TODO(phlpt): Add a positive return code when state size is 0.
     }
     updateOffsets(sm);
@@ -165,7 +165,7 @@ void gridDynSimulation::setupDynamicDAE()
     const solverMode& sMode = *defDAEMode;
     int retval = makeReady(gridState_t::DYNAMIC_INITIALIZED, sMode);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
-        LOG_ERROR("Unable to prepare simulation for dynamic solution");
+        logging::error(this, "Unable to prepare simulation for dynamic solution");
         setErrorCode(retval);
         return;
     }
@@ -203,16 +203,16 @@ int gridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
                     printStateNames(this, sMode);
                 }
 #endif
-                LOG_ERROR(dynData->getLastErrorString());
-                LOG_ERROR("Unable to generate initial dynamic solution modeA");
+                logging::error(this, dynData->getLastErrorString());
+                logging::error(this, "Unable to generate initial dynamic solution modeA");
                 return retval;
             }
         }
     } else {
         retval = generateDaeDynamicInitialConditions(sMode);
         if (retval != FUNCTION_EXECUTION_SUCCESS) {
-            LOG_ERROR(dynData->getLastErrorString());
-            LOG_ERROR("Unable to generate dynamic solution conditions modeB");
+            logging::error(this, dynData->getLastErrorString());
+            logging::error(this, "Unable to generate dynamic solution conditions modeB");
             return retval;
         }
     }
@@ -264,8 +264,8 @@ int gridDynSimulation::dynamicDAE(coreTime tStop)
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 pState = gridState_t::DYNAMIC_PARTIAL;
-                LOG_ERROR("simulation halted unable to converge");
-                LOG_ERROR(dynData->getLastErrorString());
+                logging::error(this, "simulation halted unable to converge");
+                logging::error(this, dynData->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
             }
             // update the stopping time just in case the events have changed
@@ -284,14 +284,14 @@ int gridDynSimulation::dynamicDAE(coreTime tStop)
                         currentTime += tols.timeTol;
                     } else if (tstep > 1) {
                         pState = gridState_t::DYNAMIC_PARTIAL;
-                        LOG_ERROR("simulation halted unable to converge");
-                        LOG_ERROR(dynData->getLastErrorString());
+                        logging::error(this, "simulation halted unable to converge");
+                        logging::error(this, dynData->getLastErrorString());
                         return FUNCTION_EXECUTION_FAILURE;
                     }
                 } else if (timeReturn < lastTimeStop + 1e-4) {
                     ++smStep;
                     if (smStep > 10) {
-                        LOG_ERROR("simulation halted too many small time steps");
+                        logging::error(this, "simulation halted too many small time steps");
                         return FUNCTION_EXECUTION_FAILURE;
                     }
                     tstep = 0;
@@ -311,8 +311,8 @@ int gridDynSimulation::dynamicDAE(coreTime tStop)
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 pState = gridState_t::DYNAMIC_PARTIAL;
-                LOG_ERROR("simulation halted unable to converge");
-                LOG_ERROR(dynData->getLastErrorString());
+                logging::error(this, "simulation halted unable to converge");
+                logging::error(this, dynData->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
             }
         }
@@ -334,7 +334,7 @@ void gridDynSimulation::setupDynamicPartitioned()
     const solverMode& sModeDiff = *defDynDiffMode;
     int retval = makeReady(gridState_t::DYNAMIC_INITIALIZED, sModeDiff);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
-        LOG_ERROR("Unable to prepare simulation for dynamic solution");
+        logging::error(this, "Unable to prepare simulation for dynamic solution");
         setErrorCode(retval);
         throw(executionFailure(this, "Unable to prepare simulation for dynamic solution"));
     }
@@ -372,8 +372,8 @@ int gridDynSimulation::dynamicPartitionedStartupConditions(
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 retval = generateDaeDynamicInitialConditions(*defDAEMode);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                    LOG_ERROR(daeData->getLastErrorString());
-                    LOG_ERROR("Unable to generate initial dynamic solution modeA");
+                    logging::error(this, daeData->getLastErrorString());
+                    logging::error(this, "Unable to generate initial dynamic solution modeA");
                     return retval;
                 }
             }
@@ -438,8 +438,8 @@ int gridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
             retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 pState = gridState_t::DYNAMIC_PARTIAL;
-                LOG_ERROR("simulation halted unable to converge");
-                LOG_ERROR(dynDataDiff->getLastErrorString());
+                logging::error(this, "simulation halted unable to converge");
+                logging::error(this, dynDataDiff->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
             }
             retval = runDynamicSolverStep(dynDataDiff, nextStopTime, timeReturn);
@@ -460,14 +460,14 @@ int gridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
                         currentTime = currentTime + tols.timeTol;
                     } else if (tstep > 1) {
                         pState = gridState_t::DYNAMIC_PARTIAL;
-                        LOG_ERROR("simulation halted unable to converge");
-                        LOG_ERROR(dynDataDiff->getLastErrorString());
+                        logging::error(this, "simulation halted unable to converge");
+                        logging::error(this, dynDataDiff->getLastErrorString());
                         return FUNCTION_EXECUTION_FAILURE;
                     }
                 } else if (timeReturn < lastTimeStop + 1e-4) {
                     ++smStep;
                     if (smStep > 10) {
-                        LOG_ERROR("simulation halted too many small time steps");
+                        logging::error(this, "simulation halted too many small time steps");
                         return FUNCTION_EXECUTION_FAILURE;
                     }
                     tstep = 0;
@@ -489,8 +489,8 @@ int gridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
                 retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
                     pState = gridState_t::DYNAMIC_PARTIAL;
-                    LOG_ERROR("simulation halted unable to converge");
-                    LOG_ERROR(dynDataDiff->getLastErrorString());
+                    logging::error(this, "simulation halted unable to converge");
+                    logging::error(this, dynDataDiff->getLastErrorString());
                     return FUNCTION_EXECUTION_FAILURE;
                 }
             }
@@ -570,7 +570,7 @@ int gridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
         dynamicCheckAndReset(sm);
         retval = generateDaeDynamicInitialConditions(sm);
         if (retval != FUNCTION_EXECUTION_SUCCESS) {
-            LOG_ERROR("Unable to generate dynamic solution conditions modeB");
+            logging::error(this, "Unable to generate dynamic solution conditions modeB");
             return retval;
         }
     }
@@ -642,7 +642,7 @@ void gridDynSimulation::handleEarlySolverReturn(int retval,
                      dynData->state_data(),
                      dynData->deriv_data(),
                      dynData->getSolverMode());
-            LOG_DEBUG("Root detected");
+            logging::debug(this, "Root detected");
             rootTrigger(timeActual, noInputs, dynData->rootsfound, dynData->getSolverMode());
         } else if (retval == SOLVER_INVALID_STATE_ERROR) {
             // if we get into here the most likely cause is a very low voltage bus
@@ -740,8 +740,11 @@ int gridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         if ((logPrintLevel >= print_level::debug) || (consolePrintLevel >= print_level::debug)) {
             stringVec snames;
             getStateName(snames, sMode);
-            LOG_DEBUG("state " + std::to_string(maxResid.second) + ':' + snames[maxResid.second] +
-                      " error= " + std::to_string(maxResid.first));
+            logging::debug(this,
+                           "state {}:{} error= {}",
+                           maxResid.second,
+                           snames[maxResid.second],
+                           maxResid.first);
         }
         // converge (currentTime, dynData->state_data (), dynData->deriv_data (), sMode,
         // converge_mode::high_error_only, 0.05);
@@ -985,7 +988,7 @@ int gridDynSimulation::residualFunction(coreTime time,
     auto dynDataa = getSolverInterface(sMode);
     for (index_t kk = 0; kk < dynDataa->size(); ++kk) {
         if (!std::isfinite(state[kk])) {
-            LOG_ERROR("state[" + std::to_string(kk) + "] is not finite");
+            logging::error(this, "state[{}] is not finite", kk);
             printStateNames(this, sMode);
             return FUNCTION_EXECUTION_FAILURE;
         }
@@ -1002,7 +1005,7 @@ int gridDynSimulation::residualFunction(coreTime time,
     auto dynDatab = getSolverInterface(sMode);
     for (index_t kk = 0; kk < dynDatab->size(); ++kk) {
         if (!std::isfinite(resid[kk])) {
-            LOG_ERROR("resid[" + std::to_string(kk) + "] is not finite");
+            logging::error(this, "resid[{}] is not finite", kk);
             printStateNames(this, sMode);
             assert(std::isfinite(resid[kk]));
         }
@@ -1139,7 +1142,7 @@ int gridDynSimulation::derivativeFunction(coreTime time,
     auto dynDataa = getSolverInterface(sMode);
     for (index_t kk = 0; kk < dynDataa->size(); ++kk) {
         if (!std::isfinite(state[kk])) {
-            LOG_ERROR("state[" + std::to_string(kk) + "] is not finite");
+            logging::error(this, "state[{}] is not finite", kk);
             return FUNCTION_EXECUTION_FAILURE;
         }
     }

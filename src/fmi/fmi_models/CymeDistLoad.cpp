@@ -84,7 +84,7 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
         auto fmu_path = model["fmu_path"].get<std::string>();
         fprintf(stderr, "setting fmu_path to %s\n", fmu_path.c_str());
         fmiMELoad3phase::set("fmu", fmu_path);
-        logging::debug(this, "setting fmu to {}", model["fmu_path"].asString());
+        logging::debug(this, "setting fmu to {}", model["fmu_path"].get<std::string>());
 
         if (model.contains("fmu_config_path")) {
             auto config_path = model["fmu_config_path"].get<std::string>();

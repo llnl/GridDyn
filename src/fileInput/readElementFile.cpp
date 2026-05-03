@@ -240,6 +240,12 @@ static const IgnoreListType keywords{
     "dispatch",  "econ",      "configuration", "custom",  "purpose",
     "event",     "collector", "extra"};
 
+static bool isXmlNamespaceAttribute(const std::string& fieldName)
+{
+    return (fieldName == "xmlns") ||
+        ((fieldName.size() > 6) && (fieldName.compare(0, 6, "xmlns:") == 0));
+}
+
 void objSetAttributes(coreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
@@ -250,6 +256,11 @@ void objSetAttributes(coreObject* obj,
     while (att.isValid()) {
         units::unit unitType = units::defunit;
         std::string fieldName = convertToLowerCase(att.getName());
+
+        if (isXmlNamespaceAttribute(fieldName)) {
+            att = element->getNextAttribute();
+            continue;
+        }
 
         if (fieldName.back() == ')') {
             auto p = fieldName.find_last_of('(');
@@ -424,6 +435,11 @@ void setAttributes(helperObject* obj,
 
     while (att.isValid()) {
         std::string fieldName = convertToLowerCase(att.getName());
+
+        if (isXmlNamespaceAttribute(fieldName)) {
+            att = element->getNextAttribute();
+            continue;
+        }
 
         auto ifind = ignoreList.find(fieldName);
         if (ifind != ignoreList.end()) {

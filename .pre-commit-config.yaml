@@ -32,6 +32,7 @@ repos:
       - id: check-yaml
         args: ["--allow-multiple-documents"]
       - id: check-toml
+      - id: check-xml
       - id: end-of-file-fixer
       - id: check-symlinks
       - id: check-shebang-scripts-are-executable

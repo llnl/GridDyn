@@ -23,12 +23,101 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
 namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
+
+namespace {
+constexpr double defaultLimitValue = 99999.999;
+
+double degreesFromRadians(double angleRadians)
+{
+    return angleRadians * 180.0 / kPI;
+}
+
+std::ofstream makeOutputFile(const std::string& fileName)
+{
+    std::ofstream output(fileName);
+    if (!output.is_open()) {
+        throw(fileOperationError("unable to open file " + fileName));
+    }
+    return output;
+}
+
+std::string formatCsvBusRecord(int areaNumber, int busNumber, const gridBus& bus, double basePower)
+{
+    std::ostringstream output;
+    output << areaNumber << ", " << busNumber << ", " << bus.getUserID() << ", "
+           << std::quoted(bus.getName()) << ", " << std::fixed << std::setw(7)
+           << std::setprecision(6) << bus.getVoltage() << ", " << std::showpos << std::setw(8)
+           << std::setprecision(4) << degreesFromRadians(bus.getAngle()) << std::noshowpos << ", "
+           << std::setw(7) << std::setprecision(5) << bus.getGenerationReal() * basePower << ", "
+           << std::setw(7) << std::setprecision(5) << bus.getGenerationReactive() * basePower
+           << ", " << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower
+           << ", " << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower
+           << ", " << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower
+           << ", " << std::setw(7) << std::setprecision(5) << bus.getLinkReactive() * basePower
+           << ", " << std::setw(7) << std::setprecision(5)
+           << (bus.getGenerationReal() + bus.getLoadReal() + bus.getLinkReal()) * basePower
+           << ", " << std::setw(7) << std::setprecision(5)
+           << (bus.getGenerationReactive() + bus.getLoadReactive() + bus.getLinkReactive()) *
+                  basePower;
+    return output.str();
+}
+
+std::string formatTxtBusRecord(int areaNumber, const gridBus& bus, double basePower)
+{
+    std::ostringstream output;
+    output << areaNumber << "\t\t " << bus.getUserID() << "\t\t" << std::quoted(bus.getName())
+           << "\t " << std::fixed << std::setw(7) << std::setprecision(6) << bus.getVoltage()
+           << "\t " << std::showpos << std::setw(8) << std::setprecision(4)
+           << degreesFromRadians(bus.getAngle()) << std::noshowpos << "\t " << std::setw(7)
+           << std::setprecision(5) << bus.getGenerationReal() * basePower << "\t " << std::setw(7)
+           << std::setprecision(5) << bus.getGenerationReactive() * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << bus.getLinkReactive() * basePower;
+    return output.str();
+}
+
+std::string formatTxtLinkRecord(int areaNumber, const Link& link, double basePower)
+{
+    std::ostringstream output;
+    output << areaNumber << "\t\t" << link.getUserID() << "\t\t" << std::quoted(link.getName())
+           << "\t " << std::setw(5) << link.getBus(1)->getUserID() << "\t" << std::setw(5)
+           << link.getBus(2)->getUserID() << "\t " << std::fixed << std::setw(7)
+           << std::setprecision(5) << link.getRealPower(1) * basePower << "\t " << std::setw(7)
+           << std::setprecision(5) << link.getReactivePower(1) * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << link.getRealPower(2) * basePower << "\t "
+           << std::setw(7) << std::setprecision(5) << link.getReactivePower(2) * basePower
+           << "\t " << std::setw(7) << std::setprecision(5) << link.getLoss() * basePower;
+    return output.str();
+}
+
+std::string formatTxtAreaRecord(int areaNumber,
+                                const std::string& areaName,
+                                double generationReal,
+                                double generationReactive,
+                                double loadReal,
+                                double loadReactive,
+                                double loss)
+{
+    std::ostringstream output;
+    output << areaNumber << "\t\t" << std::quoted(areaName) << "\t " << std::fixed
+           << std::setw(7) << std::setprecision(2) << generationReal << "\t " << std::setw(7)
+           << std::setprecision(2) << generationReactive << "\t " << std::setw(7)
+           << std::setprecision(2) << loadReal << "\t " << std::setw(7) << std::setprecision(2)
+           << loadReactive << "\t " << std::setw(7) << std::setprecision(2) << loss << "\t "
+           << std::setw(7) << std::setprecision(2) << -99999.0;
+    return output.str();
+}
+}  // namespace
 
 void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
 {
@@ -44,7 +133,7 @@ void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
         }
     }
 
-    std::string ext = convertToLowerCase(filePath.extension().string());
+    const std::string ext = convertToLowerCase(filePath.extension().string());
 
     // get rid of the . on the extension if it has one
     if (ext == ".xml") {
@@ -62,236 +151,122 @@ void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
 
 void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
 {
-    FILE* fp = fopen(fileName.c_str(), "w");
-    if (fp == nullptr) {
-        throw(fileOperationError("unable to open file " + fileName));
-    }
-    double basePower = gds->get("basepower");
-    fprintf(fp, "basepower=%f\n", basePower);
-    fprintf(
-        fp,
-        "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
-        "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
-        "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n");
-    Area* Area = gds->getArea(0);
-    index_t mmm = 0;
-    while (Area != nullptr) {
-        index_t nn = 0;
-        gridBus* bus = Area->getBus(nn);
+    auto output = makeOutputFile(fileName);
+    const double basePower = gds->get("basepower");
+    output << std::fixed << "basepower=" << basePower << '\n';
+    output << "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
+              "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
+              "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
+    index_t areaIndex = 0;
+    const auto* area = gds->getArea(areaIndex);
+    while (area != nullptr) {
+        index_t busIndex = 0;
+        const auto* bus = area->getBus(busIndex);
         while (bus != nullptr) {
-            fprintf(
-                fp,
-                "%d, %d, %d, \"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
-                Area->getUserID(),
-                bus->getUserID(),
-                bus->getUserID(),
-                bus->getName().c_str(),
-                bus->getVoltage(),
-                units::convert(bus->getAngle(), units::rad, units::deg),
-                bus->getGenerationReal() * basePower,
-                bus->getGenerationReactive() * basePower,
-                bus->getLoadReal() * basePower,
-                bus->getLoadReactive() * basePower,
-                bus->getLinkReal() * basePower,
-                bus->getLinkReactive() * basePower,
-                (bus->getGenerationReal() + bus->getLoadReal() + bus->getLinkReal()) * basePower,
-                (bus->getGenerationReactive() + bus->getLoadReactive() + bus->getLinkReactive()) *
-                    basePower);
-
-            ++nn;
-            bus = Area->getBus(nn);
+            output << formatCsvBusRecord(area->getUserID(), bus->getUserID(), *bus, basePower)
+                   << '\n';
+            ++busIndex;
+            bus = area->getBus(busIndex);
         }
-        ++mmm;
-        Area = gds->getArea(mmm);
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
 
-    index_t nn = 0;
-    gridBus* bus = gds->getBus(nn);
+    index_t busIndex = 0;
+    auto* bus = gds->getBus(busIndex);
     while (bus != nullptr) {
         bus->updateLocalCache();
-        fprintf(
-            fp,
-            "%d, %d, %d,\"%s\", %7.6f, %+8.4f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f, %7.5f\n",
-            1,
-            bus->locIndex + 1,
-            bus->getUserID(),
-            bus->getName().c_str(),
-            bus->getVoltage(),
-            units::convert(bus->getAngle(), units::rad, units::deg),
-            bus->getGenerationReal() * basePower,
-            bus->getGenerationReactive() * basePower,
-            bus->getLoadReal() * basePower,
-            bus->getLoadReactive() * basePower,
-            bus->getLinkReal() * basePower,
-            bus->getLinkReactive() * basePower,
-            (bus->getGenerationReal() + bus->getLoadReal() + bus->getLinkReal()) * basePower,
-            (bus->getGenerationReactive() + bus->getLoadReactive() + bus->getLinkReactive()) *
-                basePower);
-
-        ++nn;
-        bus = gds->getBus(nn);
+        output << formatCsvBusRecord(1, bus->locIndex + 1, *bus, basePower) << '\n';
+        ++busIndex;
+        bus = gds->getBus(busIndex);
     }
     gds->log(gds, print_level::normal, "saving csv powerflow to " + fileName);
-    fclose(fp);
 }
 
 void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 {
-    FILE* fp = fopen(fileName.c_str(), "w");
-    if (fp == nullptr) {
-        throw(fileOperationError("unable to open file " + fileName));
-    }
-    double basePower = gds->get("basepower");
-    fprintf(fp, "%s basepower=%f\n", gds->getName().c_str(), basePower);
-    fprintf(fp,
-            "Simulation %d buses %d lines\n",
-            gds->getInt("totalbuscount"),
-            gds->getInt("totallinkcount"));
+    auto output = makeOutputFile(fileName);
+    const double basePower = gds->get("basepower");
+    output << gds->getName() << " basepower=" << std::fixed << basePower << '\n';
+    output << "Simulation " << gds->getInt("totalbuscount") << " buses "
+           << gds->getInt("totallinkcount") << " lines\n";
 
-    fprintf(fp, "===============BUS INFORMATION=====================\n");
-    fprintf(
-        fp,
-        "Area#\tBus#\tBus "
-        "name\t\t\t\tvoltage(pu)\tangle(deg)\tPgen(MW)\tQgen(MW)\tPload(MW)\tQload(MW)\tPlink(MW)\tQlink("
-        "MW)\n");
-    Area* Area = gds->getArea(0);
-    gridBus* bus;
-    index_t nn = 0;
-    index_t mmm = 0;
-    while (Area != nullptr) {
-        nn = 0;
-        bus = Area->getBus(nn);
+    output << "===============BUS INFORMATION=====================\n";
+    output << "Area#\tBus#\tBus "
+              "name\t\t\t\tvoltage(pu)\tangle(deg)\tPgen(MW)\tQgen(MW)\tPload(MW)\tQload(MW)\tPlink(MW)\tQlink(MW)\n";
+    index_t areaIndex = 0;
+    const auto* area = gds->getArea(areaIndex);
+    while (area != nullptr) {
+        index_t busIndex = 0;
+        const auto* bus = area->getBus(busIndex);
         while (bus != nullptr) {
-            fprintf(
-                fp,
-                "%d\t\t %d\t\t\"%-20s\"\t\t %7.6f\t %+8.4f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\n",
-                Area->getUserID(),
-                bus->getUserID(),
-                bus->getName().c_str(),
-                bus->getVoltage(),
-                units::convert(bus->getAngle(), units::rad, units::deg),
-                bus->getGenerationReal() * basePower,
-                bus->getGenerationReactive() * basePower,
-                bus->getLoadReal() * basePower,
-                bus->getLoadReactive() * basePower,
-                bus->getLinkReal() * basePower,
-                bus->getLinkReactive() * basePower);
-
-            ++nn;
-            bus = Area->getBus(nn);
+            output << formatTxtBusRecord(area->getUserID(), *bus, basePower) << '\n';
+            ++busIndex;
+            bus = area->getBus(busIndex);
         }
-        ++mmm;
-        Area = gds->getArea(mmm);
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
 
-    nn = 0;
-    bus = gds->getBus(nn);
+    index_t busIndex = 0;
+    const auto* bus = gds->getBus(busIndex);
     while (bus != nullptr) {
-        fprintf(
-            fp,
-            "%d\t\t %d\t\t \"%-20s\"\t %7.6f\t %8.4f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\n",
-            1,
-            bus->getUserID(),
-            bus->getName().c_str(),
-            bus->getVoltage(),
-            units::convert(bus->getAngle(), units::rad, units::deg),
-            bus->getGenerationReal() * basePower,
-            bus->getGenerationReactive() * basePower,
-            bus->getLoadReal() * basePower,
-            bus->getLoadReactive() * basePower,
-            bus->getLinkReal() * basePower,
-            bus->getLinkReactive() * basePower);
-
-        ++nn;
-        bus = gds->getBus(nn);
+        output << formatTxtBusRecord(1, *bus, basePower) << '\n';
+        ++busIndex;
+        bus = gds->getBus(busIndex);
     }
-    fprintf(fp, "===============LINE INFORMATION=====================\n");
-    fprintf(fp,
-            "Area#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n");
-    Link* lnk;
-    mmm = 0;
-    Area = gds->getArea(0);
-    while (Area != nullptr) {
-        nn = 0;
-        lnk = Area->getLink(nn);
-        while (bus != nullptr) {
-            fprintf(fp,
-                    "%d\t\t%d\t\t\"%-20s\"\t %5d\t%5d\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\n",
-                    Area->getUserID(),
-                    lnk->getUserID(),
-                    lnk->getName().c_str(),
-                    lnk->getBus(1)->getUserID(),
-                    lnk->getBus(2)->getUserID(),
-                    lnk->getRealPower(1) * basePower,
-                    lnk->getReactivePower(1) * basePower,
-                    lnk->getRealPower(2) * basePower,
-                    lnk->getReactivePower(2) * basePower,
-                    lnk->getLoss() * basePower);
-
-            ++nn;
-            lnk = Area->getLink(nn);
+    output << "===============LINE INFORMATION=====================\n";
+    output << "Area#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n";
+    areaIndex = 0;
+    area = gds->getArea(areaIndex);
+    while (area != nullptr) {
+        index_t linkIndex = 0;
+        const auto* link = area->getLink(linkIndex);
+        while (link != nullptr) {
+            output << formatTxtLinkRecord(area->getUserID(), *link, basePower) << '\n';
+            ++linkIndex;
+            link = area->getLink(linkIndex);
         }
-        ++mmm;
-        Area = gds->getArea(mmm);
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
 
-    nn = 0;
-    lnk = gds->getLink(nn);
-    while (lnk != nullptr) {
-        fprintf(fp,
-                "%d\t\t %d\t\t\"%-20s\"\t %5d, %5d\t %7.5f\t %7.5f\t %7.5f\t %7.5f\t %7.5f\n",
-                1,
-                lnk->getUserID(),
-                lnk->getName().c_str(),
-                lnk->getBus(1)->getUserID(),
-                lnk->getBus(2)->getUserID(),
-                lnk->getRealPower(1) * basePower,
-                lnk->getReactivePower(1) * basePower,
-                lnk->getRealPower(2) * basePower,
-                lnk->getReactivePower(2) * basePower,
-                lnk->getLoss() * basePower);
-
-        ++nn;
-        lnk = gds->getLink(nn);
+    index_t linkIndex = 0;
+    const auto* link = gds->getLink(linkIndex);
+    while (link != nullptr) {
+        output << formatTxtLinkRecord(1, *link, basePower) << '\n';
+        ++linkIndex;
+        link = gds->getLink(linkIndex);
     }
 
-    fprintf(fp, "===============AREA INFORMATION=====================\n");
-    fprintf(
-        fp,
-        "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t Load Real\t Load Reactive\t Loss\t Export\n");
-    mmm = 0;
-    Area = gds->getArea(0);
-    while (Area != nullptr) {
-        fprintf(fp,
-                "%d\t\t\"%-20s\"\t %7.2f\t %7.2f\t %7.2f\t %7.2f\t %7.2f\t %7.2f\n",
-                Area->getUserID(),
-                Area->getName().c_str(),
-                Area->getGenerationReal() * basePower,
-                Area->getGenerationReactive() * basePower,
-                Area->getLoadReal() * basePower,
-                Area->getLoadReactive() * basePower,
-                Area->getLoss() * basePower,
-                -99999.0);
-
-        ++mmm;
-        Area = gds->getArea(mmm);
+    output << "===============AREA INFORMATION=====================\n";
+    output << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t Load Real\t Load Reactive\t Loss\t Export\n";
+    areaIndex = 0;
+    area = gds->getArea(areaIndex);
+    while (area != nullptr) {
+        output << formatTxtAreaRecord(area->getUserID(),
+                                      area->getName(),
+                                      area->getGenerationReal() * basePower,
+                                      area->getGenerationReactive() * basePower,
+                                      area->getLoadReal() * basePower,
+                                      area->getLoadReactive() * basePower,
+                                      area->getLoss() * basePower)
+               << '\n';
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
 
-    fprintf(fp,
-            "%d\t\t\"%-20s\"\t %7.2f\t %7.2f\t %7.2f\t %7.2f\t %7.2f\t %7.2f\n",
-            1,
-            gds->getName().c_str(),
-            gds->getGenerationReal() * basePower,
-            gds->getGenerationReactive() * basePower,
-            gds->getLoadReal() * basePower,
-            gds->getLoadReactive() * basePower,
-            gds->getLoss() * basePower,
-            -99999.0);
+    output << formatTxtAreaRecord(1,
+                                  gds->getName(),
+                                  gds->getGenerationReal() * basePower,
+                                  gds->getGenerationReactive() * basePower,
+                                  gds->getLoadReal() * basePower,
+                                  gds->getLoadReactive() * basePower,
+                                  gds->getLoss() * basePower)
+           << '\n';
     gds->log(gds, print_level::normal, "saving txt powerflow to " + fileName);
-    fclose(fp);
 }
 
-static const double deflim1 = 99999.999;
 // static const double deflim2 = -99999.99;
 
 /*
@@ -320,32 +295,32 @@ Columns 107-114 Shunt conductance G (per unit) (F) *
 Columns 115-122 Shunt susceptance B (per unit) (F) *
 Columns 124-127 Remote controlled bus number
 */
-void cdfBusPrint(FILE* fp, int areaNum, gridBus* bus)
+static void cdfBusPrint(std::ostream& output, int areaNumber, const gridBus& bus)
 {
-    auto type = static_cast<int>(bus->getType());
-    fprintf(fp,
-            "%4u %-12s %2u%3u %2d %6.4f%7.2f",
-            bus->getUserID(),
-            bus->getName().c_str(),
-            areaNum,
-            bus->getInt("zone"),
-            type,
-            bus->getVoltage(),
-            bus->getAngle() * 180.0 / kPI);
+    const auto type = static_cast<int>(bus.getType());
+    output << std::setw(4) << bus.getUserID() << ' ' << std::left << std::setw(12)
+           << bus.getName() << std::right << ' ' << std::setw(2) << areaNumber << std::setw(3)
+           << bus.getInt("zone") << ' ' << std::setw(2) << type << ' ' << std::fixed
+           << std::setw(6) << std::setprecision(4) << bus.getVoltage() << std::setw(7)
+           << std::setprecision(2) << degreesFromRadians(bus.getAngle());
 
-    double P = bus->get("p", units::MW);
-    double Q = bus->get("q", units::MW);
-    double genP = -bus->get("general", units::MW);
-    double genQ = -bus->get("genreactive", units::MW);
+    const double realPower = bus.get("p", units::MW);
+    const double reactivePower = bus.get("q", units::MW);
+    const double generatedRealPower = -bus.get("general", units::MW);
+    const double generatedReactivePower = -bus.get("genreactive", units::MW);
 
-    fprintf(fp, "%9.2f%9.2f%9.2f%8.2f", P, Q, genP, genQ);
-    double vmax = (std::min)(bus->get("vmax"), deflim1);
-    double vmin = (std::max)(bus->get("vmin"), 0.0);
+    output << std::setw(9) << std::setprecision(2) << realPower << std::setw(9)
+           << std::setprecision(2) << reactivePower << std::setw(9) << std::setprecision(2)
+           << generatedRealPower << std::setw(8) << std::setprecision(2)
+           << generatedReactivePower;
+
+    double vmax = (std::min)(bus.get("vmax"), defaultLimitValue);
+    double vmin = (std::max)(bus.get("vmin"), 0.0);
     if (type != 0) {
-        vmax = bus->get("qmax");
-        vmin = bus->get("qmin");
+        vmax = bus.get("qmax");
+        vmin = bus.get("qmin");
     }
-    if (vmax >= deflim1) {
+    if (vmax >= defaultLimitValue) {
         vmax = 0.0;
     }
     if (vmin < -kHalfBigNum) {
@@ -353,16 +328,19 @@ void cdfBusPrint(FILE* fp, int areaNum, gridBus* bus)
     }
 
     if ((type == 1) || (type == 3)) {
-        fprintf(
-            fp, " %7.1f %6.3f%8.2f%8.2f", bus->get("basevoltage"), bus->get("vtarget"), vmax, vmin);
+        output << ' ' << std::setw(7) << std::setprecision(1) << bus.get("basevoltage") << ' '
+               << std::setw(6) << std::setprecision(3) << bus.get("vtarget") << std::setw(8)
+               << std::setprecision(2) << vmax << std::setw(8) << std::setprecision(2) << vmin;
     } else {
-        fprintf(
-            fp, " %7.1f %6.3f%8.4f%8.4f", bus->get("basevoltage"), bus->get("vtarget"), vmax, vmin);
+        output << ' ' << std::setw(7) << std::setprecision(1) << bus.get("basevoltage") << ' '
+               << std::setw(6) << std::setprecision(3) << bus.get("vtarget") << std::setw(8)
+               << std::setprecision(4) << vmax << std::setw(8) << std::setprecision(4) << vmin;
     }
 
-    double yp = bus->get("yp", units::MW);
-    double yq = -bus->get("yq", units::MW);
-    fprintf(fp, "%8.4f%8.4f %4d\n", yp, yq, 0);
+    const double shuntRealPower = bus.get("yp", units::MW);
+    const double shuntReactivePower = -bus.get("yq", units::MW);
+    output << std::setw(8) << std::setprecision(4) << shuntRealPower << std::setw(8)
+           << std::setprecision(4) << shuntReactivePower << ' ' << std::setw(4) << 0 << '\n';
 }
 
 /*
@@ -401,194 +379,180 @@ Columns 113-119 Minimum voltage, MVAR or MW limit (F)
 Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 */
 
-void cdfLinkPrint(FILE* fp, int areaNum, acLine* lnk)
+static void cdfLinkPrint(std::ostream& output, int areaNumber, acLine* link)
 {
     int type = 0;
-    int cbus = 0;
+    int controlBus = 0;
     double maxVal = 0.0;
     double minVal = 0.0;
     double minAdj = 0.0;
     double maxAdj = 0.0;
-    double ssize = 0.0;
-    if (dynamic_cast<links::adjustableTransformer*>(lnk) != nullptr) {
-        auto alnk = static_cast<links::adjustableTransformer*>(lnk);
-        type = alnk->getInt("control_mode");
+    double stepSize = 0.0;
+    if (dynamic_cast<links::adjustableTransformer*>(link) != nullptr) {
+        auto* adjustableLink = static_cast<links::adjustableTransformer*>(link);
+        type = adjustableLink->getInt("control_mode");
         switch (type) {
             case 0:
                 type = 1;
-                maxVal = 0;
-                minVal = 0;
+                maxVal = 0.0;
+                minVal = 0.0;
                 break;
             case 1:
                 type = 2;
-                maxVal = alnk->get("vmax");
-                minVal = alnk->get("vmin");
-                minAdj = alnk->get("mintap");
-                maxAdj = alnk->get("maxtap");
-                ssize = alnk->get("stepsize");
+                maxVal = adjustableLink->get("vmax");
+                minVal = adjustableLink->get("vmin");
+                minAdj = adjustableLink->get("mintap");
+                maxAdj = adjustableLink->get("maxtap");
+                stepSize = adjustableLink->get("stepsize");
                 break;
             case 2:
                 type = 3;
-                maxVal = alnk->get("qmax", units::MW);
-                minVal = alnk->get("qmin", units::MW);
-                minAdj = alnk->get("mintap");
-                maxAdj = alnk->get("maxtap");
-                ssize = alnk->get("stepsize");
+                maxVal = adjustableLink->get("qmax", units::MW);
+                minVal = adjustableLink->get("qmin", units::MW);
+                minAdj = adjustableLink->get("mintap");
+                maxAdj = adjustableLink->get("maxtap");
+                stepSize = adjustableLink->get("stepsize");
                 break;
             case 3:
                 type = 4;
-                maxVal = alnk->get("pmax", units::MW);
-                minVal = alnk->get("pmin", units::MW);
-                minAdj = alnk->get("mintapangle");
-                maxAdj = alnk->get("maxtapangle");
-                ssize = alnk->get("stepsize");
+                maxVal = adjustableLink->get("pmax", units::MW);
+                minVal = adjustableLink->get("pmin", units::MW);
+                minAdj = adjustableLink->get("mintapangle");
+                maxAdj = adjustableLink->get("maxtapangle");
+                stepSize = adjustableLink->get("stepsize");
+                break;
+            default:
                 break;
         }
-        cbus = alnk->getInt("controlbusid");
-    } else {
-        if (lnk->getTap() != 1.0) {
-            type = 1;
-        } else if (lnk->getTapAngle() != 0.0) {
-            type = 4;
-        }
+        controlBus = adjustableLink->getInt("controlbusid");
+    } else if (link->getTap() != 1.0) {
+        type = 1;
+    } else if (link->getTapAngle() != 0.0) {
+        type = 4;
     }
 
-    fprintf(fp,
-            "%4d %4d %2d %2d 1 %1d",
-            lnk->getBus(1)->getUserID(),
-            lnk->getBus(2)->getUserID(),
-            lnk->getInt("zone"),
-            areaNum,
-            type);
-    fprintf(fp, "%10.6f%10.6f%11.5f", lnk->get("r"), lnk->get("x"), lnk->get("b", units::MW));
+    output << std::setw(4) << link->getBus(1)->getUserID() << ' ' << std::setw(4)
+           << link->getBus(2)->getUserID() << ' ' << std::setw(2) << link->getInt("zone") << ' '
+           << std::setw(2) << areaNumber << " 1 " << std::setw(1) << type << std::fixed
+           << std::setw(10) << std::setprecision(6) << link->get("r") << std::setw(10)
+           << std::setprecision(6) << link->get("x") << std::setw(11) << std::setprecision(5)
+           << link->get("b", units::MW);
 
-    double rat1 = lnk->get("ratinga", units::MW);
-    double rat2 = lnk->get("ratingb", units::MW);
-    double rat3 = lnk->get("erating", units::MW);
-    if ((rat1 < 0) || (rat1 > deflim1)) {
-        rat1 = 0.0;
+    double ratingA = link->get("ratinga", units::MW);
+    double ratingB = link->get("ratingb", units::MW);
+    double emergencyRating = link->get("erating", units::MW);
+    if ((ratingA < 0) || (ratingA > defaultLimitValue)) {
+        ratingA = 0.0;
     }
-    if ((rat2 < 0) || (rat2 > deflim1)) {
-        rat2 = 0.0;
+    if ((ratingB < 0) || (ratingB > defaultLimitValue)) {
+        ratingB = 0.0;
     }
-    if ((rat3 < 0) || (rat3 > deflim1)) {
-        rat3 = 0.0;
+    if ((emergencyRating < 0) || (emergencyRating > defaultLimitValue)) {
+        emergencyRating = 0.0;
     }
-    fprintf(fp,
-            "%5d %5d %5d %4d %1d  ",
-            static_cast<int>(rat1),
-            static_cast<int>(rat2),
-            static_cast<int>(rat3),
-            cbus,
-            0);
+    output << std::setw(5) << static_cast<int>(ratingA) << ' ' << std::setw(5)
+           << static_cast<int>(ratingB) << ' ' << std::setw(5)
+           << static_cast<int>(emergencyRating) << ' ' << std::setw(4) << controlBus << ' '
+           << std::setw(1) << 0 << "  ";
     switch (type) {
         case 0:
-            fprintf(fp, "0.0       0.0 0.0    0.0     0.0    0.0   0.0\n");
+            output << "0.0       0.0 0.0    0.0     0.0    0.0   0.0\n";
             break;
         case 1:
-            fprintf(fp, "%6.4f    0.0 0.0    0.0     0.0    0.0   0.0\n", lnk->getTap());
+            output << std::setw(6) << std::setprecision(4) << link->getTap()
+                   << "    0.0 0.0    0.0     0.0    0.0   0.0\n";
             break;
         case 2:
         case 3:
-            fprintf(fp,
-                    "%6.4f %6.1f %6.4f %6.4f%7.5f %6.4f %6.4f\n",
-                    lnk->getTap(),
-                    0.0,
-                    minAdj,
-                    maxAdj,
-                    ssize,
-                    minVal,
-                    maxVal);
+            output << std::setw(6) << std::setprecision(4) << link->getTap() << ' '
+                   << std::setw(6) << std::setprecision(1) << 0.0 << ' ' << std::setw(6)
+                   << std::setprecision(4) << minAdj << ' ' << std::setw(6)
+                   << std::setprecision(4) << maxAdj << std::setw(7) << std::setprecision(5)
+                   << stepSize << ' ' << std::setw(6) << std::setprecision(4) << minVal << ' '
+                   << std::setw(6) << std::setprecision(4) << maxVal << '\n';
             break;
         case 4:
-            fprintf(fp,
-                    "%6.4f%7.2f%7.4f%7.2f %6.2f%7.1f%7.1f\n",
-                    lnk->getTap(),
-                    lnk->getTapAngle() * 180.0 / kPI,
-                    minAdj,
-                    maxAdj,
-                    ssize,
-                    minVal,
-                    maxVal);
+            output << std::setw(6) << std::setprecision(4) << link->getTap() << std::setw(7)
+                   << std::setprecision(2) << degreesFromRadians(link->getTapAngle())
+                   << std::setw(7) << std::setprecision(4) << minAdj << std::setw(7)
+                   << std::setprecision(2) << maxAdj << ' ' << std::setw(6)
+                   << std::setprecision(2) << stepSize << std::setw(7) << std::setprecision(1)
+                   << minVal << std::setw(7) << std::setprecision(1) << maxVal << '\n';
+            break;
+        default:
+            output << "0.0       0.0 0.0    0.0     0.0    0.0   0.0\n";
             break;
     }
 }
 
 void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
 {
-    FILE* fp = fopen(fileName.c_str(), "w");
-    if (fp == nullptr) {
-        throw(fileOperationError("unable to open file " + fileName));
-    }
-
-    double basePower = gds->get("basepower");
+    auto output = makeOutputFile(fileName);
+    const double basePower = gds->get("basepower");
     // Title Data
-    fprintf(fp,
-            " 0 /0 /0  %20s %5d 2016  %27s\n",
-            "GridDyn " GRIDDYN_VERSION_STRING_SHORT,
-            static_cast<int>(basePower),
-            gds->getName().c_str());
+    output << " 0 /0 /0  " << std::setw(20) << std::right
+           << ("GridDyn " GRIDDYN_VERSION_STRING_SHORT) << ' ' << std::setw(5)
+           << static_cast<int>(basePower) << " 2016  " << std::setw(27) << gds->getName()
+           << '\n';
 
     // Bus Data
-    fprintf(fp, "BUS DATA FOLLOWS\n");
-    index_t nn = 0;
-    auto bus = gds->getBus(nn);
+    output << "BUS DATA FOLLOWS\n";
+    index_t busIndex = 0;
+    auto* bus = gds->getBus(busIndex);
     while (bus != nullptr) {
-        cdfBusPrint(fp, 1, bus);
-        ++nn;
-        bus = gds->getBus(nn);
+        cdfBusPrint(output, 1, *bus);
+        ++busIndex;
+        bus = gds->getBus(busIndex);
     }
 
-    auto Area = gds->getArea(0);
+    auto* area = gds->getArea(0);
 
-    index_t mm = 0;
-    while (Area != nullptr) {
-        nn = 0;
-        bus = Area->getBus(nn);
+    index_t areaIndex = 0;
+    while (area != nullptr) {
+        busIndex = 0;
+        bus = area->getBus(busIndex);
         while (bus != nullptr) {
-            cdfBusPrint(fp, Area->getUserID(), bus);
-            ++nn;
-            bus = Area->getBus(nn);
+            cdfBusPrint(output, area->getUserID(), *bus);
+            ++busIndex;
+            bus = area->getBus(busIndex);
         }
-        ++mm;
-        Area = gds->getArea(mm);
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
-    fprintf(fp, "-999\n");
+    output << "-999\n";
 
     // Line Data
-    fprintf(fp, "BRANCH DATA FOLLOWS\n");
-    nn = 0;
-    Link* lnk = gds->getLink(nn);
-    while (lnk != nullptr) {
-        cdfLinkPrint(fp, 1, static_cast<acLine*>(lnk));
-        ++nn;
-        lnk = gds->getLink(nn);
+    output << "BRANCH DATA FOLLOWS\n";
+    index_t linkIndex = 0;
+    auto* link = gds->getLink(linkIndex);
+    while (link != nullptr) {
+        cdfLinkPrint(output, 1, static_cast<acLine*>(link));
+        ++linkIndex;
+        link = gds->getLink(linkIndex);
     }
-    mm = 0;
-    Area = gds->getArea(mm);
-    while (Area != nullptr) {
-        nn = 0;
-        lnk = Area->getLink(nn);
-        while (lnk != nullptr) {
-            cdfLinkPrint(fp, Area->getUserID(), static_cast<acLine*>(lnk));
-            ++nn;
-            lnk = Area->getLink(nn);
+    areaIndex = 0;
+    area = gds->getArea(areaIndex);
+    while (area != nullptr) {
+        linkIndex = 0;
+        link = area->getLink(linkIndex);
+        while (link != nullptr) {
+            cdfLinkPrint(output, area->getUserID(), static_cast<acLine*>(link));
+            ++linkIndex;
+            link = area->getLink(linkIndex);
         }
-        ++mm;
-        Area = gds->getArea(mm);
+        ++areaIndex;
+        area = gds->getArea(areaIndex);
     }
 
-    fprintf(fp, "-999\n");
-    fprintf(fp, "LOSS ZONES FOLLOWS \n");
-    fprintf(fp, "1 %s\n", gds->getName().c_str());
-    fprintf(fp, "-99\n");
-    fprintf(fp, "INTERCHANGE DATA FOLLOWS ");
-    fprintf(fp, "-9\n");
-    fprintf(fp, "TIE LINES FOLLOWS                0 ITEMS\n");
-    fprintf(fp, "-999\n");
-    fprintf(fp, "END OF DATA");
-
-    fclose(fp);
+    output << "-999\n";
+    output << "LOSS ZONES FOLLOWS \n";
+    output << "1 " << gds->getName() << '\n';
+    output << "-99\n";
+    output << "INTERCHANGE DATA FOLLOWS ";
+    output << "-9\n";
+    output << "TIE LINES FOLLOWS                0 ITEMS\n";
+    output << "-999\n";
+    output << "END OF DATA";
 }
 
 void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
@@ -611,35 +575,35 @@ void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
     auto buses = sol.append_child("buses");
     addTextChild(buses, "count", gds->get("buscount"));
 
-    index_t nn = 0;
-    auto bus = gds->getBus(nn);
+    index_t busIndex = 0;
+    auto* bus = gds->getBus(busIndex);
     while (bus != nullptr) {
-        auto busE = buses.append_child("bus");
-        addTextChild(busE, "name", bus->getName().c_str());
-        addTextChild(busE, "index", nn);
-        addTextChild(busE, "voltage", bus->getVoltage());
-        addTextChild(busE, "angle", bus->getAngle());
-        ++nn;
-        bus = gds->getBus(nn);
+        auto busElement = buses.append_child("bus");
+        addTextChild(busElement, "name", bus->getName().c_str());
+        addTextChild(busElement, "index", busIndex);
+        addTextChild(busElement, "voltage", bus->getVoltage());
+        addTextChild(busElement, "angle", bus->getAngle());
+        ++busIndex;
+        bus = gds->getBus(busIndex);
     }
 
     auto links = sol.append_child("links");
     addTextChild(links, "count", gds->get("linkcount"));
 
-    nn = 0;
-    auto lnk = gds->getLink(nn);
-    while (lnk != nullptr) {
+    index_t linkIndex = 0;
+    auto* link = gds->getLink(linkIndex);
+    while (link != nullptr) {
         auto linkElement = links.append_child("link");
-        addTextChild(linkElement, "name", lnk->getName().c_str());
-        addTextChild(linkElement, "index", nn);
-        addTextChild(linkElement, "Bus1", lnk->getBus(1)->getUserID());
-        addTextChild(linkElement, "Bus2", lnk->getBus(2)->getUserID());
-        addTextChild(linkElement, "RealImpedance", lnk->get("r"));
-        addTextChild(linkElement, "ImagImpedance", lnk->get("x"));
-        addTextChild(linkElement, "RealIn", lnk->getRealPower());
-        addTextChild(linkElement, "RealOut", lnk->getRealPower(2));
-        ++nn;
-        lnk = gds->getLink(nn);
+        addTextChild(linkElement, "name", link->getName().c_str());
+        addTextChild(linkElement, "index", linkIndex);
+        addTextChild(linkElement, "Bus1", link->getBus(1)->getUserID());
+        addTextChild(linkElement, "Bus2", link->getBus(2)->getUserID());
+        addTextChild(linkElement, "RealImpedance", link->get("r"));
+        addTextChild(linkElement, "ImagImpedance", link->get("x"));
+        addTextChild(linkElement, "RealIn", link->getRealPower());
+        addTextChild(linkElement, "RealOut", link->getRealPower(2));
+        ++linkIndex;
+        link = gds->getLink(linkIndex);
     }
     if (!doc.save_file(fileName.c_str())) {
         throw(fileOperationError("unable to open file " + fileName));
@@ -648,51 +612,54 @@ void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
 
 void saveBusData(gridDynSimulation* gds, const std::string& fileName)
 {
-    std::vector<double> V;
-    std::vector<double> A;
-    std::vector<double> Pgen;
-    std::vector<double> Qgen;
-    std::vector<double> Pload;
-    std::vector<double> Qload;
-    std::vector<std::string> bname;
-    gds->getVoltage(V);
-    gds->getAngle(A);
-    gds->getBusGenerationReal(Pgen);
-    gds->getBusGenerationReactive(Qgen);
-    gds->getBusLoadReactive(Qload);
-    gds->getBusLoadReal(Pload);
-    gds->getBusName(bname);
+    std::vector<double> voltages;
+    std::vector<double> angles;
+    std::vector<double> generatedRealPower;
+    std::vector<double> generatedReactivePower;
+    std::vector<double> loadRealPower;
+    std::vector<double> loadReactivePower;
+    std::vector<std::string> busNames;
+    gds->getVoltage(voltages);
+    gds->getAngle(angles);
+    gds->getBusGenerationReal(generatedRealPower);
+    gds->getBusGenerationReactive(generatedReactivePower);
+    gds->getBusLoadReactive(loadReactivePower);
+    gds->getBusLoadReal(loadRealPower);
+    gds->getBusName(busNames);
 
     std::ofstream out(fileName);
     out << "Name, Voltage, angle, Pg, Qg, Pl, Ql\n";
-    for (size_t aa = 0; aa < V.size(); ++aa) {
-        out << bname[aa] << ", " << V[aa] << ", " << A[aa];
-        out << ", " << Pgen[aa] << ", " << Qgen[aa] << ", ";
-        out << Pload[aa] << ", " << Qload[aa] << "\n";
+    for (size_t entryIndex = 0; entryIndex < voltages.size(); ++entryIndex) {
+        out << busNames[entryIndex] << ", " << voltages[entryIndex] << ", " << angles[entryIndex];
+        out << ", " << generatedRealPower[entryIndex] << ", "
+            << generatedReactivePower[entryIndex] << ", ";
+        out << loadRealPower[entryIndex] << ", " << loadReactivePower[entryIndex] << "\n";
     }
 }
 
 void saveLineData(gridDynSimulation* gds, const std::string& fileName)
 {
     std::vector<double> loss;
-    std::vector<double> P1;
-    std::vector<double> Q1;
-    std::vector<double> P2;
-    std::vector<double> Q2;
-    std::vector<std::string> linkname;
+    std::vector<double> forwardRealPower;
+    std::vector<double> forwardReactivePower;
+    std::vector<double> reverseRealPower;
+    std::vector<double> reverseReactivePower;
+    std::vector<std::string> linkNames;
     gds->getLinkLoss(loss);
-    gds->getLinkRealPower(P1, 0, 1);
-    gds->getLinkRealPower(P2, 0, 2);
-    gds->getLinkReactivePower(Q1, 0, 1);
-    gds->getLinkReactivePower(Q2, 0, 2);
-    gds->getLinkName(linkname);
+    gds->getLinkRealPower(forwardRealPower, 0, 1);
+    gds->getLinkRealPower(reverseRealPower, 0, 2);
+    gds->getLinkReactivePower(forwardReactivePower, 0, 1);
+    gds->getLinkReactivePower(reverseReactivePower, 0, 2);
+    gds->getLinkName(linkNames);
 
     std::ofstream out(fileName);
     out << "Name, P1, Q1, P2, Q2, loss\n";
-    for (size_t aa = 0; aa < P1.size(); ++aa) {
-        out << linkname[aa] << ", " << P1[aa] << ", " << Q1[aa];
-        out << ", " << P2[aa] << ", " << Q2[aa] << ", ";
-        out << loss[aa] << "\n";
+    for (size_t entryIndex = 0; entryIndex < forwardRealPower.size(); ++entryIndex) {
+        out << linkNames[entryIndex] << ", " << forwardRealPower[entryIndex] << ", "
+            << forwardReactivePower[entryIndex];
+        out << ", " << reverseRealPower[entryIndex] << ", "
+            << reverseReactivePower[entryIndex] << ", ";
+        out << loss[entryIndex] << "\n";
     }
 }
 
@@ -707,18 +674,16 @@ void saveState(gridDynSimulation* gds,
     if (fileName.empty()) {
         auto stateFile = gds->getString("statefile");
         if (stateFile.empty()) {
-            std::cerr << "no file specified" << std::endl;
+            std::cerr << "no file specified\n";
             return;
         }
         filePath = std::filesystem::path(stateFile);
     }
 
-    std::string ext = convertToLowerCase(filePath.extension().string());
+    const std::string ext = convertToLowerCase(filePath.extension().string());
 
     if (ext == ".xml") {
         saveStateXML(gds, fileName, sMode);
-    } else if ((ext == ".bin") || (ext == ".dat")) {
-        saveStateBinary(gds, fileName, sMode, append);
     } else {
         saveStateBinary(gds, fileName, sMode, append);
     }
@@ -735,13 +700,13 @@ void saveStateBinary(gridDynSimulation* gds,
                      const solverMode& sMode,
                      bool append)
 {
-    auto& currentMode = gds->getCurrentMode(sMode);
-    auto sd = gds->getSolverInterface(currentMode);
-    if (!sd) {
+    const auto& currentMode = gds->getCurrentMode(sMode);
+    auto solverInterface = gds->getSolverInterface(currentMode);
+    if (!solverInterface) {
         return;
     }
-    auto statedata = sd->state_data();
-    auto dsize = sd->size();
+    auto stateData = solverInterface->state_data();
+    auto dataSize = solverInterface->size();
 
     auto index = gds->getInt("residcount");
     if (fileName.empty()) {
@@ -750,8 +715,8 @@ void saveStateBinary(gridDynSimulation* gds,
                     index,
                     STATE_INFORMATION,
                     currentMode.offsetIndex,
-                    dsize,
-                    statedata,
+                    dataSize,
+                    stateData,
                     stateFile,
                     append);
         if (hasDifferential(currentMode)) {
@@ -759,8 +724,8 @@ void saveStateBinary(gridDynSimulation* gds,
                         index,
                         DERIVATIVE_INFORMATION,
                         currentMode.offsetIndex,
-                        dsize,
-                        sd->deriv_data(),
+                        dataSize,
+                        solverInterface->deriv_data(),
                         stateFile);
         }
     } else {
@@ -768,8 +733,8 @@ void saveStateBinary(gridDynSimulation* gds,
                     index,
                     STATE_INFORMATION,
                     currentMode.offsetIndex,
-                    dsize,
-                    statedata,
+                    dataSize,
+                    stateData,
                     fileName,
                     append);
         if (hasDifferential(currentMode)) {
@@ -777,8 +742,8 @@ void saveStateBinary(gridDynSimulation* gds,
                         index,
                         DERIVATIVE_INFORMATION,
                         currentMode.offsetIndex,
-                        dsize,
-                        sd->deriv_data(),
+                        dataSize,
+                        solverInterface->deriv_data(),
                         fileName);
         }
     }
@@ -837,23 +802,24 @@ void writeArray(coreTime time,
     std::uint32_t numElements = a1.size();
     bFile.write(reinterpret_cast<char*>(&numElements), sizeof(std::uint32_t));
     a1.start();
-    for (size_t nn = 0; nn < numElements; ++nn) {
-        auto el = a1.next();
-        bFile.write(reinterpret_cast<char*>(&el), sizeof(matrixElement<double>));
+    for (size_t elementIndex = 0; elementIndex < numElements; ++elementIndex) {
+        const auto elementData = a1.next();
+        bFile.write(reinterpret_cast<const char*>(&elementData), sizeof(matrixElement<double>));
     }
 }
 
 void loadState(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
-    std::filesystem::path filePath(fileName);
+    const std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
         auto stateFile = gds->getString("statefile");
         if (stateFile.empty()) {
-            std::cerr << "no file specified" << std::endl;
+            std::cerr << "no file specified\n";
             gds->log(gds, print_level::error, "no state file specified");
             throw(invalidFileName());
         }
-        filePath = std::filesystem::path(stateFile);
+        loadStateBinary(gds, stateFile, sMode);
+        return;
     }
 
     if (!std::filesystem::exists(filePath)) {
@@ -861,12 +827,10 @@ void loadState(gridDynSimulation* gds, const std::string& fileName, const solver
         throw(invalidFileName());
     }
 
-    std::string ext = convertToLowerCase(filePath.extension().string());
+    const std::string ext = convertToLowerCase(filePath.extension().string());
 
     if (ext == ".xml") {
         loadStateXML(gds, fileName, sMode);
-    } else if ((ext == ".bin") || (ext == ".dat")) {
-        loadStateBinary(gds, fileName, sMode);
     } else {
         loadStateBinary(gds, fileName, sMode);
     }
@@ -875,8 +839,8 @@ void loadState(gridDynSimulation* gds, const std::string& fileName, const solver
 void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
     const solverMode& currentMode = gds->getCurrentMode(sMode);
-    auto sd = gds->getSolverInterface(currentMode);
-    if (!sd) {
+    auto solverInterface = gds->getSolverInterface(currentMode);
+    if (!solverInterface) {
         return;
     }
 
@@ -894,9 +858,9 @@ void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const 
     }
     count_t dsize;
     bFile.read(reinterpret_cast<char*>(&dsize), sizeof(int));
-    if (sd->size() != dsize) {
-        if (!sd->isInitialized()) {
-            sd->allocate(dsize);
+    if (solverInterface->size() != dsize) {
+        if (!solverInterface->isInitialized()) {
+            solverInterface->allocate(dsize);
         } else {
             gds->log(gds, print_level::error, "statefile does not match solverMode in size");
             return;
@@ -904,11 +868,11 @@ void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const 
     }
     // TODO(phlpt): Check this index at some point; the right handling is still unclear,
     // might be used for automatic solverMode location  instead of what is done currently.
-    unsigned int oi;
-    bFile.read(reinterpret_cast<char*>(&(oi)), sizeof(int));
-    bFile.read(reinterpret_cast<char*>(sd->state_data()), sizeof(double) * dsize);
+    unsigned int outputIndex;
+    bFile.read(reinterpret_cast<char*>(&outputIndex), sizeof(int));
+    bFile.read(reinterpret_cast<char*>(solverInterface->state_data()), sizeof(double) * dsize);
     if (isDynamic(sMode)) {
-        bFile.read(reinterpret_cast<char*>(sd->deriv_data()), sizeof(double) * dsize);
+        bFile.read(reinterpret_cast<char*>(solverInterface->deriv_data()), sizeof(double) * dsize);
     }
 }
 
@@ -920,7 +884,7 @@ void loadStateXML(gridDynSimulation* /*gds*/,
 
 void loadPowerFlow(gridDynSimulation* gds, const std::string& fileName)
 {
-    std::filesystem::path filePath(fileName);
+    const std::filesystem::path filePath(fileName);
     std::string ext = convertToLowerCase(filePath.extension().string());
     // get rid of the . on the extension if it has one
     if (ext[0] == '.') {
@@ -954,25 +918,25 @@ void loadPowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
     auto buses = flow.child("buses");
     auto links = flow.child("links");
     // check to make sure the buscount is correct
-    auto cd = buses.child("count");
-    int count = cd.text().as_int();
+    auto countNode = buses.child("count");
+    int count = countNode.text().as_int();
     auto busCount = gds->getInt("buscount");
     if (count != busCount) {
         return;
     }
     // check to make sure the link count is correct
-    cd = links.child("count");
-    count = cd.text().as_int();
+    countNode = links.child("count");
+    count = countNode.text().as_int();
     auto linkCount = gds->getInt("linkcount");
     if (count != linkCount) {
         return;
     }
     // loop over the buses
     for (auto busNode: buses.children("bus")) {
-        auto kk = static_cast<index_t>(busNode.child("index").text().as_llong());
+        auto busIndex = static_cast<index_t>(busNode.child("index").text().as_llong());
         auto val1 = busNode.child("voltage").text().as_double();
         auto val2 = busNode.child("angle").text().as_double();
-        auto bus = gds->getBus(kk);
+        auto* bus = gds->getBus(busIndex);
         bus->setVoltageAngle(val1, val2);
     }
 }
@@ -985,19 +949,20 @@ void captureJacState(gridDynSimulation* gds, const std::string& fileName, const 
         throw(fileOperationError("unable to open file " + fileName));
     }
     // writing the state vector
-    auto& currentMode = gds->getCurrentMode(sMode);
-    auto sd = gds->getSolverInterface(currentMode);
-    matrixDataSparse<double> md;
-    stateData sD(gds->getSimulationTime(), sd->state_data(), sd->deriv_data());
+    const auto& currentMode = gds->getCurrentMode(sMode);
+    auto solverInterface = gds->getSolverInterface(currentMode);
+    matrixDataSparse<double> matrixData;
+    stateData stateDescription(
+        gds->getSimulationTime(), solverInterface->state_data(), solverInterface->deriv_data());
 
-    sD.cj = 10000;
+    stateDescription.cj = 10000;
 
-    gds->jacobianElements(noInputs, sD, md, noInputLocs, currentMode);
+    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
 
-    count_t dsize = sd->size();
+    count_t dsize = solverInterface->size();
 
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(unsigned int));
     for (auto& stN : stateNames) {
@@ -1007,16 +972,16 @@ void captureJacState(gridDynSimulation* gds, const std::string& fileName, const 
     }
 
     // write the state vector
-    bFile.write(reinterpret_cast<char*>(sd->state_data()), dsize * sizeof(double));
+    bFile.write(reinterpret_cast<char*>(solverInterface->state_data()), dsize * sizeof(double));
     // writing the Jacobian Matrix
-    dsize = md.size();
+    dsize = matrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
-    for (index_t kk = 0; kk < dsize; ++kk) {
-        auto el = md.element(kk);
-        bFile.write(reinterpret_cast<char*>(&(el.row)), sizeof(index_t));
-        bFile.write(reinterpret_cast<char*>(&(el.col)), sizeof(index_t));
-        bFile.write(reinterpret_cast<char*>(&(el.data)), sizeof(double));
+    for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
+        const auto elementData = matrixData.element(elementIndex);
+        bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
+        bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
+        bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
     }
 
     bFile.close();
@@ -1030,17 +995,17 @@ void saveJacobian(gridDynSimulation* gds, const std::string& fileName, const sol
         throw(fileOperationError("unable to open file " + fileName));
     }
     // writing the state vector
-    auto& currentMode = gds->getCurrentMode(sMode);
+    const auto& currentMode = gds->getCurrentMode(sMode);
     auto SolverInterface = gds->getSolverInterface(currentMode);
 
-    matrixDataSparse<double> md;
+    matrixDataSparse<double> matrixData;
 
-    stateData sD(gds->getSimulationTime(),
-                 SolverInterface->state_data(),
-                 SolverInterface->deriv_data());
+    stateData stateDescription(gds->getSimulationTime(),
+                               SolverInterface->state_data(),
+                               SolverInterface->deriv_data());
 
-    sD.cj = 10000;
-    gds->jacobianElements(noInputs, sD, md, noInputLocs, currentMode);
+    stateDescription.cj = 10000;
+    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
@@ -1053,14 +1018,14 @@ void saveJacobian(gridDynSimulation* gds, const std::string& fileName, const sol
         bFile.write(stN.c_str(), stnSize);
     }
     // writing the Jacobian Matrix
-    dsize = md.size();
+    dsize = matrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
-    for (index_t kk = 0; kk < dsize; ++kk) {
-        auto el = md.element(kk);
-        bFile.write(reinterpret_cast<char*>(&(el.row)), sizeof(index_t));
-        bFile.write(reinterpret_cast<char*>(&(el.col)), sizeof(index_t));
-        bFile.write(reinterpret_cast<char*>(&(el.data)), sizeof(double));
+    for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
+        const auto elementData = matrixData.element(elementIndex);
+        bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
+        bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
+        bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
     }
 }
 
@@ -1079,13 +1044,13 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
     while (!contList[index]->isFinished()) {
         contList[index]->wait();
     }
-    bool simplified = (contList[index]->simplifiedOutput);
+    const bool simplified = contList[index]->simplifiedOutput;
 
     bFile << contList[index]->generateHeader() << "\n";
 
     std::vector<std::shared_ptr<Contingency>> timedoutList;
     int ccnt{0};
-    for (auto& cont : contList) {
+    for (const auto& cont : contList) {
         if (!cont) {
             continue;
         }

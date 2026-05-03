@@ -19,10 +19,8 @@
 #include <utility>
 
 namespace griddyn {
-using readerConfig::default_xml_reader;
-
 std::unique_ptr<gridDynSimulation>
-    readSimXMLFile(const std::string& fileName, readerInfo* ri, xmlreader rtype)
+    readSimXMLFile(const std::string& fileName, readerInfo* readerInfoPtr, xmlreader rtype)
 {
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
@@ -34,10 +32,10 @@ std::unique_ptr<gridDynSimulation>
         case xmlreader::tinyxml:
         default:
             return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
-                loadElementFile<tinyxmlReaderElement>(nullptr, fileName, ri)));
+                loadElementFile<tinyxmlReaderElement>(nullptr, fileName, readerInfoPtr)));
         case xmlreader::tinyxml2:
             return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
-                loadElementFile<pugixmlReaderElement>(nullptr, fileName, ri)));
+                loadElementFile<pugixmlReaderElement>(nullptr, fileName, readerInfoPtr)));
     }
 }
 }  // namespace griddyn

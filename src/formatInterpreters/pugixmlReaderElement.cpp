@@ -10,17 +10,18 @@
 #include "gmlc/utilities/string_viewConversion.h"
 #include <iostream>
 #include <memory>
+#include <string>
 
 using gmlc::utilities::numeric_conversionComplete;
 
-static std::string trimXmlText(std::string text)
+static std::string trimXmlText(std::string_view text)
 {
     auto start = text.find_first_not_of(" \t\r\n");
-    if (start == std::string::npos) {
+    if (start == std::string_view::npos) {
         return "";
     }
     auto end = text.find_last_not_of(" \t\r\n");
-    return text.substr(start, end - start + 1);
+    return std::string{text.substr(start, end - start + 1)};
 }
 
 pugixmlReaderElement::pugixmlReaderElement() = default;
@@ -66,7 +67,7 @@ std::shared_ptr<readerElement> pugixmlReaderElement::clone() const
 bool pugixmlReaderElement::loadFile(const std::string& fileName)
 {
     doc = std::make_shared<pugi::xml_document>();
-    auto res = doc->load_file(fileName.c_str());
+    const auto res = doc->load_file(fileName.c_str());
     clear();
     if (res) {
         element = doc->document_element();
@@ -80,7 +81,7 @@ bool pugixmlReaderElement::loadFile(const std::string& fileName)
 bool pugixmlReaderElement::parse(const std::string& inputString)
 {
     doc = std::make_shared<pugi::xml_document>();
-    auto res = doc->load_buffer(inputString.data(), inputString.length());
+    const auto res = doc->load_buffer(inputString.data(), inputString.length());
     clear();
     if (res) {
         element = doc->document_element();
@@ -93,7 +94,7 @@ bool pugixmlReaderElement::parse(const std::string& inputString)
 
 std::string pugixmlReaderElement::getName() const
 {
-    if (element) {
+    if (!element.empty()) {
         return element.name();
     }
     return "";
@@ -101,10 +102,10 @@ std::string pugixmlReaderElement::getName() const
 
 double pugixmlReaderElement::getValue() const
 {
-    if (element) {
-        auto cText = element.child_value();
+    if (!element.empty()) {
+        const auto* cText = element.child_value();
         if (cText[0] != '\0') {
-            return numeric_conversionComplete(std::string_view(cText), readerNullVal);
+            return numeric_conversionComplete(std::string_view{cText}, readerNullVal);
         }
     }
     return readerNullVal;
@@ -112,7 +113,7 @@ double pugixmlReaderElement::getValue() const
 
 std::string pugixmlReaderElement::getText() const
 {
-    if (element) {
+    if (!element.empty()) {
         return trimXmlText(element.child_value());
     }
     return "";
@@ -121,16 +122,16 @@ std::string pugixmlReaderElement::getText() const
 std::string pugixmlReaderElement::getMultiText(const std::string& sep) const
 {
     std::string ret;
-    if (element) {
-        for (auto childNode = element.first_child(); childNode;
+    if (!element.empty()) {
+        for (auto childNode = element.first_child(); !childNode.empty();
              childNode = childNode.next_sibling()) {
             if ((childNode.type() == pugi::node_pcdata) || (childNode.type() == pugi::node_cdata)) {
-                auto c = trimXmlText(childNode.value());
-                if (!c.empty()) {
+                auto childText = trimXmlText(childNode.value());
+                if (!childText.empty()) {
                     if (ret.empty()) {
-                        ret = c;
+                        ret = childText;
                     } else {
-                        ret += sep + c;
+                        ret += sep + childText;
                     }
                 }
             }
@@ -141,59 +142,59 @@ std::string pugixmlReaderElement::getMultiText(const std::string& sep) const
 
 bool pugixmlReaderElement::hasAttribute(const std::string& attributeName) const
 {
-    if (element) {
-        return static_cast<bool>(element.attribute(attributeName.c_str()));
+    if (!element.empty()) {
+        return !element.attribute(attributeName.c_str()).empty();
     }
     return false;
 }
 
 bool pugixmlReaderElement::hasElement(const std::string& elementName) const
 {
-    if (element) {
-        return static_cast<bool>(element.child(elementName.c_str()));
+    if (!element.empty()) {
+        return !element.child(elementName.c_str()).empty();
     }
     return false;
 }
 
 readerAttribute pugixmlReaderElement::getFirstAttribute()
 {
-    if (element) {
+    if (!element.empty()) {
         att = element.first_attribute();
-        if (att) {
-            return readerAttribute(std::string(att.name()), std::string(att.value()));
+        if (!att.empty()) {
+            return {std::string(att.name()), std::string(att.value())};
         }
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute pugixmlReaderElement::getNextAttribute()
 {
-    if (att) {
+    if (!att.empty()) {
         att = att.next_attribute();
-        if (att) {
-            return readerAttribute(std::string(att.name()), std::string(att.value()));
+        if (!att.empty()) {
+            return {std::string(att.name()), std::string(att.value())};
         }
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute pugixmlReaderElement::getAttribute(const std::string& attributeName) const
 {
-    if (element) {
-        auto c = element.attribute(attributeName.c_str());
-        if (c) {
-            return readerAttribute(attributeName, std::string(c.value()));
+    if (!element.empty()) {
+        auto attribute = element.attribute(attributeName.c_str());
+        if (!attribute.empty()) {
+            return {attributeName, std::string(attribute.value())};
         }
     }
-    return readerAttribute();
+    return {};
 }
 
 std::string pugixmlReaderElement::getAttributeText(const std::string& attributeName) const
 {
-    if (element) {
-        auto c = element.attribute(attributeName.c_str());
-        if (c) {
-            return std::string(c.value());
+    if (!element.empty()) {
+        auto attribute = element.attribute(attributeName.c_str());
+        if (!attribute.empty()) {
+            return std::string(attribute.value());
         }
     }
     return "";
@@ -201,10 +202,10 @@ std::string pugixmlReaderElement::getAttributeText(const std::string& attributeN
 
 double pugixmlReaderElement::getAttributeValue(const std::string& attributeName) const
 {
-    if (element) {
-        auto c = element.attribute(attributeName.c_str());
-        if (c) {
-            return numeric_conversionComplete(std::string_view(c.value()), readerNullVal);
+    if (!element.empty()) {
+        auto attribute = element.attribute(attributeName.c_str());
+        if (!attribute.empty()) {
+            return numeric_conversionComplete(std::string_view{attribute.value()}, readerNullVal);
         }
     }
     return readerNullVal;
@@ -213,15 +214,15 @@ double pugixmlReaderElement::getAttributeValue(const std::string& attributeName)
 std::shared_ptr<readerElement> pugixmlReaderElement::firstChild() const
 {
     pugi::xml_node child;
-    if (element) {
+    if (!element.empty()) {
         child = element.first_child();
-        while (child && child.type() != pugi::node_element) {
+        while (!child.empty() && child.type() != pugi::node_element) {
             child = child.next_sibling();
         }
     } else if (isDocument()) {
         child = doc->document_element();
     }
-    if (child) {
+    if (!child.empty()) {
         return std::make_shared<pugixmlReaderElement>(child, element);
     }
     return nullptr;
@@ -231,12 +232,12 @@ std::shared_ptr<readerElement>
     pugixmlReaderElement::firstChild(const std::string& childName) const
 {
     pugi::xml_node child;
-    if (element) {
+    if (!element.empty()) {
         child = element.child(childName.c_str());
     } else if (isDocument()) {
         child = doc->child(childName.c_str());
     }
-    if (child) {
+    if (!child.empty()) {
         return std::make_shared<pugixmlReaderElement>(child, element);
     }
     return nullptr;
@@ -244,9 +245,9 @@ std::shared_ptr<readerElement>
 
 void pugixmlReaderElement::moveToNextSibling()
 {
-    if (element) {
+    if (!element.empty()) {
         element = element.next_sibling();
-        while (element && element.type() != pugi::node_element) {
+        while (!element.empty() && element.type() != pugi::node_element) {
             element = element.next_sibling();
         }
         att = pugi::xml_attribute();
@@ -255,7 +256,7 @@ void pugixmlReaderElement::moveToNextSibling()
 
 void pugixmlReaderElement::moveToNextSibling(const std::string& siblingName)
 {
-    if (element) {
+    if (!element.empty()) {
         element = element.next_sibling(siblingName.c_str());
         att = pugi::xml_attribute();
     }
@@ -263,11 +264,11 @@ void pugixmlReaderElement::moveToNextSibling(const std::string& siblingName)
 
 void pugixmlReaderElement::moveToFirstChild()
 {
-    if (element) {
+    if (!element.empty()) {
         parent = element;
         att = pugi::xml_attribute();
         element = element.first_child();
-        while (element && element.type() != pugi::node_element) {
+        while (!element.empty() && element.type() != pugi::node_element) {
             element = element.next_sibling();
         }
     } else if (isDocument()) {
@@ -277,7 +278,7 @@ void pugixmlReaderElement::moveToFirstChild()
 
 void pugixmlReaderElement::moveToFirstChild(const std::string& childName)
 {
-    if (element) {
+    if (!element.empty()) {
         parent = element;
         att = pugi::xml_attribute();
         element = element.child(childName.c_str());
@@ -288,7 +289,7 @@ void pugixmlReaderElement::moveToFirstChild(const std::string& childName)
 
 void pugixmlReaderElement::moveToParent()
 {
-    if (parent) {
+    if (!parent.empty()) {
         element = parent;
         att = pugi::xml_attribute();
         parent = element.parent();
@@ -300,12 +301,12 @@ void pugixmlReaderElement::moveToParent()
 
 std::shared_ptr<readerElement> pugixmlReaderElement::nextSibling() const
 {
-    if (element) {
+    if (!element.empty()) {
         auto sibling = element.next_sibling();
-        while (sibling && sibling.type() != pugi::node_element) {
+        while (!sibling.empty() && sibling.type() != pugi::node_element) {
             sibling = sibling.next_sibling();
         }
-        if (sibling) {
+        if (!sibling.empty()) {
             return std::make_shared<pugixmlReaderElement>(sibling, parent);
         }
     }
@@ -315,9 +316,9 @@ std::shared_ptr<readerElement> pugixmlReaderElement::nextSibling() const
 std::shared_ptr<readerElement>
     pugixmlReaderElement::nextSibling(const std::string& siblingName) const
 {
-    if (element) {
+    if (!element.empty()) {
         auto sibling = element.next_sibling(siblingName.c_str());
-        if (sibling) {
+        if (!sibling.empty()) {
             return std::make_shared<pugixmlReaderElement>(sibling, parent);
         }
     }

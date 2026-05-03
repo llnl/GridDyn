@@ -7,22 +7,13 @@
 #include "pugixmlReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include <iostream>
 #include <memory>
 #include <string>
 
 using gmlc::utilities::numeric_conversionComplete;
-
-static std::string trimXmlText(std::string_view text)
-{
-    auto start = text.find_first_not_of(" \t\r\n");
-    if (start == std::string_view::npos) {
-        return "";
-    }
-    auto end = text.find_last_not_of(" \t\r\n");
-    return std::string{text.substr(start, end - start + 1)};
-}
 
 pugixmlReaderElement::pugixmlReaderElement() = default;
 pugixmlReaderElement::pugixmlReaderElement(const std::string& fileName)
@@ -114,7 +105,7 @@ double pugixmlReaderElement::getValue() const
 std::string pugixmlReaderElement::getText() const
 {
     if (!element.empty()) {
-        return trimXmlText(element.child_value());
+        return gmlc::utilities::stringOps::trim(element.child_value());
     }
     return "";
 }
@@ -126,7 +117,7 @@ std::string pugixmlReaderElement::getMultiText(const std::string& sep) const
         for (auto childNode = element.first_child(); !childNode.empty();
              childNode = childNode.next_sibling()) {
             if ((childNode.type() == pugi::node_pcdata) || (childNode.type() == pugi::node_cdata)) {
-                auto childText = trimXmlText(childNode.value());
+                auto childText = gmlc::utilities::stringOps::trim(childNode.value());
                 if (!childText.empty()) {
                     if (ret.empty()) {
                         ret = childText;

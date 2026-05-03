@@ -16,7 +16,7 @@
 #include <type_traits>
 
 namespace griddyn {
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& ri);
+void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& readerInfoRef);
 
 template<class RX>
 coreObject* loadElementFile(coreObject* parentObject, const std::string& fileName, readerInfo* ri)

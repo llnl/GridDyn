@@ -228,8 +228,7 @@ std::shared_ptr<readerElement> pugixmlReaderElement::firstChild() const
     return nullptr;
 }
 
-std::shared_ptr<readerElement>
-    pugixmlReaderElement::firstChild(const std::string& childName) const
+std::shared_ptr<readerElement> pugixmlReaderElement::firstChild(const std::string& childName) const
 {
     pugi::xml_node child;
     if (!element.empty()) {

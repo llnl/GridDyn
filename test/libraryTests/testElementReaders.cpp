@@ -7,7 +7,7 @@
 // test case for element readers
 
 #include "../gtestHelper.h"
-#include "formatInterpreters/tinyxml2ReaderElement.h"
+#include "formatInterpreters/pugixmlReaderElement.h"
 #include "formatInterpreters/tinyxmlReaderElement.h"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -247,9 +247,9 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest4)
     EXPECT_EQ(main->getName(), "main_element");
 }
 
-TEST(ElementReaderTests, Tinyxml2ElementReaderTest1)
+TEST(ElementReaderTests, PugixmlElementReaderTest1)
 {
-    tinyxml2ReaderElement reader;
+    pugixmlReaderElement reader;
     ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
     auto firstChild = reader.clone();
     ASSERT_NE(firstChild, nullptr);
@@ -297,9 +297,9 @@ TEST(ElementReaderTests, Tinyxml2ElementReaderTest1)
     EXPECT_EQ(att.getText(), "test1");
 }
 
-TEST(ElementReaderTests, Tinyxml2ElementReaderTest2)
+TEST(ElementReaderTests, PugixmlElementReaderTest2)
 {
-    tinyxml2ReaderElement reader;
+    pugixmlReaderElement reader;
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
     EXPECT_FALSE(reader.isValid());
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
@@ -325,9 +325,9 @@ TEST(ElementReaderTests, Tinyxml2ElementReaderTest2)
     EXPECT_FALSE(att.isValid());
 }
 
-TEST(ElementReaderTests, Tinyxml2ElementReaderTest3)
+TEST(ElementReaderTests, PugixmlElementReaderTest3)
 {
-    tinyxml2ReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    pugixmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     auto main = reader.clone();
 
     main->moveToFirstChild("subelementA");
@@ -375,7 +375,7 @@ TEST(ElementReaderTests, Tinyxml2ElementReaderTest3)
     EXPECT_TRUE(main->isDocument());
 }
 
-TEST(ElementReaderTests, Tinyxml2ElementReaderTestParse)
+TEST(ElementReaderTests, PugixmlElementReaderTestParse)
 {
     std::string XMLtestString = R"xml(<?xml version="1.0" encoding="utf - 8"?>
 <!--xml file to test the xml - reader functions-->
@@ -390,7 +390,7 @@ TEST(ElementReaderTests, Tinyxml2ElementReaderTestParse)
         </bus>
         </GridDyn>)xml";
 
-    tinyxml2ReaderElement reader;
+    pugixmlReaderElement reader;
     reader.parse(XMLtestString);
 
     ASSERT_TRUE(reader.isValid());
@@ -440,10 +440,10 @@ TEST(ElementReaderTests, Tinyxml2ElementReaderTestParse)
     EXPECT_EQ(att.getText(), "test1");
 }
 
-TEST(ElementReaderTests, Tinyxml2ElementReaderTest4)
+TEST(ElementReaderTests, PugixmlElementReaderTest4)
 {
-    auto reader = std::make_shared<tinyxml2ReaderElement>(elementReaderTestDirectory +
-                                                          "xmlElementReader_test3.xml");
+    auto reader = std::make_shared<pugixmlReaderElement>(elementReaderTestDirectory +
+                                                         "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();

@@ -473,8 +473,10 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
     readerGroup
         ->add_option_function<std::string>("--xml",
                                            readerConfig::setDefaultXMLReader,
-                                           "the xml reader to use: 1 for tinyxml, 2 for tinyxml2")
-        ->transform(CLI::CheckedTransformer({{"tinyxml", "1"}, {"tinyxml2", "2"}},
+                                           "the xml reader selection to use; legacy tinyxml/tinyxml2 names are backed by pugixml")
+        ->transform(CLI::CheckedTransformer({{"tinyxml", "1"},
+                                             {"tinyxml2", "2"},
+                                             {"pugixml", "2"}},
                                             CLI::ignore_underscore,
                                             CLI::ignore_case));
 

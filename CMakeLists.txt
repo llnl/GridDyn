@@ -486,6 +486,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/sundials/CMakeLists.txt")
     submod_update(ThirdParty/sundials)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/pugixml/CMakeLists.txt")
+    submod_update(ThirdParty/pugixml)
+endif()
+
 set(concurrency_clang_tidy "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy")
 set(concurrency_clang_tidy_backup
     "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy.griddyn-orig"
@@ -639,6 +643,23 @@ hide_variable(GMLC_UTILITIES_STATIC_LIB)
 add_library(GridDyn::utilities ALIAS gmlc_utilities)
 set_target_properties(gmlc_utilities PROPERTIES FOLDER Extern)
 target_include_directories(gmlc_utilities SYSTEM PRIVATE $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>)
+
+# ------------------------------------------------------------
+# create pugixml target
+# ------------------------------------------------------------
+set(PUGIXML_INSTALL OFF CACHE BOOL "" FORCE)
+set(PUGIXML_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(ThirdParty/pugixml EXCLUDE_FROM_ALL)
+
+if(TARGET pugixml-static)
+    set_target_properties(pugixml-static PROPERTIES FOLDER Extern)
+endif()
+if(TARGET pugixml-shared)
+    set_target_properties(pugixml-shared PROPERTIES FOLDER Extern)
+endif()
+if(TARGET pugixml)
+    set_target_properties(pugixml PROPERTIES FOLDER Extern)
+endif()
 
 # ------------------------------------------------------------
 # load the required subdirectories

@@ -14,17 +14,9 @@
 #include "contingency.h"
 #include "core/coreExceptions.h"
 
-#ifdef __GNUC__
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Woverloaded-virtual"
-#    include <ticpp/ticpp.h>
-#    pragma GCC diagnostic pop
-#else
-#    include <ticpp/ticpp.h>
-#endif
-
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <pugixml.hpp>
 #include "units/units.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
@@ -601,113 +593,57 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
 
 void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
 {
-    ticpp::Document doc(fileName);
+    pugi::xml_document doc;
+    auto decl = doc.append_child(pugi::node_declaration);
+    decl.append_attribute("version") = "1.0";
 
-    auto decl = new ticpp::Declaration("0.5", "", "");
-    doc.LinkEndChild(decl);
+    auto comment = doc.append_child(pugi::node_comment);
+    comment.set_value("Power Flow Result output");
 
-    auto comment = new ticpp::Comment();
-    comment->SetValue("Power Flow Result output");
-    doc.LinkEndChild(comment);
+    auto sol = doc.append_child("PowerFlow");
 
-    auto sol = new ticpp::Element("PowerFlow");
-    doc.LinkEndChild(sol);
+    auto addTextChild = [](pugi::xml_node parent, const char* name, const auto& value) {
+        auto child = parent.append_child(name);
+        child.text().set(value);
+        return child;
+    };
 
-    auto buses = new ticpp::Element("buses");
-    auto prop = new ticpp::Element("count");
-    auto buscount = gds->get("buscount");
-    auto propval = new ticpp::Text(buscount);
-    prop->LinkEndChild(propval);
-    buses->LinkEndChild(prop);
+    auto buses = sol.append_child("buses");
+    addTextChild(buses, "count", gds->get("buscount"));
 
-    sol->LinkEndChild(buses);
     index_t nn = 0;
     auto bus = gds->getBus(nn);
     while (bus != nullptr) {
-        auto busE = new ticpp::Element("bus");
-        prop = new ticpp::Element("name");
-        propval = new ticpp::Text(bus->getName());
-        prop->LinkEndChild(propval);
-        busE->LinkEndChild(prop);
-
-        prop = new ticpp::Element("index");
-        propval = new ticpp::Text(nn);
-        prop->LinkEndChild(propval);
-        busE->LinkEndChild(prop);
-
-        prop = new ticpp::Element("voltage");
-        propval = new ticpp::Text(bus->getVoltage());
-        prop->LinkEndChild(propval);
-        busE->LinkEndChild(prop);
-
-        prop = new ticpp::Element("angle");
-        propval = new ticpp::Text(bus->getAngle());
-        prop->LinkEndChild(propval);
-        busE->LinkEndChild(prop);
-
-        buses->LinkEndChild(busE);
+        auto busE = buses.append_child("bus");
+        addTextChild(busE, "name", bus->getName().c_str());
+        addTextChild(busE, "index", nn);
+        addTextChild(busE, "voltage", bus->getVoltage());
+        addTextChild(busE, "angle", bus->getAngle());
         ++nn;
         bus = gds->getBus(nn);
     }
 
-    auto links = new ticpp::Element("links");
+    auto links = sol.append_child("links");
+    addTextChild(links, "count", gds->get("linkcount"));
 
-    prop = new ticpp::Element("count");
-    auto lnkcnt = gds->get("linkcount");
-    propval = new ticpp::Text(lnkcnt);
-    prop->LinkEndChild(propval);
-    links->LinkEndChild(prop);
-
-    sol->LinkEndChild(links);
     nn = 0;
     auto lnk = gds->getLink(nn);
     while (lnk != nullptr) {
-        auto linkElement = new ticpp::Element("link");
-        prop = new ticpp::Element("name");
-        propval = new ticpp::Text(lnk->getName());
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("index");
-        propval = new ticpp::Text(nn);
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("Bus1");
-        propval = new ticpp::Text(lnk->getBus(1)->getUserID());
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("Bus2");
-        propval = new ticpp::Text(lnk->getBus(2)->getUserID());
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("RealImpedance");
-        propval = new ticpp::Text(lnk->get("r"));
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("ImagImpedance");
-        propval = new ticpp::Text(lnk->get("x"));
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("RealIn");
-        propval = new ticpp::Text(lnk->getRealPower());
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        prop = new ticpp::Element("RealOut");
-        propval = new ticpp::Text(lnk->getRealPower(2));
-        prop->LinkEndChild(propval);
-        linkElement->LinkEndChild(prop);
-
-        links->LinkEndChild(linkElement);
+        auto linkElement = links.append_child("link");
+        addTextChild(linkElement, "name", lnk->getName().c_str());
+        addTextChild(linkElement, "index", nn);
+        addTextChild(linkElement, "Bus1", lnk->getBus(1)->getUserID());
+        addTextChild(linkElement, "Bus2", lnk->getBus(2)->getUserID());
+        addTextChild(linkElement, "RealImpedance", lnk->get("r"));
+        addTextChild(linkElement, "ImagImpedance", lnk->get("x"));
+        addTextChild(linkElement, "RealIn", lnk->getRealPower());
+        addTextChild(linkElement, "RealOut", lnk->getRealPower(2));
         ++nn;
         lnk = gds->getLink(nn);
     }
-    doc.SaveFile();
+    if (!doc.save_file(fileName.c_str())) {
+        throw(fileOperationError("unable to open file " + fileName));
+    }
 }
 
 void saveBusData(gridDynSimulation* gds, const std::string& fileName)
@@ -1009,42 +945,35 @@ void loadPowerFlowBinary(gridDynSimulation* /*gds*/, const std::string& /*fileNa
 
 void loadPowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
 {
-    ticpp::Document doc(fileName);
-    doc.LoadFile();
-    auto flow = doc.FirstChildElement();
-    auto buses = flow->FirstChildElement("buses");
-    auto links = flow->FirstChildElement("links");
+    pugi::xml_document doc;
+    auto res = doc.load_file(fileName.c_str());
+    if (!res) {
+        throw(fileOperationError("unable to open file " + fileName));
+    }
+    auto flow = doc.child("PowerFlow");
+    auto buses = flow.child("buses");
+    auto links = flow.child("links");
     // check to make sure the buscount is correct
-    auto cd = buses->FirstChildElement("count");
-    int count;
-    cd->FirstChild()->GetValue(&count);
+    auto cd = buses.child("count");
+    int count = cd.text().as_int();
     auto busCount = gds->getInt("buscount");
     if (count != busCount) {
         return;
     }
     // check to make sure the link count is correct
-    cd = links->FirstChildElement("count");
-    cd->FirstChild()->GetValue(&count);
+    cd = links.child("count");
+    count = cd.text().as_int();
     auto linkCount = gds->getInt("linkcount");
     if (count != linkCount) {
         return;
     }
     // loop over the buses
-    cd = buses->FirstChildElement("bus", false);
-    while (cd != nullptr) {
-        index_t kk;
-        double val1, val2;
-        auto prop = cd->FirstChildElement("index", false);
-        prop->FirstChild()->GetValue(&kk);
-
-        prop = cd->FirstChildElement("voltage", false);
-        prop->FirstChild()->GetValue(&val1);
-
-        prop = cd->FirstChildElement("angle", false);
-        prop->FirstChild()->GetValue(&val2);
+    for (auto busNode: buses.children("bus")) {
+        auto kk = static_cast<index_t>(busNode.child("index").text().as_llong());
+        auto val1 = busNode.child("voltage").text().as_double();
+        auto val2 = busNode.child("angle").text().as_double();
         auto bus = gds->getBus(kk);
         bus->setVoltageAngle(val1, val2);
-        cd = cd->NextSiblingElement("bus", false);
     }
 }
 

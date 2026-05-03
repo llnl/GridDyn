@@ -505,8 +505,7 @@ target_include_directories(
 
 target_include_directories(
     griddyn
-    # target_link_libraries(this, ticpp::ticpp cereal::cereal (and maybe others)) when available
-    # (why is ticpp here at all? cereal is a little more justifiable)
+    # TODO: revisit whether this broad ThirdParty include path is still needed.
     PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )
 
@@ -514,6 +513,7 @@ target_link_libraries(griddyn PUBLIC coreObjects)
 
 target_link_libraries(griddyn PUBLIC SUNDIALS::SUNDIALS)
 target_link_libraries(griddyn PUBLIC coupling_static_lib)
+target_link_libraries(griddyn PUBLIC pugixml::pugixml)
 if(GRIDDYN_ENABLE_KLU)
     if(KLU_INCLUDE_DIR)
         target_include_directories(griddyn PRIVATE ${KLU_INCLUDE_DIR})

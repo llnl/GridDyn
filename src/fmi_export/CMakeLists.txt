@@ -46,7 +46,7 @@ set_target_properties(fmiGridDynSharedLib PROPERTIES FOLDER fmi)
 
 add_library(fmiBuilder STATIC ${fmiBuilder_sources} ${fmiBuilder_headers})
 
-target_link_libraries(fmiBuilder PUBLIC runner)
+target_link_libraries(fmiBuilder PUBLIC runner pugixml::pugixml)
 
 set_target_properties(fmiBuilder PROPERTIES FOLDER fmi)
 

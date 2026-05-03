@@ -8,7 +8,7 @@
 
 #include "core/coreExceptions.h"
 #include "formatInterpreters/jsonReaderElement.h"
-#include "formatInterpreters/tinyxml2ReaderElement.h"
+#include "formatInterpreters/pugixmlReaderElement.h"
 #include "formatInterpreters/tinyxmlReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
@@ -28,7 +28,7 @@ namespace readerConfig {
 
     match_type defMatchType = match_type::capital_case_match;
 
-    xmlreader default_xml_reader = xmlreader::tinyxml;
+    xmlreader default_xml_reader = xmlreader::tinyxml2;
 
     void setPrintMode(int level)
     {
@@ -89,7 +89,8 @@ namespace readerConfig {
 
     void setDefaultXMLReader(const std::string& xmltype)
     {
-        if ((xmltype == "1") || (xmltype == "tinyxml1") || (xmltype == "ticpp")) {
+        if ((xmltype == "1") || (xmltype == "tinyxml1") || (xmltype == "ticpp") ||
+            (xmltype == "pugixml")) {
             default_xml_reader = xmlreader::tinyxml;
         } else if ((xmltype == "2") || (xmltype == "tinyxml2")) {
             default_xml_reader = xmlreader::tinyxml2;
@@ -189,7 +190,7 @@ void loadFile(coreObject* parentObject,
                 loadElementFile<tinyxmlReaderElement>(parentObject, fileName, readerInf);
                 break;
             case xmlreader::tinyxml2:
-                loadElementFile<tinyxml2ReaderElement>(parentObject, fileName, readerInf);
+                loadElementFile<pugixmlReaderElement>(parentObject, fileName, readerInf);
                 break;
         }
     } else if (ext == "csv") {

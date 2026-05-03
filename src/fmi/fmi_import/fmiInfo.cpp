@@ -6,7 +6,7 @@
 
 #include "fmiInfo.h"
 
-#include "formatInterpreters/tinyxml2ReaderElement.h"
+#include "formatInterpreters/pugixmlReaderElement.h"
 #include "gmlc/utilities/stringConversion.h"
 #include <map>
 #include <memory>
@@ -26,7 +26,7 @@ fmiInfo::fmiInfo(const std::string& xmlFile)
 
 int fmiInfo::loadFile(const std::string& xmlFile)
 {
-    std::shared_ptr<readerElement> rd = std::make_shared<tinyxml2ReaderElement>(xmlFile);
+    std::shared_ptr<readerElement> rd = std::make_shared<pugixmlReaderElement>(xmlFile);
     if (!rd->isValid()) {
         return (-1);
     }

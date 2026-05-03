@@ -10,7 +10,6 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "nlohmann/json.hpp"
-#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <print>
@@ -34,12 +33,12 @@ void CymeDistLoadME::set(std::string_view param, std::string_view val)
 {
     if ((param == "config") || (param == "configfile") || (param == "configuration_file")) {
         const std::string sval{val};
-        std::println("loading config file {}", sval.c_str());
+        std::println("loading config file {}", sval);
         loadConfigFile(sval);
     } else {
         const std::string sparam{param};
         const std::string sval{val};
-        std::println("setting parameter {} to {}", sparam.c_str(), sval.c_str());
+        std::println("setting parameter {} to {}", sparam, sval);
         fmiMELoad3phase::set(param, val);
     }
 }
@@ -57,22 +56,21 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
 {
     std::ifstream file(configFileName);
     if (!file.is_open()) {
-        std::cerr << "unable to open the file:" << configFileName << std::endl;
+        std::cerr << "unable to open the file:" << configFileName << '\n';
         logging::warning(this, "unable to open the configuration file {}", configFileName);
         return;
     }
     nlohmann::ordered_json doc;
     std::string errs;
-    bool ok = true;
+    bool parseSucceeded = true;
     try {
         doc = nlohmann::ordered_json::parse(file);
-    }
-    catch (const nlohmann::ordered_json::parse_error& err) {
+    } catch (const nlohmann::ordered_json::parse_error& err) {
         errs = err.what();
-        ok = false;
+        parseSucceeded = false;
     }
-    if (!ok) {
-        fprintf(stderr, "unable to parse json file %s\n", errs.c_str());
+    if (!parseSucceeded) {
+        std::println(stderr, "unable to parse json file {}", errs);
         return;
     }
     configFile = configFileName;
@@ -83,13 +81,13 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     auto model = mval[static_cast<int>(configIndex)];
     if (model.is_object()) {
         auto fmu_path = model["fmu_path"].get<std::string>();
-        fprintf(stderr, "setting fmu_path to %s\n", fmu_path.c_str());
+        std::println(stderr, "setting fmu_path to {}", fmu_path);
         fmiMELoad3phase::set("fmu", fmu_path);
         logging::debug(this, "setting fmu to {}", model["fmu_path"].get<std::string>());
 
         if (model.contains("fmu_config_path")) {
             auto config_path = model["fmu_config_path"].get<std::string>();
-            fprintf(stderr, "fmu config_path=%s\n", config_path.c_str());
+            std::println(stderr, "fmu config_path={}", config_path);
             if (config_path.size() > 5) {
                 fmiMELoad3phase::set("_configurationFileName", config_path);
                 logging::debug(this, "setting config file to {}", config_path);

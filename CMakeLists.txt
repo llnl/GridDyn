@@ -455,9 +455,6 @@ endif(GRIDDYN_ENABLE_MULTITHREADING)
 # Update git submodules
 # -------------------------------------------------------------
 include(updateGitSubmodules)
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/jsoncpp_new/CMakeLists.txt")
-    submod_update(ThirdParty/jsoncpp_new)
-endif()
 
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/containers/gmlc/containers/BlockingQueue.hpp")
     submod_update(ThirdParty/containers)
@@ -615,12 +612,6 @@ target_include_directories(
 )
 
 # --------------------------------------------------------------
-# Create the target for jsoncpp
-# -----------------------------------------------------------
-include(addJsoncpp)
-add_library(GRIDDYN::jsoncpp_lib ALIAS jsoncpp_lib)
-
-# --------------------------------------------------------------
 # Create the target for unitslib
 # -----------------------------------------------------------
 include(addUnits)
@@ -717,6 +708,7 @@ set(binfiles bin/configure.griddyn bin/pgriddyn bin/pgriddyn_debug)
 install(PROGRAMS ${binfiles} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT binaries)
 
 install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT binaries)
+install(DIRECTORY ThirdParty/nlohmann DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers)
 
 install(
     EXPORT griddyn-targets

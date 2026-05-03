@@ -21,9 +21,9 @@ Boost is used throughout in the code. Some of the header-only Boost algorithms a
 
 The header only bindings for the ZeroMQ library are used to interact with the ZeroMQ library. The header files are modified to include some string operations and are included in the GridDyn source. cppzmq is licensed under the [MIT](https://github.com/zeromq/cppzmq/blob/master/LICENSE) license.
 
-### [JsonCpp](https://github.com/open-source-parsers/jsoncpp)
+### [JSON for Modern C++](https://github.com/nlohmann/json)
 
-JsonCpp is used for parsing json files. It is included as a submodule from a slightly modified [fork](https://github.com/phlptp/jsoncpp.git) to add support for object libraries and to clean up some warning issues. JsonCpp is licensed under public domain or MIT in case public domain is not recognized [LICENSE](https://github.com/open-source-parsers/jsoncpp/blob/master/LICENSE).
+GridDyn uses the header-only nlohmann/json library for parsing and generating JSON. The bundled headers are licensed under the [MIT](https://github.com/nlohmann/json/blob/develop/LICENSE.MIT) license.
 
 ### [CLI11](https://github.com/CLIUtils/CLI11)
 

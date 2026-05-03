@@ -6,18 +6,15 @@
 
 #pragma once
 
+#include "nlohmann/json.hpp"
 #include "readerElement.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace Json {
-class Value;
-}
-
 class jsonElement;
 
-/** @brief class defines a reader element around the json cpp reader*/
+/** @brief class defines a reader element around the nlohmann/json reader*/
 class jsonReaderElement: public readerElement {
   public:
     jsonReaderElement();
@@ -66,7 +63,7 @@ class jsonReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<Json::Value> doc;  //!< document root
+    std::shared_ptr<nlohmann::json> doc;  //!< document root
     std::vector<std::shared_ptr<jsonElement>> parents;
     std::shared_ptr<jsonElement> current;
     int iteratorCount = 0;

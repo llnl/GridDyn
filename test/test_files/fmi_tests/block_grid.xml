@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test mpi running for gridDyn-->
 <griddyn name="test1" version="0.0.1">
-<define name="garraySize" value=20/>
-<define name="gcount" value="ceil(garraySize/3)" eval=1 />
+<define name="garraySize" value="20"/>
+<define name="gcount" value="ceil(garraySize/3)" eval="1" />
 <library>
 <generator name="default">
 <P>3.795*(((garraySize^2)/(gcount^2))/9)</P>
@@ -36,8 +36,8 @@
       <Yq>0.02</Yq>
       </load>
 </library>
-    <array count=garraySize loopvariable="#rowindex">
-    <array count=garraySize loopvariable="#colindex">
+    <array count="garraySize" loopvariable="#rowindex">
+    <array count="garraySize" loopvariable="#colindex">
      <bus name="bus_$#rowindex$_$#colindex$">
      <load ref="constLd"/>
      </bus>
@@ -45,16 +45,16 @@
      </array>
      <!--add in the motor loads -->
 
-      <array start=1 stop=garraySize loopvariable="#rowindex" interval=2>
-     <array start=1 stop=garraySize loopvariable="#colindex" interval=2>
+      <array start="1" stop="garraySize" loopvariable="#rowindex" interval="2">
+     <array start="1" stop="garraySize" loopvariable="#colindex" interval="2">
      <bus name="bus_$#rowindex$_$#colindex$">
      <load ref="kmotor"/>
      </bus>
      </array>
      </array>
       <!--add in the generators -->
-      <array start=1 stop=garraySize loopvariable="#rowindex" interval=3>
-     <array start=1 stop=garraySize loopvariable="#colindex" interval=3>
+      <array start="1" stop="garraySize" loopvariable="#rowindex" interval="3">
+     <array start="1" stop="garraySize" loopvariable="#colindex" interval="3">
      <bus name="bus_$#rowindex$_$#colindex$">
      <gen ref="default"/>
      <bustype>PV</bustype>
@@ -63,8 +63,8 @@
      </array>
      </array>
      <!--add in the vertical links-->
-     <array stop=garraySize loopvariable="#rowindex" start=2>
-    <array count=garraySize loopvariable="#colindex">
+     <array stop="garraySize" loopvariable="#rowindex" start="2">
+    <array count="garraySize" loopvariable="#colindex">
      <link name="link_$#rowindex-1$_$#colindex$_to_$#rowindex$_$#colindex$">
      <r>0.001</r>
      <x>0.07</x>
@@ -75,8 +75,8 @@
      </array>
 
     <!--add in the horizontal links-->
-     <array count=garraySize loopvariable="#rowindex">
-    <array stop=garraySize loopvariable="#colindex" start=2>
+     <array count="garraySize" loopvariable="#rowindex">
+    <array stop="garraySize" loopvariable="#colindex" start="2">
      <link name="link_$#rowindex$_$#colindex-1$_to_$#rowindex$_$#colindex$">
      <r>0.001</r>
      <x>0.07</x>

@@ -194,7 +194,7 @@ std::string pugixmlReaderElement::getAttributeText(const std::string& attributeN
     if (!element.empty()) {
         auto attribute = element.attribute(attributeName.c_str());
         if (!attribute.empty()) {
-            return std::string(attribute.value());
+            return {attribute.value()};
         }
     }
     return "";

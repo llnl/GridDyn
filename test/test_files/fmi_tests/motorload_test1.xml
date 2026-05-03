@@ -26,7 +26,7 @@
    <timestart>0</timestart>
    <timestop>30</timestop>
    <timestep>0.010</timestep>
-    <recorder field="auto,bus2::load3:slip" period=0.05>
+    <recorder field="auto,bus2::load3:slip" period="0.05">
    <file>motorChange.dat</file>
    </recorder>
 

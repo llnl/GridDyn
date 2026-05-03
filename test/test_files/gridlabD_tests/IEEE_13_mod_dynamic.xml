@@ -73,5 +73,5 @@
    <timestart>0</timestart>
    <timestop>30</timestop>
    <timestep>0.010</timestep>
-   <solver name="dynamic" printlevel=1/>
+   <solver name="dynamic" printlevel="1"/>
 </griddyn>

@@ -2,7 +2,7 @@
 <!--xml file to test psat execution-->
 <griddyn name="test2" version="0.0.1">
    <import file="../matlab_test_files/d_009_fault_mdl.m"/>
-   <recorder field="auto, all_gen_angle" period=0.05>
+   <recorder field="auto, all_gen_angle" period="0.05">
    <file>busdata2.dat</file>
 
    </recorder>

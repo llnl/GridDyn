@@ -73,10 +73,10 @@
       <x>0.015</x>
    </link>
    <link from="bus1" name="bus1_to_bus2" to="bus2">
-   <fuse terminal=1>
+   <fuse terminal="1">
    <limit>0.76</limit>
    </fuse>
-   <fuse terminal=2>
+   <fuse terminal="2">
    <limit>0.76</limit>
    </fuse>
       <b>0</b>

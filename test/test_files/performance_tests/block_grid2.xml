@@ -40,16 +40,16 @@
      </array>
      <!--add in the additional loads -->
 
-      <array start=1 stop="garraySize" loopvariable="#rowindex" interval=2>
-     <array start=1 stop="garraySize" loopvariable="#colindex" interval=2>
+      <array start="1" stop="garraySize" loopvariable="#rowindex" interval="2">
+     <array start="1" stop="garraySize" loopvariable="#colindex" interval="2">
      <bus name="bus_$#rowindex$_$#colindex$">
      <load ref="addLoad"/>
      </bus>
      </array>
      </array>
       <!--add in the generators -->
-      <array start=1 stop="garraySize" loopvariable="#rowindex" interval=3>
-     <array start=1 stop="garraySize" loopvariable="#colindex" interval=3>
+      <array start="1" stop="garraySize" loopvariable="#rowindex" interval="3">
+     <array start="1" stop="garraySize" loopvariable="#colindex" interval="3">
      <bus name="bus_$#rowindex$_$#colindex$">
      <gen ref="default"/>
      <bustype>PV</bustype>

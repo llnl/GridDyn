@@ -18,7 +18,7 @@
 <!-- <value>-0.3</value> -->
 <!-- </event> -->
 
-<recorder field="auto, bus#31::gen#0:pmech" period=0.02>
+<recorder field="auto, bus#31::gen#0:pmech" period="0.02">
    <file>ieee39out.csv</file>
    </recorder>
    <timestart>0</timestart>

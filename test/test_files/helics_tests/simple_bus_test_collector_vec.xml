@@ -24,7 +24,7 @@
     <coretype>zmq</coretype>
     <period>2</period>
    </helics>
-   <collector type="helics" period=6 pubtype="vector">
+   <collector type="helics" period="6" pubtype="vector">
    <pubname>vout</pubname>
    <field>bus1:voltage</field>
    <field>loadbus:voltage</field>

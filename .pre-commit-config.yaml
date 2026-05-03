@@ -33,6 +33,7 @@ repos:
         args: ["--allow-multiple-documents"]
       - id: check-toml
       - id: check-xml
+        exclude: ^(test/test_files/element_reader_tests/test_bad_xml\.xml|test/test_files/xml_tests/test_bad_xml\.xml)$
       - id: end-of-file-fixer
       - id: check-symlinks
       - id: check-shebang-scripts-are-executable

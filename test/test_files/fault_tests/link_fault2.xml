@@ -126,7 +126,7 @@
    <timestart>0</timestart>
    <timestop>10</timestop>
    <timestep>0.010</timestep>
-    <recorder field="auto, bus1::gen1:angle, bus2::gen2:angle, bus3::gen3:angle, bus1::gen1:freq, bus2::gen2:freq, bus3::gen3:freq" period=0.005>
+    <recorder field="auto, bus1::gen1:angle, bus2::gen2:angle, bus3::gen3:angle, bus1::gen1:freq, bus2::gen2:freq, bus3::gen3:freq" period="0.005">
    <file>linkfault.dat</file>
    </recorder>
    <event>

@@ -11,9 +11,9 @@
      <load name="load3" type="approx">
      <load type="fmimeload3phase">
      <fmu>test_fmus/DUMMY_0CYMDIST.fmu</fmu>
-       <param name="a2" value=0/>
-       <param name="b2" value=0/>
-       <param name="c2" value=0/>
+       <param name="a2" value="0"/>
+       <param name="b2" value="0"/>
+       <param name="c2" value="0"/>
        </load>
      </load>
    </bus>

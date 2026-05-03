@@ -74,7 +74,7 @@
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>10</timestop>
-   <recorder field="auto" period=0.001>
+   <recorder field="auto" period="0.001">
    <file>relayfault.dat</file>
    </recorder>
 

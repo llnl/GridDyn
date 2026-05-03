@@ -32,7 +32,7 @@
       <r>0</r>
       <x>0.015</x>
    </link>
-   <collector type="fncs" period=1.0>
+   <collector type="fncs" period="1.0">
    <field>bus#0?voltage as v1</field>
    <field>bus#1?voltage as v2</field>
    <field>bus#1/loadfncs?p as p1</field>

@@ -56,7 +56,7 @@
    <bus name="bus3">
       <type>PQ</type>
       <angle>0.082</angle>
-      <relay cutoutvoltage=0.93/>
+      <relay cutoutvoltage="0.93"/>
       <load name="load3" type="ramp">
          <P>0.2</P>
         <Q>0.18</Q>

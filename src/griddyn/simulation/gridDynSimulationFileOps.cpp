@@ -380,6 +380,10 @@ Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 
 static void cdfLinkPrint(std::ostream& output, int areaNumber, acLine* link)
 {
+    if (link == nullptr) {
+        return;
+    }
+
     int type = 0;
     int controlBus = 0;
     double maxVal = 0.0;
@@ -704,7 +708,7 @@ void saveStateBinary(gridDynSimulation* gds,
     if (!solverInterface) {
         return;
     }
-    auto stateData = solverInterface->state_data();
+    auto* stateData = solverInterface->state_data();
     auto dataSize = solverInterface->size();
 
     auto index = gds->getInt("residcount");
@@ -766,7 +770,7 @@ void writeVector(coreTime time,
     if (!bFile.is_open()) {
         throw(fileOperationError("unable to open file " + fileName));
     }
-    code &= 0x0000FFFF;  // make sure we don't change the data type
+    code &= 0x0000FFFFU;  // make sure we don't change the data type
     bFile.write(reinterpret_cast<char*>(&time), sizeof(double));
     bFile.write(reinterpret_cast<char*>(&code), sizeof(std::uint32_t));
     bFile.write(reinterpret_cast<char*>(&index), sizeof(std::uint32_t));
@@ -779,7 +783,7 @@ void writeArray(coreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
                 std::uint32_t key,
-                matrixData<double>& a1,
+                matrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append)
 {
@@ -792,17 +796,17 @@ void writeArray(coreTime time,
     if (!bFile.is_open()) {
         throw(fileOperationError("unable to open file " + fileName));
     }
-    code &= 0x0000FFFF;
-    code |= 0x00010000;
+    code &= 0x0000FFFFU;
+    code |= 0x00010000U;
     bFile.write(reinterpret_cast<char*>(&time), sizeof(double));
     bFile.write(reinterpret_cast<char*>(&code), sizeof(std::uint32_t));
     bFile.write(reinterpret_cast<char*>(&index), sizeof(std::uint32_t));
     bFile.write(reinterpret_cast<char*>(&key), sizeof(std::uint32_t));
-    std::uint32_t numElements = a1.size();
+    std::uint32_t numElements = matrixValues.size();
     bFile.write(reinterpret_cast<char*>(&numElements), sizeof(std::uint32_t));
-    a1.start();
+    matrixValues.start();
     for (size_t elementIndex = 0; elementIndex < numElements; ++elementIndex) {
-        const auto elementData = a1.next();
+        const auto elementData = matrixValues.next();
         bFile.write(reinterpret_cast<const char*>(&elementData), sizeof(matrixElement<double>));
     }
 }

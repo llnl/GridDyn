@@ -10,7 +10,7 @@
 <value>740,680</value>
 <time>1,2</time>
 </event>
-<recorder field="auto" period=0.05>
+<recorder field="auto" period="0.05">
    <file>dynfault.dat</file>
    </recorder>
 

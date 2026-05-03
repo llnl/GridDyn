@@ -36,8 +36,8 @@
       <file>Simple_3Bus_mod_meter_impedance_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-    <Yp units=MW>9.00001</Yp>
-    <Yq units=MVar>2.70007</Yq>
+    <Yp units="MW">9.00001</Yp>
+    <Yq units="MVar">2.70007</Yq>
       </load>
     </load>
   </bus>
@@ -57,8 +57,8 @@
       <file>Simple_3Bus_mod_meter_impedance_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-    <Yp units=MW>9.00001</Yp>
-    <Yq units=MVar>2.70007</Yq>
+    <Yp units="MW">9.00001</Yp>
+    <Yq units="MVar">2.70007</Yq>
       </load>
     </load>
   </bus>
@@ -76,8 +76,8 @@
       <file>Simple_3Bus_mod_meter_impedance_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
       <load>
-    <Yp units=MW>9.00001</Yp>
-    <Yq units=MVar>2.70007</Yq>
+    <Yp units="MW">9.00001</Yp>
+    <Yq units="MVar">2.70007</Yq>
       </load>
 
       <recorder field="all" >
@@ -94,7 +94,7 @@
     <x>0.06</x>
   </link>
 
-  <recorder field="auto" period=0.010>
+  <recorder field="auto" period="0.010">
     <file>output/test-Simple_3Bus_mod3x_impedance/output.csv</file>
   </recorder>
 
@@ -102,5 +102,5 @@
   <timestart>0</timestart>
   <timestop>30</timestop>
   <timestep>0.010</timestep>
-  <solver name="dynamic" printlevel=1/>
+  <solver name="dynamic" printlevel="1"/>
 </griddyn>

@@ -139,7 +139,7 @@
       <tap>1.0</tap>
       <tapangle>0</tapangle>
    </link>
-  <recorder field="auto, all_gen_angle" period=0.05 file="hvdc.dat"/>
+  <recorder field="auto, all_gen_angle" period="0.05" file="hvdc.dat"/>
    <basepower>100</basepower>
    <timestart>0</timestart>
    <timestop>30</timestop>

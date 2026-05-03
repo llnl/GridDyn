@@ -8,7 +8,7 @@
     <frequency>0.5</frequency>
     <amp>0.1</amp>
     </load>
-    <recorder field="auto" period=0.05>
+    <recorder field="auto" period="0.05">
    <file>sinerec.dat</file>
    </recorder>
 

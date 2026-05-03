@@ -110,7 +110,7 @@
    <timestart>0</timestart>
    <timestop>60</timestop>
    <timestep>0.010</timestep>
-   <recorder field="auto,gena:omega,genb:omega" period=0.05>
+   <recorder field="auto,gena:omega,genb:omega" period="0.05">
    <file>rootDisplay.dat</file>
    </recorder>
 </griddyn>

@@ -23,8 +23,8 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
 #include <pugixml.hpp>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -32,90 +32,93 @@ namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
 
 namespace {
-constexpr double defaultLimitValue = 99999.999;
+    constexpr double defaultLimitValue = 99999.999;
 
-double degreesFromRadians(double angleRadians)
-{
-    return angleRadians * 180.0 / kPI;
-}
-
-std::ofstream makeOutputFile(const std::string& fileName)
-{
-    std::ofstream output(fileName);
-    if (!output.is_open()) {
-        throw(fileOperationError("unable to open file " + fileName));
+    double degreesFromRadians(double angleRadians)
+    {
+        return angleRadians * 180.0 / kPI;
     }
-    return output;
-}
 
-std::string formatCsvBusRecord(int areaNumber, int busNumber, const gridBus& bus, double basePower)
-{
-    std::ostringstream output;
-    output << areaNumber << ", " << busNumber << ", " << bus.getUserID() << ", "
-           << std::quoted(bus.getName()) << ", " << std::fixed << std::setw(7)
-           << std::setprecision(6) << bus.getVoltage() << ", " << std::showpos << std::setw(8)
-           << std::setprecision(4) << degreesFromRadians(bus.getAngle()) << std::noshowpos << ", "
-           << std::setw(7) << std::setprecision(5) << bus.getGenerationReal() * basePower << ", "
-           << std::setw(7) << std::setprecision(5) << bus.getGenerationReactive() * basePower
-           << ", " << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower
-           << ", " << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower
-           << ", " << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower
-           << ", " << std::setw(7) << std::setprecision(5) << bus.getLinkReactive() * basePower
-           << ", " << std::setw(7) << std::setprecision(5)
-           << (bus.getGenerationReal() + bus.getLoadReal() + bus.getLinkReal()) * basePower
-           << ", " << std::setw(7) << std::setprecision(5)
-           << (bus.getGenerationReactive() + bus.getLoadReactive() + bus.getLinkReactive()) *
-                  basePower;
-    return output.str();
-}
+    std::ofstream makeOutputFile(const std::string& fileName)
+    {
+        std::ofstream output(fileName);
+        if (!output.is_open()) {
+            throw(fileOperationError("unable to open file " + fileName));
+        }
+        return output;
+    }
 
-std::string formatTxtBusRecord(int areaNumber, const gridBus& bus, double basePower)
-{
-    std::ostringstream output;
-    output << areaNumber << "\t\t " << bus.getUserID() << "\t\t" << std::quoted(bus.getName())
-           << "\t " << std::fixed << std::setw(7) << std::setprecision(6) << bus.getVoltage()
-           << "\t " << std::showpos << std::setw(8) << std::setprecision(4)
-           << degreesFromRadians(bus.getAngle()) << std::noshowpos << "\t " << std::setw(7)
-           << std::setprecision(5) << bus.getGenerationReal() * basePower << "\t " << std::setw(7)
-           << std::setprecision(5) << bus.getGenerationReactive() * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << bus.getLinkReactive() * basePower;
-    return output.str();
-}
+    std::string
+        formatCsvBusRecord(int areaNumber, int busNumber, const gridBus& bus, double basePower)
+    {
+        std::ostringstream output;
+        output << areaNumber << ", " << busNumber << ", " << bus.getUserID() << ", "
+               << std::quoted(bus.getName()) << ", " << std::fixed << std::setw(7)
+               << std::setprecision(6) << bus.getVoltage() << ", " << std::showpos << std::setw(8)
+               << std::setprecision(4) << degreesFromRadians(bus.getAngle()) << std::noshowpos
+               << ", " << std::setw(7) << std::setprecision(5)
+               << bus.getGenerationReal() * basePower << ", " << std::setw(7)
+               << std::setprecision(5) << bus.getGenerationReactive() * basePower << ", "
+               << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower << ", "
+               << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower << ", "
+               << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower << ", "
+               << std::setw(7) << std::setprecision(5) << bus.getLinkReactive() * basePower << ", "
+               << std::setw(7) << std::setprecision(5)
+               << (bus.getGenerationReal() + bus.getLoadReal() + bus.getLinkReal()) * basePower
+               << ", " << std::setw(7) << std::setprecision(5)
+               << (bus.getGenerationReactive() + bus.getLoadReactive() + bus.getLinkReactive()) *
+                basePower;
+        return output.str();
+    }
 
-std::string formatTxtLinkRecord(int areaNumber, const Link& link, double basePower)
-{
-    std::ostringstream output;
-    output << areaNumber << "\t\t" << link.getUserID() << "\t\t" << std::quoted(link.getName())
-           << "\t " << std::setw(5) << link.getBus(1)->getUserID() << "\t" << std::setw(5)
-           << link.getBus(2)->getUserID() << "\t " << std::fixed << std::setw(7)
-           << std::setprecision(5) << link.getRealPower(1) * basePower << "\t " << std::setw(7)
-           << std::setprecision(5) << link.getReactivePower(1) * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << link.getRealPower(2) * basePower << "\t "
-           << std::setw(7) << std::setprecision(5) << link.getReactivePower(2) * basePower
-           << "\t " << std::setw(7) << std::setprecision(5) << link.getLoss() * basePower;
-    return output.str();
-}
+    std::string formatTxtBusRecord(int areaNumber, const gridBus& bus, double basePower)
+    {
+        std::ostringstream output;
+        output << areaNumber << "\t\t " << bus.getUserID() << "\t\t" << std::quoted(bus.getName())
+               << "\t " << std::fixed << std::setw(7) << std::setprecision(6) << bus.getVoltage()
+               << "\t " << std::showpos << std::setw(8) << std::setprecision(4)
+               << degreesFromRadians(bus.getAngle()) << std::noshowpos << "\t " << std::setw(7)
+               << std::setprecision(5) << bus.getGenerationReal() * basePower << "\t "
+               << std::setw(7) << std::setprecision(5) << bus.getGenerationReactive() * basePower
+               << "\t " << std::setw(7) << std::setprecision(5) << bus.getLoadReal() * basePower
+               << "\t " << std::setw(7) << std::setprecision(5) << bus.getLoadReactive() * basePower
+               << "\t " << std::setw(7) << std::setprecision(5) << bus.getLinkReal() * basePower
+               << "\t " << std::setw(7) << std::setprecision(5)
+               << bus.getLinkReactive() * basePower;
+        return output.str();
+    }
 
-std::string formatTxtAreaRecord(int areaNumber,
-                                const std::string& areaName,
-                                double generationReal,
-                                double generationReactive,
-                                double loadReal,
-                                double loadReactive,
-                                double loss)
-{
-    std::ostringstream output;
-    output << areaNumber << "\t\t" << std::quoted(areaName) << "\t " << std::fixed
-           << std::setw(7) << std::setprecision(2) << generationReal << "\t " << std::setw(7)
-           << std::setprecision(2) << generationReactive << "\t " << std::setw(7)
-           << std::setprecision(2) << loadReal << "\t " << std::setw(7) << std::setprecision(2)
-           << loadReactive << "\t " << std::setw(7) << std::setprecision(2) << loss << "\t "
-           << std::setw(7) << std::setprecision(2) << -99999.0;
-    return output.str();
-}
+    std::string formatTxtLinkRecord(int areaNumber, const Link& link, double basePower)
+    {
+        std::ostringstream output;
+        output << areaNumber << "\t\t" << link.getUserID() << "\t\t" << std::quoted(link.getName())
+               << "\t " << std::setw(5) << link.getBus(1)->getUserID() << "\t" << std::setw(5)
+               << link.getBus(2)->getUserID() << "\t " << std::fixed << std::setw(7)
+               << std::setprecision(5) << link.getRealPower(1) * basePower << "\t " << std::setw(7)
+               << std::setprecision(5) << link.getReactivePower(1) * basePower << "\t "
+               << std::setw(7) << std::setprecision(5) << link.getRealPower(2) * basePower << "\t "
+               << std::setw(7) << std::setprecision(5) << link.getReactivePower(2) * basePower
+               << "\t " << std::setw(7) << std::setprecision(5) << link.getLoss() * basePower;
+        return output.str();
+    }
+
+    std::string formatTxtAreaRecord(int areaNumber,
+                                    const std::string& areaName,
+                                    double generationReal,
+                                    double generationReactive,
+                                    double loadReal,
+                                    double loadReactive,
+                                    double loss)
+    {
+        std::ostringstream output;
+        output << areaNumber << "\t\t" << std::quoted(areaName) << "\t " << std::fixed
+               << std::setw(7) << std::setprecision(2) << generationReal << "\t " << std::setw(7)
+               << std::setprecision(2) << generationReactive << "\t " << std::setw(7)
+               << std::setprecision(2) << loadReal << "\t " << std::setw(7) << std::setprecision(2)
+               << loadReactive << "\t " << std::setw(7) << std::setprecision(2) << loss << "\t "
+               << std::setw(7) << std::setprecision(2) << -99999.0;
+        return output.str();
+    }
 }  // namespace
 
 void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
@@ -153,9 +156,10 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
     auto output = makeOutputFile(fileName);
     const double basePower = gds->get("basepower");
     output << std::fixed << "basepower=" << basePower << '\n';
-    output << "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
-              "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
-              "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
+    output
+        << "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
+           "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
+           "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
     index_t areaIndex = 0;
     const auto* area = gds->getArea(areaIndex);
     while (area != nullptr) {
@@ -191,8 +195,9 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
            << gds->getInt("totallinkcount") << " lines\n";
 
     output << "===============BUS INFORMATION=====================\n";
-    output << "Area#\tBus#\tBus "
-              "name\t\t\t\tvoltage(pu)\tangle(deg)\tPgen(MW)\tQgen(MW)\tPload(MW)\tQload(MW)\tPlink(MW)\tQlink(MW)\n";
+    output
+        << "Area#\tBus#\tBus "
+           "name\t\t\t\tvoltage(pu)\tangle(deg)\tPgen(MW)\tQgen(MW)\tPload(MW)\tQload(MW)\tPlink(MW)\tQlink(MW)\n";
     index_t areaIndex = 0;
     const auto* area = gds->getArea(areaIndex);
     while (area != nullptr) {
@@ -215,7 +220,8 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
         bus = gds->getBus(busIndex);
     }
     output << "===============LINE INFORMATION=====================\n";
-    output << "Area#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n";
+    output
+        << "Area#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n";
     areaIndex = 0;
     area = gds->getArea(areaIndex);
     while (area != nullptr) {
@@ -239,7 +245,8 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
     }
 
     output << "===============AREA INFORMATION=====================\n";
-    output << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t Load Real\t Load Reactive\t Loss\t Export\n";
+    output
+        << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t Load Real\t Load Reactive\t Loss\t Export\n";
     areaIndex = 0;
     area = gds->getArea(areaIndex);
     while (area != nullptr) {
@@ -297,11 +304,11 @@ Columns 124-127 Remote controlled bus number
 static void cdfBusPrint(std::ostream& output, int areaNumber, const gridBus& bus)
 {
     const auto type = static_cast<int>(bus.getType());
-    output << std::setw(4) << bus.getUserID() << ' ' << std::left << std::setw(12)
-           << bus.getName() << std::right << ' ' << std::setw(2) << areaNumber << std::setw(3)
-           << bus.getInt("zone") << ' ' << std::setw(2) << type << ' ' << std::fixed
-           << std::setw(6) << std::setprecision(4) << bus.getVoltage() << std::setw(7)
-           << std::setprecision(2) << degreesFromRadians(bus.getAngle());
+    output << std::setw(4) << bus.getUserID() << ' ' << std::left << std::setw(12) << bus.getName()
+           << std::right << ' ' << std::setw(2) << areaNumber << std::setw(3) << bus.getInt("zone")
+           << ' ' << std::setw(2) << type << ' ' << std::fixed << std::setw(6)
+           << std::setprecision(4) << bus.getVoltage() << std::setw(7) << std::setprecision(2)
+           << degreesFromRadians(bus.getAngle());
 
     const double realPower = bus.get("p", units::MW);
     const double reactivePower = bus.get("q", units::MW);
@@ -310,8 +317,7 @@ static void cdfBusPrint(std::ostream& output, int areaNumber, const gridBus& bus
 
     output << std::setw(9) << std::setprecision(2) << realPower << std::setw(9)
            << std::setprecision(2) << reactivePower << std::setw(9) << std::setprecision(2)
-           << generatedRealPower << std::setw(8) << std::setprecision(2)
-           << generatedReactivePower;
+           << generatedRealPower << std::setw(8) << std::setprecision(2) << generatedReactivePower;
 
     double vmax = (std::min)(bus.get("vmax"), defaultLimitValue);
     double vmin = (std::max)(bus.get("vmin"), 0.0);
@@ -454,9 +460,8 @@ static void cdfLinkPrint(std::ostream& output, int areaNumber, acLine* link)
         emergencyRating = 0.0;
     }
     output << std::setw(5) << static_cast<int>(ratingA) << ' ' << std::setw(5)
-           << static_cast<int>(ratingB) << ' ' << std::setw(5)
-           << static_cast<int>(emergencyRating) << ' ' << std::setw(4) << controlBus << ' '
-           << std::setw(1) << 0 << "  ";
+           << static_cast<int>(ratingB) << ' ' << std::setw(5) << static_cast<int>(emergencyRating)
+           << ' ' << std::setw(4) << controlBus << ' ' << std::setw(1) << 0 << "  ";
     switch (type) {
         case 0:
             output << "0.0       0.0 0.0    0.0     0.0    0.0   0.0\n";
@@ -467,20 +472,20 @@ static void cdfLinkPrint(std::ostream& output, int areaNumber, acLine* link)
             break;
         case 2:
         case 3:
-            output << std::setw(6) << std::setprecision(4) << link->getTap() << ' '
-                   << std::setw(6) << std::setprecision(1) << 0.0 << ' ' << std::setw(6)
-                   << std::setprecision(4) << minAdj << ' ' << std::setw(6)
-                   << std::setprecision(4) << maxAdj << std::setw(7) << std::setprecision(5)
-                   << stepSize << ' ' << std::setw(6) << std::setprecision(4) << minVal << ' '
-                   << std::setw(6) << std::setprecision(4) << maxVal << '\n';
+            output << std::setw(6) << std::setprecision(4) << link->getTap() << ' ' << std::setw(6)
+                   << std::setprecision(1) << 0.0 << ' ' << std::setw(6) << std::setprecision(4)
+                   << minAdj << ' ' << std::setw(6) << std::setprecision(4) << maxAdj
+                   << std::setw(7) << std::setprecision(5) << stepSize << ' ' << std::setw(6)
+                   << std::setprecision(4) << minVal << ' ' << std::setw(6) << std::setprecision(4)
+                   << maxVal << '\n';
             break;
         case 4:
             output << std::setw(6) << std::setprecision(4) << link->getTap() << std::setw(7)
                    << std::setprecision(2) << degreesFromRadians(link->getTapAngle())
                    << std::setw(7) << std::setprecision(4) << minAdj << std::setw(7)
-                   << std::setprecision(2) << maxAdj << ' ' << std::setw(6)
-                   << std::setprecision(2) << stepSize << std::setw(7) << std::setprecision(1)
-                   << minVal << std::setw(7) << std::setprecision(1) << maxVal << '\n';
+                   << std::setprecision(2) << maxAdj << ' ' << std::setw(6) << std::setprecision(2)
+                   << stepSize << std::setw(7) << std::setprecision(1) << minVal << std::setw(7)
+                   << std::setprecision(1) << maxVal << '\n';
             break;
         default:
             output << "0.0       0.0 0.0    0.0     0.0    0.0   0.0\n";
@@ -495,8 +500,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
     // Title Data
     output << " 0 /0 /0  " << std::setw(20) << std::right
            << ("GridDyn " GRIDDYN_VERSION_STRING_SHORT) << ' ' << std::setw(5)
-           << static_cast<int>(basePower) << " 2016  " << std::setw(27) << gds->getName()
-           << '\n';
+           << static_cast<int>(basePower) << " 2016  " << std::setw(27) << gds->getName() << '\n';
 
     // Bus Data
     output << "BUS DATA FOLLOWS\n";
@@ -634,8 +638,8 @@ void saveBusData(gridDynSimulation* gds, const std::string& fileName)
     out << "Name, Voltage, angle, Pg, Qg, Pl, Ql\n";
     for (size_t entryIndex = 0; entryIndex < voltages.size(); ++entryIndex) {
         out << busNames[entryIndex] << ", " << voltages[entryIndex] << ", " << angles[entryIndex];
-        out << ", " << generatedRealPower[entryIndex] << ", "
-            << generatedReactivePower[entryIndex] << ", ";
+        out << ", " << generatedRealPower[entryIndex] << ", " << generatedReactivePower[entryIndex]
+            << ", ";
         out << loadRealPower[entryIndex] << ", " << loadReactivePower[entryIndex] << "\n";
     }
 }
@@ -660,8 +664,8 @@ void saveLineData(gridDynSimulation* gds, const std::string& fileName)
     for (size_t entryIndex = 0; entryIndex < forwardRealPower.size(); ++entryIndex) {
         out << linkNames[entryIndex] << ", " << forwardRealPower[entryIndex] << ", "
             << forwardReactivePower[entryIndex];
-        out << ", " << reverseRealPower[entryIndex] << ", "
-            << reverseReactivePower[entryIndex] << ", ";
+        out << ", " << reverseRealPower[entryIndex] << ", " << reverseReactivePower[entryIndex]
+            << ", ";
         out << loss[entryIndex] << "\n";
     }
 }
@@ -955,8 +959,9 @@ void captureJacState(gridDynSimulation* gds, const std::string& fileName, const 
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
     matrixDataSparse<double> matrixData;
-    stateData stateDescription(
-        gds->getSimulationTime(), solverInterface->state_data(), solverInterface->deriv_data());
+    stateData stateDescription(gds->getSimulationTime(),
+                               solverInterface->state_data(),
+                               solverInterface->deriv_data());
 
     stateDescription.cj = 10000;
 

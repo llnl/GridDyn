@@ -13,10 +13,8 @@
 #include "../solvers/solverInterface.h"
 #include "contingency.h"
 #include "core/coreExceptions.h"
-
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include <pugixml.hpp>
 #include "units/units.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
@@ -24,6 +22,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <pugixml.hpp>
 #include <string>
 #include <vector>
 
@@ -968,7 +967,7 @@ void loadPowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
         return;
     }
     // loop over the buses
-    for (auto busNode: buses.children("bus")) {
+    for (auto busNode : buses.children("bus")) {
         auto kk = static_cast<index_t>(busNode.child("index").text().as_llong());
         auto val1 = busNode.child("voltage").text().as_double();
         auto val2 = busNode.child("angle").text().as_double();

@@ -44,7 +44,6 @@ set(formattedfileInput_sources
     gridDynReadCSV.cpp
     readMatlabData.cpp
     loadGDZ.cpp
-    readXMLfile.cpp
 )
 
 set(fileInput_headers

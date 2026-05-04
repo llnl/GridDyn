@@ -30,12 +30,6 @@ class gridDynSimulation;
 #define READER_WARN_ALL 2
 #define READER_WARN_IMPORTANT 1
 #define READER_WARN_NONE 0
-/** enumeration of the possible xml readers*/
-enum class xmlreader {
-    default_reader,
-    tinyxml,
-    tinyxml2,
-};
 /** namespace for configuring various options about filereaders such as xml or json*/
 namespace readerConfig {
     extern int printMode;  //!< the print level
@@ -83,8 +77,7 @@ enum readerFlags {
 };
 
 std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  readerInfo* readerInfoPtr = nullptr,
-                                                  xmlreader rtype = xmlreader::default_reader);
+                                                  readerInfo* readerInfoPtr = nullptr);
 
 void addflags(basicReaderInfo& bri, const std::string& flags);
 

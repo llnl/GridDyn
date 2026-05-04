@@ -9,7 +9,8 @@
 #include "readerElement.h"
 #include <memory>
 #include <string>
-#include <toml.hpp>
+#include <toml11/parser.hpp>
+#include <toml11/types.hpp>
 #include <vector>
 
 class tomlElement;
@@ -58,9 +59,6 @@ class tomlReaderElement: public readerElement {
 
     virtual void bookmark() override;
     virtual void restore() override;
-
-  private:
-    void clear();
 
   private:
     std::shared_ptr<toml::ordered_value> doc;  //!< document root

@@ -14,6 +14,7 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <vector>
 
 static const char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
@@ -57,16 +58,10 @@ std::string formatErrors(const std::vector<toml::error_info>& errors)
 }  // namespace
 
 tomlReaderElement::tomlReaderElement() = default;
-tomlReaderElement::tomlReaderElement(const std::string& fileName)
+tomlReaderElement::tomlReaderElement(const std::string& fileName):
+    doc(nullptr), parents(), current(nullptr), iteratorCount(0), bookmarks()
 {
     tomlReaderElement::loadFile(fileName);
-}
-void tomlReaderElement::clear()
-{
-    parents.clear();
-    if (current) {
-        current->clear();
-    }
 }
 
 bool tomlReaderElement::isValid() const
@@ -111,13 +106,19 @@ bool tomlReaderElement::loadFile(const std::string& fileName)
                      fileName,
                      formatErrors(parseResult.unwrap_err()));
         doc = nullptr;
-        clear();
+        parents.clear();
+        if (current) {
+            current->clear();
+        }
         return false;
     }
 
     std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
-    clear();
+    parents.clear();
+    if (current) {
+        current->clear();
+    }
     return false;
 }
 
@@ -132,7 +133,10 @@ bool tomlReaderElement::parse(const std::string& inputString)
 
     std::println(stderr, "Read error in stream:: {}", formatErrors(parseResult.unwrap_err()));
     doc = nullptr;
-    clear();
+    parents.clear();
+    if (current) {
+        current->clear();
+    }
     return false;
 }
 

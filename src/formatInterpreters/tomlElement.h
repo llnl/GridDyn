@@ -8,7 +8,7 @@
 
 #include <cstddef>
 #include <string>
-#include <toml.hpp>
+#include <toml11/types.hpp>
 
 class tomlElement {
   public:

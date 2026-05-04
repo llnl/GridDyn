@@ -134,8 +134,8 @@ class readerElement;
 class fmiInfo {
   private:
     std::map<std::string, std::string> headerInfo;  //!< the header information contained in strings
-    double fmiVersion;  //!< the fmi version used
-    int maxOrder;  //!< the maximum derivative order for CoSimulation FMU's
+    double fmiVersion = 0.0;  //!< the fmi version used
+    int maxOrder = 0;  //!< the maximum derivative order for CoSimulation FMU's
     std::bitset<32> capabilities;  //!< bitset containing the capabilities of the FMU
     std::vector<variableInformation> variables;  //!< information all the defined variables
     std::vector<fmiUnit> units;  //!< all the units defined in the FMU
@@ -199,10 +199,10 @@ class fmiInfo {
     const std::vector<std::pair<index_t, int>>& getUnknownDependencies(int variableIndex) const;
 
   private:
-    void loadFmiHeader(std::shared_ptr<readerElement>& rd);
-    void loadVariables(std::shared_ptr<readerElement>& rd);
-    void loadUnitInformation(std::shared_ptr<readerElement>& rd);
-    void loadStructure(std::shared_ptr<readerElement>& rd);
+    void loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr);
+    void loadVariables(std::shared_ptr<readerElement>& readerElementPtr);
+    void loadUnitInformation(std::shared_ptr<readerElement>& readerElementPtr);
+    void loadStructure(std::shared_ptr<readerElement>& readerElementPtr);
 };
 
 enum class fmuMode {

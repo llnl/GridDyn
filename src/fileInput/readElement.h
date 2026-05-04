@@ -75,7 +75,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                     coreObject* parentObject);
 
 void readImports(std::shared_ptr<readerElement>& element,
-                 readerInfo& ri,
+                 readerInfo& readerInfoRef,
                  coreObject* parentObject,
                  bool finalFlag);
 
@@ -99,30 +99,30 @@ using IgnoreListType = std::unordered_set<std::string>;
 void loadElementInformation(coreObject* obj,
                             std::shared_ptr<readerElement>& element,
                             const std::string& objectName,
-                            readerInfo& ri,
+                            readerInfo& readerInfoRef,
                             const IgnoreListType& ignoreList);
 
 void objSetAttributes(coreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& ri,
+                      readerInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
 void paramLoopElement(coreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& ri,
+                      readerInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
 void setParams(helperObject* obj,
                std::shared_ptr<readerElement>& element,
                const std::string& component,
-               readerInfo& ri,
+               readerInfo& readerInfoRef,
                const IgnoreListType& ignoreList);
 void setAttributes(helperObject* obj,
                    std::shared_ptr<readerElement>& element,
                    const std::string& component,
-                   readerInfo& ri,
+                   readerInfo& readerInfoRef,
                    const IgnoreListType& ignoreList);
 
 int loadEventElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri);

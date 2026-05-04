@@ -326,7 +326,7 @@ void paramLoopElement(coreObject* obj,
 {
     element->moveToFirstChild();
     while (element->isValid()) {
-        std::string fieldName = convertToLowerCase(element->getName());
+        const std::string fieldName = convertToLowerCase(element->getName());
         const auto& keywordSet = keywords();
         auto ifind = keywordSet.find(fieldName);
         if (ifind != keywordSet.end()) {

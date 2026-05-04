@@ -590,10 +590,9 @@ static void loadDependencies(std::shared_ptr<readerElement>& readerElementPtr,
         const auto validdepkind = !depknd.empty();
         for (size_t dependencyIndex = 0; dependencyIndex < dep.size(); ++dependencyIndex) {
             if (dep[dependencyIndex] > 0) {
-                depData.assign(
-                    row - 1,
-                    dep[dependencyIndex] - 1,
-                    validdepkind ? depkindNum(depknd[dependencyIndex]) : 1);
+                depData.assign(row - 1,
+                               dep[dependencyIndex] - 1,
+                               validdepkind ? depkindNum(depknd[dependencyIndex]) : 1);
             }
         }
         readerElementPtr->moveToNextSibling(unknownString);

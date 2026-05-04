@@ -7,14 +7,10 @@
 #pragma once
 
 #include "readerElement.h"
+#include <toml.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-
-namespace toml {
-class Value;
-struct ParseResult;
-}  // namespace toml
 
 class tomlElement;
 
@@ -67,7 +63,7 @@ class tomlReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<toml::ParseResult> doc;  //!< document root
+    std::shared_ptr<toml::ordered_value> doc;  //!< document root
     std::vector<std::shared_ptr<tomlElement>> parents;
     std::shared_ptr<tomlElement> current;
     int iteratorCount = 0;

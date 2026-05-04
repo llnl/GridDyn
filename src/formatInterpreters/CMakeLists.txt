@@ -66,6 +66,7 @@ add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_head
 
 target_include_directories(
     formatInterpreter PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+                              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/toml/single_include>
 )
 
 target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities)

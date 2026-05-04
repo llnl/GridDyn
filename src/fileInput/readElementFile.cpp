@@ -112,7 +112,8 @@ void readImports(std::shared_ptr<readerElement>& element,
 static const char unitString1[] = "units";
 static const char unitString2[] = "unit";
 
-static units::unit readUnits(const std::shared_ptr<readerElement>& element, const std::string& field)
+static units::unit readUnits(const std::shared_ptr<readerElement>& element,
+                             const std::string& field)
 {
     std::string uname = element->getAttributeText(unitString1);
     // actually specifying a "unit" attribute takes precedence
@@ -230,15 +231,15 @@ void checkForEndUnits(gridParameter& param, const std::string& paramStr)
 
 static const IgnoreListType& keywords()
 {
-    static const auto* keywordSet = new IgnoreListType{
-        "type",      "ref",       "number",        "index",   "retype",
-        "name",      "define",    "library",       "import",  "area",
-        "bus",       "link",      "load",          "exciter", "if",
-        "source",    "governor",  "block",         "pss",     "simulation",
-        "generator", "array",     "relay",         "parent",  "genmodel",
-        "line",      "solver",    "agc",           "reserve", "reservedispatch",
-        "dispatch",  "econ",      "configuration", "custom",  "purpose",
-        "event",     "collector", "extra"};
+    static const auto* keywordSet =
+        new IgnoreListType{"type",      "ref",       "number",        "index",   "retype",
+                           "name",      "define",    "library",       "import",  "area",
+                           "bus",       "link",      "load",          "exciter", "if",
+                           "source",    "governor",  "block",         "pss",     "simulation",
+                           "generator", "array",     "relay",         "parent",  "genmodel",
+                           "line",      "solver",    "agc",           "reserve", "reservedispatch",
+                           "dispatch",  "econ",      "configuration", "custom",  "purpose",
+                           "event",     "collector", "extra"};
     return *keywordSet;
 }
 
@@ -350,8 +351,7 @@ void paramLoopElement(coreObject* obj,
                 if (param.field.contains("file") || (param.field == "fmu")) {
                     readerInfoRef.checkFileParam(param.strVal);
                     objectParameterSet(component, obj, param);
-                } else if (param.field.contains("workdir") ||
-                           param.field.contains("directory")) {
+                } else if (param.field.contains("workdir") || param.field.contains("directory")) {
                     readerInfoRef.checkDirectoryParam(param.strVal);
                     objectParameterSet(component, obj, param);
                 } else if ((fieldName == "flag") || (fieldName == "flags")) {
@@ -468,11 +468,13 @@ void setAttributes(helperObject* obj,
                     if (paramObject.stringType) {
                         obj->set(paramObject.field, paramObject.strVal);
                         LEVELPRINT(READER_VERBOSE_PRINT,
-                                   component << ": setting " << fieldName << " to " << paramObject.strVal);
+                                   component << ": setting " << fieldName << " to "
+                                             << paramObject.strVal);
                     } else {
                         obj->set(paramObject.field, paramObject.value);
                         LEVELPRINT(READER_VERBOSE_PRINT,
-                                   component << ": setting " << fieldName << " to " << paramObject.value);
+                                   component << ": setting " << fieldName << " to "
+                                             << paramObject.value);
                     }
                 }
             }

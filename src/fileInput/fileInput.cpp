@@ -8,7 +8,7 @@
 
 #include "core/coreExceptions.h"
 #include "formatInterpreters/jsonReaderElement.h"
-#include "formatInterpreters/pugixmlReaderElement.h"
+#include "formatInterpreters/XmlReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridDynSimulation.h"
@@ -26,8 +26,6 @@ namespace readerConfig {
     int warnCount = 0;
 
     match_type defMatchType = match_type::capital_case_match;
-
-    xmlreader default_xml_reader = xmlreader::tinyxml2;
 
     void setPrintMode(int level)
     {
@@ -86,15 +84,6 @@ namespace readerConfig {
         }
     }
 
-    void setDefaultXMLReader(const std::string& xmltype)
-    {
-        if ((xmltype == "1") || (xmltype == "tinyxml1") || (xmltype == "ticpp") ||
-            (xmltype == "pugixml")) {
-            default_xml_reader = xmlreader::tinyxml;
-        } else if ((xmltype == "2") || (xmltype == "tinyxml2")) {
-            default_xml_reader = xmlreader::tinyxml2;
-        }
-    }
 }  // namespace readerConfig
 
 int objectParameterSet(const std::string& label, coreObject* obj, gridParameter& param) noexcept
@@ -183,15 +172,7 @@ void loadFile(coreObject* parentObject,
     // get rid of the . on the extension if it has one
 
     if (ext == "xml") {
-        switch (readerConfig::default_xml_reader) {
-            case xmlreader::tinyxml:
-            default:
-                loadElementFile<pugixmlReaderElement>(parentObject, fileName, readerInf);
-                break;
-            case xmlreader::tinyxml2:
-                loadElementFile<pugixmlReaderElement>(parentObject, fileName, readerInf);
-                break;
-        }
+        loadElementFile<XmlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "csv") {
         loadCSV(parentObject, fileName, *readerInf);
     } else if (ext == "raw" || ext == "psse" || ext == "pss/e" || ext == "pti") {

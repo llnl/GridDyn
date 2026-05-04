@@ -5,7 +5,7 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "formatInterpreters/pugixmlReaderElement.h"
+#include "formatInterpreters/XmlReaderElement.h"
 #include "griddyn/gridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
@@ -24,17 +24,8 @@ std::unique_ptr<gridDynSimulation>
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
-    if (rtype == xmlreader::default_reader) {
-        rtype = readerConfig::default_xml_reader;
-    }
-    switch (rtype) {
-        case xmlreader::tinyxml:
-        default:
-            return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
-                loadElementFile<pugixmlReaderElement>(nullptr, fileName, readerInfoPtr)));
-        case xmlreader::tinyxml2:
-            return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
-                loadElementFile<pugixmlReaderElement>(nullptr, fileName, readerInfoPtr)));
-    }
+    return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
+        loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
+      
 }
 }  // namespace griddyn

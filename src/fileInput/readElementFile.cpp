@@ -389,8 +389,6 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& /*
                 readerConfig::setDefaultMatchType(cfgAtt.getText());
             } else if (cfgname == "printlevel") {
                 readerConfig::setPrintMode(cfgAtt.getText());
-            } else if ((cfgname == "xmlreader") || (cfgname == "xml")) {
-                readerConfig::setDefaultXMLReader(cfgAtt.getText());
             } else if ((cfgname == "seed")) {
                 try {
                     auto seed = std::stoul(cfgAtt.getText());
@@ -410,8 +408,6 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& /*
                 readerConfig::setDefaultMatchType(sim->getText());
             } else if (fieldName == "printlevel") {
                 readerConfig::setPrintMode(sim->getText());
-            } else if ((fieldName == "xmlreader") || (fieldName == "xml")) {
-                readerConfig::setDefaultXMLReader(sim->getText());
             } else if ((fieldName == "seed")) {
                 try {
                     auto seed = std::stoul(cfgAtt.getText());

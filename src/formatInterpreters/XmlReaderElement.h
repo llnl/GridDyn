@@ -14,14 +14,14 @@
 #include <vector>
 
 /** @brief class defines a reader element backed by pugixml. */
-class pugixmlReaderElement: public readerElement {
+class XmlReaderElement: public readerElement {
   public:
-    pugixmlReaderElement();
-    explicit pugixmlReaderElement(const std::string& fileName);
+    XmlReaderElement();
+    explicit XmlReaderElement(const std::string& fileName);
 
-    pugixmlReaderElement(pugi::xml_node xmlElement, pugi::xml_node xmlParent);
+    XmlReaderElement(pugi::xml_node xmlElement, pugi::xml_node xmlParent);
 
-    ~pugixmlReaderElement() override;
+    ~XmlReaderElement() override;
 
     std::shared_ptr<readerElement> clone() const override;
 

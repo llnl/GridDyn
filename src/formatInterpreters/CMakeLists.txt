@@ -10,7 +10,7 @@
 set(elementReader_headers
     jsonReaderElement.h
     jsonElement.h
-    pugixmlReaderElement.h
+    XmlReaderElement.h
     readerElement.h
     tomlElement.h
     tomlReaderElement.h
@@ -20,7 +20,7 @@ set(elementReader_headers
 set(elementReader_files
     jsonReaderElement.cpp
     jsonElement.cpp
-    pugixmlReaderElement.cpp
+    XmlReaderElement.cpp
     readerElement.cpp
     tomlElement.cpp
     tomlReaderElement.cpp

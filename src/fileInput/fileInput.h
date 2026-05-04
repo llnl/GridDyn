@@ -55,11 +55,6 @@ namespace readerConfig {
 @details can be "exact,  capital, or any  capital checks a few possible matches for capitalization
 */
     void setDefaultMatchType(const std::string& matchType);
-    /** set the default xml reader to use
-    @details can be "1" or "tinyxml1" to use the legacy tinyxml selection name or "2" or "tinyxml2"
-    to use the legacy tinyxml2 selection name; both are backed by pugixml.
-    */
-    void setDefaultXMLReader(const std::string& xmltype);
     /** @brief enumeration describing how the matching should be done
      */
     enum class match_type {
@@ -72,7 +67,6 @@ namespace readerConfig {
 
     constexpr double PI = 3.141592653589793;
     extern match_type defMatchType;  //!< control for how names are matches in the xm
-    extern xmlreader default_xml_reader;  //!< control the default xml reader
 }  // namespace readerConfig
 
 enum readerflags {

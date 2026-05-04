@@ -7,7 +7,7 @@
 // test case for element readers
 
 #include "../gtestHelper.h"
-#include "formatInterpreters/pugixmlReaderElement.h"
+#include "formatInterpreters/XmlReaderElement.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
@@ -18,7 +18,7 @@ static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest1)
 {
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
     auto firstChild = reader.clone();
     ASSERT_NE(firstChild, nullptr);
@@ -68,7 +68,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest1)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest2)
 {
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
     std::cout << "NOTE:: this should have a message testing bad xml input and not fault\n";
     EXPECT_FALSE(reader.isValid());
@@ -97,7 +97,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest2)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest3)
 {
-    pugixmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    XmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     auto main = reader.clone();
 
     main->moveToFirstChild("subelementA");
@@ -161,7 +161,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
         </bus>
         </GridDyn>)xml";
 
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     reader.parse(XMLtestString);
     ASSERT_TRUE(reader.isValid());
 
@@ -213,8 +213,8 @@ TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest4)
 {
-    auto reader = std::make_shared<pugixmlReaderElement>(elementReaderTestDirectory +
-                                                         "xmlElementReader_test3.xml");
+    auto reader =
+        std::make_shared<XmlReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();
@@ -248,7 +248,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest4)
 
 TEST(ElementReaderTests, PugixmlElementReaderTest1)
 {
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
     auto firstChild = reader.clone();
     ASSERT_NE(firstChild, nullptr);
@@ -298,7 +298,7 @@ TEST(ElementReaderTests, PugixmlElementReaderTest1)
 
 TEST(ElementReaderTests, PugixmlElementReaderTest2)
 {
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
     EXPECT_FALSE(reader.isValid());
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test2.xml");
@@ -326,7 +326,7 @@ TEST(ElementReaderTests, PugixmlElementReaderTest2)
 
 TEST(ElementReaderTests, PugixmlElementReaderTest3)
 {
-    pugixmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    XmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     auto main = reader.clone();
 
     main->moveToFirstChild("subelementA");
@@ -389,7 +389,7 @@ TEST(ElementReaderTests, PugixmlElementReaderTestParse)
         </bus>
         </GridDyn>)xml";
 
-    pugixmlReaderElement reader;
+    XmlReaderElement reader;
     reader.parse(XMLtestString);
 
     ASSERT_TRUE(reader.isValid());
@@ -441,8 +441,8 @@ TEST(ElementReaderTests, PugixmlElementReaderTestParse)
 
 TEST(ElementReaderTests, PugixmlElementReaderTest4)
 {
-    auto reader = std::make_shared<pugixmlReaderElement>(elementReaderTestDirectory +
-                                                         "xmlElementReader_test3.xml");
+    auto reader =
+        std::make_shared<XmlReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();

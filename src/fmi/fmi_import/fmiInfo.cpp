@@ -26,8 +26,7 @@ fmiInfo::fmiInfo(const std::string& xmlFile)
 
 int fmiInfo::loadFile(const std::string& xmlFile)
 {
-    std::shared_ptr<readerElement> readerElementPtr =
-        std::make_shared<XmlReaderElement>(xmlFile);
+    std::shared_ptr<readerElement> readerElementPtr = std::make_shared<XmlReaderElement>(xmlFile);
     if (!readerElementPtr->isValid()) {
         return (-1);
     }

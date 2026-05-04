@@ -303,8 +303,7 @@ std::shared_ptr<readerElement> XmlReaderElement::nextSibling() const
     return nullptr;
 }
 
-std::shared_ptr<readerElement>
-    XmlReaderElement::nextSibling(const std::string& siblingName) const
+std::shared_ptr<readerElement> XmlReaderElement::nextSibling(const std::string& siblingName) const
 {
     if (!element.empty()) {
         auto sibling = element.next_sibling(siblingName.c_str());

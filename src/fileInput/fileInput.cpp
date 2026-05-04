@@ -7,8 +7,8 @@
 #include "fileInput.h"
 
 #include "core/coreExceptions.h"
-#include "formatInterpreters/jsonReaderElement.h"
 #include "formatInterpreters/XmlReaderElement.h"
+#include "formatInterpreters/jsonReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridDynSimulation.h"

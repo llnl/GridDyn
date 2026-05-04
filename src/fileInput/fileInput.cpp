@@ -9,7 +9,6 @@
 #include "core/coreExceptions.h"
 #include "formatInterpreters/jsonReaderElement.h"
 #include "formatInterpreters/pugixmlReaderElement.h"
-#include "formatInterpreters/tinyxmlReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridDynSimulation.h"
@@ -187,7 +186,7 @@ void loadFile(coreObject* parentObject,
         switch (readerConfig::default_xml_reader) {
             case xmlreader::tinyxml:
             default:
-                loadElementFile<tinyxmlReaderElement>(parentObject, fileName, readerInf);
+                loadElementFile<pugixmlReaderElement>(parentObject, fileName, readerInf);
                 break;
             case xmlreader::tinyxml2:
                 loadElementFile<pugixmlReaderElement>(parentObject, fileName, readerInf);

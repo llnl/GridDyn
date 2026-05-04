@@ -11,8 +11,6 @@ set(elementReader_headers
     jsonReaderElement.h
     jsonElement.h
     pugixmlReaderElement.h
-    tinyxml2ReaderElement.h
-    tinyxmlReaderElement.h
     readerElement.h
     tomlElement.h
     tomlReaderElement.h

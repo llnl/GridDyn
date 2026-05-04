@@ -6,7 +6,6 @@
 
 #include "elementReaderTemplates.hpp"
 #include "formatInterpreters/pugixmlReaderElement.h"
-#include "formatInterpreters/tinyxmlReaderElement.h"
 #include "griddyn/gridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
@@ -32,7 +31,7 @@ std::unique_ptr<gridDynSimulation>
         case xmlreader::tinyxml:
         default:
             return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
-                loadElementFile<tinyxmlReaderElement>(nullptr, fileName, readerInfoPtr)));
+                loadElementFile<pugixmlReaderElement>(nullptr, fileName, readerInfoPtr)));
         case xmlreader::tinyxml2:
             return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
                 loadElementFile<pugixmlReaderElement>(nullptr, fileName, readerInfoPtr)));

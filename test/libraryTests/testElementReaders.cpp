@@ -8,7 +8,6 @@
 
 #include "../gtestHelper.h"
 #include "formatInterpreters/pugixmlReaderElement.h"
-#include "formatInterpreters/tinyxmlReaderElement.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
@@ -19,7 +18,7 @@ static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest1)
 {
-    tinyxmlReaderElement reader;
+    pugixmlReaderElement reader;
     ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "xmlElementReader_test.xml"));
     auto firstChild = reader.clone();
     ASSERT_NE(firstChild, nullptr);
@@ -69,7 +68,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest1)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest2)
 {
-    tinyxmlReaderElement reader;
+    pugixmlReaderElement reader;
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_testbbad.xml");
     std::cout << "NOTE:: this should have a message testing bad xml input and not fault\n";
     EXPECT_FALSE(reader.isValid());
@@ -98,7 +97,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTest2)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest3)
 {
-    tinyxmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    pugixmlReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     auto main = reader.clone();
 
     main->moveToFirstChild("subelementA");
@@ -162,7 +161,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
         </bus>
         </GridDyn>)xml";
 
-    tinyxmlReaderElement reader;
+    pugixmlReaderElement reader;
     reader.parse(XMLtestString);
     ASSERT_TRUE(reader.isValid());
 
@@ -214,7 +213,7 @@ TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest4)
 {
-    auto reader = std::make_shared<tinyxmlReaderElement>(elementReaderTestDirectory +
+    auto reader = std::make_shared<pugixmlReaderElement>(elementReaderTestDirectory +
                                                          "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 

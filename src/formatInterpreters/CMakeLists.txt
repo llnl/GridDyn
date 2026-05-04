@@ -65,9 +65,8 @@ set(ZLIB_ROOT_DIR ${PROJECT_BINARY_DIR}/libs)
 add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_headers})
 
 target_include_directories(
-    formatInterpreter
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
-            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/toml/include>
+    formatInterpreter PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+                              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/toml/include>
 )
 
 target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities)

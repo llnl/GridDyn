@@ -19,7 +19,7 @@ bool isTomlNodeEmpty(const toml::ordered_value& value)
 }  // namespace
 
 tomlElement::tomlElement(toml::ordered_value vElement, std::string newName):
-    name(std::move(newName)), element(std::move(vElement)), arraytype(false)
+    name(std::move(newName)), element(std::move(vElement))
 {
     elementIndex = 0;
 

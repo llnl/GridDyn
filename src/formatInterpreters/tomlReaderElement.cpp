@@ -58,8 +58,7 @@ std::string formatErrors(const std::vector<toml::error_info>& errors)
 }  // namespace
 
 tomlReaderElement::tomlReaderElement() = default;
-tomlReaderElement::tomlReaderElement(const std::string& fileName):
-    doc(nullptr), parents(), current(nullptr), iteratorCount(0), bookmarks()
+tomlReaderElement::tomlReaderElement(const std::string& fileName)
 {
     tomlReaderElement::loadFile(fileName);
 }

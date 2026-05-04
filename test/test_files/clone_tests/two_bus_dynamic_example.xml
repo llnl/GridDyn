@@ -26,7 +26,7 @@
       <x>0.518336712</x>
 </link>
    <timestop>10</timestop>
-   <recorder period=0.05 field="auto">
+   <recorder period="0.05" field="auto">
    <file>twobusdynout.csv</file>
    </recorder>
 </griddyn>

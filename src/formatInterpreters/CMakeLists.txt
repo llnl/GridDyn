@@ -10,8 +10,7 @@
 set(elementReader_headers
     jsonReaderElement.h
     jsonElement.h
-    tinyxml2ReaderElement.h
-    tinyxmlReaderElement.h
+    XmlReaderElement.h
     readerElement.h
     tomlElement.h
     tomlReaderElement.h
@@ -21,8 +20,7 @@ set(elementReader_headers
 set(elementReader_files
     jsonReaderElement.cpp
     jsonElement.cpp
-    tinyxml2ReaderElement.cpp
-    tinyxmlReaderElement.cpp
+    XmlReaderElement.cpp
     readerElement.cpp
     tomlElement.cpp
     tomlReaderElement.cpp
@@ -64,36 +62,13 @@ set(YAML_FOUND ${YAML_FOUND} PARENT_SCOPE)
 
 set(ZLIB_ROOT_DIR ${PROJECT_BINARY_DIR}/libs)
 
-# ------------------------------------------------------------
-# building ticpp and tinyxml2
-# ------------------------------------------------------------
-
-file(GLOB ticppfiles ${PROJECT_SOURCE_DIR}/ThirdParty/ticpp/*.cpp)
-file(GLOB ticpp_headers ${PROJECT_SOURCE_DIR}/ThirdParty/ticpp/*.h)
-
-add_library(
-    tinyxml STATIC
-    ${ticppfiles} ${ticpp_headers} ${PROJECT_SOURCE_DIR}/ThirdParty/tinyxml2/tinyxml2.cpp
-    ${PROJECT_SOURCE_DIR}/ThirdParty/tinyxml2/tinyxml2.h
-)
-
-target_link_libraries(tinyxml griddyn_base)
-
-target_compile_definitions(tinyxml PUBLIC -DTIXML_USE_TICPP)
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    target_compile_options(tinyxml PRIVATE -Wno-suggest-override)
-endif()
-
-set_target_properties(tinyxml PROPERTIES FOLDER Extern)
-
 add_library(formatInterpreter STATIC ${elementReader_files} ${elementReader_headers})
 
 target_include_directories(
     formatInterpreter PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )
 
-target_link_libraries(formatInterpreter PUBLIC tinyxml utilities)
+target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities)
 set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 
 if(YAML_FOUND)

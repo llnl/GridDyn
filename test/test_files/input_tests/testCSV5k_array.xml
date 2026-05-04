@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test matdyn execution-->
 <griddyn name="test1" version="0.0.1">
-<array count=2>
-<area number=#index>
+<array count="2">
+<area number="#index">
    <import file="Buslist5k.csv"/>
    <import file="Branchlist5k.csv"/>
    </area>

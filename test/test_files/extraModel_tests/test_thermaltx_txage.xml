@@ -3,8 +3,8 @@
 <griddyn name="test_txage_thermaltx" version="0.0.1">
   <import file="powerflowWECC.raw"/>
 
-  <define name="bv" value=0.97/>
-  <define name="ba" value=-0.9854/>
+  <define name="bv" value="0.97"/>
+  <define name="ba" value="-0.9854"/>
 
   <library>
     <control name="lineControl">
@@ -58,11 +58,11 @@
     <tap>1.03</tap>
     <r>0.00006</r>
     <x>0.00495</x>
-    <rating units=MW>420</rating>
-    <control terminal=1 ref="lineControl"/>
-    <control terminal=2 ref="lineControl"/>
-    <sensor terminal=1 ref="lineSensor" name="tx1_1sensor"/>
-    <sensor terminal=2 ref="lineSensor" name="tx1_2sensor"/>
+    <rating units="MW">420</rating>
+    <control terminal="1" ref="lineControl"/>
+    <control terminal="2" ref="lineControl"/>
+    <sensor terminal="1" ref="lineSensor" name="tx1_1sensor"/>
+    <sensor terminal="2" ref="lineSensor" name="tx1_2sensor"/>
     <relay ref="txTemp" name="tx1temp"/>
   </transformer>
 
@@ -86,7 +86,7 @@
     <commtype>ct</commtype>
   </sensor>
 
-  <recorder period=300>
+  <recorder period="300">
     <field>tx1temp:ambient, tx1temp:input0, tx1temp:top_oil, tx1temp:hot_spot, tx1life:remaininglife, tx1life:lossoflife, tx1life:rate</field>
     <field>tx1_1sensor:current, tx1_1sensor:voltage, tx1_1sensor:breaker</field>
     <field>tx1_2sensor:current, tx1_2sensor:voltage, tx1_2sensor:breaker</field>

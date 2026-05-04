@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test mpi running for gridDyn-->
 <griddyn name="test1" version="0.0.1">
-<define name="garraySize" value=3/>
+<define name="garraySize" value="3"/>
 <library>
 <generator name="default">
  <exciter>
@@ -20,21 +20,21 @@
       <file>Simple_3Bus_mod_meter_mix_Load.glm</file>
       <workdir>Simple_3Bus_mod_workdir</workdir>
      <load>
-      <P units=MW>3.00001</P>
-      <Q units=MVar>0.90003</Q>
-      <Ip units=MW>3.00000</Ip>
-      <Iq units=MVar>0.90002</Iq>
-      <Yp units=MW>3.00000</Yp>
-      <Yq units=MVar>0.90002</Yq>
+      <P units="MW">3.00001</P>
+      <Q units="MVar">0.90003</Q>
+      <Ip units="MW">3.00000</Ip>
+      <Iq units="MVar">0.90002</Iq>
+      <Yp units="MW">3.00000</Yp>
+      <Yq units="MVar">0.90002</Yq>
      </load>
 </load>
      <load name="constLd">
-      <P units=MW>3.00001</P>
-      <Q units=MVar>0.90003</Q>
-      <Ip units=MW>3.00000</Ip>
-      <Iq units=MVar>0.90002</Iq>
-      <Yp units=MW>3.00000</Yp>
-      <Yq units=MVar>0.90002</Yq>
+      <P units="MW">3.00001</P>
+      <Q units="MVar">0.90003</Q>
+      <Ip units="MW">3.00000</Ip>
+      <Iq units="MVar">0.90002</Iq>
+      <Yp units="MW">3.00000</Yp>
+      <Yq units="MVar">0.90002</Yq>
      </load>
 </library>
    <bus name="bus1">
@@ -53,7 +53,7 @@
       <voltage>0.97</voltage>
       <autogenP>0</autogenP>
 
-      <array count=garraySize>
+      <array count="garraySize">
      <load name="gload2_$#index$" ref="constLd"/>
      </array>
    </bus>
@@ -66,7 +66,7 @@
       <type>PV</type>
       <angle>0</angle>
       <voltage>1.02</voltage>
-      <array count=garraySize>
+      <array count="garraySize">
      <load name="gload3_$#index$" ref="gld"/>
      </array>
      <autogenP>0</autogenP>
@@ -79,7 +79,7 @@
    <basevoltage>12.5</basevoltage>
    <type>SLK</type>
       <voltage>1.04</voltage>
-     <array count=garraySize>
+     <array count="garraySize">
      <load name="gload4_$#index$" ref="constLd"/>
      </array>
      <autogenP>0</autogenP>
@@ -96,5 +96,5 @@
    <timestart>0</timestart>
    <timestop>10</timestop>
    <timestep>0.010</timestep>
-   <solver name="dynamic" printlevel=1/>
+   <solver name="dynamic" printlevel="1"/>
 </griddyn>

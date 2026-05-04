@@ -7,9 +7,8 @@
 #include "fileInput.h"
 
 #include "core/coreExceptions.h"
+#include "formatInterpreters/XmlReaderElement.h"
 #include "formatInterpreters/jsonReaderElement.h"
-#include "formatInterpreters/tinyxml2ReaderElement.h"
-#include "formatInterpreters/tinyxmlReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridDynSimulation.h"
@@ -27,8 +26,6 @@ namespace readerConfig {
     int warnCount = 0;
 
     match_type defMatchType = match_type::capital_case_match;
-
-    xmlreader default_xml_reader = xmlreader::tinyxml;
 
     void setPrintMode(int level)
     {
@@ -87,14 +84,6 @@ namespace readerConfig {
         }
     }
 
-    void setDefaultXMLReader(const std::string& xmltype)
-    {
-        if ((xmltype == "1") || (xmltype == "tinyxml1") || (xmltype == "ticpp")) {
-            default_xml_reader = xmlreader::tinyxml;
-        } else if ((xmltype == "2") || (xmltype == "tinyxml2")) {
-            default_xml_reader = xmlreader::tinyxml2;
-        }
-    }
 }  // namespace readerConfig
 
 int objectParameterSet(const std::string& label, coreObject* obj, gridParameter& param) noexcept
@@ -161,6 +150,16 @@ void loadFile(std::unique_ptr<gridDynSimulation>& gds,
     loadFile(gds.get(), fileName, readerInf, ext);
 }
 
+std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
+                                                  readerInfo* readerInfoPtr)
+{
+    if (!std::filesystem::exists(fileName)) {
+        return nullptr;
+    }
+    return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
+        loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
+}
+
 void loadFile(coreObject* parentObject,
               const std::string& fileName,
               readerInfo* readerInf,
@@ -183,15 +182,7 @@ void loadFile(coreObject* parentObject,
     // get rid of the . on the extension if it has one
 
     if (ext == "xml") {
-        switch (readerConfig::default_xml_reader) {
-            case xmlreader::tinyxml:
-            default:
-                loadElementFile<tinyxmlReaderElement>(parentObject, fileName, readerInf);
-                break;
-            case xmlreader::tinyxml2:
-                loadElementFile<tinyxml2ReaderElement>(parentObject, fileName, readerInf);
-                break;
-        }
+        loadElementFile<XmlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "csv") {
         loadCSV(parentObject, fileName, *readerInf);
     } else if (ext == "raw" || ext == "psse" || ext == "pss/e" || ext == "pti") {

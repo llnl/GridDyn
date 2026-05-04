@@ -4,7 +4,7 @@
    <import file="../matlab_test_files/case9.m"/>
    <import file="../matlab_test_files/case9dyn.m"/>
    <import file="../matlab_test_files/fault.m"/>
-   <recorder field="auto, all_gen_angle" period=0.01>
+   <recorder field="auto, all_gen_angle" period="0.01">
    <file>busdata.dat</file>
 
    </recorder>

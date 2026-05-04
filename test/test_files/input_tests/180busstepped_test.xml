@@ -9,7 +9,7 @@
 </load>
 
 
-<recorder field="auto" period=100>
+<recorder field="auto" period="100">
    <file>output.csv</file>
    </recorder>
 

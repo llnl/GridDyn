@@ -68,7 +68,7 @@
 </link>
 
 
-<recorder period=1>
+<recorder period="1">
 <autosave>10</autosave>
    <file>testout.csv</file>
    <field>bus#0:genp</field>
@@ -79,7 +79,7 @@
    <field>bus#1:angle(deg)</field>
    </recorder>
 
-  <collector type="fncs" period=1>
+  <collector type="fncs" period="1">
    <field>bus#0:genp as genDispatch</field>
    </collector>
 

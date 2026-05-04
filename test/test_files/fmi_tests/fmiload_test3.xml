@@ -10,15 +10,15 @@
 
      <load name="load3" type="fmi">
      <file>..//..//fmus/LoadFMU1.fmu</file>
-       <param name="P0" value=0.5/>
-       <param name="Q0" value=0.2/>
-       <param name="A" value=0.2/>
-       <param name="B" value=0.2/>
-       <param name="M" value=1.0/>
-       <param name="f0" value=0.2/>
+       <param name="P0" value="0.5"/>
+       <param name="Q0" value="0.2"/>
+       <param name="A" value="0.2"/>
+       <param name="B" value="0.2"/>
+       <param name="M" value="1.0"/>
+       <param name="f0" value="0.2"/>
 
-       <param name="A" value=0.2/>
-       <param name="B" value=0.05/>
+       <param name="A" value="0.2"/>
+       <param name="B" value="0.05"/>
      </load>
    </bus>
  <link from="bus1" name="bus1_to_bus2" to="bus2">
@@ -30,7 +30,7 @@
    <timestart>0</timestart>
    <timestop>30</timestop>
    <timestep>0.010</timestep>
-    <recorder field="auto" period=0.05>
+    <recorder field="auto" period="0.05">
    <file>loadChange.dat</file>
    </recorder>
 

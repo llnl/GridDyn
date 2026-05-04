@@ -43,7 +43,7 @@
       <type>SLK</type>
       <angle>0</angle>
       <voltage>1</voltage>
-      <generator ref="gen1" mbase=500/>
+      <generator ref="gen1" mbase="500"/>
    </bus>
    <bus name="bus2">
       <type>PV</type>
@@ -109,7 +109,7 @@
    <timestart>0</timestart>
    <timestop>60</timestop>
    <timestep>0.010</timestep>
-   <recorder field="auto,busgenerationreactive,busloadreactive,genb:ef" period=0.001>
+   <recorder field="auto,busgenerationreactive,busloadreactive,genb:ef" period="0.001">
    <file>rootDisplay.dat</file>
    </recorder>
 </griddyn>

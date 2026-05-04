@@ -44,7 +44,7 @@
     <x>0.04</x>
   </link>
 
-  <recorder field="auto" period=0.010>
+  <recorder field="auto" period="0.010">
     <file>output/test-IEEE_13_mod_triple/output.csv</file>
   </recorder>
 

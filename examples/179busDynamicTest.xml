@@ -19,7 +19,7 @@
 </event>
 
 
-<recorder field="auto" period=0.01>
+<recorder field="auto" period="0.01">
    <file>dynfault.csv</file>
    </recorder>
    <timestart>0</timestart>

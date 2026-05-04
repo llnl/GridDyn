@@ -36,8 +36,8 @@
     <file>Simple_3Bus_mod.glm</file>
     <workdir>Simple_3Bus_mod_workdir</workdir>
     <load>
-      <P units=MW>9.00001</P>
-      <Q units=MVar>2.70007</Q>
+      <P units="MW">9.00001</P>
+      <Q units="MVar">2.70007</Q>
     </load>
 
     <recorder field="all" >
@@ -51,7 +51,7 @@
       <x>0.04</x>
    </link>
 
-   <recorder field="auto" period=0.010>
+   <recorder field="auto" period="0.010">
      <file>output/test-Simple_3Bus_mod_single/output.csv</file>
    </recorder>
 
@@ -59,5 +59,5 @@
    <timestart>0</timestart>
    <timestop>30</timestop>
    <timestep>0.010</timestep>
-   <solver name="dynamic" printlevel=1/>
+   <solver name="dynamic" printlevel="1"/>
 </griddyn>

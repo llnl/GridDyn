@@ -26,7 +26,7 @@
 <value>0.5,-1</value>
 <time>1,1.05</time>
 </event>
-<recorder field="auto" period=0.001>
+<recorder field="auto" period="0.001">
    <file>dynfault.dat</file>
    </recorder>
 

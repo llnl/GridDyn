@@ -135,7 +135,7 @@
    <timestop>6</timestop>
    <timestep>0.010</timestep>
      <timestep>0.010</timestep>
-    <recorder field="auto" period=0.01>
+    <recorder field="auto" period="0.01">
    <file>linkfault.dat</file>
    </recorder>
    <event>

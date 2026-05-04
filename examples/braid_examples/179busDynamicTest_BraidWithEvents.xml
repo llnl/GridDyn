@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test matdyn execution-->
-<griddyn name="test1" version="0.0.1">
+<griddyn name="test1" version="0.0.1" xmlns:p="urn:griddyn-param">
   <import file="./powerflowWECC.raw"/>
   <import file="./dynamicsWECC.dyr"/>
 
@@ -11,7 +11,7 @@
      <p:amplitude>0.1</p:amplitude>
   </load>
 
-  <recorder field="auto" period=0.01>
+  <recorder field="auto" period="0.01">
      <file>dynfault.csv</file>
   </recorder>
   <timestart>0</timestart>

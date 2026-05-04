@@ -78,8 +78,8 @@
      </array>
 
      <!--add in the other diagonal links-->
-     <array stop=garraySize loopvariable="#rowindex" start=2>
-    <array stop=garraySize-1 loopvariable="#colindex" start=1>
+     <array stop="garraySize" loopvariable="#rowindex" start="2">
+    <array stop="garraySize-1" loopvariable="#colindex" start="1">
      <link name="link_$#rowindex$_$#colindex$_to_$#rowindex-1$_$#colindex+1$">
      <r>0.0013</r>
      <x>0.097</x>
@@ -90,8 +90,8 @@
      </array>
 
     <!--add in the horizontal links-->
-     <array count=garraySize loopvariable="#rowindex">
-    <array stop=garraySize loopvariable="#colindex" start=2>
+     <array count="garraySize" loopvariable="#rowindex">
+    <array stop="garraySize" loopvariable="#colindex" start="2">
      <link name="link_$#rowindex$_$#colindex-1$_to_$#rowindex$_$#colindex$">
      <r>0.001</r>
      <x>0.07</x>

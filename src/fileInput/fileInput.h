@@ -30,12 +30,6 @@ class gridDynSimulation;
 #define READER_WARN_ALL 2
 #define READER_WARN_IMPORTANT 1
 #define READER_WARN_NONE 0
-/** enumeration of the possible xml readers*/
-enum class xmlreader {
-    default_reader,
-    tinyxml,
-    tinyxml2,
-};
 /** namespace for configuring various options about filereaders such as xml or json*/
 namespace readerConfig {
     extern int printMode;  //!< the print level
@@ -55,11 +49,6 @@ namespace readerConfig {
 @details can be "exact,  capital, or any  capital checks a few possible matches for capitalization
 */
     void setDefaultMatchType(const std::string& matchType);
-    /** set the default xml reader to use
-@details can be "1" or "tinyxml1" to use the tinyxml reader or "2" or "tinyxml2" to use the tinyxml2
-reader
-*/
-    void setDefaultXMLReader(const std::string& xmltype);
     /** @brief enumeration describing how the matching should be done
      */
     enum class match_type {
@@ -72,7 +61,6 @@ reader
 
     constexpr double PI = 3.141592653589793;
     extern match_type defMatchType;  //!< control for how names are matches in the xm
-    extern xmlreader default_xml_reader;  //!< control the default xml reader
 }  // namespace readerConfig
 
 enum readerflags {
@@ -89,8 +77,7 @@ enum readerFlags {
 };
 
 std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  readerInfo* ri = nullptr,
-                                                  xmlreader rtype = xmlreader::default_reader);
+                                                  readerInfo* readerInfoPtr = nullptr);
 
 void addflags(basicReaderInfo& bri, const std::string& flags);
 

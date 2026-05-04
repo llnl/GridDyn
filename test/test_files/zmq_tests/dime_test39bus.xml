@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test matdyn execution-->
-<griddyn name="test1" version="0.0.1">
+<griddyn name="test1" version="0.0.1" xmlns:p="urn:griddyn-param">
    <import file="IEEE39.raw"/>
    <import file="IEEE39.dyr"/>
     <load parent="BUS#20">
@@ -8,11 +8,11 @@
     <p:frequency>0.5</p:frequency>
     <p:amp>0.1</p:amp>
     </load>
-    <recorder field="auto" period=0.1>
+    <recorder field="auto" period="0.1">
    <file>sinerec.csv</file>
    </recorder>
 
-   <collector type="dime" period=0.2 name="dime1">
+   <collector type="dime" period="0.2" name="dime1">
    <field>BUS#20:voltage as V20</field>
    <server>tcp://127.0.0.1:5000</server>
    </collector>

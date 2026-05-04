@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml file to test mpi running for gridDyn-->
 <griddyn name="test1" version="0.0.1">
-<define name="garraySize" value=20/>
+<define name="garraySize" value="20"/>
 <define name="gcount" value="ceil(garraySize/3)" eval="1" />
 <library>
 <generator name="default">
@@ -38,8 +38,8 @@
      </array>
      <!--add in the motor loads -->
 
-      <array start="1" stop="garraySize" loopvariable="#rowindex" interval=2>
-     <array start="1" stop="garraySize" loopvariable="#colindex" interval=2>
+      <array start="1" stop="garraySize" loopvariable="#rowindex" interval="2">
+     <array start="1" stop="garraySize" loopvariable="#colindex" interval="2">
      <bus name="bus_$#rowindex$_$#colindex$">
      <load ref="addLoad"/>
      </bus>

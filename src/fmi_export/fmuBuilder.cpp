@@ -14,11 +14,11 @@
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
-#include "tinyxml2/tinyxml2.h"
 #include "utilities/zipUtilities.h"
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <pugixml.hpp>
 #include <set>
 #include <string>
 #include <utility>
@@ -369,179 +369,146 @@ void fmuBuilder::copySharedLibrary(const std::string& tempdir)
 
 void fmuBuilder::generateXML(const std::string& xmlfile)
 {
-    using tinyxml2::XML_SUCCESS;
-    using tinyxml2::XMLDocument;
-    XMLDocument doc;
+    pugi::xml_document doc;
     int index = 1;
     // add the standard xml declaration
-    auto dec = doc.NewDeclaration();
-    doc.InsertFirstChild(dec);
+    auto dec = doc.append_child(pugi::node_declaration);
+    dec.append_attribute("version") = "1.0";
     // add the main xml root object
-    auto pRoot = doc.NewElement("fmiModelDescription");
+    auto pRoot = doc.append_child("fmiModelDescription");
 
-    doc.InsertEndChild(pRoot);
-
-    pRoot->SetAttribute("fmiVersion", "2.0");
-    pRoot->SetAttribute("modelName", getSim()->getName().c_str());
-    pRoot->SetAttribute("guid", "{82072fd0-2f55-4c42-b84c-e47ee14091d0}");
+    pRoot.append_attribute("fmiVersion") = "2.0";
+    pRoot.append_attribute("modelName") = getSim()->getName().c_str();
+    pRoot.append_attribute("guid") = "{82072fd0-2f55-4c42-b84c-e47ee14091d0}";
 
     auto desc = getSim()->getDescription();
     if (!desc.empty()) {
-        pRoot->SetAttribute("description", desc.c_str());
+        pRoot.append_attribute("description") = desc.c_str();
     }
 
-    pRoot->SetAttribute("version", getSim()->getString("version").c_str());
+    pRoot.append_attribute("version") = getSim()->getString("version").c_str();
 
     // the cosimulation description section
-    auto pElement = doc.NewElement("CoSimulation");
-    pElement->SetAttribute("modelIdentifier", GRIDDYNFMILIBRARY_BASE_NAME);
-    pElement->SetAttribute("canHandleVariableCommunicationStepSize", "true");
-
-    pRoot->InsertEndChild(pElement);
+    auto pElement = pRoot.append_child("CoSimulation");
+    pElement.append_attribute("modelIdentifier") = GRIDDYNFMILIBRARY_BASE_NAME;
+    pElement.append_attribute("canHandleVariableCommunicationStepSize") = "true";
 
     // log categories section
 
-    pElement = doc.NewElement("LogCategories");
+    pElement = pRoot.append_child("LogCategories");
 
-    auto logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logError");
-    pElement->InsertEndChild(logElement);
+    auto logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logError";
 
-    logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logWarning");
-    pElement->InsertEndChild(logElement);
+    logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logWarning";
 
-    logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logSummary");
-    pElement->InsertEndChild(logElement);
+    logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logSummary";
 
-    logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logNormal");
-    pElement->InsertEndChild(logElement);
+    logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logNormal";
 
-    logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logDebug");
-    pElement->InsertEndChild(logElement);
+    logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logDebug";
 
-    logElement = doc.NewElement("Category");
-    logElement->SetAttribute("name", "logTrace");
-    pElement->InsertEndChild(logElement);
-
-    pRoot->InsertEndChild(pElement);
+    logElement = pElement.append_child("Category");
+    logElement.append_attribute("name") = "logTrace";
 
     // next load all the scalar variables in the system
-    pElement = doc.NewElement("ModelVariables");
+    pElement = pRoot.append_child("ModelVariables");
 
-    auto sVariable = doc.NewElement("ScalarVariable");
-    sVariable->SetAttribute("name", "run_asynchronously");
-    sVariable->SetAttribute("valueReference", 0);
+    auto sVariable = pElement.append_child("ScalarVariable");
+    sVariable.append_attribute("name") = "run_asynchronously";
+    sVariable.append_attribute("valueReference") = 0;
 
-    sVariable->SetAttribute("description", "set to true to enable GridDyn to run Asynchronously");
-    sVariable->SetAttribute("causality", "parameter");
-    sVariable->SetAttribute("variability", "fixed");
-    pElement->InsertEndChild(sVariable);
+    sVariable.append_attribute("description") =
+        "set to true to enable GridDyn to run Asynchronously";
+    sVariable.append_attribute("causality") = "parameter";
+    sVariable.append_attribute("variability") = "fixed";
     ++index;
-    auto bType = doc.NewElement("Boolean");
-    bType->SetAttribute("start", false);
-    sVariable->InsertEndChild(bType);
+    auto bType = sVariable.append_child("Boolean");
+    bType.append_attribute("start") = false;
 
-    sVariable = doc.NewElement("ScalarVariable");
-    sVariable->SetAttribute("name", "record_directory");
-    sVariable->SetAttribute("valueReference", 1);
+    sVariable = pElement.append_child("ScalarVariable");
+    sVariable.append_attribute("name") = "record_directory";
+    sVariable.append_attribute("valueReference") = 1;
 
-    auto sType = doc.NewElement("String");
-    sType->SetAttribute("start", "");
-    sVariable->InsertEndChild(sType);
+    auto sType = sVariable.append_child("String");
+    sType.append_attribute("start") = "";
 
-    sVariable->SetAttribute("description", "set the directory to place GridDyn outputs");
-    sVariable->SetAttribute("causality", "parameter");
-    sVariable->SetAttribute("variability", "fixed");
-    pElement->InsertEndChild(sVariable);
+    sVariable.append_attribute("description") = "set the directory to place GridDyn outputs";
+    sVariable.append_attribute("causality") = "parameter";
+    sVariable.append_attribute("variability") = "fixed";
     ++index;
 
     auto fmiInputs = coord_->getInputs();
     for (auto& input : fmiInputs) {
-        sVariable = doc.NewElement("ScalarVariable");
-        sVariable->SetAttribute("name", input.second.name.c_str());
-        sVariable->SetAttribute("valueReference", input.first);
+        sVariable = pElement.append_child("ScalarVariable");
+        sVariable.append_attribute("name") = input.second.name.c_str();
+        sVariable.append_attribute("valueReference") = input.first;
         auto evntdesc = input.second.evnt->getDescription();
         if (!evntdesc.empty()) {
-            sVariable->SetAttribute("description", evntdesc.c_str());
+            sVariable.append_attribute("description") = evntdesc.c_str();
         }
-        sVariable->SetAttribute("causality", "input");
-        sVariable->SetAttribute("variability", "continuous");
-        auto rType = doc.NewElement("Real");
-        rType->SetAttribute("start", coord_->getOutput(input.first));
-        sVariable->InsertEndChild(rType);
-        pElement->InsertEndChild(sVariable);
+        sVariable.append_attribute("causality") = "input";
+        sVariable.append_attribute("variability") = "continuous";
+        auto rType = sVariable.append_child("Real");
+        rType.append_attribute("start") = coord_->getOutput(input.first);
         ++index;
     }
     auto fmiParams = coord_->getParameters();
     for (auto& param : fmiParams) {
-        sVariable = doc.NewElement("ScalarVariable");
-        sVariable->SetAttribute("name", param.second.name.c_str());
-        sVariable->SetAttribute("valueReference", param.first);
+        sVariable = pElement.append_child("ScalarVariable");
+        sVariable.append_attribute("name") = param.second.name.c_str();
+        sVariable.append_attribute("valueReference") = param.first;
         auto evntdesc = param.second.evnt->getDescription();
         if (!evntdesc.empty()) {
-            sVariable->SetAttribute("description", evntdesc.c_str());
+            sVariable.append_attribute("description") = evntdesc.c_str();
         }
-        sVariable->SetAttribute("causality", "parameter");
+        sVariable.append_attribute("causality") = "parameter";
         if (fmiCoordinator::isStringParameter(param)) {
-            sVariable->SetAttribute("variability", "fixed");
-            auto sParamType = doc.NewElement("String");
-            sParamType->SetAttribute("start", "");
-            sVariable->InsertEndChild(sParamType);
+            sVariable.append_attribute("variability") = "fixed";
+            auto sParamType = sVariable.append_child("String");
+            sParamType.append_attribute("start") = "";
         } else {
-            sVariable->SetAttribute("variability", "continuous");
+            sVariable.append_attribute("variability") = "continuous";
 
-            auto rType = doc.NewElement("Real");
-            rType->SetAttribute("start", coord_->getOutput(param.first));
-            sVariable->InsertEndChild(rType);
+            auto rType = sVariable.append_child("Real");
+            rType.append_attribute("start") = coord_->getOutput(param.first);
         }
 
-        pElement->InsertEndChild(sVariable);
         ++index;
     }
     std::vector<int> outputIndices;
     auto fmiOutputs = coord_->getOutputs();
     for (auto& out : fmiOutputs) {
-        sVariable = doc.NewElement("ScalarVariable");
-        sVariable->SetAttribute("name", out.second.name.c_str());
-        sVariable->SetAttribute("valueReference", out.first);
-        sVariable->SetAttribute("causality", "output");
-        sVariable->SetAttribute("variability", "continuous");
+        sVariable = pElement.append_child("ScalarVariable");
+        sVariable.append_attribute("name") = out.second.name.c_str();
+        sVariable.append_attribute("valueReference") = out.first;
+        sVariable.append_attribute("causality") = "output";
+        sVariable.append_attribute("variability") = "continuous";
         // TODO(phlpt): Figure out how to generate descriptions.
-        auto rType = doc.NewElement("Real");
-        sVariable->InsertEndChild(rType);
-
-        pElement->InsertEndChild(sVariable);
+        sVariable.append_child("Real");
         outputIndices.push_back(index);
         ++index;
     }
-    pRoot->InsertEndChild(pElement);
     // load the dependencies
 
-    pElement = doc.NewElement("ModelStructure");
-    auto outputs = doc.NewElement("Outputs");
+    pElement = pRoot.append_child("ModelStructure");
+    auto outputs = pElement.append_child("Outputs");
     for (auto& outind : outputIndices) {
-        auto out = doc.NewElement("Unknown");
-        out->SetAttribute("index", outind);
-        outputs->InsertEndChild(out);
+        auto out = outputs.append_child("Unknown");
+        out.append_attribute("index") = outind;
     }
-    pElement->InsertEndChild(outputs);
 
-    auto initUnkn = doc.NewElement("InitialUnknowns");
+    auto initUnkn = pElement.append_child("InitialUnknowns");
     for (auto& outind : outputIndices) {
-        auto out = doc.NewElement("Unknown");
-        out->SetAttribute("index", outind);
-        initUnkn->InsertEndChild(out);
+        auto out = initUnkn.append_child("Unknown");
+        out.append_attribute("index") = outind;
     }
-    pElement->InsertEndChild(initUnkn);
 
-    pRoot->InsertEndChild(pElement);
-
-    auto res = doc.SaveFile(xmlfile.c_str());
-    if (res != XML_SUCCESS) {
+    if (!doc.save_file(xmlfile.c_str())) {
         throw(std::runtime_error("unable to write file"));
     }
 }

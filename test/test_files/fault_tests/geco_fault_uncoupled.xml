@@ -77,7 +77,7 @@
   <import file="../IEEE_test_cases/IEEE39.dyr"/>
   <import file="ieee39_relays_geco_coupled.csv"/>
 
-  <!-- Initiate a fault at t=1 second -->
+  <!-- Initiate a fault at t="1" second -->
   <event>
     <target>LINK#7</target>
     <field>fault</field>

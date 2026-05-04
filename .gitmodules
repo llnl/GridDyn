@@ -29,3 +29,6 @@
 [submodule "ThirdParty/spdlog"]
 	path = ThirdParty/spdlog
 	url = ../../gabime/spdlog.git
+[submodule "ThirdParty/pugixml"]
+	path = ThirdParty/pugixml
+	url = https://github.com/zeux/pugixml

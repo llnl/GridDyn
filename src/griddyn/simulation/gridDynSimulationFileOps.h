@@ -219,7 +219,7 @@ bytes), then write data in triplets (4byte row, 4 byte col, 8 byte double data)
 @param[in] index an indexing value associated with the data
 @param[in] key a code indicating the source of the information (typically the index of the solver
 data object)
-@param[in] a1 the Jacobian data to write to the file
+@param[in] matrixValues the Jacobian data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
 @throw fileOperationError if the file cannot be opened
@@ -230,7 +230,7 @@ void writeArray(coreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
                 std::uint32_t key,
-                matrixData<double>& a1,
+                matrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append = true);
 

@@ -26,6 +26,5 @@ std::unique_ptr<gridDynSimulation>
     }
     return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
         loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
-      
 }
 }  // namespace griddyn

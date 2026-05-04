@@ -213,8 +213,8 @@ TEST(ElementReaderTests, TinyxmlElementReaderTestParse)
 
 TEST(ElementReaderTests, TinyxmlElementReaderTest4)
 {
-    auto reader =
-        std::make_shared<XmlReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
+    auto reader = std::make_shared<XmlReaderElement>(elementReaderTestDirectory +
+                                                     "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();
@@ -441,8 +441,8 @@ TEST(ElementReaderTests, PugixmlElementReaderTestParse)
 
 TEST(ElementReaderTests, PugixmlElementReaderTest4)
 {
-    auto reader =
-        std::make_shared<XmlReaderElement>(elementReaderTestDirectory + "xmlElementReader_test3.xml");
+    auto reader = std::make_shared<XmlReaderElement>(elementReaderTestDirectory +
+                                                     "xmlElementReader_test3.xml");
     EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();

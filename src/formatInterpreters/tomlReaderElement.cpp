@@ -106,7 +106,9 @@ bool tomlReaderElement::loadFile(const std::string& fileName)
             return true;
         }
 
-        std::println(stderr, "file read error in {}::{}", fileName,
+        std::println(stderr,
+                     "file read error in {}::{}",
+                     fileName,
                      formatErrors(parseResult.unwrap_err()));
         doc = nullptr;
         clear();
@@ -382,7 +384,8 @@ void tomlReaderElement::moveToNextSibling()
     // Now find the next valid element
     while (elementIterator != elementEnd) {
         if (isElement(elementIterator->second)) {
-            current = std::make_shared<tomlElement>(elementIterator->second, elementIterator->first);
+            current =
+                std::make_shared<tomlElement>(elementIterator->second, elementIterator->first);
             return;
         }
         ++elementIterator;
@@ -409,9 +412,8 @@ void tomlReaderElement::moveToNextSibling(const std::string& siblingName)
         if (!parents.empty() && parents.back()->getElement().is_table() &&
             parents.back()->getElement().contains(siblingName) &&
             isElement(parents.back()->getElement().at(siblingName))) {
-            current =
-                std::make_shared<tomlElement>(parents.back()->getElement().at(siblingName),
-                                              siblingName);
+            current = std::make_shared<tomlElement>(parents.back()->getElement().at(siblingName),
+                                                    siblingName);
             return;
         }
     }

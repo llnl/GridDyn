@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <toml.hpp>
 #include <cstddef>
 #include <string>
+#include <toml.hpp>
 
 class tomlElement {
   public:

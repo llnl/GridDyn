@@ -7,9 +7,9 @@
 #pragma once
 
 #include "readerElement.h"
-#include <toml.hpp>
 #include <memory>
 #include <string>
+#include <toml.hpp>
 #include <vector>
 
 class tomlElement;

@@ -9,12 +9,9 @@
 #include "readerElement.h"
 #include <memory>
 #include <string>
+#include <toml11/parser.hpp>
+#include <toml11/types.hpp>
 #include <vector>
-
-namespace toml {
-class Value;
-struct ParseResult;
-}  // namespace toml
 
 class tomlElement;
 
@@ -64,12 +61,9 @@ class tomlReaderElement: public readerElement {
     virtual void restore() override;
 
   private:
-    void clear();
-
-  private:
-    std::shared_ptr<toml::ParseResult> doc;  //!< document root
+    std::shared_ptr<toml::ordered_value> doc = nullptr;  //!< document root
     std::vector<std::shared_ptr<tomlElement>> parents;
-    std::shared_ptr<tomlElement> current;
+    std::shared_ptr<tomlElement> current = nullptr;
     int iteratorCount = 0;
 
     std::vector<std::shared_ptr<tomlReaderElement>> bookmarks;

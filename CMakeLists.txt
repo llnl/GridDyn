@@ -490,6 +490,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/pugixml/CMakeLists.txt")
     submod_update(ThirdParty/pugixml)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/toml/include/toml11/types.hpp")
+    submod_update(ThirdParty/toml)
+endif()
+
 set(concurrency_clang_tidy "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy")
 set(concurrency_clang_tidy_backup
     "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy.griddyn-orig"

@@ -14,26 +14,53 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <vector>
 
 static const char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
 
 namespace {
-bool isElement(const toml::Value& testValue);
-bool isAttribute(const toml::Value& testValue);
+using TomlValue = toml::ordered_value;
+
+bool isElement(const TomlValue& testValue);
+bool isAttribute(const TomlValue& testValue);
+
+bool isTomlNodeEmpty(const TomlValue& value)
+{
+    return value.is_empty() || ((value.is_table() || value.is_array()) && value.size() == 0);
+}
+
+std::string scalarToString(const TomlValue& value)
+{
+    if (value.is_string()) {
+        return value.as_string();
+    }
+    if (value.is_boolean()) {
+        return value.as_boolean() ? "true" : "false";
+    }
+    if (value.is_integer()) {
+        return std::to_string(value.as_integer());
+    }
+    if (value.is_floating()) {
+        return std::to_string(value.as_floating());
+    }
+    return nullStr;
+}
+
+std::string formatErrors(const std::vector<toml::error_info>& errors)
+{
+    std::string msg;
+    for (const auto& err : errors) {
+        msg += toml::format_error(err);
+    }
+    return msg;
+}
 }  // namespace
 
 tomlReaderElement::tomlReaderElement() = default;
 tomlReaderElement::tomlReaderElement(const std::string& fileName)
 {
     tomlReaderElement::loadFile(fileName);
-}
-void tomlReaderElement::clear()
-{
-    parents.clear();
-    if (current) {
-        current->clear();
-    }
 }
 
 bool tomlReaderElement::isValid() const
@@ -64,38 +91,51 @@ std::shared_ptr<readerElement> tomlReaderElement::clone() const
 
 bool tomlReaderElement::loadFile(const std::string& fileName)
 {
-    std::ifstream file(fileName);
+    std::ifstream file(fileName, std::ios::binary);
     if (file.is_open()) {
-        doc = std::make_shared<toml::ParseResult>(toml::parse(file));
-        if (doc->valid()) {
-            current = std::make_shared<tomlElement>(doc->value, fileName);
+        auto parseResult = toml::try_parse<toml::ordered_type_config>(file, fileName);
+        if (parseResult.is_ok()) {
+            doc = std::make_shared<TomlValue>(parseResult.unwrap());
+            current = std::make_shared<tomlElement>(*doc, fileName);
             return true;
         }
 
-        std::println(stderr, "file read error in {}::{}", fileName, doc->errorReason);
+        std::println(stderr,
+                     "file read error in {}::{}",
+                     fileName,
+                     formatErrors(parseResult.unwrap_err()));
         doc = nullptr;
-        clear();
+        parents.clear();
+        if (current) {
+            current->clear();
+        }
         return false;
     }
 
     std::println(stderr, "unable to open file {}", fileName);
     doc = nullptr;
-    clear();
+    parents.clear();
+    if (current) {
+        current->clear();
+    }
     return false;
 }
 
 bool tomlReaderElement::parse(const std::string& inputString)
 {
-    std::istringstream sstream(inputString);
-    doc = std::make_shared<toml::ParseResult>(toml::parse(sstream));
-    if (doc->valid()) {
-        current = std::make_shared<tomlElement>(doc->value, "string");
+    auto parseResult = toml::try_parse_str<toml::ordered_type_config>(inputString);
+    if (parseResult.is_ok()) {
+        doc = std::make_shared<TomlValue>(parseResult.unwrap());
+        current = std::make_shared<tomlElement>(*doc, "string");
         return true;
     }
 
-    std::println(stderr, "Read error in stream:: {}", doc->errorReason);
+    std::println(stderr, "Read error in stream:: {}", formatErrors(parseResult.unwrap_err()));
     doc = nullptr;
-    clear();
+    parents.clear();
+    if (current) {
+        current->clear();
+    }
     return false;
 }
 
@@ -109,11 +149,14 @@ double tomlReaderElement::getValue() const
         return readerNullVal;
     }
 
-    if (current->getElement().is<double>()) {
-        return current->getElement().as<double>();
+    if (current->getElement().is_floating()) {
+        return current->getElement().as_floating();
     }
-    if (current->getElement().is<std::string>()) {
-        return numeric_conversionComplete(current->getElement().as<std::string>(), readerNullVal);
+    if (current->getElement().is_integer()) {
+        return static_cast<double>(current->getElement().as_integer());
+    }
+    if (current->getElement().is_string()) {
+        return numeric_conversionComplete(current->getElement().as_string(), readerNullVal);
     }
     return readerNullVal;
 }
@@ -124,8 +167,8 @@ std::string tomlReaderElement::getText() const
         return nullStr;
     }
 
-    if (current->getElement().is<std::string>()) {
-        return current->getElement().as<std::string>();
+    if (current->getElement().is_string()) {
+        return current->getElement().as_string();
     }
     return nullStr;
 }
@@ -136,8 +179,8 @@ std::string tomlReaderElement::getMultiText(const std::string& /*sep*/) const
         return nullStr;
     }
 
-    if (current->getElement().is<std::string>()) {
-        return current->getElement().as<std::string>();
+    if (current->getElement().is_string()) {
+        return current->getElement().as_string();
     }
     return nullStr;
 }
@@ -148,9 +191,8 @@ bool tomlReaderElement::hasAttribute(const std::string& attributeName) const
         return false;
     }
 
-    const auto* att = current->getElement().find(attributeName);
-    if (att != nullptr) {
-        return (isAttribute(*att));
+    if (current->getElement().is_table() && current->getElement().contains(attributeName)) {
+        return isAttribute(current->getElement().at(attributeName));
     }
     return false;
 }
@@ -161,9 +203,8 @@ bool tomlReaderElement::hasElement(const std::string& elementName) const
         return false;
     }
 
-    const auto* att = current->getElement().find(elementName);
-    if (att != nullptr) {
-        return (isElement(*att));
+    if (current->getElement().is_table() && current->getElement().contains(elementName)) {
+        return isElement(current->getElement().at(elementName));
     }
 
     return false;
@@ -174,17 +215,17 @@ readerAttribute tomlReaderElement::getFirstAttribute()
     if (!isValid()) {
         return {};
     }
-    if (current->getElement().type() != toml::Value::TABLE_TYPE) {
+    if (!current->getElement().is_table()) {
         return {};
     }
-    const auto& tab = current->getElement().as<toml::Table>();
+    const auto& tab = current->getElement().as_table();
     auto attIterator = tab.begin();
     auto elementEnd = tab.end();
     iteratorCount = 0;
 
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return {attIterator->first, attIterator->second.as<std::string>()};
+            return {attIterator->first, scalarToString(attIterator->second)};
         }
         ++attIterator;
         ++iteratorCount;
@@ -197,7 +238,10 @@ readerAttribute tomlReaderElement::getNextAttribute()
     if (!isValid()) {
         return {};
     }
-    const auto& tab = current->getElement().as<toml::Table>();
+    if (!current->getElement().is_table()) {
+        return {};
+    }
+    const auto& tab = current->getElement().as_table();
     auto attIterator = tab.begin();
     auto elementEnd = tab.end();
     for (int ii = 0; ii < iteratorCount; ++ii) {
@@ -213,7 +257,7 @@ readerAttribute tomlReaderElement::getNextAttribute()
     ++iteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(attIterator->second)) {
-            return {attIterator->first, attIterator->second.as<std::string>()};
+            return {attIterator->first, scalarToString(attIterator->second)};
         }
         ++attIterator;
         ++iteratorCount;
@@ -223,32 +267,33 @@ readerAttribute tomlReaderElement::getNextAttribute()
 
 readerAttribute tomlReaderElement::getAttribute(const std::string& attributeName) const
 {
-    const auto* valuePtr = current->getElement().find(attributeName);
-    if ((valuePtr != nullptr) && (isAttribute(*valuePtr))) {
-        return {attributeName, valuePtr->as<std::string>()};
+    if (hasAttribute(attributeName)) {
+        return {attributeName, scalarToString(current->getElement().at(attributeName))};
     }
     return {};
 }
 
 std::string tomlReaderElement::getAttributeText(const std::string& attributeName) const
 {
-    const auto* valuePtr = current->getElement().find(attributeName);
-    if ((valuePtr != nullptr) && (isAttribute(*valuePtr))) {
-        return valuePtr->as<std::string>();
+    if (hasAttribute(attributeName)) {
+        return scalarToString(current->getElement().at(attributeName));
     }
     return nullStr;
 }
 
 double tomlReaderElement::getAttributeValue(const std::string& attributeName) const
 {
-    const auto* valuePtr = current->getElement().find(attributeName);
-    if (valuePtr == nullptr) {
+    if (!hasAttribute(attributeName)) {
         return readerNullVal;
     }
-    if (valuePtr->isNumber()) {
-        return valuePtr->asNumber();
+    const auto& value = current->getElement().at(attributeName);
+    if (value.is_floating()) {
+        return value.as_floating();
     }
-    return numeric_conversionComplete(valuePtr->as<std::string>(), readerNullVal);
+    if (value.is_integer()) {
+        return static_cast<double>(value.as_integer());
+    }
+    return numeric_conversionComplete(scalarToString(value), readerNullVal);
 }
 
 std::shared_ptr<readerElement> tomlReaderElement::firstChild() const
@@ -271,8 +316,8 @@ void tomlReaderElement::moveToFirstChild()
         return;
     }
     current->elementIndex = 0;
-    if (current->getElement().type() == toml::Value::TABLE_TYPE) {
-        const auto& tab = current->getElement().as<toml::Table>();
+    if (current->getElement().is_table()) {
+        const auto& tab = current->getElement().as_table();
         auto elementIterator = tab.begin();
         auto endIterator = tab.end();
 
@@ -280,7 +325,7 @@ void tomlReaderElement::moveToFirstChild()
             if (isElement(elementIterator->second)) {
                 parents.push_back(current);
                 current =
-                    std::make_shared<tomlElement>(elementIterator->first, elementIterator->first);
+                    std::make_shared<tomlElement>(elementIterator->second, elementIterator->first);
                 return;
             }
             ++elementIterator;
@@ -296,13 +341,13 @@ void tomlReaderElement::moveToFirstChild(const std::string& childName)
     if (!isValid()) {
         return;
     }
-    if (current->getElement().type() != toml::Value::TABLE_TYPE) {
+    if (!current->getElement().is_table()) {
         return;
     }
-    const auto* valuePtr = current->getElement().findChild(childName);
-    if ((valuePtr != nullptr) && (isElement(*valuePtr))) {
+    if (current->getElement().contains(childName) &&
+        isElement(current->getElement().at(childName))) {
         parents.push_back(current);
-        current = std::make_shared<tomlElement>(*valuePtr, childName);
+        current = std::make_shared<tomlElement>(current->getElement().at(childName), childName);
         return;
     }
 
@@ -317,7 +362,7 @@ void tomlReaderElement::moveToNextSibling()
     }
     ++current->arrayIndex;
     while (current->arrayIndex < current->count()) {
-        if (!current->getElement().empty()) {
+        if (!isTomlNodeEmpty(current->getElement())) {
             return;
         }
         ++current->arrayIndex;
@@ -328,7 +373,7 @@ void tomlReaderElement::moveToNextSibling()
     }
     // there are no more elements in a potential array
 
-    const auto& tab = parents.back()->getElement().as<toml::Table>();
+    const auto& tab = parents.back()->getElement().as_table();
     auto elementIterator = tab.begin();
     auto elementEnd = tab.end();
     ++parents.back()->elementIndex;
@@ -341,8 +386,9 @@ void tomlReaderElement::moveToNextSibling()
     }
     // Now find the next valid element
     while (elementIterator != elementEnd) {
-        if (isElement(elementIterator->first)) {
-            current = std::make_shared<tomlElement>(elementIterator->first, elementIterator->first);
+        if (isElement(elementIterator->second)) {
+            current =
+                std::make_shared<tomlElement>(elementIterator->second, elementIterator->first);
             return;
         }
         ++elementIterator;
@@ -359,16 +405,18 @@ void tomlReaderElement::moveToNextSibling(const std::string& siblingName)
     if (siblingName == current->name) {
         ++current->arrayIndex;
         while (current->arrayIndex < current->count()) {
-            if (!current->getElement().empty()) {
+            if (!isTomlNodeEmpty(current->getElement())) {
                 return;
             }
             ++current->arrayIndex;
         }
         current->clear();
     } else {
-        const auto* valuePtr = parents.back()->getElement().find(siblingName);
-        if ((valuePtr != nullptr) && (isElement(*valuePtr))) {
-            current = std::make_shared<tomlElement>(*valuePtr, siblingName);
+        if (!parents.empty() && parents.back()->getElement().is_table() &&
+            parents.back()->getElement().contains(siblingName) &&
+            isElement(parents.back()->getElement().at(siblingName))) {
+            current = std::make_shared<tomlElement>(parents.back()->getElement().at(siblingName),
+                                                    siblingName);
             return;
         }
     }
@@ -414,27 +462,18 @@ void tomlReaderElement::restore()
 
 namespace {
 
-bool isAttribute(const toml::Value& testValue)
+bool isAttribute(const TomlValue& testValue)
 {
-    if (testValue.empty()) {
-        return false;
-    }
-    if (testValue.type() == toml::Value::ARRAY_TYPE) {
-        return false;
-    }
-    if (testValue.type() == toml::Value::TABLE_TYPE) {
-        return false;
-    }
-    return true;
+    return !isTomlNodeEmpty(testValue) && !testValue.is_array() && !testValue.is_table();
 }
 
-bool isElement(const toml::Value& testValue)
+bool isElement(const TomlValue& testValue)
 {
-    if (testValue.empty()) {
+    if (isTomlNodeEmpty(testValue)) {
         return false;
     }
 
-    return (!isAttribute(testValue));
+    return testValue.is_array() || testValue.is_table();
 }
 
 }  // namespace

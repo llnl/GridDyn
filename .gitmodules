@@ -32,3 +32,6 @@
 [submodule "ThirdParty/pugixml"]
 	path = ThirdParty/pugixml
 	url = https://github.com/zeux/pugixml
+[submodule "ThirdParty/toml"]
+	path = ThirdParty/toml
+	url = ../../ToruNiina/toml11

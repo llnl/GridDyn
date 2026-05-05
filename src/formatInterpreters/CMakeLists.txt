@@ -15,6 +15,8 @@ set(elementReader_headers
     tomlElement.h
     tomlReaderElement.h
     iniReaderElement.h
+    yamlReaderElement.h
+    yamlElement.h
 )
 
 set(elementReader_files
@@ -25,40 +27,14 @@ set(elementReader_files
     tomlElement.cpp
     tomlReaderElement.cpp
     iniReaderElement.cpp
+    yamlReaderElement.cpp
+    yamlElement.cpp
 )
 
-# set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/config)
-
-# ------------------------------------------------------------
-# building yaml
-# ------------------------------------------------------------
-option(ENABLE_YAML "enable yaml file support in GridDyn" OFF)
-if(ENABLE_YAML)
-    include(buildYAML)
-    set(YAML_ROOT_DIR ${AUTOBUILD_INSTALL_PATH})
-
-    if(FORCE_DEPENDENCY_REBUILD OR NOT EXISTS
-                                   ${AUTOBUILD_INSTALL_PATH}/cmake/yaml-cpp-targets.cmake
-    )
-        build_yaml()
-    endif()
-    include(${AUTOBUILD_INSTALL_PATH}/cmake/yaml-cpp-targets.cmake)
-
-endif(ENABLE_YAML)
-
-if(YAML_FOUND)
-    list(APPEND elementReader_files yamlReaderElement.cpp yamlElement.cpp)
-
-    list(APPEND elementReader_headers yamlReaderElement.h yamlElement.h)
-
-    list(APPEND optional_library_test_files
-         ${PROJECT_SOURCE_DIR}/src/formatInterpreters/test/testYamlReader.cpp
-    )
-    set(optional_library_test_files ${optional_library_test_files} PARENT_SCOPE)
-
-endif(YAML_FOUND)
-
-set(YAML_FOUND ${YAML_FOUND} PARENT_SCOPE)
+list(APPEND optional_library_test_files
+     ${PROJECT_SOURCE_DIR}/src/formatInterpreters/test/testYamlReader.cpp
+)
+set(optional_library_test_files ${optional_library_test_files} PARENT_SCOPE)
 
 set(ZLIB_ROOT_DIR ${PROJECT_BINARY_DIR}/libs)
 
@@ -69,13 +45,8 @@ target_include_directories(
                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/toml/include>
 )
 
-target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities)
+target_link_libraries(formatInterpreter PUBLIC pugixml::pugixml utilities yaml-cpp)
 set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
-
-if(YAML_FOUND)
-    target_link_libraries(formatInterpreter PUBLIC yaml-cpp)
-
-endif(YAML_FOUND)
 
 install(FILES ${elementReader_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/griddyn
         COMPONENT headers

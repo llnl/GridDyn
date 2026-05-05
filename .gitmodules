@@ -35,3 +35,6 @@
 [submodule "ThirdParty/toml"]
 	path = ThirdParty/toml
 	url = ../../ToruNiina/toml11
+[submodule "ThirdParty/yaml-cpp"]
+	path = ThirdParty/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

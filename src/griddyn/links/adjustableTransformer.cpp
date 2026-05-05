@@ -260,7 +260,7 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
             this,
             "faults not allowed on adjustable transformers change shunt conductance  or impedance to "
             "simulate a fault");
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     } else if (param == "maxtapangle") {
         maxTapAngle = convert(val, unitType, rad);
         if (tapAngle > maxTapAngle) {

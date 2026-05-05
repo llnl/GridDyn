@@ -144,7 +144,7 @@ void Load::set(std::string_view param, double val, unit unitType)
                 setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         checkFaultChange();
         return;

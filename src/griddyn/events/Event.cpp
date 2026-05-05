@@ -171,7 +171,7 @@ void Event::set(std::string_view param, std::string_view val)
     } else if (param == "units") {
         units::unit newUnits = unit_cast(units::unit_from_string(std::string{val}));
         if (!is_valid(newUnits)) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         unitType = newUnits;
     } else {

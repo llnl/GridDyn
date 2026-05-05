@@ -209,21 +209,21 @@ void subsystem::set(std::string_view param, std::string_view val)
             }
             updateBus(bus, num);
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "from") {
         auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "to") {
         auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (iparam == "connection") {
         auto pos1 = val.find_first_of(":,");
@@ -261,7 +261,7 @@ void subsystem::set(std::string_view param, std::string_view val)
                 }
             }
             if (cterm[num] == 0) {
-                throw(invalidParameterValue(std::string{param}));
+                throw(invalidParameterValue(param));
             }
         }
     } else {

@@ -158,7 +158,7 @@ void derivativeBlock::set(std::string_view param, double val, units::unit unitTy
 {
     if ((param == "t1") || (param == "t")) {
         if (std::abs(val) < kMin_Res) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         m_T1 = val;
     } else {

@@ -259,14 +259,14 @@ void SolverInterface::set(std::string_view param, double val)
                 printLevel = solver_print_level::s_debug_print;
                 break;
             default:
-                throw(invalidParameterValue(std::string{param}));
+                throw(invalidParameterValue(param));
         }
     } else if (param == "solverprintlevel") {
         auto lv = static_cast<int>(val);
         if ((lv >= 0) && (lv <= 3)) {
             solverPrintLevel = lv;
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "maskElement") {
         addMaskElement(static_cast<index_t>(val));
@@ -354,7 +354,7 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
         if (val) {
             setApproximation(std::string{flag});
         } else {
-            throw(unrecognizedParameter(std::string{flag}));
+            throw(unrecognizedParameter(flag));
         }
     }
 }
@@ -389,7 +389,7 @@ void SolverInterface::setApproximation(std::string_view approx)
     } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
         setLinkApprox(mode, approxKeyMask::fast_decoupled);
     } else {
-        throw(invalidParameterValue(std::string{approx}));
+        throw(invalidParameterValue(approx));
     }
 }
 

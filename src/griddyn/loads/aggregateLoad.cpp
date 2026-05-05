@@ -244,7 +244,7 @@ void aggregateLoad::set(std::string_view param, double val, units::unit unitType
         }
         if (num >= static_cast<int>(fraction.size())) {
             logging::warning(this, "fraction specification count exceeds load count");
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         fraction[num] = val;
     } else {

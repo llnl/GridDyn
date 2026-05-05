@@ -85,7 +85,7 @@ void ThreeWindingTransformer::set(std::string_view param, double val, units::uni
                 break;
 
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         return;
     }

@@ -240,7 +240,7 @@ void transferFunctionBlock::set(std::string_view param, double val, units::unit 
                     }
                     a[num] = val;
                 } else {
-                    throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(param));
                 }
                 break;
             case 'b':
@@ -251,14 +251,14 @@ void transferFunctionBlock::set(std::string_view param, double val, units::unit 
                     }
                     b[num] = val;
                 } else {
-                    throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(param));
                 }
                 break;
             case 'k':
                 K = val;
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
     }
 

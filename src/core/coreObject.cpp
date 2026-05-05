@@ -168,7 +168,7 @@ void coreObject::set(std::string_view param, std::string_view val)
                 logging::warning(this, "parameters should be lower case \"{}\" is not", param);
             } else {
                 logging::warning(this, "parameter {} not found", param);
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
             }
         }
     }
@@ -254,7 +254,7 @@ void coreObject::setFlag(std::string_view flag, bool val)
             setFlag(lower, val);
             logging::warning(this, "flags should be lower case \"{}\" is not", flag);
         } else {
-            throw(unrecognizedParameter(std::string{flag}));
+            throw(unrecognizedParameter(flag));
         }
     }
 }

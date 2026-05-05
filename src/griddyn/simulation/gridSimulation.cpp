@@ -205,21 +205,21 @@ void gridSimulation::set(std::string_view param, double val, units::unit unitTyp
     } else if (param == "printlevel") {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         consolePrintLevel = testLevel;
         logPrintLevel = testLevel;
     } else if (param == consoleprint) {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         consolePrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
     } else if (param == "logprintlevel") {
         auto testLevel = static_cast<print_level>(static_cast<int>(val));
         if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         logPrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));

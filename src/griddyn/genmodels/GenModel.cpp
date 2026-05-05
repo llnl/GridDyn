@@ -216,7 +216,7 @@ void GenModel::set(std::string_view param, double val, units::unit unitType)
                 Rs = val;
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         return;
     }

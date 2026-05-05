@@ -839,7 +839,7 @@ void gridDynSimulation::set(std::string_view param, std::string_view val)
         } else if (order == "differential_first") {
             default_ordering = offset_ordering::differential_first;
         } else {
-            throw(invalidParameterValue(std::string{val}));
+            throw(invalidParameterValue(val));
         }
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
@@ -850,7 +850,7 @@ void gridDynSimulation::set(std::string_view param, std::string_view val)
         } else if (method == "decoupled") {
             defaultDynamicSolverMethod = dynamic_solver_methods::decoupled;
         } else {
-            throw(invalidParameterValue(std::string{val}));
+            throw(invalidParameterValue(val));
         }
     } else {
         gridSimulation::set(param, val);

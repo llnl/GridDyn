@@ -947,7 +947,7 @@ void gridLabDLoad::set(std::string_view param, double val, units::unit unitType)
         if (std::abs(val) > kMin_Res) {
             spread = val;
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
         opFlags.set(uses_bounds_flag, (val > 0));

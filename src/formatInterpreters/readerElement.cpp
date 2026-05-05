@@ -17,7 +17,11 @@ readerAttribute::readerAttribute(std::string attName, std::string attText):
     name(std::move(attName)), text(std::move(attText))
 {
 }
-void readerAttribute::set(const std::string& attName, const std::string& attText)
+readerAttribute::readerAttribute(std::string_view attName, std::string_view attText):
+    name(attName), text(attText)
+{
+}
+void readerAttribute::set(std::string_view attName, std::string_view attText)
 {
     name = attName;
     text = attText;

@@ -177,7 +177,7 @@ void motorLoad::set(std::string_view param, double val, units::unit unitType)
                 slipCheck = true;
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
     } else {
         if (param == "r1") {

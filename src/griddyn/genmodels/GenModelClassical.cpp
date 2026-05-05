@@ -463,7 +463,7 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
                 break;
 
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         return;
     }

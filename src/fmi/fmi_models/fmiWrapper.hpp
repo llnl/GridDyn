@@ -318,7 +318,7 @@ provided with the default to the regular call
         }
 
         if (!valid) {
-            throw(unrecognizedParameter(std::string{param}));
+            throw(unrecognizedParameter(param));
         }
     }
 

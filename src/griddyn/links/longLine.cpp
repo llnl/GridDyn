@@ -61,7 +61,7 @@ void longLine::set(std::string_view param, double val, units::unit unitType)
                 break;
 
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         return;
     }

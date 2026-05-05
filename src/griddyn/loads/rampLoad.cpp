@@ -69,7 +69,7 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                     dYpdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                     break;
                 default:
-                    throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(param));
             }
         } else {
             zipLoad::set(param, val, unitType);
@@ -89,7 +89,7 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                             dYpdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                             break;
                         default:
-                            throw(unrecognizedParameter(std::string{param}));
+                            throw(unrecognizedParameter(param));
                     }
                     break;
                 case 'q':
@@ -103,11 +103,11 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                             dYqdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
                             break;
                         default:
-                            throw(unrecognizedParameter(std::string{param}));
+                            throw(unrecognizedParameter(param));
                     }
                     break;
                 default:
-                    throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(param));
             }
         } else {
             zipLoad::set(param, val, unitType);

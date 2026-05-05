@@ -546,7 +546,7 @@ void gridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype)
 void gridComponent::set(std::string_view param, std::string_view val)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     }
 
     if (param == "status") {
@@ -599,7 +599,7 @@ bool gridComponent::subObjectSet(std::string_view param, double val, units::unit
             }
             return true;
         }
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     }
     return false;
 }
@@ -611,7 +611,7 @@ bool gridComponent::subObjectSet(std::string_view param, std::string_view val)
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->set(pinfo.m_field, val);
         } else {
-            throw(unrecognizedParameter(std::string{param}));
+            throw(unrecognizedParameter(param));
         }
         return true;
     }
@@ -625,7 +625,7 @@ bool gridComponent::subObjectSet(std::string_view flag, bool val)
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->setFlag(pinfo.m_field, val);
         } else {
-            throw(unrecognizedParameter(std::string{flag}));
+            throw(unrecognizedParameter(flag));
         }
         return true;
     }
@@ -642,7 +642,7 @@ double gridComponent::subObjectGet(std::string_view param, units::unit unitType)
             }
             return pinfo.m_obj->get(pinfo.m_field, unitType);
         }
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     }
     return kNullVal;
 }
@@ -650,7 +650,7 @@ double gridComponent::subObjectGet(std::string_view param, units::unit unitType)
 void gridComponent::set(std::string_view param, double val, units::unit unitType)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     }
 
     if ((param == "enabled") || (param == "status")) {

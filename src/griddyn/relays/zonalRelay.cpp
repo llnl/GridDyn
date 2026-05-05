@@ -65,7 +65,7 @@ void zonalRelay::set(std::string_view param, std::string_view val)
         // check to make sure all the levels are valid
         for (auto level : dvals) {
             if (level < -0.00001) {
-                throw(invalidParameterValue(std::string{param}));
+                throw(invalidParameterValue(param));
             }
         }
         Relay::set("zones", static_cast<double>(dvals.size()), units::defunit);
@@ -73,12 +73,12 @@ void zonalRelay::set(std::string_view param, std::string_view val)
     } else if (param == "delay") {
         auto dvals = gmlc::utilities::str2vector<coreTime>(std::string{val}, negTime);
         if (dvals.size() != m_zoneDelays.size()) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         // check to make sure all the values are valid
         for (auto ld : dvals) {
             if (ld < timeZero) {
-                throw(invalidParameterValue(std::string{param}));
+                throw(invalidParameterValue(param));
             }
         }
         m_zoneDelays = std::move(dvals);

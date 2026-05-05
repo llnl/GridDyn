@@ -342,7 +342,7 @@ void GenModelInverter::set(std::string_view param, double val, units::unit unitT
                 reCalcImpedences();
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
 
         return;

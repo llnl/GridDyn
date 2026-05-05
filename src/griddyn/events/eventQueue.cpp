@@ -250,7 +250,7 @@ void eventQueue::set(std::string_view param, double val)
         if (val > 0) {
             timeTols = val;
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "nulleventperiod") {
         nullEvent->m_period = val;
@@ -258,7 +258,7 @@ void eventQueue::set(std::string_view param, double val)
         nullEvent->m_nextTime = val;
         sort();
     } else {
-        throw(unrecognizedParameter(std::string{param}));
+        throw(unrecognizedParameter(param));
     }
 }
 

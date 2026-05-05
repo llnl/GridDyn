@@ -206,7 +206,7 @@ void sensor::set(std::string_view param, std::string_view val)
             }
             add(blk.release());
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if ((iparam == "outputname") || (param == "outputnames") || (param == "outputstring")) {
         if (num >= 0) {
@@ -232,7 +232,7 @@ void sensor::set(std::string_view param, std::string_view val)
                 ensureSizeAtLeast(blockInputs, static_cast<size_t>(seq[1]) + 1, -1);
                 blockInputs[seq[1]] = seq[0];
             } else {
-                throw(invalidParameterValue(std::string{param}));
+                throw(invalidParameterValue(param));
             }
         } else {
             ensureSizeAtLeast(blockInputs, seq.size(), -1);
@@ -306,7 +306,7 @@ void sensor::set(std::string_view param, double val, units::unit unitType)
         opFlags.set(direct_IO, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         if (num < 0) {
             outputs.push_back(static_cast<int>(val));

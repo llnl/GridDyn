@@ -166,7 +166,7 @@ void acdcConverter::set(std::string_view param, std::string_view val)
             }
             dirMult = 1.0;
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else {
         Link::set(param, val);

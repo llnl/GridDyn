@@ -156,7 +156,7 @@ void filteredDerivativeBlock::set(std::string_view param, double val, units::uni
         m_T1 = val;
     } else if (param == "t2") {
         if (std::abs(val) < kMin_Res) {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
         m_T2 = val;
     } else {

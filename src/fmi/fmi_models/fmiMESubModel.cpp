@@ -263,7 +263,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
                 paramBuffer.apply(me);
             }
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "outputs") {
         auto ssep = splitline(val);

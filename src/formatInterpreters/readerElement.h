@@ -9,6 +9,7 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <string_view>
 
 const double readerNullVal(-1.345e48);
 /** @brief simple class for containing an attribute */
@@ -20,7 +21,8 @@ class readerAttribute {
   public:
     readerAttribute();
     readerAttribute(std::string attName, std::string attText);
-    void set(const std::string& attName, const std::string& attText);
+    readerAttribute(std::string_view attName, std::string_view attText);
+    void set(std::string_view attName, std::string_view attText);
     const std::string& getName() const { return name; }
     const std::string& getText() const { return text; }
     double getValue() const;
@@ -33,8 +35,7 @@ class elementParseException: public std::exception {
     std::string estr = "parse error\n";
 
   public:
-    explicit elementParseException(const std::string& str): estr(str) {}
-    explicit elementParseException(const char* str): estr(str) {}
+    explicit elementParseException(std::string_view str): estr(str) {}
     const char* what() const noexcept override { return estr.c_str(); }
 };
 

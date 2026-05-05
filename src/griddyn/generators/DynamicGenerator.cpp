@@ -437,7 +437,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
     if (param == "dynmodel") {
         auto dmodel = dynModelFromString(std::string{val});
         if (dmodel == dynModel_t::invalid) {
-            throw(invalidParameterValue(std::string{val}));
+            throw(invalidParameterValue(val));
         }
         buildDynModel(dmodel);
     } else {
@@ -589,7 +589,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
                 if (genModel != nullptr) {
                     genModel->set(param, val, unitType);
                 } else {
-                    throw(unrecognizedParameter(std::string{param}));
+                    throw(unrecognizedParameter(param));
                 }
                 break;
             default:
@@ -668,7 +668,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
                     subobj->setFlag("no_gridcomponent_set", false);
                 }
             }
-            throw(unrecognizedParameter(std::string{param}));
+            throw(unrecognizedParameter(param));
         }
     }
 }

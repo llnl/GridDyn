@@ -302,7 +302,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             P = Pmin;
         } else {
-            throw(invalidParameterValue(std::string{val}));
+            throw(invalidParameterValue(val));
         }
     } else if (param == "q") {
         if (val == "max") {
@@ -310,7 +310,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             Q = Qmin;
         } else {
-            throw(invalidParameterValue(std::string{val}));
+            throw(invalidParameterValue(val));
         }
     } else {
         gridSecondary::set(param, val);
@@ -462,7 +462,7 @@ void Generator::set(std::string_view param, double val, unit unitType)
                 m_Xs = val;
                 break;
             default:
-                throw(unrecognizedParameter(std::string{param}));
+                throw(unrecognizedParameter(param));
         }
         return;
     }

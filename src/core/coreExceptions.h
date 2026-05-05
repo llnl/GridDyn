@@ -10,6 +10,7 @@
 #include <exception>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 /** exception class for use in griddyn*/
@@ -49,8 +50,8 @@ class objectRemoveFailure: public coreObjectException {
 class unrecognizedParameter: public std::invalid_argument {
   public:
     unrecognizedParameter() noexcept: std::invalid_argument("unrecognized parameter") {}
-    unrecognizedParameter(const std::string& param):
-        std::invalid_argument(std::string("unrecognized Parameter:") + param)
+    explicit unrecognizedParameter(std::string_view param):
+        std::invalid_argument(std::string("unrecognized Parameter:") + std::string(param))
     {
     }
 };
@@ -58,8 +59,8 @@ class unrecognizedParameter: public std::invalid_argument {
 class invalidParameterValue: public std::invalid_argument {
   public:
     invalidParameterValue() noexcept: std::invalid_argument("invalid parameter entry") {}
-    invalidParameterValue(const std::string& param):
-        std::invalid_argument(std::string("invalid parameter value for ") + param)
+    explicit invalidParameterValue(std::string_view param):
+        std::invalid_argument(std::string("invalid parameter value for ") + std::string(param))
     {
     }
 };
@@ -69,7 +70,7 @@ class executionFailure: public coreObjectException {
     std::string message;
 
   public:
-    explicit executionFailure(const coreObject* obj, const std::string& error_message):
+    explicit executionFailure(const coreObject* obj, std::string_view error_message):
         coreObjectException(obj), message(error_message)
     {
     }
@@ -86,7 +87,7 @@ class fileOperationError: public std::exception {
     std::string message;
 
   public:
-    explicit fileOperationError(const std::string& error_message = "file operation error"):
+    explicit fileOperationError(std::string_view error_message = "file operation error"):
         message(error_message)
     {
     }
@@ -94,7 +95,7 @@ class fileOperationError: public std::exception {
 };
 class invalidFileName: public fileOperationError {
   public:
-    explicit invalidFileName(const std::string& error_message = "file name is invalid"):
+    explicit invalidFileName(std::string_view error_message = "file name is invalid"):
         fileOperationError(error_message)
     {
     }

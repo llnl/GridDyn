@@ -186,14 +186,14 @@ void Link::set(std::string_view param, std::string_view val)
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if ((param == "bus2") || (param == "to")) {
         auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else if (param == "status") {
         auto v2 = gmlc::utilities::convertToLowerCase(val);

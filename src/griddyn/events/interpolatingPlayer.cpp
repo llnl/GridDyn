@@ -53,7 +53,7 @@ void interpolatingPlayer::set(std::string_view param, double val)
         if (val > 0) {
             samplePeriod = 1.0 / val;
         } else {
-            throw(invalidParameterValue(std::string{param}));
+            throw(invalidParameterValue(param));
         }
     } else {
         Player::set(param, val);

@@ -62,8 +62,6 @@ class yamlReaderElement: public readerElement {
 
   private:
     void clear();
-    bool isAttribute(const YAML::Node& testValue) const;
-    bool isElement(const YAML::Node& testValue) const;
 
   private:
     std::shared_ptr<YAML::Node> doc;  //!< document root

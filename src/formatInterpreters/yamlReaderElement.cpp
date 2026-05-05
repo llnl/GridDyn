@@ -18,10 +18,28 @@
 static const char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
 
+namespace {
+bool isAttribute(const YAML::Node& testValue)
+{
+    if (!testValue.IsDefined()) {
+        return false;
+    }
+    return testValue.IsScalar();
+}
+
+bool isElement(const YAML::Node& testValue)
+{
+    if (!testValue.IsDefined()) {
+        return false;
+    }
+    return testValue.IsMap() || testValue.IsSequence();
+}
+}  // namespace
+
 yamlReaderElement::yamlReaderElement() {}
 yamlReaderElement::yamlReaderElement(const std::string& filename)
 {
-    loadFile(filename);
+    yamlReaderElement::loadFile(filename);
 }
 void yamlReaderElement::clear()
 {
@@ -49,7 +67,7 @@ std::shared_ptr<readerElement> yamlReaderElement::clone() const
 {
     auto ret = std::make_shared<yamlReaderElement>();
     ret->parents.reserve(parents.size());
-    for (auto& parent : parents) {
+    for (const auto& parent : parents) {
         ret->parents.push_back(std::make_shared<yamlElement>(*parent));
     }
     ret->current = std::make_shared<yamlElement>(*current);
@@ -135,15 +153,15 @@ std::string yamlReaderElement::getMultiText(const std::string& sep) const
     }
     if (current->getElement().IsSequence()) {
         std::string ret;
-        YAML::const_iterator it = current->getElement().begin();
-        if (it->IsScalar()) {
-            YAML::const_iterator end = current->getElement().end();
-            while (it != end) {
+        YAML::const_iterator elementIterator = current->getElement().begin();
+        if (elementIterator->IsScalar()) {
+            const YAML::const_iterator elementEnd = current->getElement().end();
+            while (elementIterator != elementEnd) {
                 if (!ret.empty()) {
                     ret += sep;
                 }
-                ret += it->as<std::string>();
-                ++it;
+                ret += elementIterator->as<std::string>();
+                ++elementIterator;
             }
         }
         return ret;
@@ -160,26 +178,9 @@ bool yamlReaderElement::hasAttribute(const std::string& attributeName) const
         return false;
     }
     if (current->getElement()[attributeName]) {
-        return (isAttribute(current->getElement()[attributeName]));
-    } else {
-        return false;
+        return isAttribute(current->getElement()[attributeName]);
     }
-}
-
-bool yamlReaderElement::isAttribute(const YAML::Node& testValue) const
-{
-    if (!testValue.IsDefined()) {
-        return false;
-    }
-    return testValue.IsScalar();
-}
-
-bool yamlReaderElement::isElement(const YAML::Node& testValue) const
-{
-    if (!testValue.IsDefined()) {
-        return false;
-    }
-    return ((testValue.IsMap()) || (testValue.IsSequence()));
+    return false;
 }
 
 bool yamlReaderElement::hasElement(const std::string& elementName) const
@@ -198,7 +199,7 @@ bool yamlReaderElement::hasElement(const std::string& elementName) const
 readerAttribute yamlReaderElement::getFirstAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
 
     auto attIterator = current->getElement().begin();
@@ -207,49 +208,48 @@ readerAttribute yamlReaderElement::getFirstAttribute()
     iteratorCount = 0;
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
-            return readerAttribute(attIterator->Tag(), attIterator->as<std::string>());
+            return {attIterator->Tag(), attIterator->as<std::string>()};
         }
         ++attIterator;
     }
 
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute yamlReaderElement::getNextAttribute()
 {
     if (!isValid()) {
-        return readerAttribute();
+        return {};
     }
     auto attIterator = current->getElement().begin();
     auto elementEnd = current->getElement().end();
     for (int ii = 0; ii < iteratorCount; ++ii) {
         ++attIterator;
         if (attIterator == elementEnd) {
-            return readerAttribute();
+            return {};
         }
     }
     if (attIterator == elementEnd) {
-        return readerAttribute();
+        return {};
     }
     ++attIterator;
     ++iteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
-            return readerAttribute(attIterator->Tag(), attIterator->as<std::string>());
+            return {attIterator->Tag(), attIterator->as<std::string>()};
         }
         ++attIterator;
         ++iteratorCount;
     }
-    return readerAttribute();
+    return {};
 }
 
 readerAttribute yamlReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (hasAttribute(attributeName)) {
-        return readerAttribute(attributeName,
-                               current->getElement()[attributeName].as<std::string>());
+        return {attributeName, current->getElement()[attributeName].as<std::string>()};
     }
-    return readerAttribute();
+    return {};
 }
 
 std::string yamlReaderElement::getAttributeText(const std::string& attributeName) const

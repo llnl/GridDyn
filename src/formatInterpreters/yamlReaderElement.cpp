@@ -6,7 +6,7 @@
 
 #include "yamlReaderElement.h"
 
-#include "utilities/stringConversion.h"
+#include "gmlc/utilities/stringConversion.h"
 #include "yamlElement.h"
 #include <cassert>
 #include <cstdio>
@@ -16,6 +16,7 @@
 #include <string>
 
 static const char nullStr[] = "";
+using gmlc::utilities::numeric_conversionComplete;
 
 yamlReaderElement::yamlReaderElement() {}
 yamlReaderElement::yamlReaderElement(const std::string& filename)

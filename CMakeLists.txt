@@ -494,6 +494,10 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/toml/include/toml11/types.hpp")
     submod_update(ThirdParty/toml)
 endif()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/yaml-cpp/CMakeLists.txt")
+    submod_update(ThirdParty/yaml-cpp)
+endif()
+
 set(concurrency_clang_tidy "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy")
 set(concurrency_clang_tidy_backup
     "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy.griddyn-orig"
@@ -663,6 +667,19 @@ if(TARGET pugixml-shared)
 endif()
 if(TARGET pugixml)
     set_target_properties(pugixml PROPERTIES FOLDER Extern)
+endif()
+
+# ------------------------------------------------------------
+# create yaml-cpp target
+# ------------------------------------------------------------
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_INSTALL ON CACHE BOOL "" FORCE)
+add_subdirectory(ThirdParty/yaml-cpp EXCLUDE_FROM_ALL)
+
+if(TARGET yaml-cpp)
+    set_target_properties(yaml-cpp PROPERTIES FOLDER Extern)
 endif()
 
 # ------------------------------------------------------------

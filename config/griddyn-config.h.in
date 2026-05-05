@@ -38,8 +38,6 @@
 
 #cmakedefine GRIDDYN_ENABLE_EXTRA_MODELS
 
-#cmakedefine YAML_FOUND
-
 #cmakedefine GRIDDYN_ENABLE_HELICS_EXECUTABLE
 
 #cmakedefine GRIDDYN_ENABLE_DIME

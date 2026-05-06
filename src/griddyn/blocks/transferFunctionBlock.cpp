@@ -25,20 +25,33 @@ transferFunctionBlock::transferFunctionBlock(const std::string& objName):
 
 transferFunctionBlock::transferFunctionBlock(int order): a(order + 1, 1), b(order + 1, 0)
 {
-    b[0] = 1;
+    if (a.empty()) {
+        a.push_back(1.0);
+        b.assign(1, 1.0);
+    } else {
+        b[0] = 1;
+    }
     opFlags.set(use_state);
 }
 
 transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef):
     a(std::move(Acoef)), b(a.size(), 0)
 {
-    b[0] = 1;
+    if (a.empty()) {
+        a.push_back(1.0);
+        b.assign(1, 1.0);
+    } else {
+        b[0] = 1;
+    }
     opFlags.set(use_state);
 }
 
 transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef):
     a(std::move(Acoef)), b(std::move(Bcoef))
 {
+    if (a.empty()) {
+        a.push_back(1.0);
+    }
     b.resize(a.size(), 0);
     opFlags.set(use_state);
 }

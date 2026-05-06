@@ -643,9 +643,19 @@ gridBus* Link::getBus(index_t busInd) const
     // sometimes atart at
     // 0
     // so this function will return Bus 1 for indices <=1 and Bus if the index is 2.
-    return ((busInd <= 1) || (busInd == B1->getID())) ?
-        B1 :
-        (((busInd == 2) || (busInd == B2->getID())) ? B2 : nullptr);
+    if (busInd <= 1) {
+        return B1;
+    }
+    if ((B1 != nullptr) && (busInd == B1->getID())) {
+        return B1;
+    }
+    if (busInd == 2) {
+        return B2;
+    }
+    if ((B2 != nullptr) && (busInd == B2->getID())) {
+        return B2;
+    }
+    return nullptr;
 }
 
 double Link::getRealPower(id_type_t busId) const

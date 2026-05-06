@@ -131,6 +131,19 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         return bucketCount;
     }
 
+    count_t nextBucket(count_t current) const
+    {
+        if (current >= bucketCount) {
+            return bucketCount;
+        }
+        for (count_t bucket = current; bucket + 1 < bucketCount; ++bucket) {
+            if (!dVec[bucket + 1].empty()) {
+                return bucket + 1;
+            }
+        }
+        return bucketCount;
+    }
+
     keyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
     std::array<std::vector<pLoc>, bucketCount> dVec;  //!< the vector of pairs containing the data
@@ -260,6 +273,9 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         if (ci < bucketCount) {
             cptr = dVec[ci].cbegin();
             iend = dVec[ci].cend();
+        } else {
+            cptr = {};
+            iend = {};
         }
     }
 
@@ -273,10 +289,13 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
                                  cptr->second};
         ++cptr;
         if (cptr == iend) {
-            ci = findNextNonEmptyBucket(ci + 1);
+            ci = nextBucket(ci);
             if (ci < bucketCount) {
                 cptr = dVec[ci].cbegin();
                 iend = dVec[ci].cend();
+            } else {
+                cptr = {};
+                iend = {};
             }
         }
         return tp;

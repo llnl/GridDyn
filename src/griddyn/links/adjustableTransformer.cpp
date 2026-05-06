@@ -1289,13 +1289,11 @@ change_code adjustableTransformer::voltageControlAdjust()
             } else {
                 shift = -stepSize * round(-shift / stepSize);
             }
-            while (shift > maxTap - tap) {
-                shift = shift - stepSize;
-            }
-            while (shift < minTap - tap) {
-                shift = shift + stepSize;
-            }
-            tap = tap + shift;
+            const double maxShift = maxTap - tap;
+            const double minShift = minTap - tap;
+            shift = std::min(shift, maxShift);
+            shift = std::max(shift, minShift);
+            tap += shift;
             if (std::abs(shift) < stepSize) {
                 ret = change_code::no_change;
             } else {

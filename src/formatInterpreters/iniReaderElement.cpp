@@ -246,9 +246,12 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
     while (sptr != sec.end()) {
         if (sptr->starts_with(childName)) {
             currentSection = *sptr;
+            return;
         }
         ++sectionIndex;
+        ++sptr;
     }
+    currentSection = ';';
 }
 
 void iniReaderElement::moveToNextSibling()
@@ -263,17 +266,12 @@ void iniReaderElement::moveToNextSibling()
     ++sectionIndex;
     iteratorIndex = 0;
     const auto& secs = doc->Sections();
-    if (std::cmp_greater_equal(sectionIndex, secs.size())) {
+    if (sectionIndex >= secs.size()) {
         currentSection = ';';
         return;
     }
-    int ccnt = 0;
-
     auto csec = secs.begin();
-    while (ccnt < sectionIndex) {
-        ++ccnt;
-        ++csec;
-    }
+    std::advance(csec, static_cast<std::ptrdiff_t>(sectionIndex));
     currentSection = *csec;
 }
 

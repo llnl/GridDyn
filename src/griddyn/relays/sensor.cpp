@@ -373,7 +373,7 @@ void sensor::generateInputGrabbers()
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
             if ((opFlags[link_type_source]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
-                    gmlc::utilities::stringOps::appendInteger(istr, m_terminal);
+                    istr.append(std::to_string(m_terminal));
                 }
             }
         }

@@ -17,11 +17,11 @@ namespace griddyn::paradae {
 using namespace std;
 
 namespace {
-size_t DenseElementCount(int dim)
-{
-    const auto size = static_cast<size_t>(dim);
-    return size * size;
-}
+    size_t DenseElementCount(int dim)
+    {
+        const auto size = static_cast<size_t>(dim);
+        return size * size;
+    }
 }  // namespace
 
 DenseMatrix::DenseMatrix(int m_, Real fill_): Matrix(m_), f_data(NULL), f_ipiv(NULL)

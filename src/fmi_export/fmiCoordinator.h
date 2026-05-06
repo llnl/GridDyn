@@ -75,9 +75,9 @@ class fmiCoordinator: public griddyn::coreObject {
 */
     bool sendInput(index_t vr, double val);
 
-    /** send a string input to the appropriate location
+/** send a string input to the appropriate location
 @param[in] vr the fmi Value Reference
-@param[in] val the string to place
+@param[in] s the string to place
 @return true if successful
 */
     bool sendInput(index_t vr, const char* s);

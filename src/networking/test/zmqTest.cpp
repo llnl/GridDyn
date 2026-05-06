@@ -16,7 +16,8 @@
 #include <string>
 #include <thread>
 
-static const char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
+[[maybe_unused]] static constexpr char zmq_test_directory[] =
+    GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
 class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 

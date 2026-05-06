@@ -22,7 +22,7 @@
 namespace griddyn::fmi {
 // NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 
-static constexpr bool unimplemented = false;
+[[maybe_unused]] static constexpr bool unimplemented = false;
 
 fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
                                    std::shared_ptr<fmi2CoSimObject> fmi):

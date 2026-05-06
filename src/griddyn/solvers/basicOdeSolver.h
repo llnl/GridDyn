@@ -21,7 +21,9 @@ class basicOdeSolver: public SolverInterface {
     std::vector<double> state2;  //!< temp state data location 2
     std::vector<double> type;  //!< type data
     coreTime deltaT = 0.005;  //!< the default time step
+
   public:
+    using SolverInterface::set;
     /** @brief default constructor*/
     explicit basicOdeSolver(const std::string& objName = "basicOde");
     /** alternate constructor to feed to SolverInterface

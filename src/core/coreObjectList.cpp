@@ -12,6 +12,9 @@
 namespace griddyn {
 bool coreObjectList::insert(coreObject* obj, bool replace)
 {
+    if (obj == nullptr) {
+        return false;
+    }
     auto inp = m_objects.insert(obj);
     if (inp.second) {
         return true;
@@ -84,8 +87,13 @@ void coreObjectList::deleteAll(coreObject* parent)
 
 void coreObjectList::updateObject(coreObject* obj)
 {
+    if (obj == nullptr) {
+        return;
+    }
     auto foundObject = m_objects.get<id>().find(obj->getID());
-    m_objects.replace(foundObject, obj);
+    if (foundObject != m_objects.get<id>().end()) {
+        m_objects.replace(foundObject, obj);
+    }
 }
 
 }  // namespace griddyn

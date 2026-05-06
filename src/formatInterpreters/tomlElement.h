@@ -12,7 +12,7 @@
 
 class tomlElement {
   public:
-    int elementIndex = 0;
+    std::size_t elementIndex = 0;
     std::string name;
     std::size_t arrayIndex = 0;
     tomlElement() = default;

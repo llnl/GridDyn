@@ -121,6 +121,16 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     static constexpr count_t bucketCount = (count_t{1} << K);
 
   private:
+    count_t findNextNonEmptyBucket(count_t start) const
+    {
+        for (count_t bucket = start; bucket < bucketCount; ++bucket) {
+            if (!dVec[bucket].empty()) {
+                return bucket;
+            }
+        }
+        return bucketCount;
+    }
+
     keyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
     std::array<std::vector<pLoc>, bucketCount> dVec;  //!< the vector of pairs containing the data
@@ -150,7 +160,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     void assign(index_t row, index_t col, ValueT num) override
     {
         auto temp = block_computer.blockIndexGen(row, col);
-        assert(temp < (1 << K));
+        assert(temp < bucketCount);
         dVec[temp].emplace_back(key_computer.keyGen(row, col), num);
     }
 
@@ -228,7 +238,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
 
     matrixElement<ValueT> element(index_t N) const override
     {
-        int ii = 0;
+        count_t ii = 0;
         index_t sz1 = 0;
         auto sz2 = static_cast<index_t>(dVec[0].size());
         while (N >= sz2) {
@@ -236,7 +246,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
             ++ii;
             sz2 += static_cast<index_t>(dVec[ii].size());
         }
-        assert(ii < (1 << K));
+        assert(ii < bucketCount);
         return {key_computer.row(dVec[ii][N - sz1].first),
                 key_computer.col(dVec[ii][N - sz1].first),
                 dVec[ii][N - sz1].second};
@@ -246,10 +256,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     auto end() const { return matrixIteratorSM(this, size()); }
     void start() override
     {
-        ci = 0;
-        while ((ci < bucketCount) && dVec[ci].empty()) {
-            ++ci;
-        }
+        ci = findNextNonEmptyBucket(0);
         if (ci < bucketCount) {
             cptr = dVec[ci].cbegin();
             iend = dVec[ci].cend();
@@ -258,15 +265,15 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
 
     matrixElement<ValueT> next() override
     {
+        if (ci >= bucketCount) {
+            return {};
+        }
         matrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
         if (cptr == iend) {
-            ++ci;
-            while ((ci < bucketCount) && dVec[ci].empty()) {
-                ++ci;
-            }
+            ci = findNextNonEmptyBucket(ci + 1);
             if (ci < bucketCount) {
                 cptr = dVec[ci].cbegin();
                 iend = dVec[ci].cend();
@@ -312,10 +319,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
                                   index_t start = 0): mDS(matrixData)
         {
             if (start == 0) {
-                ci = 0;
-                while ((ci < bucketCount) && mDS->dVec[ci].empty()) {
-                    ++ci;
-                }
+                ci = mDS->findNextNonEmptyBucket(0);
                 if (ci == bucketCount) {
                     ci = bucketCount - 1;
                     cptr = mDS->dVec[ci].cend();
@@ -338,15 +342,10 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         {
             ++cptr;
             if (cptr == iend) {
-                ++ci;
+                ci = mDS->findNextNonEmptyBucket(ci + 1);
                 if (ci < bucketCount) {
-                    while ((ci < bucketCount) && mDS->dVec[ci].empty()) {
-                        ++ci;
-                    }
-                    if (ci < bucketCount) {
-                        cptr = mDS->dVec[ci].cbegin();
-                        iend = mDS->dVec[ci].cend();
-                    }
+                    cptr = mDS->dVec[ci].cbegin();
+                    iend = mDS->dVec[ci].cend();
                 }
             }
             return *this;

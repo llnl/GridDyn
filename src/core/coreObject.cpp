@@ -27,7 +27,7 @@ coreObject::coreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++
     // not using updateName since in many cases the id has not been set yet
     if (!name.empty() && (name.back() == '#')) {
         name.pop_back();
-        gmlc::utilities::stringOps::appendInteger(name, m_oid);
+        gmlc::utilities::stringOps::appendInteger(name, static_cast<std::uint64_t>(m_oid));
     }
     parent = &nullObject0;
 }
@@ -69,15 +69,15 @@ void coreObject::updateName()
     switch (name.back()) {
         case '$':
             name.pop_back();
-            gmlc::utilities::stringOps::appendInteger(name, id);
+            gmlc::utilities::stringOps::appendInteger(name, static_cast<std::uint64_t>(id));
             break;
         case '#':
             name.pop_back();
-            gmlc::utilities::stringOps::appendInteger(name, m_oid);
+            gmlc::utilities::stringOps::appendInteger(name, static_cast<std::uint64_t>(m_oid));
             break;
         case '@':
             name.pop_back();
-            gmlc::utilities::stringOps::appendInteger(name, locIndex);
+            gmlc::utilities::stringOps::appendInteger(name, static_cast<std::uint64_t>(locIndex));
             break;
         default:
             break;

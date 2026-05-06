@@ -18,6 +18,7 @@ namespace solvers {
      */
     class basicSolver: public SolverInterface {
       public:
+        using SolverInterface::set;
         /** define whether to use the gauss algorithm or the gauss-seidel algorithm*/
         enum class mode_t { gauss, gauss_seidel };
 

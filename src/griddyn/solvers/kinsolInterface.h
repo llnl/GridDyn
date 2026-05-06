@@ -15,6 +15,7 @@ namespace griddyn::solvers {
  */
 class kinsolInterface: public sundialsInterface {
   public:
+    using sundialsInterface::set;
     /** @brief constructor*/
     explicit kinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*

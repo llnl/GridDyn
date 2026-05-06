@@ -103,7 +103,9 @@ void coreOptObjectFactory::registerFactory(std::string_view name,
 
 void coreOptObjectFactory::registerFactory(std::shared_ptr<optComponentFactory> componentFac)
 {
-    registerFactory(componentFac->name, std::move(componentFac));
+    if (componentFac != nullptr) {
+        registerFactory(componentFac->name, std::move(componentFac));
+    }
 }
 
 stringVec coreOptObjectFactory::getFactoryNames()

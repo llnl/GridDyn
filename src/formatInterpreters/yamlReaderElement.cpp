@@ -345,7 +345,7 @@ void yamlReaderElement::moveToNextSibling()
     auto endIterator = parents.back()->getElement().end();
     ++parents.back()->elementIndex;
     // iterators don't survive copy so have to move the iterator to the next element index
-    for (int ii = 0; ii < parents.back()->elementIndex; ++ii) {
+    for (std::size_t ii = 0; ii < parents.back()->elementIndex; ++ii) {
         ++elementIterator;
         if (elementIterator == endIterator) {
             current->clear();

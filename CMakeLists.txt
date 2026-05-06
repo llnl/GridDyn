@@ -681,8 +681,7 @@ add_subdirectory(ThirdParty/yaml-cpp EXCLUDE_FROM_ALL)
 if(TARGET yaml-cpp)
     set_target_properties(yaml-cpp PROPERTIES FOLDER Extern)
     target_compile_options(
-        yaml-cpp
-        PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-documentation>
+        yaml-cpp PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-documentation>
     )
 endif()
 

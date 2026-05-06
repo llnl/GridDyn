@@ -410,8 +410,9 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
      */
     void sortIndex()
     {
-        std::stable_sort(
-            dVec.begin(), dVec.end(), [](const pLoc& A, const pLoc& B) { return (A.first < B.first); });
+        std::stable_sort(dVec.begin(), dVec.end(), [](const pLoc& A, const pLoc& B) {
+            return (A.first < B.first);
+        });
     }
     /**
      * @brief sort the index based first on row number then row number

@@ -130,7 +130,8 @@ void DenseMatrix::operator*=(Real alpha)
     if (isfacto) {
         ClearFacto();
     }
-    for (int i = 0; i < m * m; i++)
+    const auto elemCount = DenseElementCount(m);
+    for (size_t i = 0; i < elemCount; ++i)
         data[i] *= alpha;
 }
 
@@ -139,7 +140,8 @@ void DenseMatrix::Fill(Real fill_)
     if (isfacto) {
         ClearFacto();
     }
-    fill(data, data + m * m, fill_);
+    const auto elemCount = DenseElementCount(m);
+    fill(data, data + elemCount, fill_);
 }
 
 void DenseMatrix::SetSubMat(int i, int j, const VirtualMatrix& mat, Real multcoeff)
@@ -187,7 +189,8 @@ void DenseMatrix::AXPBY(Real alpha, Real beta, const VirtualMatrix& x)
     }
     try {
         const DenseMatrix& dmat = dynamic_cast<const DenseMatrix&>(x);
-        for (int i = 0; i < m * m; i++)
+        const auto elemCount = DenseElementCount(m);
+        for (size_t i = 0; i < elemCount; ++i)
             data[i] = alpha * dmat.data[i] + beta * data[i];
     }
     catch (const bad_cast& e) {

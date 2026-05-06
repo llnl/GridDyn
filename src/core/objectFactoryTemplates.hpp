@@ -61,10 +61,9 @@ class gridObjectHolder: public coreObject {
             return getParent();
         }
         // loop down from the most recent used to get the most recently established root object
-        // can't use index_t here since it might be unsigned
-        for (auto pp = static_cast<int>(next - 1); pp >= 0; --pp) {
-            if (objArray[pp].getParent()) {
-                return objArray[pp].getParent()->getRoot();
+        for (count_t pp = next; pp > 0; --pp) {
+            if (objArray[pp - 1].getParent()) {
+                return objArray[pp - 1].getParent()->getRoot();
             }
         }
 
@@ -199,17 +198,9 @@ class typeFactory: public objectFactory {
         tF->setDefault(defType);
     }
 
-    coreObject* makeObject() override
-    {
-        coreObject* ret = makeTypeObject();
-        return ret;
-    }
+    coreObject* makeObject() override { return makeTypeObject(); }
 
-    coreObject* makeObject(std::string_view objName) override
-    {
-        coreObject* ret = makeTypeObject(objName);
-        return ret;
-    }
+    coreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
 
     virtual Ntype* makeTypeObject(std::string_view objName = {})
     {
@@ -267,19 +258,9 @@ class childTypeFactory: public typeFactory<Btype> {
                      const std::string& defType): typeFactory<Btype>(component, typeNames, defType)
     {
     }
-    coreObject* makeObject() override
-    {
-        coreObject* ret = makeTypeObject();
+    coreObject* makeObject() override { return makeTypeObject(); }
 
-        return ret;
-    }
-
-    coreObject* makeObject(std::string_view objName) override
-    {
-        coreObject* ret = makeTypeObject(objName);
-
-        return ret;
-    }
+    coreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
 
     Btype* makeTypeObject(
         std::string_view objName = {}) override  // done this way to make sure calling

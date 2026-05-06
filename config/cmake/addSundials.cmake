@@ -157,7 +157,21 @@ else()
     set(SUNDIALS_ENABLE_KLU OFF CACHE INTERNAL "")
 endif()
 
+if(NOT MSVC)
+    set(_griddyn_saved_c_flags "${CMAKE_C_FLAGS}")
+    set(_griddyn_saved_cxx_flags "${CMAKE_CXX_FLAGS}")
+    string(APPEND CMAKE_C_FLAGS " -Wno-deprecated-declarations")
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-deprecated-declarations")
+endif()
+
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
+
+if(NOT MSVC)
+    set(CMAKE_C_FLAGS "${_griddyn_saved_c_flags}")
+    set(CMAKE_CXX_FLAGS "${_griddyn_saved_cxx_flags}")
+    unset(_griddyn_saved_c_flags)
+    unset(_griddyn_saved_cxx_flags)
+endif()
 
 function(griddyn_prefix_sundials_folders directory_path)
     get_property(_dir_targets DIRECTORY "${directory_path}" PROPERTY BUILDSYSTEM_TARGETS)

@@ -18,7 +18,7 @@
 
 static const char nullStr[] = "";
 
-class gridDynINIReader : public INIReader {
+class gridDynINIReader: public INIReader {
   public:
     using INIReader::INIReader;
 

@@ -27,7 +27,7 @@ class fmiEvent: public events::reversibleEvent {
     fmiEventType eventType = fmiEventType::input;  //!< the type of the event
   public:
     /** constructor taking name and eventType
-@param name the name of the event
+@param newName the name of the event
 @param type the type of event either input or parameter
 */
     fmiEvent(const std::string& newName, fmiEventType type = fmiEventType::input);

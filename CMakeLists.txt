@@ -683,6 +683,11 @@ if(TARGET yaml-cpp)
     target_compile_options(
         yaml-cpp PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-documentation>
     )
+    set_target_properties(
+        yaml-cpp
+        PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+                       $<TARGET_PROPERTY:yaml-cpp,INTERFACE_INCLUDE_DIRECTORIES>
+    )
 endif()
 
 # ------------------------------------------------------------

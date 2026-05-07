@@ -43,7 +43,6 @@ target_link_libraries(coreObjects PUBLIC units-static)
 target_include_directories(
     coreObjects
     # target_link_libraries(this, extra_includes::variant) when available
-    SYSTEM
-    PUBLIC # TODO stop leaking the variant include, make this private
-           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+    SYSTEM PUBLIC # TODO stop leaking the variant include, make this private
+                  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )

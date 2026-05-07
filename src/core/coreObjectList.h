@@ -41,9 +41,9 @@ struct objectRecord {
 using objectIndex = multi_index_container<
     objectRecord,
     boost::multi_index::indexed_by<
-        boost::multi_index::
-            ordered_unique<boost::multi_index::tag<id>,
-                           boost::multi_index::member<objectRecord, id_type_t, &objectRecord::objectID>>,
+        boost::multi_index::ordered_unique<
+            boost::multi_index::tag<id>,
+            boost::multi_index::member<objectRecord, id_type_t, &objectRecord::objectID>>,
         boost::multi_index::ordered_unique<
             boost::multi_index::tag<name>,
             boost::multi_index::member<objectRecord, std::string, &objectRecord::objectName>>,

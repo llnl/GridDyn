@@ -15,13 +15,13 @@ bool coreObjectList::insert(coreObject* obj, bool replace)
     if (obj == nullptr) {
         return false;
     }
-    auto& objectRef = *obj;
-    auto inp = m_objects.insert(&objectRef);
+    objectRecord record(obj);
+    auto inp = m_objects.insert(record);
     if (inp.second) {
         return true;
     }
     if (replace) {
-        m_objects.replace(inp.first, &objectRef);
+        m_objects.replace(inp.first, std::move(record));
         return true;
     }
     return false;
@@ -30,7 +30,7 @@ coreObject* coreObjectList::find(std::string_view objName) const
 {
     auto foundObject = m_objects.get<name>().find(std::string{objName});
     if (foundObject != m_objects.get<name>().end()) {
-        return (*foundObject);
+        return foundObject->object;
     }
     return nullptr;
 }
@@ -41,8 +41,8 @@ std::vector<coreObject*> coreObjectList::find(index_t searchID) const
     auto foundObjectEnd = m_objects.get<uid>().upper_bound(searchID);
     std::vector<coreObject*> out;
     while (foundObject != foundObjectEnd) {
-        if ((*foundObject)->getUserID() == searchID) {
-            out.push_back(*foundObject);
+        if (foundObject->userID == searchID) {
+            out.push_back(foundObject->object);
         }
         ++foundObject;
     }
@@ -65,7 +65,7 @@ bool coreObjectList::remove(std::string_view objName)
     if (foundObject != m_objects.get<name>().end()) {
         // I don't know why I have to do this find on the id index
         // Not understanding these multindex objects well enough I guess
-        auto foundById = m_objects.get<id>().find((*foundObject)->getID());
+        auto foundById = m_objects.get<id>().find(foundObject->objectID);
         m_objects.erase(foundById);
 
         return true;
@@ -81,8 +81,8 @@ bool coreObjectList::isMember(const coreObject* obj) const
 
 void coreObjectList::deleteAll(coreObject* parent)
 {
-    for (auto* objectPtr : m_objects) {
-        removeReference(objectPtr, parent);
+    for (const auto& record : m_objects) {
+        removeReference(record.object, parent);
     }
 }
 
@@ -91,10 +91,10 @@ void coreObjectList::updateObject(coreObject* obj)
     if (obj == nullptr) {
         return;
     }
-    auto& objectRef = *obj;
+    objectRecord record(obj);
     auto foundObject = m_objects.get<id>().find(obj->getID());
     if (foundObject != m_objects.get<id>().end()) {
-        m_objects.replace(foundObject, &objectRef);
+        m_objects.replace(foundObject, std::move(record));
     }
 }
 

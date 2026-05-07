@@ -13,7 +13,6 @@
 #include <string_view>
 #include <vector>
 
-#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
@@ -24,21 +23,33 @@ using boost::multi_index_container;
 struct name {};
 struct id {};
 struct uid {};
+
+struct objectRecord {
+    coreObject* object = nullptr;
+    id_type_t objectID = 0;
+    std::string objectName;
+    index_t userID = 0;
+
+    objectRecord() = default;
+    explicit objectRecord(coreObject* obj):
+        object(obj), objectID(obj->getID()), objectName(obj->getName()), userID(obj->getUserID())
+    {
+    }
+};
 // define a multi-index container based on the object id, which should be unique, and the name which
 // also should be unique, and the user id, which isn't necessarily unique.
 using objectIndex = multi_index_container<
-    coreObject*,
+    objectRecord,
     boost::multi_index::indexed_by<
+        boost::multi_index::
+            ordered_unique<boost::multi_index::tag<id>,
+                           boost::multi_index::member<objectRecord, id_type_t, &objectRecord::objectID>>,
         boost::multi_index::ordered_unique<
-            boost::multi_index::tag<id>,
-            boost::multi_index::const_mem_fun<coreObject, id_type_t, &coreObject::getID>>,
-        boost::multi_index::ordered_unique<boost::multi_index::tag<name>,
-                                           boost::multi_index::const_mem_fun<coreObject,
-                                                                             const std::string&,
-                                                                             &coreObject::getName>>,
+            boost::multi_index::tag<name>,
+            boost::multi_index::member<objectRecord, std::string, &objectRecord::objectName>>,
         boost::multi_index::ordered_non_unique<
             boost::multi_index::tag<uid>,
-            boost::multi_index::const_mem_fun<coreObject, index_t, &coreObject::getUserID>>>>;
+            boost::multi_index::member<objectRecord, index_t, &objectRecord::userID>>>>;
 
 /** @brief list class that facilitates adding or searching for pointers to griddyn by name or id
  * a list class that stores a list of the objects contained in an unordered map to facilitate

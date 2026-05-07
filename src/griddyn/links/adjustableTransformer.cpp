@@ -652,7 +652,9 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     if (signn(prevAdjust) != 1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((linkFlows.P1 - Pmax) < (Pmin - prevValue)) {
+                            const double currentUpperDeviation = linkFlows.P1 - Pmax;
+                            const double previousLowerDeviation = Pmin - prevValue;
+                            if (currentUpperDeviation < previousLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -670,7 +672,9 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     if (signn(prevAdjust) != -1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((prevValue - Pmax) > (Pmin - linkFlows.P1)) {
+                            const double previousUpperDeviation = prevValue - Pmax;
+                            const double currentLowerDeviation = Pmin - linkFlows.P1;
+                            if (previousUpperDeviation > currentLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -725,7 +729,9 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     if (signn(prevAdjust) != 1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((prevValue - Qmax) > (Qmin - linkFlows.Q2)) {
+                            const double previousUpperDeviation = prevValue - Qmax;
+                            const double currentLowerDeviation = Qmin - linkFlows.Q2;
+                            if (previousUpperDeviation > currentLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -743,7 +749,9 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     if (signn(prevAdjust) != -1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((linkFlows.Q2 - Qmax) < (Qmin - prevValue)) {
+                            const double currentUpperDeviation = linkFlows.Q2 - Qmax;
+                            const double previousLowerDeviation = Qmin - prevValue;
+                            if (currentUpperDeviation < previousLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }

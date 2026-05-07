@@ -142,7 +142,9 @@ TEST_F(RelayTests, TestControlRelay)
     EXPECT_NEAR(ldr, 1.3, std::abs(1.3) * 1e-6 + 1e-12);
     // send a get request
     cm->setMessageType(comms::controlMessagePayload::GET);
-    cm->getPayload<comms::controlMessagePayload>()->m_field = "q";
+    auto getData = cm->getPayload<comms::controlMessagePayload>();
+    ASSERT_NE(getData, nullptr);
+    getData->m_field = "q";
 
     comm->transmit("cld4", cm);
     rep = comm->getMessage(src);

@@ -116,6 +116,11 @@ set(dynamic_system_gtest_sources
 
 add_library(griddyn_gtest_base INTERFACE)
 target_link_libraries(griddyn_gtest_base INTERFACE griddyn_base)
+target_include_directories(
+    griddyn_gtest_base SYSTEM INTERFACE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
+)
 
 file(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/test_files test_dir)
 

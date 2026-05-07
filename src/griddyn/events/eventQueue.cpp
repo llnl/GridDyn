@@ -180,7 +180,7 @@ change_code eventQueue::executeEventsBonly()
         }
     }
     partB_list.clear();
-    std::sort(events.begin(), events.end(), compareEventAdapters);
+    std::stable_sort(events.begin(), events.end(), compareEventAdapters);
     return ret;
 }
 
@@ -190,7 +190,7 @@ void eventQueue::recheck()
     for (auto& ev : events) {
         ev->updateTime();
     }
-    std::sort(events.begin(), events.end(), compareEventAdapters);
+    std::stable_sort(events.begin(), events.end(), compareEventAdapters);
 }
 
 void eventQueue::remove(std::int64_t eventID)
@@ -210,7 +210,7 @@ count_t eventQueue::size() const
 void eventQueue::sort()
 {
     std::lock_guard<std::mutex> lock(queuelock_);
-    std::sort(events.begin(), events.end(), compareEventAdapters);
+    std::stable_sort(events.begin(), events.end(), compareEventAdapters);
 }
 
 void eventQueue::checkDuplicates()
@@ -239,7 +239,7 @@ void eventQueue::getEventObjects(std::vector<coreObject*>& objV) const
     for (auto& ev : events) {
         ev->getObjects(objV);
     }
-    std::sort(objV.begin(), objV.end());
+    std::stable_sort(objV.begin(), objV.end());
     auto eq = std::unique(objV.begin(), objV.end());
     objV.erase(eq, objV.end());
 }

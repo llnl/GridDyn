@@ -104,7 +104,7 @@ std::string commMessage::to_string() const
 
     if (code != 0xFFFF'FFFF) {
         message.push_back('[');
-        gmlc::utilities::stringOps::appendInteger(message, code);
+        message.append(std::to_string(code));
         message.push_back(']');
     }
     if (payload) {
@@ -288,7 +288,7 @@ std::string MessageTypeRegistry::getTypeString(int32_t type) const
         return fnd->second;
     }
     auto ret = std::string("type_");
-    gmlc::utilities::stringOps::appendInteger(ret, type);
+    ret.append(std::to_string(type));
     return ret;
 }
 

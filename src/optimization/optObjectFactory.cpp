@@ -104,7 +104,8 @@ void coreOptObjectFactory::registerFactory(std::string_view name,
 void coreOptObjectFactory::registerFactory(std::shared_ptr<optComponentFactory> componentFac)
 {
     if (componentFac != nullptr) {
-        registerFactory(componentFac->name, std::move(componentFac));
+        const std::string componentName = componentFac->name;
+        registerFactory(componentName, std::move(componentFac));
     }
 }
 

@@ -616,11 +616,13 @@ target_include_directories(
               $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/containers>
               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/concurrency>
-              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
 
 target_include_directories(
-    griddyn_base SYSTEM INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+    griddyn_base
+    SYSTEM
+    INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
 
 # --------------------------------------------------------------

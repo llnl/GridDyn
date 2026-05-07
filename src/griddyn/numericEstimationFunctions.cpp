@@ -19,26 +19,19 @@ void numericJacobianCalculation(gridComponent* /* comp */,
                                 const IOlocs& /*inputLocs*/,
                                 const solverMode& /*sMode*/)
 {
-    stateData sDtest = sD;
     std::vector<double> test;
-    std::vector<double> testState;
-    double* stateTest;
-    if (sD.hasScratch()) {
-        stateTest = sD.scratch2;
-    } else {
+    [[maybe_unused]] std::vector<double> testState;
+    [[maybe_unused]] double* stateTest = sD.scratch2;
+    if (!sD.hasScratch()) {
         auto ns = md.rowLimit();
         if (ns != kCountMax) {
             test.resize(ns);
             testState.resize(ns);
-        } else {
         }
         stateTest = testState.data();
     }
-    sDtest.scratch1 = nullptr;
-    sDtest.scratch2 = nullptr;
-    sDtest.state = stateTest;
 
-    IOdata testInputs = inputs;
+    [[maybe_unused]] IOdata testInputs = inputs;
 }
 
 void copyObjectLocalState(gridComponent* comp,

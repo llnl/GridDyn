@@ -136,12 +136,8 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         if (current >= bucketCount) {
             return bucketCount;
         }
-        for (count_t bucket = current; bucket + 1 < bucketCount; ++bucket) {
-            if (!dVec[bucket + 1].empty()) {
-                return bucket + 1;
-            }
-        }
-        return bucketCount;
+        ++current;
+        return findNextNonEmptyBucket(current);
     }
 
     keyCompute<X, M>

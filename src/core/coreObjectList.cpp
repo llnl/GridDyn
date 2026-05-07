@@ -15,12 +15,13 @@ bool coreObjectList::insert(coreObject* obj, bool replace)
     if (obj == nullptr) {
         return false;
     }
-    auto inp = m_objects.insert(obj);
+    auto& objectRef = *obj;
+    auto inp = m_objects.insert(&objectRef);
     if (inp.second) {
         return true;
     }
     if (replace) {
-        m_objects.replace(inp.first, obj);
+        m_objects.replace(inp.first, &objectRef);
         return true;
     }
     return false;
@@ -90,9 +91,10 @@ void coreObjectList::updateObject(coreObject* obj)
     if (obj == nullptr) {
         return;
     }
+    auto& objectRef = *obj;
     auto foundObject = m_objects.get<id>().find(obj->getID());
     if (foundObject != m_objects.get<id>().end()) {
-        m_objects.replace(foundObject, obj);
+        m_objects.replace(foundObject, &objectRef);
     }
 }
 

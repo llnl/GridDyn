@@ -644,8 +644,8 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             }
         } else {
             if (linkFlows.P1 > Pmax) {
-                if (tapAngle + stepSize < maxTapAngle) {
-                    tapAngle = tapAngle + stepSize;
+                if (tapAngle < maxTapAngle - stepSize) {
+                    tapAngle += stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
@@ -662,8 +662,8 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.P1 < Pmin) {
-                if (tapAngle - stepSize > minTapAngle) {
-                    tapAngle = tapAngle - stepSize;
+                if (tapAngle > minTapAngle + stepSize) {
+                    tapAngle -= stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
@@ -717,8 +717,8 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             }
         } else {
             if (linkFlows.Q2 < Qmin) {
-                if (tap + stepSize < maxTap) {
-                    tap = tap + stepSize;
+                if (tap < maxTap - stepSize) {
+                    tap += stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
@@ -735,8 +735,8 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.Q2 > Qmax) {
-                if (tap - stepSize > minTap) {
-                    tap = tap - stepSize;
+                if (tap > minTap + stepSize) {
+                    tap -= stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {

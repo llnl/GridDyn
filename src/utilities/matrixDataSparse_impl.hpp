@@ -30,10 +30,10 @@ void matrixDataSparse<ValueT>::sortIndex(sparse_ordering ordering)
 {
     switch (ordering) {
         case sparse_ordering::column_ordered:
-            std::sort(data_.begin(), data_.end(), compareCol<ValueT>);
+            std::stable_sort(data_.begin(), data_.end(), compareCol<ValueT>);
             break;
         case sparse_ordering::row_ordered:
-            std::sort(data_.begin(), data_.end(), compareRow<ValueT>);
+            std::stable_sort(data_.begin(), data_.end(), compareRow<ValueT>);
             break;
     }
     sortCount_ = static_cast<count_t>(data_.size());

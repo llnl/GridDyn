@@ -29,12 +29,13 @@ class coreObjectList {
         index_t userID = 0;
     };
 
-    std::unordered_map<id_type_t, objectRecord> m_objectsById;          //!< primary object storage
-    std::unordered_map<std::string, id_type_t> m_idsByName;             //!< name lookup index
-    std::unordered_multimap<index_t, id_type_t> m_idsByUserId;          //!< user id lookup index
+    std::unordered_map<id_type_t, objectRecord> m_objectsById;  //!< primary object storage
+    std::unordered_map<std::string, id_type_t> m_idsByName;  //!< name lookup index
+    std::unordered_multimap<index_t, id_type_t> m_idsByUserId;  //!< user id lookup index
 
     void addIndexes(id_type_t objectID, const objectRecord& record);
     void removeIndexes(id_type_t objectID, const objectRecord& record);
+
   public:
     /** @brief default constructor*/
     coreObjectList() = default;

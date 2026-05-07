@@ -619,10 +619,8 @@ target_include_directories(
 )
 
 target_include_directories(
-    griddyn_base
-    SYSTEM
-    INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
-              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
+    griddyn_base SYSTEM INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+                                  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
 
 # --------------------------------------------------------------

@@ -240,8 +240,7 @@ count_t collector::grabData(double* outputData, index_t N)
                 std::copy_n(vals.begin(), copyCount, outputData + column);
                 currentCount = std::max<count_t>(currentCount, column + copyCount);
             }
-        } else if (datapoint.column >= 0 &&
-                   static_cast<count_t>(datapoint.column) < outputLimit) {
+        } else if (datapoint.column >= 0 && static_cast<count_t>(datapoint.column) < outputLimit) {
             const auto column = static_cast<count_t>(datapoint.column);
             outputData[column] = datapoint.dataGrabber->grabData();
             currentCount = std::max<count_t>(currentCount, column + 1);

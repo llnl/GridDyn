@@ -1244,15 +1244,17 @@ Q1 += tvb * cosTheta1;
 change_code adjustableTransformer::voltageControlAdjust()
 {
     auto ret = change_code::no_change;
+    const double tapStep = direction * stepSize;
+    const double reverseTapStep = -tapStep;
 
     // check the voltage to make it is within the appropriate band
     double voltage = controlBus->getVoltage();
     if (!(opFlags[use_target_mode])) {
         if (voltage > Vmax) {
-            tap = tap + direction * stepSize;
+            tap += tapStep;
             ret = change_code::parameter_change;
             if (adjCount > 0) {
-                if (signn(prevAdjust) != signn(direction * stepSize)) {
+                if (signn(prevAdjust) != signn(tapStep)) {
                     oCount++;
                     if (oCount > 5) {
                         ret = change_code::no_change;
@@ -1260,13 +1262,13 @@ change_code adjustableTransformer::voltageControlAdjust()
                 }
             }
             if (ret > change_code::no_change) {
-                prevAdjust = direction * stepSize;
+                prevAdjust = tapStep;
             }
         } else if (voltage < Vmin) {
-            tap = tap - direction * stepSize;
+            tap += reverseTapStep;
             ret = change_code::parameter_change;
             if (adjCount > 0) {
-                if (signn(prevAdjust) != signn(-direction * stepSize)) {
+                if (signn(prevAdjust) != signn(reverseTapStep)) {
                     oCount++;
                     // we are giving the Vmin priority here so it will always err on protecting
                     // the low voltage side if it can. if it is oscillating and goes over Vmax
@@ -1274,17 +1276,17 @@ change_code adjustableTransformer::voltageControlAdjust()
                 }
             }
             if (ret > change_code::no_change) {
-                prevAdjust = -direction * stepSize;
+                prevAdjust = reverseTapStep;
             }
         }
         // check the taps to make sure they are within the appropriate range
         if (tap > maxTap) {
-            tap = tap - prevAdjust;
+            tap -= prevAdjust;
             prevAdjust = 0;
             ret = change_code::no_change;
         }
         if (tap < minTap) {
-            tap = tap - prevAdjust;
+            tap -= prevAdjust;
             prevAdjust = 0;
             ret = change_code::no_change;
         }
@@ -1312,12 +1314,13 @@ change_code adjustableTransformer::voltageControlAdjust()
                 ret = change_code::parameter_change;
             }
             if (adjCount > 0) {
-                if (std::abs(prevAdjust + shift) < stepSize / 2.0) {
+                const double netAdjust = prevAdjust + shift;
+                if (std::abs(netAdjust) < stepSize / 2.0) {
                     oCount++;
                     if (oCount > 3) {
                         if (voltage > prevValue) {
                             ret = change_code::no_change;
-                            tap = tap - shift;
+                            tap -= shift;
                         }
                     }
                 }

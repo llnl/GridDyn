@@ -222,6 +222,9 @@ count_t collector::grabData(double* outputData, index_t N)
 {
     std::vector<double> vals;
     count_t currentCount = 0;
+    if (N <= 0) {
+        return 0;
+    }
     const auto outputLimit = static_cast<count_t>(N);
     if (recheck) {
         recheckColumns();
@@ -238,12 +241,14 @@ count_t collector::grabData(double* outputData, index_t N)
                 const auto valueCount = static_cast<count_t>(vals.size());
                 const auto copyCount = std::min(remaining, valueCount);
                 std::copy_n(vals.begin(), copyCount, outputData + column);
-                currentCount = std::max<count_t>(currentCount, column + copyCount);
+                const auto nextCount = column + copyCount;
+                currentCount = std::max(currentCount, nextCount);
             }
         } else if (datapoint.column >= 0 && static_cast<count_t>(datapoint.column) < outputLimit) {
             const auto column = static_cast<count_t>(datapoint.column);
             outputData[column] = datapoint.dataGrabber->grabData();
-            currentCount = std::max<count_t>(currentCount, column + 1);
+            const auto nextCount = column + count_t{1};
+            currentCount = std::max(currentCount, nextCount);
         }
     }
     currentCount = std::min(currentCount, outputLimit);

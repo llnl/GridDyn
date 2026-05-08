@@ -16,9 +16,10 @@
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 #include <cstring>
+#include <numbers>
 #include <string>
 namespace griddyn::links {
-static constexpr double kSqrt2 = 1.41421356237309504880;
+static constexpr double kSqrt2 = std::numbers::sqrt2_v<double>;
 static constexpr double k3sq2 = 3.0 * kSqrt2 / kPI;
 static constexpr double k3sq2sq = k3sq2 * k3sq2;
 
@@ -29,7 +30,7 @@ const char rect[] = "rectifier_$";
 const char inv[] = "inverter_$";
 const char bidir[] = "acdcConveter_$";
 
-std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
+static std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
 {
     if (!name.empty()) {
         return name;
@@ -45,8 +46,10 @@ std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
     }
 }
 
-acdcConverter::acdcConverter(double rP, double xP, const std::string& objName):
-    Link(objName), r(rP), x(xP)
+acdcConverter::acdcConverter(double resistanceParameter,
+                             double reactanceParameter,
+                             const std::string& objName):
+    Link(objName), r(resistanceParameter), x(reactanceParameter)
 {
     buildSubsystem();
 }
@@ -241,14 +244,14 @@ void acdcConverter::set(std::string_view param, double val, unit unitType)
 
 void acdcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    double v1 = B1->getVoltage();
-    double v2 = B2->getVoltage();
+    const double voltage1 = B1->getVoltage();
+    const double voltage2 = B2->getVoltage();
     if (opFlags[fixed_target_power]) {
-        Idc = Pset / v2;
+        Idc = Pset / voltage2;
     } else {
-        Idc = v1 / tap;
+        Idc = voltage1 / tap;
     }
-    angle = (v1 + 3 / kPI * x * Idc) / (k3sq2 * v1);
+    angle = (voltage1 + ((3 / kPI) * x * Idc)) / (k3sq2 * voltage1);
     updateLocalCache();
     offsets.local().local.algSize = 1;
     offsets.local().local.jacSize = 4;
@@ -278,6 +281,7 @@ void acdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     offsets.local().local.jacSize = 4;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static IOdata zVec{0.0, 0.0, 0.0};
 
 void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
@@ -357,14 +361,14 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 }
 
 void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                             const stateData& sD,
-                                             matrixData<double>& md,
+                                             const stateData& stateDataValue,
+                                             matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     auto algOffset = offsets.getAlgOffset(sMode);
     if (isDynamic(sMode)) {
         /*
@@ -374,20 +378,20 @@ void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
 
     linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
-        md.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-        md.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
-        md.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
+        matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
+        matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
+        matrixDataValue.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
     }
 }
 void acdcConverter::outputPartialDerivatives(id_type_t busId,
-                                             const stateData& sD,
-                                             matrixData<double>& md,
+                                             const stateData& stateDataValue,
+                                             matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
 
     // int mode = B1->getMode(sMode) * 4 + B2->getMode(sMode);
     auto B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
@@ -406,17 +410,17 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
       linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
       */
         if (busId == B2->getID()) {
-            md.assign(PoutLocation, algOffset, -dirMult * linkInfo.v2);
+            matrixDataValue.assign(PoutLocation, algOffset, -dirMult * linkInfo.v2);
         } else {
-            md.assignCheckCol(PoutLocation, B2Voffset, dirMult * Idc);
-            md.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-            md.assignCheckCol(QoutLocation,
-                              B2Voffset,
-                              -1 *
-                                  (-Idc * linkInfo.v2 /
-                                   std::sqrt(k3sq2 * k3sq2 * linkInfo.v1 * linkInfo.v1 -
-                                             linkInfo.v2 * linkInfo.v2)));
-            md.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
+            matrixDataValue.assignCheckCol(PoutLocation, B2Voffset, dirMult * Idc);
+            matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
+            matrixDataValue.assignCheckCol(
+                QoutLocation,
+                B2Voffset,
+                Idc * linkInfo.v2 /
+                    std::sqrt(((k3sq2 * k3sq2) * linkInfo.v1 * linkInfo.v1) -
+                              (linkInfo.v2 * linkInfo.v2)));
+            matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
         }
     } else {
         /*
@@ -430,21 +434,21 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
     */
         if (busId == B2->getID()) {
             if (!opFlags[fixed_target_power]) {
-                md.assignCheckCol(PoutLocation, B1Voffset, dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assignCheckCol(PoutLocation, B1Voffset, dirMult * linkInfo.v2 / tap);
             }
         } else {
             if (B2Voffset != kNullLocation) {
-                double temp =
-                    std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 - linkInfo.v2 * linkInfo.v2);
+                const double temp =
+                    std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
                 if (opFlags[fixed_target_power]) {
-                    md.assignCheckCol(QoutLocation,
-                                      B2Voffset,
-                                      Pset / temp + Pset * temp / (linkInfo.v2 * linkInfo.v2));
+                    matrixDataValue.assignCheckCol(
+                        QoutLocation,
+                        B2Voffset,
+                        (Pset / temp) + ((Pset * temp) / (linkInfo.v2 * linkInfo.v2)));
                 } else {
-                    md.assignCheckCol(PoutLocation, B2Voffset, -dirMult * linkInfo.v1 / tap);
-                    md.assignCheckCol(QoutLocation,
-                                      B2Voffset,
-                                      linkInfo.v1 / tap * linkInfo.v2 / temp);
+                    matrixDataValue.assignCheckCol(PoutLocation, B2Voffset, -dirMult * linkInfo.v1 / tap);
+                    matrixDataValue.assignCheckCol(
+                        QoutLocation, B2Voffset, (linkInfo.v1 / tap) * linkInfo.v2 / temp);
                 }
             }
         }
@@ -581,7 +585,7 @@ void acdcConverter::setState(coreTime time,
 {
     if (isDynamic(sMode)) {
         Idc = state[offsets.getAlgOffset(sMode)];
-        for (auto& sub : getSubObjects()) {
+        for (const auto& sub : getSubObjects()) {
             if (sub->isEnabled()) {
                 sub->setState(time, state, dstate_dt, sMode);
             }
@@ -607,7 +611,7 @@ void acdcConverter::guessState(coreTime time,
 {
     if (isDynamic(sMode)) {
         state[offsets.getAlgOffset(sMode)] = Idc;
-        for (auto& sub : getSubObjects()) {
+        for (const auto& sub : getSubObjects()) {
             if (sub->isEnabled()) {
                 sub->guessState(time, state, dstate_dt, sMode);
             }
@@ -618,10 +622,10 @@ void acdcConverter::guessState(coreTime time,
 }
 
 void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const solverMode& sMode)
 {
-    if (!sD.updateRequired(linkInfo.seqID)) {
+    if (!stateDataValue.updateRequired(linkInfo.seqID)) {
         return;
     }
 
@@ -629,13 +633,13 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
         return;
     }
     linkInfo = {};
-    linkInfo.seqID = sD.seqID;
+    linkInfo.seqID = stateDataValue.seqID;
 
-    linkInfo.v1 = B1->getVoltage(sD, sMode);
-    linkInfo.v2 = B2->getVoltage(sD, sMode);
+    linkInfo.v1 = B1->getVoltage(stateDataValue, sMode);
+    linkInfo.v2 = B2->getVoltage(stateDataValue, sMode);
 
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         Idc = Loc.algStateLoc[0];
     } else {
         Idc = opFlags[fixed_target_power] ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
@@ -643,9 +647,9 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
 
     linkFlows.P1 = dirMult * linkInfo.v2 * Idc;
     linkFlows.P2 = -linkFlows.P1;
-    double reactive = k3sq2 * linkInfo.v1 * Idc;
+    const double reactive = k3sq2 * linkInfo.v1 * Idc;
 
-    linkFlows.Q1 = -std::sqrt(reactive * reactive - linkFlows.P1 * linkFlows.P1);
+    linkFlows.Q1 = -std::sqrt((reactive * reactive) - (linkFlows.P1 * linkFlows.P1));
 
     // Q2 is 0 since bus k is a DC bus.
     /*
@@ -671,9 +675,9 @@ void acdcConverter::updateLocalCache()
         linkInfo.v2 = B2->getVoltage();
         linkFlows.P1 = dirMult * linkInfo.v2 * Idc;
         linkFlows.P2 = -linkFlows.P1;
-        double sourceP = k3sq2 * linkInfo.v1 * Idc;
+        const double sourceP = k3sq2 * linkInfo.v1 * Idc;
 
-        linkFlows.Q1 = -std::sqrt(sourceP * sourceP - linkFlows.P1 * linkFlows.P1);
+        linkFlows.Q1 = -std::sqrt((sourceP * sourceP) - (linkFlows.P1 * linkFlows.P1));
     }
 }
 
@@ -708,7 +712,7 @@ void acdcConverter::getStateName(stringVec& stNames,
 {
     auto offset = offsets.getAlgOffset(sMode);
 
-    std::string prefix2 = prefix + getName() + ':';
+    const std::string prefix2 = prefix + getName() + ':';
 
     if (isDynamic(sMode)) {
         if (offset > 0) {

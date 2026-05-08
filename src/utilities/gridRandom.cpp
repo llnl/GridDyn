@@ -22,17 +22,24 @@ namespace {
     struct lookupEntry {
         std::string_view name;
         Value value;
+
+        constexpr lookupEntry(std::string_view entryName, Value entryValue):
+            name(entryName), value(entryValue)
+        {
+        }
     };
 
-    constexpr char asciiToLower(char ch) noexcept
+    constexpr char asciiToLower(char character) noexcept
     {
-        return ((ch >= 'A') && (ch <= 'Z')) ? static_cast<char>(ch - 'A' + 'a') : ch;
+        return ((character >= 'A') && (character <= 'Z')) ?
+            static_cast<char>(character - 'A' + 'a') :
+            character;
     }
 
     bool isLowerAscii(std::string_view str) noexcept
     {
-        return std::all_of(str.begin(), str.end(), [](char ch) {
-            return (ch < 'A') || (ch > 'Z');
+        return std::all_of(str.begin(), str.end(), [](char character) {
+            return (character < 'A') || (character > 'Z');
         });
     }
 
@@ -67,14 +74,7 @@ namespace {
     }
 }  // namespace
 
-std::mt19937 gridRandom::s_gen;
-std::uniform_real_distribution<double> gridRandom::s_udist;
-std::exponential_distribution<double> gridRandom::s_expdist;
-std::normal_distribution<double> gridRandom::s_normdist;
-std::lognormal_distribution<double> gridRandom::s_lnormdist;
-std::gamma_distribution<double> gridRandom::s_gammadist;
-std::extreme_value_distribution<double> gridRandom::s_evdist;
-std::uniform_int_distribution<int> gridRandom::s_uintdist;
+std::unique_ptr<std::mt19937> gridRandom::s_gen;
 
 bool gridRandom::seeded = false;
 unsigned int gridRandom::actual_seed = 0;
@@ -93,6 +93,13 @@ gridRandom::gridRandom(std::string_view dist_name, double param1, double param2)
 {
 }
 
+void gridRandom::ensureEngine()
+{
+    if (!s_gen) {
+        s_gen = std::make_unique<std::mt19937>();
+    }
+}
+
 void gridRandom::setParameters(double param1, double param2)
 {
     param1_ = param1;
@@ -102,14 +109,16 @@ void gridRandom::setParameters(double param1, double param2)
 
 void gridRandom::setSeed(unsigned int seed)
 {
+    ensureEngine();
     actual_seed = seed;
-    s_gen.seed(seed);
+    s_gen->seed(seed);
     seeded = true;
 }
 void gridRandom::setSeed()
 {
+    ensureEngine();
     actual_seed = static_cast<unsigned int>(time(nullptr));
-    s_gen.seed(actual_seed);
+    s_gen->seed(actual_seed);
     seeded = true;
 }
 
@@ -163,30 +172,31 @@ double gridRandom::randNumber(dist_type_t dist)
     if (!seeded) {
         setSeed();
     }
+    auto& engine = getEngine();
     switch (dist) {
         case dist_type_t::constant:
         default:
             return 0.0;
             break;
         case dist_type_t::gamma:
-            return s_gammadist(s_gen);
+            return std::gamma_distribution<double>{}(engine);
             break;
         case dist_type_t::extreme_value:
-            return s_evdist(s_gen);
+            return std::extreme_value_distribution<double>{}(engine);
             break;
         case dist_type_t::exponential:
-            return s_expdist(s_gen);
+            return std::exponential_distribution<double>{}(engine);
             break;
         case dist_type_t::normal:
-            return s_normdist(s_gen);
+            return std::normal_distribution<double>{}(engine);
             break;
         case dist_type_t::uniform:
-            return s_udist(s_gen);
+            return std::uniform_real_distribution<double>{}(engine);
             break;
         case dist_type_t::lognormal:
-            return s_lnormdist(s_gen);
+            return std::lognormal_distribution<double>{}(engine);
         case dist_type_t::uniform_int:
-            return static_cast<double>(s_uintdist(s_gen));
+            return static_cast<double>(std::uniform_int_distribution<int>{}(engine));
             break;
     }
 }
@@ -196,37 +206,41 @@ double gridRandom::randNumber(dist_type_t dist, double param1, double param2)
     if (!seeded) {
         setSeed();
     }
+    auto& engine = getEngine();
     switch (dist) {
         case dist_type_t::constant:
             return param1;
             break;
         case dist_type_t::gamma:
-            return s_gammadist(s_gen, std::gamma_distribution<double>::param_type(param1, param2));
+            return std::gamma_distribution<double>{}(
+                engine, std::gamma_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::extreme_value:
-            return s_evdist(s_gen,
-                            std::extreme_value_distribution<double>::param_type(param1, param2));
+            return std::extreme_value_distribution<double>{}(
+                engine, std::extreme_value_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::exponential:
-            return s_expdist(s_gen,
-                             std::exponential_distribution<double>::param_type(1.0 / param1));
+            return std::exponential_distribution<double>{}(
+                engine, std::exponential_distribution<double>::param_type(1.0 / param1));
             break;
         case dist_type_t::normal:
-            return s_normdist(s_gen, std::normal_distribution<double>::param_type(param1, param2));
+            return std::normal_distribution<double>{}(
+                engine, std::normal_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::uniform:
-            return s_udist(s_gen,
-                           std::uniform_real_distribution<double>::param_type(param1, param2));
+            return std::uniform_real_distribution<double>{}(
+                engine, std::uniform_real_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::lognormal:
-            return s_lnormdist(s_gen,
-                               std::lognormal_distribution<double>::param_type(param1, param2));
+            return std::lognormal_distribution<double>{}(
+                engine, std::lognormal_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::uniform_int:
             return static_cast<double>(
-                s_uintdist(s_gen,
-                           std::uniform_int_distribution<int>::param_type(
-                               static_cast<int>(param1), static_cast<int>(param2))));
+                std::uniform_int_distribution<int>{}(
+                    engine,
+                    std::uniform_int_distribution<int>::param_type(
+                        static_cast<int>(param1), static_cast<int>(param2))));
         default:
             return 0.0;
     }
@@ -242,9 +256,9 @@ double gridRandom::generate()
 }
 std::vector<double> gridRandom::getNewValues(size_t count)
 {
-    std::vector<double> rv(count);
-    std::generate(rv.begin(), rv.end(), [this]() { return (*dobj)(); });
-    return rv;
+    std::vector<double> randomValues(count);
+    std::generate(randomValues.begin(), randomValues.end(), [this]() { return (*dobj)(); });
+    return randomValues;
 }
 
 void gridRandom::getNewValues(std::vector<double>& rvec, size_t count)

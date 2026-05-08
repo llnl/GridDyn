@@ -24,7 +24,7 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
 #define NUMBER_FIXED_ARGS 5
 
     std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1u);  // 1u for /0 at end of string
+                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
 
     /* Input arguments to the corresponding minizip main() function call */
     /*
@@ -44,20 +44,20 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
                                   ziparg3,
                                   fileV.data()};
     std::vector<std::vector<char>> filez(filesToZip.size());
-    size_t argc = NUMBER_FIXED_ARGS + filesToZip.size();
+    const size_t argc = NUMBER_FIXED_ARGS + filesToZip.size();
     argv.resize(argc + 1, nullptr);
 
     /* need to copy over the arguments since theoretically minizip may modify the input arguments */
     for (size_t kk = 0; kk < filesToZip.size(); kk++) {
         filez[kk].assign(filesToZip[kk].c_str(),
                          filesToZip[kk].c_str() + filesToZip[kk].size() +
-                             1u);  // 1u to copy the NULL at the end of the string
+                             1U);  // 1U to copy the NULL at the end of the string
         argv[NUMBER_FIXED_ARGS + kk] = filez[kk].data();
     }
     /* minizip may change the current working directory */
     auto cpath = std::filesystem::current_path();
     /* Zip */
-    int status = minizip(static_cast<int>(argc), argv.data());
+    const int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
     std::filesystem::current_path(cpath);
@@ -65,15 +65,22 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
     return status;
 }
 
-void addToFileList(std::vector<std::filesystem::path>& files,
-                   const std::filesystem::path& startpath)
+static void addToFileList(std::vector<std::filesystem::path>& files,
+                          const std::filesystem::path& startpath)
 {
-    if (std::filesystem::is_directory(startpath)) {
-        for (const auto& entry : std::filesystem::directory_iterator(startpath)) {
+    if (!std::filesystem::is_directory(startpath)) {
+        return;
+    }
+
+    std::vector<std::filesystem::path> directories{startpath};
+    while (!directories.empty()) {
+        const auto currentPath = directories.back();
+        directories.pop_back();
+        for (const auto& entry : std::filesystem::directory_iterator(currentPath)) {
             if (std::filesystem::is_regular_file(entry)) {
                 files.push_back(entry.path());
             } else if (std::filesystem::is_directory(entry)) {
-                addToFileList(files, entry.path());
+                directories.push_back(entry.path());
             }
         }
     }
@@ -81,7 +88,7 @@ void addToFileList(std::vector<std::filesystem::path>& files,
 
 int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mode)
 {
-    std::filesystem::path dpath(folderLoc);
+    const std::filesystem::path dpath(folderLoc);
     if (!std::filesystem::is_directory(dpath)) {
         return -2;
     }
@@ -100,14 +107,14 @@ int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mod
     }
 
     std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1u);  // 1u for /0 at end of string
+                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
 
     std::vector<const char*> argv{zipname,
                                   (mode == zipMode::overwrite) ? ziparg_overwrite : ziparg_append,
                                   ziparg2,
                                   fileV.data()};
     std::vector<std::vector<char>> filez(zfiles.size());
-    size_t argc = 4 + zfiles.size();
+    const size_t argc = 4 + zfiles.size();
     argv.resize(argc + 1, nullptr);
 
     /* need to copy over the arguments since theoretically minizip may modify the input arguments */
@@ -115,12 +122,12 @@ int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mod
         auto filestr = zfiles[kk].string();
         filez[kk].assign(filestr.c_str(),
                          filestr.c_str() + filestr.size() +
-                             1u);  // 1u to copy the NULL at the end of the string
+                             1U);  // 1U to copy the NULL at the end of the string
         argv[4 + kk] = filez[kk].data();
     }
 
     /* Zip */
-    int status = minizip(static_cast<int>(argc), argv.data());
+    const int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
     std::filesystem::current_path(cpath);
@@ -148,8 +155,8 @@ int unzip(const std::string& file, const std::string& directory)
     int argc = 4;
 
     std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1u);  // 1u for /0 at end of string
-    std::vector<char> dirV(directory.c_str(), directory.c_str() + directory.size() + 1u);
+                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
+    std::vector<char> dirV(directory.c_str(), directory.c_str() + directory.size() + 1U);
     std::vector<const char*> argv{unzipname, unziparg1, unziparg2, fileV.data()};
 
     if (!directory.empty()) {
@@ -170,7 +177,7 @@ int unzip(const std::string& file, const std::string& directory)
     auto cpath = std::filesystem::current_path();
 
     /* Unzip */
-    int status = miniunz(argc, argv.data());
+    const int status = miniunz(argc, argv.data());
 
     /* Reset the current directory */
     std::filesystem::current_path(cpath);

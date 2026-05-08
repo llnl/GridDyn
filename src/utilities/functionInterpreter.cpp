@@ -23,16 +23,17 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <numbers>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-static constexpr double local_pi = 3.141592653589793;
-static const double local_nan = std::nan("0");
+static constexpr double local_pi = std::numbers::pi_v<double>;
+static constexpr double local_nan = std::numeric_limits<double>::quiet_NaN();
 static constexpr double local_inf = 1e48;
-static constexpr double log2val = 0.69314718055994530942;
-static constexpr double log10val = 2.30258509299404568402;
+static constexpr double log2val = std::numbers::ln2_v<double>;
+static constexpr double log10val = std::numbers::ln10_v<double>;
 
 using gmlc::utilities::absMax;
 using gmlc::utilities::absMin;
@@ -47,16 +48,25 @@ template<class Fn>
 struct functionEntry {
     std::string_view name;
     Fn function;
+
+    constexpr functionEntry(std::string_view entryName, Fn entryFunction):
+        name(entryName), function(entryFunction)
+    {
+    }
 };
 
-constexpr char asciiToLower(char ch) noexcept
+constexpr char asciiToLower(char character) noexcept
 {
-    return ((ch >= 'A') && (ch <= 'Z')) ? static_cast<char>(ch - 'A' + 'a') : ch;
+    return ((character >= 'A') && (character <= 'Z')) ?
+        static_cast<char>(character - 'A' + 'a') :
+        character;
 }
 
 bool isLowerAscii(std::string_view str) noexcept
 {
-    return std::all_of(str.begin(), str.end(), [](char ch) { return ((ch < 'A') || (ch > 'Z')); });
+    return std::all_of(str.begin(), str.end(), [](char character) {
+        return ((character < 'A') || (character > 'Z'));
+    });
 }
 
 template<class Fn, std::size_t N>
@@ -172,7 +182,13 @@ double randLognormal()
 
 double signValue(double val)
 {
-    return (val > 0.0) ? 1.0 : ((val < 0.0) ? -1.0 : 0.0);
+    if (val > 0.0) {
+        return 1.0;
+    }
+    if (val < 0.0) {
+        return -1.0;
+    }
+    return 0.0;
 }
 double identityValue(double val)
 {
@@ -240,7 +256,7 @@ double tanDerivative(double val)
 double tanhDerivative(double val)
 {
     const auto tanhValue = std::tanh(val);
-    return 1.0 - tanhValue * tanhValue;
+    return 1.0 - (tanhValue * tanhValue);
 }
 double absDerivative(double val)
 {
@@ -248,15 +264,15 @@ double absDerivative(double val)
 }
 double asinDerivative(double val)
 {
-    return 1.0 / std::sqrt(1.0 - val * val);
+    return 1.0 / std::sqrt(1.0 - (val * val));
 }
 double acosDerivative(double val)
 {
-    return -1.0 / std::sqrt(1.0 - val * val);
+    return -1.0 / std::sqrt(1.0 - (val * val));
 }
 double atanDerivative(double val)
 {
-    return 1.0 / (1.0 + val * val);
+    return 1.0 / (1.0 + (val * val));
 }
 double sqrtDerivative(double val)
 {

@@ -67,7 +67,7 @@ class stateGrabber: public objectOperatorInterface {
     /** clone a grabber to another grabber
     @param[in] sgb a pointer to a grabber to clone to
     */
-    virtual void cloneTo(stateGrabber* sgb) const;
+    virtual void cloneTo(stateGrabber* ggb) const;
 
     /** update the target field of a grabber
     @param[in] fld the new target string of a grabber
@@ -127,7 +127,7 @@ class customStateGrabber: public stateGrabber {
     customStateGrabber() = default;
     explicit customStateGrabber(gridComponent* comp);
     virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* sgb) const override;
+    virtual void cloneTo(stateGrabber* ggb) const override;
     /** set the custom grabber function
     @param[in] nfptr the custom function for grabbing a state value
     */
@@ -152,7 +152,7 @@ class stateFunctionGrabber: public stateGrabber {
     stateFunctionGrabber() = default;
     stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, std::string func);
     virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* sgb) const override;
+    virtual void cloneTo(stateGrabber* ggb) const override;
     virtual double grabData(const stateData& sD, const solverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& sD,
                                           matrixData<double>& md,
@@ -179,7 +179,7 @@ class stateOpGrabber: public stateGrabber {
                    std::shared_ptr<stateGrabber> ggb2,
                    std::string op);
     virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* sgb) const override;
+    virtual void cloneTo(stateGrabber* ggb) const override;
     virtual double grabData(const stateData& sD, const solverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& sD,
                                           matrixData<double>& md,

@@ -295,16 +295,18 @@ double coreObject::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void coreObject::set(std::string_view param, double val, units::unit unitType)  // NOLINT(misc-no-recursion)
+// Lowercasing retries at most once, so this recursion is bounded.
+// NOLINTNEXTLINE(misc-no-recursion)
+void coreObject::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "updateperiod") || (param == "period")) {
         updatePeriod = units::convert(val, unitType, units::second);
     } else if ((param == "updaterate") || (param == "rate")) {
-        double rt = units::convert(val, unitType, units::Hz);
-        if (rt <= 0.0) {
+        const double rateInHertz = units::convert(val, unitType, units::Hz);
+        if (rateInHertz <= 0.0) {
             updatePeriod = kBigNum;
         } else {
-            updatePeriod = 1.0 / rt;
+            updatePeriod = 1.0 / rateInHertz;
         }
     } else if (param == "nextupdatetime") {
         nextUpdateTime = units::convert(val, unitType, units::second);
@@ -391,7 +393,9 @@ void coreObject::alert(coreObject* object, int code)  // NOLINT(misc-no-recursio
 {
     parent->alert(object, code);
 }
-void coreObject::log(coreObject* object, print_level level, const std::string& message)  // NOLINT(misc-no-recursion)
+// Parent-chain forwarding terminates at nullObject.
+// NOLINTNEXTLINE(misc-no-recursion)
+void coreObject::log(coreObject* object, print_level level, const std::string& message)
 {
     parent->log(object, level, message);
 }
@@ -420,9 +424,9 @@ int coreObject::getInt(std::string_view param) const
 
 std::string fullObjectName(const coreObject* obj)  // NOLINT(misc-no-recursion)
 {
-    if (obj->parent->m_oid != 0U)  // the nullobject oid==0
+    if (obj->parent->m_oid != 0)  // the nullobject oid==0
     {
-        if (obj->parent->parent->m_oid != 0U) {
+        if (obj->parent->parent->m_oid != 0) {
             return fullObjectName(obj->parent) + "::" + obj->getName();  // yay recursion
         }
         return obj
@@ -436,7 +440,7 @@ void removeReference(coreObject* objToDelete)
 {
     if (objToDelete != nullptr) {
         // don't do a write unless we absolutely need to
-        if (objToDelete->m_refCount <= 1 || --objToDelete->m_refCount <= 0) {
+        if (objToDelete->m_refCount.fetch_sub(1, std::memory_order_acq_rel) <= 1) {
             delete objToDelete;
         }
     }
@@ -445,7 +449,7 @@ void removeReference(coreObject* objToDelete)
 void removeReference(coreObject* objToDelete, const coreObject* parent)
 {
     if (objToDelete != nullptr) {
-        if (objToDelete->m_refCount <= 1 || --objToDelete->m_refCount <= 0) {
+        if (objToDelete->m_refCount.fetch_sub(1, std::memory_order_acq_rel) <= 1) {
             // don't do a write on an atomic unless we absolutely need to
             delete objToDelete;
         } else if (parent == objToDelete->parent) {

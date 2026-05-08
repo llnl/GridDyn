@@ -57,7 +57,9 @@ namespace links {
         explicit acdcConverter(const std::string& objName = "acdcConveter_$");
         // name will be based on opType
         acdcConverter(mode_t opType, const std::string& objName = "");
-        acdcConverter(double rP, double xP, const std::string& objName = "acdcConveter_$");
+        acdcConverter(double resistanceParameter,
+                      double reactanceParameter,
+                      const std::string& objName = "acdcConveter_$");
 
         virtual ~acdcConverter();
         virtual coreObject* clone(coreObject* obj = nullptr) const override;
@@ -71,7 +73,7 @@ namespace links {
 
         virtual void updateLocalCache() override;
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       const solverMode& sMode) override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -93,28 +95,28 @@ namespace links {
 
         using Link::ioPartialDerivatives;
         virtual void ioPartialDerivatives(id_type_t busId,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const IOlocs& inputLocs,
                                           const solverMode& sMode) override;
 
         virtual void outputPartialDerivatives(const IOdata& inputs,
-                                              const stateData& sD,
-                                              matrixData<double>& md,
+                                              const stateData& stateDataValue,
+                                              matrixData<double>& matrixDataValue,
                                               const solverMode& sMode) override;
 
         virtual void outputPartialDerivatives(id_type_t busId,
-                                              const stateData& sD,
-                                              matrixData<double>& md,
+                                              const stateData& stateDataValue,
+                                              matrixData<double>& matrixDataValue,
                                               const solverMode& sMode) override;
         virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
         virtual void jacobianElements(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode) override;
         virtual void residual(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               double resid[],
                               const solverMode& sMode) override;
         virtual void setState(coreTime time,

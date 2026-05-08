@@ -32,13 +32,6 @@
 namespace griddyn {
 using units::convert;
 using units::defunit;
-using units::Hz;
-using units::puA;
-using units::puHz;
-using units::puMW;
-using units::puOhm;
-using units::puV;
-using units::rad;
 gridGrabber::gridGrabber(std::string_view fld)
 {
     gridGrabber::updateField(fld);
@@ -72,6 +65,7 @@ void gridGrabber::cloneTo(gridGrabber* ggb) const
     ggb->cobj = cobj;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, std::function<double(coreObject*)>> coreFunctions{
     {"nextupdatetime", [](coreObject* obj) { return obj->getNextUpdateTime(); }},
     {"lastupdatetime", [](coreObject* obj) { return obj->get("lastupdatetime"); }},
@@ -107,8 +101,8 @@ void gridGrabber::getDesc(std::vector<std::string>& desc_list) const
 {
     if (vectorGrab) {
         fptrN(cobj, desc_list);
-        for (auto& dl : desc_list) {
-            dl += ':' + field;
+        for (auto& description : desc_list) {
+            description += ':' + field;
         }
     } else {
         desc_list.resize(1);
@@ -143,8 +137,8 @@ void gridGrabber::grabVectorData(std::vector<double>& vdata)
         if (outputUnits != defunit) {
             auto localBasePower = cobj->get("basepower");
             auto localBaseVoltage = cobj->get("basevoltage");
-            for (auto& v : vdata) {
-                v = convert(v, inputUnits, outputUnits, localBasePower, localBaseVoltage);
+            for (auto& value : vdata) {
+                value = convert(value, inputUnits, outputUnits, localBasePower, localBaseVoltage);
             }
         }
     } else {
@@ -204,7 +198,7 @@ bool gridGrabber::checkIfLoaded()
         }
         if (!field.empty()) {
             try {
-                double testval = cobj->get(field);
+                const double testval = cobj->get(field);
                 if (testval != kNullVal) {
                     return true;
                 }
@@ -225,43 +219,43 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, coreObject* obj
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
-    auto bus = dynamic_cast<gridBus*>(obj);
+    auto* bus = dynamic_cast<gridBus*>(obj);
     if (bus != nullptr) {
         ggb = std::make_unique<objectGrabber<gridBus>>(fld, bus);
         return ggb;
     }
 
-    auto ld = dynamic_cast<Load*>(obj);
-    if (ld != nullptr) {
-        ggb = std::make_unique<objectOffsetGrabber<Load>>(fld, ld);
+    auto* loadObject = dynamic_cast<Load*>(obj);
+    if (loadObject != nullptr) {
+        ggb = std::make_unique<objectOffsetGrabber<Load>>(fld, loadObject);
         return ggb;
     }
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
         ggb = std::make_unique<objectOffsetGrabber<Generator>>(fld, gen);
         return ggb;
     }
 
-    auto lnk = dynamic_cast<Link*>(obj);
+    auto* lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
         ggb = std::make_unique<objectGrabber<Link>>(fld, lnk);
         return ggb;
     }
 
-    auto area = dynamic_cast<Area*>(obj);
+    auto* area = dynamic_cast<Area*>(obj);
     if (area != nullptr) {
         ggb = std::make_unique<objectGrabber<Area>>(fld, area);
         return ggb;
     }
 
-    auto rel = dynamic_cast<Relay*>(obj);
+    auto* rel = dynamic_cast<Relay*>(obj);
     if (rel != nullptr) {
         ggb = std::make_unique<objectGrabber<Relay>>(fld, rel);
         return ggb;
     }
 
-    auto sub = dynamic_cast<gridSubModel*>(obj);
+    auto* sub = dynamic_cast<gridSubModel*>(obj);
     if (sub != nullptr) {
         ggb = std::make_unique<objectOffsetGrabber<gridSubModel>>(fld, sub);
         return ggb;
@@ -273,14 +267,14 @@ std::unique_ptr<gridGrabber> createGrabber(int noffset, coreObject* obj)
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
         ggb = std::make_unique<objectOffsetGrabber<Generator>>(noffset, gen);
         return ggb;
     }
-    auto ld = dynamic_cast<Load*>(obj);
-    if (ld != nullptr) {
-        ggb = std::make_unique<objectOffsetGrabber<Load>>(noffset, ld);
+    auto* loadObject = dynamic_cast<Load*>(obj);
+    if (loadObject != nullptr) {
+        ggb = std::make_unique<objectOffsetGrabber<Load>>(noffset, loadObject);
         return ggb;
     }
     return ggb;
@@ -358,7 +352,7 @@ void functionGrabber::getDesc(std::vector<std::string>& desc_list) const
             desc_list[kk] = function_name + '(' + dA1[kk] + ')';
         }
     } else {
-        stringVec dA1, dA2;
+        stringVec dA1;
         bgrabber->getDesc(dA1);
         desc_list.resize(dA1.size());
         desc_list[0] = function_name + '(' + dA1[0] + ')';
@@ -375,7 +369,7 @@ std::unique_ptr<gridGrabber> functionGrabber::clone() const
 void functionGrabber::cloneTo(gridGrabber* ggb) const
 {
     gridGrabber::cloneTo(ggb);
-    auto fgb = dynamic_cast<functionGrabber*>(ggb);
+    auto* fgb = dynamic_cast<functionGrabber*>(ggb);
 
     if (fgb == nullptr) {
         return;
@@ -393,7 +387,7 @@ double functionGrabber::grabData()
         bgrabber->grabVectorData(tempArray);
         val = opptrV(tempArray);
     } else {
-        double temp = bgrabber->grabData();
+        const double temp = bgrabber->grabData();
         val = opptr(temp);
     }
 
@@ -452,7 +446,7 @@ void functionGrabber::getObjects(std::vector<coreObject*>& objects) const
 // operatorGrabber
 opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
                      std::shared_ptr<gridGrabber> ggb2,
-                     std::string op): op_name(std::move(op))
+                     std::string operationName): op_name(std::move(operationName))
 {
     if (ggb1) {
         bgrabber1 = std::move(ggb1);
@@ -502,7 +496,8 @@ bool opGrabber::checkIfLoaded()
 void opGrabber::getDesc(stringVec& desc_list) const
 {
     if (vectorGrab) {
-        stringVec dA1, dA2;
+        stringVec dA1;
+        stringVec dA2;
         bgrabber1->getDesc(dA1);
         bgrabber2->getDesc(dA2);
         desc_list.resize(dA1.size());
@@ -510,7 +505,8 @@ void opGrabber::getDesc(stringVec& desc_list) const
             desc_list[kk] = dA1[kk] + op_name + dA2[kk];
         }
     } else {
-        stringVec dA1, dA2;
+        stringVec dA1;
+        stringVec dA2;
         bgrabber1->getDesc(dA1);
         bgrabber2->getDesc(dA2);
         desc_list.resize(dA1.size());
@@ -528,7 +524,7 @@ std::unique_ptr<gridGrabber> opGrabber::clone() const
 void opGrabber::cloneTo(gridGrabber* ggb) const
 {
     gridGrabber::cloneTo(ggb);
-    auto ogb = dynamic_cast<opGrabber*>(ggb);
+    auto* ogb = dynamic_cast<opGrabber*>(ggb);
 
     if (ogb == nullptr) {
         return;
@@ -552,9 +548,9 @@ double opGrabber::grabData()
         bgrabber2->grabVectorData(tempArray2);
         val = opptrV(tempArray1, tempArray2);
     } else {
-        double temp1 = bgrabber1->grabData();
-        double temp2 = bgrabber2->grabData();
-        val = opptr(temp1, temp2);
+        const double grabberValue1 = bgrabber1->grabData();
+        const double grabberValue2 = bgrabber2->grabData();
+        val = opptr(grabberValue1, grabberValue2);
     }
     val = std::fma(val, gain, bias);
     return val;

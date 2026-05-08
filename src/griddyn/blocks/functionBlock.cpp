@@ -33,7 +33,7 @@ functionBlock::functionBlock(const std::string& functionName): Block("functionBl
 
 coreObject* functionBlock::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<functionBlock, Block>(this, obj);
+    auto* nobj = cloneBase<functionBlock, Block>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -62,7 +62,7 @@ void functionBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void functionBlock::blockAlgebraicUpdate(double input,
-                                         const stateData& sD,
+                                         const stateData& stateDataValue,
                                          double update[],
                                          const solverMode& sMode)
 {
@@ -73,14 +73,14 @@ void functionBlock::blockAlgebraicUpdate(double input,
         update[offset] = K * fptr(gain * (input + bias));
     }
     if (limiter_alg > 0) {
-        Block::blockAlgebraicUpdate(input, sD, update, sMode);
+        Block::blockAlgebraicUpdate(input, stateDataValue, update, sMode);
     }
 }
 
 void functionBlock::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const solverMode& sMode)
 {
@@ -88,21 +88,22 @@ void functionBlock::blockJacobianElements(double input,
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
     if (opFlags[uses_constantarg]) {
-        double temp1 = fptr2(gain * (input + bias), arg2);
-        double temp2 = fptr2(gain * (input + 1e-8 + bias), arg2);
-        md.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
+        const double temp1 = fptr2(gain * (input + bias), arg2);
+        const double temp2 = fptr2(gain * (input + 1e-8 + bias), arg2);
+        matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
     } else {
         if (dfptr != nullptr) {
-            md.assignCheck(offset, argLoc, K * dfptr(gain * (input + bias)) * gain);
+            matrixDataValue.assignCheck(offset, argLoc, K * dfptr(gain * (input + bias)) * gain);
         } else {
-            double temp1 = fptr(gain * (input + bias));
-            double temp2 = fptr(gain * (input + 1e-8 + bias));
-            md.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
+            const double temp1 = fptr(gain * (input + bias));
+            const double temp2 = fptr(gain * (input + 1e-8 + bias));
+            matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
         }
     }
-    md.assign(offset, offset, -1);
+    matrixDataValue.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        Block::blockJacobianElements(
+            input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
 }
 
@@ -125,8 +126,8 @@ double functionBlock::step(coreTime time, double input)
 void functionBlock::set(std::string_view param, std::string_view val)
 {
     if ((param == "function") || (param == "func")) {
-        auto v2 = gmlc::utilities::convertToLowerCase(val);
-        setFunction(v2);
+        auto functionName = gmlc::utilities::convertToLowerCase(val);
+        setFunction(functionName);
     } else {
         Block::set(param, val);
     }

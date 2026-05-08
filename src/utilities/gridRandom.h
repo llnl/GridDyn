@@ -41,14 +41,7 @@ class distributionObject {
 /** class defining random number generation*/
 class gridRandom {
   private:
-    static std::mt19937 s_gen;  //!< generator  //May need to make a generator per thread
-    static std::uniform_real_distribution<double> s_udist;
-    static std::exponential_distribution<double> s_expdist;
-    static std::normal_distribution<double> s_normdist;
-    static std::lognormal_distribution<double> s_lnormdist;
-    static std::extreme_value_distribution<double> s_evdist;
-    static std::gamma_distribution<double> s_gammadist;
-    static std::uniform_int_distribution<int> s_uintdist;
+    static std::unique_ptr<std::mt19937> s_gen;  //!< generator  //May need to make a generator per thread
     static unsigned int actual_seed;
     static bool seeded;
 
@@ -97,9 +90,10 @@ class gridRandom {
     */
     void getNewValues(std::vector<double>& rvec, size_t count);
 
-    static auto& getEngine() { return s_gen; }
+    static auto& getEngine() { return *s_gen; }
 
   private:
+    static void ensureEngine();
     std::unique_ptr<distributionObject> dobj;
     dist_type_t m_dist;
     double param1_ = 0.0;

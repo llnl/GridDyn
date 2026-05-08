@@ -236,11 +236,10 @@ double gridRandom::randNumber(dist_type_t dist, double param1, double param2)
                 engine, std::lognormal_distribution<double>::param_type(param1, param2));
             break;
         case dist_type_t::uniform_int:
-            return static_cast<double>(
-                std::uniform_int_distribution<int>{}(
-                    engine,
-                    std::uniform_int_distribution<int>::param_type(
-                        static_cast<int>(param1), static_cast<int>(param2))));
+            return static_cast<double>(std::uniform_int_distribution<int>{}(
+                engine,
+                std::uniform_int_distribution<int>::param_type(static_cast<int>(param1),
+                                                               static_cast<int>(param2))));
         default:
             return 0.0;
     }

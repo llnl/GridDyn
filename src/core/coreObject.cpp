@@ -112,11 +112,11 @@ void coreObject::addOwningReference()
 }
 
 static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
-                                                                "updaterate",
-                                                                "nextupdatetime",
-                                                                "basepower",
-                                                                "enabled",
-                                                                "id"};
+                                                               "updaterate",
+                                                               "nextupdatetime",
+                                                               "basepower",
+                                                               "enabled",
+                                                               "id"};
 static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
 void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const

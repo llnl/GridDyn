@@ -41,7 +41,8 @@ class distributionObject {
 /** class defining random number generation*/
 class gridRandom {
   private:
-    static std::unique_ptr<std::mt19937> s_gen;  //!< generator  //May need to make a generator per thread
+    static std::unique_ptr<std::mt19937>
+        s_gen;  //!< generator  //May need to make a generator per thread
     static unsigned int actual_seed;
     static bool seeded;
 

@@ -28,34 +28,35 @@
 
 namespace griddyn {
 namespace {
-std::vector<int> parseMaskElements(std::string_view text)
-{
-    std::vector<int> values;
-    std::size_t start = 0;
-    while (start < text.size()) {
-        const auto end = text.find_first_of(",;", start);
-        const auto tokenEnd = (end == std::string_view::npos) ? text.size() : end;
-        auto token = text.substr(start, tokenEnd - start);
+    std::vector<int> parseMaskElements(std::string_view text)
+    {
+        std::vector<int> values;
+        std::size_t start = 0;
+        while (start < text.size()) {
+            const auto end = text.find_first_of(",;", start);
+            const auto tokenEnd = (end == std::string_view::npos) ? text.size() : end;
+            auto token = text.substr(start, tokenEnd - start);
 
-        const auto first = token.find_first_not_of(" \t");
-        if (first != std::string_view::npos) {
-            const auto last = token.find_last_not_of(" \t");
-            token = token.substr(first, last - first + 1);
+            const auto first = token.find_first_not_of(" \t");
+            if (first != std::string_view::npos) {
+                const auto last = token.find_last_not_of(" \t");
+                token = token.substr(first, last - first + 1);
 
-            int parsed = 0;
-            const auto result = std::from_chars(token.data(), token.data() + token.size(), parsed);
-            if (result.ec == std::errc{} && result.ptr == token.data() + token.size()) {
-                values.push_back(parsed);
+                int parsed = 0;
+                const auto result =
+                    std::from_chars(token.data(), token.data() + token.size(), parsed);
+                if (result.ec == std::errc{} && result.ptr == token.data() + token.size()) {
+                    values.push_back(parsed);
+                }
             }
-        }
 
-        if (end == std::string_view::npos) {
-            break;
+            if (end == std::string_view::npos) {
+                break;
+            }
+            start = end + 1;
         }
-        start = end + 1;
+        return values;
     }
-    return values;
-}
 }  // namespace
 
 static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>

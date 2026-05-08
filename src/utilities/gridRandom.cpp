@@ -18,51 +18,53 @@
 
 namespace utilities {
 namespace {
-template<class Value>
-struct lookupEntry {
-    std::string_view name;
-    Value value;
-};
+    template<class Value>
+    struct lookupEntry {
+        std::string_view name;
+        Value value;
+    };
 
-constexpr char asciiToLower(char ch) noexcept
-{
-    return ((ch >= 'A') && (ch <= 'Z')) ? static_cast<char>(ch - 'A' + 'a') : ch;
-}
-
-bool isLowerAscii(std::string_view str) noexcept
-{
-    return std::all_of(str.begin(), str.end(), [](char ch) { return (ch < 'A') || (ch > 'Z'); });
-}
-
-template<class Value, std::size_t N>
-constexpr auto makeLookupTable(const lookupEntry<Value> (&entries)[N])
-{
-    return std::to_array(entries);
-}
-
-template<class Value, std::size_t N>
-Value lookupExact(const std::array<lookupEntry<Value>, N>& lookupTable,
-                  std::string_view key,
-                  Value defaultValue)
-{
-    const auto match = std::find_if(lookupTable.begin(), lookupTable.end(), [key](const auto& entry) {
-        return entry.name == key;
-    });
-    return (match != lookupTable.end()) ? match->value : defaultValue;
-}
-
-template<class Value, std::size_t N>
-Value lookupValue(const std::array<lookupEntry<Value>, N>& lookupTable,
-                  std::string_view key,
-                  Value defaultValue)
-{
-    if (isLowerAscii(key)) {
-        return lookupExact(lookupTable, key, defaultValue);
+    constexpr char asciiToLower(char ch) noexcept
+    {
+        return ((ch >= 'A') && (ch <= 'Z')) ? static_cast<char>(ch - 'A' + 'a') : ch;
     }
-    std::string lowerKey(key);
-    std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), asciiToLower);
-    return lookupExact(lookupTable, lowerKey, defaultValue);
-}
+
+    bool isLowerAscii(std::string_view str) noexcept
+    {
+        return std::all_of(str.begin(), str.end(), [](char ch) {
+            return (ch < 'A') || (ch > 'Z');
+        });
+    }
+
+    template<class Value, std::size_t N>
+    constexpr auto makeLookupTable(const lookupEntry<Value> (&entries)[N])
+    {
+        return std::to_array(entries);
+    }
+
+    template<class Value, std::size_t N>
+    Value lookupExact(const std::array<lookupEntry<Value>, N>& lookupTable,
+                      std::string_view key,
+                      Value defaultValue)
+    {
+        const auto match = std::find_if(lookupTable.begin(),
+                                        lookupTable.end(),
+                                        [key](const auto& entry) { return entry.name == key; });
+        return (match != lookupTable.end()) ? match->value : defaultValue;
+    }
+
+    template<class Value, std::size_t N>
+    Value lookupValue(const std::array<lookupEntry<Value>, N>& lookupTable,
+                      std::string_view key,
+                      Value defaultValue)
+    {
+        if (isLowerAscii(key)) {
+            return lookupExact(lookupTable, key, defaultValue);
+        }
+        std::string lowerKey(key);
+        std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), asciiToLower);
+        return lookupExact(lookupTable, lowerKey, defaultValue);
+    }
 }  // namespace
 
 std::mt19937 gridRandom::s_gen;

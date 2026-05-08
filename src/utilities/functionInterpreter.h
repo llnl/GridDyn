@@ -26,8 +26,7 @@ using function1_t = double (*)(double);
 using function2_t = double (*)(double, double);
 using function3_t = double (*)(double, double, double);
 using vector_function1_t = double (*)(const std::vector<double>&);
-using vector_function2_t =
-    double (*)(const std::vector<double>&, const std::vector<double>&);
+using vector_function2_t = double (*)(const std::vector<double>&, const std::vector<double>&);
 
 /** @brief evaluate a function named by a string
 @param[in] functionName the function name to evaluate

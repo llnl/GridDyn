@@ -112,11 +112,11 @@ void coreObject::addOwningReference()
 }
 
 static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
-                                                                "updaterate",
-                                                                "nextupdatetime",
-                                                                "basepower",
-                                                                "enabled",
-                                                                "id"};
+                                                               "updaterate",
+                                                               "nextupdatetime",
+                                                               "basepower",
+                                                               "enabled",
+                                                               "id"};
 static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
 void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const
@@ -295,7 +295,9 @@ double coreObject::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void coreObject::set(std::string_view param, double val, units::unit unitType)  // NOLINT(misc-no-recursion)
+void coreObject::set(std::string_view param,
+                     double val,
+                     units::unit unitType)  // NOLINT(misc-no-recursion)
 {
     if ((param == "updateperiod") || (param == "period")) {
         updatePeriod = units::convert(val, unitType, units::second);
@@ -391,7 +393,9 @@ void coreObject::alert(coreObject* object, int code)  // NOLINT(misc-no-recursio
 {
     parent->alert(object, code);
 }
-void coreObject::log(coreObject* object, print_level level, const std::string& message)  // NOLINT(misc-no-recursion)
+void coreObject::log(coreObject* object,
+                     print_level level,
+                     const std::string& message)  // NOLINT(misc-no-recursion)
 {
     parent->log(object, level, message);
 }

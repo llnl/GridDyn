@@ -643,16 +643,20 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 return change_code::jacobian_change;
             }
         } else {
+            const double angleRangeToMax = maxTapAngle - tapAngle;
+            const double angleRangeToMin = tapAngle - minTapAngle;
             if (linkFlows.P1 > Pmax) {
-                if (tapAngle + stepSize < maxTapAngle) {
-                    tapAngle = tapAngle + stepSize;
+                if (angleRangeToMax > stepSize) {
+                    tapAngle += stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((linkFlows.P1 - Pmax) < (Pmin - prevValue)) {
+                            const double currentUpperDeviation = linkFlows.P1 - Pmax;
+                            const double previousLowerDeviation = Pmin - prevValue;
+                            if (currentUpperDeviation < previousLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -662,15 +666,17 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.P1 < Pmin) {
-                if (tapAngle - stepSize > minTapAngle) {
-                    tapAngle = tapAngle - stepSize;
+                if (angleRangeToMin > stepSize) {
+                    tapAngle -= stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((prevValue - Pmax) > (Pmin - linkFlows.P1)) {
+                            const double previousUpperDeviation = prevValue - Pmax;
+                            const double currentLowerDeviation = Pmin - linkFlows.P1;
+                            if (previousUpperDeviation > currentLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -716,16 +722,20 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 return change_code::jacobian_change;
             }
         } else {
+            const double tapRangeToMax = maxTap - tap;
+            const double tapRangeToMin = tap - minTap;
             if (linkFlows.Q2 < Qmin) {
-                if (tap + stepSize < maxTap) {
-                    tap = tap + stepSize;
+                if (tapRangeToMax > stepSize) {
+                    tap += stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((prevValue - Qmax) > (Qmin - linkFlows.Q2)) {
+                            const double previousUpperDeviation = prevValue - Qmax;
+                            const double currentLowerDeviation = Qmin - linkFlows.Q2;
+                            if (previousUpperDeviation > currentLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -735,15 +745,17 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.Q2 > Qmax) {
-                if (tap - stepSize > minTap) {
-                    tap = tap - stepSize;
+                if (tapRangeToMin > stepSize) {
+                    tap -= stepSize;
                     ret = change_code::parameter_change;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
                         oCount++;
                         if (oCount > 5) {
-                            if ((linkFlows.Q2 - Qmax) < (Qmin - prevValue)) {
+                            const double currentUpperDeviation = linkFlows.Q2 - Qmax;
+                            const double previousLowerDeviation = Qmin - prevValue;
+                            if (currentUpperDeviation < previousLowerDeviation) {
                                 ret = change_code::no_change;
                             }
                         }
@@ -1232,15 +1244,17 @@ Q1 += tvb * cosTheta1;
 change_code adjustableTransformer::voltageControlAdjust()
 {
     auto ret = change_code::no_change;
+    const double tapStep = direction * stepSize;
+    const double reverseTapStep = -tapStep;
 
     // check the voltage to make it is within the appropriate band
     double voltage = controlBus->getVoltage();
     if (!(opFlags[use_target_mode])) {
         if (voltage > Vmax) {
-            tap = tap + direction * stepSize;
+            tap += tapStep;
             ret = change_code::parameter_change;
             if (adjCount > 0) {
-                if (signn(prevAdjust) != signn(direction * stepSize)) {
+                if (signn(prevAdjust) != signn(tapStep)) {
                     oCount++;
                     if (oCount > 5) {
                         ret = change_code::no_change;
@@ -1248,13 +1262,13 @@ change_code adjustableTransformer::voltageControlAdjust()
                 }
             }
             if (ret > change_code::no_change) {
-                prevAdjust = direction * stepSize;
+                prevAdjust = tapStep;
             }
         } else if (voltage < Vmin) {
-            tap = tap - direction * stepSize;
+            tap += reverseTapStep;
             ret = change_code::parameter_change;
             if (adjCount > 0) {
-                if (signn(prevAdjust) != signn(-direction * stepSize)) {
+                if (signn(prevAdjust) != signn(reverseTapStep)) {
                     oCount++;
                     // we are giving the Vmin priority here so it will always err on protecting
                     // the low voltage side if it can. if it is oscillating and goes over Vmax
@@ -1262,17 +1276,17 @@ change_code adjustableTransformer::voltageControlAdjust()
                 }
             }
             if (ret > change_code::no_change) {
-                prevAdjust = -direction * stepSize;
+                prevAdjust = reverseTapStep;
             }
         }
         // check the taps to make sure they are within the appropriate range
         if (tap > maxTap) {
-            tap = tap - prevAdjust;
+            tap -= prevAdjust;
             prevAdjust = 0;
             ret = change_code::no_change;
         }
         if (tap < minTap) {
-            tap = tap - prevAdjust;
+            tap -= prevAdjust;
             prevAdjust = 0;
             ret = change_code::no_change;
         }
@@ -1289,25 +1303,24 @@ change_code adjustableTransformer::voltageControlAdjust()
             } else {
                 shift = -stepSize * round(-shift / stepSize);
             }
-            while (shift > maxTap - tap) {
-                shift = shift - stepSize;
-            }
-            while (shift < minTap - tap) {
-                shift = shift + stepSize;
-            }
-            tap = tap + shift;
+            const double maxShift = maxTap - tap;
+            const double minShift = minTap - tap;
+            shift = std::min(shift, maxShift);
+            shift = std::max(shift, minShift);
+            tap += shift;
             if (std::abs(shift) < stepSize) {
                 ret = change_code::no_change;
             } else {
                 ret = change_code::parameter_change;
             }
             if (adjCount > 0) {
-                if (std::abs(prevAdjust + shift) < stepSize / 2.0) {
+                const double netAdjust = prevAdjust + shift;
+                if (std::abs(netAdjust) < stepSize / 2.0) {
                     oCount++;
                     if (oCount > 3) {
                         if (voltage > prevValue) {
                             ret = change_code::no_change;
-                            tap = tap - shift;
+                            tap -= shift;
                         }
                     }
                 }

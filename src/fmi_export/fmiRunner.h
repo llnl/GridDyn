@@ -35,7 +35,7 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         /** construct an fmurunner object
     @param name the name of the runner
     @param resourceLocations the FMU resource location information
-    @param function a set of helper function from the FMI master
+    @param functions a set of helper function from the FMI master
     @param ModelExchange set to true if this is instantiating a model exchange object (optional
     defaults to false)
     */

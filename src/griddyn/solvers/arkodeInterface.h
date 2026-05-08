@@ -16,6 +16,7 @@ namespace griddyn::solvers {
  */
 class arkodeInterface: public sundialsInterface {
   public:
+    using sundialsInterface::set;
     count_t icCount =
         0;  //!< counter for the number of times the initial condition function was called
 

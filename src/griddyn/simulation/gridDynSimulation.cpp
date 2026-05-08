@@ -798,7 +798,8 @@ bool gridDynSimulation::hasDynamics() const
 // need to update probably with a new field in SolverInterface
 count_t gridDynSimulation::nonZeros(const solverMode& sMode) const
 {
-    return getSolverInterface(sMode)->nonZeros();
+    auto solverInterface = getSolverInterface(sMode);
+    return (solverInterface) ? solverInterface->nonZeros() : 0;
 }
 
 // --------------- set properties ---------------

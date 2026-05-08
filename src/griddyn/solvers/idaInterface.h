@@ -16,6 +16,7 @@ namespace griddyn::solvers {
  */
 class idaInterface: public sundialsInterface {
   public:
+    using sundialsInterface::set;
     count_t icCount = 0;  //!< the number of times the initical condition function was called
 
   private:

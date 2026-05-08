@@ -616,11 +616,11 @@ target_include_directories(
               $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>
               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/containers>
               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/concurrency>
-              $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
 
 target_include_directories(
     griddyn_base SYSTEM INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+                                  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
 
 # --------------------------------------------------------------
@@ -680,6 +680,13 @@ add_subdirectory(ThirdParty/yaml-cpp EXCLUDE_FROM_ALL)
 
 if(TARGET yaml-cpp)
     set_target_properties(yaml-cpp PROPERTIES FOLDER Extern)
+    target_compile_options(
+        yaml-cpp PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-documentation>
+    )
+    set_target_properties(
+        yaml-cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+                            $<TARGET_PROPERTY:yaml-cpp,INTERFACE_INCLUDE_DIRECTORIES>
+    )
 endif()
 
 # ------------------------------------------------------------

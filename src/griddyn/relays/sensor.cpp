@@ -373,7 +373,7 @@ void sensor::generateInputGrabbers()
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
             if ((opFlags[link_type_source]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
-                    gmlc::utilities::stringOps::appendInteger(istr, m_terminal);
+                    istr.append(std::to_string(m_terminal));
                 }
             }
         }
@@ -443,12 +443,15 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
         case cm::GET_MULTIPLE: {
             auto reply = std::make_shared<commMessage>(cm::GET_RESULT_MULTIPLE);
             auto rep = reply->getPayload<cm>();
+            if (rep == nullptr) {
+                break;
+            }
             rep->multiValues.resize(0);
             rep->multiFields = payload->multiFields;
             for (const auto& fieldName : payload->multiFields) {
                 val = get(gmlc::utilities::convertToLowerCase(fieldName),
                           units::unit_cast_from_string(payload->m_units));
-                payload->multiValues.push_back(val);
+                rep->multiValues.push_back(val);
             }
             rep->m_time = prevTime;
             commLink->transmit(sourceID, std::move(reply));
@@ -583,11 +586,14 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
     // do a verification check on the output codes
     int blkcnt = 0;
     int ocount = 0;
-    for (int kk = 0; kk < m_outputSize; ++kk) {
+    const auto outputCount = static_cast<count_t>(m_outputSize);
+    const auto filterBlockCount = static_cast<int>(filterBlocks.size());
+    const auto dataSourceCount = static_cast<int>(dataSources.size());
+    for (count_t kk = 0; kk < outputCount; ++kk) {
         switch (outputMode[kk]) {
             case outputMode_t::block:
-                if ((outputs[kk] < 0) || (outputs[kk] > static_cast<int>(filterBlocks.size()))) {
-                    if (blkcnt < static_cast<int>(filterBlocks.size())) {
+                if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
+                    if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
                     } else {
                         outputs[kk] = 0;
@@ -596,8 +602,8 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
                 ++blkcnt;
                 break;
             case outputMode_t::blockderiv:
-                if ((outputs[kk] < 0) || (outputs[kk] > static_cast<int>(filterBlocks.size()))) {
-                    if (blkcnt < static_cast<int>(filterBlocks.size())) {
+                if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
+                    if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
                     } else {
                         outputs[kk] = 0;
@@ -605,8 +611,8 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
                 }
                 break;
             case outputMode_t::direct:
-                if ((outputs[kk] < 0) || (outputs[kk] > static_cast<int>(dataSources.size()))) {
-                    if (ocount < static_cast<int>(dataSources.size())) {
+                if ((outputs[kk] < 0) || (outputs[kk] >= dataSourceCount)) {
+                    if (ocount < dataSourceCount) {
                         outputs[kk] = ocount;
                     } else {
                         outputs[kk] = 0;

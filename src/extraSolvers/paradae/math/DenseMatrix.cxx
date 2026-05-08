@@ -16,23 +16,33 @@
 namespace griddyn::paradae {
 using namespace std;
 
+namespace {
+    size_t DenseElementCount(int dim)
+    {
+        const auto size = static_cast<size_t>(dim);
+        return size * size;
+    }
+}  // namespace
+
 DenseMatrix::DenseMatrix(int m_, Real fill_): Matrix(m_), f_data(NULL), f_ipiv(NULL)
 {
-    if (m_ >= 0) data = new Real[m_ * m_];
-    fill(data, data + m_ * m_, fill_);
+    const auto elemCount = DenseElementCount(m_);
+    if (m_ >= 0) data = new Real[elemCount];
+    fill(data, data + elemCount, fill_);
 }
 
 DenseMatrix::DenseMatrix(const DenseMatrix& mat): Matrix(mat)
 {
+    const auto elemCount = DenseElementCount(m);
     if (mat.data != NULL) {
-        data = new Real[m * m];
-        memcpy(data, mat.data, m * m * sizeof(Real));
+        data = new Real[elemCount];
+        memcpy(data, mat.data, elemCount * sizeof(Real));
     } else
         data = NULL;
 
     if (mat.f_data != NULL) {
-        f_data = new Real[m * m];
-        memcpy(f_data, mat.f_data, m * m * sizeof(Real));
+        f_data = new Real[elemCount];
+        memcpy(f_data, mat.f_data, elemCount * sizeof(Real));
     } else
         f_data = NULL;
 
@@ -54,6 +64,7 @@ void DenseMatrix::Clone(const VirtualMatrix& mat)
 {
     try {
         const DenseMatrix& dmat = dynamic_cast<const DenseMatrix&>(mat);
+        const auto elemCount = DenseElementCount(dmat.m);
         if (data != NULL && (m != dmat.m || dmat.data == NULL)) {
             delete[] data;
             data = NULL;
@@ -70,16 +81,16 @@ void DenseMatrix::Clone(const VirtualMatrix& mat)
         isfacto = dmat.isfacto;
         isrankdef = dmat.isrankdef;
         if (dmat.data != NULL) {
-            if (data == NULL) data = new Real[m * m];
-            memcpy(data, dmat.data, m * m * sizeof(Real));
+            if (data == NULL) data = new Real[elemCount];
+            memcpy(data, dmat.data, elemCount * sizeof(Real));
         }
         if (dmat.f_ipiv != NULL) {
             if (f_ipiv == NULL) f_ipiv = new lapack_int[m];
             memcpy(f_ipiv, dmat.f_ipiv, m * sizeof(lapack_int));
         }
         if (dmat.f_data != NULL) {
-            if (f_data == NULL) f_data = new Real[m * m];
-            memcpy(f_data, dmat.f_data, m * m * sizeof(lapack_int));
+            if (f_data == NULL) f_data = new Real[elemCount];
+            memcpy(f_data, dmat.f_data, elemCount * sizeof(Real));
         }
     }
     catch (const bad_cast& e) {
@@ -119,7 +130,8 @@ void DenseMatrix::operator*=(Real alpha)
     if (isfacto) {
         ClearFacto();
     }
-    for (int i = 0; i < m * m; i++)
+    const auto elemCount = DenseElementCount(m);
+    for (size_t i = 0; i < elemCount; ++i)
         data[i] *= alpha;
 }
 
@@ -128,7 +140,8 @@ void DenseMatrix::Fill(Real fill_)
     if (isfacto) {
         ClearFacto();
     }
-    fill(data, data + m * m, fill_);
+    const auto elemCount = DenseElementCount(m);
+    fill(data, data + elemCount, fill_);
 }
 
 void DenseMatrix::SetSubMat(int i, int j, const VirtualMatrix& mat, Real multcoeff)
@@ -176,7 +189,8 @@ void DenseMatrix::AXPBY(Real alpha, Real beta, const VirtualMatrix& x)
     }
     try {
         const DenseMatrix& dmat = dynamic_cast<const DenseMatrix&>(x);
-        for (int i = 0; i < m * m; i++)
+        const auto elemCount = DenseElementCount(m);
+        for (size_t i = 0; i < elemCount; ++i)
             data[i] = alpha * dmat.data[i] + beta * data[i];
     }
     catch (const bad_cast& e) {
@@ -225,12 +239,13 @@ void DenseMatrix::Factorize()
     global_timer.Start("Dense facto");
 #endif
     if (!isfacto) {
+        const auto elemCount = DenseElementCount(m);
         lapack_int m_lap, n_lap, lda_lap, flag;
         if (f_ipiv != NULL) delete[] f_ipiv;
         if (f_data != NULL) delete[] f_data;
         f_ipiv = new lapack_int[m];
-        f_data = new Real[m * m];
-        memcpy(f_data, data, m * m * sizeof(Real));
+        f_data = new Real[elemCount];
+        memcpy(f_data, data, elemCount * sizeof(Real));
 
         m_lap = m;
         n_lap = m;
@@ -350,8 +365,9 @@ void DenseMatrix::SetIJV(int m_, int nnz_, int* ival, int* jval, Real* vval)
         data = NULL;
     }
     m = m_;
-    if (data == NULL) data = new Real[m * m];
-    fill(data, data + m * m, 0);
+    const auto elemCount = DenseElementCount(m);
+    if (data == NULL) data = new Real[elemCount];
+    fill(data, data + elemCount, 0);
     for (int i = 0; i < nnz_; i++)
         data[ival[i] * m + jval[i]] = vval[i];
 }

@@ -30,10 +30,10 @@ void matrixDataSparse<ValueT>::sortIndex(sparse_ordering ordering)
 {
     switch (ordering) {
         case sparse_ordering::column_ordered:
-            std::sort(data_.begin(), data_.end(), compareCol<ValueT>);
+            std::stable_sort(data_.begin(), data_.end(), compareCol<ValueT>);
             break;
         case sparse_ordering::row_ordered:
-            std::sort(data_.begin(), data_.end(), compareRow<ValueT>);
+            std::stable_sort(data_.begin(), data_.end(), compareRow<ValueT>);
             break;
     }
     sortCount_ = static_cast<count_t>(data_.size());
@@ -256,6 +256,10 @@ std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
     std::vector<index_t> vr, vt;
     std::vector<ValueT> vq, vtq;
     std::vector<std::vector<index_t>> mrows;
+    const auto rowLimit = md.rowLimit();
+    if (rowLimit <= 1) {
+        return mrows;
+    }
     md.sortIndex(sparse_ordering::column_ordered);
     md.compact();
     md.sortIndex(sparse_ordering::row_ordered);
@@ -264,7 +268,7 @@ std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
     index_t qq{0};
     auto mp = md.size();
     bool good = false;
-    for (index_t kk = 0; kk < md.rowLimit() - 1; ++kk) {
+    for (index_t kk = 0; kk + 1 < rowLimit; ++kk) {
         vr.clear();
         vq.clear();
         auto element = md.element(pp);
@@ -275,7 +279,7 @@ std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
             element = md.element(pp);
         }
         qq = pp;
-        for (index_t nn = kk + 1; nn < md.rowLimit(); ++nn) {
+        for (index_t nn = kk + 1; nn < rowLimit; ++nn) {
             vt.clear();
             vtq.clear();
             good = false;

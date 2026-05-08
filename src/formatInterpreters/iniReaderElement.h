@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-class INIReader;
+class gridDynINIReader;
 
 /** @brief class defines a reader element around the ini reader*/
 class iniReaderElement: public readerElement {
@@ -62,10 +62,10 @@ class iniReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<INIReader> doc;  //!< document root
+    std::shared_ptr<gridDynINIReader> doc;  //!< document root
     std::string currentSection;
-    int iteratorIndex = 0;
-    int sectionIndex = 0;
+    size_t iteratorIndex = 0;
+    size_t sectionIndex = 0;
 
-    std::vector<std::pair<std::string, int>> bookmarks;
+    std::vector<std::pair<std::string, size_t>> bookmarks;
 };

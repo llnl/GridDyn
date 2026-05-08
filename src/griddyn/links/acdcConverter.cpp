@@ -627,7 +627,7 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
     if (!isEnabled()) {
         return;
     }
-    std::memset(&linkInfo, 0, sizeof(linkI));
+    linkInfo = {};
     linkInfo.seqID = sD.seqID;
 
     linkInfo.v1 = B1->getVoltage(sD, sMode);
@@ -663,7 +663,7 @@ linkFlows.Q1);
 
 void acdcConverter::updateLocalCache()
 {
-    std::memset(&linkInfo, 0, sizeof(linkI));
+    linkInfo = {};
 
     if (isEnabled()) {
         linkInfo.v1 = B1->getVoltage();

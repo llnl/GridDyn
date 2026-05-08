@@ -18,6 +18,30 @@
 
 static const char nullStr[] = "";
 
+class gridDynINIReader: public INIReader {
+  public:
+    using INIReader::INIReader;
+
+    std::pair<std::string, std::string> getAttribute(const std::string& section, int index) const
+    {
+        if (index < 0) {
+            return {};
+        }
+
+        const auto prefix = MakeKey(section, "");
+        int currentIndex = 0;
+        for (const auto& [key, value] : _values) {
+            if (key.rfind(prefix, 0) == 0) {
+                if (currentIndex == index) {
+                    return {key.substr(prefix.size()), value};
+                }
+                ++currentIndex;
+            }
+        }
+        return {};
+    }
+};
+
 iniReaderElement::iniReaderElement() = default;
 iniReaderElement::iniReaderElement(const std::string& fileName)
 {
@@ -52,7 +76,7 @@ bool iniReaderElement::loadFile(const std::string& fileName)
 {
     std::ifstream file(fileName);
     if (file.is_open()) {
-        doc = std::make_shared<INIReader>(fileName);
+        doc = std::make_shared<gridDynINIReader>(fileName);
         currentSection = std::string();
         iteratorIndex = 0;
         return true;
@@ -97,7 +121,7 @@ bool iniReaderElement::hasAttribute(const std::string& attributeName) const
     if (!isValid()) {
         return false;
     }
-    const auto& val = doc->Get(currentSection, attributeName);
+    const auto val = doc->Get(currentSection, attributeName, "");
 
     return !(val.empty());
 }
@@ -143,7 +167,7 @@ readerAttribute iniReaderElement::getAttribute(const std::string& attributeName)
     if (!isValid()) {
         return {};
     }
-    const auto& val = doc->Get(currentSection, attributeName);
+    const auto val = doc->Get(currentSection, attributeName, "");
     if (!val.empty()) {
         return {attributeName, val};
     }
@@ -155,7 +179,7 @@ std::string iniReaderElement::getAttributeText(const std::string& attributeName)
     if (!isValid()) {
         return nullStr;
     }
-    return doc->Get(currentSection, attributeName);
+    return doc->Get(currentSection, attributeName, "");
 }
 
 double iniReaderElement::getAttributeValue(const std::string& attributeName) const
@@ -163,7 +187,7 @@ double iniReaderElement::getAttributeValue(const std::string& attributeName) con
     if (!isValid()) {
         return readerNullVal;
     }
-    return gmlc::utilities::numeric_conversionComplete(doc->Get(currentSection, attributeName),
+    return gmlc::utilities::numeric_conversionComplete(doc->Get(currentSection, attributeName, ""),
                                                        readerNullVal);
 }
 
@@ -222,9 +246,12 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
     while (sptr != sec.end()) {
         if (sptr->starts_with(childName)) {
             currentSection = *sptr;
+            return;
         }
         ++sectionIndex;
+        ++sptr;
     }
+    currentSection = ';';
 }
 
 void iniReaderElement::moveToNextSibling()
@@ -239,17 +266,12 @@ void iniReaderElement::moveToNextSibling()
     ++sectionIndex;
     iteratorIndex = 0;
     const auto& secs = doc->Sections();
-    if (std::cmp_greater_equal(sectionIndex, secs.size())) {
+    if (sectionIndex >= secs.size()) {
         currentSection = ';';
         return;
     }
-    int ccnt = 0;
-
     auto csec = secs.begin();
-    while (ccnt < sectionIndex) {
-        ++ccnt;
-        ++csec;
-    }
+    std::advance(csec, static_cast<std::ptrdiff_t>(sectionIndex));
     currentSection = *csec;
 }
 

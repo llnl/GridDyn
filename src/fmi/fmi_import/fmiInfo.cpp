@@ -402,7 +402,7 @@ static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, fmiUn
 }
 
 /** load a single variable information from the XML
-@param[in] rd the readerElement to load from
+@param[in] readerElementPtr the readerElement to load from
 @param[out] vInfo the variable information to store the data to
 */
 static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,

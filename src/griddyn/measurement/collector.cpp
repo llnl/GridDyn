@@ -222,29 +222,36 @@ count_t collector::grabData(double* outputData, index_t N)
 {
     std::vector<double> vals;
     count_t currentCount = 0;
+    if (N <= 0) {
+        return 0;
+    }
+    const auto outputLimit = static_cast<count_t>(N);
     if (recheck) {
         recheckColumns();
     }
     for (auto& datapoint : points) {
         if (datapoint.dataGrabber->vectorGrab) {
             datapoint.dataGrabber->grabVectorData(vals);
-            if (static_cast<index_t>(datapoint.column + vals.size()) < N) {
-                std::copy(vals.begin(), vals.end(), outputData + datapoint.column);
-                currentCount =
-                    std::max<count_t>(currentCount,
-                                      datapoint.column + static_cast<index_t>(vals.size()));
-            } else if (datapoint.column < N) {
-                std::copy(vals.begin(),
-                          vals.begin() + (N - datapoint.column - 1),
-                          outputData + datapoint.column);
-                currentCount = N;
+            if (datapoint.column < 0) {
+                continue;
             }
-        } else if (datapoint.column < N) {
-            outputData[datapoint.column] = datapoint.dataGrabber->grabData();
-            currentCount = std::max<count_t>(currentCount, datapoint.column + 1);
+            const auto column = static_cast<count_t>(datapoint.column);
+            if (column < outputLimit) {
+                const auto remaining = outputLimit - column;
+                const auto valueCount = static_cast<count_t>(vals.size());
+                const auto copyCount = std::min(remaining, valueCount);
+                std::copy_n(vals.begin(), copyCount, outputData + column);
+                const auto nextCount = column + copyCount;
+                currentCount = std::max(currentCount, nextCount);
+            }
+        } else if (datapoint.column >= 0 && static_cast<count_t>(datapoint.column) < outputLimit) {
+            const auto column = static_cast<count_t>(datapoint.column);
+            outputData[column] = datapoint.dataGrabber->grabData();
+            const auto nextCount = column + count_t{1};
+            currentCount = std::max(currentCount, nextCount);
         }
     }
-    currentCount = std::min(currentCount, N);
+    currentCount = std::min(currentCount, outputLimit);
     return currentCount;
 }
 

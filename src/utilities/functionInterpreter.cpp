@@ -33,12 +33,26 @@ static const double log10val = log(10.0);
 
 using gmlc::utilities::absMax;
 using gmlc::utilities::absMin;
-using gmlc::utilities::median;
 using gmlc::utilities::mult_sum;
 using gmlc::utilities::product;
 using gmlc::utilities::stdev;
 using gmlc::utilities::sum;
 using utilities::gridRandom;
+
+namespace {
+double localMedian(std::vector<double> values)
+{
+    if (values.empty()) {
+        return 0.0;
+    }
+    std::stable_sort(values.begin(), values.end());
+    const auto middle = values.size() / 2;
+    if ((values.size() & 1U) != 0U) {
+        return values[middle];
+    }
+    return 0.5 * (values[middle - 1] + values[middle]);
+}
+}  // namespace
 
 static const std::map<std::string, std::function<double()>> FuncList0{
     std::make_pair("inf", []() { return local_inf; }),
@@ -258,7 +272,7 @@ static std::map<std::string, std::function<double(const std::vector<double>&)>> 
                        return (sum(ar1) / static_cast<double>(ar1.size()));
                    }),
     std::make_pair("stdev", [](const std::vector<double>& ar1) { return stdev(ar1); }),
-    std::make_pair("median", [](const std::vector<double>& ar1) { return median(ar1); }),
+    std::make_pair("median", [](const std::vector<double>& ar1) { return localMedian(ar1); }),
 };
 
 static const std::map<std::string,

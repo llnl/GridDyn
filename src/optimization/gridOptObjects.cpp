@@ -254,10 +254,14 @@ void gridOptObject::getObjName(stringVec& objNames,
                                const std::string& prefix)
 {
     auto& os = offsets.getOffsets(oMode);
+    auto ensureSize = [&objNames](count_t offset, count_t count) {
+        const auto requiredSize = static_cast<size_t>(offset + count);
+        if (objNames.size() < requiredSize) {
+            objNames.resize(requiredSize);
+        }
+    };
     // angle variables
-    if (static_cast<count_t>(objNames.size()) < os.total.aSize + os.aOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.aSize) + os.aOffset + 1);
-    }
+    ensureSize(os.aOffset, os.total.aSize);
     for (index_t bb = 0; bb < os.total.aSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.aOffset) + bb] =
@@ -268,9 +272,7 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     }
     // voltage variables
-    if (static_cast<count_t>(objNames.size()) < os.total.vSize + os.vOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.vSize) + os.vOffset + 1);
-    }
+    ensureSize(os.vOffset, os.total.vSize);
     for (index_t bb = 0; bb < os.total.vSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.vOffset) + bb] =
@@ -281,9 +283,7 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     }
     // real power variables
-    if (static_cast<count_t>(objNames.size()) < os.total.genSize + os.gOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.genSize) + os.gOffset + 1);
-    }
+    ensureSize(os.gOffset, os.total.genSize);
     for (index_t bb = 0; bb < os.total.genSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.gOffset) + bb] =
@@ -294,9 +294,7 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     }
     // angle variables
-    if (static_cast<count_t>(objNames.size()) < os.total.qSize + os.qOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.qSize) + os.qOffset + 1);
-    }
+    ensureSize(os.qOffset, os.total.qSize);
     for (index_t bb = 0; bb < os.total.qSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.qOffset) + bb] =
@@ -307,9 +305,7 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     }
     // other continuous variables
-    if (static_cast<count_t>(objNames.size()) < os.total.contSize + os.contOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.contSize) + os.contOffset + 1);
-    }
+    ensureSize(os.contOffset, os.total.contSize);
     for (index_t bb = 0; bb < os.total.contSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.contOffset) + bb] =
@@ -320,9 +316,7 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     }
     // integer variables
-    if (static_cast<count_t>(objNames.size()) < os.total.intSize + os.intOffset + 1) {
-        objNames.resize(static_cast<size_t>(os.total.intSize) + os.intOffset + 1);
-    }
+    ensureSize(os.intOffset, os.total.intSize);
     for (index_t bb = 0; bb < os.total.intSize; ++bb) {
         if (prefix.empty()) {
             objNames[static_cast<size_t>(os.intOffset) + bb] =

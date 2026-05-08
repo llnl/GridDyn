@@ -118,16 +118,45 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
     using pLoc = std::pair<X, ValueT>;
     using cIterator = typename std::vector<pLoc>::const_iterator;
+    static constexpr count_t bucketCount = (count_t{1} << K);
 
   private:
+    count_t findNextNonEmptyBucket(count_t start) const
+    {
+        for (count_t bucket = start; bucket < bucketCount; ++bucket) {
+            if (!dVec[bucket].empty()) {
+                return bucket;
+            }
+        }
+        return bucketCount;
+    }
+
+    count_t nextBucket(count_t current) const
+    {
+        if (current >= bucketCount) {
+            return bucketCount;
+        }
+        bool skipCurrent = true;
+        for (count_t bucket = current; bucket < bucketCount; ++bucket) {
+            if (skipCurrent) {
+                skipCurrent = false;
+                continue;
+            }
+            if (!dVec[bucket].empty()) {
+                return bucket;
+            }
+        }
+        return bucketCount;
+    }
+
     keyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
-    std::array<std::vector<pLoc>, (1 << K)> dVec;  //!< the vector of pairs containing the data
+    std::array<std::vector<pLoc>, bucketCount> dVec;  //!< the vector of pairs containing the data
     count_t sortCount = 0;  //!< count of the last sort operation
     blockCompute<K, M> block_computer;  //!< object that generates the appropriate block index;
     cIterator cptr;  //!< ptr to the beginning of the sequence;
     cIterator iend;  //!< ptr to the end of the current sequence;
-    int ci = 0;  //!< indicator of which vector of the array we are sequencing on;
+    count_t ci = 0;  //!< indicator of which vector of the array we are sequencing on;
   public:
     /** @brief constructor
       the actual storage space used is approx 2x startCount due to expected unevenness in the array
@@ -149,7 +178,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     void assign(index_t row, index_t col, ValueT num) override
     {
         auto temp = block_computer.blockIndexGen(row, col);
-        assert(temp < (1 << K));
+        assert(temp < bucketCount);
         dVec[temp].emplace_back(key_computer.keyGen(row, col), num);
     }
 
@@ -189,7 +218,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         // std::sort(dVec.begin(), dVec.end(), compareLocSM);
         auto fp = [](const pLoc& A, const pLoc& B) { return (A.first < B.first); };
         for (auto& dvk : dVec) {
-            std::sort(dvk.begin(), dvk.end(), fp);
+            std::stable_sort(dvk.begin(), dvk.end(), fp);
         }
         sortCount = size();
     }
@@ -227,7 +256,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
 
     matrixElement<ValueT> element(index_t N) const override
     {
-        int ii = 0;
+        count_t ii = 0;
         index_t sz1 = 0;
         auto sz2 = static_cast<index_t>(dVec[0].size());
         while (N >= sz2) {
@@ -235,7 +264,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
             ++ii;
             sz2 += static_cast<index_t>(dVec[ii].size());
         }
-        assert(ii < (1 << K));
+        assert(ii < bucketCount);
         return {key_computer.row(dVec[ii][N - sz1].first),
                 key_computer.col(dVec[ii][N - sz1].first),
                 dVec[ii][N - sz1].second};
@@ -245,38 +274,39 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     auto end() const { return matrixIteratorSM(this, size()); }
     void start() override
     {
-        constexpr int bucketCount = (1 << K);
-        ci = 0;
-        while ((ci < bucketCount) && dVec[ci].empty()) {
-            ++ci;
-        }
+        ci = findNextNonEmptyBucket(0);
         if (ci < bucketCount) {
             cptr = dVec[ci].cbegin();
             iend = dVec[ci].cend();
+        } else {
+            cptr = {};
+            iend = {};
         }
     }
 
     matrixElement<ValueT> next() override
     {
-        constexpr int bucketCount = (1 << K);
+        if (ci >= bucketCount) {
+            return {};
+        }
         matrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
         if (cptr == iend) {
-            ++ci;
-            while ((ci < bucketCount) && dVec[ci].empty()) {
-                ++ci;
-            }
+            ci = nextBucket(ci);
             if (ci < bucketCount) {
                 cptr = dVec[ci].cbegin();
                 iend = dVec[ci].cend();
+            } else {
+                cptr = {};
+                iend = {};
             }
         }
         return tp;
     }
 
-    bool moreData() override { return (ci < (1 << K)) && (cptr != iend); }
+    bool moreData() override { return (ci < bucketCount) && (cptr != iend); }
     /** @brief check if the sparse array is sorted
     @return bool indicating sorted status
     */
@@ -313,27 +343,22 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
                                   index_t start = 0): mDS(matrixData)
         {
             if (start == 0) {
-                ci = 0;
-                while (mDS->dVec[ci].empty()) {
-                    ++ci;
-                    if (ci == (1 << K)) {
-                        --ci;
-                        break;
-                    }
-                }
-                cptr = mDS->dVec[ci].cbegin();
-                iend = mDS->dVec[ci].cend();
-            } else if (start == mDS->size()) {
-                ci = static_cast<count_t>(mDS->dVec.size() - 1);
-                while (mDS->dVec[ci].size() == 0) {
-                    --ci;
-                    if (ci < 0) {
-                        // if everything is empty just go back to the last one
-                        ci = static_cast<count_t>(mDS->dVec.size() - 1);
-                    }
+                ci = mDS->findNextNonEmptyBucket(0);
+                if (ci == bucketCount) {
+                    ci = bucketCount - 1;
                     cptr = mDS->dVec[ci].cend();
                     iend = mDS->dVec[ci].cend();
+                } else {
+                    cptr = mDS->dVec[ci].cbegin();
+                    iend = mDS->dVec[ci].cend();
                 }
+            } else if (start == mDS->size()) {
+                ci = bucketCount - 1;
+                while ((ci > 0) && mDS->dVec[ci].empty()) {
+                    --ci;
+                }
+                cptr = mDS->dVec[ci].cend();
+                iend = mDS->dVec[ci].cend();
             }
         }
 
@@ -341,15 +366,8 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         {
             ++cptr;
             if (cptr == iend) {
-                ++ci;
-                if (ci < (1 << K)) {
-                    while (mDS->dVec[ci].empty()) {
-                        ++ci;
-                        if (ci >= (1 << K)) {
-                            --ci;
-                            break;
-                        }
-                    }
+                ci = mDS->findNextNonEmptyBucket(ci + 1);
+                if (ci < bucketCount) {
                     cptr = mDS->dVec[ci].cbegin();
                     iend = mDS->dVec[ci].cend();
                 }
@@ -368,7 +386,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         const matrixDataSparseSMB<K, X, ValueT, M>* mDS = nullptr;
         cIterator cptr;  //!< ptr to the beginning of the sequence;
         cIterator iend;  //!< ptr to the end of the current sequence;
-        int ci = 0;  //!< indicator of which vector of the array we are sequencing on;
+        count_t ci = 0;  //!< indicator of which vector of the array we are sequencing on;
     };
 };
 
@@ -415,7 +433,9 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
      */
     void sortIndex()
     {
-        std::sort(dVec.begin(), dVec.end(), [](pLoc A, pLoc B) { return (A.first < B.first); });
+        std::stable_sort(dVec.begin(), dVec.end(), [](const pLoc& A, const pLoc& B) {
+            return (A.first < B.first);
+        });
     }
     /**
      * @brief sort the index based first on row number then row number
@@ -592,8 +612,8 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
         // std::sort(dVec.begin(), dVec.end(), compareLocSM);
         auto fp = [](const pLoc& A, const pLoc& B) { return (A.first < B.first); };
 
-        std::sort(dVec[0].begin(), dVec[0].end(), fp);
-        std::sort(dVec[1].begin(), dVec[1].end(), fp);
+        std::stable_sort(dVec[0].begin(), dVec[0].end(), fp);
+        std::stable_sort(dVec[1].begin(), dVec[1].end(), fp);
         sortCount = size();
     }
 

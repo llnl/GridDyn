@@ -16,7 +16,7 @@
 #include <string>
 #include <thread>
 
-static const char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
+[[maybe_unused]] static constexpr char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
 class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
@@ -41,13 +41,14 @@ TEST_F(ZmqTests, LoadZmqContextManager)
 
 TEST_F(ZmqTests, TestSocketDescriptor)
 {
+    static constexpr const char* endpoint = "inproc://TestSocketDescriptor";
     zmqSocketDescriptor zDescriptor("test_socket");
-    zDescriptor.addOperation(socket_ops::bind, "inproc://1");
+    zDescriptor.addOperation(socket_ops::bind, endpoint);
 
     zDescriptor.type = socket_type::pub;
 
     zmqSocketDescriptor zDescriptor2("test_socketr");
-    zDescriptor2.addOperation(socket_ops::connect, "inproc://1");
+    zDescriptor2.addOperation(socket_ops::connect, endpoint);
     zDescriptor2.addOperation(socket_ops::subscribe, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
 
@@ -73,18 +74,19 @@ TEST_F(ZmqTests, TestSocketDescriptor)
 TEST_F(ZmqTests, TestReactorA)
 {
     int count = 0;
+    static constexpr const char* endpoint = "inproc://TestReactorA";
 
     auto reactor = zmqReactor::getReactorInstance("reactor1");
 
     zmqSocketDescriptor zDescriptor("test_socket");
-    zDescriptor.addOperation(socket_ops::bind, "inproc://1");
+    zDescriptor.addOperation(socket_ops::bind, endpoint);
 
     zDescriptor.type = socket_type::pub;
     auto& defContext = zmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
     zmqSocketDescriptor zDescriptor2("test_socketr");
-    zDescriptor2.addOperation(socket_ops::connect, "inproc://1");
+    zDescriptor2.addOperation(socket_ops::connect, endpoint);
     zDescriptor2.addOperation(socket_ops::subscribe, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
     zDescriptor2.callback = [&count](const zmq::multipart_t&) { ++count; };
@@ -119,23 +121,24 @@ TEST_F(ZmqTests, TestReactorB)
 {
     int count1 = 0;
     int count2 = 0;
+    static constexpr const char* endpoint = "inproc://TestReactorB";
     auto reactor = zmqReactor::getReactorInstance("reactor1");
 
     zmqSocketDescriptor zDescriptor("test_socket");
-    zDescriptor.addOperation(socket_ops::bind, "inproc://2");
+    zDescriptor.addOperation(socket_ops::bind, endpoint);
 
     zDescriptor.type = socket_type::pub;
     auto& defContext = zmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
     zmqSocketDescriptor zDescriptor2("test_socketr1");
-    zDescriptor2.addOperation(socket_ops::connect, "inproc://2");
+    zDescriptor2.addOperation(socket_ops::connect, endpoint);
     zDescriptor2.addOperation(socket_ops::subscribe, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
     zDescriptor2.callback = [&count1](const zmq::multipart_t&) { ++count1; };
     reactor->addSocket(zDescriptor2);
     zmqSocketDescriptor zDescriptor3("test_socketr2");
-    zDescriptor3.addOperation(socket_ops::connect, "inproc://2");
+    zDescriptor3.addOperation(socket_ops::connect, endpoint);
     zDescriptor3.addOperation(socket_ops::subscribe, "test2");
     zDescriptor3.type = socketTypeFromString("sub");
     zDescriptor3.callback = [&count2](const zmq::multipart_t&) { ++count2; };

@@ -506,7 +506,7 @@ target_include_directories(
 target_include_directories(
     griddyn
     # TODO: revisit whether this broad ThirdParty include path is still needed.
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
+    SYSTEM PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
 )
 
 target_link_libraries(griddyn PUBLIC coreObjects)

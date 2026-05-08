@@ -31,7 +31,6 @@ GRIDDYN_EXPORT int gridDynObjectStateSize(GridDynObject obj, SolverKey key, Grid
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectGuessState(GridDynObject obj,
                                             double time,
@@ -45,7 +44,6 @@ GRIDDYN_EXPORT void gridDynObjectGuessState(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectSetState(GridDynObject obj,
                                           double time,
@@ -59,7 +57,6 @@ GRIDDYN_EXPORT void gridDynObjectSetState(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectGetStateVariableTypes(GridDynObject obj,
                                                        double* types,
@@ -71,7 +68,6 @@ GRIDDYN_EXPORT void gridDynObjectGetStateVariableTypes(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectResidual(GridDynObject obj,
                                           const double* inputs,
@@ -85,7 +81,6 @@ GRIDDYN_EXPORT void gridDynObjectResidual(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectDerivative(GridDynObject obj,
                                             const double* inputs,
@@ -99,7 +94,6 @@ GRIDDYN_EXPORT void gridDynObjectDerivative(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectAlgebraicUpdate(GridDynObject obj,
                                                  const double* inputs,
@@ -114,7 +108,6 @@ GRIDDYN_EXPORT void gridDynObjectAlgebraicUpdate(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectJacobian(GridDynObject obj,
                                           const double* inputs,
@@ -129,7 +122,6 @@ GRIDDYN_EXPORT void gridDynObjectJacobian(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectIoPartialDerivatives(GridDynObject obj,
                                                       const double* inputs,
@@ -143,7 +135,6 @@ GRIDDYN_EXPORT void gridDynObjectIoPartialDerivatives(GridDynObject obj,
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
     @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
-    @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                                           const double* inputs,

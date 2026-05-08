@@ -109,7 +109,13 @@ using controlMessagePayload = griddyn::comms::controlMessagePayload;
 
 void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
 {
+    if (message == nullptr) {
+        return;
+    }
     auto m = message->getPayload<controlMessagePayload>();
+    if (m == nullptr) {
+        return;
+    }
 
     std::shared_ptr<commMessage> reply;
 
@@ -132,10 +138,12 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
             reply = std::make_shared<commMessage>(controlMessagePayload::GET_RESULT);
 
             auto rep = reply->getPayload<controlMessagePayload>();
-            rep->m_field = "level";
-            rep->m_value = m_output;
-            rep->m_time = prevTime;
-            commLink->transmit(sourceID, reply);
+            if (rep != nullptr) {
+                rep->m_field = "level";
+                rep->m_value = m_output;
+                rep->m_time = prevTime;
+                commLink->transmit(sourceID, reply);
+            }
         } break;
         case controlMessagePayload::SET_SUCCESS:
         case controlMessagePayload::SET_FAIL:
@@ -157,7 +165,7 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
                 if (!opFlags[no_message_reply])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<commMessage>(controlMessagePayload::SET_SUCCESS);
-                    auto payload = reply->getPayload<controlMessagePayload>();
+                    auto payload = gres->getPayload<controlMessagePayload>();
                     if (payload != nullptr) {
                         payload->m_actionID = m->m_actionID;
                         commLink->transmit(sourceID, gres);

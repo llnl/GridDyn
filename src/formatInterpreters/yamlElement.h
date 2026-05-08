@@ -12,8 +12,8 @@
 class yamlElement {
   public:
     std::string name;  //!< the name of the element
-    int elementIndex = 0;  //!< an indicator of element Index
-    unsigned int arrayIndex = 0;  //!< the current index into a sequence
+    std::size_t elementIndex = 0;  //!< an indicator of element Index
+    std::size_t arrayIndex = 0;  //!< the current index into a sequence
     yamlElement() {}
     yamlElement(const YAML::Node& vElement, std::string newName);
 

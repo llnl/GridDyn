@@ -691,9 +691,8 @@ void stateOpGrabber::updateField(std::string_view opName)
         }
     }
 
-    loaded =
-        ((opptr != nullptr) && (bgrabber1 != nullptr) && (bgrabber2 != nullptr) &&
-         (bgrabber1->loaded) && (bgrabber2->loaded));
+    loaded = ((opptr != nullptr) && (bgrabber1 != nullptr) && (bgrabber2 != nullptr) &&
+              (bgrabber1->loaded) && (bgrabber2->loaded));
 }
 
 std::unique_ptr<stateGrabber> stateOpGrabber::clone() const

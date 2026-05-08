@@ -28,7 +28,7 @@ constexpr auto k_SQRT3_OVER_2 = 0.86602540378443864676;
 /** multiplier constants for representation change*/
 static constexpr std::complex<double> alpha0 = std::complex<double>(1.0, 0);
 static constexpr std::complex<double> alpha(-0.5, -k_SQRT3_OVER_2);
-static constexpr std::complex<double> alpha2 = alpha * alpha;
+static constexpr std::complex<double> alpha2(-0.5, k_SQRT3_OVER_2);
 
 // constants for rotating a complex number by +120 and -120 degrees
 static constexpr std::complex<double> rotp120(-0.5, k_SQRT3_OVER_2);

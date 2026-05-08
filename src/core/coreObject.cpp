@@ -111,36 +111,44 @@ void coreObject::addOwningReference()
     m_refCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-static stringVec locNumStrings{"updateperiod",
-                               "updaterate",
-                               "nextupdatetime",
-                               "basepower",
-                               "enabled",
-                               "id"};
-static const stringVec locStrStrings{"name", "description"};
+static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
+                                                                "updaterate",
+                                                                "nextupdatetime",
+                                                                "basepower",
+                                                                "enabled",
+                                                                "id"};
+static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
 void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
     switch (pstype) {
         case paramStringType::all:
             pstr.reserve(pstr.size() + locNumStrings.size() + locStrStrings.size() + 1);
-            pstr.insert(pstr.end(), locNumStrings.begin(), locNumStrings.end());
+            for (const auto paramName : locNumStrings) {
+                pstr.emplace_back(paramName);
+            }
             pstr.emplace_back("#");
-            pstr.insert(pstr.end(), locStrStrings.begin(), locStrStrings.end());
+            for (const auto paramName : locStrStrings) {
+                pstr.emplace_back(paramName);
+            }
             break;
         case paramStringType::localnum:
-            pstr = locNumStrings;
+            pstr.assign(locNumStrings.begin(), locNumStrings.end());
             break;
         case paramStringType::localstr:
-            pstr = locStrStrings;
+            pstr.assign(locStrStrings.begin(), locStrStrings.end());
             break;
         case paramStringType::numeric:
             pstr.reserve(pstr.size() + locNumStrings.size());
-            pstr.insert(pstr.end(), locNumStrings.begin(), locNumStrings.end());
+            for (const auto paramName : locNumStrings) {
+                pstr.emplace_back(paramName);
+            }
             break;
         case paramStringType::str:
             pstr.reserve(pstr.size() + locStrStrings.size());
-            pstr.insert(pstr.end(), locStrStrings.begin(), locStrStrings.end());
+            for (const auto paramName : locStrStrings) {
+                pstr.emplace_back(paramName);
+            }
             break;
         case paramStringType::localflags:
         case paramStringType::flags:
@@ -148,7 +156,7 @@ void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) co
     }
 }
 
-void coreObject::set(std::string_view param, std::string_view val)
+void coreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
 {
     if ((param == "name") || (param == "rename") || (param == "id")) {
         setName(val);
@@ -221,7 +229,7 @@ void coreObject::setParent(coreObject* parentObj)
     parent = parentObj;
 }
 
-void coreObject::setFlag(std::string_view flag, bool val)
+void coreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-recursion)
 {
     if ((flag == "enable") || (flag == "status") || (flag == "enabled")) {
         if (isEnabled() != val) {
@@ -287,7 +295,7 @@ double coreObject::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void coreObject::set(std::string_view param, double val, units::unit unitType)
+void coreObject::set(std::string_view param, double val, units::unit unitType)  // NOLINT(misc-no-recursion)
 {
     if ((param == "updateperiod") || (param == "period")) {
         updatePeriod = units::convert(val, unitType, units::second);
@@ -379,16 +387,16 @@ bool coreObject::isCloneable() const
 {
     return true;
 }
-void coreObject::alert(coreObject* object, int code)
+void coreObject::alert(coreObject* object, int code)  // NOLINT(misc-no-recursion)
 {
     parent->alert(object, code);
 }
-void coreObject::log(coreObject* object, print_level level, const std::string& message)
+void coreObject::log(coreObject* object, print_level level, const std::string& message)  // NOLINT(misc-no-recursion)
 {
     parent->log(object, level, message);
 }
 
-bool coreObject::shouldLog(print_level level) const
+bool coreObject::shouldLog(print_level level) const  // NOLINT(misc-no-recursion)
 {
     return (parent != nullptr) ? parent->shouldLog(level) : true;
 }
@@ -400,7 +408,7 @@ void coreObject::makeNewOID()
 // NOTE: there is some potential for recursion here if the parent object searches in lower objects
 // But in some cases you search up, and others you want to search down so we will rely on
 // intelligence on the part of the implementer
-coreObject* coreObject::find(std::string_view object) const
+coreObject* coreObject::find(std::string_view object) const  // NOLINT(misc-no-recursion)
 {
     return (parent->find(object));
 }
@@ -410,7 +418,7 @@ int coreObject::getInt(std::string_view param) const
     return static_cast<int>(get(param));
 }
 
-std::string fullObjectName(const coreObject* obj)
+std::string fullObjectName(const coreObject* obj)  // NOLINT(misc-no-recursion)
 {
     if (obj->parent->m_oid != 0U)  // the nullobject oid==0
     {

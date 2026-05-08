@@ -95,6 +95,18 @@ function0_t get0ArgFunction(std::string_view functionName);
 */
 function1_t get1ArgFunction(std::string_view functionName);
 
+/** @brief find the inverse of a single argument function when available
+@param[in] functionName the function name
+@return the inverse function or nullptr if not available
+*/
+function1_t getInverse1ArgFunction(std::string_view functionName);
+
+/** @brief find the derivative of a single argument function when available
+@param[in] functionName the function name
+@return the derivative function or nullptr if not available
+*/
+function1_t getDerivative1ArgFunction(std::string_view functionName);
+
 /** @brief find a two argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function

@@ -38,6 +38,7 @@ coreObject* functionBlock::clone(coreObject* obj) const
         return obj;
     }
     nobj->fptr = fptr;
+    nobj->dfptr = dfptr;
     nobj->gain = gain;
     nobj->bias = bias;
     return nobj;
@@ -91,9 +92,13 @@ void functionBlock::blockJacobianElements(double input,
         double temp2 = fptr2(gain * (input + 1e-8 + bias), arg2);
         md.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
     } else {
-        double temp1 = fptr(gain * (input + bias));
-        double temp2 = fptr(gain * (input + 1e-8 + bias));
-        md.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
+        if (dfptr != nullptr) {
+            md.assignCheck(offset, argLoc, K * dfptr(gain * (input + bias)) * gain);
+        } else {
+            double temp1 = fptr(gain * (input + bias));
+            double temp2 = fptr(gain * (input + 1e-8 + bias));
+            md.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
+        }
     }
     md.assign(offset, offset, -1);
     if (limiter_alg > 0) {
@@ -142,14 +147,17 @@ void functionBlock::setFunction(const std::string& functionName)
 {
     if (auto unaryFunctionPtr = get1ArgFunction(functionName)) {
         fptr = unaryFunctionPtr;
+        dfptr = getDerivative1ArgFunction(functionName);
         fptr2 = nullptr;
         opFlags.reset(uses_constantarg);
     } else if (auto binaryFunctionPtr = get2ArgFunction(functionName)) {
         fptr = nullptr;
+        dfptr = nullptr;
         fptr2 = binaryFunctionPtr;
         opFlags.set(uses_constantarg);
     } else {
         fptr = nullptr;
+        dfptr = nullptr;
         fptr2 = nullptr;
     }
 }

@@ -516,6 +516,16 @@ function1_t get1ArgFunction(std::string_view functionName)
     return lookupFunction(FuncList1, functionName);
 }
 
+function1_t getInverse1ArgFunction(std::string_view functionName)
+{
+    return lookupFunction(invFuncList1, functionName);
+}
+
+function1_t getDerivative1ArgFunction(std::string_view functionName)
+{
+    return lookupFunction(derivFuncList1, functionName);
+}
+
 function2_t get2ArgFunction(std::string_view functionName)
 {
     return lookupFunction(FuncList2, functionName);

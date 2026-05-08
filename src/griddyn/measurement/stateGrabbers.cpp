@@ -577,6 +577,7 @@ stateFunctionGrabber::stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, st
         bgrabber = std::move(ggb);
     }
     opptr = get1ArgFunction(function_name);
+    dopptr = getDerivative1ArgFunction(function_name);
     if (bgrabber) {
         jacMode = bgrabber->getJacobianMode();
         loaded = ((opptr != nullptr) && bgrabber->loaded);
@@ -591,8 +592,10 @@ void stateFunctionGrabber::updateField(std::string_view fld)
         if (auto function = get1ArgFunction(fld)) {
             function_name = fld;
             opptr = function;
+            dopptr = getDerivative1ArgFunction(function_name);
         } else {
             opptr = nullptr;
+            dopptr = nullptr;
             loaded = false;
         }
     }
@@ -623,6 +626,7 @@ void stateFunctionGrabber::cloneTo(stateGrabber* ggb) const
     }
     sfg->function_name = function_name;
     sfg->opptr = opptr;
+    sfg->dopptr = dopptr;
 }
 
 double stateFunctionGrabber::grabData(const stateData& sD, const solverMode& sMode)
@@ -652,9 +656,7 @@ void stateFunctionGrabber::outputPartialDerivatives(const stateData& sD,
     }
 
     double temp = bgrabber->grabData(sD, sMode);
-    double t1 = opptr(temp);
-    double t2 = opptr(temp + 1e-7);
-    double dodI = (t2 - t1) / 1e-7;
+    double dodI = (dopptr != nullptr) ? dopptr(temp) : (opptr(temp + 1e-7) - opptr(temp)) / 1e-7;
 
     matrixDataScale<double> d1(md, dodI * gain);
     bgrabber->outputPartialDerivatives(sD, d1, sMode);

@@ -146,6 +146,7 @@ class stateFunctionGrabber: public stateGrabber {
         bgrabber;  //!< the grabber that gets the data that the function operates on
     std::string function_name;  //!< the name of the function
     function1_t opptr = nullptr;  //!< function object
+    function1_t dopptr = nullptr;  //!< derivative function object
 
   public:
     stateFunctionGrabber() = default;

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../Block.h"
-#include <functional>
+#include "utilities/functionInterpreter.h"
 #include <string>
 
 namespace griddyn::blocks {
@@ -24,9 +24,8 @@ class functionBlock: public Block {
     };
 
   protected:
-    std::function<double(double)> fptr;  //!< function object for single argument functions
-    std::function<double(double, double)>
-        fptr2;  //!< function object for multiple argument functions
+    function1_t fptr = nullptr;  //!< function object for single argument functions
+    function2_t fptr2 = nullptr;  //!< function object for multiple argument functions
     model_parameter gain = 1.0;  //!< extra gain factor
     model_parameter arg2 = 0.0;  //!< second argument for 2 argument functions
   public:

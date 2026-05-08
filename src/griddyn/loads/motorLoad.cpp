@@ -30,7 +30,7 @@ static typeFactory<motorLoad3> mlf3("load", stringVec{"motor3", "motorIII", "m3"
 
 static typeFactory<motorLoad5> mlf5("load", stringVec{"motor5", "motorIV", "m5"});
 
-static const double cSmallDiff = 1e-7;
+static constexpr double cSmallDiff = 1e-7;
 motorLoad::motorLoad(const std::string& objName): Load(objName)
 {
     // default values

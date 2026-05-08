@@ -9,6 +9,7 @@
 #include "../events/eventInterface.hpp"
 #include "../gridComponent.h"
 #include "core/objectOperatorInterface.hpp"
+#include "utilities/functionInterpreter.h"
 #include <functional>
 #include <memory>
 #include <string>
@@ -144,7 +145,7 @@ class stateFunctionGrabber: public stateGrabber {
     std::shared_ptr<stateGrabber>
         bgrabber;  //!< the grabber that gets the data that the function operates on
     std::string function_name;  //!< the name of the function
-    std::function<double(double val)> opptr;  //!< function object
+    function1_t opptr = nullptr;  //!< function object
 
   public:
     stateFunctionGrabber() = default;
@@ -167,8 +168,7 @@ class stateOpGrabber: public stateGrabber {
     std::shared_ptr<stateGrabber> bgrabber1;  //!< grabber 1 as the first argument
     std::shared_ptr<stateGrabber> bgrabber2;  //!< grabber 2 as the second argument
     std::string op_name;  //!< the name of the operation
-    std::function<double(double val1, double val2)>
-        opptr;  //!< function pointer for a two argument function
+    function2_t opptr = nullptr;  //!< function pointer for a two argument function
 
   public:
     /** default constructor*/

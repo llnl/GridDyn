@@ -8,6 +8,7 @@
 
 #include "../gridDynDefinitions.hpp"
 #include "core/objectOperatorInterface.hpp"
+#include "utilities/functionInterpreter.h"
 #include "units/units.hpp"
 #include <functional>
 #include <memory>
@@ -122,9 +123,8 @@ class functionGrabber: public gridGrabber {
   protected:
     std::shared_ptr<gridGrabber> bgrabber;  //!< the underlying grabber to get the data
     std::string function_name;  //!< the name of the function
-    std::function<double(double val)> opptr;  //!< the function operation on the data
-    std::function<double(std::vector<double>)>
-        opptrV;  //!< the function to call to get a vector of data
+    function1_t opptr = nullptr;  //!< the function operation on the data
+    vector_function1_t opptrV = nullptr;  //!< the function to call to get a vector of data
     std::vector<double> tempArray;  //!< temporary array data location
 
   public:
@@ -153,9 +153,8 @@ class opGrabber: public gridGrabber {
     std::shared_ptr<gridGrabber> bgrabber1;  //!< grabber 1
     std::shared_ptr<gridGrabber> bgrabber2;  //!< grabber 2
     std::string op_name;  //!< the name of the 2 argument operation
-    std::function<double(double, double)> opptr;  //!< the function pointer to the operation
-    std::function<double(std::vector<double>, std::vector<double>)>
-        opptrV;  //!< function pointer to a vector grab operation
+    function2_t opptr = nullptr;  //!< the function pointer to the operation
+    vector_function2_t opptrV = nullptr;  //!< function pointer to a vector grab operation
     std::vector<double> tempArray1, tempArray2;  //!< temporary arrays for processing the data
   public:
     opGrabber() = default;

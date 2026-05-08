@@ -9,6 +9,7 @@
 #include <memory>
 #include <random>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 /** abstract class defining a random distribution*/
@@ -72,7 +73,7 @@ class gridRandom {
     explicit gridRandom(dist_type_t dist = dist_type_t::normal,
                         double param1 = 0.0,
                         double param2 = 1.0);
-    explicit gridRandom(const std::string& dist_name, double param1 = 0.0, double param2 = 1.0);
+    explicit gridRandom(std::string_view dist_name, double param1 = 0.0, double param2 = 1.0);
 
     void setDistribution(dist_type_t dist);
     dist_type_t getDistribution() const { return m_dist; }
@@ -151,6 +152,6 @@ class randomDistributionObject1<void>: public distributionObject {
 };
 
 /** get the distribution type from a string*/
-gridRandom::dist_type_t getDist(const std::string& dist_name);
+gridRandom::dist_type_t getDist(std::string_view dist_name);
 
 }  // namespace utilities

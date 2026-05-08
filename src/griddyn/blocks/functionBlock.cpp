@@ -140,12 +140,17 @@ void functionBlock::set(std::string_view param, double val, units::unit unitType
 
 void functionBlock::setFunction(const std::string& functionName)
 {
-    if (isFunctionName(functionName, function_type::arg)) {
-        fptr = get1ArgFunction(functionName);
+    if (auto unaryFunctionPtr = get1ArgFunction(functionName)) {
+        fptr = unaryFunctionPtr;
+        fptr2 = nullptr;
         opFlags.reset(uses_constantarg);
-    } else if (isFunctionName(functionName, function_type::arg2)) {
-        fptr2 = get2ArgFunction(functionName);
+    } else if (auto binaryFunctionPtr = get2ArgFunction(functionName)) {
+        fptr = nullptr;
+        fptr2 = binaryFunctionPtr;
         opFlags.set(uses_constantarg);
+    } else {
+        fptr = nullptr;
+        fptr2 = nullptr;
     }
 }
 

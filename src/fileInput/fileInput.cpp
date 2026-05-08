@@ -14,9 +14,9 @@
 #include "griddyn/gridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
+#include <array>
 #include <filesystem>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 namespace griddyn {
@@ -122,22 +122,24 @@ int objectParameterSet(const std::string& label, coreObject* obj, gridParameter&
     return (-1);
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string, int, std::less<>> flagStringMap{
+static constexpr std::array<std::pair<std::string_view, int>, 4> flagStringMap{{
     {"ignore_step_up_transformers", ignore_step_up_transformer},
     {"powerflow_only", assume_powerflow_only},
     {"no_generator_bus_reset", no_generator_bus_voltage_reset},
     {"no_generator_bus_voltage_reset", no_generator_bus_voltage_reset},
-};
+}};
 
 void addflags(basicReaderInfo& bri, const std::string& flags)
 {
     auto flagsep = gmlc::utilities::stringOps::splitline(flags);
     gmlc::utilities::stringOps::trim(flagsep);
     for (auto& flag : flagsep) {
-        auto fnd = flagStringMap.find(gmlc::utilities::convertToLowerCase(flag));
-        if (fnd != flagStringMap.end()) {
-            bri.setFlag(fnd->second);
+        const auto loweredFlag = gmlc::utilities::convertToLowerCase(flag);
+        for (const auto& [name, value] : flagStringMap) {
+            if (name == loweredFlag) {
+                bri.setFlag(value);
+                break;
+            }
         }
     }
 }

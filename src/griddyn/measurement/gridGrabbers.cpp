@@ -312,14 +312,16 @@ functionGrabber::functionGrabber(std::shared_ptr<gridGrabber> ggb, std::string f
 {
     function_name = std::move(func);
 
-    if (isFunctionName(function_name, function_type::arg)) {
-        opptr = get1ArgFunction(function_name);
+    if (auto unaryFunctionPtr = get1ArgFunction(function_name)) {
+        opptr = unaryFunctionPtr;
+        opptrV = nullptr;
         vectorGrab = bgrabber->vectorGrab;
         if (bgrabber->loaded) {
             loaded = true;
         }
-    } else if (isFunctionName(function_name, function_type::vect_arg)) {
-        opptrV = getArrayFunction(function_name);
+    } else if (auto vectorFunctionPtr = getArrayFunction(function_name)) {
+        opptr = nullptr;
+        opptrV = vectorFunctionPtr;
         vectorGrab = false;
         if (bgrabber->loaded) {
             loaded = true;
@@ -331,12 +333,17 @@ void functionGrabber::updateField(std::string_view fld)
 {
     function_name = fld;
 
-    if (isFunctionName(function_name, function_type::arg)) {
-        opptr = get1ArgFunction(function_name);
+    if (auto unaryFunctionPtr = get1ArgFunction(function_name)) {
+        opptr = unaryFunctionPtr;
+        opptrV = nullptr;
         vectorGrab = bgrabber->vectorGrab;
-    } else if (isFunctionName(function_name, function_type::vect_arg)) {
-        opptrV = getArrayFunction(function_name);
+    } else if (auto vectorFunctionPtr = getArrayFunction(function_name)) {
+        opptr = nullptr;
+        opptrV = vectorFunctionPtr;
         vectorGrab = false;
+    } else {
+        opptr = nullptr;
+        opptrV = nullptr;
     }
     loaded = checkIfLoaded();
 }
@@ -398,6 +405,10 @@ void functionGrabber::grabVectorData(std::vector<double>& vdata)
 {
     if (bgrabber->vectorGrab) {
         bgrabber->grabVectorData(tempArray);
+        vdata.resize(tempArray.size());
+    } else {
+        tempArray.assign(1, bgrabber->grabData());
+        vdata.resize(1);
     }
     std::transform(tempArray.begin(), tempArray.end(), vdata.begin(), opptr);
 }
@@ -449,12 +460,14 @@ opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
     if (ggb2) {
         bgrabber2 = std::move(ggb2);
     }
-    if (isFunctionName(op_name, function_type::arg2)) {
-        opptr = get2ArgFunction(op_name);
+    if (auto binaryFunctionPtr = get2ArgFunction(op_name)) {
+        opptr = binaryFunctionPtr;
+        opptrV = nullptr;
         vectorGrab = (bgrabber1) ? bgrabber1->vectorGrab : false;
         loaded = opGrabber::checkIfLoaded();
-    } else if (isFunctionName(op_name, function_type::vect_arg2)) {
-        opptrV = get2ArrayFunction(op_name);
+    } else if (auto vectorFunctionPtr = get2ArrayFunction(op_name)) {
+        opptr = nullptr;
+        opptrV = vectorFunctionPtr;
         vectorGrab = false;
     }
     loaded = opGrabber::checkIfLoaded();
@@ -464,14 +477,20 @@ void opGrabber::updateField(std::string_view fld)
 {
     op_name = fld;
 
-    if (isFunctionName(op_name, function_type::arg2)) {
-        opptr = get2ArgFunction(op_name);
+    if (auto binaryFunctionPtr = get2ArgFunction(op_name)) {
+        opptr = binaryFunctionPtr;
+        opptrV = nullptr;
         vectorGrab = (bgrabber1) ? bgrabber1->vectorGrab : false;
         loaded = opGrabber::checkIfLoaded();
-    } else if (isFunctionName(op_name, function_type::vect_arg2)) {
-        opptrV = get2ArrayFunction(op_name);
+    } else if (auto vectorFunctionPtr = get2ArrayFunction(op_name)) {
+        opptr = nullptr;
+        opptrV = vectorFunctionPtr;
         vectorGrab = false;
         loaded = opGrabber::checkIfLoaded();
+    } else {
+        opptr = nullptr;
+        opptrV = nullptr;
+        loaded = false;
     }
 }
 

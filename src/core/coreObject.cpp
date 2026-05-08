@@ -11,10 +11,10 @@
 #include "gmlc/utilities/string_viewOps.h"
 #include "nullObject.h"
 #include "utilities/dataDictionary.h"
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <string>
-#include <unordered_map>
 
 namespace griddyn {
 // start at 101 since there are some objects that use low numbers as a check for interface number
@@ -463,7 +463,7 @@ void setMultipleFlags(coreObject* obj, std::string_view flags)
     }
 }
 
-static const std::unordered_map<std::string, print_level> printLevelsMap{
+static constexpr std::array<std::pair<std::string_view, print_level>, 14> printLevelsMap{{
     {"none", print_level::no_print},
     {"error", print_level::error},
     {"warning", print_level::warning},
@@ -478,13 +478,14 @@ static const std::unordered_map<std::string, print_level> printLevelsMap{
     {"summary_print", print_level::summary},
     {"debug_print", print_level::debug},
     {"trace_print", print_level::trace},
-};
+}};
 
 print_level stringToPrintLevel(const std::string& level)
 {
-    auto fnd = printLevelsMap.find(level);
-    if (fnd != printLevelsMap.end()) {
-        return fnd->second;
+    for (const auto& [name, value] : printLevelsMap) {
+        if (name == level) {
+            return value;
+        }
     }
     throw(invalidParameterValue(level));
 }

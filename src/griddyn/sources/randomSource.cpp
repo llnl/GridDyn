@@ -15,8 +15,6 @@
 #include <memory>
 #include <string>
 
-using gmlc::utilities::convertToLowerCase;
-
 namespace griddyn::sources {
 randomSource::randomSource(const std::string& objName, double startVal):
     rampSource(objName, startVal), param1_L(startVal)
@@ -52,12 +50,12 @@ coreObject* randomSource::clone(coreObject* obj) const
 void randomSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "trigger_dist") || (param == "time_dist")) {
-        timeDistribution = convertToLowerCase(val);
+        timeDistribution = val;
         if (opFlags[dyn_initialized]) {
             timeGenerator->setDistribution(utilities::getDist(timeDistribution));
         }
     } else if ((param == "size_dist") || (param == "change_dist")) {
-        valDistribution = convertToLowerCase(val);
+        valDistribution = val;
         if (opFlags[dyn_initialized]) {
             valGenerator->setDistribution(utilities::getDist(valDistribution));
         }

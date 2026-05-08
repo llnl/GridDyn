@@ -33,7 +33,7 @@ namespace griddyn::paradae {
 #    endif
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_EXTRASOLVERS_PARADAE_COMMON_TIMER_H_
 
-const int MAX_NTIME = 100;
+inline constexpr int MAX_NTIME = 100;
 
 class TimedElem {
     std::string name;

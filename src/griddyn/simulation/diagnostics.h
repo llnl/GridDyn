@@ -21,8 +21,8 @@ class solverMode;
 class SolverInterface;
 class coreObject;
 
-const double resid_check_tol = 1e-5;
-const double jac_check_tol = 1e-5;
+inline constexpr double resid_check_tol = 1e-5;
+inline constexpr double jac_check_tol = 1e-5;
 /** @brief function check on the Jacobian
   function does a comparison between the computed Jacobian via the jacobianElements function call
 and a numerically calculated version from the residual,  It will not check Jacobian elements

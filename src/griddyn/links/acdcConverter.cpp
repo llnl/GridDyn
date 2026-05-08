@@ -18,8 +18,9 @@
 #include <cstring>
 #include <string>
 namespace griddyn::links {
-static const double k3sq2 = (3.0 * sqrt(2.0) / kPI);
-static const double k3sq2sq = k3sq2 * k3sq2;
+static constexpr double kSqrt2 = 1.41421356237309504880;
+static constexpr double k3sq2 = 3.0 * kSqrt2 / kPI;
+static constexpr double k3sq2sq = k3sq2 * k3sq2;
 
 using units::convert;
 using units::puMW;

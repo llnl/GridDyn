@@ -13,11 +13,11 @@
 #include <vector>
 
 namespace utilities {
-static const char* zipname = "minizip";
-static const char* ziparg_overwrite = "-o";
-static const char* ziparg_append = "-a";
-static const char* ziparg2 = "-3";
-static const char* ziparg3 = "-j";
+static constexpr char zipname[] = "minizip";
+static constexpr char ziparg_overwrite[] = "-o";
+static constexpr char ziparg_append[] = "-a";
+static constexpr char ziparg2[] = "-3";
+static constexpr char ziparg3[] = "-j";
 
 int zip(const std::string& file, const std::vector<std::string>& filesToZip, zipMode mode)
 {
@@ -127,10 +127,10 @@ int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mod
     return status;
 }
 
-static const char* unzipname = "miniunz";
-static const char* unziparg1 = "-x";
-static const char* unziparg2 = "-o";
-static const char* unziparg4 = "-d";
+static constexpr char unzipname[] = "miniunz";
+static constexpr char unziparg1[] = "-x";
+static constexpr char unziparg2[] = "-o";
+static constexpr char unziparg4[] = "-d";
 
 int unzip(const std::string& file, const std::string& directory)
 {

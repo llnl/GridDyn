@@ -6,17 +6,65 @@
 
 #include "gridRandom.h"
 
-#include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
+#include <array>
 #include <ctime>
-#include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace utilities {
+namespace {
+template<class Value>
+struct lookupEntry {
+    std::string_view name;
+    Value value;
+};
+
+constexpr char asciiToLower(char ch) noexcept
+{
+    return ((ch >= 'A') && (ch <= 'Z')) ? static_cast<char>(ch - 'A' + 'a') : ch;
+}
+
+bool isLowerAscii(std::string_view str) noexcept
+{
+    return std::all_of(str.begin(), str.end(), [](char ch) { return (ch < 'A') || (ch > 'Z'); });
+}
+
+template<class Value, std::size_t N>
+constexpr auto makeLookupTable(const lookupEntry<Value> (&entries)[N])
+{
+    return std::to_array(entries);
+}
+
+template<class Value, std::size_t N>
+Value lookupExact(const std::array<lookupEntry<Value>, N>& lookupTable,
+                  std::string_view key,
+                  Value defaultValue)
+{
+    const auto match = std::find_if(lookupTable.begin(), lookupTable.end(), [key](const auto& entry) {
+        return entry.name == key;
+    });
+    return (match != lookupTable.end()) ? match->value : defaultValue;
+}
+
+template<class Value, std::size_t N>
+Value lookupValue(const std::array<lookupEntry<Value>, N>& lookupTable,
+                  std::string_view key,
+                  Value defaultValue)
+{
+    if (isLowerAscii(key)) {
+        return lookupExact(lookupTable, key, defaultValue);
+    }
+    std::string lowerKey(key);
+    std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), asciiToLower);
+    return lookupExact(lookupTable, lowerKey, defaultValue);
+}
+}  // namespace
+
 std::mt19937 gridRandom::s_gen;
 std::uniform_real_distribution<double> gridRandom::s_udist;
 std::exponential_distribution<double> gridRandom::s_expdist;
@@ -38,7 +86,7 @@ gridRandom::gridRandom(dist_type_t dist, double param1, double param2):
     }
 }
 
-gridRandom::gridRandom(const std::string& dist_name, double param1, double param2):
+gridRandom::gridRandom(std::string_view dist_name, double param1, double param2):
     gridRandom(getDist(dist_name), param1, param2)
 {
 }
@@ -207,7 +255,7 @@ std::pair<double, double> gridRandom::getPair()
 {
     return std::make_pair((*dobj)(), (*dobj)());
 }
-static const std::map<std::string, gridRandom::dist_type_t> distmap{
+static constexpr auto distmap = makeLookupTable<gridRandom::dist_type_t>({
     {"constant", gridRandom::dist_type_t::constant},
     {"const", gridRandom::dist_type_t::constant},
     {"uniform", gridRandom::dist_type_t::uniform},
@@ -217,13 +265,12 @@ static const std::map<std::string, gridRandom::dist_type_t> distmap{
     {"gamma", gridRandom::dist_type_t::gamma},
     {"normal", gridRandom::dist_type_t::normal},
     {"gaussian", gridRandom::dist_type_t::normal},
-    {"gaussian", gridRandom::dist_type_t::normal},  // common spelling mistake
     {"uniform_int", gridRandom::dist_type_t::uniform_int},
-};
+});
 
-gridRandom::dist_type_t getDist(const std::string& dist_name)
+gridRandom::dist_type_t getDist(std::string_view dist_name)
 {
-    return mapFind(distmap, dist_name, gridRandom::dist_type_t::constant);
+    return lookupValue(distmap, dist_name, gridRandom::dist_type_t::constant);
 }
 
 }  // namespace utilities

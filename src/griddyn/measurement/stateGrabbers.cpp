@@ -577,23 +577,27 @@ stateFunctionGrabber::stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, st
         bgrabber = std::move(ggb);
     }
     opptr = get1ArgFunction(function_name);
-    jacMode = (bgrabber->getJacobianMode());
-    loaded = bgrabber->loaded;
+    if (bgrabber) {
+        jacMode = bgrabber->getJacobianMode();
+        loaded = ((opptr != nullptr) && bgrabber->loaded);
+    } else {
+        loaded = false;
+    }
 }
 
 void stateFunctionGrabber::updateField(std::string_view fld)
 {
     if (!fld.empty()) {
-        const std::string fldString{fld};
-        if (isFunctionName(fldString, function_type::arg)) {
+        if (auto function = get1ArgFunction(fld)) {
             function_name = fld;
-            opptr = get1ArgFunction(function_name);
+            opptr = function;
         } else {
+            opptr = nullptr;
             loaded = false;
         }
     }
 
-    loaded = true;
+    loaded = ((opptr != nullptr) && (bgrabber != nullptr) && bgrabber->loaded);
 }
 
 std::unique_ptr<stateGrabber> stateFunctionGrabber::clone() const
@@ -667,23 +671,29 @@ stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
         bgrabber2 = std::move(ggb2);
     }
     opptr = get2ArgFunction(op_name);
-    jacMode = std::min(bgrabber1->getJacobianMode(), bgrabber2->getJacobianMode());
-    loaded = ((bgrabber1->loaded) && (bgrabber2->loaded));
+    if ((bgrabber1 != nullptr) && (bgrabber2 != nullptr)) {
+        jacMode = std::min(bgrabber1->getJacobianMode(), bgrabber2->getJacobianMode());
+        loaded = ((opptr != nullptr) && (bgrabber1->loaded) && (bgrabber2->loaded));
+    } else {
+        loaded = false;
+    }
 }
 
 void stateOpGrabber::updateField(std::string_view opName)
 {
     if (!opName.empty()) {
-        const std::string opNameString{opName};
-        if (isFunctionName(opNameString, function_type::arg2)) {
+        if (auto function = get2ArgFunction(opName)) {
             op_name = opName;
-            opptr = get2ArgFunction(op_name);
+            opptr = function;
         } else {
+            opptr = nullptr;
             loaded = false;
         }
     }
 
-    loaded = true;
+    loaded =
+        ((opptr != nullptr) && (bgrabber1 != nullptr) && (bgrabber2 != nullptr) &&
+         (bgrabber1->loaded) && (bgrabber2->loaded));
 }
 
 std::unique_ptr<stateGrabber> stateOpGrabber::clone() const

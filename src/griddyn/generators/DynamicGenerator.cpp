@@ -23,6 +23,7 @@
 #include "isocController.h"
 #include "utilities/matrixDataScale.hpp"
 #include <algorithm>
+#include <functional>
 #include <map>
 #include <string>
 #include <string_view>
@@ -74,9 +75,11 @@ coreObject* DynamicGenerator::clone(coreObject* obj) const
     }
     return gen;
 }
-/** a mapping from a string to a dynamic generator model type*/
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>> dynModelFromStringMap{
+namespace {
+const auto& getDynModelFromStringMap()
+{
+    static const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+        dynModelFromStringMap{
         {"typical", DynamicGenerator::dynModel_t::typical},
         {"simple", DynamicGenerator::dynModel_t::simple},
         {"model_only", DynamicGenerator::dynModel_t::model_only},
@@ -89,10 +92,14 @@ const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::st
         {"renewable", DynamicGenerator::dynModel_t::renewable},
         {"variable", DynamicGenerator::dynModel_t::renewable},
     };
+    return dynModelFromStringMap;
+}
+}  // namespace
 
 DynamicGenerator::dynModel_t DynamicGenerator::dynModelFromString(const std::string& dynModelType)
 {
     const auto str = gmlc::utilities::convertToLowerCase(dynModelType);
+    const auto& dynModelFromStringMap = getDynModelFromStringMap();
     const auto foundModel = dynModelFromStringMap.find(str);
     return (foundModel != dynModelFromStringMap.end()) ? foundModel->second : dynModel_t::invalid;
 }

@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <format>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>

@@ -46,8 +46,7 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<DynamicGenerator> generatorFactory("generator",
-                                                      stringVec{"local_dynamic"});
+static typeFactory<DynamicGenerator> generatorFactory("generator", stringVec{"local_dynamic"});
 
 using units::convert;
 using units::MVAR;
@@ -347,9 +346,15 @@ void DynamicGenerator::updateLocalCache(const IOdata& inputs,
         // generate updated input values which in many cases will be the same as before
         generateSubModelInputs(inputs, stateDataValue, sMode);
         const double scale = machineBasePower / systemBasePower;
-        P = -genModel->getOutput(subInputs.inputs[genmodel_loc], stateDataValue, sMode, PoutLocation) *
+        P = -genModel->getOutput(subInputs.inputs[genmodel_loc],
+                                 stateDataValue,
+                                 sMode,
+                                 PoutLocation) *
             scale;
-        Q = -genModel->getOutput(subInputs.inputs[genmodel_loc], stateDataValue, sMode, QoutLocation) *
+        Q = -genModel->getOutput(subInputs.inputs[genmodel_loc],
+                                 stateDataValue,
+                                 sMode,
+                                 QoutLocation) *
             scale;
     }
 }
@@ -700,15 +705,16 @@ void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
     matrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
     // compute the Jacobian
 
-    genModel->outputPartialDerivatives(
-        subInputs.inputs[genmodel_loc], stateDataValue, scaledMatrixData, sMode);
+    genModel->outputPartialDerivatives(subInputs.inputs[genmodel_loc],
+                                       stateDataValue,
+                                       scaledMatrixData,
+                                       sMode);
     // only valid locations are the generator internal coupled states
-    genModel->ioPartialDerivatives(
-        subInputs.inputs[genmodel_loc],
-        stateDataValue,
-        scaledMatrixData,
-        subInputLocs.genModelInputLocsInternal,
-        sMode);
+    genModel->ioPartialDerivatives(subInputs.inputs[genmodel_loc],
+                                   stateDataValue,
+                                   scaledMatrixData,
+                                   subInputLocs.genModelInputLocsInternal,
+                                   sMode);
 }
 
 count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& sMode) const
@@ -1029,8 +1035,7 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
         subInputs.inputs[governor_loc][govOmegaInLocation] =
             genModel->getFreq(stateDataValue, sMode);
         if (isoc != nullptr) {
-            subInputs.inputs[isoc_control][0] =
-                genModel->getFreq(stateDataValue, sMode) - 1.0;
+            subInputs.inputs[isoc_control][0] = genModel->getFreq(stateDataValue, sMode) - 1.0;
         }
     }
 

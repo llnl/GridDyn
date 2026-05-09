@@ -802,11 +802,10 @@ void gridComponent::addSubObject(gridComponent* comp)
 void gridComponent::removeSubObject(gridComponent* obj)
 {
     if (!subObjectList.empty()) {
-        auto rmobj = std::find_if(subObjectList.begin(),
-                                  subObjectList.end(),
-                                  [obj](coreObject* subObject) {
-                                      return isSameObject(subObject, obj);
-                                  });
+        auto rmobj =
+            std::find_if(subObjectList.begin(), subObjectList.end(), [obj](coreObject* subObject) {
+                return isSameObject(subObject, obj);
+            });
         if (rmobj != subObjectList.end()) {
             removeReference(*rmobj, this);
             subObjectList.erase(rmobj);

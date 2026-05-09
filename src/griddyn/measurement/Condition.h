@@ -205,8 +205,7 @@ class compoundCondition: public Condition {
     compoundCondition() = default;
 
     virtual double evalCondition() override;
-    virtual double evalCondition(const stateData& stateDataValue,
-                                 const solverMode& sMode) override;
+    virtual double evalCondition(const stateData& stateDataValue, const solverMode& sMode) override;
     virtual bool checkCondition() const override;
     virtual bool checkCondition(const stateData& stateDataValue,
                                 const solverMode& sMode) const override;

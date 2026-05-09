@@ -164,7 +164,8 @@ Source* sourceLoad::findSource(std::string_view srcname)
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
         const int index = sourceLink[ind->second];
-        if ((index < 0) || std::cmp_less_equal(sources.size(), index) || (sources[index] == nullptr)) {
+        if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
+            (sources[index] == nullptr)) {
             // this may not actually do anything is the sType is set to other
             add(makeSource(static_cast<sourceLoad::sourceLoc>(ind->second)));
         }
@@ -254,7 +255,8 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
     } else {
         auto ind = source_lookup.find(param);
         if (ind != source_lookup.end()) {
-            if (std::cmp_greater(sources.size(), ind->second) && (sources[ind->second] != nullptr)) {
+            if (std::cmp_greater(sources.size(), ind->second) &&
+                (sources[ind->second] != nullptr)) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else if (!opFlags[pFlow_initialized]) {
                 sourceLink[ind->second] = static_cast<int>(val);

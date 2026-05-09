@@ -44,8 +44,7 @@ class Communicator:
      * @param[in] destName the identifier of the receiving location specified as a string
      * @param[in] message  the message to send
      */
-    virtual void transmit(std::string_view destName,
-                          const std::shared_ptr<commMessage>& message);
+    virtual void transmit(std::string_view destName, const std::shared_ptr<commMessage>& message);
     /** transmit a commMessage somewhere
      * transmits a data block to somewhere Else
      * @param[in] destID the identifier of the receiving location specified as a id code

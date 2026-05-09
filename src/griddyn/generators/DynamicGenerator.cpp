@@ -24,6 +24,7 @@
 #include "utilities/matrixDataScale.hpp"
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // #include <set>
@@ -71,7 +72,8 @@ coreObject* DynamicGenerator::clone(coreObject* obj) const
     return gen;
 }
 /** a mapping from a string to a dynamic generator model type*/
-const std::map<std::string, DynamicGenerator::dynModel_t> dynModelFromStringMap{
+const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+    dynModelFromStringMap{
     {"typical", DynamicGenerator::dynModel_t::typical},
     {"simple", DynamicGenerator::dynModel_t::simple},
     {"model_only", DynamicGenerator::dynModel_t::model_only},
@@ -87,8 +89,9 @@ const std::map<std::string, DynamicGenerator::dynModel_t> dynModelFromStringMap{
 
 DynamicGenerator::dynModel_t DynamicGenerator::dynModelFromString(const std::string& dynModelType)
 {
-    auto str = gmlc::utilities::convertToLowerCase(dynModelType);
-    return mapFind(dynModelFromStringMap, str, dynModel_t::invalid);
+    const auto str = gmlc::utilities::convertToLowerCase(dynModelType);
+    const auto foundModel = dynModelFromStringMap.find(str);
+    return (foundModel != dynModelFromStringMap.end()) ? foundModel->second : dynModel_t::invalid;
 }
 
 void DynamicGenerator::buildDynModel(dynModel_t dynModel)

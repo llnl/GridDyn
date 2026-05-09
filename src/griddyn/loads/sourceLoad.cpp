@@ -12,6 +12,7 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <string_view>
 
 namespace griddyn::loads {
 sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName)
@@ -36,7 +37,7 @@ coreObject* sourceLoad::clone(coreObject* obj) const
     return nobj;
 }
 
-static const std::map<std::string, int> source_lookup{
+static const std::map<std::string_view, int, std::less<>> source_lookup{
     {"source", sourceLoad::p_source},
     {"psource", sourceLoad::p_source},
     {"p_source", sourceLoad::p_source},
@@ -56,7 +57,7 @@ static const std::map<std::string, int> source_lookup{
     {"iq_source", sourceLoad::iq_source},
 };
 
-static const std::map<std::string, int> sourcekey_lookup{
+static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
     {"p", sourceLoad::p_source},
     {"q", sourceLoad::q_source},
     {"r", sourceLoad::r_source},
@@ -70,7 +71,7 @@ static const std::map<std::string, int> sourcekey_lookup{
     {"iq", sourceLoad::iq_source},
 };
 
-static const std::map<std::string, int> source_match{
+static const std::map<std::string_view, int, std::less<>> source_match{
     {"source", sourceLoad::p_source},     {"psource", sourceLoad::p_source},
     {"p_source", sourceLoad::p_source},   {"qsource", sourceLoad::q_source},
     {"q_source", sourceLoad::q_source},   {"resource", sourceLoad::r_source},
@@ -100,7 +101,7 @@ void sourceLoad::add(Source* src)
     src->setFlag("pflow_init_required", true);
     if (src->locIndex != kNullLocation) {
     } else if (!src->purpose_.empty()) {
-        auto ind = source_match.find(src->purpose_);
+        auto ind = source_match.find(std::string_view{src->purpose_});
         if (ind != source_match.end()) {
             src->locIndex = ind->second;
         } else {
@@ -155,7 +156,7 @@ void sourceLoad::remove(Source* src)
     }
 }
 
-Source* sourceLoad::findSource(const std::string& srcname)
+Source* sourceLoad::findSource(std::string_view srcname)
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
@@ -171,7 +172,7 @@ Source* sourceLoad::findSource(const std::string& srcname)
     return nullptr;
 }
 
-Source* sourceLoad::findSource(const std::string& srcname) const
+Source* sourceLoad::findSource(std::string_view srcname) const
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
@@ -188,7 +189,7 @@ void sourceLoad::setFlag(std::string_view flag, bool val)
 {
     auto sfnd = flag.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{flag.substr(0, sfnd)});
+        auto src = findSource(flag.substr(0, sfnd));
         if (src != nullptr) {
             src->setFlag(flag.substr(sfnd + 1, std::string::npos), val);
         } else {
@@ -203,7 +204,7 @@ void sourceLoad::set(std::string_view param, std::string_view val)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{param.substr(0, sfnd)});
+        auto src = findSource(param.substr(0, sfnd));
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val);
         } else {
@@ -240,14 +241,14 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{param.substr(0, sfnd)});
+        auto src = findSource(param.substr(0, sfnd));
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val, unitType);
         } else {
             throw(unrecognizedParameter(param));
         }
     } else {
-        auto ind = source_lookup.find(std::string{param.substr(0, sfnd)});
+        auto ind = source_lookup.find(param.substr(0, sfnd));
         if (ind != source_lookup.end()) {
             if ((static_cast<int>(sources.size()) < ind->second) &&
                 (sources[ind->second] != nullptr)) {
@@ -260,7 +261,7 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
             return;
         }
 
-        auto keyind = sourcekey_lookup.find(std::string{param.substr(0, sfnd)});
+        auto keyind = sourcekey_lookup.find(param.substr(0, sfnd));
 
         if (keyind != sourcekey_lookup.end()) {
             if ((static_cast<int>(sources.size()) > keyind->second) &&
@@ -359,7 +360,7 @@ Source* sourceLoad::makeSource(sourceLoc loc)
 
 coreObject* sourceLoad::find(std::string_view obj) const
 {
-    auto src = findSource(std::string{obj});
+    auto src = findSource(obj);
     if (src == nullptr) {
         return gridComponent::find(obj);
     }

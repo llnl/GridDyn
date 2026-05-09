@@ -11,7 +11,8 @@
 #include "grabberSet.h"
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
@@ -52,7 +53,7 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, coreObjec
     return gc;
 }
 
-static const std::unordered_map<std::string, comparison_type> compStrMap{
+static const std::map<std::string_view, comparison_type, std::less<std::string_view>> compStrMap{
     {">", comparison_type::gt},
     {"gt", comparison_type::gt},
     {">=", comparison_type::ge},
@@ -74,7 +75,8 @@ static const std::unordered_map<std::string, comparison_type> compStrMap{
 
 comparison_type comparisonFromString(std::string_view compStr)
 {
-    return mapFind(compStrMap, std::string{compStr}, comparison_type::null);
+    const auto foundComparison = compStrMap.find(compStr);
+    return (foundComparison != compStrMap.end()) ? foundComparison->second : comparison_type::null;
 }
 
 std::string to_string(comparison_type comp)

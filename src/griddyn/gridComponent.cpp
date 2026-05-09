@@ -380,7 +380,7 @@ bool gridComponent::isRootCountLoaded(const solverMode& sMode) const
     return offsets.isRootCountLoaded(sMode);
 }
 
-static const std::map<std::string, operation_flags> user_settable_flags{
+static const std::map<std::string_view, operation_flags, std::less<>> user_settable_flags{
     {"use_bus_frequency", uses_bus_frequency},
     {"late_b_initialize", late_b_initialize},
     {"error", error_flag},
@@ -395,7 +395,7 @@ static const std::map<std::string, operation_flags> user_settable_flags{
 // allowing them to be set by an external function might not be the best thing
 void gridComponent::setFlag(std::string_view flag, bool val)
 {
-    auto ffind = user_settable_flags.find(std::string{flag});
+    auto ffind = user_settable_flags.find(flag);
     if (ffind != user_settable_flags.end()) {
         opFlags.set(ffind->second, val);
         if (flag == "sampled_only") {
@@ -439,7 +439,7 @@ void gridComponent::parentSetFlag(index_t flagID, bool val, coreObject* checkPar
     }
 }
 
-static const std::map<std::string, operation_flags> flagmap{
+static const std::map<std::string_view, operation_flags, std::less<>> flagmap{
     {"constraints", has_constraints},
     {"roots", has_roots},
     {"alg_roots", has_alg_roots},
@@ -500,7 +500,7 @@ static const std::map<std::string, operation_flags> flagmap{
 
 bool gridComponent::getFlag(std::string_view flag) const
 {
-    auto flagfind = flagmap.find(std::string{flag});
+    auto flagfind = flagmap.find(flag);
     if (flagfind != flagmap.end()) {
         return opFlags[flagfind->second];
     }

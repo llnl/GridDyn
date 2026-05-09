@@ -22,6 +22,7 @@
 #include <iterator>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -39,7 +40,8 @@ static const fvecPair nullVecPair{nullptr, defunit};
 
 // TODO(phlpt): Merge this map with the one in stateGrabber.
 /** map of all the alternate strings that can be used*/
-static const std::map<std::string, std::string> stringTranslate{
+static const std::map<std::string_view, std::string_view, std::less<std::string_view>>
+    stringTranslate{
     {"v", "voltage"},
     {"vol", "voltage"},
     {"link", "linkreal"},
@@ -138,7 +140,7 @@ static const std::map<std::string, std::string> stringTranslate{
 
 };
 
-static const std::map<std::string, fobjectPair> objectFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
     {"connected",
      {[](coreObject* obj) {
           return static_cast<double>(static_cast<gridComponent*>(obj)->isConnected());
@@ -165,7 +167,7 @@ static const std::map<std::string, fobjectPair> objectFunctions{
       },
       defunit}}};
 
-static const std::map<std::string, fobjectPair> busFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> busFunctions{
     {"voltage", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getVoltage(); }, puV}},
     {"angle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
     {"busangle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
@@ -183,7 +185,7 @@ static const std::map<std::string, fobjectPair> busFunctions{
      {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReactive(); }, puMW}},
 };
 
-static const std::map<std::string, fobjectPair> areaFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> areaFunctions{
     {"avgfreq", {[](coreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
     {"general",
      {[](coreObject* obj) { return static_cast<Area*>(obj)->getGenerationReal(); }, puMW}},
@@ -196,7 +198,7 @@ static const std::map<std::string, fobjectPair> areaFunctions{
     {"tieflow", {[](coreObject* obj) { return static_cast<Area*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
-static const std::map<std::string, fvecPair> areaVecFunctions{
+static const std::map<std::string_view, fvecPair, std::less<std::string_view>> areaVecFunctions{
     {"voltage",
      {[](coreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getVoltage(data);
@@ -255,7 +257,8 @@ static const std::map<std::string, fvecPair> areaVecFunctions{
 
 };
 
-static const std::map<std::string, descVecFunc> areaVecDescFunctions{
+static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
+    areaVecDescFunctions{
     {"voltage",
      [](coreObject* obj, stringVec& desc) { return static_cast<Area*>(obj)->getBusName(desc); }},
     {"angle",
@@ -281,7 +284,8 @@ static const std::map<std::string, descVecFunc> areaVecDescFunctions{
 
 };
 
-static const std::map<std::string, fobjectPair> secondaryFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
+    secondaryFunctions{
     {"real",
      {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); }, puMW}},
     {"reactive",
@@ -298,13 +302,13 @@ static const std::map<std::string, fobjectPair> secondaryFunctions{
      {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getFreq(); }, puHz}},
 };
 
-static const std::map<std::string, fobjectPair> loadFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
     {"loadreal", {[](coreObject* obj) { return static_cast<Load*>(obj)->getRealPower(); }, puMW}},
     {"loadreactive",
      {[](coreObject* obj) { return static_cast<Load*>(obj)->getReactivePower(); }, puMW}},
 };
 
-static const std::map<std::string, fobjectPair> genFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> genFunctions{
     {"general",
      {[](coreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
     {"genreactive",
@@ -332,7 +336,7 @@ static const std::map<std::string, fobjectPair> genFunctions{
       rad}},
 };
 
-static const std::map<std::string, fobjectPair> linkFunctions{
+static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> linkFunctions{
     {"real", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
     {"reactive",
      {[](coreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(1); }, puMW}},
@@ -397,9 +401,15 @@ static const std::map<std::string, fobjectPair> linkFunctions{
       defunit}},
 };
 
+static std::string_view translateField(std::string_view field)
+{
+    const auto translatedField = stringTranslate.find(field);
+    return (translatedField != stringTranslate.end()) ? translatedField->second : field;
+}
+
 fobjectPair getObjectFunction(const gridComponent* comp, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = objectFunctions.find(nfstr);
     if (funcfind != objectFunctions.end()) {
         return funcfind->second;
@@ -433,7 +443,7 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
 
 fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
 
     auto funcfind = busFunctions.find(nfstr);
     if (funcfind != busFunctions.end()) {
@@ -444,7 +454,7 @@ fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
 
 fobjectPair getObjectFunction(const Load* ld, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfindsec = secondaryFunctions.find(nfstr);
     if (funcfindsec != secondaryFunctions.end()) {
         return funcfindsec->second;
@@ -459,7 +469,7 @@ fobjectPair getObjectFunction(const Load* ld, const std::string& field)
 
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfindsec = secondaryFunctions.find(nfstr);
     if (funcfindsec != secondaryFunctions.end()) {
         return funcfindsec->second;
@@ -474,7 +484,7 @@ fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
 
 fobjectPair getObjectFunction(const Area* area, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = areaFunctions.find(nfstr);
     if (funcfind != areaFunctions.end()) {
         return funcfind->second;
@@ -485,7 +495,7 @@ fobjectPair getObjectFunction(const Area* area, const std::string& field)
 
 fobjectPair getObjectFunction(const Link* lnk, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = linkFunctions.find(nfstr);
     if (funcfind != linkFunctions.end()) {
         return funcfind->second;
@@ -496,7 +506,7 @@ fobjectPair getObjectFunction(const Link* lnk, const std::string& field)
 
 fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = objectFunctions.find(nfstr);
     if (funcfind != objectFunctions.end()) {
         return funcfind->second;
@@ -585,7 +595,7 @@ fvecPair getObjectVectorFunction(const gridComponent* /*comp*/, const std::strin
 
 fvecPair getObjectVectorFunction(const Area* area, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = areaVecFunctions.find(nfstr);
     if (funcfind != areaVecFunctions.end()) {
         return funcfind->second;
@@ -601,7 +611,7 @@ descVecFunc getObjectVectorDescFunction(const gridComponent* comp, const std::st
 
 descVecFunc getObjectVectorDescFunction(const Area* /*area*/, const std::string& field)
 {
-    std::string nfstr = mapFind(stringTranslate, field, field);
+    const std::string_view nfstr = translateField(field);
     auto funcfind = areaVecDescFunctions.find(nfstr);
     if (funcfind != areaVecDescFunctions.end()) {
         return funcfind->second;

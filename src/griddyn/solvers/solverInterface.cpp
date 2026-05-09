@@ -308,28 +308,30 @@ void SolverInterface::set(std::string_view param, double val)
     }
 }
 
-static const std::map<std::string, int> solverFlagMap{{"filecapture", fileCapture_flag},
-                                                      {"directlogging", directLogging_flag},
-                                                      {"solver_log", directLogging_flag},
-                                                      {"dense", dense_flag},
-                                                      {"sparse", -dense_flag},
-                                                      {"parallel", parallel_flag},
-                                                      {"serial", -parallel_flag},
-                                                      {"mask", useMask_flag},
-                                                      {"constantjacobian", constantJacobian_flag},
-                                                      {"omp", use_omp_flag},
-                                                      {"useomp", use_omp_flag},
-                                                      {"bdf", use_bdf_flag},
-                                                      {"adams", -use_bdf_flag},
-                                                      {"functional", -use_newton_flag},
-                                                      {"newton", use_newton_flag},
-                                                      {"print_resid", print_residuals},
-                                                      {"print_residuals", print_residuals},
-                                                      {"block_mode_only", block_mode_only}};
+static const std::map<std::string_view, int, std::less<std::string_view>> solverFlagMap{
+    {"filecapture", fileCapture_flag},
+    {"directlogging", directLogging_flag},
+    {"solver_log", directLogging_flag},
+    {"dense", dense_flag},
+    {"sparse", -dense_flag},
+    {"parallel", parallel_flag},
+    {"serial", -parallel_flag},
+    {"mask", useMask_flag},
+    {"constantjacobian", constantJacobian_flag},
+    {"omp", use_omp_flag},
+    {"useomp", use_omp_flag},
+    {"bdf", use_bdf_flag},
+    {"adams", -use_bdf_flag},
+    {"functional", -use_newton_flag},
+    {"newton", use_newton_flag},
+    {"print_resid", print_residuals},
+    {"print_residuals", print_residuals},
+    {"block_mode_only", block_mode_only}};
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
-    auto flgInd = mapFind(solverFlagMap, std::string{flag}, -60);
+    const auto foundFlag = solverFlagMap.find(flag);
+    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             flags.set(flgInd, val);
@@ -381,7 +383,7 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
         printLevel = solver_print_level::s_error_log;
     } else {
         if (val) {
-            setApproximation(std::string{flag});
+            setApproximation(flag);
         } else {
             throw(unrecognizedParameter(flag));
         }
@@ -424,7 +426,8 @@ void SolverInterface::setApproximation(std::string_view approx)
 
 bool SolverInterface::getFlag(std::string_view flag) const
 {
-    auto flgInd = mapFind(solverFlagMap, std::string{flag}, -60);
+    const auto foundFlag = solverFlagMap.find(flag);
+    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             return flags[flgInd];

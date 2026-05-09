@@ -50,8 +50,7 @@ void Communicator::transmit(std::uint64_t destID, const std::shared_ptr<commMess
     communicationsCore::instance()->send(mId, destID, message);
 }
 
-void Communicator::transmit(std::string_view destName,
-                            const std::shared_ptr<commMessage>& message)
+void Communicator::transmit(std::string_view destName, const std::shared_ptr<commMessage>& message)
 {
     communicationsCore::instance()->send(mId, destName, message);
 }

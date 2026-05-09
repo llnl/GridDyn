@@ -52,11 +52,11 @@ void communicationsCore::unregisterCommunicator(Communicator* comm)
 
 int communicationsCore::send(std::uint64_t source,
                              std::string_view dest,
-                             std::shared_ptr<commMessage> message)
+                             const std::shared_ptr<commMessage>& message)
 {
     auto res = mStringMap.find(std::string{dest});
     if (res != mStringMap.end()) {
-        res->second->receive(source, dest, std::move(message));
+        res->second->receive(source, dest, message);
         return SEND_SUCCESS;
     }
     return DESTINATION_NOT_FOUND;
@@ -64,11 +64,11 @@ int communicationsCore::send(std::uint64_t source,
 
 int communicationsCore::send(std::uint64_t source,
                              std::uint64_t dest,
-                             std::shared_ptr<commMessage> message)
+                             const std::shared_ptr<commMessage>& message)
 {
     auto res = mIdMap.find(dest);
     if (res != mIdMap.end()) {
-        res->second->receive(source, dest, std::move(message));
+        res->second->receive(source, dest, message);
         return SEND_SUCCESS;
     }
     return DESTINATION_NOT_FOUND;

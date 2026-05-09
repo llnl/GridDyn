@@ -65,8 +65,7 @@ void zmqCommunicator::transmit(std::string_view destName,
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::transmit(std::uint64_t destID,
-                               const std::shared_ptr<commMessage>& message)
+void zmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message)
 {
     zmq::multipart_t txmsg;
     if (!flags[no_transmit_dest]) {

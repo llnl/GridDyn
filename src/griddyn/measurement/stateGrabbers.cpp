@@ -26,25 +26,30 @@
 
 namespace griddyn {
 namespace {
-grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>& stateGrabberInterpreter()
-{
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
-        [](std::string_view fld, coreObject* obj) { return std::make_unique<stateGrabber>(fld, obj); });
-    return interpreter;
-}
+    grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>&
+        stateGrabberInterpreter()
+    {
+        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+        static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
+            [](std::string_view fld, coreObject* obj) {
+                return std::make_unique<stateGrabber>(fld, obj);
+            });
+        return interpreter;
+    }
 
-double secondaryRealPower(gridComponent* obj, const stateData& stateDataValue, const solverMode& sMode)
-{
-    return static_cast<gridSecondary*>(obj)->getRealPower(noInputs, stateDataValue, sMode);
-}
-
-double secondaryReactivePower(gridComponent* obj,
+    double secondaryRealPower(gridComponent* obj,
                               const stateData& stateDataValue,
                               const solverMode& sMode)
-{
-    return static_cast<gridSecondary*>(obj)->getReactivePower(noInputs, stateDataValue, sMode);
-}
+    {
+        return static_cast<gridSecondary*>(obj)->getRealPower(noInputs, stateDataValue, sMode);
+    }
+
+    double secondaryReactivePower(gridComponent* obj,
+                                  const stateData& stateDataValue,
+                                  const solverMode& sMode)
+    {
+        return static_cast<gridSecondary*>(obj)->getReactivePower(noInputs, stateDataValue, sMode);
+    }
 }  // namespace
 
 static const char specialChars[] = R"(:(+-/*\^?)";
@@ -435,8 +440,7 @@ void stateGrabber::linkLoadInfo(std::string_view fld)
 void stateGrabber::relayLoadInfo(std::string_view fld)
 {
     std::string fieldStr;
-    const int num =
-        gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
+    const int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
     if ((fieldStr == "block") || (fieldStr == "b")) {
         if (dynamic_cast<sensor*>(cobj) != nullptr) {
             fptr = [num](gridComponent* comp,

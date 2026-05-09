@@ -25,12 +25,27 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
+grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>& stateGrabberInterpreter()
+{
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
+        [](std::string_view fld, coreObject* obj) { return std::make_unique<stateGrabber>(fld, obj); });
+    return interpreter;
+}
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>
-    sgInterpret([](std::string_view fld, coreObject* obj) {
-        return std::make_unique<stateGrabber>(fld, obj);
-    });
+double secondaryRealPower(gridComponent* obj, const stateData& stateDataValue, const solverMode& sMode)
+{
+    return static_cast<gridSecondary*>(obj)->getRealPower(noInputs, stateDataValue, sMode);
+}
+
+double secondaryReactivePower(gridComponent* obj,
+                              const stateData& stateDataValue,
+                              const solverMode& sMode)
+{
+    return static_cast<gridSecondary*>(obj)->getReactivePower(noInputs, stateDataValue, sMode);
+}
+}  // namespace
 
 static const char specialChars[] = R"(:(+-/*\^?)";
 static const char sepChars[] = ",;";
@@ -43,7 +58,7 @@ std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view co
     gmlc::utilities::stringOps::trim(gsplit);
     for (auto& cmd : gsplit) {
         if (cmd.find_first_of(specialChars) != std::string::npos) {
-            auto sgb = sgInterpret.interpretGrabberBlock(cmd, obj);
+            auto sgb = stateGrabberInterpreter().interpretGrabberBlock(cmd, obj);
             if (sgb && sgb->loaded) {
                 grabbers.push_back(std::move(sgb));
             }
@@ -265,33 +280,23 @@ static const std::map<std::string, fstateobjectPair> areaFunctions{
 {"tieflow", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getTieFlowReal ();}, puMW}},
 };
 
-static const objStateGrabberFunction rpower = FUNCTION_SIGNATURE
-{
-    return static_cast<gridSecondary *> (obj)->getRealPower(noInputs, stateDataValue, sMode);
-};
-
-static const objStateGrabberFunction qpower = FUNCTION_SIGNATURE
-{
-    return static_cast<gridSecondary *> (obj)->getReactivePower(noInputs, stateDataValue, sMode);
-};
-
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string, fstateobjectPair> secondaryFunctions{ { "real",{ rpower, puMW } },
-{ "reactive",{ qpower, puMW } },
+static const std::map<std::string, fstateobjectPair> secondaryFunctions{ { "real",{ secondaryRealPower, puMW } },
+{ "reactive",{ secondaryReactivePower, puMW } },
 { "busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getAngle(stateDataValue, sMode); }, rad } },
 { "busvoltage",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getVoltage(stateDataValue, sMode); }, puV } },
 { "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getFreq(stateDataValue, sMode); }, puV } },
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string, fstateobjectPair> loadFunctions{{"loadreal", {rpower, puMW}},
-                                                                   {"loadreactive", {qpower, puMW}}
+static const std::map<std::string, fstateobjectPair> loadFunctions{{"loadreal", {secondaryRealPower, puMW}},
+                                                                   {"loadreactive", {secondaryReactivePower, puMW}}
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> genFunctions{
-  {"general", {rpower, puMW}},
-  {"genreactive", {qpower, puMW}},
+  {"general", {secondaryRealPower, puMW}},
+  {"genreactive", {secondaryReactivePower, puMW}},
   {"pset", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getPset ();}, puMW}},
   {"adjup", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getAdjustableCapacityUp ();}, puMW}},
   {"adjdown", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getAdjustableCapacityDown ();}, puMW}},
@@ -354,7 +359,8 @@ void stateGrabber::objectLoadInfo(std::string_view fld)
         fptr = funcfind->second.first;
     } else {
         std::string fieldStr;
-        int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
+        const int num =
+            gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
         if ((fieldStr == "value") || (fieldStr == "output") || (fieldStr == "o")) {
             fptr = [num](gridComponent* comp,
                          const stateData& stateDataValue,
@@ -388,7 +394,7 @@ void stateGrabber::objectLoadInfo(std::string_view fld)
 void stateGrabber::busLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
-    std::string nfstr = mapFind(stringTranslate, fldString, fldString);
+    const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
 
     auto funcfind = busFunctions.find(nfstr);
     if (funcfind != busFunctions.end()) {
@@ -408,7 +414,7 @@ void stateGrabber::busLoadInfo(std::string_view fld)
 void stateGrabber::linkLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
-    std::string nfstr = mapFind(stringTranslate, fldString, fldString);
+    const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
 
     auto funcfind = linkFunctions.find(nfstr);
     if (funcfind != linkFunctions.end()) {
@@ -430,7 +436,8 @@ void stateGrabber::linkLoadInfo(std::string_view fld)
 void stateGrabber::relayLoadInfo(std::string_view fld)
 {
     std::string fieldStr;
-    int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
+    const int num =
+        gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
     if ((fieldStr == "block") || (fieldStr == "b")) {
         if (dynamic_cast<sensor*>(cobj) != nullptr) {
             fptr = [num](gridComponent* comp,
@@ -538,13 +545,13 @@ void stateGrabber::secondaryLoadInfo(std::string_view fld)
 }
 
 void stateGrabber::areaLoadInfo(std::string_view /*fld*/) {}
-double stateGrabber::grabData(const stateData& sD, const solverMode& sMode)
+double stateGrabber::grabData(const stateData& stateDataValue, const solverMode& sMode)
 {
     if (loaded) {
         if (cacheUpdateRequired) {
-            cobj->updateLocalCache(noInputs, sD, sMode);
+            cobj->updateLocalCache(noInputs, stateDataValue, sMode);
         }
-        double val = fptr(cobj, sD, sMode);
+        double val = fptr(cobj, stateDataValue, sMode);
         val = std::fma(val, gain, bias);
         return val;
     }
@@ -568,18 +575,18 @@ void stateGrabber::getObjects(std::vector<coreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
-void stateGrabber::outputPartialDerivatives(const stateData& sD,
-                                            matrixData<double>& md,
+void stateGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+                                            matrixData<double>& matrixDataValue,
                                             const solverMode& sMode)
 {
     if (jacMode == jacobian_mode::none) {
         return;
     }
     if (gain != 1.0) {
-        matrixDataScale<double> bd(md, gain);
-        jacIfptr(cobj, sD, bd, sMode);
+        matrixDataScale<double> scaledMatrix(matrixDataValue, gain);
+        jacIfptr(cobj, stateDataValue, scaledMatrix, sMode);
     } else {
-        jacIfptr(cobj, sD, md, sMode);
+        jacIfptr(cobj, stateDataValue, matrixDataValue, sMode);
     }
 }
 
@@ -605,7 +612,7 @@ std::unique_ptr<stateGrabber> customStateGrabber::clone() const
 void customStateGrabber::cloneTo(stateGrabber* ggb) const
 {
     stateGrabber::cloneTo(ggb);
-    auto csg = dynamic_cast<customStateGrabber*>(ggb);
+    auto* csg = dynamic_cast<customStateGrabber*>(ggb);
     if (csg == nullptr) {
         return;
     }
@@ -654,7 +661,7 @@ std::unique_ptr<stateGrabber> stateFunctionGrabber::clone() const
 void stateFunctionGrabber::cloneTo(stateGrabber* ggb) const
 {
     stateGrabber::cloneTo(ggb);
-    auto sfg = dynamic_cast<stateFunctionGrabber*>(ggb);
+    auto* sfg = dynamic_cast<stateFunctionGrabber*>(ggb);
     if (sfg == nullptr) {
         return;
     }
@@ -670,9 +677,9 @@ void stateFunctionGrabber::cloneTo(stateGrabber* ggb) const
     sfg->dopptr = dopptr;
 }
 
-double stateFunctionGrabber::grabData(const stateData& sD, const solverMode& sMode)
+double stateFunctionGrabber::grabData(const stateData& stateDataValue, const solverMode& sMode)
 {
-    double val = opptr(bgrabber->grabData(sD, sMode));
+    double val = opptr(bgrabber->grabData(stateDataValue, sMode));
     val = std::fma(val, gain, bias);
     return val;
 }
@@ -688,24 +695,25 @@ coreObject* stateFunctionGrabber::getObject() const
 {
     return (bgrabber) ? bgrabber->getObject() : nullptr;
 }
-void stateFunctionGrabber::outputPartialDerivatives(const stateData& sD,
-                                                    matrixData<double>& md,
+void stateFunctionGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+                                                    matrixData<double>& matrixDataValue,
                                                     const solverMode& sMode)
 {
     if (jacMode == jacobian_mode::none) {
         return;
     }
 
-    const double temp = bgrabber->grabData(sD, sMode);
-    double dodI = (dopptr != nullptr) ? dopptr(temp) : (opptr(temp + 1e-7) - opptr(temp)) / 1e-7;
+    const double temp = bgrabber->grabData(stateDataValue, sMode);
+    const double derivativeOutput =
+        (dopptr != nullptr) ? dopptr(temp) : (opptr(temp + 1e-7) - opptr(temp)) / 1e-7;
 
-    matrixDataScale<double> d1(md, dodI * gain);
-    bgrabber->outputPartialDerivatives(sD, d1, sMode);
+    matrixDataScale<double> scaledMatrix(matrixDataValue, derivativeOutput * gain);
+    bgrabber->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 }
 
 stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
                                std::shared_ptr<stateGrabber> ggb2,
-                               std::string op): op_name(std::move(op))
+                               std::string operationName): op_name(std::move(operationName))
 {
     if (ggb1) {
         bgrabber1 = std::move(ggb1);
@@ -748,7 +756,7 @@ std::unique_ptr<stateGrabber> stateOpGrabber::clone() const
 void stateOpGrabber::cloneTo(stateGrabber* ggb) const
 {
     stateGrabber::cloneTo(ggb);
-    auto sog = dynamic_cast<stateOpGrabber*>(ggb);
+    auto* sog = dynamic_cast<stateOpGrabber*>(ggb);
     if (sog == nullptr) {
         return;
     }
@@ -770,10 +778,10 @@ void stateOpGrabber::cloneTo(stateGrabber* ggb) const
     sog->opptr = opptr;
 }
 
-double stateOpGrabber::grabData(const stateData& sD, const solverMode& sMode)
+double stateOpGrabber::grabData(const stateData& stateDataValue, const solverMode& sMode)
 {
-    const double grabber1Data = bgrabber1->grabData(sD, sMode);
-    const double grabber2Data = bgrabber2->grabData(sD, sMode);
+    const double grabber1Data = bgrabber1->grabData(stateDataValue, sMode);
+    const double grabber2Data = bgrabber2->grabData(stateDataValue, sMode);
     double val = opptr(grabber1Data, grabber2Data);
     val = std::fma(val, gain, bias);
     return val;
@@ -813,29 +821,29 @@ coreObject* stateOpGrabber::getObject() const
     return nullptr;
 }
 
-void stateOpGrabber::outputPartialDerivatives(const stateData& sD,
-                                              matrixData<double>& md,
+void stateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+                                              matrixData<double>& matrixDataValue,
                                               const solverMode& sMode)
 {
     if (jacMode == jacobian_mode::none) {
         return;
     }
 
-    const double grabber1Data = bgrabber1->grabData(sD, sMode);
-    const double grabber2Data = bgrabber2->grabData(sD, sMode);
+    const double grabber1Data = bgrabber1->grabData(stateDataValue, sMode);
+    const double grabber2Data = bgrabber2->grabData(stateDataValue, sMode);
 
     const double baseValue = opptr(grabber1Data, grabber2Data);
     const double perturbedFirstValue = opptr(grabber1Data + 1e-7, grabber2Data);
 
-    double dodI = (perturbedFirstValue - baseValue) / 1e-7;
+    const double firstDerivativeOutput = (perturbedFirstValue - baseValue) / 1e-7;
 
-    matrixDataScale<double> d1(md, dodI * gain);
-    bgrabber1->outputPartialDerivatives(sD, d1, sMode);
+    matrixDataScale<double> scaledMatrix(matrixDataValue, firstDerivativeOutput * gain);
+    bgrabber1->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 
     const double perturbedSecondValue = opptr(grabber1Data, grabber2Data + 1e-7);
-    dodI = (perturbedSecondValue - baseValue) / 1e-7;
-    d1.setScale(dodI * gain);
-    bgrabber2->outputPartialDerivatives(sD, d1, sMode);
+    const double secondDerivativeOutput = (perturbedSecondValue - baseValue) / 1e-7;
+    scaledMatrix.setScale(secondDerivativeOutput * gain);
+    bgrabber2->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 }
 
 }  // namespace griddyn

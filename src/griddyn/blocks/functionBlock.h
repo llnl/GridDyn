@@ -50,15 +50,15 @@ class functionBlock: public Block {
     // virtual void blockDerivative(double input, double didt, const stateData &sD, double
     // deriv[], const solverMode &sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       double update[],
                                       const solverMode& sMode) override;
 
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double input) override;

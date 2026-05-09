@@ -293,14 +293,14 @@ void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
         vTarget = B2->getVoltage();
         powerLevelControl->dynInitializeB({vTarget}, noInputs, fieldSet);
         if (tD > 0.0001) {
-            controlDelay->dynInitializeB(fieldSet, noInputs, fieldSet);
+            controlDelay->dynInitializeB(noInputs, fieldSet, fieldSet);
         }
     }
 }
 
 void acdcConverter::ioPartialDerivatives(id_type_t busId,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+                                         const stateData& stateDataValue,
+                                         matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const solverMode& sMode)
 {
@@ -310,7 +310,7 @@ void acdcConverter::ioPartialDerivatives(id_type_t busId,
     if (inputLocs[voltageInLocation] == kNullLocation) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     // int mode = B1->getMode(sMode) * 4 + B2->getMode(sMode);
 
     /*
@@ -320,16 +320,16 @@ double sr = k3sq2*linkInfo.v1*Idc;
 
 linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 */
-    index_t vLoc = inputLocs[voltageInLocation];
+    const index_t vLoc = inputLocs[voltageInLocation];
     if (isDynamic(sMode)) {
         if (busId == B2->getID()) {
-            md.assign(PoutLocation, vLoc, -dirMult * Idc);
+            matrixDataValue.assign(PoutLocation, vLoc, -dirMult * Idc);
         } else {
-            md.assign(QoutLocation,
-                      vLoc,
-                      -Idc * k3sq2sq * linkInfo.v1 /
-                          std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 -
-                                    linkInfo.v2 * linkInfo.v2));
+            matrixDataValue.assign(
+                QoutLocation,
+                vLoc,
+                -Idc * k3sq2sq * linkInfo.v1 /
+                    std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2)));
         }
     } else {
         /*
@@ -343,18 +343,21 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
         if (busId == B2->getID()) {
             if (!opFlags[fixed_target_power]) {
-                md.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
+                matrixDataValue.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
             }
         } else {
-            double temp =
-                std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 - linkInfo.v2 * linkInfo.v2);
+            const double temp =
+                std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
             if (opFlags[fixed_target_power]) {
-                md.assign(QoutLocation, vLoc, -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
+                matrixDataValue.assign(
+                    QoutLocation, vLoc, -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
             } else {
-                md.assign(PoutLocation, vLoc, -dirMult * linkInfo.v2 / tap);
-                md.assign(QoutLocation,
-                          vLoc,
-                          -1.0 / tap * temp - linkInfo.v1 * linkInfo.v1 / (tap * temp) * k3sq2sq);
+                matrixDataValue.assign(PoutLocation, vLoc, -dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assign(
+                    QoutLocation,
+                    vLoc,
+                    ((-1.0 / tap) * temp) -
+                        ((linkInfo.v1 * linkInfo.v1 / (tap * temp)) * k3sq2sq));
             }
         }
     }
@@ -461,8 +464,8 @@ count_t acdcConverter::outputDependencyCount(index_t /*num*/, const solverMode& 
 }
 
 void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateDataValue,
+                                     matrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
                                      const solverMode& sMode)
 {
@@ -470,57 +473,65 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
     auto B1Voffset = B1Loc[voltageInLocation];
     auto B2Loc = B2->getOutputLocs(sMode);
     auto B2Voffset = B2Loc[voltageInLocation];
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         auto refAlg = Loc.algOffset;
         IOlocs argL{B2Voffset};
-        IOdata a1{linkInfo.v2 - vTarget};
+        IOdata controlSignalInput{linkInfo.v2 - vTarget};
 
         index_t refLoc;
-        matrixDataSparse<double> tad1, tad2;
+        matrixDataSparse<double> translatedAngleJacobian;
+        matrixDataSparse<double> translatedInputJacobian;
 
         if (refAlg != kNullLocation) {
             if (control_mode == control_mode_t::voltage) {
-                double Padj;
+                double powerAdjustment;
                 if (tD > 0.0001) {
-                    Padj = controlDelay->getOutput(a1, sD, sMode);
+                    powerAdjustment =
+                        controlDelay->getOutput(controlSignalInput, stateDataValue, sMode);
                     refLoc = controlDelay->getOutputLoc(sMode);
                 } else {
-                    Padj = powerLevelControl->getOutput(a1, sD, sMode);
+                    powerAdjustment =
+                        powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
                     refLoc = powerLevelControl->getOutputLoc(sMode);
                 }
 
-                tap = baseTap / (1.0 + dirMult * baseTap * Padj);
-                tad2.assign(0, refLoc, -dirMult * linkInfo.v1);
+                tap = baseTap / (1.0 + (dirMult * baseTap * powerAdjustment));
+                translatedInputJacobian.assign(0, refLoc, -dirMult * linkInfo.v1);
             }
-            double I0 = linkInfo.v1 / tap;
-            a1[0] = Loc.algStateLoc[0] - I0;
-            double cA = firingAngleControl->getOutput(a1, sD, sMode);
+            const double currentReference = linkInfo.v1 / tap;
+            controlSignalInput[0] = Loc.algStateLoc[0] - currentReference;
+            const double controlAngle =
+                firingAngleControl->getOutput(controlSignalInput, stateDataValue, sMode);
             refLoc = firingAngleControl->getOutputLoc(sMode);
-            md.assignCheckCol(refAlg, B1Voffset, k3sq2 * cA);
-            md.assignCheckCol(refAlg, B2Voffset, -1);
-            md.assign(refAlg, refAlg, -3 / kPI * x);
-            md.assign(refAlg, refLoc, k3sq2 * linkInfo.v1);
+            matrixDataValue.assignCheckCol(refAlg, B1Voffset, k3sq2 * controlAngle);
+            matrixDataValue.assignCheckCol(refAlg, B2Voffset, -1);
+            matrixDataValue.assign(refAlg, refAlg, -(3 / kPI) * x);
+            matrixDataValue.assign(refAlg, refLoc, k3sq2 * linkInfo.v1);
 
-            tad2.assign(0, refAlg, 1);
+            translatedInputJacobian.assign(0, refAlg, 1);
         }
         // manage the input for the
         argL[0] = 0;
-        firingAngleControl->jacobianElements(a1, sD, tad1, argL, sMode);
+        firingAngleControl->jacobianElements(
+            controlSignalInput, stateDataValue, translatedAngleJacobian, argL, sMode);
 
-        tad2.assign(0, B1Voffset, -(1.0 / tap));
-        tad1.cascade(tad2, 0);
-        md.merge(tad1);
+        translatedInputJacobian.assign(0, B1Voffset, -(1.0 / tap));
+        translatedAngleJacobian.cascade(translatedInputJacobian, 0);
+        matrixDataValue.merge(translatedAngleJacobian);
 
         if (control_mode == control_mode_t::voltage) {
-            a1[0] = linkInfo.v2 - vTarget;
+            controlSignalInput[0] = linkInfo.v2 - vTarget;
             argL[0] = B2Voffset;
-            powerLevelControl->jacobianElements(a1, sD, md, argL, sMode);
+            powerLevelControl->jacobianElements(
+                controlSignalInput, stateDataValue, matrixDataValue, argL, sMode);
             if (tD > 0.0001) {
-                a1[0] = powerLevelControl->getOutput(a1, sD, sMode);
+                controlSignalInput[0] =
+                    powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
                 argL[0] = powerLevelControl->getOutputLoc(sMode);
-                controlDelay->jacobianElements(a1, sD, md, argL, sMode);
+                controlDelay->jacobianElements(
+                    controlSignalInput, stateDataValue, matrixDataValue, argL, sMode);
             }
         }
     } else {
@@ -528,53 +539,63 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
 
         // resid[offset] = k3sq2*linkInfo.v1*sD.state[offset] - 3 / kPI*x*Idc - linkInfo.v2;
 
-        md.assign(offset, offset, k3sq2 * linkInfo.v1);
+        matrixDataValue.assign(offset, offset, k3sq2 * linkInfo.v1);
         if (opFlags[fixed_target_power]) {
-            md.assignCheckCol(offset, B1Voffset, k3sq2 * sD.state[offset]);
-            md.assignCheckCol(offset,
-                              B2Voffset,
-                              3.0 / kPI * x * Pset / (linkInfo.v2 * linkInfo.v2) - 1.0);
+            matrixDataValue.assignCheckCol(
+                offset, B1Voffset, k3sq2 * stateDataValue.state[offset]);
+            matrixDataValue.assignCheckCol(
+                offset, B2Voffset, ((3.0 / kPI) * x * Pset / (linkInfo.v2 * linkInfo.v2)) - 1.0);
         } else {
-            md.assignCheckCol(offset, B1Voffset, k3sq2 * sD.state[offset] - 3 / kPI * x / tap);
-            md.assignCheckCol(offset, B2Voffset, -1);
+            matrixDataValue.assignCheckCol(
+                offset,
+                B1Voffset,
+                (k3sq2 * stateDataValue.state[offset]) - ((3 / kPI) * x / tap));
+            matrixDataValue.assignCheckCol(offset, B2Voffset, -1);
         }
     }
 }
 
 void acdcConverter::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              double resid[],
                              const solverMode& sMode)
 {
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, resid, sMode, this);
-        IOdata a{linkInfo.v2 - vTarget};
+        auto Loc = offsets.getLocations(stateDataValue, resid, sMode, this);
+        IOdata controlSignalInput{linkInfo.v2 - vTarget};
         if (control_mode == control_mode_t::voltage) {
-            double Padj = (tD > 0.0001) ? controlDelay->getOutput(a, sD, sMode) :
-                                          powerLevelControl->getOutput(a, sD, sMode);
-            tap = baseTap / (1.0 + dirMult * baseTap * Padj);
+            const double powerAdjustment =
+                (tD > 0.0001) ?
+                    controlDelay->getOutput(controlSignalInput, stateDataValue, sMode) :
+                    powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
+            tap = baseTap / (1.0 + (dirMult * baseTap * powerAdjustment));
         }
-        double I0 = linkInfo.v1 / tap;
-        a[0] = Loc.algStateLoc[0] - I0;
-        auto cA = firingAngleControl->getOutput(a, sD, sMode);
+        const double currentReference = linkInfo.v1 / tap;
+        controlSignalInput[0] = Loc.algStateLoc[0] - currentReference;
+        const auto controlAngle =
+            firingAngleControl->getOutput(controlSignalInput, stateDataValue, sMode);
         Loc.destLoc[0] =
-            k3sq2 * linkInfo.v1 * cA - 3.0 / kPI * x * Loc.algStateLoc[0] - linkInfo.v2;
+            (k3sq2 * linkInfo.v1 * controlAngle) - ((3.0 / kPI) * x * Loc.algStateLoc[0]) -
+            linkInfo.v2;
 
-        firingAngleControl->residual(a, sD, resid, sMode);
+        firingAngleControl->residual(controlSignalInput, stateDataValue, resid, sMode);
         if (control_mode == control_mode_t::voltage) {
-            a[0] = linkInfo.v2 - vTarget;
-            powerLevelControl->residual(a, sD, resid, sMode);
+            controlSignalInput[0] = linkInfo.v2 - vTarget;
+            powerLevelControl->residual(controlSignalInput, stateDataValue, resid, sMode);
             if (tD > 0.0001) {
-                a[0] = powerLevelControl->getOutput(a, sD, sMode);
-                controlDelay->residual(a, sD, resid, sMode);
+                controlSignalInput[0] =
+                    powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
+                controlDelay->residual(controlSignalInput, stateDataValue, resid, sMode);
             }
         }
     } else {
         auto offset = offsets.getAlgOffset(sMode);
         Idc = (opFlags[fixed_target_power]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
-        resid[offset] = k3sq2 * linkInfo.v1 * sD.state[offset] - 3 / kPI * x * Idc - linkInfo.v2;
+        resid[offset] =
+            (k3sq2 * linkInfo.v1 * stateDataValue.state[offset]) - ((3 / kPI) * x * Idc) -
+            linkInfo.v2;
     }
 }
 

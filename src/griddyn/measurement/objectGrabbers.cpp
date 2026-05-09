@@ -39,107 +39,108 @@ using units::rad;
 static const fobjectPair nullPair{nullptr, defunit};
 static const fvecPair nullVecPair{nullptr, defunit};
 
-// TODO(phlpt): Merge this map with the one in stateGrabber.
-/** map of all the alternate strings that can be used*/
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, std::string_view, std::less<std::string_view>>
-    stringTranslate{{"v", "voltage"},
-                    {"vol", "voltage"},
-                    {"link", "linkreal"},
-                    {"linkp", "linkreal"},
-                    {"linkepower", "linereal"},
-                    {"loadq", "loadreactive"},
-                    {"loadreactivepower", "loadreactive"},
-                    {"load", "loadreal"},
-                    {"loadp", "loadreal"},
-                    {"loadpower", "loadreal"},
-                    {"reactivegen", "genreactive"},
-                    {"genq", "genreactive"},
-                    {"gen", "general"},
-                    {"generation", "general"},
-                    {"genp", "general"},
-                    {"genpower", "general"},
-                    {"realgen", "general"},
-                    {"f", "freq"},
-                    {"frequency", "freq"},
-                    {"omega", "freq"},
-                    {"a", "angle"},
-                    {"phase", "angle"},
-                    {"busgenerationreal", "busgenreal"},
-                    {"busp", "busgenreal"},
-                    {"buspower", "busgenreal"},
-                    {"busgen", "busgenreal"},
-                    {"busload", "busloadreal"},
-                    {"busloadp", "busloadreal"},
-                    {"busloadq", "busloadreactive"},
-                    {"busgenerationreactive", "busgenreactive"},
-                    {"busq", "busgenreactive"},
-                    {"linkrealpower", "linkreal"},
-                    {"linerealpower", "linkreal"},
-                    {"linkp1", "linkreal"},
-                    {"linkq", "linkreactive"},
-                    {"linkreactivepower", "linkreactive"},
-                    {"linereactivepower", "linkreactive"},
-                    {"linkrealpower1", "linkreal"},
-                    {"linerealpower1", "linkreal"},
-                    {"linkq1", "linkreactive"},
-                    {"linkreactivepower1", "linkreactive"},
-                    {"linereal", "linkreal"},
-                    {"linkreal1", "linkreal"},
-                    {"linereactive", "linkreactive"},
-                    {"linkreactive1", "linkreactive"},
-                    {"linkrealpower2", "linkreal2"},
-                    {"linkq2", "linkreactive2"},
-                    {"linkreactivepower2", "linkreactive2"},
-                    {"linkp2", "linkreal2"},
-                    {"p", "real"},
-                    {"power", "real"},
-                    {"q", "reactive"},
-                    {"impedance", "z"},
-                    {"admittance", "y"},
-                    {"impedance1", "z"},
-                    {"admittance1", "y"},
-                    {"z1", "z"},
-                    {"y1", "y"},
-                    {"impedance2", "z2"},
-                    {"admittance2", "y2"},
-                    {"status", "connected"},
-                    {"breaker", "switch"},
-                    {"breaker1", "switch"},
-                    {"switch1", "switch"},
-                    {"breaker2", "switch2"},
-                    {"i", "current"},
-                    {"i1", "current"},
-                    {"current1", "current"},
-                    {"currentangle1", "currentangle"},
-                    {"iangle", "currentangle"},
-                    {"iangle2", "currentangle2"},
-                    {"i2", "current2"},
-                    {"imagcurrent1", "imagcurrent"},
-                    {"realcurrent1", "realcurrent"},
-                    {"lossreal", "loss"},
-                    {"angle1", "angle"},
-                    {"absangle1", "absangle"},
-                    {"voltage1", "voltage"},
-                    {"v1", "voltage"},
-                    {"v2", "voltage2"},
-                    {"output0", "output"},
-                    {"cv", "output"},
-                    {"o0", "output"},
-                    {"currentvalue", "output"},
-                    {"deriv0", "deriv"},
-                    {"dodt", "deriv"},
-                    {"dodt0", "deriv"},
-                    {"doutdt", "deriv"},
-                    {"doutdt0", "deriv"},
-                    {"busvoltage1", "voltage"},
-                    {"busvoltage2", "voltage2"},
-                    {"busangle1", "busangle"},
-                    {"angle2", "busangle2"},
-                    {"voltages", "voltage"},
-                    {"angles", "angle"}
-
-    };
+namespace {
+const auto& getStringTranslate()
+{
+    static const std::map<std::string_view, std::string_view, std::less<std::string_view>>
+        stringTranslate{{"v", "voltage"},
+                        {"vol", "voltage"},
+                        {"link", "linkreal"},
+                        {"linkp", "linkreal"},
+                        {"linkepower", "linereal"},
+                        {"loadq", "loadreactive"},
+                        {"loadreactivepower", "loadreactive"},
+                        {"load", "loadreal"},
+                        {"loadp", "loadreal"},
+                        {"loadpower", "loadreal"},
+                        {"reactivegen", "genreactive"},
+                        {"genq", "genreactive"},
+                        {"gen", "general"},
+                        {"generation", "general"},
+                        {"genp", "general"},
+                        {"genpower", "general"},
+                        {"realgen", "general"},
+                        {"f", "freq"},
+                        {"frequency", "freq"},
+                        {"omega", "freq"},
+                        {"a", "angle"},
+                        {"phase", "angle"},
+                        {"busgenerationreal", "busgenreal"},
+                        {"busp", "busgenreal"},
+                        {"buspower", "busgenreal"},
+                        {"busgen", "busgenreal"},
+                        {"busload", "busloadreal"},
+                        {"busloadp", "busloadreal"},
+                        {"busloadq", "busloadreactive"},
+                        {"busgenerationreactive", "busgenreactive"},
+                        {"busq", "busgenreactive"},
+                        {"linkrealpower", "linkreal"},
+                        {"linerealpower", "linkreal"},
+                        {"linkp1", "linkreal"},
+                        {"linkq", "linkreactive"},
+                        {"linkreactivepower", "linkreactive"},
+                        {"linereactivepower", "linkreactive"},
+                        {"linkrealpower1", "linkreal"},
+                        {"linerealpower1", "linkreal"},
+                        {"linkq1", "linkreactive"},
+                        {"linkreactivepower1", "linkreactive"},
+                        {"linereal", "linkreal"},
+                        {"linkreal1", "linkreal"},
+                        {"linereactive", "linkreactive"},
+                        {"linkreactive1", "linkreactive"},
+                        {"linkrealpower2", "linkreal2"},
+                        {"linkq2", "linkreactive2"},
+                        {"linkreactivepower2", "linkreactive2"},
+                        {"linkp2", "linkreal2"},
+                        {"p", "real"},
+                        {"power", "real"},
+                        {"q", "reactive"},
+                        {"impedance", "z"},
+                        {"admittance", "y"},
+                        {"impedance1", "z"},
+                        {"admittance1", "y"},
+                        {"z1", "z"},
+                        {"y1", "y"},
+                        {"impedance2", "z2"},
+                        {"admittance2", "y2"},
+                        {"status", "connected"},
+                        {"breaker", "switch"},
+                        {"breaker1", "switch"},
+                        {"switch1", "switch"},
+                        {"breaker2", "switch2"},
+                        {"i", "current"},
+                        {"i1", "current"},
+                        {"current1", "current"},
+                        {"currentangle1", "currentangle"},
+                        {"iangle", "currentangle"},
+                        {"iangle2", "currentangle2"},
+                        {"i2", "current2"},
+                        {"imagcurrent1", "imagcurrent"},
+                        {"realcurrent1", "realcurrent"},
+                        {"lossreal", "loss"},
+                        {"angle1", "angle"},
+                        {"absangle1", "absangle"},
+                        {"voltage1", "voltage"},
+                        {"v1", "voltage"},
+                        {"v2", "voltage2"},
+                        {"output0", "output"},
+                        {"cv", "output"},
+                        {"o0", "output"},
+                        {"currentvalue", "output"},
+                        {"deriv0", "deriv"},
+                        {"dodt", "deriv"},
+                        {"dodt0", "deriv"},
+                        {"doutdt", "deriv"},
+                        {"doutdt0", "deriv"},
+                        {"busvoltage1", "voltage"},
+                        {"busvoltage2", "voltage2"},
+                        {"busangle1", "busangle"},
+                        {"angle2", "busangle2"},
+                        {"voltages", "voltage"},
+                        {"angles", "angle"}};
+    return stringTranslate;
+}
+}  // namespace
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
@@ -262,77 +263,89 @@ static const std::map<std::string_view, fvecPair, std::less<std::string_view>> a
 
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
-    areaVecDescFunctions{
-        {"voltage",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"angle",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"freq",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"busfreq",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"busgenreal",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"busgenreactive",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"busloadreal",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"busloadreactive",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getBusName(desc);
-         }},
-        {"linkreal",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getLinkName(desc);
-         }},
-        {"linkreactive",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getLinkName(desc);
-         }},
-        {"linkloss",
-         [](coreObject* obj, stringVec& desc) {
-             return static_cast<Area*>(obj)->getLinkName(desc);
-         }},
+namespace {
+const auto& getAreaVecDescFunctions()
+{
+    static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
+        areaVecDescFunctions{
+            {"voltage",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"angle",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"freq",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"busfreq",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"busgenreal",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"busgenreactive",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"busloadreal",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"busloadreactive",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getBusName(desc);
+             }},
+            {"linkreal",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getLinkName(desc);
+             }},
+            {"linkreactive",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getLinkName(desc);
+             }},
+            {"linkloss",
+             [](coreObject* obj, stringVec& desc) {
+                 return static_cast<Area*>(obj)->getLinkName(desc);
+             }},
+        };
+    return areaVecDescFunctions;
+}
 
-    };
-
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
-    secondaryFunctions{
-        {"real",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); }, puMW}},
-        {"reactive",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getReactivePower(); },
-          puMW}},
-        {"voltage",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getVoltage(); },
-          puV}},
-        {"busvoltage",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getVoltage(); },
-          puV}},
-        {"busangle",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getAngle(); },
-          rad}},
-        {"busfreq",
-         {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getFreq(); },
-          puHz}},
-    };
+const auto& getSecondaryFunctions()
+{
+    static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
+        secondaryFunctions{
+            {"real",
+             {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); },
+              puMW}},
+            {"reactive",
+             {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getReactivePower(); },
+              puMW}},
+            {"voltage",
+             {[](coreObject* obj) {
+                  return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
+              },
+              puV}},
+            {"busvoltage",
+             {[](coreObject* obj) {
+                  return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
+              },
+              puV}},
+            {"busangle",
+             {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getAngle(); },
+              rad}},
+            {"busfreq",
+             {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getBus()->getFreq(); },
+              puHz}},
+        };
+    return secondaryFunctions;
+}
+}  // namespace
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
@@ -438,6 +451,7 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
 
 static std::string_view translateField(std::string_view field)
 {
+    const auto& stringTranslate = getStringTranslate();
     const auto translatedField = stringTranslate.find(field);
     return (translatedField != stringTranslate.end()) ? translatedField->second : field;
 }
@@ -490,6 +504,7 @@ fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
 fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
+    const auto& secondaryFunctions = getSecondaryFunctions();
     auto funcfindsec = secondaryFunctions.find(nfstr);
     if (funcfindsec != secondaryFunctions.end()) {
         return funcfindsec->second;
@@ -505,6 +520,7 @@ fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
+    const auto& secondaryFunctions = getSecondaryFunctions();
     auto funcfindsec = secondaryFunctions.find(nfstr);
     if (funcfindsec != secondaryFunctions.end()) {
         return funcfindsec->second;
@@ -647,6 +663,7 @@ descVecFunc getObjectVectorDescFunction(const gridComponent* comp, const std::st
 descVecFunc getObjectVectorDescFunction(const Area* /*area*/, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
+    const auto& areaVecDescFunctions = getAreaVecDescFunctions();
     auto funcfind = areaVecDescFunctions.find(nfstr);
     if (funcfind != areaVecDescFunctions.end()) {
         return funcfind->second;

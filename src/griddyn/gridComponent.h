@@ -490,10 +490,9 @@ see gridComponent::dynInitializeA for more details
     @param[in] sD  the stage data to cache information from
     @param[in] sMode the solverMode corresponding to the stateData
     */
-    virtual void
-        updateLocalCache(const IOdata& inputs,
-                         const stateData& stateDataValue,
-                         const solverMode& sMode);
+    virtual void updateLocalCache(const IOdata& inputs,
+                                  const stateData& stateDataValue,
+                                  const solverMode& sMode);
     /** @brief locate a state index based on field name
     @param[in] field the name of the field to search for
     @param[in] sMode the solverMode to find the location for
@@ -652,9 +651,8 @@ see gridComponent::dynInitializeA for more details
     @param[in] sD the data representing the current state to operate on
     @param[in] sMode the solverMode which is being solved for
     */
-    virtual void preEx(const IOdata& inputs,
-                       const stateData& stateDataValue,
-                       const solverMode& sMode);
+    virtual void
+        preEx(const IOdata& inputs, const stateData& stateDataValue, const solverMode& sMode);
 
     /******************************************
     Functions related to root finding
@@ -705,10 +703,9 @@ see gridComponent::dynInitializeA for more details
     * @param[in] sMode the mode the solver is in
     @return a vector containing  all the outputs
     **/
-    virtual IOdata
-        getOutputs(const IOdata& inputs,
-                   const stateData& stateDataValue,
-                   const solverMode& sMode) const;
+    virtual IOdata getOutputs(const IOdata& inputs,
+                              const stateData& stateDataValue,
+                              const solverMode& sMode) const;
 
     /**
     *@brief get the time derivative of a single state

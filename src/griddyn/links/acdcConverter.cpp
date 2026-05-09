@@ -417,12 +417,12 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
         } else {
             matrixDataValue.assignCheckCol(PoutLocation, B2Voffset, dirMult * Idc);
             matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-            matrixDataValue.assignCheckCol(
-                QoutLocation,
-                B2Voffset,
-                Idc * linkInfo.v2 /
-                    std::sqrt(((k3sq2 * k3sq2) * linkInfo.v1 * linkInfo.v1) -
-                              (linkInfo.v2 * linkInfo.v2)));
+            matrixDataValue.assignCheckCol(QoutLocation,
+                                           B2Voffset,
+                                           Idc * linkInfo.v2 /
+                                               std::sqrt(
+                                                   ((k3sq2 * k3sq2) * linkInfo.v1 * linkInfo.v1) -
+                                                   (linkInfo.v2 * linkInfo.v2)));
             matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
         }
     } else {
@@ -437,21 +437,27 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
     */
         if (busId == B2->getID()) {
             if (!opFlags[fixed_target_power]) {
-                matrixDataValue.assignCheckCol(PoutLocation, B1Voffset, dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assignCheckCol(PoutLocation,
+                                               B1Voffset,
+                                               dirMult * linkInfo.v2 / tap);
             }
         } else {
             if (B2Voffset != kNullLocation) {
                 const double temp =
                     std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
                 if (opFlags[fixed_target_power]) {
-                    matrixDataValue.assignCheckCol(
-                        QoutLocation,
-                        B2Voffset,
-                        (Pset / temp) + ((Pset * temp) / (linkInfo.v2 * linkInfo.v2)));
+                    matrixDataValue.assignCheckCol(QoutLocation,
+                                                   B2Voffset,
+                                                   (Pset / temp) +
+                                                       ((Pset * temp) /
+                                                        (linkInfo.v2 * linkInfo.v2)));
                 } else {
-                    matrixDataValue.assignCheckCol(PoutLocation, B2Voffset, -dirMult * linkInfo.v1 / tap);
-                    matrixDataValue.assignCheckCol(
-                        QoutLocation, B2Voffset, (linkInfo.v1 / tap) * linkInfo.v2 / temp);
+                    matrixDataValue.assignCheckCol(PoutLocation,
+                                                   B2Voffset,
+                                                   -dirMult * linkInfo.v1 / tap);
+                    matrixDataValue.assignCheckCol(QoutLocation,
+                                                   B2Voffset,
+                                                   (linkInfo.v1 / tap) * linkInfo.v2 / temp);
                 }
             }
         }

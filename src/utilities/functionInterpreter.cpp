@@ -57,9 +57,8 @@ struct functionEntry {
 
 constexpr char asciiToLower(char character) noexcept
 {
-    return ((character >= 'A') && (character <= 'Z')) ?
-        static_cast<char>(character - 'A' + 'a') :
-        character;
+    return ((character >= 'A') && (character <= 'Z')) ? static_cast<char>(character - 'A' + 'a') :
+                                                        character;
 }
 
 bool isLowerAscii(std::string_view str) noexcept

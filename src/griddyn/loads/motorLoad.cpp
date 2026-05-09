@@ -332,18 +332,19 @@ void motorLoad::jacobianElements(const IOdata& inputs,
             if (opFlags[stalled]) {
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
             } else {
-                matrixDataValue.assignCheck(
-                    offset,
-                    inputLocs[voltageInLocation],
-                    -(1.0 / H) *
-                        (voltage * Vcontrol * Vcontrol * r1 * slip /
-                         ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)))));
+                matrixDataValue.assignCheck(offset,
+                                            inputLocs[voltageInLocation],
+                                            -(1.0 / H) *
+                                                (voltage * Vcontrol * Vcontrol * r1 * slip /
+                                                 ((r1 * r1) +
+                                                  (slip * slip * (x + x1) * (x + x1)))));
                 // this is a really ugly looking derivative so I am computing it numerically
                 const double test1 = 0.5 / H * (mechPower(slip) - rPower(voltage, slip));
                 const double test2 = 0.5 / H *
                     (mechPower(slip + cSmallDiff) - rPower(voltage * Vcontrol, slip + cSmallDiff));
-                matrixDataValue.assign(
-                    offset, offset, ((test2 - test1) / cSmallDiff) - stateDataValue.cj);
+                matrixDataValue.assign(offset,
+                                       offset,
+                                       ((test2 - test1) / cSmallDiff) - stateDataValue.cj);
             }
         }
     } else if (!opFlags[init_transient]) {
@@ -353,11 +354,13 @@ void motorLoad::jacobianElements(const IOdata& inputs,
 
         const double powerAtSlip = rPower(voltage * Vcontrol, slip);
         const double powerAtPerturbedSlip = rPower(voltage * Vcontrol, slip + cSmallDiff);
-        matrixDataValue.assign(
-            offset, offset, dmechds(slip) - ((powerAtPerturbedSlip - powerAtSlip) / cSmallDiff));
+        matrixDataValue.assign(offset,
+                               offset,
+                               dmechds(slip) - ((powerAtPerturbedSlip - powerAtSlip) / cSmallDiff));
 
-        matrixDataValue.assignCheck(
-            offset, inputLocs[voltageInLocation], -2.0 * powerAtSlip / voltage);
+        matrixDataValue.assignCheck(offset,
+                                    inputLocs[voltageInLocation],
+                                    -2.0 * powerAtSlip / voltage);
     }
 }
 
@@ -426,10 +429,8 @@ void motorLoad::ioPartialDerivatives(const IOdata& inputs,
         } else if (!opFlags[init_transient]) {
             slip = stateDataValue.state[offsets.getAlgOffset(sMode)];
         }
-        const double temp =
-            voltage * slip / ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)));
-        matrixDataValue.assign(
-            PoutLocation, inputLocs[voltageInLocation], scale * (2 * r1 * temp));
+        const double temp = voltage * slip / ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)));
+        matrixDataValue.assign(PoutLocation, inputLocs[voltageInLocation], scale * (2 * r1 * temp));
         matrixDataValue.assign(QoutLocation,
                                inputLocs[voltageInLocation],
                                scale * ((2 * voltage / xm) + (2 * slip * (x + x1) * temp)));

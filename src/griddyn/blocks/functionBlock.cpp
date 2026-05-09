@@ -102,8 +102,7 @@ void functionBlock::blockJacobianElements(double input,
     }
     matrixDataValue.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        Block::blockJacobianElements(
-            input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
+        Block::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
 }
 

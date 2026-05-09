@@ -217,11 +217,10 @@ count_t gridComponent::stateSize(const solverMode& sMode)
     if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    count_t ssize =
-        (hasAlgebraic(sMode)) ?
-            (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
-             solverOffsetsValue.total.aSize) :
-            0;
+    count_t ssize = (hasAlgebraic(sMode)) ?
+        (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+         solverOffsetsValue.total.aSize) :
+        0;
     if (hasDifferential(sMode)) {
         ssize += solverOffsetsValue.total.diffSize;
     }
@@ -231,11 +230,10 @@ count_t gridComponent::stateSize(const solverMode& sMode)
 count_t gridComponent::stateSize(const solverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
-    count_t ssize =
-        (hasAlgebraic(sMode)) ?
-            (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
-             solverOffsetsValue.total.aSize) :
-            0;
+    count_t ssize = (hasAlgebraic(sMode)) ?
+        (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+         solverOffsetsValue.total.aSize) :
+        0;
     if (hasDifferential(sMode)) {
         ssize += solverOffsetsValue.total.diffSize;
     }
@@ -797,7 +795,7 @@ void gridComponent::addSubObject(gridComponent* comp)
                     subObjectList.end(),
                     [comp](const coreObject* subObject) {
                         return isSameObject(subObject, comp);
-        })) {
+                    })) {
         return;
     }
     comp->setParent(this);
@@ -1547,8 +1545,7 @@ void gridComponent::getStateName(stringVec& stNames,
                 continue;
             }
             if (stsize > stateNameIndex) {
-                stNames[solverOffsetsValue.algOffset + kk] =
-                    prefix2 + stateNames[stateNameIndex];
+                stNames[solverOffsetsValue.algOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
                 stNames[solverOffsetsValue.algOffset + kk] =
@@ -1766,8 +1763,7 @@ void gridComponent::jacobianElements(const IOdata& inputs,
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
             if (sub->stateSize(sMode) > 0) {
-                sub->jacobianElements(
-                    inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
+                sub->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
             }
         }
     }

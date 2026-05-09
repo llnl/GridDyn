@@ -18,8 +18,8 @@
 #include "../solvers/solverMode.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include <functional>
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <string>

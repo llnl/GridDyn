@@ -76,7 +76,8 @@ coreObject* DynamicGenerator::clone(coreObject* obj) const
 }
 /** a mapping from a string to a dynamic generator model type*/
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>> dynModelFromStringMap{
+const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+    dynModelFromStringMap{
         {"typical", DynamicGenerator::dynModel_t::typical},
         {"simple", DynamicGenerator::dynModel_t::simple},
         {"model_only", DynamicGenerator::dynModel_t::model_only},

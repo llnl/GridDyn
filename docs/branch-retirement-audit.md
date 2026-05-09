@@ -60,7 +60,7 @@ The large majority of the branch’s commit count is debug-related churn, not du
 
 ## Findings by Branch
 
-## `paradae-updates`
+### `paradae-updates`
 
 ### Already preserved or intentionally superseded
 
@@ -101,9 +101,9 @@ The large majority of the branch’s commit count is debug-related churn, not du
   1. whether to keep or drop the old ParaDAE limit-handling framework
   2. whether the LAPACKE CMake tweak still matters in the modern build
 
-## `braid-unscheduled-events`
+### `braid-unscheduled-events`
 
-## Category 1: Already recovered in the current working tree
+#### Category 1: Already recovered in the current working tree
 
 These are the main branch-only solver behaviors that this audit recovered:
 
@@ -127,7 +127,7 @@ Notes:
 - Some of these exact patches were not cherry-picked verbatim.
 - The behavior was recovered in a modernization-friendly way into the current `src/extraSolvers/braid` and `src/extraSolvers/paradae` code.
 
-## Category 2: Appears obsolete or already superseded by `main`
+#### Category 2: Appears obsolete or already superseded by `main`
 
 This covers the long run of commits whose purpose was removing or muting debug output, for example:
 
@@ -144,7 +144,7 @@ Also likely already present independently in modern `main`:
 - the general “set state before root-trigger handling” behavior in dynamic solves
 - root-trigger method signatures that already include `time`
 
-## Category 3: Still branch-only and substantively unreviewed
+#### Category 3: Still branch-only and substantively unreviewed
 
 This is the main reason the branch is **not yet safe to delete** under a strict preservation standard.
 

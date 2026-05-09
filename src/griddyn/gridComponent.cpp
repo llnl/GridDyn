@@ -879,9 +879,8 @@ void gridComponent::reset(reset_levels level)
 }
 
 // NOLINTBEGIN(misc-no-recursion)
-change_code gridComponent::powerFlowAdjust(const IOdata& inputs,
-                                           std::uint32_t flags,
-                                           check_level_t level)
+change_code
+    gridComponent::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
 {
     auto ret = change_code::no_change;
 

@@ -15,6 +15,7 @@
 #include <utility>
 
 namespace griddyn {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static classFactory<Communicator> commFac(std::vector<std::string>{"comm", "simple", "basic"},
                                           "basic");
 
@@ -23,10 +24,11 @@ Communicator::Communicator(): mId(getID())
     setName("comm_" + std::to_string(mId));
 }
 Communicator::Communicator(const std::string& name): helperObject(name), mId(getID()) {}
-Communicator::Communicator(const std::string& name, std::uint64_t id): helperObject(name), mId(id)
+Communicator::Communicator(const std::string& name, std::uint64_t commId):
+    helperObject(name), mId(commId)
 {
 }
-Communicator::Communicator(std::uint64_t id): mId(id)
+Communicator::Communicator(std::uint64_t commId): mId(commId)
 {
     setName("comm_" + std::to_string(mId));
 }
@@ -55,7 +57,7 @@ void Communicator::transmit(std::string_view destName, std::shared_ptr<commMessa
 
 void Communicator::receive(std::uint64_t sourceID,
                            std::uint64_t destID,
-                           std::shared_ptr<commMessage> message)
+                           const std::shared_ptr<commMessage>& message)
 {
     if ((destID == mId) || (destID == 0)) {
         if (autoPingEnabled) {
@@ -77,7 +79,7 @@ void Communicator::receive(std::uint64_t sourceID,
 
 void Communicator::receive(std::uint64_t sourceID,
                            std::string_view destName,
-                           std::shared_ptr<commMessage> message)
+                           const std::shared_ptr<commMessage>& message)
 {
     if (destName == getName()) {
         if (autoPingEnabled) {
@@ -168,12 +170,12 @@ void Communicator::disconnect()
 }
 std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
-                                               const std::uint64_t id)
+                                               const std::uint64_t commId)
 {
     auto ret = coreClassFactory<Communicator>::instance()->createObject(commType, commName);
 
-    if (id != 0) {
-        ret->setCommID(id);
+    if (commId != 0) {
+        ret->setCommID(commId);
     }
 
     return ret;

@@ -28,8 +28,8 @@ class Communicator:
     bool autoPingEnabled = true;  //!< control for automatic ping enable
     Communicator();
     explicit Communicator(const std::string& name);
-    Communicator(const std::string& name, std::uint64_t id);
-    explicit Communicator(std::uint64_t id);
+    Communicator(const std::string& name, std::uint64_t commId);
+    explicit Communicator(std::uint64_t commId);
 
     /** function to clone the communicator
     @return a unique ptr to a new communicator if one is created
@@ -58,7 +58,9 @@ class Communicator:
      * @param[in] message  the message to send
      */
     virtual void
-        receive(std::uint64_t sourceID, std::uint64_t destID, std::shared_ptr<commMessage> message);
+        receive(std::uint64_t sourceID,
+                std::uint64_t destID,
+                const std::shared_ptr<commMessage>& message);
     /** receive data
      * received a data block and takes the appropriate action
      * @param[in] sourceID the identifier of the transmit location
@@ -67,7 +69,7 @@ class Communicator:
      */
     virtual void receive(std::uint64_t sourceID,
                          std::string_view destName,
-                         std::shared_ptr<commMessage> message);
+                         const std::shared_ptr<commMessage>& message);
 
     // ping functions
     /** transmit a ping message to the specified ID*/
@@ -110,5 +112,5 @@ class Communicator:
 
 std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
-                                               const std::uint64_t id);
+                                               const std::uint64_t commId);
 }  // namespace griddyn

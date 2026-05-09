@@ -17,6 +17,7 @@
 #include "kinsolInterface.h"
 #include <algorithm>
 #include <charconv>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>

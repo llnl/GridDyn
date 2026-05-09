@@ -9,6 +9,7 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "grabberInterpreter.hpp"
 #include "grabberSet.h"
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -17,7 +18,7 @@
 
 namespace griddyn {
 namespace {
-    static bool isEqualityComparison(comparison_type comparison)
+    bool isEqualityComparison(comparison_type comparison)
     {
         switch (comparison) {
             case comparison_type::ge:

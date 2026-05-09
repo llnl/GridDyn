@@ -18,6 +18,7 @@
 #include "../solvers/solverMode.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <functional>
 #include <algorithm>
 #include <iterator>
 #include <map>
@@ -40,6 +41,7 @@ static const fvecPair nullVecPair{nullptr, defunit};
 
 // TODO(phlpt): Merge this map with the one in stateGrabber.
 /** map of all the alternate strings that can be used*/
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, std::string_view, std::less<std::string_view>>
     stringTranslate{{"v", "voltage"},
                     {"vol", "voltage"},
@@ -139,6 +141,7 @@ static const std::map<std::string_view, std::string_view, std::less<std::string_
 
     };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
     {"connected",
      {[](coreObject* obj) {
@@ -166,6 +169,7 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
       },
       defunit}}};
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> busFunctions{
     {"voltage", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getVoltage(); }, puV}},
     {"angle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
@@ -184,6 +188,7 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
      {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReactive(); }, puMW}},
 };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> areaFunctions{
     {"avgfreq", {[](coreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
     {"general",
@@ -197,6 +202,7 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
     {"tieflow", {[](coreObject* obj) { return static_cast<Area*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fvecPair, std::less<std::string_view>> areaVecFunctions{
     {"voltage",
      {[](coreObject* obj, std::vector<double>& data) {
@@ -256,6 +262,7 @@ static const std::map<std::string_view, fvecPair, std::less<std::string_view>> a
 
 };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
     areaVecDescFunctions{
         {"voltage",
@@ -305,6 +312,7 @@ static const std::map<std::string_view, descVecFunc, std::less<std::string_view>
 
     };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
     secondaryFunctions{
         {"real",
@@ -326,12 +334,14 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
           puHz}},
     };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
     {"loadreal", {[](coreObject* obj) { return static_cast<Load*>(obj)->getRealPower(); }, puMW}},
     {"loadreactive",
      {[](coreObject* obj) { return static_cast<Load*>(obj)->getReactivePower(); }, puMW}},
 };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> genFunctions{
     {"general",
      {[](coreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
@@ -360,6 +370,7 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
       rad}},
 };
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> linkFunctions{
     {"real", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
     {"reactive",
@@ -455,7 +466,7 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
     }
 
     // try to lookup named outputs
-    index_t outIndex = comp->lookupOutputIndex(field);
+    const index_t outIndex = comp->lookupOutputIndex(field);
     if (outIndex != kNullLocation) {
         return {[outIndex](coreObject* obj) {
                     return static_cast<gridComponent*>(obj)->getOutput(outIndex);
@@ -476,7 +487,7 @@ fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
     return getObjectFunction(static_cast<const gridComponent*>(bus), field);
 }
 
-fobjectPair getObjectFunction(const Load* ld, const std::string& field)
+fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
     auto funcfindsec = secondaryFunctions.find(nfstr);
@@ -488,7 +499,7 @@ fobjectPair getObjectFunction(const Load* ld, const std::string& field)
         return funcfind->second;
     }
 
-    return getObjectFunction(static_cast<const gridComponent*>(ld), field);
+    return getObjectFunction(static_cast<const gridComponent*>(loadObject), field);
 }
 
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
@@ -537,7 +548,7 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
     }
 
     std::string fld;
-    int num = gmlc::utilities::stringOps::trailingStringInt(field, fld, 0);
+    const int num = gmlc::utilities::stringOps::trailingStringInt(field, fld, 0);
     fobjectPair retPair(nullptr, defunit);
     if ((field == "cv") || (field == "currentvalue") || (field == "value") || (field == "output")) {
         retPair.first = [](coreObject* obj) -> double {
@@ -581,7 +592,7 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
                 };
             } else {
                 // try to lookup named output for control relays
-                index_t outIndex =
+                const index_t outIndex =
                     static_cast<const relays::controlRelay*>(rel)->findMeasurement(field);
                 if (outIndex != kNullLocation) {
                     retPair.first = [outIndex](coreObject* obj) {

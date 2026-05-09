@@ -59,7 +59,7 @@ eventually will replace most of the shaped loads*/
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       const solverMode& sMode) override;
 
         virtual void setState(coreTime time,

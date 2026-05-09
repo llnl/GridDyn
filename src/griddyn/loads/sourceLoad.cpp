@@ -10,6 +10,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
+#include <functional>
 #include <map>
 #include <string>
 #include <string_view>
@@ -221,7 +222,7 @@ void sourceLoad::set(std::string_view param, std::string_view val)
 
 void sourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
-    for (auto& src : getSubObjects()) {
+    for (const auto& src : getSubObjects()) {
         static_cast<Source*>(src)->timestep(time, noInputs, sMode);
     }
     getSourceLoads();
@@ -254,9 +255,10 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
     } else {
         auto ind = source_lookup.find(param);
         if (ind != source_lookup.end()) {
-            if (std::cmp_greater(sources.size(), ind->second) && (sources[ind->second] != nullptr)) {
-                sourceLink[ind->second] = static_cast<int>(val);
-            } else if (!opFlags[pFlow_initialized]) {
+            const bool canSetSourceLink =
+                (std::cmp_greater(sources.size(), ind->second) && (sources[ind->second] != nullptr)) ||
+                (!opFlags[pFlow_initialized]);
+            if (canSetSourceLink) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else {
                 throw(unrecognizedParameter(param));

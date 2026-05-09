@@ -24,9 +24,8 @@ using objJacFunction = std::function<void(gridComponent* comp,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode)>;
-using objStateGrabberFunction =
-    std::function<double(
-        gridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
+using objStateGrabberFunction = std::function<
+    double(gridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
 
 /** define if the grabber can compute the Jacobian information*/
 enum class jacobian_mode {
@@ -108,10 +107,9 @@ class stateGrabber: public objectOperatorInterface {
     void objectLoadInfo(std::string_view fld);
 };
 
-using fstateobjectPair =
-    std::pair<std::function<double(
-                  gridComponent*, const stateData& stateDataValue, const solverMode& sMode)>,
-              units::unit>;
+using fstateobjectPair = std::pair<
+    std::function<double(gridComponent*, const stateData& stateDataValue, const solverMode& sMode)>,
+    units::unit>;
 
 /** construct a vector of state grabbers from a specific command string
 @param[in] command the string command to generate the grabbers

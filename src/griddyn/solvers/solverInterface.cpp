@@ -60,15 +60,19 @@ namespace {
 }  // namespace
 
 static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::mode_t::gauss);
 static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::mode_t::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
 static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     basicOdeFactory(stringVec{"basicode", "euler"});
 #else
 // if cvode is not available this becomes the default differential solver
 static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
@@ -308,6 +312,7 @@ void SolverInterface::set(std::string_view param, double val)
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<std::string_view>> solverFlagMap{
     {"filecapture", fileCapture_flag},
     {"directlogging", directLogging_flag},

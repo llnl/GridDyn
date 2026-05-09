@@ -32,11 +32,12 @@ gridComponent::gridComponent(const std::string& objName): coreObject(objName)
 
 gridComponent::~gridComponent()
 {
-    for (auto& so : subObjectList) {
-        removeReference(so, this);
+    for (auto& subObject : subObjectList) {
+        removeReference(subObject, this);
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 coreObject* gridComponent::clone(coreObject* obj) const
 {
     auto* nobj = cloneBase<gridComponent, coreObject>(this, obj);
@@ -55,7 +56,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                 nobj->add(subobj->clone());
             }
             catch (const unrecognizedObjectException&) {
-                // this likely means that the parent will take care of it itself
+                continue;
             }
         }
     } else {
@@ -81,7 +82,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                         nobj->add(subObjectList[ii]->clone());
                     }
                     catch (const unrecognizedObjectException&) {
-                        // this likely means that the derived class will take care of it itself
+                        continue;
                     }
                 }
             } else {
@@ -90,7 +91,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                         nobj->add(subObjectList[ii]->clone());
                     }
                     catch (const unrecognizedObjectException&) {
-                        // this likely means that the parent will take care of it itself
+                        continue;
                     }
                 } else {
                     if (typeid(subObjectList[ii]) == typeid(nobj->subObjectList[ii])) {
@@ -100,7 +101,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                             nobj->add(subObjectList[ii]->clone());
                         }
                         catch (const unrecognizedObjectException&) {
-                            // this likely means that the parent will take care of it itself
+                            continue;
                         }
                     }
                 }
@@ -111,6 +112,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
     return nobj;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::updateObjectLinkages(coreObject* newRoot)
 {
     for (auto* subobj : getSubObjects()) {
@@ -118,6 +120,7 @@ void gridComponent::updateObjectLinkages(coreObject* newRoot)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (localBaseVoltage == kNullVal) {
@@ -137,6 +140,7 @@ void gridComponent::pFlowInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowInitializeB()
 {
     if (isEnabled()) {
@@ -145,6 +149,7 @@ void gridComponent::pFlowInitializeB()
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (isEnabled()) {
@@ -155,6 +160,7 @@ void gridComponent::dynInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynInitializeB(const IOdata& inputs,
                                    const IOdata& desiredOutput,
                                    IOdata& fieldSet)
@@ -169,6 +175,7 @@ void gridComponent::dynInitializeB(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
@@ -176,6 +183,7 @@ void gridComponent::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowObjectInitializeB()
 {
     for (auto& subobj : subObjectList) {
@@ -183,6 +191,7 @@ void gridComponent::pFlowObjectInitializeB()
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
@@ -190,6 +199,7 @@ void gridComponent::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
@@ -380,6 +390,7 @@ bool gridComponent::isRootCountLoaded(const solverMode& sMode) const
     return offsets.isRootCountLoaded(sMode);
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, operation_flags, std::less<>> user_settable_flags{
     {"use_bus_frequency", uses_bus_frequency},
     {"late_b_initialize", late_b_initialize},
@@ -426,6 +437,7 @@ void gridComponent::setFlag(std::string_view flag, bool val)
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<index_t> parentSettableFlags{sampled_only,
                                                       no_gridcomponent_set,
                                                       separate_processing};
@@ -439,6 +451,7 @@ void gridComponent::parentSetFlag(index_t flagID, bool val, coreObject* checkPar
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, operation_flags, std::less<>> flagmap{
     {"constraints", has_constraints},
     {"roots", has_roots},
@@ -535,7 +548,9 @@ void gridComponent::disconnect()
 {
     opFlags.set(disconnected);
 }
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locNumStrings{"status", "basefrequency", "basepower"};
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locStrStrings{"status"};
 
 void gridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype) const
@@ -550,26 +565,26 @@ void gridComponent::set(std::string_view param, std::string_view val)
     }
 
     if (param == "status") {
-        auto v2 = convertToLowerCase(std::string{val});
-        if ((v2 == "on") || (v2 == "in") || (v2 == "enabled")) {
+        auto valueLower = convertToLowerCase(std::string{val});
+        if ((valueLower == "on") || (valueLower == "in") || (valueLower == "enabled")) {
             if (!isEnabled()) {
                 enable();
                 if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
-        } else if ((v2 == "off") || (v2 == "out") || (v2 == "disabled")) {
+        } else if ((valueLower == "off") || (valueLower == "out") || (valueLower == "disabled")) {
             if (isEnabled()) {
                 if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
                 disable();
             }
-        } else if (v2 == "connected") {
+        } else if (valueLower == "connected") {
             if (!isConnected()) {
                 reconnect();
             }
-        } else if (v2 == "disconnected") {
+        } else if (valueLower == "disconnected") {
             if (isConnected()) {
                 disconnect();
             }
@@ -583,14 +598,14 @@ void gridComponent::set(std::string_view param, std::string_view val)
     }
 }
 
-auto hasParameterPath(std::string_view param)
+static auto hasParameterPath(std::string_view param)
 {
     return (param.find_last_of(":?") != std::string_view::npos);
 }
 bool gridComponent::subObjectSet(std::string_view param, double val, units::unit unitType)
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(std::string{param}, this);
+        const objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             if (pinfo.m_unitType != units::defunit) {
                 pinfo.m_obj->set(pinfo.m_field, val, pinfo.m_unitType);
@@ -789,7 +804,9 @@ void gridComponent::removeSubObject(gridComponent* obj)
     if (!subObjectList.empty()) {
         auto rmobj = std::find_if(subObjectList.begin(),
                                   subObjectList.end(),
-                                  [obj](coreObject* so) { return isSameObject(so, obj); });
+                                  [obj](coreObject* subObject) {
+                                      return isSameObject(subObject, obj);
+                                  });
         if (rmobj != subObjectList.end()) {
             removeReference(*rmobj, this);
             subObjectList.erase(rmobj);
@@ -804,14 +821,18 @@ void gridComponent::removeSubObject(gridComponent* obj)
 void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldObj)
 {
     if (subObjectList.empty()) {
-        return addSubObject(newObj);
+        addSubObject(newObj);
+        return;
     }
     if (newObj == nullptr) {
-        return removeSubObject(oldObj);
+        removeSubObject(oldObj);
+        return;
     }
     auto repobj = std::find_if(subObjectList.begin(),
                                subObjectList.end(),
-                               [oldObj](const coreObject* so) { return isSameObject(so, oldObj); });
+                               [oldObj](const coreObject* subObject) {
+                                   return isSameObject(subObject, oldObj);
+                               });
     if (repobj != subObjectList.end()) {
         removeReference(*repobj, this);
         newObj->setParent(this);
@@ -826,7 +847,8 @@ void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldOb
             opFlags[pFlow_initialized] = false;
         }
     } else {
-        return addSubObject(newObj);
+        addSubObject(newObj);
+        return;
     }
 }
 void gridComponent::remove(coreObject* obj)
@@ -836,6 +858,7 @@ void gridComponent::remove(coreObject* obj)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::reset(reset_levels level)
 {
     for (auto& subobj : subObjectList) {
@@ -852,14 +875,13 @@ change_code
         if (!(subobj->checkFlag(has_powerflow_adjustments))) {
             continue;
         }
-        auto iret = subobj->powerFlowAdjust(inputs, flags, level);
-        if (iret > ret) {
-            ret = iret;
-        }
+        const auto iret = subobj->powerFlowAdjust(inputs, flags, level);
+        ret = std::max(iret, ret);
     }
     return ret;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setState(coreTime time,
                              const double state[],
                              const double dstate_dt[],
@@ -903,6 +925,7 @@ void gridComponent::setState(coreTime time,
     }
 }
 // for saving the state
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::guessState(coreTime time,
                                double state[],
                                double dstate_dt[],
@@ -996,6 +1019,7 @@ double gridComponent::getState(index_t offset) const
     return kNullVal;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
 {
     auto& so = offsets.getOffsets(sMode);
@@ -1065,6 +1089,7 @@ std::pair<count_t, count_t> gridComponent::LocalRootCount(const solverMode& /*sM
     return std::make_pair(lc.algRoots, lc.diffRoots);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadStateSizes(const solverMode& sMode)
 {
     if (isStateCountLoaded(sMode)) {
@@ -1120,6 +1145,7 @@ void gridComponent::loadStateSizes(const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadRootSizes(const solverMode& sMode)
 {
     if (isRootCountLoaded(sMode)) {
@@ -1165,6 +1191,7 @@ void gridComponent::loadRootSizes(const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadJacobianSizes(const solverMode& sMode)
 {
     if (isJacobianCountLoaded(sMode)) {
@@ -1196,6 +1223,7 @@ void gridComponent::loadJacobianSizes(const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getTols(double tols[], const solverMode& sMode)
 {
     for (auto& subObj : subObjectList) {
@@ -1205,6 +1233,7 @@ void gridComponent::getTols(double tols[], const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getVariableType(double sdata[], const solverMode& sMode)
 {
     auto& so = offsets.getOffsets(sMode);
@@ -1242,6 +1271,7 @@ void gridComponent::getVariableType(double sdata[], const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<int, int> alertFlags{
     std::make_pair(FLAG_CHANGE, 1),
     std::make_pair(STATE_COUNT_INCREASE, 3),
@@ -1295,6 +1325,7 @@ void gridComponent::alert(coreObject* object, int code)
     coreObject::alert(object, code);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getConstraints(double constraints[], const solverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
@@ -1304,6 +1335,7 @@ void gridComponent::getConstraints(double constraints[], const solverMode& sMode
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setRootOffset(index_t newRootOffset, const solverMode& sMode)
 {
     offsets.setRootOffset(newRootOffset, sMode);
@@ -1322,6 +1354,7 @@ stringVec gridComponent::localStateNames() const
     return emptyStr;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<stringVec> inputNamesStr{
     {"input0", "i0"},
     {"input1", "i1"},
@@ -1342,6 +1375,7 @@ const std::vector<stringVec>& gridComponent::inputNames() const
     return inputNamesStr;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<stringVec> outputNamesStr{
     {"output", "o0", "out0", "output0", "out", "o", "value"},
     {"output1", "o1", "out1"},
@@ -1372,6 +1406,7 @@ units::unit gridComponent::outputUnits(index_t /*outputNum*/) const
     return units::defunit;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode) const
 {
     const auto& so = offsets.getOffsets(sMode);
@@ -1445,6 +1480,7 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
     return kInvalidLocation;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getStateName(stringVec& stNames,
                                  const solverMode& sMode,
                                  const std::string& prefix) const
@@ -1537,6 +1573,7 @@ void gridComponent::updateFlags(bool dynamicsFlags)
     opFlags.reset(flag_update_required);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::updateLocalCache(const IOdata& inputs,
                                      const stateData& sD,
                                      const solverMode& sMode)
@@ -1589,6 +1626,7 @@ coreObject* gridComponent::findByUserID(std::string_view typeName, index_t searc
     return coreObject::findByUserID(typeName, searchID);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     prevTime = time;
@@ -1633,6 +1671,7 @@ count_t gridComponent::outputDependencyCount(index_t outputNum, const solverMode
     return (oLoc == kInvalidLocation) ? 0 : 1;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
@@ -1645,6 +1684,7 @@ void gridComponent::preEx(const IOdata& inputs, const stateData& sD, const solve
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::residual(const IOdata& inputs,
                              const stateData& sD,
                              double resid[],
@@ -1659,6 +1699,7 @@ void gridComponent::residual(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::derivative(const IOdata& inputs,
                                const stateData& sD,
                                double deriv[],
@@ -1673,6 +1714,7 @@ void gridComponent::derivative(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::algebraicUpdate(const IOdata& inputs,
                                     const stateData& sD,
                                     double update[],
@@ -1688,6 +1730,7 @@ void gridComponent::algebraicUpdate(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::jacobianElements(const IOdata& inputs,
                                      const stateData& sD,
                                      matrixData<double>& md,
@@ -1702,6 +1745,7 @@ void gridComponent::jacobianElements(const IOdata& inputs,
         }
     }
 }
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::rootTest(const IOdata& inputs,
                              const stateData& sD,
                              double roots[],
@@ -1717,6 +1761,7 @@ void gridComponent::rootTest(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
@@ -1732,6 +1777,7 @@ void gridComponent::rootTrigger(coreTime time,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 change_code gridComponent::rootCheck(const IOdata& inputs,
                                      const stateData& sD,
                                      const solverMode& sMode,

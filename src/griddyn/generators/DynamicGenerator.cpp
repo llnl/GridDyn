@@ -76,24 +76,25 @@ coreObject* DynamicGenerator::clone(coreObject* obj) const
     return gen;
 }
 namespace {
-const auto& getDynModelFromStringMap()
-{
-    static const std::map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
-        dynModelFromStringMap{
-        {"typical", DynamicGenerator::dynModel_t::typical},
-        {"simple", DynamicGenerator::dynModel_t::simple},
-        {"model_only", DynamicGenerator::dynModel_t::model_only},
-        {"modelonly", DynamicGenerator::dynModel_t::model_only},
-        {"transient", DynamicGenerator::dynModel_t::transient},
-        {"subtransient", DynamicGenerator::dynModel_t::detailed},
-        {"detailed", DynamicGenerator::dynModel_t::detailed},
-        {"none", DynamicGenerator::dynModel_t::none},
-        {"dc", DynamicGenerator::dynModel_t::dc},
-        {"renewable", DynamicGenerator::dynModel_t::renewable},
-        {"variable", DynamicGenerator::dynModel_t::renewable},
-    };
-    return dynModelFromStringMap;
-}
+    const auto& getDynModelFromStringMap()
+    {
+        static const std::
+            map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+                dynModelFromStringMap{
+                    {"typical", DynamicGenerator::dynModel_t::typical},
+                    {"simple", DynamicGenerator::dynModel_t::simple},
+                    {"model_only", DynamicGenerator::dynModel_t::model_only},
+                    {"modelonly", DynamicGenerator::dynModel_t::model_only},
+                    {"transient", DynamicGenerator::dynModel_t::transient},
+                    {"subtransient", DynamicGenerator::dynModel_t::detailed},
+                    {"detailed", DynamicGenerator::dynModel_t::detailed},
+                    {"none", DynamicGenerator::dynModel_t::none},
+                    {"dc", DynamicGenerator::dynModel_t::dc},
+                    {"renewable", DynamicGenerator::dynModel_t::renewable},
+                    {"variable", DynamicGenerator::dynModel_t::renewable},
+                };
+        return dynModelFromStringMap;
+    }
 }  // namespace
 
 DynamicGenerator::dynModel_t DynamicGenerator::dynModelFromString(const std::string& dynModelType)

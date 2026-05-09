@@ -33,9 +33,10 @@ namespace zmqInterface {
 
         virtual void cloneTo(Communicator* comm) const override;
         virtual void transmit(std::string_view destName,
-                              std::shared_ptr<commMessage> message) override;
+                              const std::shared_ptr<commMessage>& message) override;
 
-        virtual void transmit(std::uint64_t destID, std::shared_ptr<commMessage> message) override;
+        virtual void transmit(std::uint64_t destID,
+                              const std::shared_ptr<commMessage>& message) override;
 
         virtual void initialize() override;
 

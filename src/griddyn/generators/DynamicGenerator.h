@@ -177,14 +177,12 @@ class DynamicGenerator: public Generator {
                             index_t* angleOffset = nullptr) const override;
 
   protected:
-    virtual double
-        pSetControlUpdate(const IOdata& inputs,
-                          const stateData& stateDataValue,
-                          const solverMode& sMode);
-    virtual double
-        vSetControlUpdate(const IOdata& inputs,
-                          const stateData& stateDataValue,
-                          const solverMode& sMode);
+    virtual double pSetControlUpdate(const IOdata& inputs,
+                                     const stateData& stateDataValue,
+                                     const solverMode& sMode);
+    virtual double vSetControlUpdate(const IOdata& inputs,
+                                     const stateData& stateDataValue,
+                                     const solverMode& sMode);
     virtual index_t pSetLocation(const solverMode& sMode);
     virtual index_t vSetLocation(const solverMode& sMode);
 
@@ -206,10 +204,9 @@ class DynamicGenerator: public Generator {
     subModelInputs subInputs;
     subModelInputLocs subInputLocs;
 
-    virtual void
-        generateSubModelInputs(const IOdata& inputs,
-                               const stateData& stateDataValue,
-                               const solverMode& sMode);
+    virtual void generateSubModelInputs(const IOdata& inputs,
+                                        const stateData& stateDataValue,
+                                        const solverMode& sMode);
     virtual void generateSubModelInputLocs(const IOlocs& inputLocs,
                                            const stateData& stateDataValue,
                                            const solverMode& sMode);

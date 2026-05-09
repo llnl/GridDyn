@@ -165,7 +165,8 @@ Source* sourceLoad::findSource(std::string_view srcname)
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
         const int index = sourceLink[ind->second];
-        if ((index < 0) || std::cmp_less_equal(sources.size(), index) || (sources[index] == nullptr)) {
+        if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
+            (sources[index] == nullptr)) {
             // this may not actually do anything is the sType is set to other
             add(makeSource(static_cast<sourceLoad::sourceLoc>(ind->second)));
         }

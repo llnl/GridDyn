@@ -57,10 +57,9 @@ class Communicator:
      * @param[in] destID the identifier of the receiving location
      * @param[in] message  the message to send
      */
-    virtual void
-        receive(std::uint64_t sourceID,
-                std::uint64_t destID,
-                const std::shared_ptr<commMessage>& message);
+    virtual void receive(std::uint64_t sourceID,
+                         std::uint64_t destID,
+                         const std::shared_ptr<commMessage>& message);
     /** receive data
      * received a data block and takes the appropriate action
      * @param[in] sourceID the identifier of the transmit location

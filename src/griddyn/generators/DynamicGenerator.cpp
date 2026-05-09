@@ -22,8 +22,12 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "isocController.h"
 #include "utilities/matrixDataScale.hpp"
+#include <algorithm>
+#include <functional>
 #include <map>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 // #include <set>
@@ -42,7 +46,8 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
-static typeFactory<DynamicGenerator> gf("generator", stringVec{"local_dynamic"});
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static typeFactory<DynamicGenerator> generatorFactory("generator", stringVec{"local_dynamic"});
 
 using units::convert;
 using units::MVAR;
@@ -64,31 +69,40 @@ DynamicGenerator::DynamicGenerator(dynModel_t dynModel, const std::string& objNa
 }
 coreObject* DynamicGenerator::clone(coreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<DynamicGenerator, Generator>(this, obj, &gf);
+    auto* gen = cloneBaseFactory<DynamicGenerator, Generator>(this, obj, &generatorFactory);
     if (gen == nullptr) {
         return obj;
     }
     return gen;
 }
-/** a mapping from a string to a dynamic generator model type*/
-const std::map<std::string, DynamicGenerator::dynModel_t> dynModelFromStringMap{
-    {"typical", DynamicGenerator::dynModel_t::typical},
-    {"simple", DynamicGenerator::dynModel_t::simple},
-    {"model_only", DynamicGenerator::dynModel_t::model_only},
-    {"modelonly", DynamicGenerator::dynModel_t::model_only},
-    {"transient", DynamicGenerator::dynModel_t::transient},
-    {"subtransient", DynamicGenerator::dynModel_t::detailed},
-    {"detailed", DynamicGenerator::dynModel_t::detailed},
-    {"none", DynamicGenerator::dynModel_t::none},
-    {"dc", DynamicGenerator::dynModel_t::dc},
-    {"renewable", DynamicGenerator::dynModel_t::renewable},
-    {"variable", DynamicGenerator::dynModel_t::renewable},
-};
+namespace {
+    const auto& getDynModelFromStringMap()
+    {
+        static const std::
+            map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+                dynModelFromStringMap{
+                    {"typical", DynamicGenerator::dynModel_t::typical},
+                    {"simple", DynamicGenerator::dynModel_t::simple},
+                    {"model_only", DynamicGenerator::dynModel_t::model_only},
+                    {"modelonly", DynamicGenerator::dynModel_t::model_only},
+                    {"transient", DynamicGenerator::dynModel_t::transient},
+                    {"subtransient", DynamicGenerator::dynModel_t::detailed},
+                    {"detailed", DynamicGenerator::dynModel_t::detailed},
+                    {"none", DynamicGenerator::dynModel_t::none},
+                    {"dc", DynamicGenerator::dynModel_t::dc},
+                    {"renewable", DynamicGenerator::dynModel_t::renewable},
+                    {"variable", DynamicGenerator::dynModel_t::renewable},
+                };
+        return dynModelFromStringMap;
+    }
+}  // namespace
 
 DynamicGenerator::dynModel_t DynamicGenerator::dynModelFromString(const std::string& dynModelType)
 {
-    auto str = gmlc::utilities::convertToLowerCase(dynModelType);
-    return mapFind(dynModelFromStringMap, str, dynModel_t::invalid);
+    const auto str = gmlc::utilities::convertToLowerCase(dynModelType);
+    const auto& dynModelFromStringMap = getDynModelFromStringMap();
+    const auto foundModel = dynModelFromStringMap.find(str);
+    return (foundModel != dynModelFromStringMap.end()) ? foundModel->second : dynModel_t::invalid;
 }
 
 void DynamicGenerator::buildDynModel(dynModel_t dynModel)
@@ -226,26 +240,26 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         }
     }
 
-    double scale = systemBasePower / machineBasePower;
-    IOdata inputArgs(4);
+    const double scale = systemBasePower / machineBasePower;
+    IOdata modelInputs(4);
     IOdata localDesiredOutput(4);
 
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
+    const double voltage = inputs[voltageInLocation];
+    const double theta = inputs[angleInLocation];
 
-    inputArgs[voltageInLocation] = voltage;
-    inputArgs[angleInLocation] = theta;
-    inputArgs[genModelPmechInLocation] = kNullVal;
-    inputArgs[genModelEftInLocation] = kNullVal;
+    modelInputs[voltageInLocation] = voltage;
+    modelInputs[angleInLocation] = theta;
+    modelInputs[genModelPmechInLocation] = kNullVal;
+    modelInputs[genModelEftInLocation] = kNullVal;
 
     localDesiredOutput[PoutLocation] = P * scale;
     localDesiredOutput[QoutLocation] = Q * scale;
 
-    IOdata computedInputs(4);
-    genModel->dynInitializeB(inputArgs, localDesiredOutput, computedInputs);
-    m_Pmech = computedInputs[genModelPmechInLocation];
+    IOdata computedFieldSet(4);
+    genModel->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
+    m_Pmech = computedFieldSet[genModelPmechInLocation];
 
-    m_Eft = computedInputs[genModelEftInLocation];
+    m_Eft = computedFieldSet[genModelEftInLocation];
     //  genModel->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
 
     Pset = m_Pmech / scale;
@@ -254,45 +268,45 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 
     if ((ext != nullptr) && (ext->isEnabled())) {
-        inputArgs[voltageInLocation] = voltage;
-        inputArgs[angleInLocation] = theta;
-        inputArgs[exciterPmechInLocation] = m_Pmech;
+        modelInputs[voltageInLocation] = voltage;
+        modelInputs[angleInLocation] = theta;
+        modelInputs[exciterPmechInLocation] = m_Pmech;
 
         localDesiredOutput[0] = m_Eft;
-        ext->dynInitializeB(inputArgs, localDesiredOutput, computedInputs);
+        ext->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
 
         //    ext->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
         // Vset=inputSetup[1];
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
-        inputArgs[govOmegaInLocation] = systemBaseFrequency;
-        inputArgs[govpSetInLocation] = kNullVal;
+        modelInputs[govOmegaInLocation] = systemBaseFrequency;
+        modelInputs[govpSetInLocation] = kNullVal;
 
         localDesiredOutput[0] = Pset * scale;
         if (isoc != nullptr) {
             localDesiredOutput[0] += isoc->getOutput() * scale;
         }
-        gov->dynInitializeB(inputArgs, localDesiredOutput, computedInputs);
+        gov->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
 
         //     gov->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
     }
 
     if ((pss != nullptr) && (pss->isEnabled())) {
-        inputArgs[0] = systemBaseFrequency;
-        inputArgs[1] = kNullVal;
+        modelInputs[0] = systemBaseFrequency;
+        modelInputs[1] = kNullVal;
         localDesiredOutput[0] = 0;
-        pss->dynInitializeB(inputArgs, desiredOutput, computedInputs);
+        pss->dynInitializeB(modelInputs, desiredOutput, computedFieldSet);
         //    pss->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
     }
 
-    inputArgs.resize(0);
+    modelInputs.resize(0);
     localDesiredOutput.resize(0);
     for (auto* sub : getSubObjects()) {
         if (sub->locIndex < 4) {
             continue;
         }
         if (sub->isEnabled()) {
-            sub->dynInitializeB(inputArgs, localDesiredOutput, computedInputs);
+            sub->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
             //    sub->guessState (prevTime, m_state.data (), m_dstate_dt.data (),
             //    cLocalbSolverMode);
         }
@@ -326,21 +340,29 @@ void DynamicGenerator::setState(coreTime time,
 }
 
 void DynamicGenerator::updateLocalCache(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         const solverMode& sMode)
 {
-    if ((isDynamic(sMode)) && (sD.updateRequired(subInputs.seqID))) {
-        generateSubModelInputs(inputs, sD, sMode);  // generate current input values
+    if ((isDynamic(sMode)) && (stateDataValue.updateRequired(subInputs.seqID))) {
+        generateSubModelInputs(inputs, stateDataValue, sMode);  // generate current input values
         for (auto* subobj : getSubObjects()) {
             if (subobj->isEnabled()) {
-                subobj->updateLocalCache(subInputs.inputs[subobj->locIndex], sD, sMode);
+                subobj->updateLocalCache(subInputs.inputs[subobj->locIndex], stateDataValue, sMode);
             }
         }
         // generate updated input values which in many cases will be the same as before
-        generateSubModelInputs(inputs, sD, sMode);
-        double scale = machineBasePower / systemBasePower;
-        P = -genModel->getOutput(subInputs.inputs[genmodel_loc], sD, sMode, PoutLocation) * scale;
-        Q = -genModel->getOutput(subInputs.inputs[genmodel_loc], sD, sMode, QoutLocation) * scale;
+        generateSubModelInputs(inputs, stateDataValue, sMode);
+        const double scale = machineBasePower / systemBasePower;
+        P = -genModel->getOutput(subInputs.inputs[genmodel_loc],
+                                 stateDataValue,
+                                 sMode,
+                                 PoutLocation) *
+            scale;
+        Q = -genModel->getOutput(subInputs.inputs[genmodel_loc],
+                                 stateDataValue,
+                                 sMode,
+                                 QoutLocation) *
+            scale;
     }
 }
 
@@ -383,8 +405,8 @@ void DynamicGenerator::add(gridSubModel* obj)
     } else if (dynamic_cast<Governor*>(obj) != nullptr) {
         gov = static_cast<Governor*>(replaceModel(obj, gov, governor_loc));
         // mesh up the Pmax and Pmin giving priority to the new gov
-        double govpmax = gov->get("pmax");
-        double govpmin = gov->get("pmin");
+        const double govpmax = gov->get("pmax");
+        const double govpmin = gov->get("pmin");
         if (govpmax < kHalfBigNum) {
             Pmax = govpmax * machineBasePower / systemBasePower;
             Pmin = govpmin * machineBasePower / systemBasePower;
@@ -424,7 +446,7 @@ gridSubModel* DynamicGenerator::replaceModel(gridSubModel* newObject,
     replaceSubObject(newObject, oldObject);
     newObject->locIndex = newIndex;
 
-    if (newIndex >= static_cast<index_t>(subInputs.inputs.size())) {
+    if (std::cmp_greater_equal(newIndex, subInputs.inputs.size())) {
         subInputs.inputs.resize(newIndex + 1);
         subInputLocs.inputLocs.resize(newIndex + 1);
     }
@@ -459,7 +481,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
                 }
             }
             if (!setSuccess) {
-                throw(ia);
+                throw ia;
             }
         }
     }
@@ -469,8 +491,8 @@ void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const solve
 {
     Generator::timestep(time, inputs, sMode);
     if (isDynamic(sMode)) {
-        double scale = machineBasePower / systemBasePower;
-        double omega = genModel->getFreq(emptyStateData, cLocalSolverMode);
+        const double scale = machineBasePower / systemBasePower;
+        const double omega = genModel->getFreq(emptyStateData, cLocalSolverMode);
 
         if ((gov != nullptr) && (gov->isEnabled())) {
             gov->timestep(time, {omega, Pset / scale}, sMode);
@@ -504,7 +526,7 @@ void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const solve
 }
 
 void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
-                                       const stateData& sD,
+                                       const stateData& stateDataValue,
                                        double update[],
                                        const solverMode& sMode,
                                        double alpha)
@@ -513,18 +535,19 @@ void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
         if (stateSize(sMode) == 0) {
             return;
         }
-        Generator::algebraicUpdate(inputs, sD, update, sMode, alpha);
+        Generator::algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
         if (!opFlags[has_subobject_pflow_states]) {
             return;
         }
     }
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
 
     // if ((!sD.empty ()) && (!isLocal (sMode)))
     // {
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            sub->algebraicUpdate(subInputs.inputs[sub->locIndex], sD, update, sMode, alpha);
+            sub->algebraicUpdate(
+                subInputs.inputs[sub->locIndex], stateDataValue, update, sMode, alpha);
         }
     }
     // }
@@ -674,25 +697,31 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 }
 
 void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
-                                                const stateData& sD,
-                                                matrixData<double>& md,
+                                                const stateData& stateDataValue,
+                                                matrixData<double>& matrixDataValue,
                                                 const solverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         if (stateSize(sMode) > 0) {
-            Generator::outputPartialDerivatives(inputs, sD, md, sMode);
+            Generator::outputPartialDerivatives(inputs, stateDataValue, matrixDataValue, sMode);
         }
         return;
     }
-    double scale = machineBasePower / systemBasePower;
+    const double scale = machineBasePower / systemBasePower;
     // matrixDataSparse<double> d;
-    matrixDataScale<double> d(md, scale);
+    matrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
     // compute the Jacobian
 
-    genModel->outputPartialDerivatives(subInputs.inputs[genmodel_loc], sD, d, sMode);
+    genModel->outputPartialDerivatives(subInputs.inputs[genmodel_loc],
+                                       stateDataValue,
+                                       scaledMatrixData,
+                                       sMode);
     // only valid locations are the generator internal coupled states
-    genModel->ioPartialDerivatives(
-        subInputs.inputs[genmodel_loc], sD, d, subInputLocs.genModelInputLocsInternal, sMode);
+    genModel->ioPartialDerivatives(subInputs.inputs[genmodel_loc],
+                                   stateDataValue,
+                                   scaledMatrixData,
+                                   subInputLocs.genModelInputLocsInternal,
+                                   sMode);
 }
 
 count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& sMode) const
@@ -705,107 +734,109 @@ count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& s
     }
     if (genModel != nullptr) {
         return 1 + genModel->outputDependencyCount(num, sMode);
-    } else {
-        if (stateSize(sMode) > 0) {
-            return Generator::outputDependencyCount(num, sMode);
-        }
-        return 0;
     }
+    if (stateSize(sMode) > 0) {
+        return Generator::outputDependencyCount(num, sMode);
+    }
+    return 0;
 }
 
 void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
-                                            const stateData& sD,
-                                            matrixData<double>& md,
+                                            const stateData& stateDataValue,
+                                            matrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
                                             const solverMode& sMode)
 {
     if (isDynamic(sMode)) {
-        double scale = machineBasePower / systemBasePower;
-        matrixDataScale<double> d(md, scale);
+        const double scale = machineBasePower / systemBasePower;
+        matrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
         auto gmLocs = subInputLocs.genModelInputLocsExternal;
         gmLocs[voltageInLocation] = inputLocs[voltageInLocation];
         gmLocs[angleInLocation] = inputLocs[angleInLocation];
-        genModel->ioPartialDerivatives(subInputs.inputs[genmodel_loc], sD, d, gmLocs, sMode);
-    } else {
-        Generator::ioPartialDerivatives(inputs, sD, md, inputLocs, sMode);
+        genModel->ioPartialDerivatives(
+            subInputs.inputs[genmodel_loc], stateDataValue, scaledMatrixData, gmLocs, sMode);
+        return;
     }
+    Generator::ioPartialDerivatives(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
 }
 
 IOdata DynamicGenerator::getOutputs(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     const solverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
-        double scale = machineBasePower / systemBasePower;
-        auto output = genModel->getOutputs(subInputs.inputs[genmodel_loc], sD, sMode);
+        const double scale = machineBasePower / systemBasePower;
+        auto output = genModel->getOutputs(subInputs.inputs[genmodel_loc], stateDataValue, sMode);
         output[PoutLocation] *= scale;
         output[QoutLocation] *= scale;
         return output;
     }
-    return Generator::getOutputs(inputs, sD, sMode);
+    return Generator::getOutputs(inputs, stateDataValue, sMode);
 }
 
 double DynamicGenerator::getRealPower(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       const solverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
-        double scale = machineBasePower / systemBasePower;
-        double output = genModel->getOutput(subInputs.inputs[genmodel_loc], sD, sMode, 0) * scale;
+        const double scale = machineBasePower / systemBasePower;
+        const double output =
+            genModel->getOutput(subInputs.inputs[genmodel_loc], stateDataValue, sMode, 0) * scale;
         // printf("t=%f (%s ) V=%f T=%f, P=%f\n", time, parent->name.c_str(),
         // inputs[voltageInLocation], inputs[angleInLocation], output[PoutLocation]);
         return output;
     }
-    return Generator::getRealPower(inputs, sD, sMode);
+    return Generator::getRealPower(inputs, stateDataValue, sMode);
 }
 double DynamicGenerator::getReactivePower(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const stateData& stateDataValue,
                                           const solverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
-        double scale = machineBasePower / systemBasePower;
-        double output = genModel->getOutput(subInputs.inputs[genmodel_loc], sD, sMode, 1) * scale;
+        const double scale = machineBasePower / systemBasePower;
+        const double output =
+            genModel->getOutput(subInputs.inputs[genmodel_loc], stateDataValue, sMode, 1) * scale;
         return output;
     }
-    return Generator::getReactivePower(inputs, sD, sMode);
+    return Generator::getReactivePower(inputs, stateDataValue, sMode);
 }
 
 // compute the residual for the dynamic states
 void DynamicGenerator::residual(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double resid[],
                                 const solverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
-        Generator::residual(inputs, sD, resid, sMode);
+        Generator::residual(inputs, stateDataValue, resid, sMode);
         if (!opFlags[has_subobject_pflow_states]) {
             return;
         }
     }
 
     // compute the residuals
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            sub->residual(subInputs.inputs[sub->locIndex], sD, resid, sMode);
+            sub->residual(subInputs.inputs[sub->locIndex], stateDataValue, resid, sMode);
         }
     }
 }
 
 void DynamicGenerator::derivative(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   double deriv[],
                                   const solverMode& sMode)
 {
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
     // compute the residuals
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
             static_cast<gridSubModel*>(sub)->derivative(subInputs.inputs[sub->locIndex],
-                                                        sD,
+                                                        stateDataValue,
                                                         deriv,
                                                         sMode);
         }
@@ -813,27 +844,27 @@ void DynamicGenerator::derivative(const IOdata& inputs,
 }
 
 void DynamicGenerator::jacobianElements(const IOdata& inputs,
-                                        const stateData& sD,
-                                        matrixData<double>& md,
+                                        const stateData& stateDataValue,
+                                        matrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
                                         const solverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
-        Generator::jacobianElements(inputs, sD, md, inputLocs, sMode);
+        Generator::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
         if (!opFlags[has_subobject_pflow_states]) {
             return;
         }
     }
 
-    updateLocalCache(inputs, sD, sMode);
-    generateSubModelInputLocs(inputLocs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
+    generateSubModelInputLocs(inputLocs, stateDataValue, sMode);
 
     // compute the Jacobian
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
             sub->jacobianElements(subInputs.inputs[sub->locIndex],
-                                  sD,
-                                  md,
+                                  stateDataValue,
+                                  matrixDataValue,
                                   subInputLocs.inputLocs[sub->locIndex],
                                   sMode);
         }
@@ -851,33 +882,32 @@ void DynamicGenerator::getStateName(stringVec& stNames,
 }
 
 void DynamicGenerator::rootTest(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double roots[],
                                 const solverMode& sMode)
 {
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
 
     for (auto* sub : getSubObjects()) {
         if (sub->checkFlag(has_roots)) {
-            sub->rootTest(subInputs.inputs[sub->locIndex], sD, roots, sMode);
+            sub->rootTest(subInputs.inputs[sub->locIndex], stateDataValue, roots, sMode);
         }
     }
 }
 
 change_code DynamicGenerator::rootCheck(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         const solverMode& sMode,
                                         check_level_t level)
 {
     auto ret = change_code::no_change;
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
 
     for (auto* sub : getSubObjects()) {
         if (sub->checkFlag(has_alg_roots)) {
-            auto ret2 = sub->rootCheck(subInputs.inputs[sub->locIndex], sD, sMode, level);
-            if (ret2 > ret) {
-                ret = ret2;
-            }
+            const auto ret2 =
+                sub->rootCheck(subInputs.inputs[sub->locIndex], stateDataValue, sMode, level);
+            ret = std::max(ret2, ret);
         }
     }
 
@@ -947,18 +977,18 @@ coreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t nu
     return gridComponent::getSubObject(typeName, num);
 }
 
-double DynamicGenerator::getFreq(const stateData& sD,
+double DynamicGenerator::getFreq(const stateData& stateDataValue,
                                  const solverMode& sMode,
                                  index_t* freqOffset) const
 {
-    return genModel->getFreq(sD, sMode, freqOffset);
+    return genModel->getFreq(stateDataValue, sMode, freqOffset);
 }
 
-double DynamicGenerator::getAngle(const stateData& sD,
+double DynamicGenerator::getAngle(const stateData& stateDataValue,
                                   const solverMode& sMode,
                                   index_t* angleOffset) const
 {
-    return genModel->getAngle(sD, sMode, angleOffset);
+    return genModel->getAngle(stateDataValue, sMode, angleOffset);
 }
 
 DynamicGenerator::subModelInputs::subModelInputs(): inputs(6)
@@ -982,14 +1012,14 @@ DynamicGenerator::subModelInputLocs::subModelInputLocs():
 }
 
 void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
-                                              const stateData& sD,
+                                              const stateData& stateDataValue,
                                               const solverMode& sMode)
 {
-    if (!sD.updateRequired(subInputs.seqID)) {
+    if (!stateDataValue.updateRequired(subInputs.seqID)) {
         return;
     }
     if (inputs.empty()) {
-        auto out = bus->getOutputs(noInputs, sD, sMode);
+        auto out = bus->getOutputs(noInputs, stateDataValue, sMode);
         subInputs.inputs[genmodel_loc][voltageInLocation] = out[voltageInLocation];
         subInputs.inputs[genmodel_loc][angleInLocation] = out[angleInLocation];
         subInputs.inputs[exciter_loc][exciterVoltageInLocation] = out[voltageInLocation];
@@ -1009,43 +1039,45 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
         }
     }
     if (!opFlags[uses_bus_frequency]) {
-        subInputs.inputs[governor_loc][govOmegaInLocation] = genModel->getFreq(sD, sMode);
+        subInputs.inputs[governor_loc][govOmegaInLocation] =
+            genModel->getFreq(stateDataValue, sMode);
         if (isoc != nullptr) {
-            subInputs.inputs[isoc_control][0] = genModel->getFreq(sD, sMode) - 1.0;
+            subInputs.inputs[isoc_control][0] = genModel->getFreq(stateDataValue, sMode) - 1.0;
         }
     }
 
-    double scale = systemBasePower / machineBasePower;
-    double Pcontrol = pSetControlUpdate(inputs, sD, sMode);
+    const double scale = systemBasePower / machineBasePower;
+    double Pcontrol = pSetControlUpdate(inputs, stateDataValue, sMode);
     Pcontrol = gmlc::utilities::valLimit(Pcontrol, Pmin, Pmax);
 
     subInputs.inputs[governor_loc][govpSetInLocation] = Pcontrol * scale;
 
-    subInputs.inputs[exciter_loc][exciterVsetInLocation] = vSetControlUpdate(inputs, sD, sMode);
+    subInputs.inputs[exciter_loc][exciterVsetInLocation] =
+        vSetControlUpdate(inputs, stateDataValue, sMode);
     double Eft = m_Eft;
     if ((ext != nullptr) && (ext->isEnabled())) {
-        Eft = ext->getOutput(subInputs.inputs[exciter_loc], sD, sMode, 0);
+        Eft = ext->getOutput(subInputs.inputs[exciter_loc], stateDataValue, sMode, 0);
     }
     subInputs.inputs[genmodel_loc][genModelEftInLocation] = Eft;
     double pmech = Pcontrol * scale;
     if ((gov != nullptr) && (gov->isEnabled())) {
-        pmech = gov->getOutput(subInputs.inputs[governor_loc], sD, sMode, 0);
+        pmech = gov->getOutput(subInputs.inputs[governor_loc], stateDataValue, sMode, 0);
     }
     if (std::abs(pmech) > 1e25) {
         pmech = 0.0;
     }
     subInputs.inputs[genmodel_loc][genModelPmechInLocation] = pmech;
 
-    if (!sD.empty()) {
-        subInputs.seqID = sD.seqID;
+    if (!stateDataValue.empty()) {
+        subInputs.seqID = stateDataValue.seqID;
     }
 }
 
 void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
-                                                 const stateData& sD,
+                                                 const stateData& stateDataValue,
                                                  const solverMode& sMode)
 {
-    if (!sD.updateRequired(subInputLocs.seqID)) {
+    if (!stateDataValue.updateRequired(subInputLocs.seqID)) {
         return;
     }
 
@@ -1070,7 +1102,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
                 inputLocs[frequencyInLocation];
         } else {
             index_t floc;
-            genModel->getFreq(sD, sMode, &floc);
+            genModel->getFreq(stateDataValue, sMode, &floc);
             subInputLocs.inputLocs[governor_loc][govOmegaInLocation] = floc;
         }
         subInputLocs.inputLocs[governor_loc][govpSetInLocation] = pSetLocation(sMode);
@@ -1085,35 +1117,35 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         subInputLocs.inputLocs[isoc_control][0] =
             subInputLocs.inputLocs[governor_loc][govOmegaInLocation];
     }
-    subInputs.seqID = sD.seqID;
+    subInputs.seqID = stateDataValue.seqID;
 }
 
 double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
-                                           const stateData& sD,
+                                           const stateData& stateDataValue,
                                            const solverMode& sMode)
 {
     double val;
     if (pSetControl != nullptr) {
-        val = pSetControl->getOutput(inputs, sD, sMode);
+        val = pSetControl->getOutput(inputs, stateDataValue, sMode);
     } else {
-        val = (!sD.empty()) ? (Pset + dPdt * (sD.time - prevTime)) : Pset;
+        val = (!stateDataValue.empty()) ? (Pset + dPdt * (stateDataValue.time - prevTime)) : Pset;
     }
     if (opFlags[isochronous_operation]) {
         if (isoc != nullptr) {
             isoc->setLimits(Pmin - val, Pmax - val);
             isoc->setFreq(subInputs.inputs[isoc_control][0]);
 
-            val = val + isoc->getOutput() * machineBasePower / systemBasePower;
+            val = val + (isoc->getOutput() * machineBasePower / systemBasePower);
         }
     }
     return val;
 }
 
 double DynamicGenerator::vSetControlUpdate(const IOdata& inputs,
-                                           const stateData& sD,
+                                           const stateData& stateDataValue,
                                            const solverMode& sMode)
 {
-    return (vSetControl != nullptr) ? vSetControl->getOutput(inputs, sD, sMode) : 1.0;
+    return (vSetControl != nullptr) ? vSetControl->getOutput(inputs, stateDataValue, sMode) : 1.0;
 }
 
 index_t DynamicGenerator::pSetLocation(const solverMode& sMode)

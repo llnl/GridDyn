@@ -9,6 +9,7 @@
 #include "zipLoad.h"
 #include <array>
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 class Source;
@@ -58,7 +59,7 @@ eventually will replace most of the shaped loads*/
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       const solverMode& sMode) override;
 
         virtual void setState(coreTime time,
@@ -73,8 +74,8 @@ eventually will replace most of the shaped loads*/
       private:
         void getSourceLoads();
         Source* makeSource(sourceLoc loc);
-        Source* findSource(const std::string& srcname);
-        Source* findSource(const std::string& srcname) const;
+        Source* findSource(std::string_view srcname);
+        Source* findSource(std::string_view srcname) const;
     };
 }  // namespace loads
 }  // namespace griddyn

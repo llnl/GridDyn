@@ -31,7 +31,7 @@ using fobjectPair = std::pair<std::function<double(coreObject*)>, units::unit>;
 
 fobjectPair getObjectFunction(const gridComponent* comp, const std::string& field);
 fobjectPair getObjectFunction(const gridBus* bus, const std::string& field);
-fobjectPair getObjectFunction(const Load* ld, const std::string& field);
+fobjectPair getObjectFunction(const Load* loadObject, const std::string& field);
 fobjectPair getObjectFunction(const Link* lnk, const std::string& field);
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field);
 fobjectPair getObjectFunction(const Area* area, const std::string& field);

@@ -33,8 +33,8 @@ class hvdc: public subsystem {
     virtual void updateBus(gridBus* bus, index_t busnumber) override;
 
   protected:
-    static const int forward = 0;  //!< constant defining forward
-    static const int reverse = 1;  //!< constant defining reverse
+    static constexpr int forward = 0;  //!< constant defining forward
+    static constexpr int reverse = 1;  //!< constant defining reverse
     /** @brief set the flow direction
 @param[in] direction  the direction of flow desired
 */

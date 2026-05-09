@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../Block.h"
-#include <functional>
+#include "utilities/functionInterpreter.h"
 #include <string>
 
 namespace griddyn::blocks {
@@ -24,9 +24,9 @@ class functionBlock: public Block {
     };
 
   protected:
-    std::function<double(double)> fptr;  //!< function object for single argument functions
-    std::function<double(double, double)>
-        fptr2;  //!< function object for multiple argument functions
+    function1_t fptr = nullptr;  //!< function object for single argument functions
+    function1_t dfptr = nullptr;  //!< derivative function object for single argument functions
+    function2_t fptr2 = nullptr;  //!< function object for multiple argument functions
     model_parameter gain = 1.0;  //!< extra gain factor
     model_parameter arg2 = 0.0;  //!< second argument for 2 argument functions
   public:
@@ -50,15 +50,15 @@ class functionBlock: public Block {
     // virtual void blockDerivative(double input, double didt, const stateData &sD, double
     // deriv[], const solverMode &sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       double update[],
                                       const solverMode& sMode) override;
 
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double input) override;

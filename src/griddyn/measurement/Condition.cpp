@@ -9,12 +9,27 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "grabberInterpreter.hpp"
 #include "grabberSet.h"
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <string_view>
 #include <utility>
 
 namespace griddyn {
+namespace {
+    bool isEqualityComparison(comparison_type comparison)
+    {
+        switch (comparison) {
+            case comparison_type::ge:
+            case comparison_type::le:
+            case comparison_type::eq:
+                return true;
+            default:
+                return false;
+        }
+    }
+}  // namespace
 
 std::unique_ptr<Condition> make_condition(std::string_view condString, coreObject* rootObject)
 {
@@ -22,37 +37,39 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, coreObjec
     // size_t posA = condString.find_first_of("&|");
     // TODO(phlpt): Handle parenthesized and &| conditions.
 
-    size_t pos = cString.find_first_of("><=!");
+    const size_t pos = cString.find_first_of("><=!");
     if (pos == std::string::npos) {
         return nullptr;
     }
 
-    char A = cString[pos];
-    char B = cString[pos + 1];
-    std::string BlockA = gmlc::utilities::stringOps::trim(cString.substr(0, pos - 1));
-    std::string BlockB = (B == '=') ? cString.substr(pos + 2) : cString.substr(pos + 1);
+    const char comparisonChar = cString[pos];
+    const char comparisonSuffix = cString[pos + 1];
+    const std::string lhsBlock = gmlc::utilities::stringOps::trim(cString.substr(0, pos - 1));
+    std::string rhsBlock =
+        (comparisonSuffix == '=') ? cString.substr(pos + 2) : cString.substr(pos + 1);
 
-    gmlc::utilities::stringOps::trimString(BlockB);
-    auto gc = std::make_unique<Condition>();
+    gmlc::utilities::stringOps::trimString(rhsBlock);
+    auto condition = std::make_unique<Condition>();
 
     // get the state grabbers part
 
-    gc->setConditionLHS(std::make_shared<grabberSet>(BlockA, rootObject));
+    condition->setConditionLHS(std::make_shared<grabberSet>(lhsBlock, rootObject));
 
-    gc->setConditionRHS(std::make_shared<grabberSet>(BlockB, rootObject));
+    condition->setConditionRHS(std::make_shared<grabberSet>(rhsBlock, rootObject));
 
     std::string condstr;
-    condstr.push_back(A);
-    if (B == '=') {
-        condstr.push_back(B);
+    condstr.push_back(comparisonChar);
+    if (comparisonSuffix == '=') {
+        condstr.push_back(comparisonSuffix);
     }
 
-    gc->setComparison(comparisonFromString(condstr));
+    condition->setComparison(comparisonFromString(condstr));
 
-    return gc;
+    return condition;
 }
 
-static const std::unordered_map<std::string, comparison_type> compStrMap{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, comparison_type, std::less<std::string_view>> compStrMap{
     {">", comparison_type::gt},
     {"gt", comparison_type::gt},
     {">=", comparison_type::ge},
@@ -74,7 +91,8 @@ static const std::unordered_map<std::string, comparison_type> compStrMap{
 
 comparison_type comparisonFromString(std::string_view compStr)
 {
-    return mapFind(compStrMap, std::string{compStr}, comparison_type::null);
+    const auto foundComparison = compStrMap.find(compStr);
+    return (foundComparison != compStrMap.end()) ? foundComparison->second : comparison_type::null;
 }
 
 std::string to_string(comparison_type comp)
@@ -92,8 +110,6 @@ std::string to_string(comparison_type comp)
             return "==";
         case comparison_type::ne:
             return "!=";
-        case comparison_type::null:
-            return "??";
         default:
             return "??";
     }
@@ -115,12 +131,12 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 {
     try {
         auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);
-        auto gc = std::make_unique<Condition>(std::move(gset));
-        gc->setConditionRHS(level);
+        auto condition = std::make_unique<Condition>(std::move(gset));
+        condition->setConditionRHS(level);
 
-        gc->setComparison(comp);
+        condition->setComparison(comp);
 
-        return gc;
+        return condition;
     }
     catch (const std::invalid_argument& ia) {
         rootObject->log(rootObject, print_level::warning, ia.what());
@@ -138,27 +154,27 @@ std::unique_ptr<Condition> Condition::clone() const
     return ngcP;
 }
 
-void Condition::cloneTo(Condition* ngc) const
+void Condition::cloneTo(Condition* cond) const
 {
-    ngc->m_constant = m_constant;
-    ngc->m_margin = m_margin;
-    ngc->m_constRHS = m_constRHS;
-    ngc->m_curr_margin = m_curr_margin;
-    ngc->use_margin = use_margin;
+    cond->m_constant = m_constant;
+    cond->m_margin = m_margin;
+    cond->m_constRHS = m_constRHS;
+    cond->m_curr_margin = m_curr_margin;
+    cond->use_margin = use_margin;
 
     if (conditionLHS) {
-        if (ngc->conditionLHS) {
-            conditionLHS->cloneTo(ngc->conditionLHS.get());
+        if (cond->conditionLHS) {
+            conditionLHS->cloneTo(cond->conditionLHS.get());
         } else {
-            ngc->conditionLHS = conditionLHS->clone();
+            cond->conditionLHS = conditionLHS->clone();
         }
     }
 
     if (!m_constRHS) {
-        if (ngc->conditionRHS) {
-            conditionRHS->cloneTo(ngc->conditionRHS.get());
+        if (cond->conditionRHS) {
+            conditionRHS->cloneTo(cond->conditionRHS.get());
         } else {
-            ngc->conditionRHS = conditionRHS->clone();
+            cond->conditionRHS = conditionRHS->clone();
         }
     }
 }
@@ -183,7 +199,7 @@ void Condition::updateObject(coreObject* obj, object_update_mode mode)
     // Update object may throw an error if it does everything is fine
     // if it doesn't then B update may throw an error in which case we need to rollback A for
     // exception safety this would be very unusual to occur.
-    coreObject* keyObject = nullptr;
+    const coreObject* keyObject = nullptr;
     if (conditionLHS) {
         keyObject = conditionLHS->getObject();
         conditionLHS->updateObject(obj, mode);
@@ -198,7 +214,7 @@ void Condition::updateObject(coreObject* obj, object_update_mode mode)
                 // now rollback A
                 conditionLHS->updateObject(keyObject->getRoot(), object_update_mode::match);
             }
-            throw(oe);
+            throw oe;
         }
     }
 }
@@ -207,23 +223,31 @@ void Condition::setComparison(std::string_view compStr)
 {
     setComparison(comparisonFromString(compStr));
 }
-void Condition::setComparison(comparison_type ct)
+void Condition::setComparison(comparison_type comparison)
 {
-    comp = ct;
+    comp = comparison;
     switch (comp) {
         case comparison_type::gt:
         case comparison_type::ge:
-            evalf = [](double p1, double p2, double margin) { return p2 - p1 - margin; };
+            evalf = [](double leftValue, double rightValue, double margin) {
+                return rightValue - leftValue - margin;
+            };
             break;
         case comparison_type::lt:
         case comparison_type::le:
-            evalf = [](double p1, double p2, double margin) { return p1 - p2 + margin; };
+            evalf = [](double leftValue, double rightValue, double margin) {
+                return leftValue - rightValue + margin;
+            };
             break;
         case comparison_type::eq:
-            evalf = [](double p1, double p2, double margin) { return std::abs(p1 - p2) - margin; };
+            evalf = [](double leftValue, double rightValue, double margin) {
+                return std::abs(leftValue - rightValue) - margin;
+            };
             break;
         case comparison_type::ne:
-            evalf = [](double p1, double p2, double margin) { return -std::abs(p1 - p2) + margin; };
+            evalf = [](double leftValue, double rightValue, double margin) {
+                return -std::abs(leftValue - rightValue) + margin;
+            };
             break;
         default:
             evalf = [](double, double, double) { return kNullVal; };
@@ -233,60 +257,52 @@ void Condition::setComparison(comparison_type ct)
 
 double Condition::evalCondition()
 {
-    double v1 = conditionLHS->grabData();
-    double v2 = (m_constRHS) ? m_constant : conditionRHS->grabData();
+    const double leftValue = conditionLHS->grabData();
+    const double rightValue = (m_constRHS) ? m_constant : conditionRHS->grabData();
 
-    return evalf(v1, v2, m_curr_margin);
+    return evalf(leftValue, rightValue, m_curr_margin);
 }
 
-double Condition::evalCondition(const stateData& sD, const solverMode& sMode)
+double Condition::evalCondition(const stateData& stateDataValue, const solverMode& sMode)
 {
-    double v1 = conditionLHS->grabData(sD, sMode);
-    double v2 = (m_constRHS) ? m_constant : conditionRHS->grabData(sD, sMode);
-    return evalf(v1, v2, m_curr_margin);
+    const double leftValue = conditionLHS->grabData(stateDataValue, sMode);
+    const double rightValue =
+        (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
+    return evalf(leftValue, rightValue, m_curr_margin);
 }
 
 double Condition::getVal(int side) const
 {
-    double v = (side == 2) ? ((m_constRHS) ? m_constant : conditionRHS->grabData()) :
-                             conditionLHS->grabData();
-    return v;
-}
-
-double Condition::getVal(int side, const stateData& sD, const solverMode& sMode) const
-{
-    double v = (side == 2) ? ((m_constRHS) ? m_constant : conditionRHS->grabData(sD, sMode)) :
-                             conditionLHS->grabData(sD, sMode);
-    return v;
-}
-
-inline bool isEqualityComparison(comparison_type comp)
-{
-    switch (comp) {
-        case comparison_type::ge:
-        case comparison_type::le:
-        case comparison_type::eq:
-            return true;
-        default:
-            return false;
+    if (side == 2) {
+        return (m_constRHS) ? m_constant : conditionRHS->grabData();
     }
+    return conditionLHS->grabData();
+}
+
+double Condition::getVal(int side, const stateData& stateDataValue, const solverMode& sMode) const
+{
+    if (side == 2) {
+        return (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
+    }
+    return conditionLHS->grabData(stateDataValue, sMode);
 }
 
 bool Condition::checkCondition() const
 {
-    double v1 = conditionLHS->grabData();
-    double v2 = (m_constRHS) ? m_constant : conditionRHS->grabData();
-    double ret = evalf(v1, v2, m_curr_margin);
-    return (isEqualityComparison(comp)) ? (ret <= 0.0) : (ret < 0.0);
+    const double leftValue = conditionLHS->grabData();
+    const double rightValue = (m_constRHS) ? m_constant : conditionRHS->grabData();
+    const double conditionValue = evalf(leftValue, rightValue, m_curr_margin);
+    return (isEqualityComparison(comp)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
-bool Condition::checkCondition(const stateData& sD, const solverMode& sMode) const
+bool Condition::checkCondition(const stateData& stateDataValue, const solverMode& sMode) const
 {
-    double v1 = conditionLHS->grabData(sD, sMode);
-    double v2 = (m_constRHS) ? m_constant : conditionRHS->grabData(sD, sMode);
+    const double leftValue = conditionLHS->grabData(stateDataValue, sMode);
+    const double rightValue =
+        (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
 
-    double ret = evalf(v1, v2, m_curr_margin);
-    return (isEqualityComparison(comp)) ? (ret <= 0.0) : (ret < 0.0);
+    const double conditionValue = evalf(leftValue, rightValue, m_curr_margin);
+    return (isEqualityComparison(comp)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
 void Condition::setMargin(double val)

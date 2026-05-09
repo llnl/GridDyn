@@ -16,10 +16,12 @@
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 #include <cstring>
+#include <numbers>
 #include <string>
 namespace griddyn::links {
-static const double k3sq2 = (3.0 * sqrt(2.0) / kPI);
-static const double k3sq2sq = k3sq2 * k3sq2;
+static constexpr double kSqrt2 = std::numbers::sqrt2_v<double>;
+static constexpr double k3sq2 = 3.0 * kSqrt2 / kPI;
+static constexpr double k3sq2sq = k3sq2 * k3sq2;
 
 using units::convert;
 using units::puMW;
@@ -28,7 +30,7 @@ const char rect[] = "rectifier_$";
 const char inv[] = "inverter_$";
 const char bidir[] = "acdcConveter_$";
 
-std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
+static std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
 {
     if (!name.empty()) {
         return name;
@@ -44,8 +46,10 @@ std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
     }
 }
 
-acdcConverter::acdcConverter(double rP, double xP, const std::string& objName):
-    Link(objName), r(rP), x(xP)
+acdcConverter::acdcConverter(double resistanceParameter,
+                             double reactanceParameter,
+                             const std::string& objName):
+    Link(objName), r(resistanceParameter), x(reactanceParameter)
 {
     buildSubsystem();
 }
@@ -240,14 +244,14 @@ void acdcConverter::set(std::string_view param, double val, unit unitType)
 
 void acdcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    double v1 = B1->getVoltage();
-    double v2 = B2->getVoltage();
+    const double voltage1 = B1->getVoltage();
+    const double voltage2 = B2->getVoltage();
     if (opFlags[fixed_target_power]) {
-        Idc = Pset / v2;
+        Idc = Pset / voltage2;
     } else {
-        Idc = v1 / tap;
+        Idc = voltage1 / tap;
     }
-    angle = (v1 + 3 / kPI * x * Idc) / (k3sq2 * v1);
+    angle = (voltage1 + ((3 / kPI) * x * Idc)) / (k3sq2 * voltage1);
     updateLocalCache();
     offsets.local().local.algSize = 1;
     offsets.local().local.jacSize = 4;
@@ -277,6 +281,7 @@ void acdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     offsets.local().local.jacSize = 4;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static IOdata zVec{0.0, 0.0, 0.0};
 
 void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
@@ -288,14 +293,14 @@ void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
         vTarget = B2->getVoltage();
         powerLevelControl->dynInitializeB({vTarget}, noInputs, fieldSet);
         if (tD > 0.0001) {
-            controlDelay->dynInitializeB(fieldSet, noInputs, fieldSet);
+            controlDelay->dynInitializeB(noInputs, fieldSet, fieldSet);
         }
     }
 }
 
 void acdcConverter::ioPartialDerivatives(id_type_t busId,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+                                         const stateData& stateDataValue,
+                                         matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const solverMode& sMode)
 {
@@ -305,7 +310,7 @@ void acdcConverter::ioPartialDerivatives(id_type_t busId,
     if (inputLocs[voltageInLocation] == kNullLocation) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     // int mode = B1->getMode(sMode) * 4 + B2->getMode(sMode);
 
     /*
@@ -315,16 +320,16 @@ double sr = k3sq2*linkInfo.v1*Idc;
 
 linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 */
-    index_t vLoc = inputLocs[voltageInLocation];
+    const index_t vLoc = inputLocs[voltageInLocation];
     if (isDynamic(sMode)) {
         if (busId == B2->getID()) {
-            md.assign(PoutLocation, vLoc, -dirMult * Idc);
+            matrixDataValue.assign(PoutLocation, vLoc, -dirMult * Idc);
         } else {
-            md.assign(QoutLocation,
-                      vLoc,
-                      -Idc * k3sq2sq * linkInfo.v1 /
-                          std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 -
-                                    linkInfo.v2 * linkInfo.v2));
+            matrixDataValue.assign(QoutLocation,
+                                   vLoc,
+                                   -Idc * k3sq2sq * linkInfo.v1 /
+                                       std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) -
+                                                 (linkInfo.v2 * linkInfo.v2)));
         }
     } else {
         /*
@@ -338,32 +343,35 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
         if (busId == B2->getID()) {
             if (!opFlags[fixed_target_power]) {
-                md.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
+                matrixDataValue.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
             }
         } else {
-            double temp =
-                std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 - linkInfo.v2 * linkInfo.v2);
+            const double temp =
+                std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
             if (opFlags[fixed_target_power]) {
-                md.assign(QoutLocation, vLoc, -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
+                matrixDataValue.assign(QoutLocation,
+                                       vLoc,
+                                       -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
             } else {
-                md.assign(PoutLocation, vLoc, -dirMult * linkInfo.v2 / tap);
-                md.assign(QoutLocation,
-                          vLoc,
-                          -1.0 / tap * temp - linkInfo.v1 * linkInfo.v1 / (tap * temp) * k3sq2sq);
+                matrixDataValue.assign(PoutLocation, vLoc, -dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assign(QoutLocation,
+                                       vLoc,
+                                       ((-1.0 / tap) * temp) -
+                                           ((linkInfo.v1 * linkInfo.v1 / (tap * temp)) * k3sq2sq));
             }
         }
     }
 }
 
 void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                             const stateData& sD,
-                                             matrixData<double>& md,
+                                             const stateData& stateDataValue,
+                                             matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     auto algOffset = offsets.getAlgOffset(sMode);
     if (isDynamic(sMode)) {
         /*
@@ -373,20 +381,20 @@ void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
 
     linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
-        md.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-        md.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
-        md.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
+        matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
+        matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
+        matrixDataValue.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
     }
 }
 void acdcConverter::outputPartialDerivatives(id_type_t busId,
-                                             const stateData& sD,
-                                             matrixData<double>& md,
+                                             const stateData& stateDataValue,
+                                             matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
 
     // int mode = B1->getMode(sMode) * 4 + B2->getMode(sMode);
     auto B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
@@ -405,17 +413,17 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
       linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
       */
         if (busId == B2->getID()) {
-            md.assign(PoutLocation, algOffset, -dirMult * linkInfo.v2);
+            matrixDataValue.assign(PoutLocation, algOffset, -dirMult * linkInfo.v2);
         } else {
-            md.assignCheckCol(PoutLocation, B2Voffset, dirMult * Idc);
-            md.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-            md.assignCheckCol(QoutLocation,
-                              B2Voffset,
-                              -1 *
-                                  (-Idc * linkInfo.v2 /
-                                   std::sqrt(k3sq2 * k3sq2 * linkInfo.v1 * linkInfo.v1 -
-                                             linkInfo.v2 * linkInfo.v2)));
-            md.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
+            matrixDataValue.assignCheckCol(PoutLocation, B2Voffset, dirMult * Idc);
+            matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
+            matrixDataValue.assignCheckCol(QoutLocation,
+                                           B2Voffset,
+                                           Idc * linkInfo.v2 /
+                                               std::sqrt(
+                                                   ((k3sq2 * k3sq2) * linkInfo.v1 * linkInfo.v1) -
+                                                   (linkInfo.v2 * linkInfo.v2)));
+            matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
         }
     } else {
         /*
@@ -429,21 +437,27 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
     */
         if (busId == B2->getID()) {
             if (!opFlags[fixed_target_power]) {
-                md.assignCheckCol(PoutLocation, B1Voffset, dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assignCheckCol(PoutLocation,
+                                               B1Voffset,
+                                               dirMult * linkInfo.v2 / tap);
             }
         } else {
             if (B2Voffset != kNullLocation) {
-                double temp =
-                    std::sqrt(k3sq2sq * linkInfo.v1 * linkInfo.v1 - linkInfo.v2 * linkInfo.v2);
+                const double temp =
+                    std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
                 if (opFlags[fixed_target_power]) {
-                    md.assignCheckCol(QoutLocation,
-                                      B2Voffset,
-                                      Pset / temp + Pset * temp / (linkInfo.v2 * linkInfo.v2));
+                    matrixDataValue.assignCheckCol(QoutLocation,
+                                                   B2Voffset,
+                                                   (Pset / temp) +
+                                                       ((Pset * temp) /
+                                                        (linkInfo.v2 * linkInfo.v2)));
                 } else {
-                    md.assignCheckCol(PoutLocation, B2Voffset, -dirMult * linkInfo.v1 / tap);
-                    md.assignCheckCol(QoutLocation,
-                                      B2Voffset,
-                                      linkInfo.v1 / tap * linkInfo.v2 / temp);
+                    matrixDataValue.assignCheckCol(PoutLocation,
+                                                   B2Voffset,
+                                                   -dirMult * linkInfo.v1 / tap);
+                    matrixDataValue.assignCheckCol(QoutLocation,
+                                                   B2Voffset,
+                                                   (linkInfo.v1 / tap) * linkInfo.v2 / temp);
                 }
             }
         }
@@ -456,8 +470,8 @@ count_t acdcConverter::outputDependencyCount(index_t /*num*/, const solverMode& 
 }
 
 void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateDataValue,
+                                     matrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
                                      const solverMode& sMode)
 {
@@ -465,57 +479,65 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
     auto B1Voffset = B1Loc[voltageInLocation];
     auto B2Loc = B2->getOutputLocs(sMode);
     auto B2Voffset = B2Loc[voltageInLocation];
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         auto refAlg = Loc.algOffset;
         IOlocs argL{B2Voffset};
-        IOdata a1{linkInfo.v2 - vTarget};
+        IOdata controlSignalInput{linkInfo.v2 - vTarget};
 
         index_t refLoc;
-        matrixDataSparse<double> tad1, tad2;
+        matrixDataSparse<double> translatedAngleJacobian;
+        matrixDataSparse<double> translatedInputJacobian;
 
         if (refAlg != kNullLocation) {
             if (control_mode == control_mode_t::voltage) {
-                double Padj;
+                double powerAdjustment;
                 if (tD > 0.0001) {
-                    Padj = controlDelay->getOutput(a1, sD, sMode);
+                    powerAdjustment =
+                        controlDelay->getOutput(controlSignalInput, stateDataValue, sMode);
                     refLoc = controlDelay->getOutputLoc(sMode);
                 } else {
-                    Padj = powerLevelControl->getOutput(a1, sD, sMode);
+                    powerAdjustment =
+                        powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
                     refLoc = powerLevelControl->getOutputLoc(sMode);
                 }
 
-                tap = baseTap / (1.0 + dirMult * baseTap * Padj);
-                tad2.assign(0, refLoc, -dirMult * linkInfo.v1);
+                tap = baseTap / (1.0 + (dirMult * baseTap * powerAdjustment));
+                translatedInputJacobian.assign(0, refLoc, -dirMult * linkInfo.v1);
             }
-            double I0 = linkInfo.v1 / tap;
-            a1[0] = Loc.algStateLoc[0] - I0;
-            double cA = firingAngleControl->getOutput(a1, sD, sMode);
+            const double currentReference = linkInfo.v1 / tap;
+            controlSignalInput[0] = Loc.algStateLoc[0] - currentReference;
+            const double controlAngle =
+                firingAngleControl->getOutput(controlSignalInput, stateDataValue, sMode);
             refLoc = firingAngleControl->getOutputLoc(sMode);
-            md.assignCheckCol(refAlg, B1Voffset, k3sq2 * cA);
-            md.assignCheckCol(refAlg, B2Voffset, -1);
-            md.assign(refAlg, refAlg, -3 / kPI * x);
-            md.assign(refAlg, refLoc, k3sq2 * linkInfo.v1);
+            matrixDataValue.assignCheckCol(refAlg, B1Voffset, k3sq2 * controlAngle);
+            matrixDataValue.assignCheckCol(refAlg, B2Voffset, -1);
+            matrixDataValue.assign(refAlg, refAlg, -(3 / kPI) * x);
+            matrixDataValue.assign(refAlg, refLoc, k3sq2 * linkInfo.v1);
 
-            tad2.assign(0, refAlg, 1);
+            translatedInputJacobian.assign(0, refAlg, 1);
         }
         // manage the input for the
         argL[0] = 0;
-        firingAngleControl->jacobianElements(a1, sD, tad1, argL, sMode);
+        firingAngleControl->jacobianElements(
+            controlSignalInput, stateDataValue, translatedAngleJacobian, argL, sMode);
 
-        tad2.assign(0, B1Voffset, -(1.0 / tap));
-        tad1.cascade(tad2, 0);
-        md.merge(tad1);
+        translatedInputJacobian.assign(0, B1Voffset, -(1.0 / tap));
+        translatedAngleJacobian.cascade(translatedInputJacobian, 0);
+        matrixDataValue.merge(translatedAngleJacobian);
 
         if (control_mode == control_mode_t::voltage) {
-            a1[0] = linkInfo.v2 - vTarget;
+            controlSignalInput[0] = linkInfo.v2 - vTarget;
             argL[0] = B2Voffset;
-            powerLevelControl->jacobianElements(a1, sD, md, argL, sMode);
+            powerLevelControl->jacobianElements(
+                controlSignalInput, stateDataValue, matrixDataValue, argL, sMode);
             if (tD > 0.0001) {
-                a1[0] = powerLevelControl->getOutput(a1, sD, sMode);
+                controlSignalInput[0] =
+                    powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
                 argL[0] = powerLevelControl->getOutputLoc(sMode);
-                controlDelay->jacobianElements(a1, sD, md, argL, sMode);
+                controlDelay->jacobianElements(
+                    controlSignalInput, stateDataValue, matrixDataValue, argL, sMode);
             }
         }
     } else {
@@ -523,53 +545,61 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
 
         // resid[offset] = k3sq2*linkInfo.v1*sD.state[offset] - 3 / kPI*x*Idc - linkInfo.v2;
 
-        md.assign(offset, offset, k3sq2 * linkInfo.v1);
+        matrixDataValue.assign(offset, offset, k3sq2 * linkInfo.v1);
         if (opFlags[fixed_target_power]) {
-            md.assignCheckCol(offset, B1Voffset, k3sq2 * sD.state[offset]);
-            md.assignCheckCol(offset,
-                              B2Voffset,
-                              3.0 / kPI * x * Pset / (linkInfo.v2 * linkInfo.v2) - 1.0);
+            matrixDataValue.assignCheckCol(offset, B1Voffset, k3sq2 * stateDataValue.state[offset]);
+            matrixDataValue.assignCheckCol(offset,
+                                           B2Voffset,
+                                           ((3.0 / kPI) * x * Pset / (linkInfo.v2 * linkInfo.v2)) -
+                                               1.0);
         } else {
-            md.assignCheckCol(offset, B1Voffset, k3sq2 * sD.state[offset] - 3 / kPI * x / tap);
-            md.assignCheckCol(offset, B2Voffset, -1);
+            matrixDataValue.assignCheckCol(offset,
+                                           B1Voffset,
+                                           (k3sq2 * stateDataValue.state[offset]) -
+                                               ((3 / kPI) * x / tap));
+            matrixDataValue.assignCheckCol(offset, B2Voffset, -1);
         }
     }
 }
 
 void acdcConverter::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              double resid[],
                              const solverMode& sMode)
 {
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, resid, sMode, this);
-        IOdata a{linkInfo.v2 - vTarget};
+        auto Loc = offsets.getLocations(stateDataValue, resid, sMode, this);
+        IOdata controlSignalInput{linkInfo.v2 - vTarget};
         if (control_mode == control_mode_t::voltage) {
-            double Padj = (tD > 0.0001) ? controlDelay->getOutput(a, sD, sMode) :
-                                          powerLevelControl->getOutput(a, sD, sMode);
-            tap = baseTap / (1.0 + dirMult * baseTap * Padj);
+            const double powerAdjustment = (tD > 0.0001) ?
+                controlDelay->getOutput(controlSignalInput, stateDataValue, sMode) :
+                powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
+            tap = baseTap / (1.0 + (dirMult * baseTap * powerAdjustment));
         }
-        double I0 = linkInfo.v1 / tap;
-        a[0] = Loc.algStateLoc[0] - I0;
-        auto cA = firingAngleControl->getOutput(a, sD, sMode);
-        Loc.destLoc[0] =
-            k3sq2 * linkInfo.v1 * cA - 3.0 / kPI * x * Loc.algStateLoc[0] - linkInfo.v2;
+        const double currentReference = linkInfo.v1 / tap;
+        controlSignalInput[0] = Loc.algStateLoc[0] - currentReference;
+        const auto controlAngle =
+            firingAngleControl->getOutput(controlSignalInput, stateDataValue, sMode);
+        Loc.destLoc[0] = (k3sq2 * linkInfo.v1 * controlAngle) -
+            ((3.0 / kPI) * x * Loc.algStateLoc[0]) - linkInfo.v2;
 
-        firingAngleControl->residual(a, sD, resid, sMode);
+        firingAngleControl->residual(controlSignalInput, stateDataValue, resid, sMode);
         if (control_mode == control_mode_t::voltage) {
-            a[0] = linkInfo.v2 - vTarget;
-            powerLevelControl->residual(a, sD, resid, sMode);
+            controlSignalInput[0] = linkInfo.v2 - vTarget;
+            powerLevelControl->residual(controlSignalInput, stateDataValue, resid, sMode);
             if (tD > 0.0001) {
-                a[0] = powerLevelControl->getOutput(a, sD, sMode);
-                controlDelay->residual(a, sD, resid, sMode);
+                controlSignalInput[0] =
+                    powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
+                controlDelay->residual(controlSignalInput, stateDataValue, resid, sMode);
             }
         }
     } else {
         auto offset = offsets.getAlgOffset(sMode);
         Idc = (opFlags[fixed_target_power]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
-        resid[offset] = k3sq2 * linkInfo.v1 * sD.state[offset] - 3 / kPI * x * Idc - linkInfo.v2;
+        resid[offset] = (k3sq2 * linkInfo.v1 * stateDataValue.state[offset]) -
+            ((3 / kPI) * x * Idc) - linkInfo.v2;
     }
 }
 
@@ -580,7 +610,7 @@ void acdcConverter::setState(coreTime time,
 {
     if (isDynamic(sMode)) {
         Idc = state[offsets.getAlgOffset(sMode)];
-        for (auto& sub : getSubObjects()) {
+        for (const auto& sub : getSubObjects()) {
             if (sub->isEnabled()) {
                 sub->setState(time, state, dstate_dt, sMode);
             }
@@ -606,7 +636,7 @@ void acdcConverter::guessState(coreTime time,
 {
     if (isDynamic(sMode)) {
         state[offsets.getAlgOffset(sMode)] = Idc;
-        for (auto& sub : getSubObjects()) {
+        for (const auto& sub : getSubObjects()) {
             if (sub->isEnabled()) {
                 sub->guessState(time, state, dstate_dt, sMode);
             }
@@ -617,10 +647,10 @@ void acdcConverter::guessState(coreTime time,
 }
 
 void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const solverMode& sMode)
 {
-    if (!sD.updateRequired(linkInfo.seqID)) {
+    if (!stateDataValue.updateRequired(linkInfo.seqID)) {
         return;
     }
 
@@ -628,13 +658,13 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
         return;
     }
     linkInfo = {};
-    linkInfo.seqID = sD.seqID;
+    linkInfo.seqID = stateDataValue.seqID;
 
-    linkInfo.v1 = B1->getVoltage(sD, sMode);
-    linkInfo.v2 = B2->getVoltage(sD, sMode);
+    linkInfo.v1 = B1->getVoltage(stateDataValue, sMode);
+    linkInfo.v2 = B2->getVoltage(stateDataValue, sMode);
 
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         Idc = Loc.algStateLoc[0];
     } else {
         Idc = opFlags[fixed_target_power] ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
@@ -642,9 +672,9 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
 
     linkFlows.P1 = dirMult * linkInfo.v2 * Idc;
     linkFlows.P2 = -linkFlows.P1;
-    double reactive = k3sq2 * linkInfo.v1 * Idc;
+    const double reactive = k3sq2 * linkInfo.v1 * Idc;
 
-    linkFlows.Q1 = -std::sqrt(reactive * reactive - linkFlows.P1 * linkFlows.P1);
+    linkFlows.Q1 = -std::sqrt((reactive * reactive) - (linkFlows.P1 * linkFlows.P1));
 
     // Q2 is 0 since bus k is a DC bus.
     /*
@@ -670,9 +700,9 @@ void acdcConverter::updateLocalCache()
         linkInfo.v2 = B2->getVoltage();
         linkFlows.P1 = dirMult * linkInfo.v2 * Idc;
         linkFlows.P2 = -linkFlows.P1;
-        double sourceP = k3sq2 * linkInfo.v1 * Idc;
+        const double sourceP = k3sq2 * linkInfo.v1 * Idc;
 
-        linkFlows.Q1 = -std::sqrt(sourceP * sourceP - linkFlows.P1 * linkFlows.P1);
+        linkFlows.Q1 = -std::sqrt((sourceP * sourceP) - (linkFlows.P1 * linkFlows.P1));
     }
 }
 
@@ -707,7 +737,7 @@ void acdcConverter::getStateName(stringVec& stNames,
 {
     auto offset = offsets.getAlgOffset(sMode);
 
-    std::string prefix2 = prefix + getName() + ':';
+    const std::string prefix2 = prefix + getName() + ':';
 
     if (isDynamic(sMode)) {
         if (offset > 0) {

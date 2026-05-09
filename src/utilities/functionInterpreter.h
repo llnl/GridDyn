@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <functional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 /** @brief enumeration of the different function types*/
@@ -21,18 +21,25 @@ enum class function_type {
     vect_arg2  //!< functions with 2 vector arguments
 };
 
+using function0_t = double (*)();
+using function1_t = double (*)(double);
+using function2_t = double (*)(double, double);
+using function3_t = double (*)(double, double, double);
+using vector_function1_t = double (*)(const std::vector<double>&);
+using vector_function2_t = double (*)(const std::vector<double>&, const std::vector<double>&);
+
 /** @brief evaluate a function named by a string
 @param[in] functionName the function name to evaluate
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName);
+double evalFunction(std::string_view functionName);
 
 /** @brief evaluate a function named by a string with 1 argument
 @param[in] functionName the function name to evaluate
 @param[in] val the argument value of the function
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName, double val);
+double evalFunction(std::string_view functionName, double val);
 
 /** @brief evaluate a function named by a string with 2 arguments
 @param[in] functionName the function name to evaluate
@@ -40,7 +47,7 @@ double evalFunction(const std::string& functionName, double val);
 @param[in] val2 the second argument value of the function
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName, double val1, double val2);
+double evalFunction(std::string_view functionName, double val1, double val2);
 
 /** @brief evaluate a function named by a string with 3 arguments
 @param[in] functionName the function name to evaluate
@@ -49,14 +56,14 @@ double evalFunction(const std::string& functionName, double val1, double val2);
 @param[in] val3 the third argument value of the function
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName, double val1, double val2, double val3);
+double evalFunction(std::string_view functionName, double val1, double val2, double val3);
 
 /** @brief evaluate a function named by a string with 1 array argument
 @param[in] functionName the function name to evaluate
 @param[in] arr the array argument for evaluation
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName, const std::vector<double>& arr);
+double evalFunction(std::string_view functionName, const std::vector<double>& arr);
 
 /** @brief evaluate a function named by a string with 2 array arguments
 @param[in] functionName the function name to evaluate
@@ -64,7 +71,7 @@ double evalFunction(const std::string& functionName, const std::vector<double>& 
 @param[in] arr2 the second array argument for evaluation
 @return the evaluated function or nan;
 */
-double evalFunction(const std::string& functionName,
+double evalFunction(std::string_view functionName,
                     const std::vector<double>& arr1,
                     const std::vector<double>& arr2);
 
@@ -73,43 +80,54 @@ double evalFunction(const std::string& functionName,
 @param[in] ftype the class of functions to check
 @return true if the string is a function name false otherwise
 */
-bool isFunctionName(const std::string& functionName, function_type ftype = function_type::all);
+bool isFunctionName(std::string_view functionName, function_type ftype = function_type::all);
 
 /** @brief find a no argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function
 */
-std::function<double()> get0ArgFunction(const std::string& functionName);
+function0_t get0ArgFunction(std::string_view functionName);
 
 /** @brief find a single argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function
 */
-std::function<double(double)> get1ArgFunction(const std::string& functionName);
+function1_t get1ArgFunction(std::string_view functionName);
+
+/** @brief find the inverse of a single argument function when available
+@param[in] functionName the function name
+@return the inverse function or nullptr if not available
+*/
+function1_t getInverse1ArgFunction(std::string_view functionName);
+
+/** @brief find the derivative of a single argument function when available
+@param[in] functionName the function name
+@return the derivative function or nullptr if not available
+*/
+function1_t getDerivative1ArgFunction(std::string_view functionName);
 
 /** @brief find a two argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function
 */
-std::function<double(double, double)> get2ArgFunction(const std::string& functionName);
+function2_t get2ArgFunction(std::string_view functionName);
 
 /** @brief find a three argument function and return the corresponding lambda function
 @param[in] functionName the function name
 @return a std::Function with the appropriate function
 */
-std::function<double(double, double, double)> get3ArgFunction(const std::string& functionName);
+function3_t get3ArgFunction(std::string_view functionName);
 
 /** @brief find a function with a single array as an argument and return the corresponding lambda
 function
 @param[in] functionName the function name
 @return a std::Function implementing the appropriate function
 */
-std::function<double(const std::vector<double>&)> getArrayFunction(const std::string& functionName);
+vector_function1_t getArrayFunction(std::string_view functionName);
 
 /** @brief find a function with a two arrays as arguments and return the corresponding lambda
 function
 @param[in] functionName the function name
 @return a std::Function implementing the appropriate function
 */
-std::function<double(const std::vector<double>&, const std::vector<double>&)>
-    get2ArrayFunction(const std::string& functionName);
+vector_function2_t get2ArrayFunction(std::string_view functionName);

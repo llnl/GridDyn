@@ -16,10 +16,10 @@ class Generator;
  * simple version of such a device
  */
 
-const int exciterVoltageInLocation = 0;
-const int exciterVsetInLocation = 1;
-const int exciterPmechInLocation = 2;
-const int exciterOmegaInLocation = 3;
+inline constexpr int exciterVoltageInLocation = 0;
+inline constexpr int exciterVsetInLocation = 1;
+inline constexpr int exciterPmechInLocation = 2;
+inline constexpr int exciterOmegaInLocation = 3;
 
 /** class defining the interface for an exciter as well a trivial implementation of such
  */

@@ -34,9 +34,9 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc);
 double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc);
 size_t pChunckEnd(string_view command, size_t start);
 
-double InterpretFunction(const std::string& command, readerInfo& ri);
-double InterpretFunction(const std::string& command, double val, readerInfo& ri);
-double InterpretFunction(const std::string& command, double val1, double val2, readerInfo& ri);
+double InterpretFunction(string_view command, readerInfo& ri);
+double InterpretFunction(string_view command, double val, readerInfo& ri);
+double InterpretFunction(string_view command, double val1, double val2, readerInfo& ri);
 
 double stringBlocktoDouble(string_view block, readerInfo& ri);
 double interpretString_sv(string_view command, readerInfo& ri);
@@ -79,7 +79,7 @@ double interpretString_sv(string_view command, readerInfo& ri)
 
             auto fcallstr = trim(command.substr(rlcps + 1, rlcp - rlcps - 1));
             if (fcallstr.empty()) {
-                val = InterpretFunction(std::string{cmdBlock}, ri);
+                val = InterpretFunction(cmdBlock, ri);
             } else {
                 auto cloc = fcallstr.find_first_of(',');
                 if (cloc != std::string::npos) {
@@ -88,14 +88,14 @@ double interpretString_sv(string_view command, readerInfo& ri)
                     if (args.size() == 2) {
                         double v1 = stringBlocktoDouble(args[0], ri);
                         double v2 = stringBlocktoDouble(args[1], ri);
-                        val = InterpretFunction(std::string{cmdBlock}, v1, v2, ri);
+                        val = InterpretFunction(cmdBlock, v1, v2, ri);
                     } else if (args.size() == 1) {
                         // if the single argument is a function of multiple arguments
                         if (cmdBlock == "query") {
                             val = ObjectQuery(args[0], ri.getKeyObject());
                         } else {
                             double v1 = stringBlocktoDouble(args[0], ri);
-                            val = InterpretFunction(std::string{cmdBlock}, v1, ri);
+                            val = InterpretFunction(cmdBlock, v1, ri);
                         }
                     } else {
                         std::println(stderr,
@@ -109,7 +109,7 @@ double interpretString_sv(string_view command, readerInfo& ri)
                         val = stringBlocktoDouble(fcallstr, ri);
 
                         if (!std::isnan(val)) {
-                            val = InterpretFunction(std::string{cmdBlock}, val, ri);
+                            val = InterpretFunction(cmdBlock, val, ri);
                         }
                     }
                 }
@@ -167,7 +167,7 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
     return (op == '+') ? valA + valB : valA - valB;
 }
 
-const double nan_val = std::numeric_limits<double>::quiet_NaN();
+static constexpr double nan_val = std::numeric_limits<double>::quiet_NaN();
 
 double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
 {
@@ -215,13 +215,13 @@ size_t pChunckEnd(string_view command, size_t start)
     return rlc;
 }
 
-double InterpretFunction(const std::string& command, readerInfo& ri)
+double InterpretFunction(string_view command, readerInfo& ri)
 {
     auto fval = evalFunction(command);
 
     // if we still didn't find any function check if there is a redefinition
     if (std::isnan(fval)) {
-        auto rep = ri.checkDefines(command);
+        auto rep = ri.checkDefines(std::string{command});
         if (rep != command) {
             fval = evalFunction(rep);  // don't let it iterate more than once
         }
@@ -229,13 +229,13 @@ double InterpretFunction(const std::string& command, readerInfo& ri)
     return fval;
 }
 
-double InterpretFunction(const std::string& command, double val, readerInfo& ri)
+double InterpretFunction(string_view command, double val, readerInfo& ri)
 {
     auto fval = evalFunction(command, val);
 
     // if we still didn't find any function check if there is a redefinition
     if (std::isnan(fval)) {
-        auto rep = ri.checkDefines(command);
+        auto rep = ri.checkDefines(std::string{command});
         if (rep != command) {
             fval = evalFunction(rep, val);  // don't let it iterate more than once
         }
@@ -243,13 +243,13 @@ double InterpretFunction(const std::string& command, double val, readerInfo& ri)
     return fval;
 }
 
-double InterpretFunction(const std::string& command, double val1, double val2, readerInfo& ri)
+double InterpretFunction(string_view command, double val1, double val2, readerInfo& ri)
 {
     auto fval = evalFunction(command, val1, val2);
 
     // if we still didn't find any function check if there is a redefinition
     if (std::isnan(fval)) {
-        auto rep = ri.checkDefines(command);
+        auto rep = ri.checkDefines(std::string{command});
         if (rep != command) {
             fval = evalFunction(rep, val1, val2);  // don't let it iterate more than once
         }

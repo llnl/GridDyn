@@ -10,11 +10,14 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
+#include <functional>
 #include <map>
 #include <string>
+#include <string_view>
+#include <utility>
 
 namespace griddyn::loads {
-sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName)
+sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName), sourceLink{}
 {
     sourceLink.fill(-1);
 }
@@ -28,7 +31,7 @@ sourceLoad::sourceLoad(sourceType type, const std::string& objName): sourceLoad(
 
 coreObject* sourceLoad::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<sourceLoad, zipLoad>(this, obj);
+    auto* nobj = cloneBase<sourceLoad, zipLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -36,7 +39,8 @@ coreObject* sourceLoad::clone(coreObject* obj) const
     return nobj;
 }
 
-static const std::map<std::string, int> source_lookup{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, int, std::less<>> source_lookup{
     {"source", sourceLoad::p_source},
     {"psource", sourceLoad::p_source},
     {"p_source", sourceLoad::p_source},
@@ -56,7 +60,8 @@ static const std::map<std::string, int> source_lookup{
     {"iq_source", sourceLoad::iq_source},
 };
 
-static const std::map<std::string, int> sourcekey_lookup{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
     {"p", sourceLoad::p_source},
     {"q", sourceLoad::q_source},
     {"r", sourceLoad::r_source},
@@ -70,7 +75,8 @@ static const std::map<std::string, int> sourcekey_lookup{
     {"iq", sourceLoad::iq_source},
 };
 
-static const std::map<std::string, int> source_match{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, int, std::less<>> source_match{
     {"source", sourceLoad::p_source},     {"psource", sourceLoad::p_source},
     {"p_source", sourceLoad::p_source},   {"qsource", sourceLoad::q_source},
     {"q_source", sourceLoad::q_source},   {"resource", sourceLoad::r_source},
@@ -100,7 +106,7 @@ void sourceLoad::add(Source* src)
     src->setFlag("pflow_init_required", true);
     if (src->locIndex != kNullLocation) {
     } else if (!src->purpose_.empty()) {
-        auto ind = source_match.find(src->purpose_);
+        auto ind = source_match.find(std::string_view{src->purpose_});
         if (ind != source_match.end()) {
             src->locIndex = ind->second;
         } else {
@@ -110,7 +116,7 @@ void sourceLoad::add(Source* src)
         src->locIndex = static_cast<int>(sources.size());
     }
 
-    if (static_cast<index_t>(sources.size()) <= src->locIndex) {
+    if (std::cmp_less_equal(sources.size(), src->locIndex)) {
         sources.resize(src->locIndex + 1, nullptr);
     }
     if (sources[src->locIndex] != nullptr) {
@@ -140,8 +146,7 @@ void sourceLoad::remove(Source* src)
     if (src == nullptr) {
         return;
     }
-    if ((src->locIndex != kNullLocation) &&
-        (src->locIndex < static_cast<index_t>(sources.size()))) {
+    if ((src->locIndex != kNullLocation) && std::cmp_less(src->locIndex, sources.size())) {
         if (isSameObject(sources[src->locIndex], src)) {
             sources[src->locIndex] = nullptr;
             src->setParent(nullptr);
@@ -155,28 +160,30 @@ void sourceLoad::remove(Source* src)
     }
 }
 
-Source* sourceLoad::findSource(const std::string& srcname)
+Source* sourceLoad::findSource(std::string_view srcname)
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
-        int index = sourceLink[ind->second];
-        if (index < 0) {
-            add(makeSource(static_cast<sourceLoad::sourceLoc>(ind->second)));
-        } else if ((static_cast<int>(sources.size()) <= index) || (sources[index] == nullptr)) {
+        const int index = sourceLink[ind->second];
+        if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
+            (sources[index] == nullptr)) {
             // this may not actually do anything is the sType is set to other
             add(makeSource(static_cast<sourceLoad::sourceLoc>(ind->second)));
         }
-        return sources[index];
+        const int updatedIndex = sourceLink[ind->second];
+        return (updatedIndex >= 0 && std::cmp_greater(sources.size(), updatedIndex)) ?
+            sources[updatedIndex] :
+            nullptr;
     }
     return nullptr;
 }
 
-Source* sourceLoad::findSource(const std::string& srcname) const
+Source* sourceLoad::findSource(std::string_view srcname) const
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
-        int index = sourceLink[ind->second];
-        if ((index < 0) || (static_cast<int>(sources.size()) <= index)) {
+        const int index = sourceLink[ind->second];
+        if ((index < 0) || std::cmp_less_equal(sources.size(), index)) {
             return nullptr;
         }
         return sources[index];
@@ -188,7 +195,7 @@ void sourceLoad::setFlag(std::string_view flag, bool val)
 {
     auto sfnd = flag.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{flag.substr(0, sfnd)});
+        auto* src = findSource(flag.substr(0, sfnd));
         if (src != nullptr) {
             src->setFlag(flag.substr(sfnd + 1, std::string::npos), val);
         } else {
@@ -203,7 +210,7 @@ void sourceLoad::set(std::string_view param, std::string_view val)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{param.substr(0, sfnd)});
+        auto* src = findSource(param.substr(0, sfnd));
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val);
         } else {
@@ -216,7 +223,7 @@ void sourceLoad::set(std::string_view param, std::string_view val)
 
 void sourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
-    for (auto& src : getSubObjects()) {
+    for (const auto& src : getSubObjects()) {
         static_cast<Source*>(src)->timestep(time, noInputs, sMode);
     }
     getSourceLoads();
@@ -229,7 +236,7 @@ void sourceLoad::setState(coreTime time,
                           const double dstate_dt[],
                           const solverMode& sMode)
 {
-    for (auto& src : getSubObjects()) {
+    for (const auto& src : getSubObjects()) {
         src->setState(time, state, dstate_dt, sMode);
     }
     getSourceLoads();
@@ -240,19 +247,19 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
-        auto src = findSource(std::string{param.substr(0, sfnd)});
+        auto* src = findSource(param.substr(0, sfnd));
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val, unitType);
         } else {
             throw(unrecognizedParameter(param));
         }
     } else {
-        auto ind = source_lookup.find(std::string{param.substr(0, sfnd)});
+        auto ind = source_lookup.find(param);
         if (ind != source_lookup.end()) {
-            if ((static_cast<int>(sources.size()) < ind->second) &&
-                (sources[ind->second] != nullptr)) {
-                sourceLink[ind->second] = static_cast<int>(val);
-            } else if (!opFlags[pFlow_initialized]) {
+            const bool canSetSourceLink = (std::cmp_greater(sources.size(), ind->second) &&
+                                           (sources[ind->second] != nullptr)) ||
+                (!opFlags[pFlow_initialized]);
+            if (canSetSourceLink) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else {
                 throw(unrecognizedParameter(param));
@@ -260,10 +267,10 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
             return;
         }
 
-        auto keyind = sourcekey_lookup.find(std::string{param.substr(0, sfnd)});
+        auto keyind = sourcekey_lookup.find(param);
 
         if (keyind != sourcekey_lookup.end()) {
-            if ((static_cast<int>(sources.size()) > keyind->second) &&
+            if (std::cmp_greater(sources.size(), keyind->second) &&
                 (sources[keyind->second] != nullptr)) {
                 sources[keyind->second]->set(
                     "level", units::convert(val, unitType, units::puMW, systemBasePower));
@@ -277,33 +284,32 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
 void sourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // Do a check on the sources;
-    for (auto& sL : sourceLink) {
-        if (sL < 0) {
+    for (auto& sourceLocation : sourceLink) {
+        if (sourceLocation < 0) {
             continue;
         }
-        if (sL >= static_cast<int>(sources.size())) {
-            logging::warning(this, "no source given at called index");
-        } else if (sources[sL] == nullptr) {
+        if (std::cmp_greater_equal(sourceLocation, sources.size()) ||
+            (sources[sourceLocation] == nullptr)) {
             logging::warning(this, "no source given at called index");
         }
     }
-    gridSecondary::pFlowObjectInitializeA(time0, flags);  // to initialize the submodels
+    zipLoad::pFlowObjectInitializeA(time0, flags);  // to initialize the submodels
 
     getSourceLoads();
 }
 
 void sourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    gridSecondary::dynObjectInitializeA(time0, flags);
+    zipLoad::dynObjectInitializeA(time0, flags);
     getSourceLoads();
 }
 
 void sourceLoad::updateLocalCache(const IOdata& /*inputs*/,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const solverMode& sMode)
 {
     for (auto& src : sources) {
-        src->updateLocalCache(noInputs, sD, sMode);
+        src->updateLocalCache(noInputs, stateDataValue, sMode);
     }
     getSourceLoads();
 }
@@ -359,7 +365,7 @@ Source* sourceLoad::makeSource(sourceLoc loc)
 
 coreObject* sourceLoad::find(std::string_view obj) const
 {
-    auto src = findSource(std::string{obj});
+    auto* src = findSource(obj);
     if (src == nullptr) {
         return gridComponent::find(obj);
     }

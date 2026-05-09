@@ -14,7 +14,7 @@ namespace griddyn::paradae {
 enum LS_error { LS_NOT_CONVERGED, LS_INF_NAN };
 
 class LinearSearch: Solver {
-    static const int max_iter_int = 100;
+    static constexpr int max_iter_int = 100;
 
   public:
     LinearSearch() {};

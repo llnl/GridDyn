@@ -169,7 +169,7 @@ see gridComponent::dynInitializeA for more details
     /** add a grid object to the subObject container
     @param[in] obj the component to add
     */
-    void addSubObject(gridComponent* obj);
+    void addSubObject(gridComponent* comp);
     /** remove a grid object to the subObject container
     @param[in] obj the component to remove
     */
@@ -490,8 +490,9 @@ see gridComponent::dynInitializeA for more details
     @param[in] sD  the stage data to cache information from
     @param[in] sMode the solverMode corresponding to the stateData
     */
-    virtual void
-        updateLocalCache(const IOdata& inputs, const stateData& sD, const solverMode& sMode);
+    virtual void updateLocalCache(const IOdata& inputs,
+                                  const stateData& stateDataValue,
+                                  const solverMode& sMode);
     /** @brief locate a state index based on field name
     @param[in] field the name of the field to search for
     @param[in] sMode the solverMode to find the location for
@@ -555,7 +556,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const solverMode& sMode);
 
@@ -568,7 +569,7 @@ see gridComponent::dynInitializeA for more details
     */
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
                                  const solverMode& sMode,
                                  double alpha);
@@ -580,7 +581,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
                             const solverMode& sMode);
     /**
@@ -593,8 +594,8 @@ see gridComponent::dynInitializeA for more details
     * @param[in] sMode the operations mode
     **/
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode);
 
@@ -618,7 +619,7 @@ see gridComponent::dynInitializeA for more details
     **/
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
-                                          matrixData<double>& md,
+                                          matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
     /**
     @brief return the count of output dependencies on internal states
@@ -650,7 +651,8 @@ see gridComponent::dynInitializeA for more details
     @param[in] sD the data representing the current state to operate on
     @param[in] sMode the solverMode which is being solved for
     */
-    virtual void preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode);
+    virtual void
+        preEx(const IOdata& inputs, const stateData& stateDataValue, const solverMode& sMode);
 
     /******************************************
     Functions related to root finding
@@ -663,7 +665,7 @@ see gridComponent::dynInitializeA for more details
     * @param[in] sMode the mode the solver is in
     **/
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
                           const solverMode& sMode);
 
@@ -688,7 +690,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] level the level of root to check for
     **/
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const solverMode& sMode,
                                   check_level_t level);
     /******************************************
@@ -701,8 +703,9 @@ see gridComponent::dynInitializeA for more details
     * @param[in] sMode the mode the solver is in
     @return a vector containing  all the outputs
     **/
-    virtual IOdata
-        getOutputs(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const;
+    virtual IOdata getOutputs(const IOdata& inputs,
+                              const stateData& stateDataValue,
+                              const solverMode& sMode) const;
 
     /**
     *@brief get the time derivative of a single state
@@ -713,7 +716,7 @@ see gridComponent::dynInitializeA for more details
     @return the value of the time derivative of a state being requested
     **/
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              const solverMode& sMode,
                              index_t outputNum = 0) const;
 
@@ -726,7 +729,7 @@ see gridComponent::dynInitializeA for more details
     @return the value of the state being requested
     **/
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              const solverMode& sMode,
                              index_t outputNum = 0) const;
 

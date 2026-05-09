@@ -24,14 +24,15 @@ constexpr X phaseSelector(char phase, X valA, X valB, X valC, X def) noexcept
 }
 
 constexpr auto k_PI = 3.14159265358979323846;
+constexpr auto k_SQRT3_OVER_2 = 0.86602540378443864676;
 /** multiplier constants for representation change*/
 static constexpr std::complex<double> alpha0 = std::complex<double>(1.0, 0);
-static const std::complex<double> alpha = std::polar(1.0, -2.0 * k_PI / 3.0);
-static const std::complex<double> alpha2 = alpha * alpha;
+static constexpr std::complex<double> alpha(-0.5, -k_SQRT3_OVER_2);
+static constexpr std::complex<double> alpha2(-0.5, k_SQRT3_OVER_2);
 
 // constants for rotating a complex number by +120 and -120 degrees
-static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
-static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
+static constexpr std::complex<double> rotp120(-0.5, k_SQRT3_OVER_2);
+static constexpr std::complex<double> rotn120(-0.5, -k_SQRT3_OVER_2);
 
 // TODO(phlpt): Add enable-if statements.
 template<class X>

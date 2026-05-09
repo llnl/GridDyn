@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <format>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
@@ -32,11 +33,12 @@ gridComponent::gridComponent(const std::string& objName): coreObject(objName)
 
 gridComponent::~gridComponent()
 {
-    for (auto& so : subObjectList) {
-        removeReference(so, this);
+    for (auto& subObject : subObjectList) {
+        removeReference(subObject, this);
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 coreObject* gridComponent::clone(coreObject* obj) const
 {
     auto* nobj = cloneBase<gridComponent, coreObject>(this, obj);
@@ -55,7 +57,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                 nobj->add(subobj->clone());
             }
             catch (const unrecognizedObjectException&) {
-                // this likely means that the parent will take care of it itself
+                continue;
             }
         }
     } else {
@@ -81,7 +83,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                         nobj->add(subObjectList[ii]->clone());
                     }
                     catch (const unrecognizedObjectException&) {
-                        // this likely means that the derived class will take care of it itself
+                        continue;
                     }
                 }
             } else {
@@ -90,7 +92,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                         nobj->add(subObjectList[ii]->clone());
                     }
                     catch (const unrecognizedObjectException&) {
-                        // this likely means that the parent will take care of it itself
+                        continue;
                     }
                 } else {
                     if (typeid(subObjectList[ii]) == typeid(nobj->subObjectList[ii])) {
@@ -100,7 +102,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
                             nobj->add(subObjectList[ii]->clone());
                         }
                         catch (const unrecognizedObjectException&) {
-                            // this likely means that the parent will take care of it itself
+                            continue;
                         }
                     }
                 }
@@ -111,6 +113,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
     return nobj;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::updateObjectLinkages(coreObject* newRoot)
 {
     for (auto* subobj : getSubObjects()) {
@@ -118,6 +121,7 @@ void gridComponent::updateObjectLinkages(coreObject* newRoot)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (localBaseVoltage == kNullVal) {
@@ -137,6 +141,7 @@ void gridComponent::pFlowInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowInitializeB()
 {
     if (isEnabled()) {
@@ -145,6 +150,7 @@ void gridComponent::pFlowInitializeB()
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (isEnabled()) {
@@ -155,6 +161,7 @@ void gridComponent::dynInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynInitializeB(const IOdata& inputs,
                                    const IOdata& desiredOutput,
                                    IOdata& fieldSet)
@@ -169,6 +176,7 @@ void gridComponent::dynInitializeB(const IOdata& inputs,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
@@ -176,6 +184,7 @@ void gridComponent::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::pFlowObjectInitializeB()
 {
     for (auto& subobj : subObjectList) {
@@ -183,6 +192,7 @@ void gridComponent::pFlowObjectInitializeB()
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
@@ -190,6 +200,7 @@ void gridComponent::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
@@ -203,155 +214,163 @@ void gridComponent::dynObjectInitializeB(const IOdata& inputs,
 
 count_t gridComponent::stateSize(const solverMode& sMode)
 {
-    const auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    count_t ssize =
-        (hasAlgebraic(sMode)) ? (so.total.algSize + so.total.vSize + so.total.aSize) : 0;
+    count_t ssize = (hasAlgebraic(sMode)) ?
+        (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+         solverOffsetsValue.total.aSize) :
+        0;
     if (hasDifferential(sMode)) {
-        ssize += so.total.diffSize;
+        ssize += solverOffsetsValue.total.diffSize;
     }
     return ssize;
 }
 
 count_t gridComponent::stateSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    count_t ssize =
-        (hasAlgebraic(sMode)) ? (so.total.algSize + so.total.vSize + so.total.aSize) : 0;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    count_t ssize = (hasAlgebraic(sMode)) ?
+        (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+         solverOffsetsValue.total.aSize) :
+        0;
     if (hasDifferential(sMode)) {
-        ssize += so.total.diffSize;
+        ssize += solverOffsetsValue.total.diffSize;
     }
     return ssize;
 }
 
 count_t gridComponent::totalAlgSize(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    return so.total.algSize + so.total.vSize + so.total.aSize;
+    return solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+        solverOffsetsValue.total.aSize;
 }
 
 count_t gridComponent::totalAlgSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return (so.total.algSize + so.total.vSize + so.total.aSize);
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
+            solverOffsetsValue.total.aSize);
 }
 
 count_t gridComponent::algSize(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    return so.total.algSize;
+    return solverOffsetsValue.total.algSize;
 }
 
 count_t gridComponent::algSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return so.total.algSize;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return solverOffsetsValue.total.algSize;
 }
 
 count_t gridComponent::diffSize(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    return so.total.diffSize;
+    return solverOffsetsValue.total.diffSize;
 }
 
 count_t gridComponent::diffSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return so.total.diffSize;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return solverOffsetsValue.total.diffSize;
 }
 
 count_t gridComponent::rootSize(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.rootsLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.rootsLoaded)) {
         loadRootSizes(sMode);
     }
-    return so.total.algRoots + so.total.diffRoots;
+    return solverOffsetsValue.total.algRoots + solverOffsetsValue.total.diffRoots;
 }
 
 count_t gridComponent::rootSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
 
-    return so.total.algRoots + so.total.diffRoots;
+    return solverOffsetsValue.total.algRoots + solverOffsetsValue.total.diffRoots;
 }
 
 count_t gridComponent::jacSize(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.jacobianLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.jacobianLoaded)) {
         loadJacobianSizes(sMode);
     }
-    return so.total.jacSize;
+    return solverOffsetsValue.total.jacSize;
 }
 
 count_t gridComponent::jacSize(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return so.total.jacSize;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return solverOffsetsValue.total.jacSize;
 }
 
 count_t gridComponent::voltageStateCount(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    return so.total.vSize;
+    return solverOffsetsValue.total.vSize;
 }
 
 count_t gridComponent::voltageStateCount(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return so.total.vSize;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return solverOffsetsValue.total.vSize;
 }
 
 count_t gridComponent::angleStateCount(const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (!(so.stateLoaded)) {
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (!(solverOffsetsValue.stateLoaded)) {
         loadStateSizes(sMode);
     }
-    return so.total.aSize;
+    return solverOffsetsValue.total.aSize;
 }
 
 count_t gridComponent::angleStateCount(const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    return so.total.aSize;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    return solverOffsetsValue.total.aSize;
 }
 
 const solverOffsets& gridComponent::getOffsets(const solverMode& sMode) const
 {
     return offsets.getOffsets(sMode);
 }
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setOffsets(const solverOffsets& newOffsets, const solverMode& sMode)
 {
     offsets.setOffsets(newOffsets, sMode);
 
     if (!subObjectList.empty()) {
-        solverOffsets no(newOffsets);
-        no.localIncrement(offsets.getOffsets(sMode));
+        solverOffsets newSubOffsets(newOffsets);
+        newSubOffsets.localIncrement(offsets.getOffsets(sMode));
         for (auto& subobj : subObjectList) {
             if (subobj->isEnabled()) {
-                subobj->setOffsets(no, sMode);
-                no.increment(subobj->offsets.getOffsets(sMode));
+                subobj->setOffsets(newSubOffsets, sMode);
+                newSubOffsets.increment(subobj->offsets.getOffsets(sMode));
             }
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setOffset(index_t newOffset, const solverMode& sMode)
 {
     if (!subObjectList.empty()) {
@@ -380,7 +399,8 @@ bool gridComponent::isRootCountLoaded(const solverMode& sMode) const
     return offsets.isRootCountLoaded(sMode);
 }
 
-static const std::map<std::string, operation_flags> user_settable_flags{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, operation_flags, std::less<>> user_settable_flags{
     {"use_bus_frequency", uses_bus_frequency},
     {"late_b_initialize", late_b_initialize},
     {"error", error_flag},
@@ -395,7 +415,7 @@ static const std::map<std::string, operation_flags> user_settable_flags{
 // allowing them to be set by an external function might not be the best thing
 void gridComponent::setFlag(std::string_view flag, bool val)
 {
-    auto ffind = user_settable_flags.find(std::string{flag});
+    auto ffind = user_settable_flags.find(flag);
     if (ffind != user_settable_flags.end()) {
         opFlags.set(ffind->second, val);
         if (flag == "sampled_only") {
@@ -426,6 +446,7 @@ void gridComponent::setFlag(std::string_view flag, bool val)
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<index_t> parentSettableFlags{sampled_only,
                                                       no_gridcomponent_set,
                                                       separate_processing};
@@ -439,7 +460,8 @@ void gridComponent::parentSetFlag(index_t flagID, bool val, coreObject* checkPar
     }
 }
 
-static const std::map<std::string, operation_flags> flagmap{
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, operation_flags, std::less<>> flagmap{
     {"constraints", has_constraints},
     {"roots", has_roots},
     {"alg_roots", has_alg_roots},
@@ -500,7 +522,7 @@ static const std::map<std::string, operation_flags> flagmap{
 
 bool gridComponent::getFlag(std::string_view flag) const
 {
-    auto flagfind = flagmap.find(std::string{flag});
+    auto flagfind = flagmap.find(flag);
     if (flagfind != flagmap.end()) {
         return opFlags[flagfind->second];
     }
@@ -535,7 +557,9 @@ void gridComponent::disconnect()
 {
     opFlags.set(disconnected);
 }
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locNumStrings{"status", "basefrequency", "basepower"};
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locStrStrings{"status"};
 
 void gridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype) const
@@ -550,26 +574,26 @@ void gridComponent::set(std::string_view param, std::string_view val)
     }
 
     if (param == "status") {
-        auto v2 = convertToLowerCase(std::string{val});
-        if ((v2 == "on") || (v2 == "in") || (v2 == "enabled")) {
+        auto valueLower = convertToLowerCase(std::string{val});
+        if ((valueLower == "on") || (valueLower == "in") || (valueLower == "enabled")) {
             if (!isEnabled()) {
                 enable();
                 if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
-        } else if ((v2 == "off") || (v2 == "out") || (v2 == "disabled")) {
+        } else if ((valueLower == "off") || (valueLower == "out") || (valueLower == "disabled")) {
             if (isEnabled()) {
                 if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
                 disable();
             }
-        } else if (v2 == "connected") {
+        } else if (valueLower == "connected") {
             if (!isConnected()) {
                 reconnect();
             }
-        } else if (v2 == "disconnected") {
+        } else if (valueLower == "disconnected") {
             if (isConnected()) {
                 disconnect();
             }
@@ -583,14 +607,14 @@ void gridComponent::set(std::string_view param, std::string_view val)
     }
 }
 
-auto hasParameterPath(std::string_view param)
+static auto hasParameterPath(std::string_view param)
 {
     return (param.find_last_of(":?") != std::string_view::npos);
 }
 bool gridComponent::subObjectSet(std::string_view param, double val, units::unit unitType)
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(std::string{param}, this);
+        const objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             if (pinfo.m_unitType != units::defunit) {
                 pinfo.m_obj->set(pinfo.m_field, val, pinfo.m_unitType);
@@ -607,7 +631,7 @@ bool gridComponent::subObjectSet(std::string_view param, double val, units::unit
 bool gridComponent::subObjectSet(std::string_view param, std::string_view val)
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(std::string{param}, this);
+        const objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->set(pinfo.m_field, val);
         } else {
@@ -621,7 +645,7 @@ bool gridComponent::subObjectSet(std::string_view param, std::string_view val)
 bool gridComponent::subObjectSet(std::string_view flag, bool val)
 {
     if (hasParameterPath(flag)) {
-        objInfo pinfo(std::string{flag}, this);
+        const objInfo pinfo(std::string{flag}, this);
         if (pinfo.m_obj != nullptr) {
             pinfo.m_obj->setFlag(pinfo.m_field, val);
         } else {
@@ -635,7 +659,7 @@ bool gridComponent::subObjectSet(std::string_view flag, bool val)
 double gridComponent::subObjectGet(std::string_view param, units::unit unitType) const
 {
     if (hasParameterPath(param)) {
-        objInfo pinfo(std::string{param}, this);
+        const objInfo pinfo(std::string{param}, this);
         if (pinfo.m_obj != nullptr) {
             if (pinfo.m_unitType != units::defunit) {
                 return pinfo.m_obj->get(pinfo.m_field, pinfo.m_unitType);
@@ -647,6 +671,7 @@ double gridComponent::subObjectGet(std::string_view param, units::unit unitType)
     return kNullVal;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::set(std::string_view param, double val, units::unit unitType)
 {
     if (opFlags[no_gridcomponent_set]) {
@@ -696,6 +721,7 @@ void gridComponent::set(std::string_view param, double val, units::unit unitType
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setAll(std::string_view type,
                            std::string_view param,
                            double val,
@@ -766,9 +792,11 @@ void gridComponent::addSubObject(gridComponent* comp)
     if (comp == nullptr) {
         return;
     }
-    if (std::any_of(subObjectList.begin(), subObjectList.end(), [comp](const coreObject* so) {
-            return isSameObject(so, comp);
-        })) {
+    if (std::any_of(subObjectList.begin(),
+                    subObjectList.end(),
+                    [comp](const coreObject* subObject) {
+                        return isSameObject(subObject, comp);
+                    })) {
         return;
     }
     comp->setParent(this);
@@ -787,9 +815,10 @@ void gridComponent::addSubObject(gridComponent* comp)
 void gridComponent::removeSubObject(gridComponent* obj)
 {
     if (!subObjectList.empty()) {
-        auto rmobj = std::find_if(subObjectList.begin(),
-                                  subObjectList.end(),
-                                  [obj](coreObject* so) { return isSameObject(so, obj); });
+        auto rmobj =
+            std::find_if(subObjectList.begin(), subObjectList.end(), [obj](coreObject* subObject) {
+                return isSameObject(subObject, obj);
+            });
         if (rmobj != subObjectList.end()) {
             removeReference(*rmobj, this);
             subObjectList.erase(rmobj);
@@ -804,14 +833,18 @@ void gridComponent::removeSubObject(gridComponent* obj)
 void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldObj)
 {
     if (subObjectList.empty()) {
-        return addSubObject(newObj);
+        addSubObject(newObj);
+        return;
     }
     if (newObj == nullptr) {
-        return removeSubObject(oldObj);
+        removeSubObject(oldObj);
+        return;
     }
     auto repobj = std::find_if(subObjectList.begin(),
                                subObjectList.end(),
-                               [oldObj](const coreObject* so) { return isSameObject(so, oldObj); });
+                               [oldObj](const coreObject* subObject) {
+                                   return isSameObject(subObject, oldObj);
+                               });
     if (repobj != subObjectList.end()) {
         removeReference(*repobj, this);
         newObj->setParent(this);
@@ -826,7 +859,8 @@ void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldOb
             opFlags[pFlow_initialized] = false;
         }
     } else {
-        return addSubObject(newObj);
+        addSubObject(newObj);
+        return;
     }
 }
 void gridComponent::remove(coreObject* obj)
@@ -836,6 +870,7 @@ void gridComponent::remove(coreObject* obj)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::reset(reset_levels level)
 {
     for (auto& subobj : subObjectList) {
@@ -843,6 +878,7 @@ void gridComponent::reset(reset_levels level)
     }
 }
 
+// NOLINTBEGIN(misc-no-recursion)
 change_code
     gridComponent::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
 {
@@ -852,14 +888,14 @@ change_code
         if (!(subobj->checkFlag(has_powerflow_adjustments))) {
             continue;
         }
-        auto iret = subobj->powerFlowAdjust(inputs, flags, level);
-        if (iret > ret) {
-            ret = iret;
-        }
+        const auto iret = subobj->powerFlowAdjust(inputs, flags, level);
+        ret = std::max(iret, ret);
     }
     return ret;
 }
+// NOLINTEND(misc-no-recursion)
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setState(coreTime time,
                              const double state[],
                              const double dstate_dt[],
@@ -870,30 +906,31 @@ void gridComponent::setState(coreTime time,
     {
         return;
     }
-    const auto& so = offsets.getOffsets(sMode);
-    const auto& localStates = (subObjectList.empty()) ? (so.total) : (so.local);
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    const auto& localStates =
+        (subObjectList.empty()) ? (solverOffsetsValue.total) : (solverOffsetsValue.local);
 
     if (hasAlgebraic(sMode)) {
         if (localStates.algSize > 0) {
-            std::copy(state + so.algOffset,
-                      state + so.algOffset + localStates.algSize,
+            std::copy(state + solverOffsetsValue.algOffset,
+                      state + solverOffsetsValue.algOffset + localStates.algSize,
                       m_state.data());
         }
     }
     if (localStates.diffSize > 0) {
         if (isDifferentialOnly(sMode)) {
-            std::copy(state + so.diffOffset,
-                      state + so.diffOffset + localStates.diffSize,
+            std::copy(state + solverOffsetsValue.diffOffset,
+                      state + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_state.data() + algSize(cLocalSolverMode));
-            std::copy(dstate_dt + so.diffOffset,
-                      dstate_dt + so.diffOffset + localStates.diffSize,
+            std::copy(dstate_dt + solverOffsetsValue.diffOffset,
+                      dstate_dt + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_dstate_dt.data() + algSize(cLocalSolverMode));
         } else {
-            std::copy(state + so.diffOffset,
-                      state + so.diffOffset + localStates.diffSize,
+            std::copy(state + solverOffsetsValue.diffOffset,
+                      state + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_state.data() + localStates.algSize);
-            std::copy(dstate_dt + so.diffOffset,
-                      dstate_dt + so.diffOffset + localStates.diffSize,
+            std::copy(dstate_dt + solverOffsetsValue.diffOffset,
+                      dstate_dt + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_dstate_dt.data() + localStates.algSize);
         }
     }
@@ -903,6 +940,7 @@ void gridComponent::setState(coreTime time,
     }
 }
 // for saving the state
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::guessState(coreTime time,
                                double state[],
                                double dstate_dt[],
@@ -911,44 +949,47 @@ void gridComponent::guessState(coreTime time,
     if (!hasStates(sMode)) {
         return;
     }
-    const auto& so = offsets.getOffsets(sMode);
-    const auto& localStates = (subObjectList.empty()) ? (so.total) : (so.local);
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    const auto& localStates =
+        (subObjectList.empty()) ? (solverOffsetsValue.total) : (solverOffsetsValue.local);
 
     if (hasAlgebraic(sMode)) {
         if (localStates.algSize > 0) {
-            assert(so.algOffset != kNullLocation);
-            std::copy(m_state.begin(), m_state.begin() + localStates.algSize, state + so.algOffset);
+            assert(solverOffsetsValue.algOffset != kNullLocation);
+            std::copy(m_state.begin(),
+                      m_state.begin() + localStates.algSize,
+                      state + solverOffsetsValue.algOffset);
         }
     }
     if (localStates.diffSize > 0) {
         if (isDifferentialOnly(sMode)) {
-            assert(so.diffOffset != kNullLocation);
-            index_t localAlgSize = algSize(cLocalSolverMode);
+            assert(solverOffsetsValue.diffOffset != kNullLocation);
+            const index_t localAlgSize = algSize(cLocalSolverMode);
             std::copy(m_state.begin() + localAlgSize,
                       m_state.begin() + localAlgSize + localStates.diffSize,
-                      state + so.diffOffset);
+                      state + solverOffsetsValue.diffOffset);
             std::copy(m_dstate_dt.data() + localAlgSize,
                       m_dstate_dt.data() + localAlgSize + localStates.diffSize,
-                      dstate_dt + so.diffOffset);
+                      dstate_dt + solverOffsetsValue.diffOffset);
         } else {
-            if (so.diffOffset == kNullLocation) {
+            if (solverOffsetsValue.diffOffset == kNullLocation) {
                 std::cout << std::format("{}::{} in mode {} {} ds={}, do={}\n",
                                          getParent()->getName(),
                                          getName(),
                                          static_cast<int>(isLocal(sMode)),
                                          static_cast<int>(isDAE(sMode)),
-                                         static_cast<int>(so.total.diffSize),
-                                         static_cast<int>(so.diffOffset));
+                                         static_cast<int>(solverOffsetsValue.total.diffSize),
+                                         static_cast<int>(solverOffsetsValue.diffOffset));
                 // printStackTrace ();
             }
-            assert(so.diffOffset != kNullLocation);
-            count_t stateCount = localStates.algSize + localStates.diffSize;
+            assert(solverOffsetsValue.diffOffset != kNullLocation);
+            const count_t stateCount = localStates.algSize + localStates.diffSize;
             std::copy(m_state.begin() + localStates.algSize,
                       m_state.begin() + stateCount,
-                      state + so.diffOffset);
+                      state + solverOffsetsValue.diffOffset);
             std::copy(m_dstate_dt.data() + localStates.algSize,
                       m_dstate_dt.data() + stateCount,
-                      dstate_dt + so.diffOffset);
+                      dstate_dt + solverOffsetsValue.diffOffset);
         }
     }
 
@@ -959,8 +1000,8 @@ void gridComponent::guessState(coreTime time,
 
 void gridComponent::setupPFlowFlags()
 {
-    auto ss = stateSize(cPflowSolverMode);
-    opFlags.set(has_pflow_states, (ss > 0));
+    auto stateCount = stateSize(cPflowSolverMode);
+    opFlags.set(has_pflow_states, (stateCount > 0));
     // load the subobject pflow states;
     for (auto& sub : subObjectList) {
         if (sub->checkFlag(has_pflow_states)) {
@@ -972,14 +1013,14 @@ void gridComponent::setupPFlowFlags()
 
 void gridComponent::setupDynFlags()
 {
-    auto ss = stateSize(cDaeSolverMode);
+    auto stateCount = stateSize(cDaeSolverMode);
 
-    opFlags.set(has_dyn_states, (ss > 0));
-    const auto& so = offsets.getOffsets(cDaeSolverMode);
-    if (so.total.algRoots > 0) {
+    opFlags.set(has_dyn_states, (stateCount > 0));
+    const auto& solverOffsetsValue = offsets.getOffsets(cDaeSolverMode);
+    if (solverOffsetsValue.total.algRoots > 0) {
         opFlags.set(has_alg_roots);
         opFlags.set(has_roots);
-    } else if (so.total.diffRoots > 0) {
+    } else if (solverOffsetsValue.total.diffRoots > 0) {
         opFlags.reset(has_alg_roots);
         opFlags.set(has_roots);
     } else {
@@ -996,12 +1037,13 @@ double gridComponent::getState(index_t offset) const
     return kNullVal;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
 {
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
     switch (category) {
         case sizeCategory::state_size_update:
-            so.localStateLoad(false);
+            solverOffsetsValue.localStateLoad(false);
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
                     if (!(sub->isStateCountLoaded(sMode))) {
@@ -1010,13 +1052,13 @@ void gridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
                     if (sub->checkFlag(sampled_only)) {
                         continue;
                     }
-                    so.addStateSizes(sub->offsets.getOffsets(sMode));
+                    solverOffsetsValue.addStateSizes(sub->offsets.getOffsets(sMode));
                 }
             }
-            so.stateLoaded = true;
+            solverOffsetsValue.stateLoaded = true;
             break;
         case sizeCategory::jacobian_size_update:
-            so.total.jacSize = so.local.jacSize;
+            solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
                     if (!(sub->isJacobianCountLoaded(sMode))) {
@@ -1025,14 +1067,14 @@ void gridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
                     if (sub->checkFlag(sampled_only)) {
                         continue;
                     }
-                    so.addJacobianSizes(sub->offsets.getOffsets(sMode));
+                    solverOffsetsValue.addJacobianSizes(sub->offsets.getOffsets(sMode));
                 }
             }
-            so.jacobianLoaded = true;
+            solverOffsetsValue.jacobianLoaded = true;
             break;
         case sizeCategory::root_size_update:
-            so.total.algRoots = so.local.algRoots;
-            so.total.diffRoots = so.local.diffRoots;
+            solverOffsetsValue.total.algRoots = solverOffsetsValue.local.algRoots;
+            solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
                     if (!(sub->isRootCountLoaded(sMode))) {
@@ -1041,10 +1083,10 @@ void gridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
                     if (sub->checkFlag(sampled_only)) {
                         continue;
                     }
-                    so.addRootSizes(sub->offsets.getOffsets(sMode));
+                    solverOffsetsValue.addRootSizes(sub->offsets.getOffsets(sMode));
                 }
             }
-            so.rootsLoaded = true;
+            solverOffsetsValue.rootsLoaded = true;
             break;
     }
 }
@@ -1061,44 +1103,45 @@ count_t gridComponent::LocalJacobianCount(const solverMode& /*sMode*/) const
 
 std::pair<count_t, count_t> gridComponent::LocalRootCount(const solverMode& /*sMode*/) const
 {
-    const auto& lc = offsets.local().local;
-    return std::make_pair(lc.algRoots, lc.diffRoots);
+    const auto& localCounts = offsets.local().local;
+    return std::make_pair(localCounts.algRoots, localCounts.diffRoots);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadStateSizes(const solverMode& sMode)
 {
     if (isStateCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsetsValue.reset();
+        solverOffsetsValue.setLoaded();
         return;
     }
     if ((!isDynamic(sMode)) && (opFlags[no_powerflow_operations])) {
-        so.stateReset();
-        so.stateLoaded = true;
+        solverOffsetsValue.stateReset();
+        solverOffsetsValue.stateLoaded = true;
         return;
     }
     if ((isDynamic(sMode)) && (opFlags[no_dynamics])) {
-        so.stateReset();
-        so.stateLoaded = true;
+        solverOffsetsValue.stateReset();
+        solverOffsetsValue.stateLoaded = true;
     }
 
-    if (!(so.stateLoaded)) {
+    if (!(solverOffsetsValue.stateLoaded)) {
         if (!isLocal(sMode))  // don't reset if it is the local offsets
         {
-            so.stateReset();
+            solverOffsetsValue.stateReset();
         }
         auto selfSizes = LocalStateSizes(sMode);
         if (hasAlgebraic(sMode)) {
-            so.local.aSize = selfSizes.aSize;
-            so.local.vSize = selfSizes.vSize;
-            so.local.algSize = selfSizes.algSize;
+            solverOffsetsValue.local.aSize = selfSizes.aSize;
+            solverOffsetsValue.local.vSize = selfSizes.vSize;
+            solverOffsetsValue.local.algSize = selfSizes.algSize;
         }
         if (hasDifferential(sMode)) {
-            so.local.diffSize = selfSizes.diffSize;
+            solverOffsetsValue.local.diffSize = selfSizes.diffSize;
         }
     }
 
@@ -1109,54 +1152,55 @@ void gridComponent::loadStateSizes(const solverMode& sMode)
                 sub->setFlag("sampled_only");
             }
         } else {
-            so.local.reset();
-            so.total.reset();
+            solverOffsetsValue.local.reset();
+            solverOffsetsValue.total.reset();
         }
     }
     if (subObjectList.empty()) {
-        so.localStateLoad(true);
+        solverOffsetsValue.localStateLoad(true);
     } else {
         loadSizesSub(sMode, sizeCategory::state_size_update);
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadRootSizes(const solverMode& sMode)
 {
     if (isRootCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsetsValue.reset();
+        solverOffsetsValue.setLoaded();
         return;
     }
     if (!isDynamic(sMode)) {
-        so.rootCountReset();
-        so.rootsLoaded = true;
+        solverOffsetsValue.rootCountReset();
+        solverOffsetsValue.rootsLoaded = true;
         return;
     }
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.rootCountReset();
+        solverOffsetsValue.rootCountReset();
     }
     auto selfSizes = LocalRootCount(sMode);
-    if (!(so.rootsLoaded)) {
-        so.local.algRoots = selfSizes.first;
-        so.local.diffRoots = selfSizes.second;
+    if (!(solverOffsetsValue.rootsLoaded)) {
+        solverOffsetsValue.local.algRoots = selfSizes.first;
+        solverOffsetsValue.local.diffRoots = selfSizes.second;
     }
 
     if (subObjectList.empty()) {
-        so.total.algRoots = so.local.algRoots;
-        so.total.diffRoots = so.local.diffRoots;
-        so.rootsLoaded = true;
+        solverOffsetsValue.total.algRoots = solverOffsetsValue.local.algRoots;
+        solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
+        solverOffsetsValue.rootsLoaded = true;
     } else {
         loadSizesSub(sMode, sizeCategory::root_size_update);
     }
-    if ((so.total.diffRoots > 0) || (so.total.algRoots > 0)) {
+    if ((solverOffsetsValue.total.diffRoots > 0) || (solverOffsetsValue.total.algRoots > 0)) {
         opFlags.set(has_roots);
-        if (so.total.algRoots > 0) {
+        if (solverOffsetsValue.total.algRoots > 0) {
             opFlags.set(has_alg_roots);
         }
     } else {
@@ -1165,15 +1209,16 @@ void gridComponent::loadRootSizes(const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::loadJacobianSizes(const solverMode& sMode)
 {
     if (isJacobianCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsetsValue.reset();
+        solverOffsetsValue.setLoaded();
         return;
     }
 
@@ -1181,21 +1226,22 @@ void gridComponent::loadJacobianSizes(const solverMode& sMode)
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.JacobianCountReset();
+        solverOffsetsValue.JacobianCountReset();
     }
 
-    if (!(so.jacobianLoaded)) {
-        so.local.jacSize = selfJacCount;
+    if (!(solverOffsetsValue.jacobianLoaded)) {
+        solverOffsetsValue.local.jacSize = selfJacCount;
     }
 
     if (subObjectList.empty()) {
-        so.total.jacSize = so.local.jacSize;
-        so.jacobianLoaded = true;
+        solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
+        solverOffsetsValue.jacobianLoaded = true;
     } else {
         loadSizesSub(sMode, sizeCategory::jacobian_size_update);
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getTols(double tols[], const solverMode& sMode)
 {
     for (auto& subObj : subObjectList) {
@@ -1205,32 +1251,33 @@ void gridComponent::getTols(double tols[], const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getVariableType(double sdata[], const solverMode& sMode)
 {
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (subObjectList.empty()) {
-        if (so.total.algSize > 0) {
-            auto offset = so.algOffset;
-            for (index_t kk = 0; kk < so.total.algSize; ++kk) {
+        if (solverOffsetsValue.total.algSize > 0) {
+            auto offset = solverOffsetsValue.algOffset;
+            for (index_t kk = 0; kk < solverOffsetsValue.total.algSize; ++kk) {
                 sdata[offset + kk] = ALGEBRAIC_VARIABLE;
             }
         }
-        if (so.total.diffSize > 0) {
-            auto offset = so.diffOffset;
-            for (index_t kk = 0; kk < so.total.diffSize; ++kk) {
+        if (solverOffsetsValue.total.diffSize > 0) {
+            auto offset = solverOffsetsValue.diffOffset;
+            for (index_t kk = 0; kk < solverOffsetsValue.total.diffSize; ++kk) {
                 sdata[offset + kk] = DIFFERENTIAL_VARIABLE;
             }
         }
     } else {
-        if (so.local.algSize > 0) {
-            auto offset = so.algOffset;
-            for (index_t kk = 0; kk < so.local.algSize; ++kk) {
+        if (solverOffsetsValue.local.algSize > 0) {
+            auto offset = solverOffsetsValue.algOffset;
+            for (index_t kk = 0; kk < solverOffsetsValue.local.algSize; ++kk) {
                 sdata[offset + kk] = ALGEBRAIC_VARIABLE;
             }
         }
-        if (so.local.diffSize > 0) {
-            auto offset = so.diffOffset;
-            for (index_t kk = 0; kk < so.local.diffSize; ++kk) {
+        if (solverOffsetsValue.local.diffSize > 0) {
+            auto offset = solverOffsetsValue.diffOffset;
+            for (index_t kk = 0; kk < solverOffsetsValue.local.diffSize; ++kk) {
                 sdata[offset + kk] = DIFFERENTIAL_VARIABLE;
             }
         }
@@ -1242,6 +1289,7 @@ void gridComponent::getVariableType(double sdata[], const solverMode& sMode)
     }
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<int, int> alertFlags{
     std::make_pair(FLAG_CHANGE, 1),
     std::make_pair(STATE_COUNT_INCREASE, 3),
@@ -1295,6 +1343,7 @@ void gridComponent::alert(coreObject* object, int code)
     coreObject::alert(object, code);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getConstraints(double constraints[], const solverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
@@ -1304,14 +1353,15 @@ void gridComponent::getConstraints(double constraints[], const solverMode& sMode
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::setRootOffset(index_t newRootOffset, const solverMode& sMode)
 {
     offsets.setRootOffset(newRootOffset, sMode);
-    auto& so = offsets.getOffsets(sMode);
-    auto nR = so.local.algRoots + so.local.diffRoots;
-    for (auto& ro : subObjectList) {
-        ro->setRootOffset(newRootOffset + nR, sMode);
-        nR += ro->rootSize(sMode);
+    auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    auto nextRootOffset = solverOffsetsValue.local.algRoots + solverOffsetsValue.local.diffRoots;
+    for (auto& rootObject : subObjectList) {
+        rootObject->setRootOffset(newRootOffset + nextRootOffset, sMode);
+        nextRootOffset += rootObject->rootSize(sMode);
     }
 }
 
@@ -1322,6 +1372,7 @@ stringVec gridComponent::localStateNames() const
     return emptyStr;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<stringVec> inputNamesStr{
     {"input0", "i0"},
     {"input1", "i1"},
@@ -1342,6 +1393,7 @@ const std::vector<stringVec>& gridComponent::inputNames() const
     return inputNamesStr;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::vector<stringVec> outputNamesStr{
     {"output", "o0", "out0", "output0", "out", "o", "value"},
     {"output1", "o1", "out1"},
@@ -1372,26 +1424,27 @@ units::unit gridComponent::outputUnits(index_t /*outputNum*/) const
     return units::defunit;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode) const
 {
-    const auto& so = offsets.getOffsets(sMode);
-    if (field.compare(0, 5, "state") == 0) {
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (field.starts_with("state")) {
         auto num = static_cast<index_t>(
             gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
         if (stateSize(sMode) > num) {
-            if (so.algOffset != kNullLocation) {
-                return so.algOffset + num;
+            if (solverOffsetsValue.algOffset != kNullLocation) {
+                return solverOffsetsValue.algOffset + num;
             }
             return kNullLocation;
         }
         return kInvalidLocation;
     }
-    if (field.compare(0, 3, "alg") == 0) {
+    if (field.starts_with("alg")) {
         auto num = static_cast<index_t>(
             gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
-        if (so.total.algSize > num) {
-            if (so.algOffset != kNullLocation) {
-                return so.algOffset + num;
+        if (solverOffsetsValue.total.algSize > num) {
+            if (solverOffsetsValue.algOffset != kNullLocation) {
+                return solverOffsetsValue.algOffset + num;
             }
             return kNullLocation;
         }
@@ -1400,12 +1453,12 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
         }
         return kInvalidLocation;
     }
-    if (field.compare(0, 4, "diff") == 0) {
+    if (field.starts_with("diff")) {
         auto num = static_cast<index_t>(
             gmlc::utilities::stringOps::trailingStringInt(std::string{field}, 0));
-        if (so.total.diffSize > num) {
-            if (so.diffOffset != kNullLocation) {
-                return so.diffOffset + num;
+        if (solverOffsetsValue.total.diffSize > num) {
+            if (solverOffsetsValue.diffOffset != kNullLocation) {
+                return solverOffsetsValue.diffOffset + num;
             }
             return kNullLocation;
         }
@@ -1415,18 +1468,18 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
         return kInvalidLocation;
     }
     auto stateNames = localStateNames();
-    for (index_t nn = 0; nn < static_cast<index_t>(stateNames.size()); ++nn) {
+    for (index_t nn = 0; std::cmp_less(nn, stateNames.size()); ++nn) {
         if (field == stateNames[nn]) {
-            const auto& lc = offsets.local();
-            if (nn < lc.local.algSize) {
-                if (so.algOffset != kNullLocation) {
-                    return so.algOffset + nn;
+            const auto& localOffsetsValue = offsets.local();
+            if (nn < localOffsetsValue.local.algSize) {
+                if (solverOffsetsValue.algOffset != kNullLocation) {
+                    return solverOffsetsValue.algOffset + nn;
                 }
                 return kNullLocation;
             }
-            if (nn - lc.local.algSize < lc.local.diffSize) {
-                if (so.diffOffset != kNullLocation) {
-                    return so.diffOffset + nn - lc.local.algSize;
+            if (nn - localOffsetsValue.local.algSize < localOffsetsValue.local.diffSize) {
+                if (solverOffsetsValue.diffOffset != kNullLocation) {
+                    return solverOffsetsValue.diffOffset + nn - localOffsetsValue.local.algSize;
                 }
                 return kNullLocation;
             }
@@ -1445,72 +1498,78 @@ index_t gridComponent::findIndex(std::string_view field, const solverMode& sMode
     return kInvalidLocation;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::getStateName(stringVec& stNames,
                                  const solverMode& sMode,
                                  const std::string& prefix) const
 {
-    const auto& so = offsets.getOffsets(sMode);
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     auto mxsize = offsets.maxIndex(sMode);
-    std::string prefix2 = prefix + getName() + ':';
+    const std::string prefix2 = prefix + getName() + ':';
 
-    if ((mxsize > 0) && (so.stateLoaded)) {
+    if ((mxsize > 0) && (solverOffsetsValue.stateLoaded)) {
         ensureSizeAtLeast(stNames, mxsize + 1);
     } else {
         return;
     }
     auto stateNames = localStateNames();
     auto stsize = static_cast<index_t>(stateNames.size());
-    decltype(mxsize) ss = 0;
+    decltype(mxsize) stateNameIndex = 0;
     if (hasAlgebraic(sMode)) {
-        for (index_t kk = 0; kk < so.local.vSize; kk++) {
-            if (!stNames[so.vOffset + kk].empty()) {
+        for (index_t kk = 0; kk < solverOffsetsValue.local.vSize; kk++) {
+            if (!stNames[solverOffsetsValue.vOffset + kk].empty()) {
                 continue;
             }
-            if (stsize > ss) {
-                stNames[so.vOffset + kk] = prefix2 + stateNames[ss];
-                ++ss;
+            if (stsize > stateNameIndex) {
+                stNames[solverOffsetsValue.vOffset + kk] = prefix2 + stateNames[stateNameIndex];
+                ++stateNameIndex;
             } else {
-                stNames[so.vOffset + kk] = prefix2 + "voltage_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.vOffset + kk] =
+                    prefix2 + "voltage_state_" + std::to_string(kk);
             }
         }
-        ss = offsets.local().local.vSize;
-        for (index_t kk = 0; kk < so.local.aSize; kk++) {
-            if (!stNames[so.aOffset + kk].empty()) {
+        stateNameIndex = offsets.local().local.vSize;
+        for (index_t kk = 0; kk < solverOffsetsValue.local.aSize; kk++) {
+            if (!stNames[solverOffsetsValue.aOffset + kk].empty()) {
                 continue;
             }
-            if (stsize > ss) {
-                stNames[so.aOffset + kk] = prefix2 + stateNames[ss];
-                ++ss;
+            if (stsize > stateNameIndex) {
+                stNames[solverOffsetsValue.aOffset + kk] = prefix2 + stateNames[stateNameIndex];
+                ++stateNameIndex;
             } else {
-                stNames[so.aOffset + kk] = prefix2 + "angle_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.aOffset + kk] =
+                    prefix2 + "angle_state_" + std::to_string(kk);
             }
         }
-        ss = offsets.local().local.vSize + offsets.local().local.aSize;
-        for (index_t kk = 0; kk < so.local.algSize; kk++) {
-            if (!stNames[so.algOffset + kk].empty()) {
+        stateNameIndex = offsets.local().local.vSize + offsets.local().local.aSize;
+        for (index_t kk = 0; kk < solverOffsetsValue.local.algSize; kk++) {
+            if (!stNames[solverOffsetsValue.algOffset + kk].empty()) {
                 continue;
             }
-            if (stsize > ss) {
-                stNames[so.algOffset + kk] = prefix2 + stateNames[ss];
-                ++ss;
+            if (stsize > stateNameIndex) {
+                stNames[solverOffsetsValue.algOffset + kk] = prefix2 + stateNames[stateNameIndex];
+                ++stateNameIndex;
             } else {
-                stNames[so.algOffset + kk] = prefix2 + "alg_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.algOffset + kk] =
+                    prefix2 + "alg_state_" + std::to_string(kk);
             }
         }
     }
     if (!isAlgebraicOnly(sMode)) {
-        if (so.local.diffSize > 0) {
-            ss = offsets.local().local.algSize + offsets.local().local.vSize +
+        if (solverOffsetsValue.local.diffSize > 0) {
+            stateNameIndex = offsets.local().local.algSize + offsets.local().local.vSize +
                 offsets.local().local.aSize;
-            for (index_t kk = 0; kk < so.local.diffSize; kk++) {
-                if (!stNames[so.diffOffset + kk].empty()) {
+            for (index_t kk = 0; kk < solverOffsetsValue.local.diffSize; kk++) {
+                if (!stNames[solverOffsetsValue.diffOffset + kk].empty()) {
                     continue;
                 }
-                if (stsize > ss) {
-                    stNames[so.diffOffset + kk] = prefix2 + stateNames[ss];
-                    ++ss;
+                if (stsize > stateNameIndex) {
+                    stNames[solverOffsetsValue.diffOffset + kk] =
+                        prefix2 + stateNames[stateNameIndex];
+                    ++stateNameIndex;
                 } else {
-                    stNames[so.diffOffset + kk] = prefix2 + "diff_state_" + std::to_string(kk);
+                    stNames[solverOffsetsValue.diffOffset + kk] =
+                        prefix2 + "diff_state_" + std::to_string(kk);
                 }
             }
         }
@@ -1528,7 +1587,7 @@ void gridComponent::updateFlags(bool dynamicsFlags)
             opFlags |= subobj->cascadingFlags();
         }
     }
-    if ((opFlags[dyn_initialized]) && (dynamicsFlags)) {
+    if (opFlags[dyn_initialized] && dynamicsFlags) {
         setupDynFlags();
     } else {
         setupPFlowFlags();
@@ -1537,12 +1596,13 @@ void gridComponent::updateFlags(bool dynamicsFlags)
     opFlags.reset(flag_update_required);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::updateLocalCache(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const solverMode& sMode)
 {
     for (auto& sub : subObjectList) {
-        sub->updateLocalCache(inputs, sD, sMode);
+        sub->updateLocalCache(inputs, stateDataValue, sMode);
     }
 }
 
@@ -1589,6 +1649,7 @@ coreObject* gridComponent::findByUserID(std::string_view typeName, index_t searc
     return coreObject::findByUserID(typeName, searchID);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     prevTime = time;
@@ -1615,13 +1676,13 @@ void gridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
 
 void gridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const stateData& /*sD*/,
-                                             matrixData<double>& md,
+                                             matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {
     /* assume the output is a state and compute accordingly*/
     for (index_t kk = 0; kk < m_outputSize; ++kk) {
-        index_t oLoc = getOutputLoc(sMode, kk);
-        md.assignCheckCol(kk, oLoc, 1.0);
+        const index_t outputLoc = getOutputLoc(sMode, kk);
+        matrixDataValue.assignCheckCol(kk, outputLoc, 1.0);
     }
 }
 
@@ -1629,52 +1690,58 @@ count_t gridComponent::outputDependencyCount(index_t outputNum, const solverMode
 {
     /* assume the output is a state and act accordingly*/
 
-    index_t oLoc = getOutputLoc(sMode, outputNum);
-    return (oLoc == kInvalidLocation) ? 0 : 1;
+    const index_t outputLoc = getOutputLoc(sMode, outputNum);
+    return (outputLoc == kInvalidLocation) ? 0 : 1;
 }
 
-void gridComponent::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+// NOLINTNEXTLINE(misc-no-recursion)
+void gridComponent::preEx(const IOdata& inputs,
+                          const stateData& stateDataValue,
+                          const solverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(preEx_requested))) {
             continue;
         }
         if (!subobj->checkFlag(separate_processing)) {
-            subobj->preEx(inputs, sD, sMode);
+            subobj->preEx(inputs, stateDataValue, sMode);
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              double resid[],
                              const solverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
             if (sub->stateSize(sMode) > 0) {
-                sub->residual(inputs, sD, resid, sMode);
+                sub->residual(inputs, stateDataValue, resid, sMode);
             }
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::derivative(const IOdata& inputs,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double deriv[],
                                const solverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
             if (sub->diffSize(sMode) > 0) {
-                sub->derivative(inputs, sD, deriv, sMode);
+                sub->derivative(inputs, stateDataValue, deriv, sMode);
             }
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::algebraicUpdate(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     double update[],
                                     const solverMode& sMode,
                                     double alpha)
@@ -1682,28 +1749,30 @@ void gridComponent::algebraicUpdate(const IOdata& inputs,
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
             if (sub->algSize(sMode) > 0) {
-                sub->algebraicUpdate(inputs, sD, update, sMode, alpha);
+                sub->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
             }
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::jacobianElements(const IOdata& inputs,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateDataValue,
+                                     matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const solverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
             if (sub->stateSize(sMode) > 0) {
-                sub->jacobianElements(inputs, sD, md, inputLocs, sMode);
+                sub->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
             }
         }
     }
 }
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::rootTest(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              double roots[],
                              const solverMode& sMode)
 {
@@ -1712,11 +1781,12 @@ void gridComponent::rootTest(const IOdata& inputs,
             if (!(subobj->checkFlag(has_roots))) {
                 continue;
             }
-            subobj->rootTest(inputs, sD, roots, sMode);
+            subobj->rootTest(inputs, stateDataValue, roots, sMode);
         }
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void gridComponent::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
@@ -1732,8 +1802,9 @@ void gridComponent::rootTrigger(coreTime time,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 change_code gridComponent::rootCheck(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const solverMode& sMode,
                                      check_level_t level)
 {
@@ -1744,7 +1815,7 @@ change_code gridComponent::rootCheck(const IOdata& inputs,
             continue;
         }
         if (!subobj->checkFlag(separate_processing)) {
-            ret = std::max(subobj->rootCheck(inputs, sD, sMode, level), ret);
+            ret = std::max(subobj->rootCheck(inputs, stateDataValue, sMode, level), ret);
         }
     }
     return ret;
@@ -1775,32 +1846,32 @@ index_t gridComponent::lookupOutputIndex(std::string_view outputName) const
 }
 
 double gridComponent::getOutput(const IOdata& /*inputs*/,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 const solverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum >= m_outputSize) {
         return kNullVal;
     }
-    auto Loc = offsets.getLocations(sD, sMode, this);
+    auto locations = offsets.getLocations(stateDataValue, sMode, this);
     if (opFlags[differential_output]) {
-        if (Loc.diffSize > outputNum) {
-            assert(Loc.diffStateLoc != nullptr);
-            return Loc.diffStateLoc[outputNum];
+        if (locations.diffSize > outputNum) {
+            assert(locations.diffStateLoc != nullptr);
+            return locations.diffStateLoc[outputNum];
         }
         return kNullVal;
     }
     // if differential flag was not specified try algebraic state values then differential
 
-    if (Loc.algSize > outputNum) {
-        assert(Loc.algStateLoc != nullptr);
-        return Loc.algStateLoc[outputNum];
+    if (locations.algSize > outputNum) {
+        assert(locations.algStateLoc != nullptr);
+        return locations.algStateLoc[outputNum];
     }
-    if (Loc.diffSize + Loc.algSize > outputNum) {
-        assert(Loc.diffStateLoc != nullptr);
-        return Loc.diffStateLoc[outputNum - Loc.algSize];
+    if (locations.diffSize + locations.algSize > outputNum) {
+        assert(locations.diffStateLoc != nullptr);
+        return locations.diffStateLoc[outputNum - locations.algSize];
     }
-    return (static_cast<index_t>(m_state.size()) > outputNum) ? m_state[outputNum] : kNullVal;
+    return std::cmp_greater(m_state.size(), outputNum) ? m_state[outputNum] : kNullVal;
 }
 
 double gridComponent::getOutput(index_t outputNum) const
@@ -1809,12 +1880,12 @@ double gridComponent::getOutput(index_t outputNum) const
 }
 
 IOdata gridComponent::getOutputs(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  const solverMode& sMode) const
 {
     IOdata mout(m_outputSize);
     for (count_t pp = 0; pp < m_outputSize; ++pp) {
-        mout[pp] = getOutput(inputs, sD, sMode, pp);
+        mout[pp] = getOutput(inputs, stateDataValue, sMode, pp);
     }
     return mout;
 }
@@ -1822,25 +1893,25 @@ IOdata gridComponent::getOutputs(const IOdata& inputs,
 // static IOdata kNullVec;
 
 double gridComponent::getDoutdt(const IOdata& /*inputs*/,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 const solverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum >= m_outputSize) {
         return kNullVal;
     }
-    auto Loc = offsets.getLocations(sD, sMode, this);
+    auto locations = offsets.getLocations(stateDataValue, sMode, this);
     if (opFlags[differential_output]) {
-        assert(Loc.dstateLoc != nullptr);
-        return Loc.dstateLoc[outputNum];
+        assert(locations.dstateLoc != nullptr);
+        return locations.dstateLoc[outputNum];
     }
 
-    if (Loc.algSize > outputNum) {
+    if (locations.algSize > outputNum) {
         return 0.0;
     }
-    if (Loc.diffSize + Loc.algSize > outputNum) {
-        assert(Loc.dstateLoc != nullptr);
-        return Loc.dstateLoc[outputNum - Loc.algSize];
+    if (locations.diffSize + locations.algSize > outputNum) {
+        assert(locations.dstateLoc != nullptr);
+        return locations.dstateLoc[outputNum - locations.algSize];
     }
     return 0.0;
 }
@@ -1859,12 +1930,12 @@ index_t gridComponent::getOutputLoc(const solverMode& sMode, index_t outputNum) 
         return offsets.getAlgOffset(sMode) + outputNum - diffSize(sMode);
     }
 
-    const auto& so = offsets.getOffsets(sMode);
-    if (so.total.algSize > outputNum) {
-        return so.algOffset + outputNum;
+    const auto& solverOffsetsValue = offsets.getOffsets(sMode);
+    if (solverOffsetsValue.total.algSize > outputNum) {
+        return solverOffsetsValue.algOffset + outputNum;
     }
-    if (so.total.diffSize + so.total.algSize > outputNum) {
-        return so.diffOffset - so.total.algSize + outputNum;
+    if (solverOffsetsValue.total.diffSize + solverOffsetsValue.total.algSize > outputNum) {
+        return solverOffsetsValue.diffOffset - solverOffsetsValue.total.algSize + outputNum;
     }
 
     return kNullLocation;
@@ -1919,10 +1990,10 @@ void printStateNames(const gridComponent* comp, const solverMode& sMode)
     auto ssize = comp->stateSize(sMode);
     std::vector<std::string> sNames(ssize);
     comp->getStateName(sNames, sMode);
-    int kk = 0;
-    for (auto& sn : sNames) {
-        std::cout << kk++ << ' ' << sn << '\n';
-        if (kk >= ssize) {
+    int stateIndex = 0;
+    for (auto& stateName : sNames) {
+        std::cout << stateIndex++ << ' ' << stateName << '\n';
+        if (stateIndex >= ssize) {
             break;
         }
     }

@@ -15,8 +15,6 @@
 #include <memory>
 #include <string>
 
-using gmlc::utilities::convertToLowerCase;
-
 namespace griddyn::sources {
 randomSource::randomSource(const std::string& objName, double startVal):
     rampSource(objName, startVal), param1_L(startVal)
@@ -27,7 +25,7 @@ randomSource::~randomSource() = default;
 
 coreObject* randomSource::clone(coreObject* obj) const
 {
-    auto src = cloneBase<randomSource, rampSource>(this, obj);
+    auto* src = cloneBase<randomSource, rampSource>(this, obj);
     if (src == nullptr) {
         return obj;
     }
@@ -52,19 +50,19 @@ coreObject* randomSource::clone(coreObject* obj) const
 void randomSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "trigger_dist") || (param == "time_dist")) {
-        timeDistribution = convertToLowerCase(val);
+        timeDistribution = val;
         if (opFlags[dyn_initialized]) {
             timeGenerator->setDistribution(utilities::getDist(timeDistribution));
         }
     } else if ((param == "size_dist") || (param == "change_dist")) {
-        valDistribution = convertToLowerCase(val);
+        valDistribution = val;
         if (opFlags[dyn_initialized]) {
             valGenerator->setDistribution(utilities::getDist(valDistribution));
         }
     } else if (param == "seed") {
         utilities::gridRandom::setSeed();
     } else {
-        Source::set(param, val);
+        rampSource::set(param, val);
     }
 }
 
@@ -104,7 +102,7 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
         }
         param1_t = val;
         timeParamUpdate();
-    } else if (param == "max_t") {
+    } else if ((param == "max_t") || (param == "param2_t")) {
         param2_t = val;
     } else if ((param == "min_l") || (param == "param1_l") || (param == "mean_l")) {
         param1_L = val;
@@ -124,8 +122,6 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
         param2_t = val;
     } else if (param == "param1_t") {
         param1_t = val;
-    } else if (param == "param2_t") {
-        param2_t = val;
     } else if (param == "zbias") {
         zbias = val;
     } else if (param == "seed") {
@@ -133,7 +129,7 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
     } else {
         // I am purposely skipping over the rampLoad the functionality is needed but the access
         // is not
-        Source::set(param, val, unitType);
+        rampSource::set(param, val, unitType);
     }
 }
 
@@ -150,7 +146,7 @@ void randomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*
     keyTime = time0;
     timeGenerator = std::make_unique<utilities::gridRandom>(timeDistribution, param1_t, param2_t);
     valGenerator = std::make_unique<utilities::gridRandom>(valDistribution, param1_L, param2_L);
-    coreTime triggerTime = time0 + ntime();
+    const coreTime triggerTime = time0 + ntime();
 
     if (opFlags[interpolate_flag]) {
         nextStep(triggerTime);
@@ -168,6 +164,8 @@ void randomSource::updateOutput(coreTime time)
     rampSource::updateOutput(time);
 }
 
+// Repeats only when multiple pending trigger times must be consumed.
+// NOLINTNEXTLINE(misc-no-recursion)
 void randomSource::updateA(coreTime time)
 {
     if (time < nextUpdateTime) {
@@ -191,9 +189,9 @@ void randomSource::updateA(coreTime time)
             keyTime = time;
         }
     } else {
-        double rval = nval();
+        const double rval = nval();
 
-        m_output = (opFlags[proportional_flag]) ? m_output + rval * m_output : m_output + rval;
+        m_output = (opFlags[proportional_flag]) ? m_output + (rval * m_output) : m_output + rval;
 
         if (opFlags[repeated_flag]) {
             nextUpdateTime = triggerTime;
@@ -231,8 +229,9 @@ double randomSource::nval()
 
 void randomSource::nextStep(coreTime triggerTime)
 {
-    double rval = nval();
-    double nextVal = (opFlags[proportional_flag]) ? m_output + rval * m_output : m_output + rval;
+    const double rval = nval();
+    const double nextVal =
+        (opFlags[proportional_flag]) ? m_output + (rval * m_output) : m_output + rval;
     if (opFlags[interpolate_flag]) {
         mp_dOdt = (nextVal - m_output) / (triggerTime - keyTime);
     } else {
@@ -274,7 +273,7 @@ double randomSource::computeBiasAdjust()
             break;
         case utilities::gridRandom::dist_type_t::exponential:  // load varies in a biexponential
                                                                // pattern
-            bias = offset / param1_L * zbias - 0.5;
+            bias = ((offset / param1_L) * zbias) - 0.5;
 
             break;
         case utilities::gridRandom::dist_type_t::normal:

@@ -1,0 +1,483 @@
+# GridDyn Naming Migration Plan
+
+This document defines the step-by-step plan for bringing the first-party
+GridDyn code base into full compliance with the naming conventions adapted from
+HELICS.
+
+This plan is intended to be executed through a series of small, reviewable pull
+requests. Each phase and subsystem can be worked independently once its
+dependencies are ready. The checklist structure is designed so progress can be
+tracked directly in this file over time.
+
+## Scope
+
+Included in scope:
+
+- `src/`
+- `interfaces/`
+- `test/`
+- first-party code examples and supporting code in `python/`, `matlab/`,
+  `scripts/`, `config/`, and relevant docs where code identifiers are part of
+  the maintained project surface
+
+Explicitly out of scope:
+
+- `ThirdParty/`
+- generated code that is not maintained directly in this repository
+- imported external wrappers unless GridDyn owns the generator and chooses to
+  regenerate them as part of the migration
+
+## Target Standard
+
+The target naming standard is defined in
+[style.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\style.md:1).
+
+The required end state is:
+
+- classes and types use `PascalCase`
+- free functions use `camelCase`
+- class methods use `camelCase`
+- enum types use `PascalCase`
+- enum values use `CAPITAL_SNAKE_CASE`
+- local variables use `camelCase`
+- function parameters use `camelCase`
+- member variables use `mPascalCase`
+- global variables use `gPascalCase`
+- constants and macros use `CAPITAL_SNAKE_CASE`
+- filenames match their primary class or type name where practical
+
+## Guiding Rules
+
+- Naming-only pull requests should not make behavioral changes.
+- One subsystem or one tightly related type family should be handled per PR.
+- Foundational type renames should not be mixed with unrelated local cleanups.
+- Temporary compatibility aliases or forwarding wrappers are allowed when needed
+  to stage broad API renames.
+- No PR should increase the naming violation count.
+- `ThirdParty` code must remain untouched.
+
+## Migration Strategy
+
+The migration should proceed in layers of risk:
+
+1. Inventory and tooling
+2. Low-risk local and private naming cleanup
+3. Internal functions and enums
+4. Leaf classes and contained public headers
+5. Core public types and cross-cutting APIs
+6. Filenames and include cleanup
+7. Interfaces, tests, docs, and final enforcement
+
+This sequencing is important because broad public type renames such as
+`coreObject`, `gridBus`, and `gridSimulation` will cascade across a large part
+of the repository. Those should happen only after lower-risk cleanup reduces the
+ambient noise.
+
+## Progress Tracking
+
+Status values to use while updating this file:
+
+- `[ ]` not started
+- `[~]` in progress
+- `[x]` complete
+- `[-]` intentionally deferred or not applicable
+
+## Phase 0: Standard Lock
+
+Goal: freeze the exact target and keep it stable for the duration of the
+migration.
+
+- [x] Add a repo-local naming style guide aligned with HELICS
+- [x] Add a first-pass naming audit document
+- [ ] Confirm any intentional deviations from HELICS naming rules
+- [x] Document handling policy for generated wrappers
+- [ ] Document handling policy for public API compatibility aliases
+
+## Phase 1: Inventory And Baseline
+
+Goal: establish the measurable list of remaining work.
+
+- [x] Create a first-party-only naming inventory report
+- [x] Categorize violations by kind
+  - class and type names
+  - enum type names
+  - enum constant names
+  - free functions
+  - methods
+  - member variables
+  - local variables and parameters
+  - globals and statics
+  - filename mismatches
+- [x] Categorize violations by subsystem
+- [ ] Tag violations by risk
+  - low risk: local/private/internal
+  - medium risk: subsystem public or widely included within a subsystem
+  - high risk: repository-wide or external-facing API
+- [x] Save the baseline report in a reproducible form
+- [x] Record the initial violation totals in this document
+
+### Phase 1 Notes
+
+- First-party source file count observed during initial planning: about 769
+  files
+- Baseline naming inventory report:
+  [naming-inventory.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\naming-inventory.md:1)
+- Baseline heuristic finding total: 13,907
+- Baseline findings by category:
+  - `class_type`: 576
+  - `enum_constant`: 6,263
+  - `enum_type`: 179
+  - `filename_mismatch`: 239
+  - `function_like`: 6,591
+  - `member_variable`: 59
+- Large source areas include:
+  - `src/griddyn`: about 330 files
+  - `src/extraSolvers`: about 64 files
+  - `src/fmi`: about 45 files
+  - `src/utilities`: about 41 files
+  - `src/fileInput`: about 41 files
+  - `src/networking`: about 35 files
+- Current largest finding buckets by subsystem include:
+  - `src/griddyn`: 7,466
+  - `src/extraSolvers`: 857
+  - `test/componentTests`: 803
+  - `src/fmi`: 642
+  - `test/libraryTests`: 592
+  - `src/fileInput`: 504
+  - `src/optimization`: 439
+  - `src/helics`: 333
+  - `test/systemTests`: 314
+  - `src/utilities`: 309
+  - `src/networking`: 258
+
+## Phase 2: Tooling And Non-Blocking Enforcement
+
+Goal: make the naming work visible without blocking all development.
+
+- [ ] Configure `clang-tidy` naming checks for first-party code paths
+- [ ] Define the final `clang-tidy` naming rule set that matches the GridDyn
+      style guide and HELICS-aligned target conventions
+- [ ] Keep naming enforcement report-only at first
+- [ ] Exclude `ThirdParty` and generated code from naming checks
+- [ ] Add CI reporting for naming violations
+- [ ] Prevent new naming violations from being introduced
+- [ ] Document how suppressions or temporary exceptions are handled
+
+### Phase 2 Exit Criteria
+
+- A developer can see current naming violations in CI or a reproducible local
+  report
+- The team has a stable way to measure whether a PR reduces the remaining work
+
+## Phase 3: Low-Risk Naming Cleanup
+
+Goal: reduce the majority of easy violations without destabilizing public APIs.
+
+Types of work in this phase:
+
+- local variables to `camelCase`
+- parameters to `camelCase`
+- private and protected members to `mPascalCase`
+- internal helper functions to `camelCase`
+- private methods to `camelCase`
+
+### Phase 3 PR Rules
+
+- Do not rename foundational public types in this phase
+- Keep PRs subsystem-scoped
+- Prefer rename-only changes
+- Run targeted tests for the affected subsystem
+
+### Phase 3 Checklist By Subsystem
+
+- [~] `src/networking`
+- [ ] `src/griddyn/comms`
+- [ ] `src/griddyn/measurement`
+- [ ] `src/griddyn/relays`
+- [ ] `src/griddyn/blocks`
+- [ ] `src/utilities`
+- [ ] `src/optimization`
+- [ ] `src/runner`
+- [ ] `src/plugins`
+- [ ] `src/formatInterpreters`
+- [ ] `src/extraModels`
+- [ ] `src/gridDynLoader`
+- [ ] `src/gridDynMain`
+- [ ] `src/gridDynServer`
+- [ ] `src/griddyn_shared`
+
+### Initial Candidate Examples
+
+These are examples of the kinds of renames expected early in the program:
+
+- `make_block`
+- `send_var`
+- `get_devices`
+- `enable_updates`
+- `should_log`
+- `log_to`
+
+These examples are not an exhaustive task list and should be validated before
+each PR.
+
+## Phase 4: Internal Enums And Internal Types
+
+Goal: bring subsystem-internal types into compliance before touching the largest
+cross-cutting APIs.
+
+Types of work in this phase:
+
+- internal enum types to `PascalCase`
+- enum constants to `CAPITAL_SNAKE_CASE`
+- leaf classes to `PascalCase`
+- contained public types with limited include impact
+
+### Phase 4 Checklist By Subsystem
+
+- [~] `src/networking`
+- [ ] `src/fmi`
+- [ ] `src/fmi_export`
+- [ ] `src/optimization`
+- [ ] `src/griddyn/measurement`
+- [ ] `src/griddyn/relays`
+- [ ] `src/griddyn/blocks`
+- [ ] `src/fileInput`
+- [ ] `src/helics`
+- [ ] `src/utilities`
+
+### Examples Of Known Non-Compliant Enum Patterns
+
+- `solver_print_level`
+- `contingency_mode_t`
+- `recovery_return_codes`
+- `dist_type_t`
+- `satType_t`
+
+These examples illustrate the kind of work expected, but the exact rename order
+should follow subsystem boundaries and dependency analysis.
+
+## Phase 5: Subsystem Public APIs
+
+Goal: clean up public names that are not yet foundational across the entire
+repository.
+
+Types of work in this phase:
+
+- public class renames in contained subsystems
+- public method renames
+- public enum renames
+- short-lived source compatibility aliases where needed
+
+### Phase 5 Checklist By Subsystem
+
+- [ ] `src/networking`
+- [ ] `src/fmi`
+- [ ] `src/fmi_export`
+- [ ] `src/optimization`
+- [ ] `src/helics`
+- [ ] `src/fileInput`
+- [ ] `src/coupling`
+- [ ] `src/fskit`
+
+### Phase 5 Exit Criteria
+
+- The majority of contained subsystem APIs are compliant
+- Compatibility wrappers exist only where they are intentionally preserving
+  staged migration
+
+## Phase 6: Foundational Type Families
+
+Goal: complete the most invasive renames in carefully scoped, dedicated PR
+series.
+
+This phase should be split into separate epics. Each epic may take multiple PRs.
+
+### Epic A: Core Object Family
+
+- [ ] Audit all references to `coreObject`
+- [ ] Define compatibility strategy
+- [ ] Rename `coreObject` and related core object family identifiers
+- [ ] Update dependent headers and implementations
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+### Epic B: Grid Object Hierarchy
+
+- [ ] Audit all references to `gridComponent`
+- [ ] Audit all references to `gridSubModel`
+- [ ] Audit all references to `helperObject`
+- [ ] Rename type families to compliant names
+- [ ] Update dependents
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+### Epic C: Topology And Network Model Types
+
+- [ ] Audit all references to `gridBus`
+- [ ] Audit all references to `acBus`
+- [ ] Audit all references to `dcBus`
+- [ ] Audit all references to `Area`
+- [ ] Audit all references to `Link`
+- [ ] Rename type families to compliant names
+- [ ] Update dependents
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+### Epic D: Simulation Types
+
+- [ ] Audit all references to `gridSimulation`
+- [ ] Audit all references to `gridDynSimulation`
+- [ ] Rename simulation classes and closely related API surface
+- [ ] Update dependents
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+### Epic E: Solver Types
+
+- [ ] Audit solver interface families
+- [ ] Rename non-compliant solver types and enums
+- [ ] Update dependents
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+### Epic F: Communication Core Types
+
+- [ ] Audit all references to `commMessage`
+- [ ] Audit all references to related communication core types
+- [ ] Rename types and API surface
+- [ ] Update dependents
+- [ ] Update tests
+- [ ] Remove temporary compatibility shims when safe
+
+## Phase 7: Filenames And Include Paths
+
+Goal: align filenames with the final compliant type names.
+
+This phase should usually follow the relevant type renames so filenames only
+move once.
+
+- [ ] Rename filenames for core types
+- [ ] Rename filenames for subsystem types
+- [ ] Update include directives
+- [ ] Update build system references
+- [ ] Update code generators or wrapper configs where applicable
+- [ ] Verify case-sensitive path correctness for all platforms
+
+### Known Filename Mismatch Examples
+
+- `gridSimulation.h` with `gridSimulation`
+- `coreObject.h` with `coreObject`
+- `commMessage.h` with `commMessage`
+
+## Phase 8: Interfaces, Tests, Docs, And User Surface
+
+Goal: ensure the entire first-party repository surface reflects the compliant
+names.
+
+- [ ] Update first-party maintained interface code in `interfaces/`
+- [ ] Update tests in `test/`
+- [ ] Update first-party support code in `python/`, `matlab/`, and `scripts/`
+- [ ] Update docs and examples
+- [ ] Update Doxygen comments to match renamed identifiers
+- [ ] Normalize user-facing option names to one canonical spelling where naming
+      drift exists
+
+## Phase 9: Final Enforcement
+
+Goal: make compliance durable.
+
+- [ ] Remove temporary naming suppressions or allowlists
+- [ ] Update `.clang-tidy` so the final naming convention settings match the
+      migrated GridDyn code base
+- [ ] Make naming checks blocking in CI for first-party code
+- [ ] Verify zero remaining non-compliant first-party identifiers
+- [ ] Record final completion summary in this document
+
+## Subsystem Tracker
+
+Use this section to track PR-by-PR progress at a higher level.
+
+### Core Source Areas
+
+- [ ] `src/core`
+- [ ] `src/coupling`
+- [ ] `src/extraModels`
+- [ ] `src/extraSolvers`
+- [ ] `src/fileInput`
+- [ ] `src/fmi`
+- [ ] `src/fmi_export`
+- [ ] `src/formatInterpreters`
+- [ ] `src/fskit`
+- [ ] `src/griddyn`
+- [ ] `src/gridDynLoader`
+- [ ] `src/gridDynMain`
+- [ ] `src/gridDynServer`
+- [ ] `src/griddyn_shared`
+- [ ] `src/helics`
+- [ ] `src/networking`
+- [ ] `src/optimization`
+- [ ] `src/plugins`
+- [ ] `src/runner`
+- [ ] `src/utilities`
+
+### Interface And Test Areas
+
+- [ ] `interfaces/java`
+- [ ] `interfaces/matlab`
+- [ ] `interfaces/octave`
+- [ ] `interfaces/python`
+- [ ] `interfaces/test`
+- [ ] `test/componentTests`
+- [ ] `test/extraTests`
+- [ ] `test/libraryTests`
+- [ ] `test/systemTests`
+- [ ] `test/testSharedLibrary`
+
+## PR Log
+
+Use this table to log each naming migration PR as it lands.
+
+| PR / Branch | Area | Phase | Summary | Compatibility Needed | Tests Run | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| working tree | `src/networking` | Phase 3 | Start DIME client naming cleanup and add baseline inventory tooling | No | Inventory script run | In progress |
+
+## Open Decisions
+
+These decisions should be resolved before the high-risk phases begin.
+
+- [ ] Whether temporary type aliases are acceptable for major public type
+      renames
+- [ ] Whether filename renames should happen with type renames or in follow-up
+      PRs
+- [ ] Whether generated wrapper code will be renamed directly or regenerated
+- [ ] Whether some legacy externally visible names must remain for compatibility
+
+## Exit Criteria For Full Compliance
+
+The migration is complete when all of the following are true:
+
+- every first-party maintained identifier matches the project naming standard,
+  unless explicitly documented as a permanent exception
+- every first-party maintained filename is aligned with its primary type where
+  practical
+- temporary compatibility shims introduced for the migration have been removed,
+  unless explicitly retained as long-term compatibility surface
+- tests, interfaces, examples, and docs all reflect the final names
+- `.clang-tidy` naming settings match the final enforced GridDyn naming
+  conventions
+- naming checks are enforced in CI for first-party code
+
+## Suggested First PR Series
+
+If a starting sequence is needed, use this order:
+
+1. Naming inventory and report-only tooling
+2. `src/networking` low-risk cleanup
+3. `src/griddyn/comms` low-risk cleanup
+4. `src/utilities` low-risk cleanup
+5. `src/griddyn/measurement` low-risk cleanup
+6. `src/griddyn/relays` low-risk cleanup
+7. `src/griddyn/blocks` low-risk cleanup
+8. internal enums in contained subsystems
+9. contained public APIs
+10. foundational type family epics

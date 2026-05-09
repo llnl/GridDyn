@@ -42,13 +42,13 @@ void dimeCollector::cloneTo(collector* col) const
 change_code dimeCollector::trigger(coreTime time)
 {
     if (!dime) {
-        dime = std::make_unique<dimeClientInterface>(processName, server);
+        dime = std::make_unique<DimeClientInterface>(processName, server);
         dime->init();
     }
     auto out = collector::trigger(time);
     // figure out what to do with the data
     for (size_t kk = 0; kk < points.size(); ++kk) {
-        dime->send_var(points[kk].colname, data[kk]);
+        dime->sendVar(points[kk].colname, data[kk]);
     }
 
     return out;

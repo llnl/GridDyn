@@ -48,7 +48,7 @@ change_code tcpCollector::trigger(coreTime time)
     auto out = collector::trigger(time);
     // figure out what to do with the data
     for (size_t kk = 0; kk < points.size(); ++kk) {
-        // connection->send_var(points[kk].colname, data[kk]);
+        // connection->sendVar(points[kk].colname, data[kk]);
     }
 
     return out;

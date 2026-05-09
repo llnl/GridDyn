@@ -11,25 +11,25 @@
 #include <memory>
 #include <string>
 
-class initFailure: public std::exception {
+class InitFailure: public std::exception {
   public:
-    initFailure() {}
-}
+    InitFailure() = default;
+};
 
-class sendFailure: public std::exception {
+class SendFailure: public std::exception {
   public:
-    sendFailure() {}
-}
+    SendFailure() = default;
+};
 
-class dimeClientInterface {
+class DimeClientInterface {
   private:
-    std::string name;
-    std::string address;
+    std::string mName;
+    std::string mAddress;
 
   public:
-    dimeClientInterface(const std::string& dimeName, const std::string& dimeAddress = "");
+    DimeClientInterface(const std::string& dimeName, const std::string& dimeAddress = "");
 
-    ~dimeClientInterface();
+    ~DimeClientInterface();
     /** initialize the connection*/
     void init();
     /** close the connection*/
@@ -37,11 +37,11 @@ class dimeClientInterface {
     /** sync with the server*/
     void sync();
     /** send a variable to server*/
-    void send_var(const std::string& varName, double val, const std::string& recipient = "");
+    void sendVar(const std::string& varName, double val, const std::string& recipient = "");
     void broadcast(const std::string& varName, double val);
 
-    void get_devices();
+    void getDevices();
 
   private:
-    std::unique_ptr<zmq::socket_t> socket;
+    std::unique_ptr<zmq::socket_t> mSocket;
 };

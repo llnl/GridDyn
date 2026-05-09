@@ -106,7 +106,7 @@ Goal: establish the measurable list of remaining work.
   - methods
   - member variables
   - local variables and parameters
-  - globals and statics
+  - globals and statistics
   - filename mismatches
 - [x] Categorize violations by subsystem
 - [ ] Tag violations by risk
@@ -437,9 +437,9 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch | Area | Phase | Summary | Compatibility Needed | Tests Run | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| working tree | `src/networking` | Phase 3 | Start DIME client naming cleanup and add baseline inventory tooling | No | Inventory script run | In progress |
+| PR / Branch  | Area             | Phase   | Summary                                                             | Compatibility Needed | Tests Run            | Status      |
+| ------------ | ---------------- | ------- | ------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
+| working tree | `src/networking` | Phase 3 | Start DIME client naming cleanup and add baseline inventory tooling | No                   | Inventory script run | In progress |
 
 ## Open Decisions
 

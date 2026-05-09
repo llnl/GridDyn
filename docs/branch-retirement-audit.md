@@ -75,7 +75,6 @@ The large majority of the branch’s commit count is debug-related churn, not du
   - output hooks
 
   Current status:
-
   - **Preserved:** root bookkeeping needed for Braid root handoff.
   - **Not preserved:** the limit-manager/output-hook portions (`LimitManager`, `PostProcess`, `PrepareOutput`) remain branch-only.
 
@@ -84,7 +83,6 @@ The large majority of the branch’s commit count is debug-related churn, not du
   - Braid driver support for root follow-through and limit checks
 
   Current status:
-
   - **Preserved:** the core root-handling portions needed for unscheduled events.
   - **Not preserved:** the old limit-check pipeline and root-strategy framework (`ROOT_STRAT`, add-root-point path, limit buffers threaded everywhere).
 
@@ -93,7 +91,6 @@ The large majority of the branch’s commit count is debug-related churn, not du
 - `5b9c4a19` LAPACKE discovery tweak in `src/extraSolvers/CMakeLists.txt`
 
   Assessment:
-
   - This is still branch-only.
   - It may be obsolete under the current modernized build, but it has **not** been ported or consciously replaced as part of this audit.
 

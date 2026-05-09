@@ -80,7 +80,7 @@ class Condition: public objectOperatorInterface {
     /**
     *get the value for which the comparison is made
     @param[in] side either 1 for left hand side or 2 for right hand side
-    @param[in] sD the state data from which to get the values
+    @param[in] stateDataValue the state data from which to get the values
     @param[in] sMode the solverMode related to the state data
     * @return returns the value for the comparison side=1 is left hand side, side=2 is the right
     hand side
@@ -101,7 +101,7 @@ class Condition: public objectOperatorInterface {
     */
     virtual bool checkCondition() const;
     /** evaluation the condition based on state data
-    @param[in] sD the state data
+    @param[in] stateDataValue the state data
     @param[in] sMode the solver mode related to the data
     @return true if the condition evaluates true
     */

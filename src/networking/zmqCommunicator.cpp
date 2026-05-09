@@ -77,14 +77,16 @@ void zmqCommunicator::transmit(std::uint64_t destID,
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::addHeader(zmq::multipart_t& msg, std::shared_ptr<commMessage>& /*message*/)
+void zmqCommunicator::addHeader(zmq::multipart_t& msg,
+                                const std::shared_ptr<commMessage>& /*message*/)
 {
     if (!flags[no_transmit_source]) {
         msg.addstr(getName());
     }
 }
 
-void zmqCommunicator::addMessageBody(zmq::multipart_t& msg, std::shared_ptr<commMessage>& message)
+void zmqCommunicator::addMessageBody(zmq::multipart_t& msg,
+                                     const std::shared_ptr<commMessage>& message)
 {
     msg.addstr(message->to_datastring());
 }

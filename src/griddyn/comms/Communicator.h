@@ -102,7 +102,8 @@ class Communicator:
     std::uint64_t mId;  //!< individual comm id
     rxMessageCallback_t mRxCallbackMessage;  //!< call back action from parent object
     griddyn::coreTime mLastPingSend = griddyn::timeZero;  //!< the time last ping was sent
-    griddyn::coreTime mLastReplyRx = griddyn::timeZero;  //!< the time the last response was received
+    griddyn::coreTime mLastReplyRx =
+        griddyn::timeZero;  //!< the time the last response was received
     gmlc::containers::SimpleQueue<std::pair<std::uint64_t, std::shared_ptr<commMessage>>>
         mMessageQueue;  //!< the message queue storing source and message
 };

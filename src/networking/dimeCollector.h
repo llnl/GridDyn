@@ -10,14 +10,14 @@
 #include <memory>
 #include <string>
 
-class dimeClientInterface;
+class DimeClientInterface;
 
 namespace griddyn::dimeLib {
 class dimeCollector: public collector {
   private:
     std::string server;
     std::string processName;
-    std::unique_ptr<dimeClientInterface> dime;
+    std::unique_ptr<DimeClientInterface> dime;
 
   public:
     dimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);

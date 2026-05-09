@@ -23,6 +23,7 @@ hicpp-*,
 -hicpp-avoid-c-arrays,
 -hicpp-no-array-decay,
 clang-analyzer-*,
+clang-diagnostic*,
 bugprone-*,
 -bugprone-narrowing-conversions,
 -bugprone-easily-swappable-parameters,
@@ -65,6 +66,7 @@ hicpp-*,
 -hicpp-no-array-decay,
 clang-analyzer-*,
 -clang-analyzer-optin.cplusplus.VirtualCall,
+clang-diagnostic*,
 bugprone-*,
 -bugprone-narrowing-conversions,
 misc-*,
@@ -82,7 +84,7 @@ performance-*
 -performance-unnecessary-value-param
 '
 
-HeaderFilterRegex: 'src/helics/*.hp?p?'
+HeaderFilterRegex: '^(src|interfaces|test)/.*\.(h|hh|hpp|hxx)$'
 
 CheckOptions:
   - key:             cert-dcl59-cpp.HeaderFileExtensions

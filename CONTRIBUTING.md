@@ -47,4 +47,7 @@ Typically you would want to submit a pull request against the develop branch. Th
 
 ## Styleguides
 
-Code formatting is controlled via clang-format, a somewhat higher level style guide can be found [here](https://helics.readthedocs.io/en/latest/developer-guide/style.html). The code is not fully conformant to this yet but we are slowly working on it.
+Code formatting is controlled via clang-format. The project naming and code
+style conventions are documented in [docs/developer-guide/style.md](docs/developer-guide/style.md).
+The code is not fully conformant to this yet, so updates should be made
+incrementally in small, reviewable changes.

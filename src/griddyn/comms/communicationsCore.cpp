@@ -22,17 +22,17 @@ std::shared_ptr<communicationsCore> communicationsCore::instance()
 
 void communicationsCore::registerCommunicator(Communicator* comm)
 {
-    auto ret = m_stringMap.emplace(comm->getName(), comm);
+    auto ret = mStringMap.emplace(comm->getName(), comm);
     if (!ret.second) {
         throw(std::invalid_argument("communicator already registered"));
     }
-    auto ret2 = m_idMap.emplace(comm->getID(), comm);
+    auto ret2 = mIdMap.emplace(comm->getID(), comm);
     if (!ret2.second) {
-        // removing the successful m_stringMap emplace operation the m_stringMap emplace success for
+        // removing the successful mStringMap emplace operation the mStringMap emplace success for
         // exception safety
-        auto resName = m_stringMap.find(comm->getName());
-        if (resName != m_stringMap.end()) {
-            m_stringMap.erase(resName);
+        auto resName = mStringMap.find(comm->getName());
+        if (resName != mStringMap.end()) {
+            mStringMap.erase(resName);
         }
         throw(std::invalid_argument("communicator already registered"));
     }
@@ -40,13 +40,13 @@ void communicationsCore::registerCommunicator(Communicator* comm)
 
 void communicationsCore::unregisterCommunicator(Communicator* comm)
 {
-    auto resName = m_stringMap.find(comm->getName());
-    if (resName != m_stringMap.end()) {
-        m_stringMap.erase(resName);
+    auto resName = mStringMap.find(comm->getName());
+    if (resName != mStringMap.end()) {
+        mStringMap.erase(resName);
     }
-    auto resID = m_idMap.find(comm->getID());
-    if (resID != m_idMap.end()) {
-        m_idMap.erase(resID);
+    auto resId = mIdMap.find(comm->getID());
+    if (resId != mIdMap.end()) {
+        mIdMap.erase(resId);
     }
 }
 
@@ -54,8 +54,8 @@ int communicationsCore::send(std::uint64_t source,
                              std::string_view dest,
                              std::shared_ptr<commMessage> message)
 {
-    auto res = m_stringMap.find(std::string{dest});
-    if (res != m_stringMap.end()) {
+    auto res = mStringMap.find(std::string{dest});
+    if (res != mStringMap.end()) {
         res->second->receive(source, dest, std::move(message));
         return SEND_SUCCESS;
     }
@@ -66,8 +66,8 @@ int communicationsCore::send(std::uint64_t source,
                              std::uint64_t dest,
                              std::shared_ptr<commMessage> message)
 {
-    auto res = m_idMap.find(dest);
-    if (res != m_idMap.end()) {
+    auto res = mIdMap.find(dest);
+    if (res != mIdMap.end()) {
         res->second->receive(source, dest, std::move(message));
         return SEND_SUCCESS;
     }
@@ -76,13 +76,13 @@ int communicationsCore::send(std::uint64_t source,
 
 std::uint64_t communicationsCore::lookup(std::string_view commName) const
 {
-    auto res = m_stringMap.find(std::string{commName});
-    return (res != m_stringMap.end()) ? res->second->getID() : 0;
+    auto res = mStringMap.find(std::string{commName});
+    return (res != mStringMap.end()) ? res->second->getID() : 0;
 }
 std::string communicationsCore::lookup(std::uint64_t did) const
 {
-    auto res = m_idMap.find(did);
-    return (res != m_idMap.end()) ? res->second->getName() : "";
+    auto res = mIdMap.find(did);
+    return (res != mIdMap.end()) ? res->second->getName() : "";
 }
 
 }  // namespace griddyn

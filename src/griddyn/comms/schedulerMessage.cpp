@@ -111,7 +111,7 @@ void schedulerMessagePayload::from_string(uint32_t type,
             gmlc::utilities::str2vector(std::string{fromString.substr(offset)}, kNullVal, "@ ");
     }
 
-    auto loadtargets = [this](std::vector<double> newTargets) {
+    auto loadTargets = [this](std::vector<double> newTargets) {
         auto dvs = newTargets.size() / 2;
         m_time.resize(dvs);
         m_target.resize(dvs);
@@ -131,7 +131,7 @@ void schedulerMessagePayload::from_string(uint32_t type,
         case UPDATE_RESERVES:
         case USE_RESERVE:
         case UPDATE_REGULATION_TARGET:
-            loadtargets(targets);
+            loadTargets(targets);
             break;
         default:
             break;

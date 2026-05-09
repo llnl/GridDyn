@@ -78,12 +78,12 @@ class Communicator:
     griddyn::coreTime getLastPingTime() const;
 
     /** set the identifier for the communicator*/
-    void setCommID(std::uint64_t newID) { m_id = newID; }
+    void setCommID(std::uint64_t newID) { mId = newID; }
     /** get the communicator id */
-    std::uint64_t getCommID() const { return m_id; }
+    std::uint64_t getCommID() const { return mId; }
     using rxMessageCallback_t = std::function<void(std::uint64_t, std::shared_ptr<commMessage>)>;
     /** specify the callback function to use when receiving a message*/
-    void registerReceiveCallback(rxMessageCallback_t newAction) { m_rxCallbackMessage = newAction; }
+    void registerReceiveCallback(rxMessageCallback_t newAction) { mRxCallbackMessage = newAction; }
     /** return true if message are queued*/
     bool messagesAvailable() const;
     /** get the next message on the queue*/
@@ -99,12 +99,12 @@ class Communicator:
     virtual void setFlag(std::string_view flag, bool val) override;
 
   private:
-    std::uint64_t m_id;  //!< individual comm id
-    rxMessageCallback_t m_rxCallbackMessage;  //!< call back action from parent object
-    griddyn::coreTime lastPingSend = griddyn::timeZero;  //!< the time last ping was sent
-    griddyn::coreTime lastReplyRX = griddyn::timeZero;  //!< the time the last response was received
+    std::uint64_t mId;  //!< individual comm id
+    rxMessageCallback_t mRxCallbackMessage;  //!< call back action from parent object
+    griddyn::coreTime mLastPingSend = griddyn::timeZero;  //!< the time last ping was sent
+    griddyn::coreTime mLastReplyRx = griddyn::timeZero;  //!< the time the last response was received
     gmlc::containers::SimpleQueue<std::pair<std::uint64_t, std::shared_ptr<commMessage>>>
-        messageQueue;  //!< the message queue storing source and message
+        mMessageQueue;  //!< the message queue storing source and message
 };
 
 std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,

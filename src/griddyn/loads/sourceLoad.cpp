@@ -256,8 +256,8 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
     } else {
         auto ind = source_lookup.find(param);
         if (ind != source_lookup.end()) {
-            const bool canSetSourceLink =
-                (std::cmp_greater(sources.size(), ind->second) && (sources[ind->second] != nullptr)) ||
+            const bool canSetSourceLink = (std::cmp_greater(sources.size(), ind->second) &&
+                                           (sources[ind->second] != nullptr)) ||
                 (!opFlags[pFlow_initialized]);
             if (canSetSourceLink) {
                 sourceLink[ind->second] = static_cast<int>(val);

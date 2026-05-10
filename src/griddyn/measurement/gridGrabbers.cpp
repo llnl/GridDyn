@@ -119,8 +119,11 @@ double gridGrabber::grabData()
     if (mGrabberFunction) {
         val = mGrabberFunction(mObject);
         if (outputUnits != defunit) {
-            val = convert(
-                val, inputUnits, outputUnits, mObject->get("basepower"), mObject->get("basevoltage"));
+            val = convert(val,
+                          inputUnits,
+                          outputUnits,
+                          mObject->get("basepower"),
+                          mObject->get("basevoltage"));
         }
     } else {
         val = mObject->get(field, outputUnits);
@@ -563,8 +566,11 @@ void opGrabber::grabVectorData(std::vector<double>& vdata)
         vdata.resize(mTempArray1.size());
         mBaseGrabber1->grabVectorData(mTempArray1);
         mBaseGrabber2->grabVectorData(mTempArray2);
-        std::transform(
-            mTempArray1.begin(), mTempArray1.end(), mTempArray2.begin(), vdata.begin(), mFunctionPtr);
+        std::transform(mTempArray1.begin(),
+                       mTempArray1.end(),
+                       mTempArray2.begin(),
+                       vdata.begin(),
+                       mFunctionPtr);
     }
 }
 

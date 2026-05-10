@@ -144,7 +144,9 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
     }
 }
 
-Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLhs(std::move(valGrabber)) {}
+Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLhs(std::move(valGrabber))
+{
+}
 Condition::~Condition() = default;
 
 std::unique_ptr<Condition> Condition::clone() const

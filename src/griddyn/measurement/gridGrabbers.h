@@ -39,11 +39,13 @@ class gridGrabber: public objectOperatorInterface {
   protected:
     mutable std::string mDescription;  //!< a description of the grabber
     coreObject* mObject = nullptr;  //!< the target core object to grab the data from
-    std::function<double(coreObject*)> mGrabberFunction;  //!< operation function to grab a single data element
+    std::function<double(coreObject*)>
+        mGrabberFunction;  //!< operation function to grab a single data element
     std::function<void(coreObject*, std::vector<double>&)>
         mVectorGrabberFunction;  //!< operation function to grab a vector of data
     std::function<void(coreObject*, stringVec&)>
-        mVectorDescriptionFunction;  //!< function to grab a vector of strings corresponding to the vector of data
+        mVectorDescriptionFunction;  //!< function to grab a vector of strings corresponding to the
+                                     //!< vector of data
   public:
     explicit gridGrabber(std::string_view fld = {});
 
@@ -124,7 +126,8 @@ class functionGrabber: public gridGrabber {
     std::shared_ptr<gridGrabber> mBaseGrabber;  //!< the underlying grabber to get the data
     std::string mFunctionName;  //!< the name of the function
     function1_t mFunctionPtr = nullptr;  //!< the function operation on the data
-    vector_function1_t mVectorFunctionPtr = nullptr;  //!< the function to call to get a vector of data
+    vector_function1_t mVectorFunctionPtr =
+        nullptr;  //!< the function to call to get a vector of data
     std::vector<double> mTempArray;  //!< temporary array data location
 
   public:
@@ -154,7 +157,8 @@ class opGrabber: public gridGrabber {
     std::shared_ptr<gridGrabber> mBaseGrabber2;  //!< grabber 2
     std::string mOperationName;  //!< the name of the 2 argument operation
     function2_t mFunctionPtr = nullptr;  //!< the function pointer to the operation
-    vector_function2_t mVectorFunctionPtr = nullptr;  //!< function pointer to a vector grab operation
+    vector_function2_t mVectorFunctionPtr =
+        nullptr;  //!< function pointer to a vector grab operation
     std::vector<double> mTempArray1, mTempArray2;  //!< temporary arrays for processing the data
   public:
     opGrabber() = default;

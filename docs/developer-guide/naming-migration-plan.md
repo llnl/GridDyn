@@ -437,10 +437,10 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch  | Area                | Phase   | Summary                                                                          | Compatibility Needed | Tests Run            | Status      |
-| ------------ | ------------------- | ------- | -------------------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
-| merged       | `src/networking`         | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                     | No                   | Inventory script run | Complete    |
-| merged       | `src/griddyn/comms`      | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes | No                   | Not yet run          | Complete    |
+| PR / Branch  | Area                      | Phase   | Summary                                                                                        | Compatibility Needed | Tests Run            | Status      |
+| ------------ | ------------------------- | ------- | ---------------------------------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
+| merged       | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                      | No                   | Inventory script run | Complete    |
+| merged       | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes | No                   | Not yet run          | Complete    |
 | working tree | `src/griddyn/measurement` | Phase 3 | Continue warning-safe naming and documentation cleanup in measurement headers                  | No                   | Not yet run          | In progress |
 
 ## Open Decisions

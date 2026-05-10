@@ -59,8 +59,7 @@ void collector::cloneTo(collector* col) const
     for (size_t kk = 0; kk < mPoints.size(); ++kk) {
         if (kk >= col->mPoints.size()) {
             auto ggb = (mPoints[kk].mDataGrabber) ? mPoints[kk].mDataGrabber->clone() : nullptr;
-            auto ggbst =
-                (mPoints[kk].mStateGrabber) ? mPoints[kk].mStateGrabber->clone() : nullptr;
+            auto ggbst = (mPoints[kk].mStateGrabber) ? mPoints[kk].mStateGrabber->clone() : nullptr;
             col->mPoints.emplace_back(std::move(ggb), std::move(ggbst), mPoints[kk].mColumn);
         } else {
             if (col->mPoints[kk].mDataGrabber) {

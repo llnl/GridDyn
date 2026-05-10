@@ -58,8 +58,7 @@ std::unique_ptr<grabberSet> grabberSet::clone() const
 
 void grabberSet::cloneTo(grabberSet* ggb) const
 {
-    ggb->updateGrabbers(mGrabber->clone(),
-                        (mStateGrabber) ? mStateGrabber->clone() : nullptr);
+    ggb->updateGrabbers(mGrabber->clone(), (mStateGrabber) ? mStateGrabber->clone() : nullptr);
     if (mPredictor) {
         ggb->mPredictor =
             std::make_unique<utilities::valuePredictor<coreTime, double>>(*mPredictor);
@@ -87,9 +86,9 @@ void grabberSet::updateField(std::string_view fld)
  *@return the value produced by the grabber*/
 double grabberSet::grabData()
 {
-    auto lastOutput = (mGrabber) ? mGrabber->grabData() :
-                                   ((mStateGrabber) ? grabData(emptyStateData, cLocalSolverMode) :
-                                                      kNullVal);
+    auto lastOutput = (mGrabber) ?
+        mGrabber->grabData() :
+        ((mStateGrabber) ? grabData(emptyStateData, cLocalSolverMode) : kNullVal);
     if (mPredictor) {
         mPredictor->update(lastOutput, mGrabber->getTime());
     }

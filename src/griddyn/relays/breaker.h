@@ -58,8 +58,8 @@ class breaker: public Relay {
     // dynamic state functions
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataRef,
+                                  matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode) override;
     virtual void setState(coreTime time,
@@ -67,7 +67,7 @@ class breaker: public Relay {
                           const double dstate_dt[],
                           const solverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataRef,
                           double resid[],
                           const solverMode& sMode) override;
     virtual void guessState(coreTime time,

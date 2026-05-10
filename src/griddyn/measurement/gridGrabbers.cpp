@@ -51,18 +51,18 @@ std::unique_ptr<gridGrabber> gridGrabber::clone() const
 
 void gridGrabber::cloneTo(gridGrabber* ggb) const
 {
-    ggb->desc = desc;
+    ggb->mDescription = mDescription;
     ggb->field = field;
-    ggb->fptr = fptr;
-    ggb->fptrV = fptrV;
-    ggb->fptrN = fptrN;
+    ggb->mGrabberFunction = mGrabberFunction;
+    ggb->mVectorGrabberFunction = mVectorGrabberFunction;
+    ggb->mVectorDescriptionFunction = mVectorDescriptionFunction;
     ggb->gain = gain;
     ggb->bias = bias;
     ggb->inputUnits = inputUnits;
     ggb->outputUnits = outputUnits;
     ggb->vectorGrab = vectorGrab;
     ggb->loaded = loaded;
-    ggb->cobj = cobj;
+    ggb->mObject = mObject;
 }
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
@@ -83,7 +83,7 @@ void gridGrabber::updateField(std::string_view fld)
     field = fld;
     auto fnd = coreFunctions.find(field);
     if (fnd != coreFunctions.end()) {
-        fptr = fnd->second;
+        mGrabberFunction = fnd->second;
     }
 
     loaded = checkIfLoaded();
@@ -91,22 +91,22 @@ void gridGrabber::updateField(std::string_view fld)
 
 const std::string& gridGrabber::getDesc() const
 {
-    if (desc.empty() && loaded) {
+    if (mDescription.empty() && loaded) {
         makeDescription();
     }
-    return desc;
+    return mDescription;
 }
 
 void gridGrabber::getDesc(std::vector<std::string>& desc_list) const
 {
     if (vectorGrab) {
-        fptrN(cobj, desc_list);
+        mVectorDescriptionFunction(mObject, desc_list);
         for (auto& description : desc_list) {
             description += ':' + field;
         }
     } else {
         desc_list.resize(1);
-        desc_list[0] = desc;
+        desc_list[0] = mDescription;
     }
 }
 
@@ -116,14 +116,17 @@ double gridGrabber::grabData()
         return kNullVal;
     }
     double val;
-    if (fptr) {
-        val = fptr(cobj);
+    if (mGrabberFunction) {
+        val = mGrabberFunction(mObject);
         if (outputUnits != defunit) {
-            val = convert(
-                val, inputUnits, outputUnits, cobj->get("basepower"), cobj->get("basevoltage"));
+            val = convert(val,
+                          inputUnits,
+                          outputUnits,
+                          mObject->get("basepower"),
+                          mObject->get("basevoltage"));
         }
     } else {
-        val = cobj->get(field, outputUnits);
+        val = mObject->get(field, outputUnits);
     }
     // val = val * gain + bias;
     val = std::fma(val, gain, bias);
@@ -133,10 +136,10 @@ double gridGrabber::grabData()
 void gridGrabber::grabVectorData(std::vector<double>& vdata)
 {
     if ((loaded) && (vectorGrab)) {
-        fptrV(cobj, vdata);
+        mVectorGrabberFunction(mObject, vdata);
         if (outputUnits != defunit) {
-            auto localBasePower = cobj->get("basepower");
-            auto localBaseVoltage = cobj->get("basevoltage");
+            auto localBasePower = mObject->get("basepower");
+            auto localBaseVoltage = mObject->get("basevoltage");
             for (auto& value : vdata) {
                 value = convert(value, inputUnits, outputUnits, localBasePower, localBaseVoltage);
             }
@@ -148,8 +151,8 @@ void gridGrabber::grabVectorData(std::vector<double>& vdata)
 
 coreTime gridGrabber::getTime() const
 {
-    if (cobj != nullptr) {
-        return cobj->currentTime();
+    if (mObject != nullptr) {
+        return mObject->currentTime();
     }
     return negTime;
 }
@@ -158,15 +161,15 @@ void gridGrabber::updateObject(coreObject* obj, object_update_mode mode)
 {
     if (obj != nullptr) {
         if (mode == object_update_mode::direct) {
-            cobj = obj;
+            mObject = obj;
         } else {
-            cobj = findMatchingObject(cobj, obj);
-            if (cobj == nullptr) {
+            mObject = findMatchingObject(mObject, obj);
+            if (mObject == nullptr) {
                 throw(objectUpdateFailException());
             }
         }
     } else {
-        cobj = obj;
+        mObject = obj;
     }
     loaded = checkIfLoaded();
 }
@@ -174,17 +177,17 @@ void gridGrabber::updateObject(coreObject* obj, object_update_mode mode)
 void gridGrabber::makeDescription() const
 {
     if (!customDesc) {
-        desc = (cobj != nullptr) ? (cobj->getName() + ':' + field) : field;
+        mDescription = (mObject != nullptr) ? (mObject->getName() + ':' + field) : field;
 
         if (outputUnits != defunit) {
-            desc += '(' + to_string(outputUnits) + ')';
+            mDescription += '(' + to_string(outputUnits) + ')';
         }
     }
 }
 
 coreObject* gridGrabber::getObject() const
 {
-    return cobj;
+    return mObject;
 }
 void gridGrabber::getObjects(std::vector<coreObject*>& objects) const
 {
@@ -192,13 +195,13 @@ void gridGrabber::getObjects(std::vector<coreObject*>& objects) const
 }
 bool gridGrabber::checkIfLoaded()
 {
-    if (cobj != nullptr) {
-        if ((fptr) || (fptrV)) {
+    if (mObject != nullptr) {
+        if ((mGrabberFunction) || (mVectorGrabberFunction)) {
             return true;
         }
         if (!field.empty()) {
             try {
-                const double testval = cobj->get(field);
+                const double testval = mObject->get(field);
                 if (testval != kNullVal) {
                     return true;
                 }
@@ -283,7 +286,7 @@ std::unique_ptr<gridGrabber> createGrabber(int noffset, coreObject* obj)
 void customGrabber::setGrabberFunction(std::string_view fld,
                                        std::function<double(coreObject*)> nfptr)
 {
-    fptr = std::move(nfptr);
+    mGrabberFunction = std::move(nfptr);
     loaded = true;
     vectorGrab = false;
     field = fld;
@@ -292,32 +295,32 @@ void customGrabber::setGrabberFunction(std::string_view fld,
 void customGrabber::setGrabberFunction(std::function<void(coreObject*, std::vector<double>&)> nVptr)
 {
     vectorGrab = true;
-    fptrV = std::move(nVptr);
+    mVectorGrabberFunction = std::move(nVptr);
     loaded = true;
 }
 
 bool customGrabber::checkIfLoaded()
 {
-    return ((fptr) || (fptrV));
+    return ((mGrabberFunction) || (mVectorGrabberFunction));
 }
 
 functionGrabber::functionGrabber(std::shared_ptr<gridGrabber> ggb, std::string func):
-    bgrabber(std::move(ggb))
+    mBaseGrabber(std::move(ggb))
 {
-    function_name = std::move(func);
+    mFunctionName = std::move(func);
 
-    if (auto unaryFunctionPtr = get1ArgFunction(function_name)) {
-        opptr = unaryFunctionPtr;
-        opptrV = nullptr;
-        vectorGrab = bgrabber->vectorGrab;
-        if (bgrabber->loaded) {
+    if (auto unaryFunctionPtr = get1ArgFunction(mFunctionName)) {
+        mFunctionPtr = unaryFunctionPtr;
+        mVectorFunctionPtr = nullptr;
+        vectorGrab = mBaseGrabber->vectorGrab;
+        if (mBaseGrabber->loaded) {
             loaded = true;
         }
-    } else if (auto vectorFunctionPtr = getArrayFunction(function_name)) {
-        opptr = nullptr;
-        opptrV = vectorFunctionPtr;
+    } else if (auto vectorFunctionPtr = getArrayFunction(mFunctionName)) {
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = vectorFunctionPtr;
         vectorGrab = false;
-        if (bgrabber->loaded) {
+        if (mBaseGrabber->loaded) {
             loaded = true;
         }
     }
@@ -325,19 +328,19 @@ functionGrabber::functionGrabber(std::shared_ptr<gridGrabber> ggb, std::string f
 
 void functionGrabber::updateField(std::string_view fld)
 {
-    function_name = fld;
+    mFunctionName = fld;
 
-    if (auto unaryFunctionPtr = get1ArgFunction(function_name)) {
-        opptr = unaryFunctionPtr;
-        opptrV = nullptr;
-        vectorGrab = bgrabber->vectorGrab;
-    } else if (auto vectorFunctionPtr = getArrayFunction(function_name)) {
-        opptr = nullptr;
-        opptrV = vectorFunctionPtr;
+    if (auto unaryFunctionPtr = get1ArgFunction(mFunctionName)) {
+        mFunctionPtr = unaryFunctionPtr;
+        mVectorFunctionPtr = nullptr;
+        vectorGrab = mBaseGrabber->vectorGrab;
+    } else if (auto vectorFunctionPtr = getArrayFunction(mFunctionName)) {
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = vectorFunctionPtr;
         vectorGrab = false;
     } else {
-        opptr = nullptr;
-        opptrV = nullptr;
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = nullptr;
     }
     loaded = checkIfLoaded();
 }
@@ -346,16 +349,16 @@ void functionGrabber::getDesc(std::vector<std::string>& desc_list) const
 {
     if (vectorGrab) {
         stringVec dA1;
-        bgrabber->getDesc(dA1);
+        mBaseGrabber->getDesc(dA1);
         desc_list.resize(dA1.size());
         for (size_t kk = 0; kk < dA1.size(); ++kk) {
-            desc_list[kk] = function_name + '(' + dA1[kk] + ')';
+            desc_list[kk] = mFunctionName + '(' + dA1[kk] + ')';
         }
     } else {
         stringVec dA1;
-        bgrabber->getDesc(dA1);
+        mBaseGrabber->getDesc(dA1);
         desc_list.resize(dA1.size());
-        desc_list[0] = function_name + '(' + dA1[0] + ')';
+        desc_list[0] = mFunctionName + '(' + dA1[0] + ')';
     }
 }
 
@@ -374,21 +377,21 @@ void functionGrabber::cloneTo(gridGrabber* ggb) const
     if (fgb == nullptr) {
         return;
     }
-    fgb->bgrabber = bgrabber->clone();
-    fgb->function_name = function_name;
-    fgb->opptr = opptr;
-    fgb->opptrV = opptrV;
+    fgb->mBaseGrabber = mBaseGrabber->clone();
+    fgb->mFunctionName = mFunctionName;
+    fgb->mFunctionPtr = mFunctionPtr;
+    fgb->mVectorFunctionPtr = mVectorFunctionPtr;
 }
 
 double functionGrabber::grabData()
 {
     double val;
-    if (bgrabber->vectorGrab) {
-        bgrabber->grabVectorData(tempArray);
-        val = opptrV(tempArray);
+    if (mBaseGrabber->vectorGrab) {
+        mBaseGrabber->grabVectorData(mTempArray);
+        val = mVectorFunctionPtr(mTempArray);
     } else {
-        const double temp = bgrabber->grabData();
-        val = opptr(temp);
+        const double temp = mBaseGrabber->grabData();
+        val = mFunctionPtr(temp);
     }
 
     val = std::fma(val, gain, bias);
@@ -397,71 +400,71 @@ double functionGrabber::grabData()
 
 void functionGrabber::grabVectorData(std::vector<double>& vdata)
 {
-    if (bgrabber->vectorGrab) {
-        bgrabber->grabVectorData(tempArray);
-        vdata.resize(tempArray.size());
+    if (mBaseGrabber->vectorGrab) {
+        mBaseGrabber->grabVectorData(mTempArray);
+        vdata.resize(mTempArray.size());
     } else {
-        tempArray.assign(1, bgrabber->grabData());
+        mTempArray.assign(1, mBaseGrabber->grabData());
         vdata.resize(1);
     }
-    std::transform(tempArray.begin(), tempArray.end(), vdata.begin(), opptr);
+    std::transform(mTempArray.begin(), mTempArray.end(), vdata.begin(), mFunctionPtr);
 }
 
 coreTime functionGrabber::getTime() const
 {
-    if (bgrabber) {
-        return bgrabber->getTime();
+    if (mBaseGrabber) {
+        return mBaseGrabber->getTime();
     }
     return negTime;
 }
 
 void functionGrabber::updateObject(coreObject* obj, object_update_mode mode)
 {
-    if (bgrabber) {
-        bgrabber->updateObject(obj, mode);
+    if (mBaseGrabber) {
+        mBaseGrabber->updateObject(obj, mode);
     }
     loaded = checkIfLoaded();
 }
 
 bool functionGrabber::checkIfLoaded()
 {
-    return (bgrabber->loaded);
+    return (mBaseGrabber->loaded);
 }
 
 coreObject* functionGrabber::getObject() const
 {
-    if (bgrabber) {
-        return bgrabber->getObject();
+    if (mBaseGrabber) {
+        return mBaseGrabber->getObject();
     }
     return nullptr;
 }
 
 void functionGrabber::getObjects(std::vector<coreObject*>& objects) const
 {
-    if (bgrabber) {
-        bgrabber->getObjects(objects);
+    if (mBaseGrabber) {
+        mBaseGrabber->getObjects(objects);
     }
 }
 
 // operatorGrabber
 opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
                      std::shared_ptr<gridGrabber> ggb2,
-                     std::string operationName): op_name(std::move(operationName))
+                     std::string operationName): mOperationName(std::move(operationName))
 {
     if (ggb1) {
-        bgrabber1 = std::move(ggb1);
+        mBaseGrabber1 = std::move(ggb1);
     }
     if (ggb2) {
-        bgrabber2 = std::move(ggb2);
+        mBaseGrabber2 = std::move(ggb2);
     }
-    if (auto binaryFunctionPtr = get2ArgFunction(op_name)) {
-        opptr = binaryFunctionPtr;
-        opptrV = nullptr;
-        vectorGrab = (bgrabber1) ? bgrabber1->vectorGrab : false;
+    if (auto binaryFunctionPtr = get2ArgFunction(mOperationName)) {
+        mFunctionPtr = binaryFunctionPtr;
+        mVectorFunctionPtr = nullptr;
+        vectorGrab = (mBaseGrabber1) ? mBaseGrabber1->vectorGrab : false;
         loaded = opGrabber::checkIfLoaded();
-    } else if (auto vectorFunctionPtr = get2ArrayFunction(op_name)) {
-        opptr = nullptr;
-        opptrV = vectorFunctionPtr;
+    } else if (auto vectorFunctionPtr = get2ArrayFunction(mOperationName)) {
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = vectorFunctionPtr;
         vectorGrab = false;
     }
     loaded = opGrabber::checkIfLoaded();
@@ -469,28 +472,29 @@ opGrabber::opGrabber(std::shared_ptr<gridGrabber> ggb1,
 
 void opGrabber::updateField(std::string_view fld)
 {
-    op_name = fld;
+    mOperationName = fld;
 
-    if (auto binaryFunctionPtr = get2ArgFunction(op_name)) {
-        opptr = binaryFunctionPtr;
-        opptrV = nullptr;
-        vectorGrab = (bgrabber1) ? bgrabber1->vectorGrab : false;
+    if (auto binaryFunctionPtr = get2ArgFunction(mOperationName)) {
+        mFunctionPtr = binaryFunctionPtr;
+        mVectorFunctionPtr = nullptr;
+        vectorGrab = (mBaseGrabber1) ? mBaseGrabber1->vectorGrab : false;
         loaded = opGrabber::checkIfLoaded();
-    } else if (auto vectorFunctionPtr = get2ArrayFunction(op_name)) {
-        opptr = nullptr;
-        opptrV = vectorFunctionPtr;
+    } else if (auto vectorFunctionPtr = get2ArrayFunction(mOperationName)) {
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = vectorFunctionPtr;
         vectorGrab = false;
         loaded = opGrabber::checkIfLoaded();
     } else {
-        opptr = nullptr;
-        opptrV = nullptr;
+        mFunctionPtr = nullptr;
+        mVectorFunctionPtr = nullptr;
         loaded = false;
     }
 }
 
 bool opGrabber::checkIfLoaded()
 {
-    return (((bgrabber1) && (bgrabber1->loaded)) && ((bgrabber2) && (bgrabber2->loaded)));
+    return (((mBaseGrabber1) && (mBaseGrabber1->loaded)) &&
+            ((mBaseGrabber2) && (mBaseGrabber2->loaded)));
 }
 
 void opGrabber::getDesc(stringVec& desc_list) const
@@ -498,19 +502,19 @@ void opGrabber::getDesc(stringVec& desc_list) const
     if (vectorGrab) {
         stringVec dA1;
         stringVec dA2;
-        bgrabber1->getDesc(dA1);
-        bgrabber2->getDesc(dA2);
+        mBaseGrabber1->getDesc(dA1);
+        mBaseGrabber2->getDesc(dA2);
         desc_list.resize(dA1.size());
         for (size_t kk = 0; kk < dA1.size(); ++kk) {
-            desc_list[kk] = dA1[kk] + op_name + dA2[kk];
+            desc_list[kk] = dA1[kk] + mOperationName + dA2[kk];
         }
     } else {
         stringVec dA1;
         stringVec dA2;
-        bgrabber1->getDesc(dA1);
-        bgrabber2->getDesc(dA2);
+        mBaseGrabber1->getDesc(dA1);
+        mBaseGrabber2->getDesc(dA2);
         desc_list.resize(dA1.size());
-        desc_list[0] = dA1[0] + op_name + dA2[0];
+        desc_list[0] = dA1[0] + mOperationName + dA2[0];
     }
 }
 
@@ -529,28 +533,28 @@ void opGrabber::cloneTo(gridGrabber* ggb) const
     if (ogb == nullptr) {
         return;
     }
-    if (bgrabber1) {
-        ogb->bgrabber1 = bgrabber1->clone();
+    if (mBaseGrabber1) {
+        ogb->mBaseGrabber1 = mBaseGrabber1->clone();
     }
-    if (bgrabber2) {
-        ogb->bgrabber2 = bgrabber2->clone();
+    if (mBaseGrabber2) {
+        ogb->mBaseGrabber2 = mBaseGrabber2->clone();
     }
-    ogb->op_name = op_name;
-    ogb->opptr = opptr;
-    ogb->opptrV = opptrV;
+    ogb->mOperationName = mOperationName;
+    ogb->mFunctionPtr = mFunctionPtr;
+    ogb->mVectorFunctionPtr = mVectorFunctionPtr;
 }
 
 double opGrabber::grabData()
 {
     double val;
-    if (bgrabber1->vectorGrab) {
-        bgrabber1->grabVectorData(tempArray1);
-        bgrabber2->grabVectorData(tempArray2);
-        val = opptrV(tempArray1, tempArray2);
+    if (mBaseGrabber1->vectorGrab) {
+        mBaseGrabber1->grabVectorData(mTempArray1);
+        mBaseGrabber2->grabVectorData(mTempArray2);
+        val = mVectorFunctionPtr(mTempArray1, mTempArray2);
     } else {
-        const double grabberValue1 = bgrabber1->grabData();
-        const double grabberValue2 = bgrabber2->grabData();
-        val = opptr(grabberValue1, grabberValue2);
+        const double grabberValue1 = mBaseGrabber1->grabData();
+        const double grabberValue2 = mBaseGrabber2->grabData();
+        val = mFunctionPtr(grabberValue1, grabberValue2);
     }
     val = std::fma(val, gain, bias);
     return val;
@@ -558,64 +562,67 @@ double opGrabber::grabData()
 
 void opGrabber::grabVectorData(std::vector<double>& vdata)
 {
-    if (bgrabber1->vectorGrab) {
-        vdata.resize(tempArray1.size());
-        bgrabber1->grabVectorData(tempArray1);
-        bgrabber2->grabVectorData(tempArray2);
-        std::transform(
-            tempArray1.begin(), tempArray1.end(), tempArray2.begin(), vdata.begin(), opptr);
+    if (mBaseGrabber1->vectorGrab) {
+        vdata.resize(mTempArray1.size());
+        mBaseGrabber1->grabVectorData(mTempArray1);
+        mBaseGrabber2->grabVectorData(mTempArray2);
+        std::transform(mTempArray1.begin(),
+                       mTempArray1.end(),
+                       mTempArray2.begin(),
+                       vdata.begin(),
+                       mFunctionPtr);
     }
 }
 
 void opGrabber::updateObject(coreObject* obj, object_update_mode mode)
 {
-    if (bgrabber1) {
-        bgrabber1->updateObject(obj, mode);
+    if (mBaseGrabber1) {
+        mBaseGrabber1->updateObject(obj, mode);
     }
-    if (bgrabber2) {
-        bgrabber2->updateObject(obj, mode);
+    if (mBaseGrabber2) {
+        mBaseGrabber2->updateObject(obj, mode);
     }
 }
 
 void opGrabber::updateObject(coreObject* obj, int num)
 {
     if (num == 1) {
-        if (bgrabber1) {
-            bgrabber1->updateObject(obj);
+        if (mBaseGrabber1) {
+            mBaseGrabber1->updateObject(obj);
         }
     } else if (num == 2) {
-        if (bgrabber2) {
-            bgrabber2->updateObject(obj);
+        if (mBaseGrabber2) {
+            mBaseGrabber2->updateObject(obj);
         }
     }
 }
 
 coreTime opGrabber::getTime() const
 {
-    if (bgrabber1) {
-        return bgrabber1->getTime();
+    if (mBaseGrabber1) {
+        return mBaseGrabber1->getTime();
     }
-    if (bgrabber2) {
-        return bgrabber2->getTime();
+    if (mBaseGrabber2) {
+        return mBaseGrabber2->getTime();
     }
 
     return negTime;
 }
 coreObject* opGrabber::getObject() const
 {
-    if (bgrabber1) {
-        return bgrabber1->getObject();
+    if (mBaseGrabber1) {
+        return mBaseGrabber1->getObject();
     }
     return nullptr;
 }
 
 void opGrabber::getObjects(std::vector<coreObject*>& objects) const
 {
-    if (bgrabber1) {
-        bgrabber1->getObjects(objects);
+    if (mBaseGrabber1) {
+        mBaseGrabber1->getObjects(objects);
     }
-    if (bgrabber2) {
-        bgrabber2->getObjects(objects);
+    if (mBaseGrabber2) {
+        mBaseGrabber2->getObjects(objects);
     }
 }
 

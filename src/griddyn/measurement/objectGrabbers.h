@@ -54,7 +54,7 @@ const char objEmptyString[] = "";
 template<class X>
 class objectGrabber: public gridGrabber {
   protected:
-    X* tobject;  //!< a class specific object pointer
+    X* mTypedObject;  //!< a class specific object pointer
   public:
     objectGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
     {
@@ -80,26 +80,26 @@ class objectGrabber: public gridGrabber {
             return;
         }
 
-        ngb->tobject = tobject;
+        ngb->mTypedObject = mTypedObject;
     }
 
     void updateField(std::string_view fld) override
     {
         field = fld;
         const std::string fldString{fld};
-        auto fret = getObjectFunction(tobject, fldString);
+        auto fret = getObjectFunction(mTypedObject, fldString);
         if (fret.first) {
-            fptr = fret.first;
+            mGrabberFunction = fret.first;
             inputUnits = fret.second;
             loaded = checkIfLoaded();
             return;
         }
-        auto fvecret = getObjectVectorFunction(tobject, fldString);
+        auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
         if (fvecret.first) {
-            fptrV = fvecret.first;
+            mVectorGrabberFunction = fvecret.first;
             inputUnits = fvecret.second;
             vectorGrab = true;
-            fptrN = getObjectVectorDescFunction(tobject, fldString);
+            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
             loaded = checkIfLoaded();
             return;
         }
@@ -110,9 +110,9 @@ class objectGrabber: public gridGrabber {
                       object_update_mode mode = object_update_mode::direct) override
     {
         coreObject* newObject =
-            (mode == object_update_mode::direct) ? obj : findMatchingObject(cobj, obj);
+            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
-            tobject = static_cast<X*>(newObject);
+            mTypedObject = static_cast<X*>(newObject);
             gridGrabber::updateObject(newObject);
         } else {
             throw(objectUpdateFailException());
@@ -123,8 +123,8 @@ class objectGrabber: public gridGrabber {
 template<class X>
 class objectOffsetGrabber: public gridGrabber {
   protected:
-    X* tobject;
-    index_t offset = kInvalidLocation;
+    X* mTypedObject;
+    index_t mOffset = kInvalidLocation;
 
   public:
     objectOffsetGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
@@ -159,33 +159,33 @@ class objectOffsetGrabber: public gridGrabber {
         if (ngb == nullptr) {
             return;
         }
-        ngb->offset = offset;
-        ngb->tobject = tobject;
+        ngb->mOffset = mOffset;
+        ngb->mTypedObject = mTypedObject;
     }
 
     void updateField(std::string_view fld) override
     {
         field = fld;
         const std::string fldString{fld};
-        auto fret = getObjectFunction(tobject, fldString);
+        auto fret = getObjectFunction(mTypedObject, fldString);
         if (fret.first) {
-            fptr = fret.first;
+            mGrabberFunction = fret.first;
             inputUnits = fret.second;
             loaded = gridGrabber::checkIfLoaded();
             return;
         }
-        auto fvecret = getObjectVectorFunction(tobject, fldString);
+        auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
         if (fvecret.first) {
-            fptrV = fvecret.first;
+            mVectorGrabberFunction = fvecret.first;
             inputUnits = fvecret.second;
             vectorGrab = true;
-            fptrN = getObjectVectorDescFunction(tobject, fldString);
+            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
             loaded = gridGrabber::checkIfLoaded();
             return;
         }
-        offset = tobject->findIndex(fldString, cLocalSolverMode);
+        mOffset = mTypedObject->findIndex(fldString, cLocalSolverMode);
 
-        if (offset == kInvalidLocation) {
+        if (mOffset == kInvalidLocation) {
             gridGrabber::updateField(fld);
         } else {
             loaded = true;
@@ -198,15 +198,15 @@ class objectOffsetGrabber: public gridGrabber {
                       object_update_mode mode = object_update_mode::direct) override
     {
         coreObject* newObject =
-            (mode == object_update_mode::direct) ? obj : findMatchingObject(cobj, obj);
+            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
-            tobject = static_cast<X*>(newObject);
-            if (offset == kInvalidLocation) {
+            mTypedObject = static_cast<X*>(newObject);
+            if (mOffset == kInvalidLocation) {
                 gridGrabber::updateObject(newObject);
             } else {
-                offset = tobject->findIndex(field, cLocalSolverMode);
+                mOffset = mTypedObject->findIndex(field, cLocalSolverMode);
 
-                if (offset == kInvalidLocation) {
+                if (mOffset == kInvalidLocation) {
                     gridGrabber::updateField(field);
                 } else {
                     loaded = true;
@@ -221,12 +221,12 @@ class objectOffsetGrabber: public gridGrabber {
 
     void updateOffset(index_t nOffset)
     {
-        offset = nOffset;
-        if (tobject) {
-            if (offset < tobject->stateSize(cLocalSolverMode)) {
+        mOffset = nOffset;
+        if (mTypedObject) {
+            if (mOffset < mTypedObject->stateSize(cLocalSolverMode)) {
                 loaded = true;
                 if (!customDesc) {
-                    desc = tobject->getName() + ':' + std::to_string(nOffset);
+                    mDescription = mTypedObject->getName() + ':' + std::to_string(nOffset);
                 }
 
                 return;
@@ -239,12 +239,12 @@ class objectOffsetGrabber: public gridGrabber {
     {
         double val = kNullVal;
         if (loaded) {
-            if (offset != kInvalidLocation) {
-                if (offset == kNullLocation) {
-                    offset = tobject->findIndex(field, cLocalSolverMode);
+            if (mOffset != kInvalidLocation) {
+                if (mOffset == kNullLocation) {
+                    mOffset = mTypedObject->findIndex(field, cLocalSolverMode);
                 }
-                if (offset != kNullLocation) {
-                    val = tobject->getState(offset);
+                if (mOffset != kNullLocation) {
+                    val = mTypedObject->getState(mOffset);
                 } else {
                     val = kNullVal;
                 }
@@ -260,7 +260,7 @@ class objectOffsetGrabber: public gridGrabber {
     {
         if (!customDesc) {
             if ((loaded) && (field.empty())) {
-                desc = tobject->getName() + ':' + std::to_string(offset);
+                mDescription = mTypedObject->getName() + ':' + std::to_string(mOffset);
             } else {
                 gridGrabber::makeDescription();
             }
@@ -270,8 +270,8 @@ class objectOffsetGrabber: public gridGrabber {
     bool checkIfLoaded() override
     {
         // check for the offset, otherwise just use the regular check
-        if (offset != kInvalidLocation) {
-            return (cobj != nullptr);
+        if (mOffset != kInvalidLocation) {
+            return (mObject != nullptr);
         }
         return gridGrabber::checkIfLoaded();
     }

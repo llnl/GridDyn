@@ -38,11 +38,11 @@ class Condition: public objectOperatorInterface {
   protected:
     double m_constant = 0.0;  //!< right hand side constant
     double m_margin = 0.0;  //!< the margin around the conditions
-    double m_curr_margin = 0.0;  //!< the currently used margin
-    std::shared_ptr<grabberSet> conditionLHS;  //!< grabber for left side condition
-    std::shared_ptr<grabberSet> conditionRHS;  //!< grabber for right side condition
-    bool m_constRHS = false;  //!< flag indicating use of a constant RHS
-    bool use_margin = false;  //!< flag indicating margin use
+    double mCurrentMargin = 0.0;  //!< the currently used margin
+    std::shared_ptr<grabberSet> mConditionLHS;  //!< grabber for left side condition
+    std::shared_ptr<grabberSet> mConditionRHS;  //!< grabber for right side condition
+    bool mConstRHS = false;  //!< flag indicating use of a constant RHS
+    bool mUseMargin = false;  //!< flag indicating margin use
   public:
     /** default constructor
     @param[in] valGrabber the grabber for the LHS of the equation
@@ -118,7 +118,7 @@ class Condition: public objectOperatorInterface {
     */
     void setConditionRHS(double val)
     {
-        m_constRHS = true;
+        mConstRHS = true;
         m_constant = val;
     }
     /** set the margin level for equality conditions
@@ -131,8 +131,8 @@ class Condition: public objectOperatorInterface {
     */
     virtual void useMargin(bool margin_on)
     {
-        m_curr_margin = (margin_on) ? (m_margin) : 0.0;
-        use_margin = margin_on;
+        mCurrentMargin = (margin_on) ? (m_margin) : 0.0;
+        mUseMargin = margin_on;
     }
 
     virtual coreObject* getObject() const override;
@@ -141,8 +141,8 @@ class Condition: public objectOperatorInterface {
 
   private:
     std::function<double(double A, double B, double margin)>
-        evalf;  //!< the function evaluation used in the condition
-    comparison_type comp = comparison_type::gt;  //!< the condition operator
+        mEvalFunction;  //!< the function evaluation used in the condition
+    comparison_type mComparison = comparison_type::gt;  //!< the condition operator
 };
 
 /** make a condition object
@@ -197,10 +197,10 @@ class compoundCondition: public Condition {
     };
 
   private:
-    bool breakFalse = true;  //!< indicator that the checking should stop if a false is encountered
-    bool breakTrue = false;  //!< indicator that the checking should stop if a true is encountered
-    std::vector<std::shared_ptr<Condition>> conditions;  //!< vector of pointers to the conditions
-    compound_mode mode = compound_mode::c_and;  //!< the compounding mode to use
+    bool mBreakFalse = true;  //!< indicator that the checking should stop if a false is encountered
+    bool mBreakTrue = false;  //!< indicator that the checking should stop if a true is encountered
+    std::vector<std::shared_ptr<Condition>> mConditions;  //!< vector of pointers to the conditions
+    compound_mode mMode = compound_mode::c_and;  //!< the compounding mode to use
   public:
     compoundCondition() = default;
 
@@ -210,7 +210,7 @@ class compoundCondition: public Condition {
     virtual bool checkCondition(const stateData& stateDataValue,
                                 const solverMode& sMode) const override;
     /** add a condition to the set of conditions to evaluate*/
-    void add(std::shared_ptr<Condition> gc);
+    void add(std::shared_ptr<Condition> condition);
     /** set the compounding mode
      */
     void setMode(compound_mode newMode);

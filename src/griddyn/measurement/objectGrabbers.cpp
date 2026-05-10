@@ -36,8 +36,8 @@ using units::puOhm;
 using units::puV;
 using units::rad;
 
-static const fobjectPair nullPair{nullptr, defunit};
-static const fvecPair nullVecPair{nullptr, defunit};
+static const fobjectPair kNullObjectPair{nullptr, defunit};
+static const fvecPair kNullObjectVectorPair{nullptr, defunit};
 
 namespace {
     const auto& getStringTranslate()
@@ -493,7 +493,7 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
                 },
                 defunit};
     }
-    return nullPair;
+    return kNullObjectPair;
 }
 
 fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
@@ -647,7 +647,7 @@ fvecPair getObjectVectorFunction(const gridComponent* /*comp*/, const std::strin
                 },
                 defunit};
     }
-    return nullVecPair;
+    return kNullObjectVectorPair;
 }
 
 fvecPair getObjectVectorFunction(const Area* area, const std::string& field)

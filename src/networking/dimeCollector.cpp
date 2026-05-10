@@ -31,12 +31,12 @@ std::unique_ptr<collector> dimeCollector::clone() const
 void dimeCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto dc = dynamic_cast<dimeCollector*>(col);
-    if (dc == nullptr) {
+    auto* dimeCollectorClone = dynamic_cast<dimeCollector*>(col);
+    if (dimeCollectorClone == nullptr) {
         return;
     }
-    dc->server = server;
-    dc->processName = processName;
+    dimeCollectorClone->server = server;
+    dimeCollectorClone->processName = processName;
 }
 
 change_code dimeCollector::trigger(coreTime time)
@@ -47,8 +47,8 @@ change_code dimeCollector::trigger(coreTime time)
     }
     auto out = collector::trigger(time);
     // figure out what to do with the data
-    for (size_t kk = 0; kk < points.size(); ++kk) {
-        dime->sendVar(points[kk].colname, data[kk]);
+    for (size_t kk = 0; kk < mPoints.size(); ++kk) {
+        dime->sendVar(mPoints[kk].mColumnName, mData[kk]);
     }
 
     return out;

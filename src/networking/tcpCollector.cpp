@@ -31,12 +31,12 @@ std::unique_ptr<collector> tcpCollector::clone() const
 void tcpCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto dc = dynamic_cast<tcpCollector*>(col);
-    if (dc == nullptr) {
+    auto* tcpCollectorClone = dynamic_cast<tcpCollector*>(col);
+    if (tcpCollectorClone == nullptr) {
         return;
     }
-    dc->server = server;
-    dc->port = port;
+    tcpCollectorClone->server = server;
+    tcpCollectorClone->port = port;
 }
 
 change_code tcpCollector::trigger(coreTime time)
@@ -47,8 +47,8 @@ change_code tcpCollector::trigger(coreTime time)
     }
     auto out = collector::trigger(time);
     // figure out what to do with the data
-    for (size_t kk = 0; kk < points.size(); ++kk) {
-        // connection->sendVar(points[kk].colname, data[kk]);
+    for (size_t kk = 0; kk < mPoints.size(); ++kk) {
+        // connection->sendVar(mPoints[kk].mColumnName, mData[kk]);
     }
 
     return out;

@@ -39,44 +39,44 @@ class stateGrabber;
 /** base class for capturing and storing data from a grid simulation */
 class collector: public helperObject, public eventInterface, public objectOperatorInterface {
   protected:
-    count_t warningCount = 0;  //!< counter for the number of warnings
+    count_t mWarningCount = 0;  //!< counter for the number of warnings
     // there is currently a 4 byte gap here
-    std::vector<std::string> warnList;  //!< listing for the number of warnings
-    coreTime timePeriod;  //!< the actual period of the collector
-    coreTime reqPeriod;  //!< the requested period of the collector
-    coreTime startTime = negTime;  //!< the time to start collecting
-    coreTime stopTime = maxTime;  //!< the time to stop collecting
-    coreTime triggerTime = maxTime;  //!< the next trigger time for the collector
-    coreTime lastTriggerTime = negTime;  //!< the last time the collector was triggered
+    std::vector<std::string> mWarnList;  //!< listing for the number of warnings
+    coreTime mTimePeriod;  //!< the actual period of the collector
+    coreTime mRequestedPeriod;  //!< the requested period of the collector
+    coreTime mStartTime = negTime;  //!< the time to start collecting
+    coreTime mStopTime = maxTime;  //!< the time to stop collecting
+    coreTime mTriggerTime = maxTime;  //!< the next trigger time for the collector
+    coreTime mLastTriggerTime = negTime;  //!< the last time the collector was triggered
 
     /** data structure to capture the grabbers and location for a specific grabber*/
     class collectorPoint {
       public:
         std::shared_ptr<gridGrabber>
-            dataGrabber;  //!< the grabber for the data from the object directly
+            mDataGrabber;  //!< the grabber for the data from the object directly
         std::shared_ptr<stateGrabber>
-            dataGrabberSt;  //!< the grabber for the data from the object state
-        int column = -1;  //!< the starting column for the data
-        int columnCount = 1;  //!< the number of columns associated with the point
-        std::string colname;  //!< the name for the data collected
+            mStateGrabber;  //!< the grabber for the data from the object state
+        int mColumn = -1;  //!< the starting column for the data
+        int mColumnCount = 1;  //!< the number of columns associated with the point
+        std::string mColumnName;  //!< the name for the data collected
         collectorPoint(std::shared_ptr<gridGrabber> dg,
                        std::shared_ptr<stateGrabber> sg,
                        int ncol = -1,
                        int ccnt = 1,
                        const std::string& cname = ""):
-            dataGrabber(std::move(dg)), dataGrabberSt(std::move(sg)), column(ncol),
-            columnCount(ccnt), colname(cname)
+            mDataGrabber(std::move(dg)), mStateGrabber(std::move(sg)), mColumn(ncol),
+            mColumnCount(ccnt), mColumnName(cname)
         {
         }
     };
 
-    std::vector<collectorPoint> points;  //!< the data grabbers
-    std::vector<double> data;  //!< vector to grab store the most recent data
-    count_t columns = 0;  //!< the length of the data vector
-    bool recheck = false;  //!< flag indicating that the recorder should recheck all the fields
-    bool armed = true;  //!< flag indicating if the recorder is armed and ready to go
-    bool delayProcess = true;  //!< wait to process recorders until other events have executed
-    bool vectorName = false;  //!< indicator to use vector notation for the name
+    std::vector<collectorPoint> mPoints;  //!< the data grabbers
+    std::vector<double> mData;  //!< vector to grab store the most recent data
+    count_t mColumns = 0;  //!< the length of the data vector
+    bool mRecheck = false;  //!< flag indicating that the recorder should recheck all the fields
+    bool mArmed = true;  //!< flag indicating if the recorder is armed and ready to go
+    bool mDelayProcess = true;  //!< wait to process recorders until other events have executed
+    bool mVectorName = false;  //!< indicator to use vector notation for the name
   public:
     collector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
     explicit collector(const std::string& collectorName);
@@ -95,17 +95,17 @@ class collector: public helperObject, public eventInterface, public objectOperat
 
     /** function to grab the data to specific location
     @param[out] outputData the location to place the captured values
-    @param[in] N the size of the data storage location
+    @param[in] outputCount the size of the data storage location
     @return the number of data points stored
     */
-    count_t grabData(double* outputData, index_t N);
+    count_t grabData(double* outputData, index_t outputCount);
     virtual change_code trigger(coreTime time) override;
     /** do a check to check and assign all columns*/
     void recheckColumns();
-    coreTime nextTriggerTime() const override { return triggerTime; }
+    coreTime nextTriggerTime() const override { return mTriggerTime; }
     event_execution_mode executionMode() const override
     {
-        return (delayProcess) ? event_execution_mode::delayed : event_execution_mode::normal;
+        return (mDelayProcess) ? event_execution_mode::delayed : event_execution_mode::normal;
     }
 
     virtual void add(std::shared_ptr<gridGrabber> ggb, int requestedColumn = -1);
@@ -116,7 +116,7 @@ class collector: public helperObject, public eventInterface, public objectOperat
                      std::shared_ptr<stateGrabber> sst,
                      int requestedColumn = -1);
 
-    bool isArmed() const override { return armed; }
+    bool isArmed() const override { return mArmed; }
 
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -138,27 +138,27 @@ class collector: public helperObject, public eventInterface, public objectOperat
     */
     double getValue(index_t column) const
     {
-        return isValidIndex(column, data) ? data[column] : kNullVal;
+        return isValidIndex(column, mData) ? mData[column] : kNullVal;
     }
     /** get a list of all the descriptions of the columns */
     virtual std::vector<std::string> getColumnDescriptions() const;
     /** get the current warning count*/
-    count_t getWarningCount() const { return warningCount; }
+    count_t getWarningCount() const { return mWarningCount; }
     /** get a list of the warnings that were generated on construction
     @return a vector of the warnings
     */
-    const std::vector<std::string>& getWarnings() const { return warnList; }
+    const std::vector<std::string>& getWarnings() const { return mWarnList; }
     /** erase the warning list*/
     void clearWarnings()
     {
-        warnList.clear();
-        warningCount = 0;
+        mWarnList.clear();
+        mWarningCount = 0;
     }
 
     /** clear all grabbers from the collector*/
     void reset();
     /** get the number of points in the collector*/
-    count_t numberOfPoints() const { return static_cast<count_t>(points.size()); }
+    count_t numberOfPoints() const { return static_cast<count_t>(mPoints.size()); }
 
   protected:
     /** callback intended more for derived classes to indicate that a dataPoint has been added*/
@@ -171,13 +171,13 @@ class collector: public helperObject, public eventInterface, public objectOperat
     void updateColumns(int requestedColumn);
     void addWarning(const std::string& warnMessage)
     {
-        warnList.push_back(warnMessage);
-        ++warningCount;
+        mWarnList.push_back(warnMessage);
+        ++mWarningCount;
     }
     void addWarning(std::string&& warnMessage)
     {
-        warnList.push_back(warnMessage);
-        ++warningCount;
+        mWarnList.push_back(warnMessage);
+        ++mWarningCount;
     }
 };
 

@@ -19,6 +19,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        submodules: recursive
     - name: Run cpplint
       run: cpplint --counting=detailed --recursive examples benchmarks src test
 
@@ -28,6 +30,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
+      with:
+        submodules: recursive
     - name: Run clang-tidy on changed files
       shell: bash
       run: ./.github/actions/run-clang-tidy-pr.sh

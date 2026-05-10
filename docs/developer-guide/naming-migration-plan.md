@@ -443,13 +443,13 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch  | Area                      | Phase   | Summary                                                                                        | Compatibility Needed | Tests Run            | Status      |
-| ------------ | ------------------------- | ------- | ---------------------------------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
-| merged       | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                      | No                   | Inventory script run | Complete    |
-| merged       | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes | No                   | Not yet run          | Complete    |
-| merged       | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes    | No                   | CI `clang-tidy` run  | Complete    |
-| merged       | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed | No               | CI workflow run      | Complete    |
-| working      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue` | No                   | Not yet run          | In progress |
+| PR / Branch | Area                      | Phase   | Summary                                                                                                                                                                              | Compatibility Needed | Tests Run            | Status      |
+| ----------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | -------------------- | ----------- |
+| merged      | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                            | No                   | Inventory script run | Complete    |
+| merged      | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                       | No                   | Not yet run          | Complete    |
+| merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                          | No                   | CI `clang-tidy` run  | Complete    |
+| merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                 | No                   | CI workflow run      | Complete    |
+| working     | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue` | No                   | Not yet run          | In progress |
 
 ## Open Decisions
 

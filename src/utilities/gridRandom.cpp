@@ -260,7 +260,9 @@ double gridRandom::generate()
 std::vector<double> gridRandom::getNewValues(size_t count)
 {
     std::vector<double> randomValues(count);
-    std::generate(randomValues.begin(), randomValues.end(), [this]() { return (*mDistribution)(); });
+    std::generate(randomValues.begin(), randomValues.end(), [this]() {
+        return (*mDistribution)();
+    });
     return randomValues;
 }
 

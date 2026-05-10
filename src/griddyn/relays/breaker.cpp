@@ -259,7 +259,10 @@ void breaker::jacobianElements(const IOdata& /*inputs*/,
         if (opFlags[nonlink_source_flag]) {
             auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
-            gridSecondaryObject->outputPartialDerivatives(inputs, stateDataRef, localJacobian, sMode);
+            gridSecondaryObject->outputPartialDerivatives(inputs,
+                                                          stateDataRef,
+                                                          localJacobian,
+                                                          sMode);
             gridSecondaryObject->ioPartialDerivatives(
                 inputs, stateDataRef, localJacobian, inputLocs, sMode);
         } else {
@@ -288,7 +291,8 @@ void breaker::jacobianElements(const IOdata& /*inputs*/,
         localJacobian.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
         double dRdI;
         if (currentMagnitude > mLimit) {
-            dRdI = pow((mRecloserTap / (pow(currentMagnitude - mLimit, 1.5)) + mMinClearingTime), -2.0) *
+            dRdI = pow((mRecloserTap / (pow(currentMagnitude - mLimit, 1.5)) + mMinClearingTime),
+                       -2.0) *
                 (1.5 * mRecloserTap / (pow(currentMagnitude - mLimit, 2.5)));
         } else {
             dRdI = -pow((mRecloserTap / (pow(mLimit - currentMagnitude + 1e-8, 1.5)) +

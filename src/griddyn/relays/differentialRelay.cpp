@@ -103,11 +103,11 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                                    mMaxDifferential,
                                    m_sourceObject)));
                 if (mMinLevel > 0.0) {
-                    add(std::shared_ptr<Condition>(make_condition(
-                        "max(abs(" + current1Expression + "),abs(current2))",
-                        ">",
-                        mMinLevel,
-                        m_sourceObject)));
+                    add(std::shared_ptr<Condition>(
+                        make_condition("max(abs(" + current1Expression + "),abs(current2))",
+                                       ">",
+                                       mMinLevel,
+                                       m_sourceObject)));
                 }
             } else {
                 add(std::shared_ptr<Condition>(
@@ -178,7 +178,8 @@ void differentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*
     logging::normal(this, "differential condition met");
     if (opFlags.test(use_commLink)) {
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
-        auto relayEvent = std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
+        auto relayEvent =
+            std::make_shared<comms::relayMessage>(comms::relayMessage::LOCAL_FAULT_EVENT);
         cManager.send(relayEvent);
     }
 }

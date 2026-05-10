@@ -316,11 +316,11 @@ std::string zonalRelay::generateAutoName(int code)
             break;
         case 2:
             if (m_terminal == 1) {
-                autoname =
-                    std::to_string(firstBus->getUserID()) + '_' + std::to_string(secondBus->getUserID());
+                autoname = std::to_string(firstBus->getUserID()) + '_' +
+                    std::to_string(secondBus->getUserID());
             } else {
-                autoname =
-                    std::to_string(secondBus->getUserID()) + '_' + std::to_string(firstBus->getUserID());
+                autoname = std::to_string(secondBus->getUserID()) + '_' +
+                    std::to_string(firstBus->getUserID());
             }
             break;
         default:;

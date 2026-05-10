@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace griddyn {
 using gmlc::utilities::fsize_t;
@@ -42,7 +43,7 @@ std::unique_ptr<collector> Recorder::clone() const
 void Recorder::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto nrec = dynamic_cast<Recorder*>(col);
+    auto* nrec = dynamic_cast<Recorder*>(col);
     if (nrec == nullptr) {
         return;
     }
@@ -70,8 +71,8 @@ void Recorder::set(std::string_view param, std::string_view val)
 {
     if ((param == "file") || (param == "fileName")) {
         mFileName = val;
-        std::filesystem::path filePath(mFileName);
-        std::string ext = gmlc::utilities::convertToLowerCase(filePath.extension().string());
+        const std::filesystem::path filePath(mFileName);
+        const std::string ext = gmlc::utilities::convertToLowerCase(filePath.extension().string());
         mBinaryFile = ((ext != ".csv") && (ext != ".txt"));
     } else if (param == "directory") {
         mDirectory = val;
@@ -87,7 +88,8 @@ void Recorder::saveFile(const std::string& fileName)
     if (!fileName.empty()) {
         savefileName = std::filesystem::path(fileName);
 
-        std::string ext = gmlc::utilities::convertToLowerCase(savefileName.extension().string());
+        const std::string ext =
+            gmlc::utilities::convertToLowerCase(savefileName.extension().string());
         bFile = ((ext != ".csv") && (ext != ".txt"));
     } else {
         if (mTriggerTime == mLastSaveTime) {
@@ -112,7 +114,7 @@ void Recorder::saveFile(const std::string& fileName)
             recheckColumns();
         }
         mDataset.description = getName() + ": " + getDescription();
-        bool append = (mLastSaveTime > negTime);
+        const bool append = (mLastSaveTime > negTime);
 
         // create the file based on extension
         if (bFile) {
@@ -155,7 +157,7 @@ change_code Recorder::trigger(coreTime time)
         mFirstTrigger = false;
     }
     mDataset.addData(time, mData);
-    if ((mAutosave > 0) && (static_cast<count_t>(mDataset.size()) >= mAutosave)) {
+    if ((mAutosave > 0) && std::cmp_greater_equal(mDataset.size(), mAutosave)) {
         saveFile();
         mDataset.clear();
     }

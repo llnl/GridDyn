@@ -56,11 +56,11 @@ std::unique_ptr<grabberSet> grabberSet::clone() const
     return gset;
 }
 
-void grabberSet::cloneTo(grabberSet* ggb) const
+void grabberSet::cloneTo(grabberSet* gset) const
 {
-    ggb->updateGrabbers(mGrabber->clone(), (mStateGrabber) ? mStateGrabber->clone() : nullptr);
+    gset->updateGrabbers(mGrabber->clone(), (mStateGrabber) ? mStateGrabber->clone() : nullptr);
     if (mPredictor) {
-        ggb->mPredictor =
+        gset->mPredictor =
             std::make_unique<utilities::valuePredictor<coreTime, double>>(*mPredictor);
     }
 }
@@ -86,9 +86,12 @@ void grabberSet::updateField(std::string_view fld)
  *@return the value produced by the grabber*/
 double grabberSet::grabData()
 {
-    auto lastOutput = (mGrabber) ?
-        mGrabber->grabData() :
-        ((mStateGrabber) ? grabData(emptyStateData, cLocalSolverMode) : kNullVal);
+    double lastOutput = kNullVal;
+    if (mGrabber) {
+        lastOutput = mGrabber->grabData();
+    } else if (mStateGrabber) {
+        lastOutput = grabData(emptyStateData, cLocalSolverMode);
+    }
     if (mPredictor) {
         mPredictor->update(lastOutput, mGrabber->getTime());
     }
@@ -101,13 +104,13 @@ void grabberSet::grabData(std::vector<double>& data)
 {
     mGrabber->grabVectorData(data);
 }
-double grabberSet::grabData(const stateData& sD, const solverMode& sMode)
+double grabberSet::grabData(const stateData& stateDataValue, const solverMode& sMode)
 {
     if (mStateGrabber) {
-        return mStateGrabber->grabData(sD, sMode);
+        return mStateGrabber->grabData(stateDataValue, sMode);
     }
     if (mPredictor) {
-        return mPredictor->predict(sD.time);
+        return mPredictor->predict(stateDataValue.time);
     }
     if (mGrabber) {
         return mGrabber->grabData();
@@ -115,12 +118,12 @@ double grabberSet::grabData(const stateData& sD, const solverMode& sMode)
     return kNullVal;
 }
 
-void grabberSet::outputPartialDerivatives(const stateData& sD,
-                                          matrixData<double>& md,
+void grabberSet::outputPartialDerivatives(const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const solverMode& sMode)
 {
     if (mStateGrabber) {
-        mStateGrabber->outputPartialDerivatives(sD, md, sMode);
+        mStateGrabber->outputPartialDerivatives(stateDataValue, matrixDataValue, sMode);
     }
 }
 void grabberSet::getDesc(std::vector<std::string>& desc_list) const

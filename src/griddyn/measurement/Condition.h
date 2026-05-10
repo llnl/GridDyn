@@ -39,9 +39,9 @@ class Condition: public objectOperatorInterface {
     double m_constant = 0.0;  //!< right hand side constant
     double m_margin = 0.0;  //!< the margin around the conditions
     double mCurrentMargin = 0.0;  //!< the currently used margin
-    std::shared_ptr<grabberSet> mConditionLhs;  //!< grabber for left side condition
-    std::shared_ptr<grabberSet> mConditionRhs;  //!< grabber for right side condition
-    bool mConstRhs = false;  //!< flag indicating use of a constant RHS
+    std::shared_ptr<grabberSet> mConditionLHS;  //!< grabber for left side condition
+    std::shared_ptr<grabberSet> mConditionRHS;  //!< grabber for right side condition
+    bool mConstRHS = false;  //!< flag indicating use of a constant RHS
     bool mUseMargin = false;  //!< flag indicating margin use
   public:
     /** default constructor
@@ -118,7 +118,7 @@ class Condition: public objectOperatorInterface {
     */
     void setConditionRHS(double val)
     {
-        mConstRhs = true;
+        mConstRHS = true;
         m_constant = val;
     }
     /** set the margin level for equality conditions

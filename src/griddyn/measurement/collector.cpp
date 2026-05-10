@@ -25,8 +25,10 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static classFactory<collector> collFac("collector");
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childClassFactory<Recorder, collector>
     grFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
@@ -86,14 +88,14 @@ void collector::cloneTo(collector* col) const
 
 void collector::updateObject(coreObject* gco, object_update_mode mode)
 {
-    for (const auto& gg : mPoints) {
-        if (gg.mDataGrabber) {
-            gg.mDataGrabber->updateObject(gco, mode);
-            if (gg.mDataGrabber->vectorGrab) {
+    for (const auto& collectorPoint : mPoints) {
+        if (collectorPoint.mDataGrabber) {
+            collectorPoint.mDataGrabber->updateObject(gco, mode);
+            if (collectorPoint.mDataGrabber->vectorGrab) {
                 mRecheck = true;
             }
-        } else if (gg.mStateGrabber) {
-            gg.mStateGrabber->updateObject(gco, mode);
+        } else if (collectorPoint.mStateGrabber) {
+            collectorPoint.mStateGrabber->updateObject(gco, mode);
         }
     }
 }
@@ -113,11 +115,11 @@ coreObject* collector::getObject() const
 
 void collector::getObjects(std::vector<coreObject*>& objects) const
 {
-    for (const auto& gg : mPoints) {
-        if (gg.mDataGrabber) {
-            gg.mDataGrabber->getObjects(objects);
-        } else if (gg.mStateGrabber) {
-            gg.mStateGrabber->getObjects(objects);
+    for (const auto& collectorPoint : mPoints) {
+        if (collectorPoint.mDataGrabber) {
+            collectorPoint.mDataGrabber->getObjects(objects);
+        } else if (collectorPoint.mStateGrabber) {
+            collectorPoint.mStateGrabber->getObjects(objects);
         }
     }
 }
@@ -200,33 +202,33 @@ void collector::setTime(coreTime time)
 
 void collector::recheckColumns()
 {
-    fsize_t ct = 0;
+    fsize_t columnTracker = 0;
     std::vector<double> vals;
     // for (size_t kk = 0; kk < mPoints.size(); ++kk)
-    for (auto& pt : mPoints) {
-        if (pt.mColumn == -1) {
-            pt.mColumn = ct;
+    for (auto& collectorPoint : mPoints) {
+        if (collectorPoint.mColumn == -1) {
+            collectorPoint.mColumn = columnTracker;
         }
 
-        if (pt.mDataGrabber->vectorGrab) {
-            pt.mDataGrabber->grabVectorData(vals);
-            ct += static_cast<fsize_t>(vals.size());
+        if (collectorPoint.mDataGrabber->vectorGrab) {
+            collectorPoint.mDataGrabber->grabVectorData(vals);
+            columnTracker += static_cast<fsize_t>(vals.size());
         } else {
-            ++ct;
+            ++columnTracker;
         }
     }
-    mData.resize(ct);
+    mData.resize(columnTracker);
     mRecheck = false;
 }
 
-count_t collector::grabData(double* outputData, index_t N)
+count_t collector::grabData(double* outputData, index_t outputCount)
 {
     std::vector<double> vals;
     count_t currentCount = 0;
-    if (N <= 0) {
+    if (outputCount <= 0) {
         return 0;
     }
-    const auto outputLimit = static_cast<count_t>(N);
+    const auto outputLimit = static_cast<count_t>(outputCount);
     if (mRecheck) {
         recheckColumns();
     }
@@ -314,7 +316,7 @@ void collector::updateColumns(int requestedColumn)
 // TODO(phlpt): Merge the repeated add-path code.
 void collector::add(std::shared_ptr<gridGrabber> ggb, int requestedColumn)  // NOLINT
 {
-    int newColumn = getColumn(requestedColumn);
+    const int newColumn = getColumn(requestedColumn);
 
     if (ggb->vectorGrab) {
         mRecheck = true;
@@ -337,7 +339,7 @@ void collector::add(std::shared_ptr<gridGrabber> ggb, int requestedColumn)  // N
 
 void collector::add(std::shared_ptr<stateGrabber> sst, int requestedColumn)  // NOLINT
 {
-    int newColumn = getColumn(requestedColumn);
+    const int newColumn = getColumn(requestedColumn);
     updateColumns(newColumn);
 
     mPoints.emplace_back(nullptr, sst, newColumn);
@@ -357,7 +359,7 @@ void collector::add(std::shared_ptr<gridGrabber> ggb,
                     std::shared_ptr<stateGrabber> sst,  // NOLINT
                     int requestedColumn)
 {
-    int newColumn = getColumn(requestedColumn);
+    const int newColumn = getColumn(requestedColumn);
     updateColumns(newColumn);
 
     mPoints.emplace_back(ggb, sst, newColumn);
@@ -372,6 +374,7 @@ void collector::add(std::shared_ptr<gridGrabber> ggb,
 
 // a notification that something was added much more useful in derived classes
 void collector::dataPointAdded(const collectorPoint& /*cp*/) {}
+// NOLINTNEXTLINE(misc-no-recursion)
 void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
 {
     if (gdRI.field.empty())  // any field specification overrides the offset
@@ -382,7 +385,8 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
             if (ggb) {
                 ggb->bias = gdRI.bias;
                 ggb->gain = gdRI.gain;
-                return add(std::shared_ptr<gridGrabber>(std::move(ggb)), gdRI.column);
+                add(std::shared_ptr<gridGrabber>(std::move(ggb)), gdRI.column);
+                return;
             }
             throw(addFailureException());
         }
@@ -396,11 +400,11 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
     if (gdRI.field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
         // if multiple fields were specified by comma or semicolon separation
-        auto v = gmlc::utilities::stringOps::splitlineBracket(gdRI.field, ",;");
-        if (v.size() > 1) {
+        auto splitFields = gmlc::utilities::stringOps::splitlineBracket(gdRI.field, ",;");
+        if (splitFields.size() > 1) {
             int ccol = gdRI.column;
             auto tempInfo = gdRI;
-            for (const auto& fld : v) {
+            for (const auto& fld : splitFields) {
                 tempInfo.field = fld;
                 if (ccol >= 0) {
                     /* this wouldn't work if the data was a vector grab, but in that case the
@@ -443,6 +447,7 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void collector::add(std::string_view field, coreObject* obj)
 {
     if (field.find_first_of(",;") !=

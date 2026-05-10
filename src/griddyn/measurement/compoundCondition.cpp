@@ -25,10 +25,10 @@ double compoundCondition::evalCondition(const stateData& /*sD*/, const solverMod
 }
 bool compoundCondition::checkCondition() const
 {
-    unsigned int tc = 0;
-    for (auto& gc : mConditions) {
-        if (gc->checkCondition()) {
-            ++tc;
+    unsigned int trueConditionCount = 0;
+    for (const auto& condition : mConditions) {
+        if (condition->checkCondition()) {
+            ++trueConditionCount;
             if (mBreakTrue) {
                 break;
             }
@@ -38,15 +38,16 @@ bool compoundCondition::checkCondition() const
             }
         }
     }
-    return evalCombinations(tc);
+    return evalCombinations(static_cast<count_t>(trueConditionCount));
 }
 
-bool compoundCondition::checkCondition(const stateData& sD, const solverMode& sMode) const
+bool compoundCondition::checkCondition(const stateData& stateDataValue,
+                                       const solverMode& sMode) const
 {
-    unsigned int tc = 0;
-    for (auto& gc : mConditions) {
-        if (gc->checkCondition(sD, sMode)) {
-            ++tc;
+    unsigned int trueConditionCount = 0;
+    for (const auto& condition : mConditions) {
+        if (condition->checkCondition(stateDataValue, sMode)) {
+            ++trueConditionCount;
             if (mBreakTrue) {
                 break;
             }
@@ -56,13 +57,14 @@ bool compoundCondition::checkCondition(const stateData& sD, const solverMode& sM
             }
         }
     }
-    return evalCombinations(tc);
+    return evalCombinations(static_cast<count_t>(trueConditionCount));
 }
 
-void compoundCondition::add(std::shared_ptr<Condition> gc)
+void compoundCondition::add(std::shared_ptr<Condition> condition)
 {
-    if (gc) {
-        mConditions.push_back(std::move(gc));
+    if (condition) {
+        mConditions.push_back(std::move(condition));
+        return;
     }
     throw(addFailureException());
 }
@@ -94,7 +96,7 @@ bool compoundCondition::evalCombinations(count_t trueCount) const
         case compound_mode::c_and:
         case compound_mode::c_all:
         default:
-            return (trueCount == static_cast<count_t>(mConditions.size()));
+            return std::cmp_equal(trueCount, mConditions.size());
         case compound_mode::c_any:
         case compound_mode::c_or:
             return (trueCount > 0);
@@ -110,13 +112,13 @@ bool compoundCondition::evalCombinations(count_t trueCount) const
             return (trueCount >= 3);
         case compound_mode::c_xor:
         case compound_mode::c_odd:
-            return ((trueCount & 0x01) == 1);
+            return ((trueCount % count_t{2}) == count_t{1});
         case compound_mode::c_even:
-            return ((trueCount & 0x01) == 0);
+            return ((trueCount % count_t{2}) == count_t{0});
         case compound_mode::c_even_min:
-            return ((trueCount != 0) && ((trueCount & 0x01) == 0));
+            return ((trueCount != count_t{0}) && ((trueCount % count_t{2}) == count_t{0}));
         case compound_mode::c_none:
-            return (trueCount == 0);
+            return (trueCount == count_t{0});
     }
 }
 

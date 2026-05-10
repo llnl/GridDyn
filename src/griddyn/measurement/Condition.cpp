@@ -144,7 +144,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
     }
 }
 
-Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLhs(std::move(valGrabber))
+Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLHS(std::move(valGrabber))
 {
 }
 Condition::~Condition() = default;
@@ -160,23 +160,23 @@ void Condition::cloneTo(Condition* cond) const
 {
     cond->m_constant = m_constant;
     cond->m_margin = m_margin;
-    cond->mConstRhs = mConstRhs;
+    cond->mConstRHS = mConstRHS;
     cond->mCurrentMargin = mCurrentMargin;
     cond->mUseMargin = mUseMargin;
 
-    if (mConditionLhs) {
-        if (cond->mConditionLhs) {
-            mConditionLhs->cloneTo(cond->mConditionLhs.get());
+    if (mConditionLHS) {
+        if (cond->mConditionLHS) {
+            mConditionLHS->cloneTo(cond->mConditionLHS.get());
         } else {
-            cond->mConditionLhs = mConditionLhs->clone();
+            cond->mConditionLHS = mConditionLHS->clone();
         }
     }
 
-    if (!mConstRhs) {
-        if (cond->mConditionRhs) {
-            mConditionRhs->cloneTo(cond->mConditionRhs.get());
+    if (!mConstRHS) {
+        if (cond->mConditionRHS) {
+            mConditionRHS->cloneTo(cond->mConditionRHS.get());
         } else {
-            cond->mConditionRhs = mConditionRhs->clone();
+            cond->mConditionRHS = mConditionRHS->clone();
         }
     }
 }
@@ -184,15 +184,15 @@ void Condition::cloneTo(Condition* cond) const
 void Condition::setConditionLHS(std::shared_ptr<grabberSet> valGrabber)
 {
     if (valGrabber) {
-        mConditionLhs = std::move(valGrabber);
+        mConditionLHS = std::move(valGrabber);
     }
 }
 
 void Condition::setConditionRHS(std::shared_ptr<grabberSet> valGrabber)
 {
     if (valGrabber) {
-        mConditionRhs = std::move(valGrabber);
-        mConstRhs = false;
+        mConditionRHS = std::move(valGrabber);
+        mConstRHS = false;
     }
 }
 
@@ -202,19 +202,19 @@ void Condition::updateObject(coreObject* obj, object_update_mode mode)
     // if it doesn't then B update may throw an error in which case we need to rollback A for
     // exception safety this would be very unusual to occur.
     const coreObject* keyObject = nullptr;
-    if (mConditionLhs) {
-        keyObject = mConditionLhs->getObject();
-        mConditionLhs->updateObject(obj, mode);
+    if (mConditionLHS) {
+        keyObject = mConditionLHS->getObject();
+        mConditionLHS->updateObject(obj, mode);
     }
 
-    if (mConditionRhs) {
+    if (mConditionRHS) {
         try {
-            mConditionRhs->updateObject(obj, mode);
+            mConditionRHS->updateObject(obj, mode);
         }
         catch (objectUpdateFailException& oe) {
-            if ((mConditionLhs) && (keyObject != nullptr)) {
+            if ((mConditionLHS) && (keyObject != nullptr)) {
                 // now rollback A
-                mConditionLhs->updateObject(keyObject->getRoot(), object_update_mode::match);
+                mConditionLHS->updateObject(keyObject->getRoot(), object_update_mode::match);
             }
             throw oe;
         }
@@ -259,49 +259,49 @@ void Condition::setComparison(comparison_type comparison)
 
 double Condition::evalCondition()
 {
-    const double leftValue = mConditionLhs->grabData();
-    const double rightValue = (mConstRhs) ? m_constant : mConditionRhs->grabData();
+    const double leftValue = mConditionLHS->grabData();
+    const double rightValue = (mConstRHS) ? m_constant : mConditionRHS->grabData();
 
     return mEvalFunction(leftValue, rightValue, mCurrentMargin);
 }
 
 double Condition::evalCondition(const stateData& stateDataValue, const solverMode& sMode)
 {
-    const double leftValue = mConditionLhs->grabData(stateDataValue, sMode);
+    const double leftValue = mConditionLHS->grabData(stateDataValue, sMode);
     const double rightValue =
-        (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
+        (mConstRHS) ? m_constant : mConditionRHS->grabData(stateDataValue, sMode);
     return mEvalFunction(leftValue, rightValue, mCurrentMargin);
 }
 
 double Condition::getVal(int side) const
 {
     if (side == 2) {
-        return (mConstRhs) ? m_constant : mConditionRhs->grabData();
+        return (mConstRHS) ? m_constant : mConditionRHS->grabData();
     }
-    return mConditionLhs->grabData();
+    return mConditionLHS->grabData();
 }
 
 double Condition::getVal(int side, const stateData& stateDataValue, const solverMode& sMode) const
 {
     if (side == 2) {
-        return (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
+        return (mConstRHS) ? m_constant : mConditionRHS->grabData(stateDataValue, sMode);
     }
-    return mConditionLhs->grabData(stateDataValue, sMode);
+    return mConditionLHS->grabData(stateDataValue, sMode);
 }
 
 bool Condition::checkCondition() const
 {
-    const double leftValue = mConditionLhs->grabData();
-    const double rightValue = (mConstRhs) ? m_constant : mConditionRhs->grabData();
+    const double leftValue = mConditionLHS->grabData();
+    const double rightValue = (mConstRHS) ? m_constant : mConditionRHS->grabData();
     const double conditionValue = mEvalFunction(leftValue, rightValue, mCurrentMargin);
     return (isEqualityComparison(mComparison)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
 bool Condition::checkCondition(const stateData& stateDataValue, const solverMode& sMode) const
 {
-    const double leftValue = mConditionLhs->grabData(stateDataValue, sMode);
+    const double leftValue = mConditionLHS->grabData(stateDataValue, sMode);
     const double rightValue =
-        (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
+        (mConstRHS) ? m_constant : mConditionRHS->grabData(stateDataValue, sMode);
 
     const double conditionValue = mEvalFunction(leftValue, rightValue, mCurrentMargin);
     return (isEqualityComparison(mComparison)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
@@ -317,8 +317,8 @@ void Condition::setMargin(double val)
 
 coreObject* Condition::getObject() const
 {
-    if (mConditionLhs) {
-        return mConditionLhs->getObject();
+    if (mConditionLHS) {
+        return mConditionLHS->getObject();
     }
 
     return nullptr;
@@ -326,13 +326,13 @@ coreObject* Condition::getObject() const
 
 void Condition::getObjects(std::vector<coreObject*>& objects) const
 {
-    if (mConditionLhs) {
-        mConditionLhs->getObjects(objects);
+    if (mConditionLHS) {
+        mConditionLHS->getObjects(objects);
     }
 
-    if (!mConstRhs) {
-        if (mConditionRhs) {
-            mConditionRhs->getObjects(objects);
+    if (!mConstRHS) {
+        if (mConditionRHS) {
+            mConditionRHS->getObjects(objects);
         }
     }
 }

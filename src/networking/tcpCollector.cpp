@@ -31,12 +31,12 @@ std::unique_ptr<collector> tcpCollector::clone() const
 void tcpCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto dc = dynamic_cast<tcpCollector*>(col);
-    if (dc == nullptr) {
+    auto* tcpCollectorClone = dynamic_cast<tcpCollector*>(col);
+    if (tcpCollectorClone == nullptr) {
         return;
     }
-    dc->server = server;
-    dc->port = port;
+    tcpCollectorClone->server = server;
+    tcpCollectorClone->port = port;
 }
 
 change_code tcpCollector::trigger(coreTime time)

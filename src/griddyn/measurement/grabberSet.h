@@ -81,9 +81,9 @@ class grabberSet: public objectOperatorInterface {
      *@param[out] desc_list  the list of descriptions
      **/
     virtual void getDesc(std::vector<std::string>& desc_list) const;
-    virtual double grabData(const stateData& sD, const solverMode& sMode);
-    virtual void outputPartialDerivatives(const stateData& sD,
-                                          matrixData<double>& md,
+    virtual double grabData(const stateData& stateDataValue, const solverMode& sMode);
+    virtual void outputPartialDerivatives(const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
     // virtual void getDoutDt(const stateData &sD, const solverMode &sMode) const;
     /** get a description of the grabberSet*/

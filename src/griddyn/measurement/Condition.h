@@ -210,7 +210,7 @@ class compoundCondition: public Condition {
     virtual bool checkCondition(const stateData& stateDataValue,
                                 const solverMode& sMode) const override;
     /** add a condition to the set of conditions to evaluate*/
-    void add(std::shared_ptr<Condition> gc);
+    void add(std::shared_ptr<Condition> condition);
     /** set the compounding mode
      */
     void setMode(compound_mode newMode);

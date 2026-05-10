@@ -95,10 +95,10 @@ class collector: public helperObject, public eventInterface, public objectOperat
 
     /** function to grab the data to specific location
     @param[out] outputData the location to place the captured values
-    @param[in] N the size of the data storage location
+    @param[in] outputCount the size of the data storage location
     @return the number of data points stored
     */
-    count_t grabData(double* outputData, index_t N);
+    count_t grabData(double* outputData, index_t outputCount);
     virtual change_code trigger(coreTime time) override;
     /** do a check to check and assign all columns*/
     void recheckColumns();

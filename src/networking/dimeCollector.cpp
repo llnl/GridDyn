@@ -31,12 +31,12 @@ std::unique_ptr<collector> dimeCollector::clone() const
 void dimeCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto dc = dynamic_cast<dimeCollector*>(col);
-    if (dc == nullptr) {
+    auto* dimeCollectorClone = dynamic_cast<dimeCollector*>(col);
+    if (dimeCollectorClone == nullptr) {
         return;
     }
-    dc->server = server;
-    dc->processName = processName;
+    dimeCollectorClone->server = server;
+    dimeCollectorClone->processName = processName;
 }
 
 change_code dimeCollector::trigger(coreTime time)

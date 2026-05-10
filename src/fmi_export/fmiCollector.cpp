@@ -15,8 +15,8 @@ namespace griddyn::fmi {
 fmiCollector::fmiCollector(): collector(maxTime, maxTime) {}
 fmiCollector::fmiCollector(const std::string& name): collector(name)
 {
-    triggerTime = maxTime;
-    timePeriod = maxTime;
+    mTriggerTime = maxTime;
+    mTimePeriod = maxTime;
 }
 
 std::unique_ptr<collector> fmiCollector::clone() const
@@ -76,7 +76,7 @@ void fmiCollector::dataPointAdded(const collectorPoint& cp)
 {
     if (coord == nullptr) {
         // find the coordinator first
-        auto gobj = cp.dataGrabber->getObject();
+        auto gobj = cp.mDataGrabber->getObject();
         if (gobj != nullptr) {
             auto rto = gobj->getRoot();
             if (rto != nullptr) {
@@ -88,8 +88,8 @@ void fmiCollector::dataPointAdded(const collectorPoint& cp)
         }
     }
     if (coord != nullptr) {
-        if (cp.columnCount == 1) {
-            coord->registerOutput(cp.colname, cp.column, this);
+        if (cp.mColumnCount == 1) {
+            coord->registerOutput(cp.mColumnName, cp.mColumn, this);
         } else {
             // TODO(phlpt): Deal with output vectors later.
         }

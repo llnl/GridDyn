@@ -31,10 +31,10 @@ class solverMode;
  */
 class grabberSet: public objectOperatorInterface {
   private:
-    std::shared_ptr<gridGrabber> grab;  //!< the non state grabber
-    std::shared_ptr<stateGrabber> stGrab;  //!< the state grabber
+    std::shared_ptr<gridGrabber> mGrabber;  //!< the non state grabber
+    std::shared_ptr<stateGrabber> mStateGrabber;  //!< the state grabber
     std::unique_ptr<utilities::valuePredictor<coreTime, double, double>>
-        predictor;  //!< pointer to a predictor object
+        mPredictor;  //!< pointer to a predictor object
 
   public:
     /** create a grabber from a field String and object

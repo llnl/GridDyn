@@ -16,15 +16,15 @@ namespace griddyn {
 /** class to store and save data from the grid, based on a collector */
 class Recorder: public collector {
   protected:
-    coreTime lastSaveTime = negTime;  //!< the last time the recorder saved to file
-    gmlc::utilities::TimeSeriesMulti<double, coreTime> dataset;  //!< the actual time series data
-    std::string fileName_;  //!< the fileName to store the data
-    std::string directory_;  //!< the directory to generate the specified file
+    coreTime mLastSaveTime = negTime;  //!< the last time the recorder saved to file
+    gmlc::utilities::TimeSeriesMulti<double, coreTime> mDataset;  //!< the actual time series data
+    std::string mFileName;  //!< the fileName to store the data
+    std::string mDirectory;  //!< the directory to generate the specified file
 
-    bool binaryFile = true;  //!< flag indicating if the file is binary
-    bool firstTrigger = true;  //!< flag indicating that the recorder has not been triggered yet
-    std::int16_t precision = -1;  //!< precision for writing text files.
-    count_t autosave =
+    bool mBinaryFile = true;  //!< flag indicating if the file is binary
+    bool mFirstTrigger = true;  //!< flag indicating that the recorder has not been triggered yet
+    std::int16_t mPrecision = -1;  //!< precision for writing text files.
+    count_t mAutosave =
         0;  //!< flag indicating the recorder should autosave after the given number of points
   public:
     Recorder(coreTime time0 = timeZero, coreTime period = 1.0);
@@ -60,26 +60,26 @@ class Recorder: public collector {
     virtual const std::string& getSinkName() const override;
     /** get the current filename
     @return a const string reference to the name of the file*/
-    const std::string& getFileName() const { return fileName_; }
+    const std::string& getFileName() const { return mFileName; }
     /** get the current target directory
     @return a const string reference to the name of the directory*/
-    const std::string& getDirectory() const { return directory_; }
+    const std::string& getDirectory() const { return mDirectory; }
     /** reset the recorder
     @details clears all the stored data
     */
     void reset();
 
     /** get the underlying timeSeries object*/
-    const auto& getTimeSeries() const { return dataset; }
+    const auto& getTimeSeries() const { return mDataset; }
     /** get a vector of the time data*/
-    const std::vector<coreTime>& getTime() const { return dataset.time(); }
+    const std::vector<coreTime>& getTime() const { return mDataset.time(); }
 
     /** get a vector of the stored data for a particular column
     @param[in] col the column of data to request
     */
     const std::vector<double>& getData(count_t col) const
     {
-        return dataset.data((col < columns) ? col : 0);
+        return mDataset.data((col < mColumns) ? col : 0);
     }
 
   private:

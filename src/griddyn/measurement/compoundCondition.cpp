@@ -26,14 +26,14 @@ double compoundCondition::evalCondition(const stateData& /*sD*/, const solverMod
 bool compoundCondition::checkCondition() const
 {
     unsigned int tc = 0;
-    for (auto& gc : conditions) {
+    for (auto& gc : mConditions) {
         if (gc->checkCondition()) {
             ++tc;
-            if (breakTrue) {
+            if (mBreakTrue) {
                 break;
             }
         } else {
-            if (breakFalse) {
+            if (mBreakFalse) {
                 break;
             }
         }
@@ -44,14 +44,14 @@ bool compoundCondition::checkCondition() const
 bool compoundCondition::checkCondition(const stateData& sD, const solverMode& sMode) const
 {
     unsigned int tc = 0;
-    for (auto& gc : conditions) {
+    for (auto& gc : mConditions) {
         if (gc->checkCondition(sD, sMode)) {
             ++tc;
-            if (breakTrue) {
+            if (mBreakTrue) {
                 break;
             }
         } else {
-            if (breakFalse) {
+            if (mBreakFalse) {
                 break;
             }
         }
@@ -62,39 +62,39 @@ bool compoundCondition::checkCondition(const stateData& sD, const solverMode& sM
 void compoundCondition::add(std::shared_ptr<Condition> gc)
 {
     if (gc) {
-        conditions.push_back(std::move(gc));
+        mConditions.push_back(std::move(gc));
     }
     throw(addFailureException());
 }
 
 void compoundCondition::setMode(compound_mode newMode)
 {
-    mode = newMode;
-    switch (mode) {
+    mMode = newMode;
+    switch (mMode) {
         case compound_mode::c_and:
-            breakTrue = false;
-            breakFalse = true;
+            mBreakTrue = false;
+            mBreakFalse = true;
             break;
         case compound_mode::c_any:
         case compound_mode::c_or:
         case compound_mode::c_none:
-            breakTrue = true;
-            breakFalse = false;
+            mBreakTrue = true;
+            mBreakFalse = false;
             break;
         default:
-            breakTrue = false;
-            breakFalse = false;
+            mBreakTrue = false;
+            mBreakFalse = false;
             break;
     }
 }
 
 bool compoundCondition::evalCombinations(count_t trueCount) const
 {
-    switch (mode) {
+    switch (mMode) {
         case compound_mode::c_and:
         case compound_mode::c_all:
         default:
-            return (trueCount == static_cast<count_t>(conditions.size()));
+            return (trueCount == static_cast<count_t>(mConditions.size()));
         case compound_mode::c_any:
         case compound_mode::c_or:
             return (trueCount > 0);

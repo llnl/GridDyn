@@ -144,7 +144,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
     }
 }
 
-Condition::Condition(std::shared_ptr<grabberSet> valGrabber): conditionLHS(std::move(valGrabber)) {}
+Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLhs(std::move(valGrabber)) {}
 Condition::~Condition() = default;
 
 std::unique_ptr<Condition> Condition::clone() const
@@ -158,23 +158,23 @@ void Condition::cloneTo(Condition* cond) const
 {
     cond->m_constant = m_constant;
     cond->m_margin = m_margin;
-    cond->m_constRHS = m_constRHS;
-    cond->m_curr_margin = m_curr_margin;
-    cond->use_margin = use_margin;
+    cond->mConstRhs = mConstRhs;
+    cond->mCurrentMargin = mCurrentMargin;
+    cond->mUseMargin = mUseMargin;
 
-    if (conditionLHS) {
-        if (cond->conditionLHS) {
-            conditionLHS->cloneTo(cond->conditionLHS.get());
+    if (mConditionLhs) {
+        if (cond->mConditionLhs) {
+            mConditionLhs->cloneTo(cond->mConditionLhs.get());
         } else {
-            cond->conditionLHS = conditionLHS->clone();
+            cond->mConditionLhs = mConditionLhs->clone();
         }
     }
 
-    if (!m_constRHS) {
-        if (cond->conditionRHS) {
-            conditionRHS->cloneTo(cond->conditionRHS.get());
+    if (!mConstRhs) {
+        if (cond->mConditionRhs) {
+            mConditionRhs->cloneTo(cond->mConditionRhs.get());
         } else {
-            cond->conditionRHS = conditionRHS->clone();
+            cond->mConditionRhs = mConditionRhs->clone();
         }
     }
 }
@@ -182,15 +182,15 @@ void Condition::cloneTo(Condition* cond) const
 void Condition::setConditionLHS(std::shared_ptr<grabberSet> valGrabber)
 {
     if (valGrabber) {
-        conditionLHS = std::move(valGrabber);
+        mConditionLhs = std::move(valGrabber);
     }
 }
 
 void Condition::setConditionRHS(std::shared_ptr<grabberSet> valGrabber)
 {
     if (valGrabber) {
-        conditionRHS = std::move(valGrabber);
-        m_constRHS = false;
+        mConditionRhs = std::move(valGrabber);
+        mConstRhs = false;
     }
 }
 
@@ -200,19 +200,19 @@ void Condition::updateObject(coreObject* obj, object_update_mode mode)
     // if it doesn't then B update may throw an error in which case we need to rollback A for
     // exception safety this would be very unusual to occur.
     const coreObject* keyObject = nullptr;
-    if (conditionLHS) {
-        keyObject = conditionLHS->getObject();
-        conditionLHS->updateObject(obj, mode);
+    if (mConditionLhs) {
+        keyObject = mConditionLhs->getObject();
+        mConditionLhs->updateObject(obj, mode);
     }
 
-    if (conditionRHS) {
+    if (mConditionRhs) {
         try {
-            conditionRHS->updateObject(obj, mode);
+            mConditionRhs->updateObject(obj, mode);
         }
         catch (objectUpdateFailException& oe) {
-            if ((conditionLHS) && (keyObject != nullptr)) {
+            if ((mConditionLhs) && (keyObject != nullptr)) {
                 // now rollback A
-                conditionLHS->updateObject(keyObject->getRoot(), object_update_mode::match);
+                mConditionLhs->updateObject(keyObject->getRoot(), object_update_mode::match);
             }
             throw oe;
         }
@@ -225,98 +225,98 @@ void Condition::setComparison(std::string_view compStr)
 }
 void Condition::setComparison(comparison_type comparison)
 {
-    comp = comparison;
-    switch (comp) {
+    mComparison = comparison;
+    switch (mComparison) {
         case comparison_type::gt:
         case comparison_type::ge:
-            evalf = [](double leftValue, double rightValue, double margin) {
+            mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return rightValue - leftValue - margin;
             };
             break;
         case comparison_type::lt:
         case comparison_type::le:
-            evalf = [](double leftValue, double rightValue, double margin) {
+            mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return leftValue - rightValue + margin;
             };
             break;
         case comparison_type::eq:
-            evalf = [](double leftValue, double rightValue, double margin) {
+            mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return std::abs(leftValue - rightValue) - margin;
             };
             break;
         case comparison_type::ne:
-            evalf = [](double leftValue, double rightValue, double margin) {
+            mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return -std::abs(leftValue - rightValue) + margin;
             };
             break;
         default:
-            evalf = [](double, double, double) { return kNullVal; };
+            mEvalFunction = [](double, double, double) { return kNullVal; };
             break;
     }
 }
 
 double Condition::evalCondition()
 {
-    const double leftValue = conditionLHS->grabData();
-    const double rightValue = (m_constRHS) ? m_constant : conditionRHS->grabData();
+    const double leftValue = mConditionLhs->grabData();
+    const double rightValue = (mConstRhs) ? m_constant : mConditionRhs->grabData();
 
-    return evalf(leftValue, rightValue, m_curr_margin);
+    return mEvalFunction(leftValue, rightValue, mCurrentMargin);
 }
 
 double Condition::evalCondition(const stateData& stateDataValue, const solverMode& sMode)
 {
-    const double leftValue = conditionLHS->grabData(stateDataValue, sMode);
+    const double leftValue = mConditionLhs->grabData(stateDataValue, sMode);
     const double rightValue =
-        (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
-    return evalf(leftValue, rightValue, m_curr_margin);
+        (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
+    return mEvalFunction(leftValue, rightValue, mCurrentMargin);
 }
 
 double Condition::getVal(int side) const
 {
     if (side == 2) {
-        return (m_constRHS) ? m_constant : conditionRHS->grabData();
+        return (mConstRhs) ? m_constant : mConditionRhs->grabData();
     }
-    return conditionLHS->grabData();
+    return mConditionLhs->grabData();
 }
 
 double Condition::getVal(int side, const stateData& stateDataValue, const solverMode& sMode) const
 {
     if (side == 2) {
-        return (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
+        return (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
     }
-    return conditionLHS->grabData(stateDataValue, sMode);
+    return mConditionLhs->grabData(stateDataValue, sMode);
 }
 
 bool Condition::checkCondition() const
 {
-    const double leftValue = conditionLHS->grabData();
-    const double rightValue = (m_constRHS) ? m_constant : conditionRHS->grabData();
-    const double conditionValue = evalf(leftValue, rightValue, m_curr_margin);
-    return (isEqualityComparison(comp)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
+    const double leftValue = mConditionLhs->grabData();
+    const double rightValue = (mConstRhs) ? m_constant : mConditionRhs->grabData();
+    const double conditionValue = mEvalFunction(leftValue, rightValue, mCurrentMargin);
+    return (isEqualityComparison(mComparison)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
 bool Condition::checkCondition(const stateData& stateDataValue, const solverMode& sMode) const
 {
-    const double leftValue = conditionLHS->grabData(stateDataValue, sMode);
+    const double leftValue = mConditionLhs->grabData(stateDataValue, sMode);
     const double rightValue =
-        (m_constRHS) ? m_constant : conditionRHS->grabData(stateDataValue, sMode);
+        (mConstRhs) ? m_constant : mConditionRhs->grabData(stateDataValue, sMode);
 
-    const double conditionValue = evalf(leftValue, rightValue, m_curr_margin);
-    return (isEqualityComparison(comp)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
+    const double conditionValue = mEvalFunction(leftValue, rightValue, mCurrentMargin);
+    return (isEqualityComparison(mComparison)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
 void Condition::setMargin(double val)
 {
     m_margin = val;
-    if (use_margin) {
-        m_curr_margin = m_margin;
+    if (mUseMargin) {
+        mCurrentMargin = m_margin;
     }
 }
 
 coreObject* Condition::getObject() const
 {
-    if (conditionLHS) {
-        return conditionLHS->getObject();
+    if (mConditionLhs) {
+        return mConditionLhs->getObject();
     }
 
     return nullptr;
@@ -324,13 +324,13 @@ coreObject* Condition::getObject() const
 
 void Condition::getObjects(std::vector<coreObject*>& objects) const
 {
-    if (conditionLHS) {
-        conditionLHS->getObjects(objects);
+    if (mConditionLhs) {
+        mConditionLhs->getObjects(objects);
     }
 
-    if (!m_constRHS) {
-        if (conditionRHS) {
-            conditionRHS->getObjects(objects);
+    if (!mConstRhs) {
+        if (mConditionRhs) {
+            mConditionRhs->getObjects(objects);
         }
     }
 }

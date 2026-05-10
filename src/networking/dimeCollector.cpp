@@ -47,8 +47,8 @@ change_code dimeCollector::trigger(coreTime time)
     }
     auto out = collector::trigger(time);
     // figure out what to do with the data
-    for (size_t kk = 0; kk < points.size(); ++kk) {
-        dime->sendVar(points[kk].colname, data[kk]);
+    for (size_t kk = 0; kk < mPoints.size(); ++kk) {
+        dime->sendVar(mPoints[kk].mColumnName, mData[kk]);
     }
 
     return out;

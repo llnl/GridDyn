@@ -588,7 +588,7 @@ see gridComponent::dynInitializeA for more details
     *@brief compute the partial derivatives of the internal states with respect to inputs and other
     internal states
     @param[in] inputs the inputs for the secondary object
-     * @param[in] sD the current state data for the simulation
+     * @param[in] stateDataValue the current state data for the simulation
     * @param[out] matrixDataValue  the array to store the information in
     * @param[in] inputLocs the vector of input argument locations
     * @param[in] sMode the operations mode
@@ -618,7 +618,7 @@ see gridComponent::dynInitializeA for more details
     * @param[in] sMode the operations mode
     **/
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
     /**

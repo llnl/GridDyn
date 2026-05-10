@@ -169,6 +169,12 @@ Goal: make the naming work visible without blocking all development.
   report
 - The team has a stable way to measure whether a PR reduces the remaining work
 
+### Phase 2 Notes
+
+- The static-analyzer workflow now fetches submodules for the `clang-tidy` job
+  and configures the optional networking feature set so changed networking files
+  are included in the compilation database during naming and warning cleanup PRs
+
 ## Phase 3: Low-Risk Naming Cleanup
 
 Goal: reduce the majority of easy violations without destabilizing public APIs.
@@ -192,10 +198,10 @@ Types of work in this phase:
 
 - [x] `src/networking`
 - [x] `src/griddyn/comms`
-- [ ] `src/griddyn/measurement`
+- [x] `src/griddyn/measurement`
 - [ ] `src/griddyn/relays`
 - [ ] `src/griddyn/blocks`
-- [ ] `src/utilities`
+- [~] `src/utilities`
 - [ ] `src/optimization`
 - [ ] `src/runner`
 - [ ] `src/plugins`
@@ -437,11 +443,13 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch  | Area                      | Phase   | Summary                                                                                        | Compatibility Needed | Tests Run            | Status      |
-| ------------ | ------------------------- | ------- | ---------------------------------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
-| merged       | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                      | No                   | Inventory script run | Complete    |
-| merged       | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes | No                   | Not yet run          | Complete    |
-| working tree | `src/griddyn/measurement` | Phase 3 | Continue warning-safe naming and documentation cleanup in measurement headers                  | No                   | Not yet run          | In progress |
+| PR / Branch | Area                      | Phase   | Summary                                                                                                                                                                              | Compatibility Needed | Tests Run            | Status      |
+| ----------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | -------------------- | ----------- |
+| merged      | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                            | No                   | Inventory script run | Complete    |
+| merged      | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                       | No                   | Not yet run          | Complete    |
+| merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                          | No                   | CI `clang-tidy` run  | Complete    |
+| merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                 | No                   | CI workflow run      | Complete    |
+| working     | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue` | No                   | Not yet run          | In progress |
 
 ## Open Decisions
 
@@ -476,8 +484,8 @@ If a starting sequence is needed, use this order:
 1. Naming inventory and report-only tooling
 2. `src/networking` low-risk cleanup
 3. `src/griddyn/comms` low-risk cleanup
-4. `src/utilities` low-risk cleanup
-5. `src/griddyn/measurement` low-risk cleanup
+4. `src/griddyn/measurement` low-risk cleanup
+5. `src/utilities` low-risk cleanup
 6. `src/griddyn/relays` low-risk cleanup
 7. `src/griddyn/blocks` low-risk cleanup
 8. internal enums in contained subsystems

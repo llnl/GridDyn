@@ -19,8 +19,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-      with:
-        submodules: recursive
     - name: Run cpplint
       run: cpplint --counting=detailed --recursive examples benchmarks src test
 

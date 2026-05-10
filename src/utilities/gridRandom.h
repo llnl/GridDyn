@@ -42,9 +42,9 @@ class distributionObject {
 class gridRandom {
   private:
     static std::unique_ptr<std::mt19937>
-        s_gen;  //!< generator  //May need to make a generator per thread
-    static unsigned int actual_seed;
-    static bool seeded;
+        mGenerator;  //!< generator  //May need to make a generator per thread
+    static unsigned int mActualSeed;
+    static bool mSeeded;
 
   public:
     /** set the seed of the random number generator*/
@@ -70,7 +70,7 @@ class gridRandom {
     explicit gridRandom(std::string_view dist_name, double param1 = 0.0, double param2 = 1.0);
 
     void setDistribution(dist_type_t dist);
-    dist_type_t getDistribution() const { return m_dist; }
+    dist_type_t getDistribution() const { return mDist; }
     /** generate a random number according to the distribution*/
     double operator()();
     /** generate a random number according to the distribution*/
@@ -91,14 +91,14 @@ class gridRandom {
     */
     void getNewValues(std::vector<double>& rvec, size_t count);
 
-    static auto& getEngine() { return *s_gen; }
+    static auto& getEngine() { return *mGenerator; }
 
   private:
     static void ensureEngine();
-    std::unique_ptr<distributionObject> dobj;
-    dist_type_t m_dist;
-    double param1_ = 0.0;
-    double param2_ = 1.0;
+    std::unique_ptr<distributionObject> mDistribution;
+    dist_type_t mDist;
+    double mParam1 = 0.0;
+    double mParam2 = 1.0;
 };
 
 /** class describing a random distribution which takes two parameters
@@ -137,13 +137,13 @@ class randomDistributionObject1: public distributionObject {
 template<>
 class randomDistributionObject1<void>: public distributionObject {
   private:
-    double param1_ = 0.0;  //!< the constant value to generate
+    double mParam1 = 0.0;  //!< the constant value to generate
 
   public:
     randomDistributionObject1() {}
-    explicit randomDistributionObject1(double param1): param1_(param1) {}
-    virtual double operator()() override { return param1_; }
-    virtual void updateParameter(double param1) override { param1_ = param1; }
+    explicit randomDistributionObject1(double param1): mParam1(param1) {}
+    virtual double operator()() override { return mParam1; }
+    virtual void updateParameter(double param1) override { mParam1 = param1; }
 };
 
 /** get the distribution type from a string*/

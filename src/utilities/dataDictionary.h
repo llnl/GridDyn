@@ -17,8 +17,8 @@
 template<typename keyType, typename dataType>
 class dataDictionary {
   private:
-    std::unordered_map<keyType, dataType> Vals;  //!< the actual value storage
-    mutable std::mutex datalock;  //!< thread safe mechanism for storage
+    std::unordered_map<keyType, dataType> mValues;  //!< the actual value storage
+    mutable std::mutex mDataLock;  //!< thread safe mechanism for storage
   public:
     dataDictionary() = default;
     /** update the value associated with a particular key
@@ -28,8 +28,8 @@ class dataDictionary {
     */
     void update(keyType key, const dataType& data)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        Vals[key] = data;
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        mValues[key] = data;
     }
     /** update the value associated with a particular key
     @details if the key is not present it creates it, if it is it replaces it
@@ -39,18 +39,18 @@ class dataDictionary {
     */
     void update(keyType key, dataType&& data)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        Vals[key] = std::move(data);
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        mValues[key] = std::move(data);
     }
     /** copy the value in one key to another
     @param origKey the key value to copy from
     @param newKey the key value to copy to*/
     void copy(keyType origKey, keyType newKey)
     {
-        auto floc = Vals.find(origKey);
-        if (floc != Vals.end()) {
-            std::lock_guard<std::mutex> updateLock(datalock);
-            Vals[newKey] = floc->second;
+        auto found = mValues.find(origKey);
+        if (found != mValues.end()) {
+            std::lock_guard<std::mutex> updateLock(mDataLock);
+            mValues[newKey] = found->second;
         }
     }
     /** get a copy of the data associated with a key
@@ -59,18 +59,18 @@ class dataDictionary {
     */
     dataType query(keyType key) const
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        return mapFind(Vals, key, dataType());
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        return mapFind(mValues, key, dataType());
     }
 
     /** remove a data entry from the dictionary
     @param key the key to remove*/
     void remove(keyType key)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        auto fnd = Vals.find(key);
-        if (fnd != Vals.end) {
-            Vals.erase(fnd);
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        auto found = mValues.find(key);
+        if (found != mValues.end()) {
+            mValues.erase(found);
         }
     }
 };

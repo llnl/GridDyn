@@ -74,16 +74,16 @@ namespace {
     }
 }  // namespace
 
-std::unique_ptr<std::mt19937> gridRandom::s_gen;
+std::unique_ptr<std::mt19937> gridRandom::mGenerator;
 
-bool gridRandom::seeded = false;
-unsigned int gridRandom::actual_seed = 0;
+bool gridRandom::mSeeded = false;
+unsigned int gridRandom::mActualSeed = 0;
 
 gridRandom::gridRandom(dist_type_t dist, double param1, double param2):
-    m_dist(dist), param1_(param1), param2_(param2)
+    mDist(dist), mParam1(param1), mParam2(param2)
 {
     setDistribution(dist);
-    if (!seeded) {
+    if (!mSeeded) {
         setSeed();
     }
 }
@@ -95,81 +95,85 @@ gridRandom::gridRandom(std::string_view dist_name, double param1, double param2)
 
 void gridRandom::ensureEngine()
 {
-    if (!s_gen) {
-        s_gen = std::make_unique<std::mt19937>();
+    if (!mGenerator) {
+        mGenerator = std::make_unique<std::mt19937>();
     }
 }
 
 void gridRandom::setParameters(double param1, double param2)
 {
-    param1_ = param1;
-    param2_ = param2;
-    dobj->updateParameters(param1_, param2_);
+    mParam1 = param1;
+    mParam2 = param2;
+    mDistribution->updateParameters(mParam1, mParam2);
 }
 
 void gridRandom::setSeed(unsigned int seed)
 {
     ensureEngine();
-    actual_seed = seed;
-    s_gen->seed(seed);
-    seeded = true;
+    mActualSeed = seed;
+    mGenerator->seed(seed);
+    mSeeded = true;
 }
 void gridRandom::setSeed()
 {
     ensureEngine();
-    actual_seed = static_cast<unsigned int>(time(nullptr));
-    s_gen->seed(actual_seed);
-    seeded = true;
+    mActualSeed = static_cast<unsigned int>(time(nullptr));
+    mGenerator->seed(mActualSeed);
+    mSeeded = true;
 }
 
 unsigned int gridRandom::getSeed()
 {
-    return actual_seed;
+    return mActualSeed;
 }
 void gridRandom::setDistribution(dist_type_t dist)
 {
-    m_dist = dist;
+    mDist = dist;
     switch (dist) {
         case dist_type_t::constant:
-            dobj = std::make_unique<randomDistributionObject1<void>>(param1_);
+            mDistribution = std::make_unique<randomDistributionObject1<void>>(mParam1);
             break;
         case dist_type_t::exponential:
-            dobj =
+            mDistribution =
                 std::make_unique<randomDistributionObject1<std::exponential_distribution<double>>>(
-                    1.0 / param1_);
+                    1.0 / mParam1);
             break;
         case dist_type_t::extreme_value:
-            dobj = std::make_unique<
-                randomDistributionObject2<std::extreme_value_distribution<double>>>(param1_,
-                                                                                    param2_);
+            mDistribution = std::make_unique<
+                randomDistributionObject2<std::extreme_value_distribution<double>>>(mParam1,
+                                                                                    mParam2);
             break;
         case dist_type_t::gamma:
-            dobj = std::make_unique<randomDistributionObject2<std::gamma_distribution<double>>>(
-                param1_, param2_);
+            mDistribution =
+                std::make_unique<randomDistributionObject2<std::gamma_distribution<double>>>(
+                    mParam1, mParam2);
             break;
         case dist_type_t::normal:
-            dobj = std::make_unique<randomDistributionObject2<std::normal_distribution<double>>>(
-                param1_, param2_);
+            mDistribution =
+                std::make_unique<randomDistributionObject2<std::normal_distribution<double>>>(
+                    mParam1, mParam2);
             break;
         case dist_type_t::uniform:
-            dobj =
+            mDistribution =
                 std::make_unique<randomDistributionObject2<std::uniform_real_distribution<double>>>(
-                    param1_, param2_);
+                    mParam1, mParam2);
             break;
         case dist_type_t::lognormal:
-            dobj = std::make_unique<randomDistributionObject2<std::lognormal_distribution<double>>>(
-                param1_, param2_);
+            mDistribution =
+                std::make_unique<randomDistributionObject2<std::lognormal_distribution<double>>>(
+                    mParam1, mParam2);
             break;
         case dist_type_t::uniform_int:
-            dobj = std::make_unique<randomDistributionObject2<std::uniform_int_distribution<int>>>(
-                static_cast<int>(param1_), static_cast<int>(param2_));
+            mDistribution =
+                std::make_unique<randomDistributionObject2<std::uniform_int_distribution<int>>>(
+                    static_cast<int>(mParam1), static_cast<int>(mParam2));
             break;
     }
 }
 
 double gridRandom::randNumber(dist_type_t dist)
 {
-    if (!seeded) {
+    if (!mSeeded) {
         setSeed();
     }
     auto& engine = getEngine();
@@ -203,7 +207,7 @@ double gridRandom::randNumber(dist_type_t dist)
 
 double gridRandom::randNumber(dist_type_t dist, double param1, double param2)
 {
-    if (!seeded) {
+    if (!mSeeded) {
         setSeed();
     }
     auto& engine = getEngine();
@@ -251,24 +255,26 @@ double gridRandom::operator()()
 }
 double gridRandom::generate()
 {
-    return (*dobj)();
+    return (*mDistribution)();
 }
 std::vector<double> gridRandom::getNewValues(size_t count)
 {
     std::vector<double> randomValues(count);
-    std::generate(randomValues.begin(), randomValues.end(), [this]() { return (*dobj)(); });
+    std::generate(randomValues.begin(), randomValues.end(), [this]() {
+        return (*mDistribution)();
+    });
     return randomValues;
 }
 
 void gridRandom::getNewValues(std::vector<double>& rvec, size_t count)
 {
     gmlc::utilities::ensureSizeAtLeast(rvec, count);
-    std::generate(rvec.begin(), rvec.begin() + count - 1, [this]() { return (*dobj)(); });
+    std::generate(rvec.begin(), rvec.begin() + count - 1, [this]() { return (*mDistribution)(); });
 }
 
 std::pair<double, double> gridRandom::getPair()
 {
-    return std::make_pair((*dobj)(), (*dobj)());
+    return std::make_pair((*mDistribution)(), (*mDistribution)());
 }
 static constexpr auto distmap = makeLookupTable<gridRandom::dist_type_t>({
     {"constant", gridRandom::dist_type_t::constant},

@@ -22,7 +22,7 @@ loadRelay::loadRelay(const std::string& objName): Relay(objName)
 
 coreObject* loadRelay::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<loadRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<loadRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -78,12 +78,12 @@ void loadRelay::set(std::string_view param, double val, units::unit unitType)
 
 void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    auto ge = std::make_shared<Event>();
+    auto tripEvent = std::make_shared<Event>();
 
-    ge->setTarget(m_sinkObject, "status");
-    ge->setValue(0.0);
+    tripEvent->setTarget(m_sinkObject, "status");
+    tripEvent->setValue(0.0);
 
-    add(std::move(ge));
+    add(std::move(tripEvent));
     add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     add(std::shared_ptr<Condition>(
         make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
@@ -107,8 +107,8 @@ void loadRelay::actionTaken(index_t ActionNum,
                             coreTime /*actionTime*/)
 {
     logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
-    ((void)(ActionNum));
-    ((void)(conditionNum));
+    (void)ActionNum;
+    (void)conditionNum;
     /*
 if (opFlags.test (use_commLink))
 {
@@ -142,7 +142,7 @@ m_condition_level = conditionNum;
 void loadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered", conditionNum);
-    ((void)(conditionNum));
+    (void)conditionNum;
     /*
 if (conditionNum < m_condition_level)
 {
@@ -183,7 +183,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared", conditionNum);
-    ((void)(conditionNum));
+    (void)conditionNum;
     /*for (size_t kk = 0; kk < m_zones; ++kk)
 {
 if (cStates[kk] == condition_status_t::active)

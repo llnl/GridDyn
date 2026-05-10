@@ -159,7 +159,7 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     generateOutputNames();
     createFilterBlocks();
-    return sensor::dynObjectInitializeA(time0, flags);
+    sensor::dynObjectInitializeA(time0, flags);
 }
 
 void pmu::generateOutputNames()
@@ -294,7 +294,7 @@ void pmu::generateAndTransmitMessage() const
         payload->multiValues.resize(res.size());
         payload->multiUnits.resize(res.size());
         payload->m_time = prevTime;
-        for (index_t ii = 0; ii < static_cast<index_t>(res.size()); ++ii) {
+        for (size_t ii = 0; ii < res.size(); ++ii) {
             payload->multiFields[ii] = oname[ii][0];
             payload->multiValues[ii] = res[ii];
             payload->multiUnits[ii] = to_string(outputUnits(ii));

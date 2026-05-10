@@ -23,7 +23,7 @@ busRelay::busRelay(const std::string& objName): Relay(objName)
 
 coreObject* busRelay::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<busRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<busRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -90,12 +90,12 @@ void busRelay::set(std::string_view param, double val, units::unit unitType)
 
 void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    auto ge = std::make_unique<Event>(0.0);
+    auto tripEvent = std::make_unique<Event>(0.0);
 
-    ge->setValue(0.0);
-    ge->setTarget(m_sinkObject, "status");
+    tripEvent->setValue(0.0);
+    tripEvent->setTarget(m_sinkObject, "status");
 
-    add(std::shared_ptr<Event>(std::move(ge)));
+    add(std::shared_ptr<Event>(std::move(tripEvent)));
 
     add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     setActionTrigger(0, 0, mVoltageDelay);

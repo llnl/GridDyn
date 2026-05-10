@@ -102,56 +102,57 @@ void breaker::set(std::string_view param, double val, units::unit unitType)
 
 void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    auto ge = std::make_shared<Event>();
-    auto ge2 = std::make_shared<Event>();
+    auto tripEvent = std::make_shared<Event>();
+    auto recloseEvent = std::make_shared<Event>();
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
             make_condition("current" + std::to_string(m_terminal), ">=", mLimit, m_sourceObject)));
-        ge->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
-        ge->setValue(1.0);
+        tripEvent->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
+        tripEvent->setValue(1.0);
         // action 2 to re-close switch
-        ge2->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
-        ge2->setValue(0.0);
+        recloseEvent->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
+        recloseEvent->setValue(0.0);
         mBus = static_cast<Link*>(m_sourceObject)->getBus(m_terminal);
     } else {
         add(std::shared_ptr<Condition>(
             make_condition("sqrt(p^2+q^2)/@bus:v", ">=", mLimit, m_sourceObject)));
         opFlags.set(nonlink_source_flag);
-        ge->setTarget(m_sinkObject, "status");
-        ge->setValue(0.0);
+        tripEvent->setTarget(m_sinkObject, "status");
+        tripEvent->setValue(0.0);
         // action 2 to re-enable object
-        ge2->setTarget(m_sinkObject, "status");
-        ge2->setValue(0.0);
+        recloseEvent->setTarget(m_sinkObject, "status");
+        recloseEvent->setValue(0.0);
         mBus = static_cast<gridBus*>(m_sourceObject->find("bus"));
     }
 
-    add(std::move(ge));
-    add(std::move(ge2));
+    add(std::move(tripEvent));
+    add(std::move(recloseEvent));
     // now make the Condition for the I2T condition
-    auto gc = std::make_shared<Condition>();
-    auto gc2 = std::make_shared<Condition>();
+    auto upperCtiCondition = std::make_shared<Condition>();
+    auto lowerCtiCondition = std::make_shared<Condition>();
 
-    auto cg = std::make_unique<customGrabber>();
-    cg->setGrabberFunction("I2T", [this](coreObject* /*unused*/) { return mCti; });
+    auto ctiGrabber = std::make_unique<customGrabber>();
+    ctiGrabber->setGrabberFunction("I2T", [this](coreObject* /*unused*/) { return mCti; });
 
-    auto cgst = std::make_unique<customStateGrabber>(this);
-    cgst->setGrabberFunction(
-        [](coreObject* obj, const stateData& sD, const solverMode& sMode) -> double {
-            return sD.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
+    auto ctiStateGrabber = std::make_unique<customStateGrabber>(this);
+    ctiStateGrabber->setGrabberFunction(
+        [](coreObject* obj, const stateData& stateDataRef, const solverMode& sMode) -> double {
+            return stateDataRef.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
-    auto gset = std::make_shared<grabberSet>(std::move(cg), std::move(cgst));
-    gc->setConditionLHS(gset);
+    auto ctiGrabberSet =
+        std::make_shared<grabberSet>(std::move(ctiGrabber), std::move(ctiStateGrabber));
+    upperCtiCondition->setConditionLHS(ctiGrabberSet);
 
-    gc2->setConditionLHS(std::move(gset));  // done with gset don't need it after this point
+    lowerCtiCondition->setConditionLHS(std::move(ctiGrabberSet));
 
-    gc->setConditionRHS(1.0);
-    gc2->setConditionRHS(-0.5);
-    gc->setComparison(comparison_type::gt);
-    gc2->setComparison(comparison_type::lt);
+    upperCtiCondition->setConditionRHS(1.0);
+    lowerCtiCondition->setConditionRHS(-0.5);
+    upperCtiCondition->setComparison(comparison_type::gt);
+    lowerCtiCondition->setComparison(comparison_type::lt);
 
-    add(std::move(gc));
-    add(std::move(gc2));
+    add(std::move(upperCtiCondition));
+    add(std::move(lowerCtiCondition));
     setConditionStatus(1, condition_status_t::disabled);
     setConditionStatus(2, condition_status_t::disabled);
 
@@ -215,11 +216,11 @@ void breaker::updateA(coreTime time)
 
 stateSizes breaker::LocalStateSizes(const solverMode& sMode) const
 {
-    stateSizes SS;
+    stateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
-        SS.diffSize = 1;
+        stateSizeSet.diffSize = 1;
     }
-    return SS;
+    return stateSizeSet;
 }
 
 count_t breaker::LocalJacobianCount(const solverMode& sMode) const
@@ -234,8 +235,8 @@ void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode
 {
     prevTime = time;
     if (mLimit < kBigNum / 2.0) {
-        double val = getConditionValue(0);
-        if (val > mLimit) {
+        const double conditionValue = getConditionValue(0);
+        if (conditionValue > mLimit) {
             opFlags.set(breaker_tripped_flag);
             disable();
             alert(this, BREAKER_TRIP_CURRENT);
@@ -244,65 +245,66 @@ void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode
 }
 
 void breaker::jacobianElements(const IOdata& /*inputs*/,
-                               const stateData& sD,
-                               matrixData<double>& md,
+                               const stateData& stateDataRef,
+                               matrixData<double>& jacobian,
                                const IOlocs& /*inputLocs*/,
                                const solverMode& sMode)
 {
     if (mUseCti) {
-        matrixDataSparse<double> d;
+        matrixDataSparse<double> localJacobian;
         IOdata out;
         auto voltageOffset = mBus->getOutputLoc(sMode, voltageInLocation);
-        auto inputs = mBus->getOutputs(noInputs, sD, sMode);
+        auto inputs = mBus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = mBus->getOutputLocs(sMode);
         if (opFlags[nonlink_source_flag]) {
-            auto* gs = static_cast<gridSecondary*>(m_sourceObject);
-            out = gs->getOutputs(inputs, sD, sMode);
-            gs->outputPartialDerivatives(inputs, sD, d, sMode);
-            gs->ioPartialDerivatives(inputs, sD, d, inputLocs, sMode);
+            auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
+            out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
+            gridSecondaryObject->outputPartialDerivatives(inputs, stateDataRef, localJacobian, sMode);
+            gridSecondaryObject->ioPartialDerivatives(
+                inputs, stateDataRef, localJacobian, inputLocs, sMode);
         } else {
             auto* lnk = static_cast<Link*>(m_sourceObject);
             auto busId = mBus->getID();
-            lnk->updateLocalCache(noInputs, sD, sMode);
-            out = lnk->getOutputs(busId, sD, sMode);
-            lnk->outputPartialDerivatives(busId, sD, d, sMode);
-            lnk->ioPartialDerivatives(busId, sD, d, inputLocs, sMode);
+            lnk->updateLocalCache(noInputs, stateDataRef, sMode);
+            out = lnk->getOutputs(busId, stateDataRef, sMode);
+            lnk->outputPartialDerivatives(busId, stateDataRef, localJacobian, sMode);
+            lnk->ioPartialDerivatives(busId, stateDataRef, localJacobian, inputLocs, sMode);
         }
 
         auto offset = offsets.getDiffOffset(sMode);
 
-        double I = getConditionValue(0, sD, sMode);
+        const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
+        const double voltage = mBus->getVoltage(stateDataRef, sMode);
+        const double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
+        const double inverseScale = 1.0 / (apparentPower * voltage);
+        const double dIdP = out[PoutLocation] * inverseScale;
+        const double dIdQ = out[QoutLocation] * inverseScale;
 
-        double voltage = mBus->getVoltage(sD, sMode);
+        localJacobian.scaleRow(PoutLocation, dIdP);
+        localJacobian.scaleRow(QoutLocation, dIdQ);
+        localJacobian.translateRow(PoutLocation, offset);
+        localJacobian.translateRow(QoutLocation, offset);
 
-        double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
-        double temp = 1.0 / (apparentPower * voltage);
-        double dIdP = out[PoutLocation] * temp;
-        double dIdQ = out[QoutLocation] * temp;
-
-        d.scaleRow(PoutLocation, dIdP);
-        d.scaleRow(QoutLocation, dIdQ);
-        d.translateRow(PoutLocation, offset);
-        d.translateRow(QoutLocation, offset);
-
-        d.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
+        localJacobian.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
         double dRdI;
-        if (I > mLimit) {
-            dRdI = pow((mRecloserTap / (pow(I - mLimit, 1.5)) + mMinClearingTime), -2.0) *
-                (1.5 * mRecloserTap / (pow(I - mLimit, 2.5)));
+        if (currentMagnitude > mLimit) {
+            dRdI = pow((mRecloserTap / (pow(currentMagnitude - mLimit, 1.5)) + mMinClearingTime), -2.0) *
+                (1.5 * mRecloserTap / (pow(currentMagnitude - mLimit, 2.5)));
         } else {
-            dRdI = -pow((mRecloserTap / (pow(mLimit - I + 1e-8, 1.5)) + mMinClearingTime), -2.0) *
-                (1.5 * mRecloserTap / (pow(mLimit - I + 1e-8, 2.5)));
+            dRdI = -pow((mRecloserTap / (pow(mLimit - currentMagnitude + 1e-8, 1.5)) +
+                         mMinClearingTime),
+                        -2.0) *
+                (1.5 * mRecloserTap / (pow(mLimit - currentMagnitude + 1e-8, 2.5)));
         }
 
-        d.scaleRow(offset, dRdI);
+        localJacobian.scaleRow(offset, dRdI);
 
-        md.merge(d);
+        jacobian.merge(localJacobian);
 
-        md.assign(offset, offset, -sD.cj);
+        jacobian.assign(offset, offset, -stateDataRef.cj);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
-        md.assign(offset, offset, sD.cj);
+        jacobian.assign(offset, offset, stateDataRef.cj);
     }
 }
 
@@ -319,34 +321,31 @@ void breaker::setState(coreTime time,
 }
 
 void breaker::residual(const IOdata& /*inputs*/,
-                       const stateData& sD,
+                       const stateData& stateDataRef,
                        double resid[],
                        const solverMode& sMode)
 {
     if (mUseCti) {
         auto offset = offsets.getDiffOffset(sMode);
-        const double* dst = sD.dstate_dt + offset;
+        const double* dst = stateDataRef.dstate_dt + offset;
 
         if (!opFlags[nonlink_source_flag]) {
-            static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, sD, sMode);
+            static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, stateDataRef, sMode);
         }
-        double I1 = getConditionValue(0, sD, sMode);
+        const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
         double temp;
-        if (I1 > mLimit) {
-            temp = pow(I1 - mLimit, 1.5);
+        if (currentMagnitude > mLimit) {
+            temp = pow(currentMagnitude - mLimit, 1.5);
             resid[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime) - *dst;
             assert(!std::isnan(resid[offset]));
         } else {
-            temp = pow(mLimit - I1 + 1e-8, 1.5);
+            temp = pow(mLimit - currentMagnitude + 1e-8, 1.5);
             resid[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime) - *dst;
             assert(!std::isnan(resid[offset]));
         }
-
-        // printf("tt=%f::I1=%f, r[%d]=%f, stv=%f\n", sD.time, I1, offset, 1.0 / (recloserTap /
-        // temp + minClearingTime),sD.state[offset]);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
-        resid[offset] = sD.dstate_dt[offset];
+        resid[offset] = stateDataRef.dstate_dt[offset];
     }
 }
 
@@ -357,14 +356,14 @@ void breaker::guessState(const coreTime /*time*/,
 {
     if (mUseCti) {
         auto offset = offsets.getDiffOffset(sMode);
-        double I1 = getConditionValue(0);
+        const double currentMagnitude = getConditionValue(0);
         state[offset] = mCti;
         double temp;
-        if (I1 > mLimit) {
-            temp = pow(I1 - mLimit, 1.5);
+        if (currentMagnitude > mLimit) {
+            temp = pow(currentMagnitude - mLimit, 1.5);
             dstate_dt[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime);
         } else {
-            temp = pow(mLimit - I1 + 1e-8, 1.5);
+            temp = pow(mLimit - currentMagnitude + 1e-8, 1.5);
             dstate_dt[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime);
         }
     } else if (stateSize(sMode) > 0) {
@@ -380,8 +379,8 @@ void breaker::getStateName(stringVec& stNames,
 {
     if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
-        if (offset >= static_cast<index_t>(stNames.size())) {
-            stNames.resize(offset + 1);
+        if (static_cast<size_t>(offset) >= stNames.size()) {
+            stNames.resize(static_cast<size_t>(offset) + 1);
         }
         if (prefix.empty()) {
             stNames[offset] = getName() + ":trigger_proximity";

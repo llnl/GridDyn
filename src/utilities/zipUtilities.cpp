@@ -14,17 +14,17 @@
 
 namespace utilities {
 static constexpr char zipname[] = "minizip";
-static constexpr char ziparg_overwrite[] = "-o";
-static constexpr char ziparg_append[] = "-a";
-static constexpr char ziparg2[] = "-3";
-static constexpr char ziparg3[] = "-j";
+static constexpr char zipargOverwrite[] = "-o";
+static constexpr char zipargAppend[] = "-a";
+static constexpr char zipargCompression[] = "-3";
+static constexpr char zipargJunkPath[] = "-j";
 
 int zip(const std::string& file, const std::vector<std::string>& filesToZip, zipMode mode)
 {
 #define NUMBER_FIXED_ARGS 5
 
-    std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
+    std::vector<char> fileBuffer(file.c_str(),
+                                 file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
 
     /* Input arguments to the corresponding minizip main() function call */
     /*
@@ -39,28 +39,28 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
     -j  exclude path. store only the file name.
     */
     std::vector<const char*> argv{zipname,
-                                  (mode == zipMode::overwrite) ? ziparg_overwrite : ziparg_append,
-                                  ziparg2,
-                                  ziparg3,
-                                  fileV.data()};
-    std::vector<std::vector<char>> filez(filesToZip.size());
+                                  (mode == zipMode::overwrite) ? zipargOverwrite : zipargAppend,
+                                  zipargCompression,
+                                  zipargJunkPath,
+                                  fileBuffer.data()};
+    std::vector<std::vector<char>> fileBuffers(filesToZip.size());
     const size_t argc = NUMBER_FIXED_ARGS + filesToZip.size();
     argv.resize(argc + 1, nullptr);
 
     /* need to copy over the arguments since theoretically minizip may modify the input arguments */
     for (size_t kk = 0; kk < filesToZip.size(); kk++) {
-        filez[kk].assign(filesToZip[kk].c_str(),
-                         filesToZip[kk].c_str() + filesToZip[kk].size() +
-                             1U);  // 1U to copy the NULL at the end of the string
-        argv[NUMBER_FIXED_ARGS + kk] = filez[kk].data();
+        fileBuffers[kk].assign(filesToZip[kk].c_str(),
+                               filesToZip[kk].c_str() + filesToZip[kk].size() +
+                                   1U);  // 1U to copy the NULL at the end of the string
+        argv[NUMBER_FIXED_ARGS + kk] = fileBuffers[kk].data();
     }
     /* minizip may change the current working directory */
-    auto cpath = std::filesystem::current_path();
+    auto currentPath = std::filesystem::current_path();
     /* Zip */
     const int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
-    std::filesystem::current_path(cpath);
+    std::filesystem::current_path(currentPath);
 
     return status;
 }
@@ -88,56 +88,56 @@ static void addToFileList(std::vector<std::filesystem::path>& files,
 
 int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mode)
 {
-    const std::filesystem::path dpath(folderLoc);
-    if (!std::filesystem::is_directory(dpath)) {
+    const std::filesystem::path directoryPath(folderLoc);
+    if (!std::filesystem::is_directory(directoryPath)) {
         return -2;
     }
     /* we are changing the working directory */
-    auto cpath = std::filesystem::current_path();
+    auto currentPath = std::filesystem::current_path();
 
-    std::filesystem::current_path(dpath);
+    std::filesystem::current_path(directoryPath);
 
     /** get all the files to add*/
-    std::vector<std::filesystem::path> zfiles;
+    std::vector<std::filesystem::path> zippedFiles;
 
-    addToFileList(zfiles, std::filesystem::current_path());
+    addToFileList(zippedFiles, std::filesystem::current_path());
 
-    for (auto& pth : zfiles) {
-        pth = std::filesystem::relative(pth, dpath);
+    for (auto& path : zippedFiles) {
+        path = std::filesystem::relative(path, directoryPath);
     }
 
-    std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
+    std::vector<char> fileBuffer(file.c_str(),
+                                 file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
 
     std::vector<const char*> argv{zipname,
-                                  (mode == zipMode::overwrite) ? ziparg_overwrite : ziparg_append,
-                                  ziparg2,
-                                  fileV.data()};
-    std::vector<std::vector<char>> filez(zfiles.size());
-    const size_t argc = 4 + zfiles.size();
+                                  (mode == zipMode::overwrite) ? zipargOverwrite : zipargAppend,
+                                  zipargCompression,
+                                  fileBuffer.data()};
+    std::vector<std::vector<char>> fileBuffers(zippedFiles.size());
+    const size_t argc = 4 + zippedFiles.size();
     argv.resize(argc + 1, nullptr);
 
     /* need to copy over the arguments since theoretically minizip may modify the input arguments */
-    for (size_t kk = 0; kk < zfiles.size(); kk++) {
-        auto filestr = zfiles[kk].string();
-        filez[kk].assign(filestr.c_str(),
-                         filestr.c_str() + filestr.size() +
-                             1U);  // 1U to copy the NULL at the end of the string
-        argv[4 + kk] = filez[kk].data();
+    for (size_t kk = 0; kk < zippedFiles.size(); kk++) {
+        auto fileString = zippedFiles[kk].string();
+        fileBuffers[kk].assign(fileString.c_str(),
+                               fileString.c_str() + fileString.size() +
+                                   1U);  // 1U to copy the NULL at the end of the string
+        argv[4 + kk] = fileBuffers[kk].data();
     }
 
     /* Zip */
     const int status = minizip(static_cast<int>(argc), argv.data());
 
     /* Reset the current directory */
-    std::filesystem::current_path(cpath);
+    std::filesystem::current_path(currentPath);
     return status;
 }
 
 static constexpr char unzipname[] = "miniunz";
-static constexpr char unziparg1[] = "-x";
-static constexpr char unziparg2[] = "-o";
-static constexpr char unziparg4[] = "-d";
+static constexpr char unzipargExtract[] = "-x";
+static constexpr char unzipargOverwrite[] = "-o";
+static constexpr char unzipargDirectory[] = "-d";
 
 int unzip(const std::string& file, const std::string& directory)
 {
@@ -154,16 +154,16 @@ int unzip(const std::string& file, const std::string& directory)
 
     int argc = 4;
 
-    std::vector<char> fileV(file.c_str(),
-                            file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
-    std::vector<char> dirV(directory.c_str(), directory.c_str() + directory.size() + 1U);
-    std::vector<const char*> argv{unzipname, unziparg1, unziparg2, fileV.data()};
+    std::vector<char> fileBuffer(file.c_str(),
+                                 file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
+    std::vector<char> directoryBuffer(directory.c_str(), directory.c_str() + directory.size() + 1U);
+    std::vector<const char*> argv{unzipname, unzipargExtract, unzipargOverwrite, fileBuffer.data()};
 
     if (!directory.empty()) {
         argc = 6;
         argv.resize(6);
-        argv[4] = unziparg4;
-        argv[5] = dirV.data();
+        argv[4] = unzipargDirectory;
+        argv[5] = directoryBuffer.data();
 
         if (!std::filesystem::exists(directory)) {
             std::filesystem::create_directories(directory);
@@ -174,13 +174,13 @@ int unzip(const std::string& file, const std::string& directory)
     }
 
     /* minunz may change the current working directory */
-    auto cpath = std::filesystem::current_path();
+    auto currentPath = std::filesystem::current_path();
 
     /* Unzip */
     const int status = miniunz(argc, argv.data());
 
     /* Reset the current directory */
-    std::filesystem::current_path(cpath);
+    std::filesystem::current_path(currentPath);
 
     return status;
 }

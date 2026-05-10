@@ -12,8 +12,8 @@
 namespace griddyn {
 const std::shared_ptr<gmlc::containers::WorkQueue>& getGlobalWorkQueue(int threads)
 {
-    static std::shared_ptr<gmlc::containers::WorkQueue> p_instance =
+    static std::shared_ptr<gmlc::containers::WorkQueue> instance =
         std::make_shared<gmlc::containers::WorkQueue>(threads);
-    return p_instance;
+    return instance;
 }
 }  // namespace griddyn

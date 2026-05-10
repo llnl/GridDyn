@@ -18,8 +18,8 @@ namespace utilities {
 template<typename keyType, typename dataType>
 class dataDictionary {
   private:
-    std::unordered_map<keyType, dataType> Vals;
-    mutable std::mutex datalock;
+    std::unordered_map<keyType, dataType> mValues;
+    mutable std::mutex mDataLock;
 
   public:
     dataDictionary() = default;
@@ -29,18 +29,18 @@ class dataDictionary {
     */
     void update(keyType key, const dataType& data)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        Vals[key] = data;
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        mValues[key] = data;
     }
     /** erase a value from the dictionary
     @param[in] key the lookup value to erase data for
     */
     void erase(keyType key)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        auto floc = Vals.find(origKey);
-        if (floc != Vals.end()) {
-            Vals.erase(floc);
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        auto found = mValues.find(key);
+        if (found != mValues.end()) {
+            mValues.erase(found);
         }
     }
     /** copy a value from one key to another
@@ -49,22 +49,22 @@ class dataDictionary {
     */
     void copy(keyType origKey, keyType newKey)
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        auto floc = Vals.find(origKey);
-        if (floc != Vals.end()) {
-            Vals[newKey] = floc->second;
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        auto found = mValues.find(origKey);
+        if (found != mValues.end()) {
+            mValues[newKey] = found->second;
         }
     }
     /** thread safe function to get the values */
     dataType query(keyType key) const
     {
-        std::lock_guard<std::mutex> updateLock(datalock);
-        return mapFind(Vals, key, dataType());
+        std::lock_guard<std::mutex> updateLock(mDataLock);
+        return mapFind(mValues, key, dataType());
     }
     /** same as query but not really threadsafe on read
     @details intended to be used if all the writes happen then just reads in a multithreaded context
     */
-    dataType operator[](keyType key) const { return mapFind(Vals, key, dataType()); }
+    dataType operator[](keyType key) const { return mapFind(mValues, key, dataType()); }
 };
 
 }  // namespace utilities

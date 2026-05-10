@@ -13,9 +13,9 @@ namespace utilities {
 template<typename InputType, typename OutputType = InputType, typename SlopeType = OutputType>
 class valuePredictor {
   private:
-    InputType lastKnownInput_;  //!< the last known time
-    OutputType lastKnownOutput_;  //!< the last known Value
-    SlopeType slope_;  //!< the rate of change
+    InputType mLastKnownInput;  //!< the last known time
+    OutputType mLastKnownOutput;  //!< the last known Value
+    SlopeType mSlope;  //!< the rate of change
 
   public:
     /** construction the predictor
@@ -24,7 +24,7 @@ class valuePredictor {
     @param[in] slope0 [optional] the initial rate of change
     */
     valuePredictor(InputType input0, OutputType output0, SlopeType slope0 = SlopeType(0)):
-        lastKnownInput_(input0), lastKnownOutput_(output0), slope_(slope0)
+        mLastKnownInput(input0), mLastKnownOutput(output0), mSlope(slope0)
     {
     }
     /** destructor*/
@@ -46,27 +46,27 @@ class valuePredictor {
      */
     virtual void update(InputType input, OutputType output)
     {
-        if (input - lastKnownInput_ > InputType{0}) {
-            slope_ = (output - lastKnownOutput_) / (input - lastKnownInput_);
+        if (input - mLastKnownInput > InputType{0}) {
+            mSlope = (output - mLastKnownOutput) / (input - mLastKnownInput);
         }
-        lastKnownInput_ = input;
-        lastKnownOutput_ = output;
+        mLastKnownInput = input;
+        mLastKnownOutput = output;
     }
     /** @brief set the rate at a user specified value
      */
-    virtual void setSlope(SlopeType newSlope) { slope_ = newSlope; }
+    virtual void setSlope(SlopeType newSlope) { mSlope = newSlope; }
     /** update the saturation type function by enumeration*/
     virtual OutputType predict(InputType input) const
     {
-        return lastKnownOutput_ + (input - lastKnownInput_) * slope_;
+        return mLastKnownOutput + (input - mLastKnownInput) * mSlope;
     }
     /** update the saturation type function by enumeration*/
     OutputType operator()(InputType input) const { return predict(input); }
     /** getKnownInput*/
-    InputType getKnownInput() const { return lastKnownInput_; }
+    InputType getKnownInput() const { return mLastKnownInput; }
     /** getKnownOutput*/
-    OutputType getKnownOutput() const { return lastKnownOutput_; }
+    OutputType getKnownOutput() const { return mLastKnownOutput; }
     /** get the rate of change*/
-    SlopeType getSlope() const { return slope_; }
+    SlopeType getSlope() const { return mSlope; }
 };
 }  // namespace utilities

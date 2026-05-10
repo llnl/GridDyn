@@ -25,9 +25,11 @@ class pmu: public sensor {
 
   protected:
     coreTime mTransmissionPeriod = 1.0 / 30.0;  //!< the rate of data transmission
-    model_parameter mVoltageFilterTime = 0.05;  //!< filter time constant for the voltage measurement
+    model_parameter mVoltageFilterTime =
+        0.05;  //!< filter time constant for the voltage measurement
     model_parameter mAngleFilterTime = 0.05;  //!< filter time constant for the angle measurement
-    model_parameter mCurrentFilterTime = 0.05;  //!< filter time constant for the current measurement
+    model_parameter mCurrentFilterTime =
+        0.05;  //!< filter time constant for the current measurement
     model_parameter mRocofFilterTime = 0.05;  //!< filter time constant for computing the ROCOF
     model_parameter mSampleRate = 720.0;  //!< [Hz] the actual sample time
   private:

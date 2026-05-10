@@ -29,8 +29,8 @@ using gmlc::utilities::fsize_t;
 static classFactory<collector> collFac("collector");
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static childClassFactory<Recorder, collector> grFac(
-    std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
+static childClassFactory<Recorder, collector>
+    grFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
 collector::collector(coreTime time0, coreTime period):
     mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0)

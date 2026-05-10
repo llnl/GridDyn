@@ -27,10 +27,10 @@ coreObject* busRelay::clone(coreObject* obj) const
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->cutoutVoltage = cutoutVoltage;
-    nobj->cutoutFrequency = cutoutFrequency;
-    nobj->voltageDelay = voltageDelay;
-    nobj->frequencyDelay = frequencyDelay;
+    nobj->mCutoutVoltage = mCutoutVoltage;
+    nobj->mCutoutFrequency = mCutoutFrequency;
+    nobj->mVoltageDelay = mVoltageDelay;
+    nobj->mFrequencyDelay = mFrequencyDelay;
     return nobj;
 }
 
@@ -57,31 +57,31 @@ void busRelay::set(std::string_view param, std::string_view val)
 void busRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
-        cutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
+        mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
         if (opFlags[dyn_initialized]) {
-            setConditionLevel(0, cutoutVoltage);
+            setConditionLevel(0, mCutoutVoltage);
         }
     } else if ((param == "cutoutfrequency") || (param == "freqlimit")) {
-        cutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
+        mCutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
         if (opFlags[dyn_initialized]) {
-            setConditionLevel(1, cutoutFrequency);
+            setConditionLevel(1, mCutoutFrequency);
         }
     } else if (param == "delay") {
-        voltageDelay = val;
-        frequencyDelay = val;
+        mVoltageDelay = val;
+        mFrequencyDelay = val;
         if (opFlags[dyn_initialized]) {
-            setActionTrigger(0, 0, voltageDelay);
-            setActionTrigger(0, 1, frequencyDelay);
+            setActionTrigger(0, 0, mVoltageDelay);
+            setActionTrigger(0, 1, mFrequencyDelay);
         }
     } else if (param == "voltagedelay") {
-        voltageDelay = val;
+        mVoltageDelay = val;
         if (opFlags[dyn_initialized]) {
-            setActionTrigger(0, 0, voltageDelay);
+            setActionTrigger(0, 0, mVoltageDelay);
         }
     } else if (param == "frequencydelay") {
-        frequencyDelay = val;
+        mFrequencyDelay = val;
         if (opFlags[dyn_initialized]) {
-            setActionTrigger(0, 1, frequencyDelay);
+            setActionTrigger(0, 1, mFrequencyDelay);
         }
     } else {
         Relay::set(param, val, unitType);
@@ -97,15 +97,15 @@ void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     add(std::shared_ptr<Event>(std::move(ge)));
 
-    add(std::shared_ptr<Condition>(make_condition("voltage", "<", cutoutVoltage, m_sourceObject)));
-    setActionTrigger(0, 0, voltageDelay);
-    if ((cutoutVoltage > 2.0) || (cutoutVoltage <= 0)) {
+    add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
+    setActionTrigger(0, 0, mVoltageDelay);
+    if ((mCutoutVoltage > 2.0) || (mCutoutVoltage <= 0)) {
         setConditionStatus(0, condition_status_t::disabled);
     }
     add(std::shared_ptr<Condition>(
-        make_condition("frequency", "<", cutoutFrequency, m_sourceObject)));
-    setActionTrigger(0, 1, frequencyDelay);
-    if ((cutoutFrequency > 2.0) || (cutoutFrequency <= 0)) {
+        make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
+    setActionTrigger(0, 1, mFrequencyDelay);
+    if ((mCutoutFrequency > 2.0) || (mCutoutFrequency <= 0)) {
         setConditionStatus(1, condition_status_t::disabled);
     }
 

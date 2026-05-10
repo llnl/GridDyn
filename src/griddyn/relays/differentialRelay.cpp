@@ -30,10 +30,10 @@ coreObject* differentialRelay::clone(coreObject* obj) const
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->m_max_differential = m_max_differential;
-    nobj->m_delayTime = m_delayTime;
+    nobj->mMaxDifferential = mMaxDifferential;
+    nobj->mDelayTime = mDelayTime;
     nobj->m_resetMargin = m_resetMargin;
-    nobj->m_minLevel = m_minLevel;
+    nobj->mMinLevel = mMinLevel;
     return nobj;
 }
 
@@ -78,13 +78,13 @@ void differentialRelay::getParameterStrings(stringVec& pstr, paramStringType pst
 void differentialRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "delay") {
-        m_delayTime = val;
+        mDelayTime = val;
     } else if ((param == "level") || (param == "max_difference")) {
-        m_max_differential = val;
+        mMaxDifferential = val;
     } else if (param == "reset_margin") {
         m_resetMargin = val;
     } else if (param == "minlevel") {
-        m_minLevel = val;
+        mMinLevel = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -101,21 +101,21 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                 add(std::shared_ptr<Condition>(
                     make_condition("abs(" + c1 + "-current2)/max(abs(" + c1 + "),abs(current2))",
                                    ">",
-                                   m_max_differential,
+                                   mMaxDifferential,
                                    m_sourceObject)));
-                if (m_minLevel > 0.0) {
+                if (mMinLevel > 0.0) {
                     add(std::shared_ptr<Condition>(make_condition(
-                        "max(abs(" + c1 + "),abs(current2))", ">", m_minLevel, m_sourceObject)));
+                        "max(abs(" + c1 + "),abs(current2))", ">", mMinLevel, m_sourceObject)));
                 }
             } else {
                 add(std::shared_ptr<Condition>(
                     make_condition("abs(current1-current2)/max(abs(current1),abs(current2))",
                                    ">",
-                                   m_max_differential,
+                                   mMaxDifferential,
                                    m_sourceObject)));
-                if (m_minLevel > 0.0) {
+                if (mMinLevel > 0.0) {
                     add(std::shared_ptr<Condition>(make_condition(
-                        "max(abs(current1),abs(current2))", ">", m_minLevel, m_sourceObject)));
+                        "max(abs(current1),abs(current2))", ">", mMinLevel, m_sourceObject)));
                 }
             }
         } else {
@@ -123,18 +123,18 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                 add(std::shared_ptr<Condition>(
                     make_condition("abs(" + std::to_string(tap) + "*current1-current2)",
                                    ">",
-                                   m_max_differential,
+                                   mMaxDifferential,
                                    m_sourceObject)));
             } else {
                 add(std::shared_ptr<Condition>(make_condition(
-                    "abs(current1-current2)", ">", m_max_differential, m_sourceObject)));
+                    "abs(current1-current2)", ">", mMaxDifferential, m_sourceObject)));
             }
         }
         opFlags.set(link_mode);
         opFlags.reset(bus_mode);
     } else if (dynamic_cast<gridBus*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
-            make_condition("abs(load)", "<=", m_max_differential, m_sourceObject)));
+            make_condition("abs(load)", "<=", mMaxDifferential, m_sourceObject)));
         opFlags.set(bus_mode);
         opFlags.reset(link_mode);
     }
@@ -146,10 +146,10 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // action 2 to re-enable object
 
     add(std::move(ge));
-    if ((opFlags[relative_differential_flag]) && (opFlags[link_mode]) && (m_minLevel > 0.0)) {
-        setActionMultiTrigger(0, {0, 1}, m_delayTime);
+    if ((opFlags[relative_differential_flag]) && (opFlags[link_mode]) && (mMinLevel > 0.0)) {
+        setActionMultiTrigger(0, {0, 1}, mDelayTime);
     } else {
-        setActionTrigger(0, 0, m_delayTime);
+        setActionTrigger(0, 0, mDelayTime);
     }
 
     Relay::pFlowObjectInitializeA(time0, flags);

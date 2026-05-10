@@ -24,15 +24,15 @@ class pmu: public sensor {
     };
 
   protected:
-    coreTime transmissionPeriod = 1.0 / 30.0;  //!< the rate of data transmission
-    model_parameter Tv = 0.05;  //!< filter time constant for the voltage measurement
-    model_parameter Ttheta = 0.05;  //!< filter time constant for the angle measurement
-    model_parameter Tcurrent = 0.05;  //!< filter time constant for the current measurement
-    model_parameter Trocof = 0.05;  //!< filter time constant for computing the ROCOF
-    model_parameter sampleRate = 720.0;  //!< [Hz] the actual sample time
+    coreTime mTransmissionPeriod = 1.0 / 30.0;  //!< the rate of data transmission
+    model_parameter mVoltageFilterTime = 0.05;  //!< filter time constant for the voltage measurement
+    model_parameter mAngleFilterTime = 0.05;  //!< filter time constant for the angle measurement
+    model_parameter mCurrentFilterTime = 0.05;  //!< filter time constant for the current measurement
+    model_parameter mRocofFilterTime = 0.05;  //!< filter time constant for computing the ROCOF
+    model_parameter mSampleRate = 720.0;  //!< [Hz] the actual sample time
   private:
-    coreTime nextTransmitTime = maxTime;  //!< the time of the next transmission
-    coreTime lastTransmitTime = negTime;  //!< the time of the last transmission
+    coreTime mNextTransmitTime = maxTime;  //!< the time of the next transmission
+    coreTime mLastTransmitTime = negTime;  //!< the time of the last transmission
   public:
     pmu(const std::string& objName = "pmu_$");
     coreObject* clone(coreObject* obj = nullptr) const override;

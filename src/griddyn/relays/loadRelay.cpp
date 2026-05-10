@@ -27,11 +27,11 @@ coreObject* loadRelay::clone(coreObject* obj) const
         return obj;
     }
 
-    nobj->cutoutVoltage = cutoutVoltage;
-    nobj->cutoutFrequency = cutoutFrequency;
-    nobj->voltageDelay = voltageDelay;
-    nobj->frequencyDelay = frequencyDelay;
-    nobj->offTime = offTime;
+    nobj->mCutoutVoltage = mCutoutVoltage;
+    nobj->mCutoutFrequency = mCutoutFrequency;
+    nobj->mVoltageDelay = mVoltageDelay;
+    nobj->mFrequencyDelay = mFrequencyDelay;
+    nobj->mOffTime = mOffTime;
     return nobj;
 }
 
@@ -59,18 +59,18 @@ void loadRelay::set(std::string_view param, std::string_view val)
 void loadRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
-        cutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
+        mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
     } else if ((param == "cutoutfrequency") || (param == "freqlimit")) {
-        cutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
+        mCutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
     } else if (param == "delay") {
-        voltageDelay = val;
-        frequencyDelay = val;
+        mVoltageDelay = val;
+        mFrequencyDelay = val;
     } else if (param == "voltagedelay") {
-        voltageDelay = val;
+        mVoltageDelay = val;
     } else if (param == "frequencydelay") {
-        frequencyDelay = val;
+        mFrequencyDelay = val;
     } else if (param == "offtime") {
-        offTime = val;
+        mOffTime = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -84,16 +84,16 @@ void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     ge->setValue(0.0);
 
     add(std::move(ge));
-    add(std::shared_ptr<Condition>(make_condition("voltage", "<", cutoutVoltage, m_sourceObject)));
+    add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     add(std::shared_ptr<Condition>(
-        make_condition("frequency", "<", cutoutFrequency, m_sourceObject)));
-    if (cutoutVoltage < 2.0) {
-        setActionTrigger(0, 0, voltageDelay);
+        make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
+    if (mCutoutVoltage < 2.0) {
+        setActionTrigger(0, 0, mVoltageDelay);
     } else {
         setConditionStatus(0, condition_status_t::disabled);
     }
-    if (cutoutFrequency < 2.0) {
-        setActionTrigger(0, 1, frequencyDelay);
+    if (mCutoutFrequency < 2.0) {
+        setActionTrigger(0, 1, mFrequencyDelay);
     } else {
         setConditionStatus(1, condition_status_t::disabled);
     }

@@ -21,11 +21,11 @@ class loadRelay: public Relay {
     };
 
   protected:
-    double cutoutVoltage = 0.0;  //!<[puV] low voltage trigger for load
-    double cutoutFrequency = 0.0;  //!<[puHz] low frequency trigger for load
-    coreTime voltageDelay = timeZero;  //!<[s]  the delay on the voltage trip
-    coreTime frequencyDelay = timeZero;  //!<[s] the delay on the frequency tripping
-    coreTime offTime = maxTime;  //!<[s] the time before the load comes back on line if the trip
+    double mCutoutVoltage = 0.0;  //!<[puV] low voltage trigger for load
+    double mCutoutFrequency = 0.0;  //!<[puHz] low frequency trigger for load
+    coreTime mVoltageDelay = timeZero;  //!<[s]  the delay on the voltage trip
+    coreTime mFrequencyDelay = timeZero;  //!<[s] the delay on the frequency tripping
+    coreTime mOffTime = maxTime;  //!<[s] the time before the load comes back on line if the trip
                                  //!< cause has been corrected
   public:
     explicit loadRelay(const std::string& objName = "loadRelay_$");

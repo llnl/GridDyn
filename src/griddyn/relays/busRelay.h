@@ -19,11 +19,11 @@ class busRelay: public Relay {
     };
 
   protected:
-    model_parameter cutoutVoltage = 0.0;  //!<[puV] low voltage limit
-    model_parameter cutoutFrequency = 0.0;  //!<[puHz] trip on low frequency
-    coreTime voltageDelay =
+    model_parameter mCutoutVoltage = 0.0;  //!<[puV] low voltage limit
+    model_parameter mCutoutFrequency = 0.0;  //!<[puHz] trip on low frequency
+    coreTime mVoltageDelay =
         timeZero;  //!< [s] period of time the voltage must be below limit to activate
-    coreTime frequencyDelay =
+    coreTime mFrequencyDelay =
         timeZero;  //!< [s] period of time the frequency must be below limit to activate
   public:
     explicit busRelay(const std::string& objName = "busrelay_$");

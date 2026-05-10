@@ -65,7 +65,7 @@ class stateGrabber: public objectOperatorInterface {
     /** clone the grabber*/
     virtual std::unique_ptr<stateGrabber> clone() const;
     /** clone a grabber to another grabber
-    @param[in] sgb a pointer to a grabber to clone to
+    @param[in] ggb a pointer to a grabber to clone to
     */
     virtual void cloneTo(stateGrabber* ggb) const;
 
@@ -74,13 +74,13 @@ class stateGrabber: public objectOperatorInterface {
     */
     virtual void updateField(std::string_view fld);
     /** retrieve the target data associated with a grabber
-    @param[in] sD the stateData to grab the data from
+    @param[in] stateDataValue the stateData to grab the data from
     @param[in] sMode the solver mode associated with the stateData
     */
     virtual double grabData(const stateData& stateDataValue, const solverMode& sMode);
     /** compute the partial derivatives of a grabber
-    @param[in] sD the stateData for computing the information
-    @param[in] md the  matrix to store the computed Jacobian information into
+    @param[in] stateDataValue the stateData for computing the information
+    @param[in] matrixDataValue the  matrix to store the computed Jacobian information into
     @param[in] sMode the solverMode associated with the stateData*/
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,

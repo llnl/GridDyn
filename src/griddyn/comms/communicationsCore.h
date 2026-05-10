@@ -41,8 +41,9 @@ class communicationsCore {
   @param[in] message - the message being sent
   @return SEND_SUCCESS if the message send was successful DESTINATION_NOT_FOUND otherwise
   */
-    virtual int
-        send(std::uint64_t source, std::string_view dest, std::shared_ptr<commMessage> message);
+    virtual int send(std::uint64_t source,
+                     std::string_view dest,
+                     const std::shared_ptr<commMessage>& message);
     /** send a message to a specified destination
   @param[in] source -the identity of the source of the message
   @param[in] dest the name of the destination
@@ -50,9 +51,9 @@ class communicationsCore {
   @return SEND_SUCCESS if the message send was successful DESTINATION_NOT_FOUND otherwise
   */
     virtual int
-        send(std::uint64_t source, std::uint64_t dest, std::shared_ptr<commMessage> message);
-    coreTime getTime() const { return m_time; }
-    void setTime(coreTime nTime) { m_time = nTime; }
+        send(std::uint64_t source, std::uint64_t dest, const std::shared_ptr<commMessage>& message);
+    coreTime getTime() const { return mTime; }
+    void setTime(coreTime nTime) { mTime = nTime; }
     /** lookup an id by name
   @param[in] commName the name of the communicator
   @return the id associated with the communicator*/
@@ -65,8 +66,8 @@ class communicationsCore {
   private:
     /** private constructor*/
     communicationsCore() = default;
-    commMapString m_stringMap;  //!< map containing the strings
-    commMapID m_idMap;  //!< map containing the id
-    coreTime m_time = timeZero;  //!< current time of the communicator
+    commMapString mStringMap;  //!< map containing the strings
+    commMapID mIdMap;  //!< map containing the id
+    coreTime mTime = timeZero;  //!< current time of the communicator
 };
 }  // namespace griddyn

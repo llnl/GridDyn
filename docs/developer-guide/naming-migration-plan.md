@@ -190,7 +190,7 @@ Types of work in this phase:
 
 ### Phase 3 Checklist By Subsystem
 
-- [~] `src/networking`
+- [x] `src/networking`
 - [ ] `src/griddyn/comms`
 - [ ] `src/griddyn/measurement`
 - [ ] `src/griddyn/relays`
@@ -437,9 +437,10 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch  | Area             | Phase   | Summary                                                             | Compatibility Needed | Tests Run            | Status      |
-| ------------ | ---------------- | ------- | ------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
-| working tree | `src/networking` | Phase 3 | Start DIME client naming cleanup and add baseline inventory tooling | No                   | Inventory script run | In progress |
+| PR / Branch  | Area                | Phase   | Summary                                                                          | Compatibility Needed | Tests Run            | Status      |
+| ------------ | ------------------- | ------- | -------------------------------------------------------------------------------- | -------------------- | -------------------- | ----------- |
+| merged       | `src/networking`    | Phase 3 | DIME client naming cleanup and baseline inventory tooling                        | No                   | Inventory script run | Complete    |
+| working tree | `src/griddyn/comms` | Phase 3 | Start low-risk private-member cleanup in `Communicator` and `communicationsCore` | No                   | Not yet run          | In progress |
 
 ## Open Decisions
 

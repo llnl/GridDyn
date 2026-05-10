@@ -53,7 +53,8 @@ void zmqCommunicator::cloneTo(Communicator* comm) const
     zmqComm->flags = flags;
 }
 
-void zmqCommunicator::transmit(std::string_view destName, std::shared_ptr<commMessage> message)
+void zmqCommunicator::transmit(std::string_view destName,
+                               const std::shared_ptr<commMessage>& message)
 {
     zmq::multipart_t txmsg;
     if (!flags[no_transmit_dest]) {
@@ -64,7 +65,7 @@ void zmqCommunicator::transmit(std::string_view destName, std::shared_ptr<commMe
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::transmit(std::uint64_t destID, std::shared_ptr<commMessage> message)
+void zmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message)
 {
     zmq::multipart_t txmsg;
     if (!flags[no_transmit_dest]) {
@@ -75,14 +76,16 @@ void zmqCommunicator::transmit(std::uint64_t destID, std::shared_ptr<commMessage
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::addHeader(zmq::multipart_t& msg, std::shared_ptr<commMessage>& /*message*/)
+void zmqCommunicator::addHeader(zmq::multipart_t& msg,
+                                const std::shared_ptr<commMessage>& /*message*/)
 {
     if (!flags[no_transmit_source]) {
         msg.addstr(getName());
     }
 }
 
-void zmqCommunicator::addMessageBody(zmq::multipart_t& msg, std::shared_ptr<commMessage>& message)
+void zmqCommunicator::addMessageBody(zmq::multipart_t& msg,
+                                     const std::shared_ptr<commMessage>& message)
 {
     msg.addstr(message->to_datastring());
 }

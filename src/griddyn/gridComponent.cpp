@@ -1675,7 +1675,7 @@ void gridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 void gridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                             const stateData& /*sD*/,
+                                             const stateData& /*stateDataValue*/,
                                              matrixData<double>& matrixDataValue,
                                              const solverMode& sMode)
 {

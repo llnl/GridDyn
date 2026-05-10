@@ -41,12 +41,13 @@ void dimeCommunicator::cloneTo(Communicator* comm) const
 
 void dimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
 
-void dimeCommunicator::addHeader(zmq::multipart_t& msg, std::shared_ptr<commMessage>& /* message */)
+void dimeCommunicator::addHeader(zmq::multipart_t& msg,
+                                 const std::shared_ptr<commMessage>& /* message */)
 {
 }
 
 void dimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
-                                      std::shared_ptr<commMessage>& /* message */)
+                                      const std::shared_ptr<commMessage>& /* message */)
 {
 }
 

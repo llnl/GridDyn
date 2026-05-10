@@ -167,7 +167,7 @@ see gridComponent::dynInitializeA for more details
     */
     double subObjectGet(std::string_view param, units::unit unitType) const;
     /** add a grid object to the subObject container
-    @param[in] obj the component to add
+    @param[in] comp the component to add
     */
     void addSubObject(gridComponent* comp);
     /** remove a grid object to the subObject container
@@ -487,7 +487,7 @@ see gridComponent::dynInitializeA for more details
 
     /**brief update any local cached information about a particular state/input set
     @param[in] inputs the input inputs
-    @param[in] sD  the stage data to cache information from
+    @param[in] stateDataValue  the stage data to cache information from
     @param[in] sMode the solverMode corresponding to the stateData
     */
     virtual void updateLocalCache(const IOdata& inputs,
@@ -551,7 +551,7 @@ see gridComponent::dynInitializeA for more details
     // residual computation
     /** @brief compute the residual for a given state
     @param[in] inputs  the input arguments
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] resid the array to store the residual values in
     @param[in] sMode the solverMode which is being solved for
     */
@@ -562,7 +562,7 @@ see gridComponent::dynInitializeA for more details
 
     /** @brief compute an update to all the algebraic variables in the object
     @param[in] inputs  the input arguments
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] update the array to store the computed state values
     @param[in] sMode the solverMode which is being solved for
     @param[in] alpha the convergence gain
@@ -576,7 +576,7 @@ see gridComponent::dynInitializeA for more details
 
     /** @brief compute the time derivative for a given state
     @param[in] inputs  the input arguments
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] deriv the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
@@ -588,8 +588,8 @@ see gridComponent::dynInitializeA for more details
     *@brief compute the partial derivatives of the internal states with respect to inputs and other
     internal states
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the current state data for the simulation
-    * @param[out] md  the array to store the information in
+     * @param[in] stateDataValue the current state data for the simulation
+    * @param[out] matrixDataValue  the array to store the information in
     * @param[in] inputLocs the vector of input argument locations
     * @param[in] sMode the operations mode
     **/
@@ -613,12 +613,12 @@ see gridComponent::dynInitializeA for more details
     /**
     *@brief compute the partial derivatives of the output states with respect to internal states
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the current state data for the simulation
-    * @param[out] md  the array to store the information in
+    * @param[in] stateDataValue the current state data for the simulation
+    * @param[out] matrixDataValue  the array to store the information in
     * @param[in] sMode the operations mode
     **/
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
     /**
@@ -648,7 +648,7 @@ see gridComponent::dynInitializeA for more details
     delayed computation calls just the regular call and the primary object will handle delaying
     action.
     @param[in] inputs  the input arguments
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void
@@ -660,7 +660,7 @@ see gridComponent::dynInitializeA for more details
     /**
     *evaluate the root functions and return the value
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the state of the system
+    * @param[in] stateDataValue the state of the system
     * @param[out] roots the memory to store the root evaluation
     * @param[in] sMode the mode the solver is in
     **/
@@ -685,7 +685,7 @@ see gridComponent::dynInitializeA for more details
     *evaluate the root functions and execute trigger from a static state for operation after an
     initial condition check
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the state of the system
+    * @param[in] stateDataValue the state of the system
     * @param[in] sMode the mode the solver is in
     @param[in] level the level of root to check for
     **/
@@ -699,7 +699,7 @@ see gridComponent::dynInitializeA for more details
     /**
     *@brief get a vector of all outputs
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the current state data for the simulation
+    * @param[in] stateDataValue the current state data for the simulation
     * @param[in] sMode the mode the solver is in
     @return a vector containing  all the outputs
     **/
@@ -710,7 +710,7 @@ see gridComponent::dynInitializeA for more details
     /**
     *@brief get the time derivative of a single state
     @param[in] inputs the inputs for the secondary object
-    * @param[in] sD the current state data for the simulation
+    * @param[in] stateDataValue the current state data for the simulation
     * @param[in] sMode the mode the solver is in
     @param[in] outputNum the index of the output derivative being requested
     @return the value of the time derivative of a state being requested
@@ -723,7 +723,7 @@ see gridComponent::dynInitializeA for more details
     /**
     *@brief get a single output
     @param[in] inputs the inputs for object
-    * @param[in] sD the current state data for the simulation
+    * @param[in] stateDataValue the current state data for the simulation
     * @param[in] sMode the mode the solver is in
     @param[in] outputNum the index of the output being requested
     @return the value of the state being requested

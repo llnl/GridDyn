@@ -21,8 +21,7 @@ namespace griddyn::fmi {
 fmiRunner::fmiRunner(const std::string& name,
                      const std::string& resourceLocations,
                      const fmi2CallbackFunctions* functions,
-                     bool ModelExchange):
-    identifier(name), mResourceLocation(resourceLocations)
+                     bool ModelExchange): identifier(name), mResourceLocation(resourceLocations)
 {
     if (functions != nullptr) {
         loggerFunc = functions->logger;

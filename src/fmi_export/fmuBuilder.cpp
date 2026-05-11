@@ -15,8 +15,8 @@
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 #include "utilities/zipUtilities.h"
-#include <filesystem>
 #include <array>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <pugixml.hpp>
@@ -69,8 +69,8 @@ void fmuBuilder::loadComponents()
 
 fmuBuilder::~fmuBuilder() = default;
 
-static constexpr std::array<std::string_view, 8> validPlatforms{
-    "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
+static constexpr std::array<std::string_view, 8>
+    validPlatforms{"all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
 
 std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
 {

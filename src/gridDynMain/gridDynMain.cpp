@@ -10,6 +10,7 @@
 #include "griddyn/gridDynSimulation.h"
 #include "griddyn/griddyn-config.h"
 #include "runner/gridDynRunner.h"
+#include <cstdint>
 #include <format>
 #include <memory>
 #include <string>
@@ -25,7 +26,8 @@
 #    include "fmi_export/fmuBuilder.h"
 #endif
 
-enum class execMode_t {
+namespace {
+enum class exec_mode_t : std::uint8_t {
     normal = 0,
     mpicount = 1,
     helics = 2,
@@ -33,11 +35,13 @@ enum class execMode_t {
     dime = 4,
     buildgdz = 5,
 };
+}
 
 // main
 int main(int argc, char* argv[])
 {
-    auto simulation = std::make_shared<griddyn::gridDynSimulation>();
+    try {
+        auto simulation = std::make_shared<griddyn::gridDynSimulation>();
 
     // Store the simulation pointer somewhere so that it can be accessed in other modules.
     griddyn::gridDynSimulation::setInstance(
@@ -48,40 +52,40 @@ int main(int argc, char* argv[])
     // required (command line arg, config file?)
     griddyn::loadLibraries();
 
-    auto executionMode = execMode_t::normal;
+        auto executionMode = exec_mode_t::normal;
     // check for different options
     for (int ii = 1; ii < argc; ++ii) {
         if (strcmp("--mpicount", argv[ii]) == 0) {
-            executionMode = execMode_t::mpicount;
+            executionMode = exec_mode_t::mpicount;
             break;
         }
         if (strncmp("--buildgdz", argv[ii], 10) == 0) {
-            executionMode = execMode_t::buildgdz;
+            executionMode = exec_mode_t::buildgdz;
             break;
         }
 #ifdef ENABLE_FMI_EXPORT
         if (strncmp("--buildfmu", argv[ii], 10) == 0) {
-            executionMode = execMode_t::buildfmu;
+            executionMode = exec_mode_t::buildfmu;
             break;
         }
 #endif
 #ifdef ENABLE_HELICS_EXECUTABLE
         if (strcmp("--helics", argv[ii]) == 0) {
-            executionMode = execMode_t::helics;
+            executionMode = exec_mode_t::helics;
 
             break;
         }
 #endif
 #ifdef ENABLE_DIME
         if (strcmp("--dime", argv[ii]) == 0) {
-            executionMode = execMode_t::dime;
+            executionMode = exec_mode_t::dime;
             break;
         }
 #endif
     }
 
     switch (executionMode) {
-        case execMode_t::normal: {
+        case exec_mode_t::normal: {
             auto runner = std::make_unique<griddyn::GriddynRunner>(simulation);
             auto returnCode = runner->Initialize(argc, argv);
             if (returnCode > 0) {
@@ -93,7 +97,7 @@ int main(int argc, char* argv[])
             runner->simInitialize();
             runner->Run();
         } break;
-        case execMode_t::mpicount: {
+        case exec_mode_t::mpicount: {
             auto runner = std::make_unique<griddyn::GriddynRunner>(simulation);
             auto returnCode = runner->Initialize(argc, argv);
             if (returnCode > 0) {
@@ -105,7 +109,7 @@ int main(int argc, char* argv[])
             simulation->countMpiObjects(true);
         }
             return 0;
-        case execMode_t::buildfmu:
+        case exec_mode_t::buildfmu:
 #ifdef ENABLE_FMI_EXPORT
         {
             simulation->log(nullptr,
@@ -120,7 +124,7 @@ int main(int argc, char* argv[])
         }
 #endif
             return 0;
-        case execMode_t::helics: {
+        case exec_mode_t::helics: {
 #ifdef ENABLE_HELICS_EXECUTABLE
             auto runner = std::make_unique<helicsLib::helicsRunner>(simulation);
             simulation->log(nullptr,
@@ -142,7 +146,7 @@ int main(int argc, char* argv[])
             }
 #endif
         } break;
-        case execMode_t::dime: {
+        case exec_mode_t::dime: {
 #ifdef ENABLE_DIME
             auto runner = std::make_unique<dimeLib::dimeRunner>(simulation);
             simulation->log(nullptr,
@@ -159,7 +163,7 @@ int main(int argc, char* argv[])
             runner->Run();
 #endif
         }
-        case execMode_t::buildgdz:
+        case exec_mode_t::buildgdz:
             simulation->log(nullptr,
                             griddyn::print_level::error,
                             std::string("GDZ builder not implemented yet"));
@@ -198,5 +202,9 @@ int main(int argc, char* argv[])
         simulation->log(nullptr, griddyn::print_level::summary, summaryMessage);
     }
 
-    return 0;
+        return 0;
+    }
+    catch (const std::exception&) {
+        return -5;
+    }
 }

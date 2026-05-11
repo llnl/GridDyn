@@ -79,7 +79,10 @@ double gridDynSingleQueryRun(GridDynSingleQuery query, GridDynError* err)
     return grabber->grabData();
 }
 
-void gridDynVectorQueryRun(GridDynVectorQuery query, double* data, int N, GridDynError* err)
+void gridDynVectorQueryRun(GridDynVectorQuery query,
+                           double* data,
+                           int valueCount,
+                           GridDynError* err)
 {
     if (query == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidQuery);
@@ -87,7 +90,7 @@ void gridDynVectorQueryRun(GridDynVectorQuery query, double* data, int N, GridDy
     }
     auto* queryCollector = static_cast<collector*>(query);
 
-    queryCollector->grabData(data, N);
+    queryCollector->grabData(data, valueCount);
 }
 
 void gridDynVectorQueryAppend(GridDynVectorQuery query,

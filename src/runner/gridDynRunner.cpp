@@ -19,15 +19,12 @@
 #include "utilities/GlobalWorkQueue.hpp"
 #include <chrono>
 #include <cstdio>
-#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
-
-namespace filesystem = std::filesystem;
 
 namespace griddyn {
 GriddynRunner::GriddynRunner() = default;
@@ -157,7 +154,7 @@ coreTime GriddynRunner::Run()
     m_startTime = std::chrono::high_resolution_clock::now();
     m_gds->run();
     m_stopTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                print_level::summary,
                m_gds->getName() + " executed in " + std::to_string(elapsed_t.count()) + " seconds");
@@ -172,25 +169,25 @@ void GriddynRunner::RunAsync()
     mAsyncReturn = std::async(std::launch::async, [this] { return Run(); });
 }
 
-coreTime GriddynRunner::Step(coreTime time)
+coreTime GriddynRunner::Step(coreTime nextStep)
 {
     if (!isReady()) {
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    coreTime actual = time;
+    coreTime actual = nextStep;
     if (m_gds) {
         if (mEventMode) {
-            int returnValue = m_gds->eventDrivenPowerflow(time);
-            actual = time;
+            const int returnValue = m_gds->eventDrivenPowerflow(nextStep);
+            actual = nextStep;
             if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
-                std::string error =
+                const std::string error =
                     "GridDyn failed to advance retval = " + std::to_string(returnValue);
                 throw(std::runtime_error(error));
             }
         } else {
-            int returnValue = m_gds->step(time, actual);
+            const int returnValue = m_gds->step(nextStep, actual);
             if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
-                std::string error =
+                const std::string error =
                     "GridDyn failed to advance retval = " + std::to_string(returnValue);
                 throw(std::runtime_error(error));
             }
@@ -238,7 +235,7 @@ void GriddynRunner::StopRecording()
     m_gds->log(m_gds.get(), print_level::normal, "Saving recorders...");
     m_gds->saveRecorders();
     m_stopTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                print_level::normal,
                std::string("\nSimulation ") + m_gds->getName() + " executed in " +
@@ -284,7 +281,7 @@ int GriddynRunner::loadCommandArgument(readerInfo& readerInformation, bool allow
     }
     m_stopTime = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                print_level::normal,
                std::string("\nInitialization ") + m_gds->getName() + " executed in " +
@@ -300,16 +297,20 @@ std::shared_ptr<CLI::App>
     };
 
     // function for loading parameters from strings
-    CLI::callback_t loadParamString = [this](CLI::results_t results) {
+    const CLI::callback_t loadParamString = [this](const CLI::results_t& results) {
         for (auto& str : results) {
-            gridParameter p(str);
-            if (p.valid) {
-                objInfo oi(p.field, m_gds.get());
+            const gridParameter parameterDefinition(str);
+            if (parameterDefinition.valid) {
+                objInfo objectInformation(parameterDefinition.field, m_gds.get());
                 try {
-                    if (p.stringType) {
-                        oi.m_obj->set(oi.m_field, p.strVal);
+                    if (parameterDefinition.stringType) {
+                        objectInformation.m_obj->set(
+                            objectInformation.m_field,
+                            parameterDefinition.strVal);
                     } else {
-                        oi.m_obj->set(oi.m_field, p.value, p.paramUnits);
+                        objectInformation.m_obj->set(objectInformation.m_field,
+                                                     parameterDefinition.value,
+                                                     parameterDefinition.paramUnits);
                     }
                 }
                 catch (const unrecognizedParameter&) {
@@ -321,7 +322,8 @@ std::shared_ptr<CLI::App>
     };
 
     // function for loading parameters from strings
-    CLI::callback_t loadFileCallback = [this, &readerInformation](CLI::results_t results) {
+    const CLI::callback_t loadFileCallback =
+        [this, &readerInformation](const CLI::results_t& results) {
         for (auto& file : results) {
             loadFile(m_gds.get(), file, &readerInformation);
             if (m_gds->getErrorCode() != 0) {
@@ -373,11 +375,11 @@ std::shared_ptr<CLI::App>
 
     // Setup for saving the state
 
-    auto savestateGroup =
+    auto* savestateGroup =
         ptr->add_option_group("ssgroup", "options related to saving the system state");
     auto ssdata = std::make_shared<std::pair<int, std::string>>(0, std::string{});
 
-    auto so =
+    auto* stateOutputOption =
         savestateGroup
             ->add_option("--state-output,--state_output,--state_output_file,--state-output-file",
                          ssdata->second,
@@ -391,7 +393,7 @@ std::shared_ptr<CLI::App>
                      "save state every N ms, -1 for saving only at the end")
         ->ignore_case()
         ->ignore_underscore()
-        ->needs(so);
+        ->needs(stateOutputOption);
     savestateGroup
         ->add_option_function<std::string>(
             "--jac_state,--jac_state_file",
@@ -455,7 +457,7 @@ std::shared_ptr<CLI::App>
         ->check(CLI::PositiveNumber);
 
     // Reader group should run before the main files are processed
-    auto readerGroup =
+    auto* readerGroup =
         ptr->add_option_group("reader_flags",
                               "Flags and options impacting the file parser and reader")
             ->immediate_callback();
@@ -468,17 +470,17 @@ std::shared_ptr<CLI::App>
     readerGroup->add_option("--define,-D", "definition strings for the element file readers")
         ->type_size(-1)
         ->each([&readerInformation](const std::string& defstr) {
-            auto N = defstr.find_first_of('=');
-            auto def = gmlc::utilities::stringOps::trim(defstr.substr(0, N));
-            auto rep = gmlc::utilities::stringOps::trim(defstr.substr(N + 1));
+            auto splitLocation = defstr.find_first_of('=');
+            auto def = gmlc::utilities::stringOps::trim(defstr.substr(0, splitLocation));
+            auto rep = gmlc::utilities::stringOps::trim(defstr.substr(splitLocation + 1));
             readerInformation.addLockedDefinition(def, rep);
         });
     readerGroup->add_option("--translate,-T", "translation strings for the element file readers")
         ->type_size(-1)
         ->each([&readerInformation](const std::string& transstr) {
-            auto N = transstr.find_first_of('=');
-            auto tran = gmlc::utilities::stringOps::trim(transstr.substr(0, N));
-            auto rep = gmlc::utilities::stringOps::trim(transstr.substr(N + 1));
+            auto splitLocation = transstr.find_first_of('=');
+            auto tran = gmlc::utilities::stringOps::trim(transstr.substr(0, splitLocation));
+            auto rep = gmlc::utilities::stringOps::trim(transstr.substr(splitLocation + 1));
             readerInformation.addTranslate(tran, rep);
         });
 
@@ -530,38 +532,41 @@ std::shared_ptr<CLI::App>
 
     std::get<0>(*acdata) = 0.0;
     std::get<1>(*acdata) = "auto_capture.bin";
-    std::get<2>(*acdata).push_back("auto");
+    std::get<2>(*acdata).emplace_back("auto");
 
-    auto acGroup =
+    auto* acGroup =
         ptr->add_option_group("acgroup", "options related to automatic variable capture");
     acGroup->option_defaults()->ignore_case()->ignore_underscore();
-    auto acp = acGroup->add_option("--auto-capture-period,--auto_capture_period",
-                                   std::get<0>(*acdata),
-                                   "period to capture the automatic recording");
+    auto* autoCapturePeriodOption =
+        acGroup->add_option("--auto-capture-period,--auto_capture_period",
+                            std::get<0>(*acdata),
+                            "period to capture the automatic recording");
     acGroup
         ->add_option("--auto-capture,--auto_capture,--auto_capture_file,--auto-capture-file",
                      std::get<1>(*acdata),
                      "file for automatic recording")
-        ->needs(acp);
+        ->needs(autoCapturePeriodOption);
     acGroup
         ->add_option(
             "--auto-capture-field,--auto-capture-fields,--auto_capture_field,--auto_capture_fields",
             std::get<2>(*acdata),
             "fields to automatically capture")
         ->delimiter(',')
-        ->needs(acp);
+        ->needs(autoCapturePeriodOption);
 
     acGroup->callback([this, acdata]() {
         auto autorec = std::make_shared<Recorder>();
         autorec->set("file", std::get<1>(*acdata));
         autorec->set("period", std::get<0>(*acdata));
-        for (auto& field : std::get<2>(*acdata))
+        for (auto& field : std::get<2>(*acdata)) {
             autorec->add(field, m_gds.get());
+        }
     });
     return ptr;
 }
 
-std::shared_ptr<CLI::App> GriddynRunner::generateLocalCommandLineParser(readerInfo&)
+std::shared_ptr<CLI::App>
+    GriddynRunner::generateLocalCommandLineParser(readerInfo& /*readerInformation*/)
 {
     return nullptr;
 }

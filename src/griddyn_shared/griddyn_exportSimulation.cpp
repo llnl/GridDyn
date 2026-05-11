@@ -146,7 +146,7 @@ GridDynSimulation gridDynSimulationCreate(const char* type, const char* name, Gr
 {
     static constexpr char invalidSimType[] = "the given simtype is not valid in the shared library";
     GriddynRunner* runner;
-    std::string typeStr(type);
+    const std::string typeStr(type);
     if (typeStr == "helics") {
         assignError(err, griddyn_error_invalid_parameter_value, invalidSimType);
         return nullptr;
@@ -430,13 +430,13 @@ const char* MasterObjectHolder::addErrorString(std::string newError)
 {
     auto estring = errorStrings.lock();
     estring->push_back(std::move(newError));
-    auto& v = estring->back();
-    return v.c_str();
+    auto& latestError = estring->back();
+    return latestError.c_str();
 }
 
 std::shared_ptr<MasterObjectHolder> getMasterHolder()
 {
     static auto instance = std::make_shared<MasterObjectHolder>();
-    static gmlc::concurrency::TripWireTrigger tripTriggerholder;
+    static const gmlc::concurrency::TripWireTrigger tripTriggerholder;
     return instance;
 }

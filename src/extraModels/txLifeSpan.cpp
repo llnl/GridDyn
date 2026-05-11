@@ -61,7 +61,7 @@ void txLifeSpan::set(std::string_view param, std::string_view val)
     } else if ((param == "input") || (param == "input0")) {
         sensor::set(param, val);
     } else {
-        Relay::set(param, val);
+        sensor::set(param, val);
     }
 }
 
@@ -74,7 +74,7 @@ void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
     } else if ((param == "agingrate") || (param == "agingconstant")) {
         mAgingConstant = val;
     } else {
-        gridPrimary::set(param, val, unitType);
+        sensor::set(param, val, unitType);
     }
 }
 
@@ -91,7 +91,8 @@ void txLifeSpan::add(coreObject* /*obj*/)
 void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
-        return sensor::dynObjectInitializeA(time0, flags);
+        sensor::dynObjectInitializeA(time0, flags);
+        return;
     }
 
     if (updatePeriod > negTime) {  // set the period to the period of the simulation to at least
@@ -100,7 +101,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         if (simulationStep < timeZero) {
             simulationStep = 1.0;
         }
-        coreTime modelTimestep = 120.0;  // update once per minute
+        const coreTime modelTimestep = 120.0;  // update once per minute
         updatePeriod = simulationStep * std::floor(modelTimestep / simulationStep);
         if (updatePeriod < simulationStep) {
             updatePeriod = simulationStep;
@@ -112,36 +113,36 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             // assume we are connected to a temperature sensor
             sensor::set("input0", "hot_spot");
         }
-        auto b1 = new blocks::integralBlock(1.0 / 3600);  // add a gain so the output is in
-                                                          // hours
-        sensor::add(b1);
-        b1->parentSetFlag(separate_processing, true, this);
+        auto* lifeIntegrator = new blocks::integralBlock(1.0 / 3600);  // add a gain so the
+                                                                        // output is in hours
+        sensor::add(lifeIntegrator);
+        lifeIntegrator->parentSetFlag(separate_processing, true, this);
 
         sensor::set("output0", std::to_string(mInitialLife) + "-block0");
         sensor::set("output1", "block0");
 
-        auto g1 = std::make_shared<customGrabber>();
-        g1->setGrabberFunction(
+        auto rateGrabber = std::make_shared<customGrabber>();
+        rateGrabber->setGrabberFunction(
             "rate",
             [this](coreObject*) -> double { return mAgingAccelerationFactor; });
-        sensor::add(g1);
+        sensor::add(rateGrabber);
 
         sensor::set("output2", "input1");
         if (m_sinkObject != nullptr) {
-            auto ge = std::make_unique<Event>();
-            ge->setTarget(m_sinkObject, "g");
-            ge->setValue(100.0);
-            Relay::add(std::shared_ptr<Event>(std::move(ge)));
+            auto generatedEvent = std::make_unique<Event>();
+            generatedEvent->setTarget(m_sinkObject, "g");
+            generatedEvent->setValue(100.0);
+            Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
 
-            ge = std::make_unique<Event>();
-            ge->setTarget(m_sinkObject, "switch1");
-            ge->setValue(1.0);
-            Relay::add(std::shared_ptr<Event>(std::move(ge)));
+            generatedEvent = std::make_unique<Event>();
+            generatedEvent->setTarget(m_sinkObject, "switch1");
+            generatedEvent->setValue(1.0);
+            Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
 
-            ge = std::make_unique<Event>();
-            ge->setTarget(m_sinkObject, "switch2");
-            ge->setValue(1.0);
-            Relay::add(std::shared_ptr<Event>(std::move(ge)));
+            generatedEvent = std::make_unique<Event>();
+            generatedEvent->setTarget(m_sinkObject, "switch2");
+            generatedEvent->setValue(1.0);
+            Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
 
             auto cond = make_condition("output0", "<", 0, this);
             Relay::add(std::shared_ptr<Condition>(std::move(cond)));
@@ -153,7 +154,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             }
         }
     }
-    return sensor::dynObjectInitializeA(time0, flags);
+    sensor::dynObjectInitializeA(time0, flags);
 }
 void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -161,10 +162,10 @@ void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
 {
     IOdata iset{0.0};
     filterBlocks[0]->dynInitializeB(iset, iset, iset);
-    Relay::dynObjectInitializeB(inputs,
-                                desiredOutput,
-                                fieldSet);  // skip over sensor::dynInitializeB since we are
-                                            // initializing the blocks here
+    sensor::dynObjectInitializeB(inputs,
+                                 desiredOutput,
+                                 fieldSet);  // skip over sensor::dynInitializeB since we are
+                                             // initializing the blocks here
 }
 
 void txLifeSpan::updateA(coreTime time)
@@ -172,17 +173,17 @@ void txLifeSpan::updateA(coreTime time)
     if (time == prevTime) {
         return;
     }
-    double temperature = dataSources[0]->grabData();
+    const double temperature = dataSources[0]->grabData();
     if (!opFlags[useIECmethod]) {
         mAgingAccelerationFactor = mAgingFactor *
-            exp(mAgingConstant / (mBaseTemp + 273.0) -
+            exp((mAgingConstant / (mBaseTemp + 273.0)) -
                 (mAgingConstant / (temperature + 273.0)));
     } else {
         mAgingAccelerationFactor = mAgingFactor * exp2((temperature - mBaseTemp + 12) / 6.0);
     }
 
     filterBlocks[0]->step(time, mAgingAccelerationFactor);
-    Relay::updateA(time);
+    sensor::updateA(time);
     prevTime = time;
 }
 

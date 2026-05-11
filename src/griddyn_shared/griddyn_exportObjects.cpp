@@ -230,7 +230,7 @@ void gridDynObjectSetFlag(GridDynObject obj, const char* flag, int val, GridDynE
 void gridDynObjectGetString(GridDynObject obj,
                             const char* parameter,
                             char* value,
-                            int N,
+                            int valueLength,
                             int* actualSize,
                             GridDynError* err)
 {
@@ -241,7 +241,7 @@ void gridDynObjectGetString(GridDynObject obj,
         return;
     }
     auto stringValue = comp->getString(parameter);
-    strncpy(value, stringValue.c_str(), N);
+    strncpy(value, stringValue.c_str(), valueLength);
     if (actualSize != nullptr) {
         *actualSize = static_cast<int>(stringValue.size());
     }
@@ -258,7 +258,7 @@ double gridDynObjectGetValue(GridDynObject obj, const char* parameter, GridDynEr
         return kNullVal;
     }
     try {
-        double result = comp->get(parameter);
+        const double result = comp->get(parameter);
         if (result == kNullVal) {
             assignError(err, griddyn_error_unknown_parameter, unknownParameter);
         }
@@ -284,7 +284,7 @@ double gridDynObjectGetValueUnits(GridDynObject obj,
 
     auto unitType = (units == nullptr) ? units::defunit : units::unit_cast_from_string(units);
     try {
-        double result = comp->get(parameter, unitType);
+        const double result = comp->get(parameter, unitType);
         if (result == kNullVal) {
             assignError(err, griddyn_error_unknown_parameter, unknownParameter);
             return result;
@@ -307,7 +307,7 @@ int gridDynObjectGetFlag(GridDynObject obj, const char* flag, GridDynError* err)
     }
     try {
         auto res = comp->getFlag(flag);
-        return (res) ? 1 : 0;
+        return res ? 1 : 0;
     }
     catch (...) {
         griddynErrorHandler(err);
@@ -336,7 +336,7 @@ GridDynObject gridDynObjectFind(GridDynObject obj, const char* objectToFind, Gri
 
 GridDynObject gridDynObjectGetSubObject(GridDynObject obj,
                                         const char* componentType,
-                                        int N,
+                                        int objectIndex,
                                         GridDynError* err)
 {
     const auto* comp = getConstComponentPointer(obj);
@@ -345,7 +345,7 @@ GridDynObject gridDynObjectGetSubObject(GridDynObject obj,
         return nullptr;
     }
 
-    auto* res = comp->getSubObject(componentType, static_cast<index_t>(N));
+    auto* res = comp->getSubObject(componentType, static_cast<index_t>(objectIndex));
     if (res == nullptr) {
         return nullptr;
     }
@@ -358,7 +358,7 @@ GridDynObject gridDynObjectGetSubObject(GridDynObject obj,
 
 GridDynObject gridDynObjectFindByUserId(GridDynObject obj,
                                         const char* componentType,
-                                        int ID,
+                                        int userId,
                                         GridDynError* err)
 {
     const auto* comp = getConstComponentPointer(obj);
@@ -367,7 +367,7 @@ GridDynObject gridDynObjectFindByUserId(GridDynObject obj,
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return nullptr;
     }
-    auto* res = comp->findByUserID(componentType, static_cast<index_t>(ID));
+    auto* res = comp->findByUserID(componentType, static_cast<index_t>(userId));
     if (res == nullptr) {
         return nullptr;
     }

@@ -21,8 +21,10 @@ filteredDerivativeBlock::filteredDerivativeBlock(const std::string& objName): Bl
     opFlags.set(differential_output);
 }
 
-filteredDerivativeBlock::filteredDerivativeBlock(double t1, double t2, const std::string& objName):
-    Block(objName), mT1(t1), mT2(t2)
+filteredDerivativeBlock::filteredDerivativeBlock(double preDerivativeTimeConstant,
+                                                 double derivativeFilterTimeConstant,
+                                                 const std::string& objName):
+    Block(objName), mT1(preDerivativeTimeConstant), mT2(derivativeFilterTimeConstant)
 {
     opFlags.set(use_state);
     opFlags.set(differential_output);
@@ -50,7 +52,7 @@ void filteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
                                                    const IOdata& desiredOutput,
                                                    IOdata& fieldSet)
 {
-    index_t loc = limiter_diff;  // can't have a ramp limiter
+    const index_t loc = limiter_diff;  // can't have a ramp limiter
     if (desiredOutput.empty()) {
         m_state[loc + 1] = K * (inputs[0] + bias);
         m_state[loc] = 0;
@@ -64,22 +66,22 @@ void filteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
         if (std::abs(m_dstate_dt[loc + 1]) < 1e-7) {
             m_state[loc + 1] = K * (inputs[0] + bias);
         } else {
-            m_state[loc + 1] = (m_state[loc] - m_dstate_dt[loc + 1] * mT1);
+            m_state[loc + 1] = (m_state[loc] - (m_dstate_dt[loc + 1] * mT1));
         }
     }
 }
 
 double filteredDerivativeBlock::step(coreTime time, double inputA)
 {
-    index_t loc = limiter_diff;
-    double dt = time - prevTime;
+    const index_t loc = limiter_diff;
+    const double timeDelta = time - prevTime;
 
-    double input = inputA + bias;
-    if ((dt >= fabs(5.0 * mT1)) && (dt >= fabs(5.0 * mT2))) {
+    const double input = inputA + bias;
+    if ((timeDelta >= fabs(5.0 * mT1)) && (timeDelta >= fabs(5.0 * mT2))) {
         m_state[loc + 1] = K * input;
         m_state[loc] = 0;
     } else {
-        double timeStep = 0.05 * std::min(mT1, mT2);
+        const double timeStep = 0.05 * std::min(mT1, mT2);
         double currentTime = prevTime + timeStep;
         double currentInput = prevInput;
         double previousInterpolatedInput = prevInput;
@@ -87,21 +89,22 @@ double filteredDerivativeBlock::step(coreTime time, double inputA)
         double filterState = m_state[loc];
         double derivativeValue;
         while (currentTime < time) {
-            currentInput = currentInput + (input - prevInput) / dt * timeStep;
+            currentInput = currentInput + (((input - prevInput) / timeDelta) * timeStep);
             derivativeValue =
-                K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - derivativeState);
-            derivativeState = derivativeState + derivativeValue * timeStep;
-            filterState = filterState + (derivativeValue - filterState) / mT2 * timeStep;
+                (K / mT1) * (((previousInterpolatedInput + currentInput) / 2.0) - derivativeState);
+            derivativeState = derivativeState + (derivativeValue * timeStep);
+            filterState = filterState + (((derivativeValue - filterState) / mT2) * timeStep);
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;
         }
         m_state[loc + 1] = derivativeState +
-            K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) *
-                (time - currentTime + timeStep);
+            ((K / mT1) * (((previousInterpolatedInput + input) / 2.0) - derivativeState) *
+             (time - currentTime + timeStep));
         m_state[loc] = filterState +
-            (K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) -
-             filterState) /
-                mT2 * (time - currentTime + timeStep);
+            ((((K / mT1) * (((previousInterpolatedInput + input) / 2.0) - derivativeState)) -
+              filterState) /
+             mT2) *
+                (time - currentTime + timeStep);
     }
     prevInput = input;
     double out;
@@ -117,20 +120,20 @@ double filteredDerivativeBlock::step(coreTime time, double inputA)
 
 void filteredDerivativeBlock::blockDerivative(double input,
                                               double /*didt*/,
-                                              const stateData& sD,
+                                              const stateData& stateDataRef,
                                               double deriv[],
                                               const solverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
-    deriv[offset + 1] = (K * (input + bias) - sD.state[offset + 1]) / mT1;
-    deriv[offset] = (sD.dstate_dt[offset + 1] - sD.state[offset]) / mT2;
+    deriv[offset + 1] = ((K * (input + bias)) - stateDataRef.state[offset + 1]) / mT1;
+    deriv[offset] = (stateDataRef.dstate_dt[offset + 1] - stateDataRef.state[offset]) / mT2;
 }
 
 void filteredDerivativeBlock::blockJacobianElements(double input,
                                                     double didt,
-                                                    const stateData& sD,
-                                                    matrixData<double>& md,
+                                                    const stateData& stateDataRef,
+                                                    matrixData<double>& jacobian,
                                                     index_t argLoc,
                                                     const solverMode& sMode)
 {
@@ -139,14 +142,14 @@ void filteredDerivativeBlock::blockJacobianElements(double input,
     }
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
-    md.assignCheckCol(offset + 1, argLoc, K / mT1);
-    md.assign(offset + 1, offset + 1, -1 / mT1 - sD.cj);
+    jacobian.assignCheckCol(offset + 1, argLoc, K / mT1);
+    jacobian.assign(offset + 1, offset + 1, (-1 / mT1) - stateDataRef.cj);
 
-    md.assign(offset, offset + 1, sD.cj / mT2);
-    md.assign(offset, offset, -1 / mT2 - sD.cj);
+    jacobian.assign(offset, offset + 1, stateDataRef.cj / mT2);
+    jacobian.assign(offset, offset, (-1 / mT2) - stateDataRef.cj);
 
     if (limiter_diff > 0) {
-        Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
     }
 }
 

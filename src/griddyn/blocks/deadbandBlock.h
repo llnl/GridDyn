@@ -45,9 +45,9 @@ class deadbandBlock: public Block {
     /** @brief the default constructor*/
     explicit deadbandBlock(const std::string& objName = "deadband_#");
     /** @brief alternate constructor with a deadband argument
-@param[in] db the size of the deadband
+@param[in] deadbandWidth the size of the deadband
 */
-    deadbandBlock(double db, const std::string& objName = "deadband_#");
+    deadbandBlock(double deadbandWidth, const std::string& objName = "deadband_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -64,23 +64,23 @@ class deadbandBlock: public Block {
     // solverMode &sMode);
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataRef,
                                       double update[],
                                       const solverMode& sMode) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataRef,
                           double roots[],
                           const solverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -88,7 +88,7 @@ class deadbandBlock: public Block {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataRef,
                                   const solverMode& sMode,
                                   check_level_t level) override;
     /** @brief get the deadband state

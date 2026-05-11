@@ -18,7 +18,8 @@ delayBlock::delayBlock(const std::string& objName): Block(objName)
     opFlags.set(use_state);
 }
 
-delayBlock::delayBlock(double t1, const std::string& objName): Block(objName), mT1(t1)
+delayBlock::delayBlock(double timeConstant, const std::string& objName):
+    Block(objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
@@ -27,8 +28,8 @@ delayBlock::delayBlock(double t1, const std::string& objName): Block(objName), m
         opFlags.set(use_state);
     }
 }
-delayBlock::delayBlock(double t1, double gain, const std::string& objName):
-    Block(gain, objName), mT1(t1)
+delayBlock::delayBlock(double timeConstant, double gainValue, const std::string& objName):
+    Block(gainValue, objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
@@ -77,33 +78,34 @@ double delayBlock::step(coreTime time, double inputA)
     if (opFlags[simplified]) {
         return Block::step(time, inputA);
     }
-    double dt = time - prevTime;
+    const double timeDelta = time - prevTime;
 
-    double input = (inputA + bias);
-    index_t stateIndex = limiter_diff;
-    if (dt >= fabs(5.0 * mT1)) {
+    const double input = inputA + bias;
+    const index_t stateIndex = limiter_diff;
+    if (timeDelta >= fabs(5.0 * mT1)) {
         m_state[stateIndex] = K * input;
-    } else if (dt <= std::abs(0.05 * mT1)) {
+    } else if (timeDelta <= std::abs(0.05 * mT1)) {
         m_state[stateIndex] = m_state[stateIndex] +
-            1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[stateIndex]) * dt;
+            ((1.0 / mT1) * (((K * (input + prevInput)) / 2.0) - m_state[stateIndex]) * timeDelta);
     } else {
-        double timeStep = 0.05 * mT1;
+        const double timeStep = 0.05 * mT1;
         double currentTime = prevTime + timeStep;
         double currentInput = prevInput;
         double previousInterpolatedInput = prevInput;
         double interpolatedValue = m_state[stateIndex];
         while (currentTime < time) {
-            currentInput = currentInput + (input - prevInput) / dt * timeStep;
+            currentInput = currentInput + (((input - prevInput) / timeDelta) * timeStep);
             interpolatedValue = interpolatedValue +
-                1.0 / mT1 *
-                    (K * (previousInterpolatedInput + currentInput) / 2.0 - interpolatedValue) *
-                    timeStep;
+                ((1.0 / mT1) *
+                 (((K * (previousInterpolatedInput + currentInput)) / 2.0) - interpolatedValue) *
+                 timeStep);
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;
         }
         m_state[stateIndex] = interpolatedValue +
-            1.0 / mT1 * (K * (previousInterpolatedInput + input) / 2.0 - interpolatedValue) *
-                (time - currentTime + timeStep);
+            ((1.0 / mT1) *
+             (((K * (previousInterpolatedInput + input)) / 2.0) - interpolatedValue) *
+             (time - currentTime + timeStep));
     }
     prevInput = input;
     double out;
@@ -119,39 +121,39 @@ double delayBlock::step(coreTime time, double inputA)
 
 void delayBlock::blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
-    deriv[offset] = (K * (input + bias) - sD.state[offset]) / mT1;
+    deriv[offset] = ((K * (input + bias)) - stateDataRef.state[offset]) / mT1;
     if (limiter_diff > 0) {
-        Block::blockDerivative(input, didt, sD, deriv, sMode);
+        Block::blockDerivative(input, didt, stateDataRef, deriv, sMode);
     }
 }
 
 void delayBlock::blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode)
 {
     if ((isAlgebraicOnly(sMode)) || (opFlags[simplified])) {
-        Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         return;
     }
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
-    md.assignCheck(offset, argLoc, K / mT1);
-    md.assign(offset, offset, -1.0 / mT1 - sD.cj);
-    Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+    jacobian.assignCheck(offset, argLoc, K / mT1);
+    jacobian.assign(offset, offset, (-1.0 / mT1) - stateDataRef.cj);
+    Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
 }
 
 // set parameters
 void delayBlock::set(std::string_view param, std::string_view val)
 {
-    return coreObject::set(param, val);
+    Block::set(param, val);
 }
 void delayBlock::set(std::string_view param, double val, units::unit unitType)
 {

@@ -16,12 +16,15 @@ controlBlock::controlBlock(const std::string& objName): Block(objName)
 {
     opFlags.set(use_state);
 }
-controlBlock::controlBlock(double t1, const std::string& objName): Block(objName), mT1(t1)
+controlBlock::controlBlock(double timeConstant, const std::string& objName):
+    Block(objName), mT1(timeConstant)
 {
     opFlags.set(use_state);
 }
-controlBlock::controlBlock(double t1, double t2, const std::string& objName):
-    Block(objName), mT1(t1), mT2(t2)
+controlBlock::controlBlock(double timeConstant,
+                           double upperTimeConstant,
+                           const std::string& objName):
+    Block(objName), mT1(timeConstant), mT2(upperTimeConstant)
 {
     opFlags.set(use_state);
 }
@@ -57,99 +60,100 @@ void controlBlock::dynObjectInitializeB(const IOdata& inputs,
         Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
     if (desiredOutput.empty()) {
-        m_state[limiter_alg + 1] = K * (1.0 - mT2 / mT1) * (inputs[0] + bias);
+        m_state[limiter_alg + 1] = K * (1.0 - (mT2 / mT1)) * (inputs[0] + bias);
         m_state[limiter_alg] = K * (inputs[0] + bias);
 
         fieldSet[0] = m_state[0];
         prevInput = inputs[0] + bias;
     } else {
         m_state[limiter_alg] = desiredOutput[0];
-        m_state[limiter_alg + 1] = (1.0 - mT2 / mT1) * desiredOutput[0] / K;
-        fieldSet[0] = desiredOutput[0] / K - bias;
+        m_state[limiter_alg + 1] = (1.0 - (mT2 / mT1)) * desiredOutput[0] / K;
+        fieldSet[0] = (desiredOutput[0] / K) - bias;
         prevInput = desiredOutput[0] / K;
     }
 }
 
 void controlBlock::blockAlgebraicUpdate(double input,
-                                        const stateData& sD,
+                                        const stateData& stateDataRef,
                                         double update[],
                                         const solverMode& sMode)
 {
     if (!opFlags[differential_input]) {
-        auto locationData = offsets.getLocations(sD, update, sMode, this);
+        auto locationData = offsets.getLocations(stateDataRef, update, sMode, this);
 
         locationData.destLoc[limiter_alg] =
-            locationData.diffStateLoc[0] + mT2 / mT1 * (input + bias) * K;
+            locationData.diffStateLoc[0] + ((mT2 / mT1) * (input + bias) * K);
         if (limiter_alg > 0) {
-            Block::blockAlgebraicUpdate(input, sD, update, sMode);
+            Block::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
         }
     }
 }
 
 void controlBlock::blockDerivative(double input,
                                    double didt,
-                                   const stateData& sD,
+                                   const stateData& stateDataRef,
                                    double deriv[],
                                    const solverMode& sMode)
 {
-    auto locationData = offsets.getLocations(sD, deriv, sMode, this);
+    auto locationData = offsets.getLocations(stateDataRef, deriv, sMode, this);
     if (opFlags[differential_input]) {
         locationData.destDiffLoc[limiter_diff] =
-            locationData.dstateLoc[limiter_diff + 1] + mT2 / mT1 * didt * K;
+            locationData.dstateLoc[limiter_diff + 1] + ((mT2 / mT1) * didt * K);
         locationData.destDiffLoc[limiter_diff + 1] =
-            (K * (input + bias) - locationData.diffStateLoc[limiter_diff]) / mT1;
+            ((K * (input + bias)) - locationData.diffStateLoc[limiter_diff]) / mT1;
         if (limiter_diff > 0) {
-            Block::blockDerivative(input, didt, sD, deriv, sMode);
+            Block::blockDerivative(input, didt, stateDataRef, deriv, sMode);
         }
     } else {
         locationData.destDiffLoc[0] =
-            (K * (input + bias) - locationData.algStateLoc[limiter_alg]) / mT1;
+            ((K * (input + bias)) - locationData.algStateLoc[limiter_alg]) / mT1;
     }
 }
 
 void controlBlock::blockJacobianElements(double input,
                                          double didt,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+                                         const stateData& stateDataRef,
+                                         matrixData<double>& jacobian,
                                          index_t argLoc,
                                          const solverMode& sMode)
 {
-    auto locationData = offsets.getLocations(sD, sMode, this);
+    auto locationData = offsets.getLocations(stateDataRef, sMode, this);
     if (opFlags[differential_input]) {
     } else {
         if (hasAlgebraic(sMode)) {
-            md.assign(locationData.algOffset + limiter_alg,
-                      locationData.algOffset + limiter_alg,
-                      -1);
+            jacobian.assign(locationData.algOffset + limiter_alg,
+                            locationData.algOffset + limiter_alg,
+                            -1);
 
-            md.assignCheckCol(locationData.algOffset + limiter_alg, argLoc, K * mT2 / mT1);
+            jacobian.assignCheckCol(locationData.algOffset + limiter_alg, argLoc, K * mT2 / mT1);
             if (limiter_alg > 0) {
-                Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+                Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
             }
             if (hasDifferential(sMode)) {
-                md.assign(locationData.algOffset + limiter_alg, locationData.diffOffset, 1);
+                jacobian.assign(locationData.algOffset + limiter_alg, locationData.diffOffset, 1);
             }
         }
 
         if (hasDifferential(sMode)) {
-            md.assignCheckCol(locationData.diffOffset, argLoc, K / mT1);
+            jacobian.assignCheckCol(locationData.diffOffset, argLoc, K / mT1);
             if (hasAlgebraic(sMode)) {
-                md.assign(locationData.diffOffset, locationData.algOffset + limiter_alg, -1 / mT1);
+                jacobian.assign(
+                    locationData.diffOffset, locationData.algOffset + limiter_alg, -1 / mT1);
             }
-            md.assign(locationData.diffOffset, locationData.diffOffset, -sD.cj);
+            jacobian.assign(locationData.diffOffset, locationData.diffOffset, -stateDataRef.cj);
         }
     }
 }
 
 double controlBlock::step(coreTime time, double input)
 {
-    double dt = time - prevTime;
+    const double timeDelta = time - prevTime;
     double out;
-    double inputWithBias = input + bias;
+    const double inputWithBias = input + bias;
     double intermediateValue;
     double outputValue;
-    if (dt >= fabs(5.0 * mT1)) {
-        m_state[limiter_alg + limiter_diff + 1] = K * (1.0 - mT2 / mT1) * (inputWithBias);
+    if (timeDelta >= fabs(5.0 * mT1)) {
+        m_state[limiter_alg + limiter_diff + 1] = K * (1.0 - (mT2 / mT1)) * inputWithBias;
     } else {
         const double timeStep = 0.05 * mT1;
         double currentTime = prevTime + timeStep;
@@ -158,20 +162,23 @@ double controlBlock::step(coreTime time, double input)
         intermediateValue = m_state[limiter_alg + limiter_diff + 1];
         outputValue = m_state[limiter_alg + limiter_diff];
         while (currentTime < time) {
-            currentInput = currentInput + (inputWithBias - prevInput) / dt * timeStep;
+            currentInput =
+                currentInput + (((inputWithBias - prevInput) / timeDelta) * timeStep);
             intermediateValue = intermediateValue +
-                1.0 / mT1 * (K * (previousIntermediateInput + currentInput) / 2.0 - outputValue) *
-                    timeStep;
-            outputValue = intermediateValue + K * mT2 / mT1 * (inputWithBias);
+                ((1.0 / mT1) *
+                 (((K * (previousIntermediateInput + currentInput)) / 2.0) - outputValue) *
+                 timeStep);
+            outputValue = intermediateValue + ((K * mT2 / mT1) * inputWithBias);
             currentTime += timeStep;
             previousIntermediateInput = currentInput;
         }
         m_state[limiter_alg + limiter_diff + 1] = intermediateValue +
-            1.0 / mT1 * (K * (previousIntermediateInput + inputWithBias) / 2.0 - outputValue) *
-                (time - currentTime + timeStep);
+            ((1.0 / mT1) *
+             (((K * (previousIntermediateInput + inputWithBias)) / 2.0) - outputValue) *
+             (time - currentTime + timeStep));
     }
     m_state[limiter_alg + limiter_diff] =
-        m_state[limiter_alg + limiter_diff + 1] + K * mT2 / mT1 * (inputWithBias);
+        m_state[limiter_alg + limiter_diff + 1] + ((K * mT2 / mT1) * inputWithBias);
 
     prevInput = inputWithBias;
     if (opFlags[has_limits]) {

@@ -24,18 +24,20 @@ class controlBlock: public Block {
     //!< default constructor
     explicit controlBlock(const std::string& objName = "controlBlock_#");
     /** alternate constructor to add in the time constant
-@param[in] t1  the time constant
+@param[in] timeConstant  the time constant
 @param[in] objName the name of the block
 */
-    controlBlock(double t1,
+    controlBlock(double timeConstant,
                  const std::string& objName = "controlBlock_#");  // convert to the equivalent
                                                                   // of a delay block with t2=0;
     /** alternate constructor to add in the time constant
-@param[in] t1  the time constant
-@param[in] t2 the upper time constant
+@param[in] timeConstant  the time constant
+@param[in] upperTimeConstant the upper time constant
 @param[in] objName the name of the block
 */
-    controlBlock(double t1, double t2, const std::string& objName = "controlBlock_#");
+    controlBlock(double timeConstant,
+                 double upperTimeConstant,
+                 const std::string& objName = "controlBlock_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -49,18 +51,18 @@ class controlBlock: public Block {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataRef,
                                       double update[],
                                       const solverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double input) override;

@@ -18,7 +18,8 @@ derivativeBlock::derivativeBlock(const std::string& objName): Block(objName)
 {
     opFlags.set(use_state);
 }
-derivativeBlock::derivativeBlock(double t1, const std::string& objName): Block(objName), mT1(t1)
+derivativeBlock::derivativeBlock(double timeConstant, const std::string& objName):
+    Block(objName), mT1(timeConstant)
 {
     opFlags.set(use_state);
 }
@@ -45,7 +46,7 @@ void derivativeBlock::dynObjectInitializeB(const IOdata& inputs,
                                            const IOdata& desiredOutput,
                                            IOdata& fieldSet)
 {
-    index_t loc = limiter_alg;  // can't have a ramp limiter
+    const index_t loc = limiter_alg;  // can't have a ramp limiter
     if (desiredOutput.empty()) {
         m_state[loc + 1] = K * (inputs[0] + bias);
         Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
@@ -56,43 +57,46 @@ void derivativeBlock::dynObjectInitializeB(const IOdata& inputs,
         if (std::abs(m_dstate_dt[loc + 1]) < 1e-7) {
             m_state[loc + 1] = K * (inputs[0] + bias);
         } else {
-            m_state[loc + 1] = (m_state[loc] - m_dstate_dt[loc + 1] * mT1);
+            m_state[loc + 1] = (m_state[loc] - (m_dstate_dt[loc + 1] * mT1));
         }
     }
 }
 
 double derivativeBlock::step(coreTime time, double inputA)
 {
-    index_t loc = limiter_alg;
-    double dt = time - prevTime;
+    const index_t loc = limiter_alg;
+    const double timeDelta = time - prevTime;
     double out;
-    double input = inputA + bias;
+    const double input = inputA + bias;
     double intermediateValue;
-    if (dt >= fabs(5.0 * mT1)) {
+    if (timeDelta >= fabs(5.0 * mT1)) {
         m_state[loc + 1] = K * input;
         m_state[loc] = 0;
-    } else if (dt <= fabs(0.05 * mT1)) {
+    } else if (timeDelta <= fabs(0.05 * mT1)) {
         m_state[loc + 1] =
-            m_state[loc + 1] + 1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[loc + 1]) * dt;
-        m_state[loc] = 1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[loc + 1]);
+            m_state[loc + 1] +
+            ((1.0 / mT1) * (((K * (input + prevInput)) / 2.0) - m_state[loc + 1]) * timeDelta);
+        m_state[loc] = (1.0 / mT1) * (((K * (input + prevInput)) / 2.0) - m_state[loc + 1]);
     } else {
-        double timeStep = 0.05 * mT1;
+        const double timeStep = 0.05 * mT1;
         double currentTime = prevTime + timeStep;
         double currentInput = prevInput;
         double previousInterpolatedInput = prevInput;
         intermediateValue = m_state[loc + 1];
         while (currentTime < time) {
-            currentInput = currentInput + (input - prevInput) / dt * timeStep;
+            currentInput = currentInput + (((input - prevInput) / timeDelta) * timeStep);
             intermediateValue = intermediateValue +
-                K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - intermediateValue) *
-                    timeStep;
+                ((K / mT1) *
+                 (((previousInterpolatedInput + currentInput) / 2.0) - intermediateValue) *
+                 timeStep);
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;
         }
         m_state[loc + 1] = intermediateValue +
-            K / mT1 * ((previousInterpolatedInput + input) / 2.0 - intermediateValue) *
-                (time - currentTime + timeStep);
-        m_state[loc] = K / mT1 * ((previousInterpolatedInput + input) / 2.0 - intermediateValue);
+            ((K / mT1) * (((previousInterpolatedInput + input) / 2.0) - intermediateValue) *
+             (time - currentTime + timeStep));
+        m_state[loc] =
+            (K / mT1) * (((previousInterpolatedInput + input) / 2.0) - intermediateValue);
     }
     prevInput = input;
     if (loc > 0) {
@@ -106,49 +110,49 @@ double derivativeBlock::step(coreTime time, double inputA)
 }
 
 void derivativeBlock::blockAlgebraicUpdate(double input,
-                                           const stateData& sD,
+                                           const stateData& stateDataRef,
                                            double update[],
                                            const solverMode& sMode)
 {
-    auto locationData = offsets.getLocations(sD, update, sMode, this);
+    auto locationData = offsets.getLocations(stateDataRef, update, sMode, this);
     locationData.destLoc[limiter_alg] = locationData.dstateLoc[0];
     //    update[Aoffset + limiter_alg] = sD.state[Aoffset + limiter_alg] -
     // sD.dstate_dt[offset];
-    Block::blockAlgebraicUpdate(input, sD, update, sMode);
+    Block::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
 }
 
 void derivativeBlock::blockDerivative(double input,
                                       double /*didt*/,
-                                      const stateData& sD,
+                                      const stateData& stateDataRef,
                                       double deriv[],
                                       const solverMode& sMode)
 {
     auto offset =
         offsets.getDiffOffset(sMode);  // limiter diff must be 0 since the output is algebraic
 
-    deriv[offset] = (K * (input + bias) - sD.state[offset]) / mT1;
+    deriv[offset] = ((K * (input + bias)) - stateDataRef.state[offset]) / mT1;
 }
 
 void derivativeBlock::blockJacobianElements(double input,
                                             double didt,
-                                            const stateData& sD,
-                                            matrixData<double>& md,
+                                            const stateData& stateDataRef,
+                                            matrixData<double>& jacobian,
                                             index_t argLoc,
                                             const solverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     if (hasDifferential(sMode)) {
-        md.assignCheck(offset, argLoc, K / mT1);
-        md.assign(offset, offset, -1.0 / mT1 - sD.cj);
+        jacobian.assignCheck(offset, argLoc, K / mT1);
+        jacobian.assign(offset, offset, (-1.0 / mT1) - stateDataRef.cj);
     } else {
         offset = kNullLocation;
     }
     if (hasAlgebraic(sMode)) {
         auto algebraicOffset = offsets.getAlgOffset(sMode) + limiter_alg;
-        md.assignCheck(algebraicOffset, offset, sD.cj);
-        md.assign(algebraicOffset, algebraicOffset, -1);
+        jacobian.assignCheck(algebraicOffset, offset, stateDataRef.cj);
+        jacobian.assign(algebraicOffset, algebraicOffset, -1);
         if (limiter_alg > 0) {
-            Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+            Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
     }
 }

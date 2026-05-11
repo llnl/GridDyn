@@ -22,16 +22,18 @@ class delayBlock: public Block {
     //!< default constructor
     explicit delayBlock(const std::string& objName = "delayBlock_#");
     /** alternate constructor to add in the time constant
-@param[in] t1  the time constant
+@param[in] timeConstant  the time constant
 @param[in] objName the name of the block
 */
-    delayBlock(double t1, const std::string& objName = "delayBlock_#");
+    delayBlock(double timeConstant, const std::string& objName = "delayBlock_#");
     /** alternate constructor to add in the time constant
-@param[in] t1  the time constant
-@param[in] gain the block gain
+@param[in] timeConstant  the time constant
+@param[in] gainValue the block gain
 @param[in] objName the name of the object
 */
-    delayBlock(double t1, double gain, const std::string& objName = "delayBlock_#");
+    delayBlock(double timeConstant,
+               double gainValue,
+               const std::string& objName = "delayBlock_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
   protected:
@@ -48,14 +50,14 @@ class delayBlock: public Block {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;

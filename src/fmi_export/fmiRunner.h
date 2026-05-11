@@ -63,9 +63,9 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
 
         id_type_t GetID() const;
 
-        virtual bool Set(index_t vr, double val);
-        virtual bool SetString(index_t vr, const char* s);
-        virtual double Get(index_t vr);
+        virtual bool Set(index_t valueReference, double inputValue);
+        virtual bool SetString(index_t valueReference, const char* stringValue);
+        virtual double Get(index_t valueReference);
 
         void setLoggingCategories(std::bitset<7> logCat) { mLoggingCategories = logCat; }
         /** check whether the runner is set to run asynchronously*/
@@ -90,7 +90,7 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         fmi2CallbackLogger loggerFunc = nullptr;  // reference to the logger function
         fmi2StepFinished stepFinished = nullptr;  //!< reference to a step finished function
       public:
-        fmi2Component fmiComp;
+        fmi2Component fmiComp = nullptr;
         std::string identifier;
         std::string recordDirectory;
         std::string mResourceLocation;

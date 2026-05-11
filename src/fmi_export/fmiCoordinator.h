@@ -51,42 +51,42 @@ class fmiCoordinator: public griddyn::coreObject {
 
     /** register a new parameter
 @param[in] paramName the name of the parameter
-@param[in] evnt a pointer to an event
+@param[in] eventObject a pointer to an event
 */
-    void registerParameter(const std::string& paramName, fmiEvent* evnt);
+    void registerParameter(const std::string& paramName, fmiEvent* eventObject);
 
     /** register a new input
 @param[in] inputName the name of the parameter
-@param[in] evnt a pointer to an event
+@param[in] eventObject a pointer to an event
 */
-    void registerInput(const std::string& inputName, fmiEvent* evnt);
+    void registerInput(const std::string& inputName, fmiEvent* eventObject);
 
     /** register a new output
 @param[in] outputName the name of the parameter
 @param[in] column the column index into the collector
-@param[in] out a pointer to a collector
+@param[in] outputCollector a pointer to a collector
 */
-    void registerOutput(const std::string& outputName, int column, fmiCollector* out);
+    void registerOutput(const std::string& outputName, int column, fmiCollector* outputCollector);
 
     /** send a numerical input to the appropriate location
-@param[in] vr the fmi Value Reference
-@param[in] val the numerical value to place
+@param[in] valueReference the fmi Value Reference
+@param[in] inputValue the numerical value to place
 @return true if successful
 */
-    bool sendInput(index_t vr, double val);
+    bool sendInput(index_t valueReference, double inputValue);
 
     /** send a string input to the appropriate location
-    @param[in] vr the fmi Value Reference
-    @param[in] s the string to place
+    @param[in] valueReference the fmi Value Reference
+    @param[in] stringValue the string to place
     @return true if successful
     */
-    bool sendInput(index_t vr, const char* s);
+    bool sendInput(index_t valueReference, const char* stringValue);
 
     /** get a numerical output
-@param[in] vr the fmi Value Reference
+@param[in] valueReference the fmi Value Reference
 @return the numerical output
 */
-    double getOutput(index_t vr);
+    double getOutput(index_t valueReference);
 
     /** get the numerical outputs from the underlying simulation and store them to a local
 buffer
@@ -106,7 +106,7 @@ buffer
 @return kNullLocation if name is not found*/
     index_t findVR(const std::string& varName) const;
 
-    virtual void addHelper(std::shared_ptr<helperObject> ho) override;
+    virtual void addHelper(std::shared_ptr<helperObject> helperObjectPtr) override;
 
     static bool isStringParameter(const vrInputPair& param);
 };

@@ -16,11 +16,12 @@
 #include "loadFMIExportObjects.h"
 #include "utilities/zipUtilities.h"
 #include <filesystem>
+#include <array>
 #include <iostream>
 #include <memory>
 #include <pugixml.hpp>
-#include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -68,27 +69,27 @@ void fmuBuilder::loadComponents()
 
 fmuBuilder::~fmuBuilder() = default;
 
-static const std::set<std::string>
-    valid_platforms{"all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
+static constexpr std::array<std::string_view, 8> validPlatforms{
+    "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
 
-std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
     auto app = std::make_shared<CLI::App>("fmu options");
     app->add_option("--buildfmu,--fmu", mFmuLocation, "fmu file to build");
     app->add_option("--platform", mPlatform, "build the fmu for a specific platform")
         ->transform(CLI::IsMember(
-            valid_platforms, CLI::ignore_case, CLI::ignore_underscore, CLI::ignore_space));
+            validPlatforms, CLI::ignore_case, CLI::ignore_underscore, CLI::ignore_space));
 
     app->add_flag("--keep_dir", mKeepDirectory, "keep the temporary directory after building")
         ->ignore_underscore();
-    loadFmiExportReaderInfoDefinitions(ri);
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     return app;
 }
 
 /** helper function to copy a file and overwrite if requested*/
-bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
+static bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
 {
-    std::cout << "copying " << source << " to " << dest << std::endl;
+    std::cout << "copying " << source << " to " << dest << '\n';
     copy_options option = copy_options::none;
     if (overwrite) {
         option = copy_options::overwrite_existing;
@@ -147,9 +148,9 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
     testCopyFile(getSim()->sourceFile, newFile, true);
 
     for (const auto& file : mReaderInfo->getCapturedFiles()) {
-        path f(file);
-        if (exists(f)) {
-            testCopyFile(f, resource_dir / f.filename());
+        path capturedFile(file);
+        if (exists(capturedFile)) {
+            testCopyFile(capturedFile, resource_dir / capturedFile.filename());
         }
     }
     // now generate the model description file
@@ -157,7 +158,7 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
 
     if (fmupath.is_absolute()) {
         // now zip the fmu
-        int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
         if (status == 0) {
             getSim()->log(nullptr, print_level::summary, "fmu created at " + fmupath.string());
         } else {
@@ -168,7 +169,7 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
         }
     } else {
         auto path2 = current_path() / fmupath;
-        int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
         if (status == 0) {
             getSim()->log(nullptr, print_level::summary, "fmu created at " + path2.string());
         } else {

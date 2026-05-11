@@ -33,8 +33,8 @@ std::unique_ptr<Event> fmiEvent::clone() const
 void fmiEvent::cloneTo(Event* evnt) const
 {
     reversibleEvent::cloneTo(evnt);
-    auto fe = dynamic_cast<fmiEvent*>(evnt);
-    if (fe == nullptr) {
+    auto* fmiEventClone = dynamic_cast<fmiEvent*>(evnt);
+    if (fmiEventClone == nullptr) {
         return;
     }
     // gp->valueref = valueref;
@@ -93,12 +93,12 @@ void fmiEvent::updateObject(coreObject* gco, object_update_mode mode)
 void fmiEvent::findCoordinator()
 {
     if (m_obj != nullptr) {
-        auto rto = m_obj->getRoot();
-        if (rto != nullptr) {
-            auto fmiCont = rto->find("fmiCoordinator");
-            if (dynamic_cast<fmiCoordinator*>(fmiCont) != nullptr) {
-                if (!isSameObject(fmiCont, mCoordinator)) {
-                    mCoordinator = static_cast<fmiCoordinator*>(fmiCont);
+        auto* rootObject = m_obj->getRoot();
+        if (rootObject != nullptr) {
+            auto* fmiCoordinatorObject = rootObject->find("fmiCoordinator");
+            if (dynamic_cast<fmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
+                if (!isSameObject(fmiCoordinatorObject, mCoordinator)) {
+                    mCoordinator = static_cast<fmiCoordinator*>(fmiCoordinatorObject);
                     if (mEventType == fmiEventType::input) {
                         mCoordinator->registerInput(getName(), this);
                     } else {

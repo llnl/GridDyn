@@ -16,31 +16,43 @@
 #include <vector>
 
 namespace griddyn {
-static childClassFactory<fmi::fmiCollector, collector>
-    fmiCollectorFactory(std::vector<std::string>{"fmioutput", "fmicollector"});
+namespace {
+    void registerFmiExportFactories()
+    {
+        static childClassFactory<fmi::fmiCollector, collector> fmiCollectorFactory(
+            std::vector<std::string>{"fmioutput", "fmicollector"});
 
-static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
-    fmiInputFactory(std::vector<std::string>{"fmiinput", "fmievent"},
-                    fmi::fmiEvent::fmiEventType::input);
+        static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+            fmiInputFactory(std::vector<std::string>{"fmiinput", "fmievent"},
+                            fmi::fmiEvent::fmiEventType::input);
 
-static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
-    fmiParameterFactory(std::vector<std::string>{"fmiparam", "fmiparameter"},
-                        fmi::fmiEvent::fmiEventType::parameter);
-// static childClassFactory<dimeCommunicator, Communicator>
-// dimeComm(std::vector<std::string>{"dime"});
+        static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+            fmiParameterFactory(std::vector<std::string>{"fmiparam", "fmiparameter"},
+                                fmi::fmiEvent::fmiEventType::parameter);
 
-static typeFactory<fmi::fmiCoordinator>
-    fmiCoordinatorFactory("extra", std::vector<std::string>{"fmi", "fmicoord"});
+        static typeFactory<fmi::fmiCoordinator> fmiCoordinatorFactory(
+            "extra", std::vector<std::string>{"fmi", "fmicoord"});
 
-void loadFMIExportObjects() {}
+        static_cast<void>(fmiCollectorFactory);
+        static_cast<void>(fmiInputFactory);
+        static_cast<void>(fmiParameterFactory);
+        static_cast<void>(fmiCoordinatorFactory);
+    }
+}  // namespace
 
-void loadFmiExportReaderInfoDefinitions(readerInfo& ri)
+void loadFMIExportObjects()
 {
-    ri.addTranslate("fmi", "extra");
-    ri.addTranslate("fmicoord", "extra");
-    ri.addTranslate("fmiparam", "event");
-    ri.addTranslate("fmiinput", "event");
-    ri.addTranslate("fmioutput", "collector");
+    registerFmiExportFactories();
+}
+
+void loadFmiExportReaderInfoDefinitions(readerInfo& readerInformation)
+{
+    registerFmiExportFactories();
+    readerInformation.addTranslate("fmi", "extra");
+    readerInformation.addTranslate("fmicoord", "extra");
+    readerInformation.addTranslate("fmiparam", "event");
+    readerInformation.addTranslate("fmiinput", "event");
+    readerInformation.addTranslate("fmioutput", "collector");
 }
 
 }  // namespace griddyn

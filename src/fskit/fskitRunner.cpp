@@ -24,10 +24,11 @@ fskitRunner::fskitRunner() {}
 
 int fskitRunner::Initialize(int argc,
                             char* argv[],
-                            std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler)
+                            std::shared_ptr<fskit::GrantedTimeWindowScheduler>
+                                grantedTimeWindowScheduler)
 {
-    if (scheduler) {
-        GriddynFederatedScheduler::Initialize(scheduler);
+    if (grantedTimeWindowScheduler) {
+        GriddynFederatedScheduler::Initialize(grantedTimeWindowScheduler);
     }
     return Initialize(argc, argv);
 }
@@ -35,10 +36,10 @@ int fskitRunner::Initialize(int argc,
 int fskitRunner::Initialize(int argc, char* argv[])
 {
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Initialize");
-    auto retval = GriddynRunner::Initialize(argc, argv);
-    auto gds = GriddynRunner::getSim();
-    gridDynSimulation::setInstance(gds.get());
-    return retval;
+    auto returnValue = GriddynRunner::Initialize(argc, argv);
+    auto simulation = GriddynRunner::getSim();
+    gridDynSimulation::setInstance(simulation.get());
+    return returnValue;
 }
 
 coreTime fskitRunner::Run()

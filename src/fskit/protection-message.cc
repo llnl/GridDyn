@@ -20,12 +20,12 @@
 
 #include "protection-message.h"
 ProtectionMessage::ProtectionMessage():
-    EventMessage(), m_messageType(ProtectionMessage::LOCAL_FAULT_EVENT)
+    EventMessage(), mMessageType(ProtectionMessage::LOCAL_FAULT_EVENT)
 {
 }
 
-ProtectionMessage::ProtectionMessage(ProtectionMessage::MESSAGE_TYPE t):
-    EventMessage(), m_messageType(t)
+ProtectionMessage::ProtectionMessage(ProtectionMessage::MESSAGE_TYPE messageType):
+    EventMessage(), mMessageType(messageType)
 {
 }
 
@@ -33,5 +33,5 @@ ProtectionMessage::~ProtectionMessage() {}
 
 ProtectionMessage::MESSAGE_TYPE ProtectionMessage::GetMessageType()
 {
-    return m_messageType;
+    return mMessageType;
 }

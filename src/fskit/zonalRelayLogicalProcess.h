@@ -17,8 +17,8 @@
 
 class ZonalRelayLogicalProcess: public fskit::LogicalProcess {
   public:
-    ZonalRelayLogicalProcess(const std::string& id);
-    virtual ~ZonalRelayLogicalProcess();
+    ZonalRelayLogicalProcess(const std::string& logicalProcessId);
+    ~ZonalRelayLogicalProcess() override;
     void ProcessEventMessage(const fskit::EventMessage& eventMessage);
 
   private:

@@ -29,7 +29,7 @@ class fskitRunner: public GriddynRunner {
   public:
     int Initialize(int argc,
                    char* argv[],
-                   std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler);
+                   std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler);
     virtual int Initialize(int argc, char* argv[]) override;
 
     virtual coreTime Run() override;

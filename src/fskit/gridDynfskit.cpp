@@ -31,24 +31,24 @@ int griddyn_runner_main(int argc, char* argv[])
     GRIDDYN_TRACER("GridDyn::griddyn_runner_main");
 
 #ifdef GRIDDYN_HAVE_ETRACE
-    std::stringstream program_trace_filename;
-    program_trace_filename << "etrace/"
-                           << "program_trace." << std::setw(6) << std::setfill('0') << 0
-                           << ".etrace";
-    init_tracefile(program_trace_filename.str().c_str());
+    std::stringstream programTraceFilename;
+    programTraceFilename << "etrace/"
+                         << "program_trace." << std::setw(6) << std::setfill('0') << 0
+                         << ".etrace";
+    init_tracefile(programTraceFilename.str().c_str());
 
 #endif
 
-    auto GridDyn = std::make_shared<griddyn::fskitRunner>();
+    auto gridDynRunner = std::make_shared<griddyn::fskitRunner>();
 
     // Not running with FSKIT.
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(nullptr);
-    GridDyn->Initialize(argc, argv, scheduler);
-    GridDyn->simInitialize();
+    gridDynRunner->Initialize(argc, argv, scheduler);
+    gridDynRunner->simInitialize();
 
-    GridDyn->Run();
+    gridDynRunner->Run();
 
-    GridDyn->Finalize();
+    gridDynRunner->Finalize();
 
     return 0;
 }

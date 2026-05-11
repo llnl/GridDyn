@@ -13,10 +13,10 @@
 
 #define GRIDDYN_RANK 0
 
-ZonalRelayLogicalProcess::ZonalRelayLogicalProcess(const std::string& id):
+ZonalRelayLogicalProcess::ZonalRelayLogicalProcess(const std::string& logicalProcessId):
     LogicalProcess(fskit::GlobalLogicalProcessId(fskit::FederatedSimulatorId("gridDyn"),
                                                  GRIDDYN_RANK,
-                                                 fskit::LocalLogicalProcessId(id)))
+                                                 fskit::LocalLogicalProcessId(logicalProcessId)))
 {
 }
 

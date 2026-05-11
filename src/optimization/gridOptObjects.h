@@ -185,8 +185,9 @@ class gridOptObject: public coreObject {
     @param linObj the structure to store the objective parameters
     @param oMode the optimization mode to use.
     */
-    virtual void
-        linearObj(const optimData& optimDataRef, vectData<double>& linearObjective, const optimMode& optimizationMode);
+    virtual void linearObj(const optimData& optimDataRef,
+                           vectData<double>& linearObjective,
+                           const optimMode& optimizationMode);
     /** load the quadratic objective parameters
     @param of  the current object variable values
     @param linObj the structure to store the linear objective parameters

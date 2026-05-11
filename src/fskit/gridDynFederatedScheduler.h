@@ -26,15 +26,15 @@ class fskitRunner;
  */
 class GriddynFederatedScheduler {
   public:
-    static bool IsFederated() { return g_scheduler != nullptr; }
+    static bool IsFederated() { return gScheduler != nullptr; }
 
     /**
      * Return singleton federated scheduler.
      */
     static std::shared_ptr<fskit::GrantedTimeWindowScheduler> GetScheduler()
     {
-        assert(g_scheduler);
-        return g_scheduler;
+        assert(gScheduler);
+        return gScheduler;
     }
 
     /* Make non-copyable since it is this class is used to access a singleton
@@ -53,11 +53,12 @@ class GriddynFederatedScheduler {
     /**
      * Initialize singleton.
      */
-    static void Initialize(std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler)
+    static void
+        Initialize(std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
     {
         // TODO(pt): make this thread safe probably with a mutex lock
-        g_scheduler = scheduler;
+        gScheduler = grantedTimeWindowScheduler;
     }
 
-    static std::shared_ptr<fskit::GrantedTimeWindowScheduler> g_scheduler;
+    static std::shared_ptr<fskit::GrantedTimeWindowScheduler> gScheduler;
 };

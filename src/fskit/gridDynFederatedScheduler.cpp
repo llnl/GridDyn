@@ -10,4 +10,4 @@
 
 #include <memory>
 
-std::shared_ptr<fskit::GrantedTimeWindowScheduler> GriddynFederatedScheduler::g_scheduler = nullptr;
+std::shared_ptr<fskit::GrantedTimeWindowScheduler> GriddynFederatedScheduler::gScheduler = nullptr;

@@ -54,11 +54,11 @@ class GriddynFederatedSimulator:
     std::tuple<bool, bool> TestTimeAdvancement(void);
 
   private:
-    std::string m_name;
+    std::string mName;
 
-    fskit::Time m_currentFskitTime;
-    fskit::Time m_grantedTime;
-    griddyn::coreTime m_currentGriddynTime;
+    fskit::Time mCurrentFskitTime;
+    fskit::Time mGrantedTime;
+    griddyn::coreTime mCurrentGriddynTime;
 
-    std::shared_ptr<griddyn::fskitRunner> m_griddyn;
+    std::shared_ptr<griddyn::fskitRunner> mGridDyn;
 };

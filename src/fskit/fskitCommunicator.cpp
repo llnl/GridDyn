@@ -32,20 +32,20 @@ FskitCommunicator::FskitCommunicator():
 {
 }
 
-FskitCommunicator::FskitCommunicator(std::string id):
-    Communicator(id),
+FskitCommunicator::FskitCommunicator(std::string communicatorId):
+    Communicator(communicatorId),
     LogicalProcess(fskit::GlobalLogicalProcessId(fskit::FederatedSimulatorId("gridDyn"),
                                                  GRIDDYN_RANK,
-                                                 fskit::LocalLogicalProcessId(id)))
+                                                 fskit::LocalLogicalProcessId(communicatorId)))
 {
     assert(GriddynFederatedScheduler::IsFederated());
 }
 
-FskitCommunicator::FskitCommunicator(std::string name, std::uint64_t id):
-    Communicator(name, id),
+FskitCommunicator::FskitCommunicator(std::string communicatorName, std::uint64_t id):
+    Communicator(communicatorName, id),
     LogicalProcess(fskit::GlobalLogicalProcessId(fskit::FederatedSimulatorId("gridDyn"),
                                                  GRIDDYN_RANK,
-                                                 fskit::LocalLogicalProcessId(name)))
+                                                 fskit::LocalLogicalProcessId(communicatorName)))
 {
     assert(GriddynFederatedScheduler::IsFederated());
 }
@@ -63,7 +63,7 @@ void FskitCommunicator::disconnect() {}
 
 void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMessage)
 {
-    auto gds = griddyn::gridDynSimulation::getInstance();
+    auto simulation = griddyn::gridDynSimulation::getInstance();
 
     // Convert fskit time (ns) to Griddyn time (s)
     double griddynTime = eventMessage.GetTime().GetRaw() * 1.0E-9;
@@ -74,8 +74,6 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
     std::shared_ptr<griddyn::commMessage> message;
     message->from_datastring(payload);
 
-    std::string name = getName();
-
     // using lambda capture to move the message to the lambda
     // unique ptr capture with message{std::move(m)} failed on gcc 4.9.3; build shared and capture
     // the shared ptr.
@@ -84,7 +82,7 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
         return griddyn::change_code::no_change;
     });
     event->m_nextTime = griddynTime;
-    gds->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
+    simulation->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
 }
 
 void FskitCommunicator::transmit(const std::string& /*destName*/,
@@ -104,10 +102,10 @@ void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(
         GriddynFederatedScheduler::GetScheduler());
 
-    griddyn::gridDynSimulation* inst = griddyn::gridDynSimulation::getInstance();
+    griddyn::gridDynSimulation* simulation = griddyn::gridDynSimulation::getInstance();
     fskit::Time currentTime;
-    if (inst != 0) {
-        double currentTimeSeconds = inst->getSimulationTime();
+    if (simulation != nullptr) {
+        double currentTimeSeconds = simulation->getSimulationTime();
         currentTime = fskit::Time(currentTimeSeconds * 1e9);  // scale current time to nanoseconds
     } else {
         currentTime = scheduler->Next();  // Incorrect.

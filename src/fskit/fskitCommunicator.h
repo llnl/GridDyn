@@ -32,7 +32,7 @@ class FskitCommunicator: public griddyn::Communicator, public fskit::LogicalProc
 
     FskitCommunicator();
     FskitCommunicator(std::string name);
-    FskitCommunicator(std::string m_name, std::uint64_t id);
+    FskitCommunicator(std::string communicatorName, std::uint64_t id);
 
     virtual ~FskitCommunicator() = default;
 

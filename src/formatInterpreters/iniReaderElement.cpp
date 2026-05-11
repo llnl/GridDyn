@@ -187,8 +187,8 @@ double iniReaderElement::getAttributeValue(const std::string& attributeName) con
     if (!isValid()) {
         return readerNullVal;
     }
-    return gmlc::utilities::numeric_conversionComplete(mDoc->Get(mCurrentSection, attributeName, ""),
-                                                       readerNullVal);
+    return gmlc::utilities::numeric_conversionComplete(
+        mDoc->Get(mCurrentSection, attributeName, ""), readerNullVal);
 }
 
 std::shared_ptr<readerElement> iniReaderElement::firstChild() const

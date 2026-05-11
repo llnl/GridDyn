@@ -453,7 +453,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                        | No                   | CI `clang-tidy` run              | Complete    |
 | merged      | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
 | merged      | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | Complete    |
-| working     | `src/formatInterpreters`  | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, and INI element/reader adapters                                                                | No                   | Not yet run                      | In progress |
+| working     | `src/formatInterpreters`  | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, and INI element/reader adapters                                                                  | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

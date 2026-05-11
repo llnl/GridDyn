@@ -21,10 +21,7 @@ class jsonElement {
     jsonElement(JsonValue vElement, std::string newName);
 
     void clear();
-    const JsonValue& getElement() const
-    {
-        return (mArrayType) ? mElement[mArrayIndex] : mElement;
-    }
+    const JsonValue& getElement() const { return (mArrayType) ? mElement[mArrayIndex] : mElement; }
     std::size_t count() const { return (mArrayType) ? mElement.size() : std::size_t{1}; }
     bool isNull() const
     {

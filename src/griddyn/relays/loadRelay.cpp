@@ -22,16 +22,16 @@ loadRelay::loadRelay(const std::string& objName): Relay(objName)
 
 coreObject* loadRelay::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<loadRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<loadRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
 
-    nobj->cutoutVoltage = cutoutVoltage;
-    nobj->cutoutFrequency = cutoutFrequency;
-    nobj->voltageDelay = voltageDelay;
-    nobj->frequencyDelay = frequencyDelay;
-    nobj->offTime = offTime;
+    nobj->mCutoutVoltage = mCutoutVoltage;
+    nobj->mCutoutFrequency = mCutoutFrequency;
+    nobj->mVoltageDelay = mVoltageDelay;
+    nobj->mFrequencyDelay = mFrequencyDelay;
+    nobj->mOffTime = mOffTime;
     return nobj;
 }
 
@@ -59,18 +59,18 @@ void loadRelay::set(std::string_view param, std::string_view val)
 void loadRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
-        cutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
+        mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
     } else if ((param == "cutoutfrequency") || (param == "freqlimit")) {
-        cutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
+        mCutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
     } else if (param == "delay") {
-        voltageDelay = val;
-        frequencyDelay = val;
+        mVoltageDelay = val;
+        mFrequencyDelay = val;
     } else if (param == "voltagedelay") {
-        voltageDelay = val;
+        mVoltageDelay = val;
     } else if (param == "frequencydelay") {
-        frequencyDelay = val;
+        mFrequencyDelay = val;
     } else if (param == "offtime") {
-        offTime = val;
+        mOffTime = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -78,22 +78,22 @@ void loadRelay::set(std::string_view param, double val, units::unit unitType)
 
 void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    auto ge = std::make_shared<Event>();
+    auto tripEvent = std::make_shared<Event>();
 
-    ge->setTarget(m_sinkObject, "status");
-    ge->setValue(0.0);
+    tripEvent->setTarget(m_sinkObject, "status");
+    tripEvent->setValue(0.0);
 
-    add(std::move(ge));
-    add(std::shared_ptr<Condition>(make_condition("voltage", "<", cutoutVoltage, m_sourceObject)));
+    add(std::move(tripEvent));
+    add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     add(std::shared_ptr<Condition>(
-        make_condition("frequency", "<", cutoutFrequency, m_sourceObject)));
-    if (cutoutVoltage < 2.0) {
-        setActionTrigger(0, 0, voltageDelay);
+        make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
+    if (mCutoutVoltage < 2.0) {
+        setActionTrigger(0, 0, mVoltageDelay);
     } else {
         setConditionStatus(0, condition_status_t::disabled);
     }
-    if (cutoutFrequency < 2.0) {
-        setActionTrigger(0, 1, frequencyDelay);
+    if (mCutoutFrequency < 2.0) {
+        setActionTrigger(0, 1, mFrequencyDelay);
     } else {
         setConditionStatus(1, condition_status_t::disabled);
     }
@@ -107,8 +107,8 @@ void loadRelay::actionTaken(index_t ActionNum,
                             coreTime /*actionTime*/)
 {
     logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
-    ((void)(ActionNum));
-    ((void)(conditionNum));
+    (void)ActionNum;
+    (void)conditionNum;
     /*
 if (opFlags.test (use_commLink))
 {
@@ -142,7 +142,7 @@ m_condition_level = conditionNum;
 void loadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered", conditionNum);
-    ((void)(conditionNum));
+    (void)conditionNum;
     /*
 if (conditionNum < m_condition_level)
 {
@@ -183,7 +183,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared", conditionNum);
-    ((void)(conditionNum));
+    (void)conditionNum;
     /*for (size_t kk = 0; kk < m_zones; ++kk)
 {
 if (cStates[kk] == condition_status_t::active)

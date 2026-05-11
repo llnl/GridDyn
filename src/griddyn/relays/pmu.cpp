@@ -36,12 +36,12 @@ coreObject* pmu::clone(coreObject* obj) const
         return obj;
     }
 
-    nobj->Tv = Tv;
-    nobj->Ttheta = Ttheta;
-    nobj->Trocof = Trocof;
-    nobj->Tcurrent = Tcurrent;
-    nobj->transmissionPeriod = transmissionPeriod;
-    nobj->sampleRate = sampleRate;
+    nobj->mVoltageFilterTime = mVoltageFilterTime;
+    nobj->mAngleFilterTime = mAngleFilterTime;
+    nobj->mRocofFilterTime = mRocofFilterTime;
+    nobj->mCurrentFilterTime = mCurrentFilterTime;
+    nobj->mTransmissionPeriod = mTransmissionPeriod;
+    nobj->mSampleRate = mSampleRate;
     return nobj;
 }
 
@@ -72,27 +72,27 @@ using units::unit;
 void pmu::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "tv") || (param == "voltagedelay")) {
-        Tv = val;
+        mVoltageFilterTime = val;
         if (opFlags[dyn_initialized]) {
         }
     } else if ((param == "ttheta") || (param == "tangle") || (param == "angledelay")) {
-        Ttheta = val;
+        mAngleFilterTime = val;
         if (opFlags[dyn_initialized]) {
         }
     } else if (param == "trocof") {
-        Trocof = val;
+        mRocofFilterTime = val;
         if (opFlags[dyn_initialized]) {
         }
     } else if ((param == "tcurrent") || (param == "tI") || (param == "currentdelay")) {
-        Tcurrent = val;
+        mCurrentFilterTime = val;
         if (opFlags[dyn_initialized]) {
         }
     } else if ((param == "transmitrate") || (param == "rate")) {
-        transmissionPeriod = (val >= kMin_Res) ? 1.0 / val : kBigNum;
+        mTransmissionPeriod = (val >= kMin_Res) ? 1.0 / val : kBigNum;
     } else if ((param == "transmitperiod") || (param == "period")) {
-        transmissionPeriod = convert(val, unitType, units::second);
+        mTransmissionPeriod = convert(val, unitType, units::second);
     } else if (param == "samplerate") {
-        sampleRate = val;
+        mSampleRate = val;
     } else {
         sensor::set(param, val, unitType);
     }
@@ -101,25 +101,25 @@ void pmu::set(std::string_view param, double val, unit unitType)
 double pmu::get(std::string_view param, units::unit unitType) const
 {
     if ((param == "tv") || (param == "voltagedelay")) {
-        return Tv;
+        return mVoltageFilterTime;
     }
     if ((param == "ttheta") || (param == "tangle") || (param == "angledelay")) {
-        return Ttheta;
+        return mAngleFilterTime;
     }
     if ((param == "tcurrent") || (param == "tI") || (param == "currentdelay")) {
-        return Tcurrent;
+        return mCurrentFilterTime;
     }
     if (param == "trocof") {
-        return Trocof;
+        return mRocofFilterTime;
     }
     if ((param == "transmitrate") || (param == "rate")) {
-        return 1.0 / transmissionPeriod;
+        return 1.0 / mTransmissionPeriod;
     }
     if (param == "transmitperiod") {
-        return transmissionPeriod;
+        return mTransmissionPeriod;
     }
     if (param == "samplerate") {
-        return sampleRate;
+        return mSampleRate;
     }
     return sensor::get(param, unitType);
 }
@@ -159,7 +159,7 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     generateOutputNames();
     createFilterBlocks();
-    return sensor::dynObjectInitializeA(time0, flags);
+    sensor::dynObjectInitializeA(time0, flags);
 }
 
 void pmu::generateOutputNames()
@@ -222,10 +222,10 @@ void pmu::createFilterBlocks()
             // three phase voltage
         }
     } else {
-        auto* vBlock = new blocks::delayBlock(Tv);
+        auto* vBlock = new blocks::delayBlock(mVoltageFilterTime);
         vBlock->setName("voltage");
         add(vBlock);
-        vBlock = new blocks::delayBlock(Ttheta);
+        vBlock = new blocks::delayBlock(mAngleFilterTime);
         vBlock->setName("angle");
         add(vBlock);
         set("input0", "voltage");
@@ -235,10 +235,10 @@ void pmu::createFilterBlocks()
         setupOutput(0, "block0");
         setupOutput(1, "block1");
         if (opFlags[current_active]) {
-            vBlock = new blocks::delayBlock(Tcurrent);
+            vBlock = new blocks::delayBlock(mCurrentFilterTime);
             vBlock->setName("current_real");
             add(vBlock);
-            vBlock = new blocks::delayBlock(Tcurrent);
+            vBlock = new blocks::delayBlock(mCurrentFilterTime);
             vBlock->setName("current_reactive");
             add(vBlock);
             set("input2", "current_real");
@@ -249,8 +249,8 @@ void pmu::createFilterBlocks()
             setupOutput(3, "block3");
         }
         auto* fblock = new blocks::filteredDerivativeBlock("freq");
-        fblock->set("t1", Ttheta);
-        fblock->set("t2", Trocof);
+        fblock->set("t1", mAngleFilterTime);
+        fblock->set("t2", mRocofFilterTime);
         add(fblock);
         set("blockinput" + std::to_string(fblock->locIndex), 1);
         setupOutput(fblock->locIndex, "block" + std::to_string(fblock->locIndex));
@@ -261,11 +261,11 @@ void pmu::createFilterBlocks()
 void pmu::updateA(coreTime time)
 {
     sensor::updateA(time);
-    if (time >= nextTransmitTime) {
+    if (time >= mNextTransmitTime) {
         generateAndTransmitMessage();
-        nextTransmitTime = lastTransmitTime + transmissionPeriod;
-        if (nextTransmitTime <= time) {
-            nextTransmitTime = time + transmissionPeriod;
+        mNextTransmitTime = mLastTransmitTime + mTransmissionPeriod;
+        if (mNextTransmitTime <= time) {
+            mNextTransmitTime = time + mTransmissionPeriod;
         }
     }
 }
@@ -273,8 +273,8 @@ void pmu::updateA(coreTime time)
 coreTime pmu::updateB()
 {
     sensor::updateB();
-    if (nextUpdateTime > nextTransmitTime) {
-        nextUpdateTime = nextTransmitTime;
+    if (nextUpdateTime > mNextTransmitTime) {
+        nextUpdateTime = mNextTransmitTime;
     }
     return nextUpdateTime;
 }
@@ -294,7 +294,7 @@ void pmu::generateAndTransmitMessage() const
         payload->multiValues.resize(res.size());
         payload->multiUnits.resize(res.size());
         payload->m_time = prevTime;
-        for (index_t ii = 0; ii < static_cast<index_t>(res.size()); ++ii) {
+        for (size_t ii = 0; ii < res.size(); ++ii) {
             payload->multiFields[ii] = oname[ii][0];
             payload->multiValues[ii] = res[ii];
             payload->multiUnits[ii] = to_string(outputUnits(ii));

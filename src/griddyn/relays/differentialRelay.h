@@ -24,9 +24,9 @@ class differentialRelay: public Relay {
 
   protected:
     double m_resetMargin = 0.01;  //!< the reset margin for clearing a fault
-    double m_delayTime = 0.08;  //!<[s] the delay time from first onset to trigger action
-    double m_max_differential = 0.2;  //!< the maximum allowable differential
-    double m_minLevel =
+    double mDelayTime = 0.08;  //!<[s] the delay time from first onset to trigger action
+    double mMaxDifferential = 0.2;  //!< the maximum allowable differential
+    double mMinLevel =
         0.01;  //!< the minimum absolute level to trigger for relative differential mode
   public:
     explicit differentialRelay(const std::string& objName = "diffRelay_$");

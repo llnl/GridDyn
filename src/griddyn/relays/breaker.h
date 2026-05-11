@@ -23,25 +23,25 @@ class breaker: public Relay {
     };
 
   protected:
-    coreTime minClearingTime = timeZero;  //!<[s] minimum clearing time for from bus breaker
-    coreTime recloseTime1 = timeOneSecond;  //!<[s] first reclose time
-    coreTime recloseTime2 = 5.0;  //!<[s] second reclose time
-    model_parameter recloserTap = 0.0;  //!< From side tap multiplier
-    model_parameter limit = 1.0;  //!<[puA] maximum current in puA
-    coreTime lastRecloseTime = negTime;  //!<[s] last reclose time
-    coreTime recloserResetTime =
+    coreTime mMinClearingTime = timeZero;  //!<[s] minimum clearing time for from bus breaker
+    coreTime mRecloseTime1 = timeOneSecond;  //!<[s] first reclose time
+    coreTime mRecloseTime2 = 5.0;  //!<[s] second reclose time
+    model_parameter mRecloserTap = 0.0;  //!< From side tap multiplier
+    model_parameter mLimit = 1.0;  //!<[puA] maximum current in puA
+    coreTime mLastRecloseTime = negTime;  //!<[s] last reclose time
+    coreTime mRecloserResetTime =
         coreTime(60.0);  //!<[s] time the breaker has to be on before the recloser count resets
-    std::uint16_t maxRecloseAttempts = 0;  //!< total number of recloses
+    std::uint16_t mMaxRecloseAttempts = 0;  //!< total number of recloses
   private:
-    std::uint16_t recloseAttempts = 0;  //!< reclose attempt counter
+    std::uint16_t mRecloseAttempts = 0;  //!< reclose attempt counter
   protected:
     index_t m_terminal = 1;  //!< link terminal
-    gridBus* bus = nullptr;
+    gridBus* mBus = nullptr;
 
   private:
-    double cTI = 0.0;  //!< storage for the current integral
-    double Vbase = 120.0;  //!< Voltage base for bus1
-    bool& useCTI;  //!< internal flag to use the CTI stuff link to a coreObject extra boolean
+    double mCti = 0.0;  //!< storage for the current integral
+    double mVoltageBase = 120.0;  //!< Voltage base for bus1
+    bool& mUseCti;  //!< internal flag to use the CTI stuff link to a coreObject extra boolean
   public:
     /** constructor with object name*/
     explicit breaker(const std::string& objName = "breaker_$");
@@ -58,8 +58,8 @@ class breaker: public Relay {
     // dynamic state functions
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataRef,
+                                  matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode) override;
     virtual void setState(coreTime time,
@@ -67,7 +67,7 @@ class breaker: public Relay {
                           const double dstate_dt[],
                           const solverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataRef,
                           double resid[],
                           const solverMode& sMode) override;
     virtual void guessState(coreTime time,

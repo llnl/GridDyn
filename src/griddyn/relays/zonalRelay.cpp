@@ -30,18 +30,18 @@ zonalRelay::zonalRelay(const std::string& objName): Relay(objName)
 
 coreObject* zonalRelay::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<zonalRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<zonalRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
 
-    nobj->m_zones = m_zones;
+    nobj->mZoneCount = mZoneCount;
     nobj->m_terminal = m_terminal;
-    nobj->m_zoneLevels = m_zoneLevels;
-    nobj->m_zoneDelays = m_zoneDelays;
-    nobj->m_resetMargin = m_resetMargin;
-    nobj->autoName = autoName;
-    nobj->m_condition_level = m_condition_level;
+    nobj->mZoneLevels = mZoneLevels;
+    nobj->mZoneDelays = mZoneDelays;
+    nobj->mResetMargin = mResetMargin;
+    nobj->mAutoName = mAutoName;
+    nobj->mConditionLevel = mConditionLevel;
     return nobj;
 }
 
@@ -69,19 +69,19 @@ void zonalRelay::set(std::string_view param, std::string_view val)
             }
         }
         Relay::set("zones", static_cast<double>(dvals.size()), units::defunit);
-        m_zoneLevels = std::move(dvals);
+        mZoneLevels = std::move(dvals);
     } else if (param == "delay") {
         auto dvals = gmlc::utilities::str2vector<coreTime>(std::string{val}, negTime);
-        if (dvals.size() != m_zoneDelays.size()) {
+        if (dvals.size() != mZoneDelays.size()) {
             throw(invalidParameterValue(param));
         }
         // check to make sure all the values are valid
-        for (auto ld : dvals) {
-            if (ld < timeZero) {
+        for (auto delayValue : dvals) {
+            if (delayValue < timeZero) {
                 throw(invalidParameterValue(param));
             }
         }
-        m_zoneDelays = std::move(dvals);
+        mZoneDelays = std::move(dvals);
     } else {
         Relay::set(param, val);
     }
@@ -89,45 +89,53 @@ void zonalRelay::set(std::string_view param, std::string_view val)
 
 void zonalRelay::set(std::string_view param, double val, units::unit unitType)
 {
-    index_t zn;
-    if (param == "zones") {
-        m_zones = static_cast<count_t>(val);
-        auto zlsize = static_cast<count_t>(m_zoneLevels.size());
-        if (m_zones > zlsize) {
-            for (auto kk = zlsize; kk < m_zones; ++kk) {
+    auto parseZoneIndex = [](std::string_view parameterName) {
+        index_t zoneIndex = 0;
+        if ((parameterName.size() == 6) && (std::isdigit(parameterName[5]) != 0)) {
+            zoneIndex = static_cast<index_t>(parameterName[5] - '0');
+        }
+        return zoneIndex;
+    };
+    auto ensureZoneStorage = [this](count_t requestedZoneCount) {
+        const auto zoneLevelSize = static_cast<count_t>(mZoneLevels.size());
+        if (requestedZoneCount > zoneLevelSize) {
+            for (auto kk = zoneLevelSize; kk < requestedZoneCount; ++kk) {
                 if (kk == 0) {
-                    m_zoneLevels.push_back(0.8);
-                    m_zoneDelays.push_back(timeZero);
+                    mZoneLevels.push_back(0.8);
+                    mZoneDelays.push_back(timeZero);
                 } else {
-                    m_zoneLevels.push_back(m_zoneLevels[kk - 1] + 0.7);
-                    m_zoneDelays.push_back(m_zoneDelays[kk - 1] + timeOneSecond);
+                    mZoneLevels.push_back(mZoneLevels[kk - 1] + 0.7);
+                    mZoneDelays.push_back(mZoneDelays[kk - 1] + timeOneSecond);
                 }
             }
         } else {
-            m_zoneLevels.resize(m_zones);
-            m_zoneDelays.resize(m_zones);
+            mZoneLevels.resize(requestedZoneCount);
+            mZoneDelays.resize(requestedZoneCount);
         }
+        mZoneCount = requestedZoneCount;
+    };
+    if (param == "zones") {
+        ensureZoneStorage(static_cast<count_t>(val));
     } else if ((param == "terminal") || (param == "side")) {
         m_terminal = static_cast<index_t>(val);
     } else if ((param == "resetmargin") || (param == "margin")) {
-        m_resetMargin = val;
+        mResetMargin = val;
     } else if (param == "autoname") {
-        autoName = static_cast<int>(val);
-    } else if (param.compare(0, 5, "level") == 0) {
-        zn = (param.size() == 6) ? ((isdigit(param[5]) != 0) ? param[5] - '0' : 0) : 0;
-
-        if (zn >= m_zones) {
-            set("zones", zn);
+        mAutoName = static_cast<int>(val);
+    } else if (param.starts_with("level")) {
+        const index_t zoneIndex = parseZoneIndex(param);
+        if (zoneIndex >= mZoneCount) {
+            ensureZoneStorage(zoneIndex + 1);
         }
-        ensureSizeAtLeast(m_zoneLevels, zn + 1);
-        m_zoneLevels[zn] = val;
-    } else if (param.compare(0, 5, "delay") == 0) {
-        zn = (param.size() == 6) ? ((isdigit(param[5]) != 0) ? param[5] - '0' : 0) : 0;
-        if (zn >= m_zones) {
-            set("zones", zn);
+        ensureSizeAtLeast(mZoneLevels, zoneIndex + 1);
+        mZoneLevels[zoneIndex] = val;
+    } else if (param.starts_with("delay")) {
+        const index_t zoneIndex = parseZoneIndex(param);
+        if (zoneIndex >= mZoneCount) {
+            ensureZoneStorage(zoneIndex + 1);
         }
-        ensureSizeAtLeast(m_zoneDelays, zn + 1);
-        m_zoneDelays[zn] = val;
+        ensureSizeAtLeast(mZoneDelays, zoneIndex + 1);
+        mZoneDelays[zoneIndex] = val;
     } else {
         Relay::set(param, val, unitType);
     }
@@ -146,34 +154,34 @@ double zonalRelay::get(std::string_view param, units::unit unitType) const
 
 void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    double baseImpedance = m_sourceObject->get("impedance");
-    for (index_t kk = 0; kk < m_zones; ++kk) {
+    const double baseImpedance = m_sourceObject->get("impedance");
+    for (index_t kk = 0; kk < mZoneCount; ++kk) {
         if (opFlags[nondirectional_flag]) {
             add(std::shared_ptr<Condition>(
                 make_condition("abs(admittance" + std::to_string(m_terminal) + ")",
                                ">=",
-                               1.0 / (m_zoneLevels[kk] * baseImpedance),
+                               1.0 / (mZoneLevels[kk] * baseImpedance),
                                m_sourceObject)));
         } else {
             add(std::shared_ptr<Condition>(make_condition("admittance" + std::to_string(m_terminal),
                                                           ">=",
-                                                          1.0 / (m_zoneLevels[kk] * baseImpedance),
+                                                          1.0 / (mZoneLevels[kk] * baseImpedance),
                                                           m_sourceObject)));
         }
-        setResetMargin(kk, m_resetMargin * 1.0 / (m_zoneLevels[kk] * baseImpedance));
+        setResetMargin(kk, mResetMargin * 1.0 / (mZoneLevels[kk] * baseImpedance));
     }
 
-    auto ge = std::make_unique<Event>();
-    ge->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
-    ge->setValue(1.0);
+    auto tripEvent = std::make_unique<Event>();
+    tripEvent->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
+    tripEvent->setValue(1.0);
 
-    add(std::shared_ptr<Event>(std::move(ge)));
-    for (index_t kk = 0; kk < m_zones; ++kk) {
-        setActionTrigger(0, kk, m_zoneDelays[kk]);
+    add(std::shared_ptr<Event>(std::move(tripEvent)));
+    for (index_t kk = 0; kk < mZoneCount; ++kk) {
+        setActionTrigger(0, kk, mZoneDelays[kk]);
     }
 
     if (opFlags[use_commLink]) {
-        if (cManager.destName().compare(0, 4, "auto") == 0) {
+        if (cManager.destName().starts_with("auto")) {
             if (cManager.destName().length() == 6) {
                 int code;
                 try {
@@ -183,14 +191,14 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
                     code = 0;
                 }
 
-                std::string newName = generateAutoName(code);
+                const std::string newName = generateAutoName(code);
                 if (!newName.empty()) {
                     cManager.set("commdestname", newName);
                 }
             }
         }
     }
-    return Relay::dynObjectInitializeA(time0, flags);
+    Relay::dynObjectInitializeA(time0, flags);
 }
 
 void zonalRelay::actionTaken(index_t ActionNum,
@@ -203,59 +211,56 @@ void zonalRelay::actionTaken(index_t ActionNum,
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
-            auto P = std::make_shared<comms::relayMessage>(comms::relayMessage::BREAKER_TRIP_EVENT);
-            cManager.send(P);
+            auto relayEvent =
+                std::make_shared<comms::relayMessage>(comms::relayMessage::BREAKER_TRIP_EVENT);
+            cManager.send(relayEvent);
         }
     }
-    for (index_t kk = conditionNum + 1; kk < m_zones; ++kk) {
+    for (index_t kk = conditionNum + 1; kk < mZoneCount; ++kk) {
         setConditionStatus(kk, condition_status_t::disabled);
     }
-    if (conditionNum < m_condition_level) {
-        m_condition_level = conditionNum;
-    }
+    mConditionLevel = std::min(conditionNum, mConditionLevel);
 }
 
 void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered terminal {}", conditionNum, m_terminal);
-    if (conditionNum < m_condition_level) {
-        m_condition_level = conditionNum;
-    }
+    mConditionLevel = std::min(conditionNum, mConditionLevel);
     if (opFlags[use_commLink]) {
-        if (conditionNum > m_condition_level) {
+        if (conditionNum > mConditionLevel) {
             return;
         }
-        auto P = std::make_shared<commMessage>();
+        auto relayMessage = std::make_shared<commMessage>();
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
         if (conditionNum == 0) {
             // std::cout << "GridDyn setting relay message type to LOCAL_FAULT_EVENT" << '\n';
-            P->setMessageType(commMessage::LOCAL_FAULT_EVENT);
+            relayMessage->setMessageType(commMessage::LOCAL_FAULT_EVENT);
         } else {
             // std::cout << "GridDyn setting relay message type to REMOTE_FAULT_EVENT" << '\n';
-            P->setMessageType(commMessage::REMOTE_FAULT_EVENT);
+            relayMessage->setMessageType(commMessage::REMOTE_FAULT_EVENT);
         }
-        cManager.send(P);
+        cManager.send(relayMessage);
     }
 }
 
 void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
-    for (index_t kk = 0; kk < m_zones; ++kk) {
+    for (index_t kk = 0; kk < mZoneCount; ++kk) {
         if (getConditionStatus(kk) == condition_status_t::active) {
-            m_condition_level = kk + 1;
+            mConditionLevel = kk + 1;
         } else {
             return;
         }
     }
     if (opFlags[use_commLink]) {
-        auto P = std::make_shared<comms::relayMessage>();
+        auto relayMessage = std::make_shared<comms::relayMessage>();
         if (conditionNum == 0) {
-            P->setMessageType(comms::relayMessage::LOCAL_FAULT_CLEARED);
+            relayMessage->setMessageType(comms::relayMessage::LOCAL_FAULT_CLEARED);
         } else {
-            P->setMessageType(comms::relayMessage::REMOTE_FAULT_CLEARED);
+            relayMessage->setMessageType(comms::relayMessage::REMOTE_FAULT_CLEARED);
         }
-        cManager.send(P);
+        cManager.send(relayMessage);
     }
 }
 
@@ -271,7 +276,7 @@ void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<comm
             }
             break;
         case comms::relayMessage::BREAKER_OOS_COMMAND:
-            for (index_t kk = 0; kk < m_zones; ++kk) {
+            for (index_t kk = 0; kk < mZoneCount; ++kk) {
                 setConditionStatus(kk, condition_status_t::disabled);
             }
             break;
@@ -283,8 +288,8 @@ void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<comm
 
 std::string zonalRelay::generateCommName()
 {
-    if (autoName > 0) {
-        std::string newName = generateAutoName(autoName);
+    if (mAutoName > 0) {
+        std::string newName = generateAutoName(mAutoName);
         if (!newName.empty()) {
             if (newName != getName()) {
                 setName(newName);
@@ -298,22 +303,24 @@ std::string zonalRelay::generateCommName()
 std::string zonalRelay::generateAutoName(int code)
 {
     std::string autoname;
-    auto b1 = m_sourceObject->getSubObject("bus", 1);
-    auto b2 = m_sourceObject->getSubObject("bus", 2);
+    auto* firstBus = m_sourceObject->getSubObject("bus", 1);
+    auto* secondBus = m_sourceObject->getSubObject("bus", 2);
 
     switch (code) {
         case 1:
             if (m_terminal == 1) {
-                autoname = b1->getName() + '_' + b2->getName();
+                autoname = firstBus->getName() + '_' + secondBus->getName();
             } else {
-                autoname = b2->getName() + '_' + b1->getName();
+                autoname = secondBus->getName() + '_' + firstBus->getName();
             }
             break;
         case 2:
             if (m_terminal == 1) {
-                autoname = std::to_string(b1->getUserID()) + '_' + std::to_string(b2->getUserID());
+                autoname = std::to_string(firstBus->getUserID()) + '_' +
+                    std::to_string(secondBus->getUserID());
             } else {
-                autoname = std::to_string(b2->getUserID()) + '_' + std::to_string(b1->getUserID());
+                autoname = std::to_string(secondBus->getUserID()) + '_' +
+                    std::to_string(firstBus->getUserID());
             }
             break;
         default:;
@@ -321,11 +328,11 @@ std::string zonalRelay::generateAutoName(int code)
     }
     // check if there are multiple lines in parallel
     if (!autoname.empty()) {
-        auto ri = m_sourceObject->getName().rbegin();
-        if (*(ri + 1) == '_') {
-            if ((*ri >= 'a') && (*ri <= 'z')) {
+        auto reverseIter = m_sourceObject->getName().rbegin();
+        if (*(reverseIter + 1) == '_') {
+            if ((*reverseIter >= 'a') && (*reverseIter <= 'z')) {
                 autoname.push_back('_');
-                autoname.push_back(*ri);
+                autoname.push_back(*reverseIter);
             }
         }
     }

@@ -61,8 +61,8 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
     const int generatorCount = m_gds->getInt("gencount");
     const int loadCount = m_gds->getInt("loadcount");
     std::cout << "areas=" << areaCount << " buses=" << busCount << " links=" << linkCount
-              << " relays=" << relayCount << " gens=" << generatorCount
-              << " loads=" << loadCount << '\n';
+              << " relays=" << relayCount << " gens=" << generatorCount << " loads=" << loadCount
+              << '\n';
 
     // set any flags used by the system
 
@@ -98,8 +98,8 @@ int GriddynRunner::Initialize(int argc,
     const int generatorCount = m_gds->getInt("gencount");
     const int loadCount = m_gds->getInt("loadcount");
     std::cout << "areas=" << areaCount << " buses=" << busCount << " links=" << linkCount
-              << " relays=" << relayCount << " gens=" << generatorCount
-              << " loads=" << loadCount << '\n';
+              << " relays=" << relayCount << " gens=" << generatorCount << " loads=" << loadCount
+              << '\n';
 
     // set any flags used by the system
 
@@ -462,9 +462,8 @@ std::shared_ptr<CLI::App>
     readerGroup->add_option("--file-flags", "specify flags to feed to the file reader")
         ->delimiter(',')
         ->type_size(-1)
-        ->each([&readerInformation](const std::string& flag) {
-            addflags(readerInformation, flag);
-        });
+        ->each(
+            [&readerInformation](const std::string& flag) { addflags(readerInformation, flag); });
     readerGroup->add_option("--define,-D", "definition strings for the element file readers")
         ->type_size(-1)
         ->each([&readerInformation](const std::string& defstr) {

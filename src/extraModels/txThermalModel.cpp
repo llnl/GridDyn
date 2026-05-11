@@ -142,7 +142,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(0)->setConditionRHS(mAlarmTemp1);
             setConditionStatus(0,
                                (mAlarmTemp1 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmtemp2") {
         mAlarmTemp2 = units::convert(val, unitType, units::degC);
@@ -150,7 +150,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(1)->setConditionRHS(mAlarmTemp2);
             setConditionStatus(1,
                                (mAlarmTemp2 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "cutouttemp") {
         mCutoutTemp = units::convert(val, unitType, units::degC);
@@ -158,7 +158,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(2)->setConditionRHS(mCutoutTemp);
             setConditionStatus(2,
                                (mCutoutTemp > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmdelay") {
         mAlarmDelay = units::convert(val, unitType, units::second);
@@ -315,8 +315,8 @@ void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
     double at = dataSources[2]->grabData();
     IOdata iset(1);
     if (at > 0.1) {
-        double DTtou = mRatedTopOilRise *
-            pow((I * I * mLossRatio + 1) / (mLossRatio + 1), mOilExponent);
+        double DTtou =
+            mRatedTopOilRise * pow((I * I * mLossRatio + 1) / (mLossRatio + 1), mOilExponent);
         double DTgu = mRatedHotSpotRise * pow(K2, mWindingExponent);
 
         iset[0] = DTtou + mAmbientTemp;
@@ -348,8 +348,8 @@ void txThermalModel::updateA(coreTime time)
         double I = dataSources[0]->grabData();
         double K2 = dataSources[1]->grabData();
 
-        double DTtou = mRatedTopOilRise *
-            pow((I * I * mLossRatio + 1) / (mLossRatio + 1), mOilExponent);
+        double DTtou =
+            mRatedTopOilRise * pow((I * I * mLossRatio + 1) / (mLossRatio + 1), mOilExponent);
         double DTgu = mRatedHotSpotRise * pow(K2, mWindingExponent);
 
         // update the time constants if required
@@ -366,8 +366,7 @@ void txThermalModel::updateA(coreTime time)
             double r1 = (Thsc) / mRatedHotSpotRise;
             double r2 = DTgu / mRatedHotSpotRise;
             double Tg = mOilTimeConstant *
-                ((r1 - r2) /
-                 (pow(r1, 1.0 / mWindingExponent) - pow(r2, 1.0 / mWindingExponent)));
+                ((r1 - r2) / (pow(r1, 1.0 / mWindingExponent) - pow(r2, 1.0 / mWindingExponent)));
             filterBlocks[1]->set("t1", Tg);
         }
 

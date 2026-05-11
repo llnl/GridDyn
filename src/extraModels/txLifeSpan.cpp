@@ -121,9 +121,8 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::set("output1", "block0");
 
         auto g1 = std::make_shared<customGrabber>();
-        g1->setGrabberFunction(
-            "rate",
-            [this](coreObject*) -> double { return mAgingAccelerationFactor; });
+        g1->setGrabberFunction("rate",
+                               [this](coreObject*) -> double { return mAgingAccelerationFactor; });
         sensor::add(g1);
 
         sensor::set("output2", "input1");
@@ -175,8 +174,7 @@ void txLifeSpan::updateA(coreTime time)
     double temperature = dataSources[0]->grabData();
     if (!opFlags[useIECmethod]) {
         mAgingAccelerationFactor = mAgingFactor *
-            exp(mAgingConstant / (mBaseTemp + 273.0) -
-                (mAgingConstant / (temperature + 273.0)));
+            exp(mAgingConstant / (mBaseTemp + 273.0) - (mAgingConstant / (temperature + 273.0)));
     } else {
         mAgingAccelerationFactor = mAgingFactor * exp2((temperature - mBaseTemp + 12) / 6.0);
     }

@@ -11,29 +11,29 @@
 static const char nullStr[] = "";
 
 yamlElement::yamlElement(const YAML::Node& vElement, std::string newName):
-    name(newName), element(vElement)
+    mName(newName), mElement(vElement)
 {
-    elementIndex = 0;
+    mElementIndex = 0;
 
-    if (element.IsSequence()) {
-        arraytype = true;
-        arrayIndex = 0;
-        while ((arrayIndex < element.size()) && (element[arrayIndex].IsNull())) {
-            ++arrayIndex;
+    if (mElement.IsSequence()) {
+        mArrayType = true;
+        mArrayIndex = 0;
+        while ((mArrayIndex < mElement.size()) && (mElement[mArrayIndex].IsNull())) {
+            ++mArrayIndex;
         }
     }
 }
 
 void yamlElement::clear()
 {
-    element.reset();
-    elementIndex = 0;
-    arrayIndex = 0;
-    arraytype = false;
-    name = nullStr;
+    mElement.reset();
+    mElementIndex = 0;
+    mArrayIndex = 0;
+    mArrayType = false;
+    mName = nullStr;
 }
 
 const YAML::Node yamlElement::getElement() const
 {
-    return (arraytype) ? (element[arrayIndex]) : element;
+    return (mArrayType) ? (mElement[mArrayIndex]) : mElement;
 }

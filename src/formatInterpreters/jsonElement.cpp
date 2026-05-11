@@ -17,24 +17,24 @@ static bool isJsonNodeEmpty(const jsonElement::JsonValue& value)
 }
 
 jsonElement::jsonElement(JsonValue vElement, std::string newName):
-    name(std::move(newName)), element(std::move(vElement))
+    mName(std::move(newName)), mElement(std::move(vElement))
 {
-    elementIndex = 0;
+    mElementIndex = 0;
 
-    if (element.is_array()) {
-        arraytype = true;
-        arrayIndex = 0;
-        while ((arrayIndex < element.size()) && (isJsonNodeEmpty(element[arrayIndex]))) {
-            ++arrayIndex;
+    if (mElement.is_array()) {
+        mArrayType = true;
+        mArrayIndex = 0;
+        while ((mArrayIndex < mElement.size()) && (isJsonNodeEmpty(mElement[mArrayIndex]))) {
+            ++mArrayIndex;
         }
     }
 }
 
 void jsonElement::clear()
 {
-    element = nullptr;
-    elementIndex = 0;
-    arrayIndex = 0;
-    arraytype = false;
-    name = nullStr;
+    mElement = nullptr;
+    mElementIndex = 0;
+    mArrayIndex = 0;
+    mArrayType = false;
+    mName = nullStr;
 }

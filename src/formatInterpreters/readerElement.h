@@ -15,28 +15,28 @@ const double readerNullVal(-1.345e48);
 /** @brief simple class for containing an attribute */
 class readerAttribute {
   private:
-    std::string name;
-    std::string text;
+    std::string mName;
+    std::string mText;
 
   public:
     readerAttribute();
     readerAttribute(std::string attName, std::string attText);
     readerAttribute(std::string_view attName, std::string_view attText);
     void set(std::string_view attName, std::string_view attText);
-    const std::string& getName() const { return name; }
-    const std::string& getText() const { return text; }
+    const std::string& getName() const { return mName; }
+    const std::string& getText() const { return mText; }
     double getValue() const;
     int64_t getInt() const;
-    bool isValid() const { return (!name.empty()); }
+    bool isValid() const { return (!mName.empty()); }
 };
 
 class elementParseException: public std::exception {
   private:
-    std::string estr = "parse error\n";
+    std::string mErrorString = "parse error\n";
 
   public:
-    explicit elementParseException(std::string_view str): estr(str) {}
-    const char* what() const noexcept override { return estr.c_str(); }
+    explicit elementParseException(std::string_view str): mErrorString(str) {}
+    const char* what() const noexcept override { return mErrorString.c_str(); }
 };
 
 /** @brief class for wrapping various document readers for use in the reader function for

@@ -202,10 +202,10 @@ Types of work in this phase:
 - [x] `src/griddyn/relays`
 - [x] `src/griddyn/blocks`
 - [x] `src/utilities`
-- [~] `src/optimization`
+- [x] `src/optimization`
 - [ ] `src/runner`
 - [ ] `src/plugins`
-- [ ] `src/formatInterpreters`
+- [~] `src/formatInterpreters`
 - [ ] `src/extraModels`
 - [ ] `src/gridDynLoader`
 - [ ] `src/gridDynMain`
@@ -452,7 +452,8 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                     | No                   | No `clang-tidy` issues to report | Complete    |
 | merged      | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                        | No                   | CI `clang-tidy` run              | Complete    |
 | merged      | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
-| working     | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | In progress |
+| merged      | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | Complete    |
+| working     | `src/formatInterpreters`  | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, and INI element/reader adapters                                                                | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

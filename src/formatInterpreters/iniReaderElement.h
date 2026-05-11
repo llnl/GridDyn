@@ -62,10 +62,10 @@ class iniReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<gridDynINIReader> doc;  //!< document root
-    std::string currentSection;
-    size_t iteratorIndex = 0;
-    size_t sectionIndex = 0;
+    std::shared_ptr<gridDynINIReader> mDoc;  //!< document root
+    std::string mCurrentSection;
+    size_t mIteratorIndex = 0;
+    size_t mSectionIndex = 0;
 
-    std::vector<std::pair<std::string, size_t>> bookmarks;
+    std::vector<std::pair<std::string, size_t>> mBookmarks;
 };

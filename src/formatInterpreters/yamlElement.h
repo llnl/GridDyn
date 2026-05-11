@@ -11,9 +11,9 @@
 
 class yamlElement {
   public:
-    std::string name;  //!< the name of the element
-    std::size_t elementIndex = 0;  //!< an indicator of element Index
-    std::size_t arrayIndex = 0;  //!< the current index into a sequence
+    std::string mName;  //!< the name of the element
+    std::size_t mElementIndex = 0;  //!< an indicator of element Index
+    std::size_t mArrayIndex = 0;  //!< the current index into a sequence
     yamlElement() {}
     yamlElement(const YAML::Node& vElement, std::string newName);
 
@@ -21,16 +21,16 @@ class yamlElement {
     void clear();
 
     const YAML::Node getElement() const;
-    size_t count() const { return (arraytype) ? element.size() : ((element) ? 0 : 1); }
+    size_t count() const { return (mArrayType) ? mElement.size() : ((mElement) ? 0 : 1); }
     bool isNull() const
     {
-        if ((element) && (element.IsDefined())) {
-            return (arraytype) ? false : element.IsNull();
+        if ((mElement) && (mElement.IsDefined())) {
+            return (mArrayType) ? false : mElement.IsNull();
         }
         return true;
     }
 
   private:
-    YAML::Node element;  //!< pointer to the actual YAML element
-    bool arraytype = false;  //!< indicator if the element is a sequence
+    YAML::Node mElement;  //!< pointer to the actual YAML element
+    bool mArrayType = false;  //!< indicator if the element is a sequence
 };

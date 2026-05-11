@@ -49,26 +49,26 @@ iniReaderElement::iniReaderElement(const std::string& fileName)
 }
 void iniReaderElement::clear()
 {
-    currentSection.clear();
+    mCurrentSection.clear();
 }
 
 static const char invalidString[] = ";";
 
 bool iniReaderElement::isValid() const
 {
-    return (currentSection != invalidString);
+    return (mCurrentSection != invalidString);
 }
 bool iniReaderElement::isDocument() const
 {
-    return ((doc) && currentSection.empty());
+    return ((mDoc) && mCurrentSection.empty());
 }
 
 std::shared_ptr<readerElement> iniReaderElement::clone() const
 {
     auto ret = std::make_shared<iniReaderElement>();
-    ret->doc = doc;
-    ret->currentSection = currentSection;
-    ret->iteratorIndex = iteratorIndex;
+    ret->mDoc = mDoc;
+    ret->mCurrentSection = mCurrentSection;
+    ret->mIteratorIndex = mIteratorIndex;
     return ret;
 }
 
@@ -76,14 +76,14 @@ bool iniReaderElement::loadFile(const std::string& fileName)
 {
     std::ifstream file(fileName);
     if (file.is_open()) {
-        doc = std::make_shared<gridDynINIReader>(fileName);
-        currentSection = std::string();
-        iteratorIndex = 0;
+        mDoc = std::make_shared<gridDynINIReader>(fileName);
+        mCurrentSection = std::string();
+        mIteratorIndex = 0;
         return true;
     }
 
     std::println(stderr, "unable to open file {}", fileName);
-    doc = nullptr;
+    mDoc = nullptr;
     clear();
     return false;
 }
@@ -95,10 +95,10 @@ bool iniReaderElement::parse(const std::string& /*inputString*/)
 
 std::string iniReaderElement::getName() const
 {
-    if (currentSection.empty()) {
+    if (mCurrentSection.empty()) {
         return "root";
     }
-    return currentSection;
+    return mCurrentSection;
 }
 
 double iniReaderElement::getValue() const
@@ -121,17 +121,17 @@ bool iniReaderElement::hasAttribute(const std::string& attributeName) const
     if (!isValid()) {
         return false;
     }
-    const auto val = doc->Get(currentSection, attributeName, "");
+    const auto val = mDoc->Get(mCurrentSection, attributeName, "");
 
     return !(val.empty());
 }
 
 bool iniReaderElement::hasElement(const std::string& elementName) const
 {
-    if (!currentSection.empty()) {
+    if (!mCurrentSection.empty()) {
         return false;
     }
-    const auto& sec = doc->Sections();
+    const auto& sec = mDoc->Sections();
     return sec.contains(elementName);
 }
 
@@ -140,8 +140,8 @@ readerAttribute iniReaderElement::getFirstAttribute()
     if (!isValid()) {
         return {};
     }
-    const auto& att = doc->getAttribute(currentSection, 0);
-    iteratorIndex = 0;
+    const auto& att = mDoc->getAttribute(mCurrentSection, 0);
+    mIteratorIndex = 0;
     if ((!att.first.empty()) && (!att.second.empty())) {
         return {att.first, att.second};
     }
@@ -154,8 +154,8 @@ readerAttribute iniReaderElement::getNextAttribute()
         return {};
     }
 
-    const auto& att = doc->getAttribute(currentSection, iteratorIndex + 1);
-    ++iteratorIndex;
+    const auto& att = mDoc->getAttribute(mCurrentSection, mIteratorIndex + 1);
+    ++mIteratorIndex;
     if ((!att.first.empty()) && (!att.second.empty())) {
         return {att.first, att.second};
     }
@@ -167,7 +167,7 @@ readerAttribute iniReaderElement::getAttribute(const std::string& attributeName)
     if (!isValid()) {
         return {};
     }
-    const auto val = doc->Get(currentSection, attributeName, "");
+    const auto val = mDoc->Get(mCurrentSection, attributeName, "");
     if (!val.empty()) {
         return {attributeName, val};
     }
@@ -179,7 +179,7 @@ std::string iniReaderElement::getAttributeText(const std::string& attributeName)
     if (!isValid()) {
         return nullStr;
     }
-    return doc->Get(currentSection, attributeName, "");
+    return mDoc->Get(mCurrentSection, attributeName, "");
 }
 
 double iniReaderElement::getAttributeValue(const std::string& attributeName) const
@@ -187,7 +187,7 @@ double iniReaderElement::getAttributeValue(const std::string& attributeName) con
     if (!isValid()) {
         return readerNullVal;
     }
-    return gmlc::utilities::numeric_conversionComplete(doc->Get(currentSection, attributeName, ""),
+    return gmlc::utilities::numeric_conversionComplete(mDoc->Get(mCurrentSection, attributeName, ""),
                                                        readerNullVal);
 }
 
@@ -210,19 +210,19 @@ void iniReaderElement::moveToFirstChild()
     if (!isValid()) {
         return;
     }
-    sectionIndex = 0;
-    iteratorIndex = 0;
+    mSectionIndex = 0;
+    mIteratorIndex = 0;
     // ini files only have one level of hierarchy
-    if (!currentSection.empty()) {
-        currentSection = ';';
+    if (!mCurrentSection.empty()) {
+        mCurrentSection = ';';
         return;
     }
-    const auto& sec = doc->Sections();
+    const auto& sec = mDoc->Sections();
     if (sec.empty()) {
-        currentSection = ';';
+        mCurrentSection = ';';
         return;
     }
-    currentSection = *sec.begin();
+    mCurrentSection = *sec.begin();
 }
 
 void iniReaderElement::moveToFirstChild(const std::string& childName)
@@ -230,28 +230,28 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
     if (!isValid()) {
         return;
     }
-    sectionIndex = 0;
-    iteratorIndex = 0;
+    mSectionIndex = 0;
+    mIteratorIndex = 0;
     // ini files only have one level of hierarchy
-    if (!currentSection.empty()) {
-        currentSection = ';';
+    if (!mCurrentSection.empty()) {
+        mCurrentSection = ';';
         return;
     }
-    const auto& sec = doc->Sections();
+    const auto& sec = mDoc->Sections();
     if (sec.empty()) {
-        currentSection = ';';
+        mCurrentSection = ';';
         return;
     }
     auto sptr = sec.begin();
     while (sptr != sec.end()) {
         if (sptr->starts_with(childName)) {
-            currentSection = *sptr;
+            mCurrentSection = *sptr;
             return;
         }
-        ++sectionIndex;
+        ++mSectionIndex;
         ++sptr;
     }
-    currentSection = ';';
+    mCurrentSection = ';';
 }
 
 void iniReaderElement::moveToNextSibling()
@@ -259,20 +259,20 @@ void iniReaderElement::moveToNextSibling()
     if (!isValid()) {
         return;
     }
-    if (currentSection.empty()) {
-        currentSection = ';';
+    if (mCurrentSection.empty()) {
+        mCurrentSection = ';';
         return;
     }
-    ++sectionIndex;
-    iteratorIndex = 0;
-    const auto& secs = doc->Sections();
-    if (sectionIndex >= secs.size()) {
-        currentSection = ';';
+    ++mSectionIndex;
+    mIteratorIndex = 0;
+    const auto& secs = mDoc->Sections();
+    if (mSectionIndex >= secs.size()) {
+        mCurrentSection = ';';
         return;
     }
     auto csec = secs.begin();
-    std::advance(csec, static_cast<std::ptrdiff_t>(sectionIndex));
-    currentSection = *csec;
+    std::advance(csec, static_cast<std::ptrdiff_t>(mSectionIndex));
+    mCurrentSection = *csec;
 }
 
 void iniReaderElement::moveToNextSibling(const std::string& siblingName)
@@ -284,17 +284,17 @@ void iniReaderElement::moveToNextSibling(const std::string& siblingName)
     if (!isValid()) {
         return;
     }
-    if (!currentSection.starts_with(siblingName)) {
-        currentSection = ';';
+    if (!mCurrentSection.starts_with(siblingName)) {
+        mCurrentSection = ';';
         return;
     }
 }
 
 void iniReaderElement::moveToParent()
 {
-    currentSection = "";
-    sectionIndex = 0;
-    iteratorIndex = 0;
+    mCurrentSection = "";
+    mSectionIndex = 0;
+    mIteratorIndex = 0;
 }
 
 std::shared_ptr<readerElement> iniReaderElement::nextSibling() const
@@ -313,15 +313,15 @@ std::shared_ptr<readerElement> iniReaderElement::nextSibling(const std::string& 
 
 void iniReaderElement::bookmark()
 {
-    bookmarks.emplace_back(currentSection, sectionIndex);
+    mBookmarks.emplace_back(mCurrentSection, mSectionIndex);
 }
 
 void iniReaderElement::restore()
 {
-    if (bookmarks.empty()) {
+    if (mBookmarks.empty()) {
         return;
     }
-    currentSection = bookmarks.back().first;
-    sectionIndex = bookmarks.back().second;
-    bookmarks.pop_back();
+    mCurrentSection = mBookmarks.back().first;
+    mSectionIndex = mBookmarks.back().second;
+    mBookmarks.pop_back();
 }

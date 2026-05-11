@@ -16,7 +16,7 @@
 #include <string>
 #include <utility>
 
-static const char nullStr[] = "";
+static constexpr char nullStr[] = "";
 
 class gridDynINIReader: public INIReader {
   public:
@@ -155,7 +155,7 @@ readerAttribute iniReaderElement::getNextAttribute()
         return {};
     }
 
-    const auto& att = mDoc->getAttribute(mCurrentSection, mIteratorIndex + 1);
+    const auto& att = mDoc->getAttribute(mCurrentSection, static_cast<int>(mIteratorIndex + 1));
     ++mIteratorIndex;
     if ((!att.first.empty()) && (!att.second.empty())) {
         return {att.first, att.second};

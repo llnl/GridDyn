@@ -93,19 +93,20 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                 } else {
                     fieldSet[0] = ival - (mDeadbandLevel - mDeadbandLow);
                 }
-            } else if ((ival > mDeadbandHigh + mRampUpBand) || (ival < mDeadbandLow - mRampUpBand)) {
+            } else if ((ival > mDeadbandHigh + mRampUpBand) ||
+                       (ival < mDeadbandLow - mRampUpBand)) {
                 mDeadbandState = deadbandstate_t::outside;
                 fieldSet[0] = ival;
             } else if (mRampUpBand > 0) {
                 mDeadbandState = deadbandstate_t::rampup;
                 if (ival > mDeadbandLevel) {
                     fieldSet[0] = mDeadbandHigh +
-                        (ival - mDeadbandLevel) /
-                            (mDeadbandHigh + mRampUpBand - mDeadbandLevel) * mRampUpBand;
+                        (ival - mDeadbandLevel) / (mDeadbandHigh + mRampUpBand - mDeadbandLevel) *
+                            mRampUpBand;
                 } else {
                     fieldSet[0] = mDeadbandLow -
-                        (mDeadbandLevel - ival) /
-                            (mDeadbandLevel - mDeadbandLow - mRampUpBand) * mRampUpBand;
+                        (mDeadbandLevel - ival) / (mDeadbandLevel - mDeadbandLow - mRampUpBand) *
+                            mRampUpBand;
                 }
             } else {
                 mDeadbandState = deadbandstate_t::outside;
@@ -285,7 +286,8 @@ void deadbandBlock::rootTest(const IOdata& inputs,
         // double prevInput = ival;
         switch (mDeadbandState) {
             case deadbandstate_t::normal:
-                roots[rootOffset] = std::min(mDeadbandHigh - inputWithBias, inputWithBias - mDeadbandLow);
+                roots[rootOffset] =
+                    std::min(mDeadbandHigh - inputWithBias, inputWithBias - mDeadbandLow);
                 if (inputWithBias > mDeadbandHigh) {
                     opFlags.set(dbtrigger_high);
                 }
@@ -307,31 +309,23 @@ void deadbandBlock::rootTest(const IOdata& inputs,
 
             case deadbandstate_t::rampup:
                 if (opFlags[dbtrigger_high]) {
-                    roots[rootOffset] =
-                        std::min(
-                            mDeadbandHigh + mRampUpBand - inputWithBias,
-                            inputWithBias - mDeadbandHigh) +
+                    roots[rootOffset] = std::min(mDeadbandHigh + mRampUpBand - inputWithBias,
+                                                 inputWithBias - mDeadbandHigh) +
                         mTolerance;
                 } else {
-                    roots[rootOffset] =
-                        std::min(
-                            mDeadbandLow - inputWithBias,
-                            inputWithBias - mDeadbandLow - mRampUpBand) +
+                    roots[rootOffset] = std::min(mDeadbandLow - inputWithBias,
+                                                 inputWithBias - mDeadbandLow - mRampUpBand) +
                         mTolerance;
                 }
                 break;
             case deadbandstate_t::rampdown:
                 if (opFlags[dbtrigger_high]) {
-                    roots[rootOffset] =
-                        std::min(
-                            inputWithBias - mResetHigh - mRampDownBand,
-                            mResetHigh - inputWithBias) +
+                    roots[rootOffset] = std::min(inputWithBias - mResetHigh - mRampDownBand,
+                                                 mResetHigh - inputWithBias) +
                         mTolerance;
                 } else {
-                    roots[rootOffset] =
-                        std::min(
-                            inputWithBias - mResetLow,
-                            mResetLow + mRampDownBand - inputWithBias) +
+                    roots[rootOffset] = std::min(inputWithBias - mResetLow,
+                                                 mResetLow + mRampDownBand - inputWithBias) +
                         mTolerance;
                 }
                 break;

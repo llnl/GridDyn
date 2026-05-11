@@ -95,8 +95,9 @@ void functionBlock::blockJacobianElements(double input,
         matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
     } else {
         if (mDerivativeFunctionPtr != nullptr) {
-            matrixDataValue.assignCheck(
-                offset, argLoc, K * mDerivativeFunctionPtr(mGain * (input + bias)) * mGain);
+            matrixDataValue.assignCheck(offset,
+                                        argLoc,
+                                        K * mDerivativeFunctionPtr(mGain * (input + bias)) * mGain);
         } else {
             const double temp1 = mFunctionPtr(mGain * (input + bias));
             const double temp2 = mFunctionPtr(mGain * (input + 1e-8 + bias));

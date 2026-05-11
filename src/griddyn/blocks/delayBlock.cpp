@@ -84,8 +84,8 @@ double delayBlock::step(coreTime time, double inputA)
     if (dt >= fabs(5.0 * mT1)) {
         m_state[stateIndex] = K * input;
     } else if (dt <= std::abs(0.05 * mT1)) {
-        m_state[stateIndex] =
-            m_state[stateIndex] + 1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[stateIndex]) * dt;
+        m_state[stateIndex] = m_state[stateIndex] +
+            1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[stateIndex]) * dt;
     } else {
         double timeStep = 0.05 * mT1;
         double currentTime = prevTime + timeStep;
@@ -95,7 +95,8 @@ double delayBlock::step(coreTime time, double inputA)
         while (currentTime < time) {
             currentInput = currentInput + (input - prevInput) / dt * timeStep;
             interpolatedValue = interpolatedValue +
-                1.0 / mT1 * (K * (previousInterpolatedInput + currentInput) / 2.0 - interpolatedValue) *
+                1.0 / mT1 *
+                    (K * (previousInterpolatedInput + currentInput) / 2.0 - interpolatedValue) *
                     timeStep;
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;

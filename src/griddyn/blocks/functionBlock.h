@@ -25,7 +25,8 @@ class functionBlock: public Block {
 
   protected:
     function1_t mFunctionPtr = nullptr;  //!< function object for single argument functions
-    function1_t mDerivativeFunctionPtr = nullptr;  //!< derivative function object for single argument functions
+    function1_t mDerivativeFunctionPtr =
+        nullptr;  //!< derivative function object for single argument functions
     function2_t mBinaryFunctionPtr = nullptr;  //!< function object for multiple argument functions
     model_parameter mGain = 1.0;  //!< extra gain factor
     model_parameter mArg2 = 0.0;  //!< second argument for 2 argument functions

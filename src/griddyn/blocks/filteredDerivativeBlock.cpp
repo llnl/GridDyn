@@ -88,18 +88,19 @@ double filteredDerivativeBlock::step(coreTime time, double inputA)
         double derivativeValue;
         while (currentTime < time) {
             currentInput = currentInput + (input - prevInput) / dt * timeStep;
-            derivativeValue = K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - derivativeState);
+            derivativeValue =
+                K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - derivativeState);
             derivativeState = derivativeState + derivativeValue * timeStep;
             filterState = filterState + (derivativeValue - filterState) / mT2 * timeStep;
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;
         }
-        m_state[loc + 1] =
-            derivativeState + K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) *
+        m_state[loc + 1] = derivativeState +
+            K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) *
                 (time - currentTime + timeStep);
-        m_state[loc] =
-            filterState +
-            (K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) - filterState) /
+        m_state[loc] = filterState +
+            (K / mT1 * ((previousInterpolatedInput + input) / 2.0 - derivativeState) -
+             filterState) /
                 mT2 * (time - currentTime + timeStep);
     }
     prevInput = input;

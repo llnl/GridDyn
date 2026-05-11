@@ -83,8 +83,9 @@ double derivativeBlock::step(coreTime time, double inputA)
         intermediateValue = m_state[loc + 1];
         while (currentTime < time) {
             currentInput = currentInput + (input - prevInput) / dt * timeStep;
-            intermediateValue =
-                intermediateValue + K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - intermediateValue) * timeStep;
+            intermediateValue = intermediateValue +
+                K / mT1 * ((previousInterpolatedInput + currentInput) / 2.0 - intermediateValue) *
+                    timeStep;
             currentTime += timeStep;
             previousInterpolatedInput = currentInput;
         }

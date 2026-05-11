@@ -118,8 +118,9 @@ void controlBlock::blockJacobianElements(double input,
     if (opFlags[differential_input]) {
     } else {
         if (hasAlgebraic(sMode)) {
-            md.assign(
-                locationData.algOffset + limiter_alg, locationData.algOffset + limiter_alg, -1);
+            md.assign(locationData.algOffset + limiter_alg,
+                      locationData.algOffset + limiter_alg,
+                      -1);
 
             md.assignCheckCol(locationData.algOffset + limiter_alg, argLoc, K * mT2 / mT1);
             if (limiter_alg > 0) {
@@ -133,8 +134,7 @@ void controlBlock::blockJacobianElements(double input,
         if (hasDifferential(sMode)) {
             md.assignCheckCol(locationData.diffOffset, argLoc, K / mT1);
             if (hasAlgebraic(sMode)) {
-                md.assign(
-                    locationData.diffOffset, locationData.algOffset + limiter_alg, -1 / mT1);
+                md.assign(locationData.diffOffset, locationData.algOffset + limiter_alg, -1 / mT1);
             }
             md.assign(locationData.diffOffset, locationData.diffOffset, -sD.cj);
         }
@@ -166,8 +166,7 @@ double controlBlock::step(coreTime time, double input)
             currentTime += timeStep;
             previousIntermediateInput = currentInput;
         }
-        m_state[limiter_alg + limiter_diff + 1] =
-            intermediateValue +
+        m_state[limiter_alg + limiter_diff + 1] = intermediateValue +
             1.0 / mT1 * (K * (previousIntermediateInput + inputWithBias) / 2.0 - outputValue) *
                 (time - currentTime + timeStep);
     }

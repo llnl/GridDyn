@@ -296,7 +296,7 @@ void yamlReaderElement::moveToFirstChild()
         if (isElement(elementIterator->second)) {
             mParents.push_back(mCurrent);
             mCurrent = std::make_shared<yamlElement>(elementIterator->second,
-                                                    elementIterator->first.as<std::string>());
+                                                     elementIterator->first.as<std::string>());
             return;
         }
         ++elementIterator;
@@ -356,7 +356,7 @@ void yamlReaderElement::moveToNextSibling()
     while (elementIterator != endIterator) {
         if (isElement(elementIterator->second)) {
             mCurrent = std::make_shared<yamlElement>(elementIterator->second,
-                                                    elementIterator->first.as<std::string>());
+                                                     elementIterator->first.as<std::string>());
             return;
         }
         ++elementIterator;
@@ -383,7 +383,7 @@ void yamlReaderElement::moveToNextSibling(const std::string& siblingName)
         if (mParents.back()->getElement()[siblingName]) {
             if (isElement(mParents.back()->getElement()[siblingName])) {
                 mCurrent = std::make_shared<yamlElement>(mParents.back()->getElement()[siblingName],
-                                                        siblingName);
+                                                         siblingName);
                 return;
             }
         }

@@ -419,7 +419,7 @@ void jsonReaderElement::moveToNextSibling(const std::string& siblingName)
         if (mParents.back()->getElement().contains(siblingName)) {
             if (isElement(mParents.back()->getElement()[siblingName])) {
                 mCurrent = std::make_shared<jsonElement>(mParents.back()->getElement()[siblingName],
-                                                        siblingName);
+                                                         siblingName);
                 return;
             }
         }

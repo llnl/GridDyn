@@ -33,8 +33,7 @@ int griddyn_runner_main(int argc, char* argv[])
 #ifdef GRIDDYN_HAVE_ETRACE
     std::stringstream programTraceFilename;
     programTraceFilename << "etrace/"
-                         << "program_trace." << std::setw(6) << std::setfill('0') << 0
-                         << ".etrace";
+                         << "program_trace." << std::setw(6) << std::setfill('0') << 0 << ".etrace";
     init_tracefile(programTraceFilename.str().c_str());
 
 #endif

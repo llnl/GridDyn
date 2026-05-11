@@ -22,10 +22,10 @@ static childClassFactory<FskitCommunicator, griddyn::Communicator>
 
 fskitRunner::fskitRunner() {}
 
-int fskitRunner::Initialize(int argc,
-                            char* argv[],
-                            std::shared_ptr<fskit::GrantedTimeWindowScheduler>
-                                grantedTimeWindowScheduler)
+int fskitRunner::Initialize(
+    int argc,
+    char* argv[],
+    std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
 {
     if (grantedTimeWindowScheduler) {
         GriddynFederatedScheduler::Initialize(grantedTimeWindowScheduler);

@@ -89,8 +89,9 @@ void fmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
     }
     if (mCoordinator != nullptr) {
         if (collectorDataPoint.mColumnCount == 1) {
-            mCoordinator->registerOutput(
-                collectorDataPoint.mColumnName, collectorDataPoint.mColumn, this);
+            mCoordinator->registerOutput(collectorDataPoint.mColumnName,
+                                         collectorDataPoint.mColumn,
+                                         this);
         } else {
             // TODO(phlpt): Deal with output vectors later.
         }

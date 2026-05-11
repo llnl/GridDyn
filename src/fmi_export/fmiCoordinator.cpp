@@ -77,8 +77,7 @@ void fmiCoordinator::registerOutput(const std::string& outputName, int column, f
 {
     auto valueReference = mNextVr++;
     mOutputVr.emplace_back(
-        valueReference,
-        outputSet{outputName, column, static_cast<index_t>(mOutputVr.size()), out});
+        valueReference, outputSet{outputName, column, static_cast<index_t>(mOutputVr.size()), out});
     mVrNames.emplace(outputName, valueReference);
     mCollectors.push_back(out);
     auto collectorEnd = std::unique(mCollectors.begin(), mCollectors.end());

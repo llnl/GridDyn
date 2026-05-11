@@ -64,11 +64,11 @@ class XmlReaderElement: public readerElement {
     void restore() override;
 
   private:
-    std::shared_ptr<pugi::xml_document> doc;  //!< document root
-    pugi::xml_node element;
-    pugi::xml_attribute att;
-    pugi::xml_node parent;
-    std::vector<std::pair<pugi::xml_node, pugi::xml_node>> bookmarks;
+    std::shared_ptr<pugi::xml_document> mDoc;  //!< document root
+    pugi::xml_node mElement;
+    pugi::xml_attribute mAttribute;
+    pugi::xml_node mParent;
+    std::vector<std::pair<pugi::xml_node, pugi::xml_node>> mBookmarks;
 
   private:
     void clear();

@@ -21,27 +21,27 @@ XmlReaderElement::XmlReaderElement(const std::string& fileName)
     XmlReaderElement::loadFile(fileName);
 }
 XmlReaderElement::XmlReaderElement(pugi::xml_node xmlElement, pugi::xml_node xmlParent):
-    element(xmlElement), parent(xmlParent)
+    mElement(xmlElement), mParent(xmlParent)
 {
 }
 
 XmlReaderElement::~XmlReaderElement() = default;
 void XmlReaderElement::clear()
 {
-    element = pugi::xml_node();
-    parent = pugi::xml_node();
-    att = pugi::xml_attribute();
-    bookmarks.clear();
+    mElement = pugi::xml_node();
+    mParent = pugi::xml_node();
+    mAttribute = pugi::xml_attribute();
+    mBookmarks.clear();
 }
 
 bool XmlReaderElement::isValid() const
 {
-    return (static_cast<bool>(element) || (!parent && doc));
+    return (static_cast<bool>(mElement) || (!mParent && mDoc));
 }
 bool XmlReaderElement::isDocument() const
 {
-    if (!parent) {
-        if (doc) {
+    if (!mParent) {
+        if (mDoc) {
             return true;
         }
     }
@@ -50,51 +50,51 @@ bool XmlReaderElement::isDocument() const
 
 std::shared_ptr<readerElement> XmlReaderElement::clone() const
 {
-    auto ret = std::make_shared<XmlReaderElement>(element, parent);
-    ret->doc = doc;
+    auto ret = std::make_shared<XmlReaderElement>(mElement, mParent);
+    ret->mDoc = mDoc;
     return ret;
 }
 
 bool XmlReaderElement::loadFile(const std::string& fileName)
 {
-    doc = std::make_shared<pugi::xml_document>();
-    const auto res = doc->load_file(fileName.c_str());
+    mDoc = std::make_shared<pugi::xml_document>();
+    const auto res = mDoc->load_file(fileName.c_str());
     clear();
     if (res) {
-        element = doc->document_element();
+        mElement = mDoc->document_element();
         return true;
     }
     std::cerr << "unable to load xml file " << fileName << ": " << res.description() << '\n';
-    doc = nullptr;
+    mDoc = nullptr;
     return false;
 }
 
 bool XmlReaderElement::parse(const std::string& inputString)
 {
-    doc = std::make_shared<pugi::xml_document>();
-    const auto res = doc->load_buffer(inputString.data(), inputString.length());
+    mDoc = std::make_shared<pugi::xml_document>();
+    const auto res = mDoc->load_buffer(inputString.data(), inputString.length());
     clear();
     if (res) {
-        element = doc->document_element();
+        mElement = mDoc->document_element();
         return true;
     }
     std::cerr << "unable to parse xml string: " << res.description() << '\n';
-    doc = nullptr;
+    mDoc = nullptr;
     return false;
 }
 
 std::string XmlReaderElement::getName() const
 {
-    if (!element.empty()) {
-        return element.name();
+    if (!mElement.empty()) {
+        return mElement.name();
     }
     return "";
 }
 
 double XmlReaderElement::getValue() const
 {
-    if (!element.empty()) {
-        const auto* cText = element.child_value();
+    if (!mElement.empty()) {
+        const auto* cText = mElement.child_value();
         if (cText[0] != '\0') {
             return numeric_conversionComplete(std::string_view{cText}, readerNullVal);
         }
@@ -104,8 +104,8 @@ double XmlReaderElement::getValue() const
 
 std::string XmlReaderElement::getText() const
 {
-    if (!element.empty()) {
-        return gmlc::utilities::stringOps::trim(element.child_value());
+    if (!mElement.empty()) {
+        return gmlc::utilities::stringOps::trim(mElement.child_value());
     }
     return "";
 }
@@ -113,8 +113,8 @@ std::string XmlReaderElement::getText() const
 std::string XmlReaderElement::getMultiText(const std::string& sep) const
 {
     std::string ret;
-    if (!element.empty()) {
-        for (auto childNode = element.first_child(); !childNode.empty();
+    if (!mElement.empty()) {
+        for (auto childNode = mElement.first_child(); !childNode.empty();
              childNode = childNode.next_sibling()) {
             if ((childNode.type() == pugi::node_pcdata) || (childNode.type() == pugi::node_cdata)) {
                 auto childText = gmlc::utilities::stringOps::trim(childNode.value());
@@ -133,26 +133,26 @@ std::string XmlReaderElement::getMultiText(const std::string& sep) const
 
 bool XmlReaderElement::hasAttribute(const std::string& attributeName) const
 {
-    if (!element.empty()) {
-        return !element.attribute(attributeName.c_str()).empty();
+    if (!mElement.empty()) {
+        return !mElement.attribute(attributeName.c_str()).empty();
     }
     return false;
 }
 
 bool XmlReaderElement::hasElement(const std::string& elementName) const
 {
-    if (!element.empty()) {
-        return !element.child(elementName.c_str()).empty();
+    if (!mElement.empty()) {
+        return !mElement.child(elementName.c_str()).empty();
     }
     return false;
 }
 
 readerAttribute XmlReaderElement::getFirstAttribute()
 {
-    if (!element.empty()) {
-        att = element.first_attribute();
-        if (!att.empty()) {
-            return {std::string(att.name()), std::string(att.value())};
+    if (!mElement.empty()) {
+        mAttribute = mElement.first_attribute();
+        if (!mAttribute.empty()) {
+            return {std::string(mAttribute.name()), std::string(mAttribute.value())};
         }
     }
     return {};
@@ -160,10 +160,10 @@ readerAttribute XmlReaderElement::getFirstAttribute()
 
 readerAttribute XmlReaderElement::getNextAttribute()
 {
-    if (!att.empty()) {
-        att = att.next_attribute();
-        if (!att.empty()) {
-            return {std::string(att.name()), std::string(att.value())};
+    if (!mAttribute.empty()) {
+        mAttribute = mAttribute.next_attribute();
+        if (!mAttribute.empty()) {
+            return {std::string(mAttribute.name()), std::string(mAttribute.value())};
         }
     }
     return {};
@@ -171,8 +171,8 @@ readerAttribute XmlReaderElement::getNextAttribute()
 
 readerAttribute XmlReaderElement::getAttribute(const std::string& attributeName) const
 {
-    if (!element.empty()) {
-        auto attribute = element.attribute(attributeName.c_str());
+    if (!mElement.empty()) {
+        auto attribute = mElement.attribute(attributeName.c_str());
         if (!attribute.empty()) {
             return {attributeName, std::string(attribute.value())};
         }
@@ -182,8 +182,8 @@ readerAttribute XmlReaderElement::getAttribute(const std::string& attributeName)
 
 std::string XmlReaderElement::getAttributeText(const std::string& attributeName) const
 {
-    if (!element.empty()) {
-        auto attribute = element.attribute(attributeName.c_str());
+    if (!mElement.empty()) {
+        auto attribute = mElement.attribute(attributeName.c_str());
         if (!attribute.empty()) {
             return {attribute.value()};
         }
@@ -193,8 +193,8 @@ std::string XmlReaderElement::getAttributeText(const std::string& attributeName)
 
 double XmlReaderElement::getAttributeValue(const std::string& attributeName) const
 {
-    if (!element.empty()) {
-        auto attribute = element.attribute(attributeName.c_str());
+    if (!mElement.empty()) {
+        auto attribute = mElement.attribute(attributeName.c_str());
         if (!attribute.empty()) {
             return numeric_conversionComplete(std::string_view{attribute.value()}, readerNullVal);
         }
@@ -205,16 +205,16 @@ double XmlReaderElement::getAttributeValue(const std::string& attributeName) con
 std::shared_ptr<readerElement> XmlReaderElement::firstChild() const
 {
     pugi::xml_node child;
-    if (!element.empty()) {
-        child = element.first_child();
+    if (!mElement.empty()) {
+        child = mElement.first_child();
         while (!child.empty() && child.type() != pugi::node_element) {
             child = child.next_sibling();
         }
     } else if (isDocument()) {
-        child = doc->document_element();
+        child = mDoc->document_element();
     }
     if (!child.empty()) {
-        return std::make_shared<XmlReaderElement>(child, element);
+        return std::make_shared<XmlReaderElement>(child, mElement);
     }
     return nullptr;
 }
@@ -222,82 +222,82 @@ std::shared_ptr<readerElement> XmlReaderElement::firstChild() const
 std::shared_ptr<readerElement> XmlReaderElement::firstChild(const std::string& childName) const
 {
     pugi::xml_node child;
-    if (!element.empty()) {
-        child = element.child(childName.c_str());
+    if (!mElement.empty()) {
+        child = mElement.child(childName.c_str());
     } else if (isDocument()) {
-        child = doc->child(childName.c_str());
+        child = mDoc->child(childName.c_str());
     }
     if (!child.empty()) {
-        return std::make_shared<XmlReaderElement>(child, element);
+        return std::make_shared<XmlReaderElement>(child, mElement);
     }
     return nullptr;
 }
 
 void XmlReaderElement::moveToNextSibling()
 {
-    if (!element.empty()) {
-        element = element.next_sibling();
-        while (!element.empty() && element.type() != pugi::node_element) {
-            element = element.next_sibling();
+    if (!mElement.empty()) {
+        mElement = mElement.next_sibling();
+        while (!mElement.empty() && mElement.type() != pugi::node_element) {
+            mElement = mElement.next_sibling();
         }
-        att = pugi::xml_attribute();
+        mAttribute = pugi::xml_attribute();
     }
 }
 
 void XmlReaderElement::moveToNextSibling(const std::string& siblingName)
 {
-    if (!element.empty()) {
-        element = element.next_sibling(siblingName.c_str());
-        att = pugi::xml_attribute();
+    if (!mElement.empty()) {
+        mElement = mElement.next_sibling(siblingName.c_str());
+        mAttribute = pugi::xml_attribute();
     }
 }
 
 void XmlReaderElement::moveToFirstChild()
 {
-    if (!element.empty()) {
-        parent = element;
-        att = pugi::xml_attribute();
-        element = element.first_child();
-        while (!element.empty() && element.type() != pugi::node_element) {
-            element = element.next_sibling();
+    if (!mElement.empty()) {
+        mParent = mElement;
+        mAttribute = pugi::xml_attribute();
+        mElement = mElement.first_child();
+        while (!mElement.empty() && mElement.type() != pugi::node_element) {
+            mElement = mElement.next_sibling();
         }
     } else if (isDocument()) {
-        element = doc->document_element();
+        mElement = mDoc->document_element();
     }
 }
 
 void XmlReaderElement::moveToFirstChild(const std::string& childName)
 {
-    if (!element.empty()) {
-        parent = element;
-        att = pugi::xml_attribute();
-        element = element.child(childName.c_str());
+    if (!mElement.empty()) {
+        mParent = mElement;
+        mAttribute = pugi::xml_attribute();
+        mElement = mElement.child(childName.c_str());
     } else if (isDocument()) {
-        element = doc->child(childName.c_str());
+        mElement = mDoc->child(childName.c_str());
     }
 }
 
 void XmlReaderElement::moveToParent()
 {
-    if (!parent.empty()) {
-        element = parent;
-        att = pugi::xml_attribute();
-        parent = element.parent();
-        if (parent.type() != pugi::node_element) {
-            parent = pugi::xml_node();
+    if (!mParent.empty()) {
+        mElement = mParent;
+        mAttribute = pugi::xml_attribute();
+        mParent = mElement.parent();
+        if (mParent.type() != pugi::node_element) {
+            mParent = pugi::xml_node();
         }
     }
 }
 
 std::shared_ptr<readerElement> XmlReaderElement::nextSibling() const
 {
-    if (!element.empty()) {
-        auto sibling = element.next_sibling();
+    if (!mElement.empty()) {
+        auto sibling = mElement.next_sibling();
         while (!sibling.empty() && sibling.type() != pugi::node_element) {
             sibling = sibling.next_sibling();
         }
         if (!sibling.empty()) {
-            return std::make_shared<XmlReaderElement>(sibling, parent);
+            return std::make_shared<XmlReaderElement>(sibling, mParent);
         }
     }
     return nullptr;
@@ -305,10 +305,10 @@ std::shared_ptr<readerElement> XmlReaderElement::nextSibling() const
 
 std::shared_ptr<readerElement> XmlReaderElement::nextSibling(const std::string& siblingName) const
 {
-    if (!element.empty()) {
-        auto sibling = element.next_sibling(siblingName.c_str());
+    if (!mElement.empty()) {
+        auto sibling = mElement.next_sibling(siblingName.c_str());
         if (!sibling.empty()) {
-            return std::make_shared<XmlReaderElement>(sibling, parent);
+            return std::make_shared<XmlReaderElement>(sibling, mParent);
         }
     }
     return nullptr;
@@ -316,14 +316,14 @@ std::shared_ptr<readerElement> XmlReaderElement::nextSibling(const std::string& 
 
 void XmlReaderElement::bookmark()
 {
-    bookmarks.emplace_back(element, parent);
+    mBookmarks.emplace_back(mElement, mParent);
 }
 void XmlReaderElement::restore()
 {
-    if (bookmarks.empty()) {
+    if (mBookmarks.empty()) {
         return;
     }
-    element = bookmarks.back().first;
-    parent = bookmarks.back().second;
-    bookmarks.pop_back();
+    mElement = mBookmarks.back().first;
+    mParent = mBookmarks.back().second;
+    mBookmarks.pop_back();
 }

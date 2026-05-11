@@ -14,18 +14,21 @@ class jsonElement {
   public:
     using JsonValue = nlohmann::json;
 
-    std::size_t elementIndex = 0;
-    std::string name;
-    std::size_t arrayIndex = 0;
+    std::size_t mElementIndex = 0;
+    std::string mName;
+    std::size_t mArrayIndex = 0;
     jsonElement() noexcept {}
     jsonElement(JsonValue vElement, std::string newName);
 
     void clear();
-    const JsonValue& getElement() const { return (arraytype) ? element[arrayIndex] : element; }
-    std::size_t count() const { return (arraytype) ? element.size() : std::size_t{1}; }
-    bool isNull() const { return (arraytype) ? element[arrayIndex].is_null() : element.is_null(); }
+    const JsonValue& getElement() const { return (mArrayType) ? mElement[mArrayIndex] : mElement; }
+    std::size_t count() const { return (mArrayType) ? mElement.size() : std::size_t{1}; }
+    bool isNull() const
+    {
+        return (mArrayType) ? mElement[mArrayIndex].is_null() : mElement.is_null();
+    }
 
   private:
-    JsonValue element = nullptr;
-    bool arraytype = false;
+    JsonValue mElement = nullptr;
+    bool mArrayType = false;
 };

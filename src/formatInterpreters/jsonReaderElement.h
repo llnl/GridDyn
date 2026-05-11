@@ -63,10 +63,10 @@ class jsonReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<nlohmann::json> doc;  //!< document root
-    std::vector<std::shared_ptr<jsonElement>> parents;
-    std::shared_ptr<jsonElement> current;
-    int iteratorCount = 0;
+    std::shared_ptr<nlohmann::json> mDoc;  //!< document root
+    std::vector<std::shared_ptr<jsonElement>> mParents;
+    std::shared_ptr<jsonElement> mCurrent;
+    int mIteratorCount = 0;
 
-    std::vector<std::shared_ptr<jsonReaderElement>> bookmarks;
+    std::vector<std::shared_ptr<jsonReaderElement>> mBookmarks;
 };

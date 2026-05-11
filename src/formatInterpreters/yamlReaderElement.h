@@ -64,10 +64,10 @@ class yamlReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<YAML::Node> doc;  //!< document root
-    std::vector<std::shared_ptr<yamlElement>> parents;  //!< stack of the parent objects
-    std::shared_ptr<yamlElement> current;  //!< the current object
+    std::shared_ptr<YAML::Node> mDoc;  //!< document root
+    std::vector<std::shared_ptr<yamlElement>> mParents;  //!< stack of the parent objects
+    std::shared_ptr<yamlElement> mCurrent;  //!< the current object
     // YAML::const_iterator attIterator;    //!< an iterator for looping through attributes
-    int iteratorCount = 0;
-    std::vector<std::shared_ptr<yamlReaderElement>> bookmarks;
+    int mIteratorCount = 0;
+    std::vector<std::shared_ptr<yamlReaderElement>> mBookmarks;
 };

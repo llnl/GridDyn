@@ -61,10 +61,10 @@ class tomlReaderElement: public readerElement {
     virtual void restore() override;
 
   private:
-    std::shared_ptr<toml::ordered_value> doc = nullptr;  //!< document root
-    std::vector<std::shared_ptr<tomlElement>> parents;
-    std::shared_ptr<tomlElement> current = nullptr;
-    int iteratorCount = 0;
+    std::shared_ptr<toml::ordered_value> mDoc = nullptr;  //!< document root
+    std::vector<std::shared_ptr<tomlElement>> mParents;
+    std::shared_ptr<tomlElement> mCurrent = nullptr;
+    int mIteratorCount = 0;
 
-    std::vector<std::shared_ptr<tomlReaderElement>> bookmarks;
+    std::vector<std::shared_ptr<tomlReaderElement>> mBookmarks;
 };

@@ -45,15 +45,15 @@ class gridDynOptimization: public gridDynSimulation {
   public:
   protected:
     // storageSpace for SUNDIALS solverInterface
-    std::vector<std::shared_ptr<optimizerInterface>> oData;
-    gridAreaOpt* areaOpt = nullptr;
-    std::string defaultOptMode;
+    std::vector<std::shared_ptr<optimizerInterface>> mOptimizerData;
+    gridAreaOpt* mAreaOpt = nullptr;
+    std::string mDefaultOptMode;
     // ---------------solution mode-------------
     // total thread count
 
     // list of object to PreExecute
-    int constraintCount = 0;
-    optimization_type_t optimization_mode;
+    int mConstraintCount = 0;
+    optimization_type_t mOptimizationMode;
 
   public:
     gridDynOptimization(const std::string& simName = "gridDynOptSim_#");
@@ -63,7 +63,7 @@ class gridDynOptimization: public gridDynSimulation {
     void setOptimizationMode(optimization_type_t omode)
     {
         if (omode != default_optimization) {
-            optimization_mode = omode;
+            mOptimizationMode = omode;
         }
     }
     virtual void set(std::string_view param, std::string_view val) override;
@@ -96,17 +96,17 @@ class gridDynOptimization: public gridDynSimulation {
     // void pFlowJacobian(const double state[]);
     optimizerInterface* getOptimizerData(const optimMode& oMode)
     {
-        return (oData[oMode.offsetIndex].get());
+        return (mOptimizerData[oMode.offsetIndex].get());
     }
 
     const optimizerInterface* getOptimizerData(const optimMode& oMode) const
     {
-        return (oData[oMode.offsetIndex].get());
+        return (mOptimizerData[oMode.offsetIndex].get());
     }
 
     void setMaxJacSize(const optimMode& oMode, count_t ssize)
     {
-        oData[oMode.offsetIndex]->initializeJacArray(ssize);
+        mOptimizerData[oMode.offsetIndex]->initializeJacArray(ssize);
     }
     // dynamics protected
     // void dynInitializeObjects(double initTime, double absInitTime);

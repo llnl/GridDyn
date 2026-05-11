@@ -79,30 +79,30 @@ void optimOffsets::increment()
 
 void optimOffsets::increment(const optimOffsets& offsets)
 {
-    count_t contExtra = 0;
+    count_t continuousExtra = 0;
     if (aOffset != kNullLocation) {
         aOffset += offsets.total.aSize;
     } else {
-        contExtra = offsets.total.aSize;
+        continuousExtra = offsets.total.aSize;
     }
     if (vOffset != kNullLocation) {
         vOffset += offsets.total.vSize;
     } else {
-        contExtra = offsets.total.vSize;
+        continuousExtra = offsets.total.vSize;
     }
 
     if (gOffset != kNullLocation) {
         gOffset += offsets.total.genSize;
     } else {
-        contExtra = offsets.total.genSize;
+        continuousExtra = offsets.total.genSize;
     }
 
     if (qOffset != kNullLocation) {
         qOffset += offsets.total.qSize;
     } else {
-        contExtra = offsets.total.qSize;
+        continuousExtra = offsets.total.qSize;
     }
-    contOffset += offsets.total.contSize + contExtra;
+    contOffset += offsets.total.contSize + continuousExtra;
 
     if (intOffset != kNullLocation) {
         intOffset += offsets.total.intSize;

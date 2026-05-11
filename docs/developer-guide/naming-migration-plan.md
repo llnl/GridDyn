@@ -199,10 +199,10 @@ Types of work in this phase:
 - [x] `src/networking`
 - [x] `src/griddyn/comms`
 - [x] `src/griddyn/measurement`
-- [~] `src/griddyn/relays`
-- [ ] `src/griddyn/blocks`
+- [x] `src/griddyn/relays`
+- [x] `src/griddyn/blocks`
 - [x] `src/utilities`
-- [ ] `src/optimization`
+- [~] `src/optimization`
 - [ ] `src/runner`
 - [ ] `src/plugins`
 - [ ] `src/formatInterpreters`
@@ -443,14 +443,16 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch | Area                      | Phase   | Summary                                                                                                                                                                              | Compatibility Needed | Tests Run                        | Status      |
-| ----------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | -------------------------------- | ----------- |
-| merged      | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                            | No                   | Inventory script run             | Complete    |
-| merged      | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                       | No                   | Not yet run                      | Complete    |
-| merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                          | No                   | CI `clang-tidy` run              | Complete    |
-| merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                 | No                   | CI workflow run                  | Complete    |
-| merged      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue` | No                   | No `clang-tidy` issues to report | Complete    |
-| working     | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                    | No                   | Not yet run                      | In progress |
+| PR / Branch | Area                      | Phase   | Summary                                                                                                                                                                                                  | Compatibility Needed | Tests Run                        | Status      |
+| ----------- | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------- | ----------- |
+| merged      | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                | No                   | Inventory script run             | Complete    |
+| merged      | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                           | No                   | Not yet run                      | Complete    |
+| merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                              | No                   | CI `clang-tidy` run              | Complete    |
+| merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                     | No                   | CI workflow run                  | Complete    |
+| merged      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                     | No                   | No `clang-tidy` issues to report | Complete    |
+| merged      | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                        | No                   | CI `clang-tidy` run              | Complete    |
+| merged      | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
+| working     | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

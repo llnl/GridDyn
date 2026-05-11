@@ -16,7 +16,7 @@ if the time constant is very small it reverts to the basic block
 */
 class derivativeBlock: public Block {
   protected:
-    model_parameter m_T1 = 0.1;  //!< delay time constant for the derivative filtering operation
+    model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
   public:
     //!< default constructor
     explicit derivativeBlock(const std::string& objName = "derivBlock_#");

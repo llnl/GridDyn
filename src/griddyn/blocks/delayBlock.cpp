@@ -18,9 +18,9 @@ delayBlock::delayBlock(const std::string& objName): Block(objName)
     opFlags.set(use_state);
 }
 
-delayBlock::delayBlock(double t1, const std::string& objName): Block(objName), m_T1(t1)
+delayBlock::delayBlock(double t1, const std::string& objName): Block(objName), mT1(t1)
 {
-    if (std::abs(m_T1) < kMin_Res) {
+    if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
     } else {
         opFlags.set(differential_output);
@@ -28,9 +28,9 @@ delayBlock::delayBlock(double t1, const std::string& objName): Block(objName), m
     }
 }
 delayBlock::delayBlock(double t1, double gain, const std::string& objName):
-    Block(gain, objName), m_T1(t1)
+    Block(gain, objName), mT1(t1)
 {
-    if (std::abs(m_T1) < kMin_Res) {
+    if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
     } else {
         opFlags.set(differential_output);
@@ -40,18 +40,18 @@ delayBlock::delayBlock(double t1, double gain, const std::string& objName):
 
 coreObject* delayBlock::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<delayBlock, Block>(this, obj);
+    auto* nobj = cloneBase<delayBlock, Block>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->m_T1 = m_T1;
+    nobj->mT1 = mT1;
 
     return nobj;
 }
 
 void delayBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if ((m_T1 < kMin_Res) || (opFlags[simplified])) {
+    if ((mT1 < kMin_Res) || (opFlags[simplified])) {
         opFlags.set(simplified);
         opFlags.reset(differential_output);
         opFlags.reset(use_state);
@@ -80,32 +80,36 @@ double delayBlock::step(coreTime time, double inputA)
     double dt = time - prevTime;
 
     double input = (inputA + bias);
-    index_t loc = limiter_diff;
-    if (dt >= fabs(5.0 * m_T1)) {
-        m_state[loc] = K * input;
-    } else if (dt <= std::abs(0.05 * m_T1)) {
-        m_state[loc] =
-            m_state[loc] + 1.0 / m_T1 * (K * (input + prevInput) / 2.0 - m_state[loc]) * dt;
+    index_t stateIndex = limiter_diff;
+    if (dt >= fabs(5.0 * mT1)) {
+        m_state[stateIndex] = K * input;
+    } else if (dt <= std::abs(0.05 * mT1)) {
+        m_state[stateIndex] =
+            m_state[stateIndex] + 1.0 / mT1 * (K * (input + prevInput) / 2.0 - m_state[stateIndex]) * dt;
     } else {
-        double tstep = 0.05 * m_T1;
-        double ct = prevTime + tstep;
-        double in = prevInput;
-        double pin = prevInput;
-        double ival = m_state[loc];
-        while (ct < time) {
-            in = in + (input - prevInput) / dt * tstep;
-            ival = ival + 1.0 / m_T1 * (K * (pin + in) / 2.0 - ival) * tstep;
-            ct += tstep;
-            pin = in;
+        double timeStep = 0.05 * mT1;
+        double currentTime = prevTime + timeStep;
+        double currentInput = prevInput;
+        double previousInterpolatedInput = prevInput;
+        double interpolatedValue = m_state[stateIndex];
+        while (currentTime < time) {
+            currentInput = currentInput + (input - prevInput) / dt * timeStep;
+            interpolatedValue = interpolatedValue +
+                1.0 / mT1 * (K * (previousInterpolatedInput + currentInput) / 2.0 - interpolatedValue) *
+                    timeStep;
+            currentTime += timeStep;
+            previousInterpolatedInput = currentInput;
         }
-        m_state[loc] = ival + 1.0 / m_T1 * (K * (pin + input) / 2.0 - ival) * (time - ct + tstep);
+        m_state[stateIndex] = interpolatedValue +
+            1.0 / mT1 * (K * (previousInterpolatedInput + input) / 2.0 - interpolatedValue) *
+                (time - currentTime + timeStep);
     }
     prevInput = input;
     double out;
-    if (loc > 0) {
+    if (stateIndex > 0) {
         out = Block::step(time, input);
     } else {
-        out = m_state[loc];
+        out = m_state[stateIndex];
         prevTime = time;
         m_output = out;
     }
@@ -120,7 +124,7 @@ void delayBlock::blockDerivative(double input,
 {
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
-    deriv[offset] = (K * (input + bias) - sD.state[offset]) / m_T1;
+    deriv[offset] = (K * (input + bias) - sD.state[offset]) / mT1;
     if (limiter_diff > 0) {
         Block::blockDerivative(input, didt, sD, deriv, sMode);
     }
@@ -138,8 +142,8 @@ void delayBlock::blockJacobianElements(double input,
         return;
     }
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
-    md.assignCheck(offset, argLoc, K / m_T1);
-    md.assign(offset, offset, -1.0 / m_T1 - sD.cj);
+    md.assignCheck(offset, argLoc, K / mT1);
+    md.assign(offset, offset, -1.0 / mT1 - sD.cj);
     Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
 }
 
@@ -160,7 +164,7 @@ void delayBlock::set(std::string_view param, double val, units::unit unitType)
                 }
             }
         }
-        m_T1 = val;
+        mT1 = val;
     } else {
         Block::set(param, val, unitType);
     }

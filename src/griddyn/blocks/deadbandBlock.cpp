@@ -20,44 +20,44 @@ deadbandBlock::deadbandBlock(const std::string& objName): Block(objName)
     opFlags.set(use_state);
 }
 deadbandBlock::deadbandBlock(double db, const std::string& objName):
-    Block(objName), deadbandHigh(db), deadbandLow(-db)
+    Block(objName), mDeadbandHigh(db), mDeadbandLow(-db)
 {
     opFlags.set(use_state);
 }
 
 coreObject* deadbandBlock::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<deadbandBlock, Block>(this, obj);
+    auto* nobj = cloneBase<deadbandBlock, Block>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->deadbandHigh = deadbandHigh;
-    nobj->deadbandLow = deadbandLow;
-    nobj->deadbandLevel = deadbandLevel;
-    nobj->rampUpband = rampUpband;
-    nobj->rampDownband = rampDownband;
-    nobj->resetHigh = resetHigh;
-    nobj->resetLow = resetLow;
+    nobj->mDeadbandHigh = mDeadbandHigh;
+    nobj->mDeadbandLow = mDeadbandLow;
+    nobj->mDeadbandLevel = mDeadbandLevel;
+    nobj->mRampUpBand = mRampUpBand;
+    nobj->mRampDownBand = mRampDownBand;
+    nobj->mResetHigh = mResetHigh;
+    nobj->mResetLow = mResetLow;
     return nobj;
 }
 
 void deadbandBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     Block::dynObjectInitializeA(time0, flags);
-    if (deadbandLow < deadbandHigh)  // this means it was set to some value
+    if (mDeadbandLow < mDeadbandHigh)  // this means it was set to some value
     {
         opFlags[has_roots] = true;
         offsets.local().local.algRoots++;
         opFlags.set(has_alg_roots);
         opFlags[uses_deadband] = true;
     }
-    if (resetHigh < -kHalfBigNum)  // this means we are using default
+    if (mResetHigh < -kHalfBigNum)  // this means we are using default
     {
-        resetHigh = deadbandHigh - 1e-6;
+        mResetHigh = mDeadbandHigh - 1e-6;
     }
-    if (resetLow > kHalfBigNum)  // this means we are using default
+    if (mResetLow > kHalfBigNum)  // this means we are using default
     {
-        resetLow = deadbandLow + 1e-6;
+        mResetLow = mDeadbandLow + 1e-6;
     }
 }
 // initial conditions
@@ -66,7 +66,7 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                                          IOdata& fieldSet)
 {
     if (desiredOutput.empty()) {
-        m_state[limiter_alg] = deadbandLevel;
+        m_state[limiter_alg] = mDeadbandLevel;
         rootCheck(inputs, emptyStateData, cLocalSolverMode, check_level_t::reversable_only);
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
         if (limiter_alg > 0) {
@@ -83,36 +83,36 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                              cLocalSolverMode,
                              check_level_t::reversable_only);
         }
-        dbstate = deadbandstate_t::normal;
+        mDeadbandState = deadbandstate_t::normal;
         double ival = m_state[limiter_alg] / K;
-        if (std::abs(ival - deadbandLevel) > 1e-6) {
+        if (std::abs(ival - mDeadbandLevel) > 1e-6) {
             if (opFlags[uses_shiftedoutput]) {
-                dbstate = deadbandstate_t::shifted;
-                if (ival > deadbandLevel) {
-                    fieldSet[0] = (deadbandHigh - deadbandLevel) + ival;
+                mDeadbandState = deadbandstate_t::shifted;
+                if (ival > mDeadbandLevel) {
+                    fieldSet[0] = (mDeadbandHigh - mDeadbandLevel) + ival;
                 } else {
-                    fieldSet[0] = ival - (deadbandLevel - deadbandLow);
+                    fieldSet[0] = ival - (mDeadbandLevel - mDeadbandLow);
                 }
-            } else if ((ival > deadbandHigh + rampUpband) || (ival < deadbandLow - rampUpband)) {
-                dbstate = deadbandstate_t::outside;
+            } else if ((ival > mDeadbandHigh + mRampUpBand) || (ival < mDeadbandLow - mRampUpBand)) {
+                mDeadbandState = deadbandstate_t::outside;
                 fieldSet[0] = ival;
-            } else if (rampUpband > 0) {
-                dbstate = deadbandstate_t::rampup;
-                if (ival > deadbandLevel) {
-                    fieldSet[0] = deadbandHigh +
-                        (ival - deadbandLevel) / (deadbandHigh + rampUpband - deadbandLevel) *
-                            rampUpband;
+            } else if (mRampUpBand > 0) {
+                mDeadbandState = deadbandstate_t::rampup;
+                if (ival > mDeadbandLevel) {
+                    fieldSet[0] = mDeadbandHigh +
+                        (ival - mDeadbandLevel) /
+                            (mDeadbandHigh + mRampUpBand - mDeadbandLevel) * mRampUpBand;
                 } else {
-                    fieldSet[0] = deadbandLow -
-                        (deadbandLevel - ival) / (deadbandLevel - deadbandLow - rampUpband) *
-                            rampUpband;
+                    fieldSet[0] = mDeadbandLow -
+                        (mDeadbandLevel - ival) /
+                            (mDeadbandLevel - mDeadbandLow - mRampUpBand) * mRampUpBand;
                 }
             } else {
-                dbstate = deadbandstate_t::outside;
+                mDeadbandState = deadbandstate_t::outside;
                 fieldSet[0] = ival;
             }
         } else {
-            fieldSet[0] = deadbandLevel;
+            fieldSet[0] = mDeadbandLevel;
         }
         fieldSet[0] -= bias;
     }
@@ -121,36 +121,36 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
 double deadbandBlock::computeValue(double input) const
 {
     double out = input;
-    switch (dbstate) {
+    switch (mDeadbandState) {
         case deadbandstate_t::normal:
-            out = deadbandLevel;
+            out = mDeadbandLevel;
             break;
         case deadbandstate_t::outside:
             out = input;
             break;
         case deadbandstate_t::shifted:
-            if (input > deadbandLevel) {
-                out = input - (deadbandHigh - deadbandLevel);
+            if (input > mDeadbandLevel) {
+                out = input - (mDeadbandHigh - mDeadbandLevel);
             } else {
-                out = input + (deadbandLevel - deadbandLow);
+                out = input + (mDeadbandLevel - mDeadbandLow);
             }
             break;
         case deadbandstate_t::rampup:
-            if (input > deadbandLevel) {
-                double tband = deadbandHigh - deadbandLevel + rampUpband;
-                out = deadbandLevel + (input - deadbandHigh) / rampUpband * tband;
+            if (input > mDeadbandLevel) {
+                double transitionBand = mDeadbandHigh - mDeadbandLevel + mRampUpBand;
+                out = mDeadbandLevel + (input - mDeadbandHigh) / mRampUpBand * transitionBand;
             } else {
-                double tband = deadbandLevel - deadbandLow + rampUpband;
-                out = deadbandLevel - (deadbandLow - input) / rampUpband * tband;
+                double transitionBand = mDeadbandLevel - mDeadbandLow + mRampUpBand;
+                out = mDeadbandLevel - (mDeadbandLow - input) / mRampUpBand * transitionBand;
             }
             break;
         case deadbandstate_t::rampdown:
-            if (input > deadbandLevel) {
-                double tband = deadbandHigh - deadbandLevel + rampDownband;
-                out = deadbandLevel + (input - deadbandHigh) / rampDownband * tband;
+            if (input > mDeadbandLevel) {
+                double transitionBand = mDeadbandHigh - mDeadbandLevel + mRampDownBand;
+                out = mDeadbandLevel + (input - mDeadbandHigh) / mRampDownBand * transitionBand;
             } else {
-                double tband = deadbandLevel - deadbandLow + rampDownband;
-                out = deadbandLevel - (deadbandLow - input) / rampDownband * tband;
+                double transitionBand = mDeadbandLevel - mDeadbandLow + mRampDownBand;
+                out = mDeadbandLevel - (mDeadbandLow - input) / mRampDownBand * transitionBand;
             }
             break;
     }
@@ -160,7 +160,7 @@ double deadbandBlock::computeValue(double input) const
 double deadbandBlock::computeDoutDin(double input) const
 {
     double out = 0.0;
-    switch (dbstate) {
+    switch (mDeadbandState) {
         case deadbandstate_t::normal:
             break;
         case deadbandstate_t::outside:
@@ -168,21 +168,21 @@ double deadbandBlock::computeDoutDin(double input) const
             out = 1.0;
             break;
         case deadbandstate_t::rampup:
-            if (input > deadbandLevel) {
-                double tband = deadbandHigh - deadbandLevel + rampUpband;
-                out = tband / rampUpband;
+            if (input > mDeadbandLevel) {
+                double transitionBand = mDeadbandHigh - mDeadbandLevel + mRampUpBand;
+                out = transitionBand / mRampUpBand;
             } else {
-                double tband = deadbandLevel - deadbandLow + rampUpband;
-                out = tband / rampUpband;
+                double transitionBand = mDeadbandLevel - mDeadbandLow + mRampUpBand;
+                out = transitionBand / mRampUpBand;
             }
             break;
         case deadbandstate_t::rampdown:
-            if (input > deadbandLevel) {
-                double tband = deadbandHigh - deadbandLevel + rampDownband;
-                out = tband / rampDownband;
+            if (input > mDeadbandLevel) {
+                double transitionBand = mDeadbandHigh - mDeadbandLevel + mRampDownBand;
+                out = transitionBand / mRampDownBand;
             } else {
-                double tband = deadbandLevel - deadbandLow + rampDownband;
-                out = tband / rampDownband;
+                double transitionBand = mDeadbandLevel - mDeadbandLow + mRampDownBand;
+                out = transitionBand / mRampDownBand;
             }
             break;
     }
@@ -211,8 +211,8 @@ void deadbandBlock::blockDerivative(double input,
 {
     if (opFlags[differential_input]) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
-        double ival = input + bias;
-        deriv[offset] = K * computeDoutDin(ival) * didt;
+        double inputWithBias = input + bias;
+        deriv[offset] = K * computeDoutDin(inputWithBias) * didt;
 
         if (limiter_diff > 0) {
             return Block::blockDerivative(input, didt, sD, deriv, sMode);
@@ -227,8 +227,8 @@ void deadbandBlock::blockAlgebraicUpdate(double input,
 {
     if (!opFlags[differential_input]) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
-        double ival = input + bias;
-        update[offset] = K * computeValue(ival);
+        double inputWithBias = input + bias;
+        update[offset] = K * computeValue(inputWithBias);
         // printf("db %f input=%f val=%f dbstate=%d\n", sD.time, ival,
         // update[offset], static_cast<int>(dbstate));
         if (limiter_alg > 0) {
@@ -247,10 +247,10 @@ void deadbandBlock::blockJacobianElements(double input,
     if ((!opFlags[differential_input]) && (hasAlgebraic(sMode))) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
         md.assign(offset, offset, -1.0);
-        double dido = K * computeDoutDin(input + bias);
+        double dInputOutput = K * computeDoutDin(input + bias);
 
         if (argLoc != kNullLocation) {
-            md.assign(offset, argLoc, dido);
+            md.assign(offset, argLoc, dInputOutput);
         }
         if (limiter_alg > 0) {
             Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
@@ -258,10 +258,10 @@ void deadbandBlock::blockJacobianElements(double input,
     } else if ((opFlags[differential_input]) && (hasDifferential(sMode))) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
         md.assign(offset, offset, -sD.cj);
-        double dido = K * computeDoutDin(input + bias);
+        double dInputOutput = K * computeDoutDin(input + bias);
 
         if (argLoc != kNullLocation) {
-            md.assign(offset, argLoc, dido * sD.cj);
+            md.assign(offset, argLoc, dInputOutput * sD.cj);
         }
 
         if (limiter_diff > 0) {
@@ -281,46 +281,58 @@ void deadbandBlock::rootTest(const IOdata& inputs,
     if (opFlags[uses_deadband]) {
         int rootOffset = offsets.getRootOffset(sMode) + limiter_alg + limiter_diff;
 
-        double ival = inputs[0] + bias;
+        double inputWithBias = inputs[0] + bias;
         // double prevInput = ival;
-        switch (dbstate) {
+        switch (mDeadbandState) {
             case deadbandstate_t::normal:
-                roots[rootOffset] = std::min(deadbandHigh - ival, ival - deadbandLow);
-                if (ival > deadbandHigh) {
+                roots[rootOffset] = std::min(mDeadbandHigh - inputWithBias, inputWithBias - mDeadbandLow);
+                if (inputWithBias > mDeadbandHigh) {
                     opFlags.set(dbtrigger_high);
                 }
                 break;
             case deadbandstate_t::outside:
                 if (opFlags[dbtrigger_high]) {
-                    roots[rootOffset] = ival - resetHigh + tolerance;
+                    roots[rootOffset] = inputWithBias - mResetHigh + mTolerance;
                 } else {
-                    roots[rootOffset] = resetLow - ival + tolerance;
+                    roots[rootOffset] = mResetLow - inputWithBias + mTolerance;
                 }
                 break;
             case deadbandstate_t::shifted:
                 if (opFlags[dbtrigger_high]) {
-                    roots[rootOffset] = ival - deadbandHigh + tolerance;
+                    roots[rootOffset] = inputWithBias - mDeadbandHigh + mTolerance;
                 } else {
-                    roots[rootOffset] = deadbandLow - ival + tolerance;
+                    roots[rootOffset] = mDeadbandLow - inputWithBias + mTolerance;
                 }
                 break;
 
             case deadbandstate_t::rampup:
                 if (opFlags[dbtrigger_high]) {
                     roots[rootOffset] =
-                        std::min(deadbandHigh + rampUpband - ival, ival - deadbandHigh) + tolerance;
+                        std::min(
+                            mDeadbandHigh + mRampUpBand - inputWithBias,
+                            inputWithBias - mDeadbandHigh) +
+                        mTolerance;
                 } else {
                     roots[rootOffset] =
-                        std::min(deadbandLow - ival, ival - deadbandLow - rampUpband) + tolerance;
+                        std::min(
+                            mDeadbandLow - inputWithBias,
+                            inputWithBias - mDeadbandLow - mRampUpBand) +
+                        mTolerance;
                 }
                 break;
             case deadbandstate_t::rampdown:
                 if (opFlags[dbtrigger_high]) {
                     roots[rootOffset] =
-                        std::min(ival - resetHigh - rampDownband, resetHigh - ival) + tolerance;
+                        std::min(
+                            inputWithBias - mResetHigh - mRampDownBand,
+                            mResetHigh - inputWithBias) +
+                        mTolerance;
                 } else {
                     roots[rootOffset] =
-                        std::min(ival - resetLow, resetLow + rampDownband - ival) + tolerance;
+                        std::min(
+                            inputWithBias - mResetLow,
+                            mResetLow + mRampDownBand - inputWithBias) +
+                        mTolerance;
                 }
                 break;
         }
@@ -341,50 +353,50 @@ void deadbandBlock::rootTrigger(coreTime time,
         }
         rootOffset += limiter_alg + limiter_diff;
     }
-    // auto cstate = dbstate;
+    // auto cstate = mDeadbandState;
     if (opFlags[uses_deadband]) {
         if (rootMask[rootOffset] == 0) {
             return;
         }
 
-        switch (dbstate) {
+        switch (mDeadbandState) {
             case deadbandstate_t::normal:
                 if (opFlags[uses_shiftedoutput]) {
-                    dbstate = deadbandstate_t::shifted;
-                } else if (rampUpband > 0.0) {
-                    dbstate = deadbandstate_t::rampup;
+                    mDeadbandState = deadbandstate_t::shifted;
+                } else if (mRampUpBand > 0.0) {
+                    mDeadbandState = deadbandstate_t::rampup;
                 } else {
-                    dbstate = deadbandstate_t::outside;
+                    mDeadbandState = deadbandstate_t::outside;
                 }
                 break;
             case deadbandstate_t::outside:
-                if (rampDownband > 0.0) {
-                    dbstate = deadbandstate_t::rampdown;
+                if (mRampDownBand > 0.0) {
+                    mDeadbandState = deadbandstate_t::rampdown;
                 } else {
-                    dbstate = deadbandstate_t::normal;
+                    mDeadbandState = deadbandstate_t::normal;
                 }
                 break;
             case deadbandstate_t::shifted:
-                dbstate = deadbandstate_t::normal;
+                mDeadbandState = deadbandstate_t::normal;
                 break;
 
             case deadbandstate_t::rampup:
-                if ((prevInput >= deadbandHigh + rampUpband) ||
-                    (prevInput <= deadbandLow - rampUpband)) {
-                    dbstate = deadbandstate_t::outside;
+                if ((prevInput >= mDeadbandHigh + mRampUpBand) ||
+                    (prevInput <= mDeadbandLow - mRampUpBand)) {
+                    mDeadbandState = deadbandstate_t::outside;
                 } else {
-                    dbstate = deadbandstate_t::normal;
+                    mDeadbandState = deadbandstate_t::normal;
                 }
                 break;
             case deadbandstate_t::rampdown:
-                if ((prevInput >= resetHigh) || (prevInput <= resetLow)) {
-                    dbstate = deadbandstate_t::outside;
+                if ((prevInput >= mResetHigh) || (prevInput <= mResetLow)) {
+                    mDeadbandState = deadbandstate_t::outside;
                 } else {
-                    dbstate = deadbandstate_t::normal;
+                    mDeadbandState = deadbandstate_t::normal;
                 }
                 break;
         }
-        if (dbstate == deadbandstate_t::normal) {
+        if (mDeadbandState == deadbandstate_t::normal) {
             opFlags.reset(dbtrigger_high);
         }
         m_state[limiter_alg] = computeValue(prevInput);
@@ -403,20 +415,21 @@ change_code deadbandBlock::rootCheck(const IOdata& inputs,
                                      check_level_t /*level*/)
 {
     change_code ret = change_code::no_change;
-    auto cstate = dbstate;
+    auto currentState = mDeadbandState;
     if (opFlags[uses_deadband]) {
-        double ival = inputs[0] + bias;
-        switch (dbstate) {
+        double inputWithBias = inputs[0] + bias;
+        switch (mDeadbandState) {
             case deadbandstate_t::normal:
-                if (std::min(deadbandHigh - ival, ival - deadbandLow) < -tolerance) {
+                if (std::min(mDeadbandHigh - inputWithBias, inputWithBias - mDeadbandLow) <
+                    -mTolerance) {
                     if (opFlags[uses_shiftedoutput]) {
-                        dbstate = deadbandstate_t::shifted;
-                    } else if (rampUpband > 0.0) {
-                        dbstate = deadbandstate_t::rampup;
+                        mDeadbandState = deadbandstate_t::shifted;
+                    } else if (mRampUpBand > 0.0) {
+                        mDeadbandState = deadbandstate_t::rampup;
                     } else {
-                        dbstate = deadbandstate_t::outside;
+                        mDeadbandState = deadbandstate_t::outside;
                     }
-                    if (ival >= deadbandHigh) {
+                    if (inputWithBias >= mDeadbandHigh) {
                         opFlags.set(dbtrigger_high);
                     } else {
                         opFlags.reset(dbtrigger_high);
@@ -425,70 +438,71 @@ change_code deadbandBlock::rootCheck(const IOdata& inputs,
                 break;
             case deadbandstate_t::outside:
                 if (opFlags[dbtrigger_high]) {
-                    if (ival < resetHigh) {
-                        if (rampDownband > 0.0) {
-                            if (ival < resetHigh - rampDownband) {
-                                dbstate = deadbandstate_t::normal;
+                    if (inputWithBias < mResetHigh) {
+                        if (mRampDownBand > 0.0) {
+                            if (inputWithBias < mResetHigh - mRampDownBand) {
+                                mDeadbandState = deadbandstate_t::normal;
                             } else {
-                                dbstate = deadbandstate_t::rampdown;
+                                mDeadbandState = deadbandstate_t::rampdown;
                             }
                         } else {
-                            dbstate = deadbandstate_t::normal;
+                            mDeadbandState = deadbandstate_t::normal;
                         }
                     }
                 } else {
-                    if (ival > resetLow) {
-                        if (rampDownband > 0.0) {
-                            if (ival > resetLow + rampDownband) {
-                                dbstate = deadbandstate_t::normal;
+                    if (inputWithBias > mResetLow) {
+                        if (mRampDownBand > 0.0) {
+                            if (inputWithBias > mResetLow + mRampDownBand) {
+                                mDeadbandState = deadbandstate_t::normal;
                             } else {
-                                dbstate = deadbandstate_t::rampdown;
+                                mDeadbandState = deadbandstate_t::rampdown;
                             }
                         } else {
-                            dbstate = deadbandstate_t::normal;
+                            mDeadbandState = deadbandstate_t::normal;
                         }
                     }
                 }
                 break;
             case deadbandstate_t::shifted:
-                if ((ival < deadbandHigh - tolerance) && (ival > deadbandLow + tolerance)) {
-                    dbstate = deadbandstate_t::normal;
+                if ((inputWithBias < mDeadbandHigh - mTolerance) &&
+                    (inputWithBias > mDeadbandLow + mTolerance)) {
+                    mDeadbandState = deadbandstate_t::normal;
                 }
                 break;
 
             case deadbandstate_t::rampup:
                 if (opFlags[dbtrigger_high]) {
-                    if (ival > deadbandHigh + rampUpband + tolerance) {
-                        dbstate = deadbandstate_t::outside;
-                    } else if (ival < deadbandHigh - tolerance) {
-                        dbstate = deadbandstate_t::normal;
+                    if (inputWithBias > mDeadbandHigh + mRampUpBand + mTolerance) {
+                        mDeadbandState = deadbandstate_t::outside;
+                    } else if (inputWithBias < mDeadbandHigh - mTolerance) {
+                        mDeadbandState = deadbandstate_t::normal;
                     }
                 } else {
-                    if (ival < deadbandLow - rampUpband - tolerance) {
-                        dbstate = deadbandstate_t::outside;
-                    } else if (ival > deadbandLow + tolerance) {
-                        dbstate = deadbandstate_t::normal;
+                    if (inputWithBias < mDeadbandLow - mRampUpBand - mTolerance) {
+                        mDeadbandState = deadbandstate_t::outside;
+                    } else if (inputWithBias > mDeadbandLow + mTolerance) {
+                        mDeadbandState = deadbandstate_t::normal;
                         ret = change_code::parameter_change;
                     }
                 }
                 break;
             case deadbandstate_t::rampdown:
                 if (opFlags[dbtrigger_high]) {
-                    if (ival > deadbandHigh + rampDownband + tolerance) {
-                        dbstate = deadbandstate_t::outside;
-                    } else if (ival < deadbandHigh - tolerance) {
-                        dbstate = deadbandstate_t::normal;
+                    if (inputWithBias > mDeadbandHigh + mRampDownBand + mTolerance) {
+                        mDeadbandState = deadbandstate_t::outside;
+                    } else if (inputWithBias < mDeadbandHigh - mTolerance) {
+                        mDeadbandState = deadbandstate_t::normal;
                     }
                 } else {
-                    if (ival < deadbandLow - rampDownband - tolerance) {
-                        dbstate = deadbandstate_t::outside;
-                    } else if (ival > deadbandLow + tolerance) {
-                        dbstate = deadbandstate_t::normal;
+                    if (inputWithBias < mDeadbandLow - mRampDownBand - mTolerance) {
+                        mDeadbandState = deadbandstate_t::outside;
+                    } else if (inputWithBias > mDeadbandLow + mTolerance) {
+                        mDeadbandState = deadbandstate_t::normal;
                     }
                 }
                 break;
         }
-        if (dbstate != cstate) {
+        if (mDeadbandState != currentState) {
             ret = change_code::parameter_change;
             //    printf("%f, %d::change deadband state from %d to %d from %f\n",
             // static_cast<double>(sD.time), getUserID(), static_cast<int>(cstate),
@@ -500,7 +514,7 @@ change_code deadbandBlock::rootCheck(const IOdata& inputs,
         auto iret = Block::rootCheck(inputs, sD, sMode, check_level_t::reversable_only);
         ret = std::max(ret, iret);
     }
-    if (cstate != dbstate) {
+    if (currentState != mDeadbandState) {
         // we may run through multiple categories so we need to
         // do this recursively
         auto iret = rootCheck(inputs, sD, sMode, check_level_t::reversable_only);
@@ -516,8 +530,8 @@ void deadbandBlock::setFlag(std::string_view flag, bool val)
     } else if (flag == "unshifted") {
         opFlags.set(uses_shiftedoutput, !val);
     } else if (flag == "no_down_deadband") {
-        resetLow = deadbandLevel;
-        resetHigh = deadbandLevel;
+        mResetLow = mDeadbandLevel;
+        mResetHigh = mDeadbandLevel;
     } else {
         Block::setFlag(flag, val);
     }
@@ -534,38 +548,38 @@ void deadbandBlock::set(std::string_view param, std::string_view val)
 void deadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "level") || (param == "dblevel") || (param == "deadbandlevel")) {
-        deadbandLevel = val;
+        mDeadbandLevel = val;
     } else if ((param == "deadband") || (param == "db")) {
-        deadbandHigh = deadbandLevel + val;
-        deadbandLow = deadbandLevel - val;
+        mDeadbandHigh = mDeadbandLevel + val;
+        mDeadbandLow = mDeadbandLevel - val;
     } else if ((param == "deadbandhigh") || (param == "dbhigh") || (param == "high")) {
-        if (val > deadbandLevel) {
-            deadbandHigh = val;
+        if (val > mDeadbandLevel) {
+            mDeadbandHigh = val;
         } else {
-            deadbandHigh = deadbandLevel + val;
+            mDeadbandHigh = mDeadbandLevel + val;
         }
     } else if (param == "tolerance") {
-        tolerance = val;
+        mTolerance = val;
     } else if ((param == "deadbandlow") || (param == "dblow") || (param == "low")) {
-        if (val < deadbandLevel) {
-            deadbandLow = val;
+        if (val < mDeadbandLevel) {
+            mDeadbandLow = val;
         } else {
-            deadbandLow = deadbandLevel - val;
+            mDeadbandLow = mDeadbandLevel - val;
         }
     } else if ((param == "rampband") || (param == "ramp")) {
-        rampUpband = val;
-        rampDownband = val;
+        mRampUpBand = val;
+        mRampDownBand = val;
     } else if ((param == "rampupband") || (param == "rampup")) {
-        rampUpband = val;
+        mRampUpBand = val;
     } else if ((param == "rampdownband") || (param == "rampdown")) {
-        rampDownband = val;
+        mRampDownBand = val;
     } else if ((param == "resetlevel") || (param == "reset")) {
-        resetHigh = deadbandLevel + val;
-        resetLow = deadbandLevel - val;
+        mResetHigh = mDeadbandLevel + val;
+        mResetLow = mDeadbandLevel - val;
     } else if (param == "resethigh") {
-        resetHigh = val;
+        mResetHigh = val;
     } else if (param == "resetlow") {
-        resetLow = val;
+        mResetLow = val;
     } else {
         Block::set(param, val, unitType);
     }

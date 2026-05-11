@@ -17,7 +17,7 @@ if the time constant is very small it reverts to the basic block
 class delayBlock: public Block {
   public:
   protected:
-    model_parameter m_T1 = 0.1;  //!< the time constant
+    model_parameter mT1 = 0.1;  //!< the time constant
   public:
     //!< default constructor
     explicit delayBlock(const std::string& objName = "delayBlock_#");

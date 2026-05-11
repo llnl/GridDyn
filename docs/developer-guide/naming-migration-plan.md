@@ -199,8 +199,8 @@ Types of work in this phase:
 - [x] `src/networking`
 - [x] `src/griddyn/comms`
 - [x] `src/griddyn/measurement`
-- [~] `src/griddyn/relays`
-- [ ] `src/griddyn/blocks`
+- [x] `src/griddyn/relays`
+- [~] `src/griddyn/blocks`
 - [x] `src/utilities`
 - [ ] `src/optimization`
 - [ ] `src/runner`
@@ -450,7 +450,8 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                          | No                   | CI `clang-tidy` run              | Complete    |
 | merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                 | No                   | CI workflow run                  | Complete    |
 | merged      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue` | No                   | No `clang-tidy` issues to report | Complete    |
-| working     | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                    | No                   | Not yet run                      | In progress |
+| merged      | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                    | No                   | CI `clang-tidy` run              | Complete    |
+| working     | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

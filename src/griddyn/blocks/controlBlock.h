@@ -18,8 +18,8 @@ if T1 is 0 it behaves like the basic block
 class controlBlock: public Block {
   public:
   protected:
-    model_parameter m_T1 = 0.1;  //!< delay time constant
-    model_parameter m_T2 = 0.0;  //!< upper time constant
+    model_parameter mT1 = 0.1;  //!< delay time constant
+    model_parameter mT2 = 0.0;  //!< upper time constant
   public:
     //!< default constructor
     explicit controlBlock(const std::string& objName = "controlBlock_#");

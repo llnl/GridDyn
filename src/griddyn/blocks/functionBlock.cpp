@@ -37,9 +37,11 @@ coreObject* functionBlock::clone(coreObject* obj) const
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->fptr = fptr;
-    nobj->dfptr = dfptr;
-    nobj->gain = gain;
+    nobj->mFunctionPtr = mFunctionPtr;
+    nobj->mDerivativeFunctionPtr = mDerivativeFunctionPtr;
+    nobj->mBinaryFunctionPtr = mBinaryFunctionPtr;
+    nobj->mGain = mGain;
+    nobj->mArg2 = mArg2;
     nobj->bias = bias;
     return nobj;
 }
@@ -51,9 +53,9 @@ void functionBlock::dynObjectInitializeB(const IOdata& inputs,
 {
     if (desiredOutput.empty()) {
         if (opFlags[uses_constantarg]) {
-            m_state[limiter_alg] = K * fptr2(gain * (inputs[0] + bias), arg2);
+            m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (inputs[0] + bias), mArg2);
         } else {
-            m_state[limiter_alg] = K * fptr(gain * (inputs[0] + bias));
+            m_state[limiter_alg] = K * mFunctionPtr(mGain * (inputs[0] + bias));
         }
         Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     } else {
@@ -68,9 +70,9 @@ void functionBlock::blockAlgebraicUpdate(double input,
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     if (opFlags[uses_constantarg]) {
-        update[offset] = K * fptr2(gain * (input + bias), arg2);
+        update[offset] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);
     } else {
-        update[offset] = K * fptr(gain * (input + bias));
+        update[offset] = K * mFunctionPtr(mGain * (input + bias));
     }
     if (limiter_alg > 0) {
         Block::blockAlgebraicUpdate(input, stateDataValue, update, sMode);
@@ -88,15 +90,16 @@ void functionBlock::blockJacobianElements(double input,
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
     if (opFlags[uses_constantarg]) {
-        const double temp1 = fptr2(gain * (input + bias), arg2);
-        const double temp2 = fptr2(gain * (input + 1e-8 + bias), arg2);
+        const double temp1 = mBinaryFunctionPtr(mGain * (input + bias), mArg2);
+        const double temp2 = mBinaryFunctionPtr(mGain * (input + 1e-8 + bias), mArg2);
         matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
     } else {
-        if (dfptr != nullptr) {
-            matrixDataValue.assignCheck(offset, argLoc, K * dfptr(gain * (input + bias)) * gain);
+        if (mDerivativeFunctionPtr != nullptr) {
+            matrixDataValue.assignCheck(
+                offset, argLoc, K * mDerivativeFunctionPtr(mGain * (input + bias)) * mGain);
         } else {
-            const double temp1 = fptr(gain * (input + bias));
-            const double temp2 = fptr(gain * (input + 1e-8 + bias));
+            const double temp1 = mFunctionPtr(mGain * (input + bias));
+            const double temp2 = mFunctionPtr(mGain * (input + 1e-8 + bias));
             matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
         }
     }
@@ -109,9 +112,9 @@ void functionBlock::blockJacobianElements(double input,
 double functionBlock::step(coreTime time, double input)
 {
     if (opFlags[uses_constantarg]) {
-        m_state[limiter_alg] = K * fptr2(gain * (input + bias), arg2);
+        m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);
     } else {
-        m_state[limiter_alg] = K * fptr(gain * (input + bias));
+        m_state[limiter_alg] = K * mFunctionPtr(mGain * (input + bias));
     }
     if (limiter_alg > 0) {
         Block::step(time, input);
@@ -135,9 +138,9 @@ void functionBlock::set(std::string_view param, std::string_view val)
 void functionBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "gain") {
-        gain = val;
+        mGain = val;
     } else if (param == "arg") {
-        arg2 = val;
+        mArg2 = val;
     } else {
         Block::set(param, val, unitType);
     }
@@ -146,19 +149,19 @@ void functionBlock::set(std::string_view param, double val, units::unit unitType
 void functionBlock::setFunction(const std::string& functionName)
 {
     if (auto unaryFunctionPtr = get1ArgFunction(functionName)) {
-        fptr = unaryFunctionPtr;
-        dfptr = getDerivative1ArgFunction(functionName);
-        fptr2 = nullptr;
+        mFunctionPtr = unaryFunctionPtr;
+        mDerivativeFunctionPtr = getDerivative1ArgFunction(functionName);
+        mBinaryFunctionPtr = nullptr;
         opFlags.reset(uses_constantarg);
     } else if (auto binaryFunctionPtr = get2ArgFunction(functionName)) {
-        fptr = nullptr;
-        dfptr = nullptr;
-        fptr2 = binaryFunctionPtr;
+        mFunctionPtr = nullptr;
+        mDerivativeFunctionPtr = nullptr;
+        mBinaryFunctionPtr = binaryFunctionPtr;
         opFlags.set(uses_constantarg);
     } else {
-        fptr = nullptr;
-        dfptr = nullptr;
-        fptr2 = nullptr;
+        mFunctionPtr = nullptr;
+        mDerivativeFunctionPtr = nullptr;
+        mBinaryFunctionPtr = nullptr;
     }
 }
 

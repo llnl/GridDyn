@@ -58,8 +58,6 @@ void txLifeSpan::setFlag(std::string_view flag, bool val)
 void txLifeSpan::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
-    } else if ((param == "input") || (param == "input0")) {
-        sensor::set(param, val);
     } else {
         sensor::set(param, val);
     }

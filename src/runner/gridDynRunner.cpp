@@ -298,7 +298,7 @@ std::shared_ptr<CLI::App>
 
     // function for loading parameters from strings
     const CLI::callback_t loadParamString = [this](const CLI::results_t& results) {
-        for (auto& str : results) {
+        for (const auto& str : results) {
             const gridParameter parameterDefinition(str);
             if (parameterDefinition.valid) {
                 objInfo objectInformation(parameterDefinition.field, m_gds.get());
@@ -323,7 +323,7 @@ std::shared_ptr<CLI::App>
     // function for loading parameters from strings
     const CLI::callback_t loadFileCallback = [this,
                                               &readerInformation](const CLI::results_t& results) {
-        for (auto& file : results) {
+        for (const auto& file : results) {
             loadFile(m_gds.get(), file, &readerInformation);
             if (m_gds->getErrorCode() != 0) {
                 throw(CLI::Error(m_gds->getName(),

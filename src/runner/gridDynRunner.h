@@ -78,7 +78,7 @@ class GriddynRunner {
      * @param time maximum time simulation may advance to.
      * @return time simulation successfully advanced to.
      */
-    virtual coreTime Step(coreTime time);
+    virtual coreTime Step(coreTime nextStep);
 
     /**
      * Run simulation up to provided time.   Simulation may

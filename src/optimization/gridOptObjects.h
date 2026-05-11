@@ -45,12 +45,13 @@ class gridOptObject: public coreObject {
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.
     */
-    virtual void setOffsets(const optimOffsets& newOffsets, const optimMode& oMode);
+    virtual void setOffsets(const optimOffsets& newOffsets, const optimMode& optimizationMode);
     /** set the offsets of an object for a particular optimization mode using a single offset.
     @param offset the offset index all variables are sequential.
     @param oMode the optimization mode to use.
     */
-    virtual void setOffset(index_t offset, index_t constraintOffset, const optimMode& oMode);
+    virtual void
+        setOffset(index_t offset, index_t constraintOffset, const optimMode& optimizationMode);
 
     // size getter functions
 
@@ -184,17 +185,19 @@ class gridOptObject: public coreObject {
     @param linObj the structure to store the objective parameters
     @param oMode the optimization mode to use.
     */
-    virtual void linearObj(const optimData& of, vectData<double>& linObj, const optimMode& oMode);
+    virtual void linearObj(const optimData& optimDataRef,
+                           vectData<double>& linearObjective,
+                           const optimMode& optimizationMode);
     /** load the quadratic objective parameters
     @param of  the current object variable values
     @param linObj the structure to store the linear objective parameters
     @param quadObj the structure to store the 2nd order objective parameters
     @param oMode the optimization mode to use.
     */
-    virtual void quadraticObj(const optimData& of,
-                              vectData<double>& linObj,
-                              vectData<double>& quadObj,
-                              const optimMode& oMode);
+    virtual void quadraticObj(const optimData& optimDataRef,
+                              vectData<double>& linearObjective,
+                              vectData<double>& quadraticObjective,
+                              const optimMode& optimizationMode);
 
     /** compute the objective value
     @param of  the current object variable values

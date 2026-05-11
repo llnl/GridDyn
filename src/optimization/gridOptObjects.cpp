@@ -31,14 +31,14 @@ coreObject* gridOptObject::clone(coreObject* obj) const
 count_t gridOptObject::objSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.genSize + oo.total.vSize + oo.total.aSize + oo.total.qSize +
-            oo.total.contSize + oo.total.intSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.genSize + offsetData.total.vSize + offsetData.total.aSize +
+            offsetData.total.qSize + offsetData.total.contSize + offsetData.total.intSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.genSize + oo.total.qSize + oo.total.vSize + oo.total.aSize +
-            oo.total.contSize + oo.total.intSize;
+        size = offsetData.total.genSize + offsetData.total.qSize + offsetData.total.vSize +
+            offsetData.total.aSize + offsetData.total.contSize + offsetData.total.intSize;
     }
     return size;
 }
@@ -46,14 +46,14 @@ count_t gridOptObject::objSize(const optimMode& oMode)
 count_t gridOptObject::contObjSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size =
-            oo.total.genSize + oo.total.qSize + oo.total.vSize + oo.total.aSize + oo.total.contSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.genSize + offsetData.total.qSize + offsetData.total.vSize +
+            offsetData.total.aSize + offsetData.total.contSize;
     } else {
         loadSizes(oMode);
-        size =
-            oo.total.genSize + oo.total.qSize + oo.total.vSize + oo.total.aSize + oo.total.contSize;
+        size = offsetData.total.genSize + offsetData.total.qSize + offsetData.total.vSize +
+            offsetData.total.aSize + offsetData.total.contSize;
     }
     return size;
 }
@@ -61,34 +61,34 @@ count_t gridOptObject::contObjSize(const optimMode& oMode)
 count_t gridOptObject::intObjSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.intSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.intSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.intSize;
+        size = offsetData.total.intSize;
     }
     return size;
 }
 
 count_t gridOptObject::genSize(const optimMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    if (!oo.loaded) {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
         loadSizes(oMode);
     }
-    return oo.total.genSize;
+    return offsetData.total.genSize;
 }
 
 count_t gridOptObject::qSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.qSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.qSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.qSize;
+        size = offsetData.total.qSize;
     }
     return size;
 }
@@ -96,12 +96,12 @@ count_t gridOptObject::qSize(const optimMode& oMode)
 count_t gridOptObject::vSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.vSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.vSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.vSize;
+        size = offsetData.total.vSize;
     }
     return size;
 }
@@ -109,12 +109,12 @@ count_t gridOptObject::vSize(const optimMode& oMode)
 count_t gridOptObject::aSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.aSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.aSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.aSize;
+        size = offsetData.total.aSize;
     }
     return size;
 }
@@ -122,12 +122,12 @@ count_t gridOptObject::aSize(const optimMode& oMode)
 count_t gridOptObject::constraintSize(const optimMode& oMode)
 {
     count_t size = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    if (oo.loaded) {
-        size = oo.total.constraintsSize;
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (offsetData.loaded) {
+        size = offsetData.total.constraintsSize;
     } else {
         loadSizes(oMode);
-        size = oo.total.constraintsSize;
+        size = offsetData.total.constraintsSize;
     }
     return size;
 }
@@ -135,53 +135,53 @@ count_t gridOptObject::constraintSize(const optimMode& oMode)
 // size getter functions
 count_t gridOptObject::objSize(const optimMode& oMode) const
 {
-    auto& oo = offsets.getOffsets(oMode);
-    return (oo.total.genSize + oo.total.vSize + oo.total.aSize + oo.total.qSize +
-            oo.total.contSize + oo.total.intSize);
+    auto& offsetData = offsets.getOffsets(oMode);
+    return (offsetData.total.genSize + offsetData.total.vSize + offsetData.total.aSize +
+            offsetData.total.qSize + offsetData.total.contSize + offsetData.total.intSize);
 }
 
 count_t gridOptObject::contObjSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return (oo.total.genSize + oo.total.qSize + oo.total.vSize + oo.total.aSize +
-            oo.total.contSize);
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return (offsetData.total.genSize + offsetData.total.qSize + offsetData.total.vSize +
+            offsetData.total.aSize + offsetData.total.contSize);
 }
 
 count_t gridOptObject::intObjSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return oo.total.intSize;
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return offsetData.total.intSize;
 }
 
 count_t gridOptObject::genSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return oo.total.genSize;
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return offsetData.total.genSize;
 }
 
 count_t gridOptObject::qSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return oo.total.qSize;
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return offsetData.total.qSize;
 }
 
 count_t gridOptObject::vSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return oo.total.vSize;
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return offsetData.total.vSize;
 }
 
 count_t gridOptObject::aSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
-    return oo.total.aSize;
+    const auto& offsetData = offsets.getOffsets(oMode);
+    return offsetData.total.aSize;
 }
 
 count_t gridOptObject::constraintSize(const optimMode& oMode) const
 {
-    const auto& oo = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
 
-    return oo.total.constraintsSize;
+    return offsetData.total.constraintsSize;
 }
 
 void gridOptObject::dynInitializeA(std::uint32_t flags)
@@ -197,11 +197,11 @@ void gridOptObject::dynInitializeB(std::uint32_t flags)
 
 void gridOptObject::setOffsets(const optimOffsets& newOffsets, const optimMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    if (!oo.loaded) {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
         loadSizes(oMode);
     }
-    oo.setOffsets(newOffsets);
+    offsetData.setOffsets(newOffsets);
 }
 
 void gridOptObject::setOffset(index_t offset, index_t constraintOffset, const optimMode& oMode)
@@ -241,10 +241,10 @@ void gridOptObject::set(std::string_view param, double val, units::unit unitType
 void gridOptObject::getVariableType(double sdata[], const optimMode& oMode)
 {
     if (offsets.isLoaded(oMode)) {
-        auto intIndex = offsets.getIntOffset(oMode);
-        auto iSize = intObjSize(oMode);
-        for (index_t kk = 0; kk < iSize; ++kk) {
-            sdata[intIndex + kk] = INTEGER_OBJECTIVE_VARIABLE;
+        auto integerIndex = offsets.getIntOffset(oMode);
+        auto integerSize = intObjSize(oMode);
+        for (index_t variableIndex = 0; variableIndex < integerSize; ++variableIndex) {
+            sdata[integerIndex + variableIndex] = INTEGER_OBJECTIVE_VARIABLE;
         }
     }
 }
@@ -253,7 +253,7 @@ void gridOptObject::getObjName(stringVec& objNames,
                                const optimMode& oMode,
                                const std::string& prefix)
 {
-    auto& os = offsets.getOffsets(oMode);
+    auto& offsetSet = offsets.getOffsets(oMode);
     auto ensureSize = [&objNames](count_t offset, count_t count) {
         const auto requiredSize = static_cast<size_t>(offset + count);
         if (objNames.size() < requiredSize) {
@@ -261,69 +261,69 @@ void gridOptObject::getObjName(stringVec& objNames,
         }
     };
     // angle variables
-    ensureSize(os.aOffset, os.total.aSize);
-    for (index_t bb = 0; bb < os.total.aSize; ++bb) {
+    ensureSize(offsetSet.aOffset, offsetSet.total.aSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.aSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.aOffset) + bb] =
-                getName() + ":angle_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+                getName() + ":angle_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.aOffset) + bb] =
-                prefix + "::" + getName() + ":angle_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+                prefix + "::" + getName() + ":angle_" + std::to_string(variableIndex);
         }
     }
     // voltage variables
-    ensureSize(os.vOffset, os.total.vSize);
-    for (index_t bb = 0; bb < os.total.vSize; ++bb) {
+    ensureSize(offsetSet.vOffset, offsetSet.total.vSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.vSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.vOffset) + bb] =
-                getName() + ":voltage_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+                getName() + ":voltage_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.vOffset) + bb] =
-                prefix + "::" + getName() + ":voltage_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+                prefix + "::" + getName() + ":voltage_" + std::to_string(variableIndex);
         }
     }
     // real power variables
-    ensureSize(os.gOffset, os.total.genSize);
-    for (index_t bb = 0; bb < os.total.genSize; ++bb) {
+    ensureSize(offsetSet.gOffset, offsetSet.total.genSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.genSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.gOffset) + bb] =
-                getName() + ":power_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+                getName() + ":power_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.gOffset) + bb] =
-                prefix + "::" + getName() + ":power_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+                prefix + "::" + getName() + ":power_" + std::to_string(variableIndex);
         }
     }
     // angle variables
-    ensureSize(os.qOffset, os.total.qSize);
-    for (index_t bb = 0; bb < os.total.qSize; ++bb) {
+    ensureSize(offsetSet.qOffset, offsetSet.total.qSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.qSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.qOffset) + bb] =
-                getName() + ":reactive_power_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+                getName() + ":reactive_power_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.qOffset) + bb] =
-                prefix + "::" + getName() + ":reactive_power_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+                prefix + "::" + getName() + ":reactive_power_" + std::to_string(variableIndex);
         }
     }
     // other continuous variables
-    ensureSize(os.contOffset, os.total.contSize);
-    for (index_t bb = 0; bb < os.total.contSize; ++bb) {
+    ensureSize(offsetSet.contOffset, offsetSet.total.contSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.contSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.contOffset) + bb] =
-                getName() + ":continuous_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+                getName() + ":continuous_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.contOffset) + bb] =
-                prefix + "::" + getName() + ":continuous_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+                prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
         }
     }
     // integer variables
-    ensureSize(os.intOffset, os.total.intSize);
-    for (index_t bb = 0; bb < os.total.intSize; ++bb) {
+    ensureSize(offsetSet.intOffset, offsetSet.total.intSize);
+    for (index_t variableIndex = 0; variableIndex < offsetSet.total.intSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(os.intOffset) + bb] =
-                getName() + ":continuous_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+                getName() + ":continuous_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(os.intOffset) + bb] =
-                prefix + "::" + getName() + ":continuous_" + std::to_string(bb);
+            objNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+                prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
         }
     }
 }
@@ -427,9 +427,9 @@ void printObjStateNames(gridOptObject* obj, const optimMode& oMode)
 {
     std::vector<std::string> sNames;
     obj->getObjName(sNames, oMode);
-    int kk = 0;
-    for (auto& sn : sNames) {
-        std::cout << kk++ << " " << sn << '\n';
+    int nameIndex = 0;
+    for (auto& stateName : sNames) {
+        std::cout << nameIndex++ << " " << stateName << '\n';
     }
 }
 

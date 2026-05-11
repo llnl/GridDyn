@@ -29,12 +29,12 @@ class optimizerInterface {
     bool constantJacobian = false;
 
   protected:
-    std::string name;
-    void* solverMem = nullptr;
-    bool allocated = false;
-    bool initialized = false;  //!< flag indicating if these vectors have been initialized
-    gridDynOptimization* m_gdo = nullptr;
-    count_t svsize = 0;
+    std::string mName;
+    void* mSolverMem = nullptr;
+    bool mAllocated = false;
+    bool mInitialized = false;  //!< flag indicating if these vectors have been initialized
+    gridDynOptimization* mGridDynOptimization = nullptr;
+    count_t mStateVectorSize = 0;
 
   public:
     optimizerInterface(std::string_view optName = "optim");
@@ -53,17 +53,16 @@ class optimizerInterface {
     virtual double get(std::string_view param) const;
     virtual int solve(double /*tStop*/, double& /*tReturn*/) { return -101; }
     void initializeJacArray(count_t size);
-    bool isInitialized() const { return initialized; }
-
     virtual void logSolverStats(int /*logLevel*/, bool /*iconly*/ = false) {}
     virtual void logErrorWeights(int /*logLevel*/) {}
 
-    count_t getSize() const { return svsize; }
+    count_t getSize() const { return mStateVectorSize; }
     virtual void setOptimizationData(gridDynOptimization* gdo, const optimMode& oMode);
     virtual int
         check_flag(void* flagvalue, std::string_view funcname, int opt, bool printError = true);
-    void setName(std::string_view newName) { name = std::string{newName}; }
-    const std::string& getName() const { return name; }
+    bool isInitialized() const { return mInitialized; }
+    void setName(std::string_view newName) { mName = std::string{newName}; }
+    const std::string& getName() const { return mName; }
 };
 
 class basicOptimizer: public optimizerInterface {

@@ -233,7 +233,7 @@ class optOffsetTable {
     // void getLocations (const optimMode &oMode, Lp *Loc);
 
     index_t getParamOffset() { return paramOffset; }
-    void setParamOffset(index_t newPoffset) { paramOffset = newPoffset; }
+    void setParamOffset(index_t newParamOffset) { paramOffset = newParamOffset; }
 };
 
 /**@brief class for containing state data information

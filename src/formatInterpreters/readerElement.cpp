@@ -31,7 +31,7 @@ double readerAttribute::getValue() const
 {
     return numeric_conversion<double>(mText, readerNullVal);
 }
-constexpr int64_t nullLong = int64_t(0x8000'0000'0000'0000);
+constexpr int64_t nullLong = static_cast<int64_t>(0x8000'0000'0000'0000);
 int64_t readerAttribute::getInt() const
 {
     return numeric_conversion<int64_t>(mText, nullLong);

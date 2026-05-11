@@ -22,7 +22,8 @@ class gridDynINIReader: public INIReader {
   public:
     using INIReader::INIReader;
 
-    std::pair<std::string, std::string> getAttribute(const std::string& section, int index) const
+    [[nodiscard]] std::pair<std::string, std::string>
+        getAttribute(const std::string& section, int index) const
     {
         if (index < 0) {
             return {};
@@ -31,7 +32,7 @@ class gridDynINIReader: public INIReader {
         const auto prefix = MakeKey(section, "");
         int currentIndex = 0;
         for (const auto& [key, value] : _values) {
-            if (key.rfind(prefix, 0) == 0) {
+            if (key.starts_with(prefix)) {
                 if (currentIndex == index) {
                     return {key.substr(prefix.size()), value};
                 }

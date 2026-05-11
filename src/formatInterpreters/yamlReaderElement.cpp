@@ -43,20 +43,20 @@ yamlReaderElement::yamlReaderElement(const std::string& filename)
 }
 void yamlReaderElement::clear()
 {
-    if (current) {
-        current->clear();
+    if (mCurrent) {
+        mCurrent->clear();
     }
-    parents.clear();
+    mParents.clear();
 }
 
 bool yamlReaderElement::isValid() const
 {
-    return ((current) && !(current->isNull()));
+    return ((mCurrent) && !(mCurrent->isNull()));
 }
 bool yamlReaderElement::isDocument() const
 {
-    if (parents.empty()) {
-        if (doc) {
+    if (mParents.empty()) {
+        if (mDoc) {
             return true;
         }
     }
@@ -66,12 +66,12 @@ bool yamlReaderElement::isDocument() const
 std::shared_ptr<readerElement> yamlReaderElement::clone() const
 {
     auto ret = std::make_shared<yamlReaderElement>();
-    ret->parents.reserve(parents.size());
-    for (const auto& parent : parents) {
-        ret->parents.push_back(std::make_shared<yamlElement>(*parent));
+    ret->mParents.reserve(mParents.size());
+    for (const auto& parent : mParents) {
+        ret->mParents.push_back(std::make_shared<yamlElement>(*parent));
     }
-    ret->current = std::make_shared<yamlElement>(*current);
-    ret->doc = doc;
+    ret->mCurrent = std::make_shared<yamlElement>(*mCurrent);
+    ret->mDoc = mDoc;
     return ret;
 }
 
@@ -80,23 +80,23 @@ bool yamlReaderElement::loadFile(const std::string& fileName)
     std::ifstream file(fileName);
     if (file.is_open()) {
         try {
-            doc = std::make_shared<YAML::Node>(YAML::LoadFile(fileName));
-            if ((doc->IsSequence()) || (doc->IsMap())) {
-                current = std::make_shared<yamlElement>(*doc, fileName);
+            mDoc = std::make_shared<YAML::Node>(YAML::LoadFile(fileName));
+            if ((mDoc->IsSequence()) || (mDoc->IsMap())) {
+                mCurrent = std::make_shared<yamlElement>(*mDoc, fileName);
                 return true;
             }
             return false;
         }
         catch (const YAML::ParserException& pe) {
             std::println(stderr, "{}", pe.what());
-            doc = nullptr;
+            mDoc = nullptr;
             clear();
             return false;
         }
     }
 
     std::println(stderr, "unable to open file {}", fileName);
-    doc = nullptr;
+    mDoc = nullptr;
     clear();
     return false;
 }
@@ -104,19 +104,19 @@ bool yamlReaderElement::loadFile(const std::string& fileName)
 bool yamlReaderElement::parse(const std::string& inputString)
 {
     try {
-        doc = std::make_shared<YAML::Node>(YAML::Load(inputString));
+        mDoc = std::make_shared<YAML::Node>(YAML::Load(inputString));
 
-        if (doc->IsDefined()) {
-            current = std::make_shared<yamlElement>(*doc, "string");
+        if (mDoc->IsDefined()) {
+            mCurrent = std::make_shared<yamlElement>(*mDoc, "string");
             return true;
         }
         clear();
-        doc = nullptr;
+        mDoc = nullptr;
         return false;
     }
     catch (const YAML::ParserException& pe) {
         std::println(stderr, "{}", pe.what());
-        doc = nullptr;
+        mDoc = nullptr;
         clear();
         return false;
     }
@@ -124,23 +124,23 @@ bool yamlReaderElement::parse(const std::string& inputString)
 
 std::string yamlReaderElement::getName() const
 {
-    return current->name;
+    return mCurrent->mName;
 }
 double yamlReaderElement::getValue() const
 {
-    if ((!isValid()) || (!current->getElement().IsScalar())) {
+    if ((!isValid()) || (!mCurrent->getElement().IsScalar())) {
         return readerNullVal;
     }
-    return numeric_conversionComplete<double>(current->getElement().as<std::string>(),
+    return numeric_conversionComplete<double>(mCurrent->getElement().as<std::string>(),
                                               readerNullVal);
 }
 
 std::string yamlReaderElement::getText() const
 {
-    if ((!isValid()) || (!current->getElement().IsScalar())) {
+    if ((!isValid()) || (!mCurrent->getElement().IsScalar())) {
         return nullStr;
     }
-    return current->getElement().as<std::string>();
+    return mCurrent->getElement().as<std::string>();
 }
 
 std::string yamlReaderElement::getMultiText(const std::string& sep) const
@@ -148,14 +148,14 @@ std::string yamlReaderElement::getMultiText(const std::string& sep) const
     if (!isValid()) {
         return nullStr;
     }
-    if (current->getElement().IsScalar()) {
-        return current->getElement().as<std::string>();
+    if (mCurrent->getElement().IsScalar()) {
+        return mCurrent->getElement().as<std::string>();
     }
-    if (current->getElement().IsSequence()) {
+    if (mCurrent->getElement().IsSequence()) {
         std::string ret;
-        YAML::const_iterator elementIterator = current->getElement().begin();
+        YAML::const_iterator elementIterator = mCurrent->getElement().begin();
         if (elementIterator->IsScalar()) {
-            const YAML::const_iterator elementEnd = current->getElement().end();
+            const YAML::const_iterator elementEnd = mCurrent->getElement().end();
             while (elementIterator != elementEnd) {
                 if (!ret.empty()) {
                     ret += sep;
@@ -174,11 +174,11 @@ bool yamlReaderElement::hasAttribute(const std::string& attributeName) const
     if (!isValid()) {
         return false;
     }
-    if (!(current->getElement().IsMap())) {
+    if (!(mCurrent->getElement().IsMap())) {
         return false;
     }
-    if (current->getElement()[attributeName]) {
-        return isAttribute(current->getElement()[attributeName]);
+    if (mCurrent->getElement()[attributeName]) {
+        return isAttribute(mCurrent->getElement()[attributeName]);
     }
     return false;
 }
@@ -189,8 +189,8 @@ bool yamlReaderElement::hasElement(const std::string& elementName) const
         return false;
     }
 
-    if (current->getElement()[elementName]) {
-        return (isElement(current->getElement()[elementName]));
+    if (mCurrent->getElement()[elementName]) {
+        return (isElement(mCurrent->getElement()[elementName]));
     }
 
     return false;
@@ -202,10 +202,10 @@ readerAttribute yamlReaderElement::getFirstAttribute()
         return {};
     }
 
-    auto attIterator = current->getElement().begin();
-    auto elementEnd = current->getElement().end();
+    auto attIterator = mCurrent->getElement().begin();
+    auto elementEnd = mCurrent->getElement().end();
 
-    iteratorCount = 0;
+    mIteratorCount = 0;
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
             return {attIterator->Tag(), attIterator->as<std::string>()};
@@ -221,9 +221,9 @@ readerAttribute yamlReaderElement::getNextAttribute()
     if (!isValid()) {
         return {};
     }
-    auto attIterator = current->getElement().begin();
-    auto elementEnd = current->getElement().end();
-    for (int ii = 0; ii < iteratorCount; ++ii) {
+    auto attIterator = mCurrent->getElement().begin();
+    auto elementEnd = mCurrent->getElement().end();
+    for (int ii = 0; ii < mIteratorCount; ++ii) {
         ++attIterator;
         if (attIterator == elementEnd) {
             return {};
@@ -233,13 +233,13 @@ readerAttribute yamlReaderElement::getNextAttribute()
         return {};
     }
     ++attIterator;
-    ++iteratorCount;
+    ++mIteratorCount;
     while (attIterator != elementEnd) {
         if (isAttribute(*attIterator)) {
             return {attIterator->Tag(), attIterator->as<std::string>()};
         }
         ++attIterator;
-        ++iteratorCount;
+        ++mIteratorCount;
     }
     return {};
 }
@@ -247,7 +247,7 @@ readerAttribute yamlReaderElement::getNextAttribute()
 readerAttribute yamlReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (hasAttribute(attributeName)) {
-        return {attributeName, current->getElement()[attributeName].as<std::string>()};
+        return {attributeName, mCurrent->getElement()[attributeName].as<std::string>()};
     }
     return {};
 }
@@ -255,7 +255,7 @@ readerAttribute yamlReaderElement::getAttribute(const std::string& attributeName
 std::string yamlReaderElement::getAttributeText(const std::string& attributeName) const
 {
     if (hasAttribute(attributeName)) {
-        return current->getElement()[attributeName].as<std::string>();
+        return mCurrent->getElement()[attributeName].as<std::string>();
     }
     return nullStr;
 }
@@ -263,7 +263,7 @@ std::string yamlReaderElement::getAttributeText(const std::string& attributeName
 double yamlReaderElement::getAttributeValue(const std::string& attributeName) const
 {
     if (hasAttribute(attributeName)) {
-        return numeric_conversionComplete(current->getElement()[attributeName].as<std::string>(),
+        return numeric_conversionComplete(mCurrent->getElement()[attributeName].as<std::string>(),
                                           readerNullVal);
     }
     return readerNullVal;
@@ -288,22 +288,22 @@ void yamlReaderElement::moveToFirstChild()
     if (!isValid()) {
         return;
     }
-    current->elementIndex = 0;
-    auto elementIterator = current->getElement().begin();
-    auto endIterator = current->getElement().end();
+    mCurrent->mElementIndex = 0;
+    auto elementIterator = mCurrent->getElement().begin();
+    auto endIterator = mCurrent->getElement().end();
 
     while (elementIterator != endIterator) {
         if (isElement(elementIterator->second)) {
-            parents.push_back(current);
-            current = std::make_shared<yamlElement>(elementIterator->second,
+            mParents.push_back(mCurrent);
+            mCurrent = std::make_shared<yamlElement>(elementIterator->second,
                                                     elementIterator->first.as<std::string>());
             return;
         }
         ++elementIterator;
-        ++current->elementIndex;
+        ++mCurrent->mElementIndex;
     }
-    parents.push_back(current);
-    current->clear();
+    mParents.push_back(mCurrent);
+    mCurrent->clear();
 }
 
 void yamlReaderElement::moveToFirstChild(const std::string& childName)
@@ -312,16 +312,16 @@ void yamlReaderElement::moveToFirstChild(const std::string& childName)
         return;
     }
 
-    if (current->getElement()[childName]) {
-        if (isElement(current->getElement()[childName])) {
-            parents.push_back(current);
-            current = std::make_shared<yamlElement>(current->getElement()[childName], childName);
+    if (mCurrent->getElement()[childName]) {
+        if (isElement(mCurrent->getElement()[childName])) {
+            mParents.push_back(mCurrent);
+            mCurrent = std::make_shared<yamlElement>(mCurrent->getElement()[childName], childName);
             return;
         }
     }
 
-    parents.push_back(current);
-    current->clear();
+    mParents.push_back(mCurrent);
+    mCurrent->clear();
 }
 
 void yamlReaderElement::moveToNextSibling()
@@ -329,40 +329,40 @@ void yamlReaderElement::moveToNextSibling()
     if (!isValid()) {
         return;
     }
-    ++current->arrayIndex;
-    while (current->arrayIndex < current->count()) {
-        if (!current->getElement().IsNull()) {
+    ++mCurrent->mArrayIndex;
+    while (mCurrent->mArrayIndex < mCurrent->count()) {
+        if (!mCurrent->getElement().IsNull()) {
             return;
         }
-        ++current->arrayIndex;
+        ++mCurrent->mArrayIndex;
     }
-    if (parents.empty()) {
-        current = nullptr;
+    if (mParents.empty()) {
+        mCurrent = nullptr;
         return;
     }
     // there are no more elements in a potential array
-    auto elementIterator = parents.back()->getElement().begin();
-    auto endIterator = parents.back()->getElement().end();
-    ++parents.back()->elementIndex;
+    auto elementIterator = mParents.back()->getElement().begin();
+    auto endIterator = mParents.back()->getElement().end();
+    ++mParents.back()->mElementIndex;
     // iterators don't survive copy so have to move the iterator to the next element index
-    for (std::size_t ii = 0; ii < parents.back()->elementIndex; ++ii) {
+    for (std::size_t ii = 0; ii < mParents.back()->mElementIndex; ++ii) {
         ++elementIterator;
         if (elementIterator == endIterator) {
-            current->clear();
+            mCurrent->clear();
             return;
         }
     }
     // Now find the next valid element
     while (elementIterator != endIterator) {
         if (isElement(elementIterator->second)) {
-            current = std::make_shared<yamlElement>(elementIterator->second,
+            mCurrent = std::make_shared<yamlElement>(elementIterator->second,
                                                     elementIterator->first.as<std::string>());
             return;
         }
         ++elementIterator;
-        ++parents.back()->elementIndex;
+        ++mParents.back()->mElementIndex;
     }
-    current->clear();
+    mCurrent->clear();
 }
 
 void yamlReaderElement::moveToNextSibling(const std::string& siblingName)
@@ -370,19 +370,19 @@ void yamlReaderElement::moveToNextSibling(const std::string& siblingName)
     if (!isValid()) {
         return;
     }
-    if (siblingName == current->name) {
-        ++current->arrayIndex;
-        while (current->arrayIndex < current->count()) {
-            if (!current->getElement().IsNull()) {
+    if (siblingName == mCurrent->mName) {
+        ++mCurrent->mArrayIndex;
+        while (mCurrent->mArrayIndex < mCurrent->count()) {
+            if (!mCurrent->getElement().IsNull()) {
                 return;
             }
-            ++current->arrayIndex;
+            ++mCurrent->mArrayIndex;
         }
-        current->clear();
+        mCurrent->clear();
     } else {
-        if (parents.back()->getElement()[siblingName]) {
-            if (isElement(parents.back()->getElement()[siblingName])) {
-                current = std::make_shared<yamlElement>(parents.back()->getElement()[siblingName],
+        if (mParents.back()->getElement()[siblingName]) {
+            if (isElement(mParents.back()->getElement()[siblingName])) {
+                mCurrent = std::make_shared<yamlElement>(mParents.back()->getElement()[siblingName],
                                                         siblingName);
                 return;
             }
@@ -392,11 +392,11 @@ void yamlReaderElement::moveToNextSibling(const std::string& siblingName)
 
 void yamlReaderElement::moveToParent()
 {
-    if (parents.empty()) {
+    if (mParents.empty()) {
         return;
     }
-    current = parents.back();
-    parents.pop_back();
+    mCurrent = mParents.back();
+    mParents.pop_back();
 }
 
 std::shared_ptr<readerElement> yamlReaderElement::nextSibling() const
@@ -415,15 +415,15 @@ std::shared_ptr<readerElement> yamlReaderElement::nextSibling(const std::string&
 
 void yamlReaderElement::bookmark()
 {
-    bookmarks.push_back(std::static_pointer_cast<yamlReaderElement>(clone()));
+    mBookmarks.push_back(std::static_pointer_cast<yamlReaderElement>(clone()));
 }
 
 void yamlReaderElement::restore()
 {
-    if (bookmarks.empty()) {
+    if (mBookmarks.empty()) {
         return;
     }
-    parents = bookmarks.back()->parents;
-    current = bookmarks.back()->current;
-    bookmarks.pop_back();
+    mParents = mBookmarks.back()->mParents;
+    mCurrent = mBookmarks.back()->mCurrent;
+    mBookmarks.pop_back();
 }

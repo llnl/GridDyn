@@ -19,50 +19,50 @@ bool isTomlNodeEmpty(const toml::ordered_value& value)
 }  // namespace
 
 tomlElement::tomlElement(toml::ordered_value vElement, std::string newName):
-    name(std::move(newName)), element(std::move(vElement))
+    mName(std::move(newName)), mElement(std::move(vElement))
 {
-    elementIndex = 0;
+    mElementIndex = 0;
 
-    if (element.is_array()) {
-        arraytype = true;
-        arrayIndex = 0;
-        const auto& arr = element.as_array();
-        while ((arrayIndex < arr.size()) && (isTomlNodeEmpty(arr[arrayIndex]))) {
-            ++arrayIndex;
+    if (mElement.is_array()) {
+        mArrayType = true;
+        mArrayIndex = 0;
+        const auto& arr = mElement.as_array();
+        while ((mArrayIndex < arr.size()) && (isTomlNodeEmpty(arr[mArrayIndex]))) {
+            ++mArrayIndex;
         }
     }
 }
 
 const toml::ordered_value& tomlElement::getElement() const
 {
-    if (arraytype) {
-        const auto& arr = element.as_array(std::nothrow);
-        if (arrayIndex < arr.size()) {
-            return arr[arrayIndex];
+    if (mArrayType) {
+        const auto& arr = mElement.as_array(std::nothrow);
+        if (mArrayIndex < arr.size()) {
+            return arr[mArrayIndex];
         }
     }
-    return element;
+    return mElement;
 }
 
 std::size_t tomlElement::count() const
 {
-    return (arraytype) ? element.as_array(std::nothrow).size() : std::size_t{1};
+    return (mArrayType) ? mElement.as_array(std::nothrow).size() : std::size_t{1};
 }
 
 bool tomlElement::isNull() const
 {
-    if (arraytype) {
-        const auto& arr = element.as_array(std::nothrow);
-        return (arrayIndex >= arr.size()) || isTomlNodeEmpty(arr[arrayIndex]);
+    if (mArrayType) {
+        const auto& arr = mElement.as_array(std::nothrow);
+        return (mArrayIndex >= arr.size()) || isTomlNodeEmpty(arr[mArrayIndex]);
     }
-    return isTomlNodeEmpty(element);
+    return isTomlNodeEmpty(mElement);
 }
 
 void tomlElement::clear()
 {
-    element = toml::ordered_value{};
-    elementIndex = 0;
-    arrayIndex = 0;
-    arraytype = false;
-    name = nullStr;
+    mElement = toml::ordered_value{};
+    mElementIndex = 0;
+    mArrayIndex = 0;
+    mArrayType = false;
+    mName = nullStr;
 }

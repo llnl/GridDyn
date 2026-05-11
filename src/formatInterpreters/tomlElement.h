@@ -12,9 +12,9 @@
 
 class tomlElement {
   public:
-    std::size_t elementIndex = 0;
-    std::string name;
-    std::size_t arrayIndex = 0;
+    std::size_t mElementIndex = 0;
+    std::string mName;
+    std::size_t mArrayIndex = 0;
     tomlElement() = default;
     tomlElement(toml::ordered_value vElement, std::string newName);
 
@@ -24,6 +24,6 @@ class tomlElement {
     bool isNull() const;
 
   private:
-    toml::ordered_value element;
-    bool arraytype = false;
+    toml::ordered_value mElement;
+    bool mArrayType = false;
 };

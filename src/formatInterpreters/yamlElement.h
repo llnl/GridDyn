@@ -20,7 +20,7 @@ class yamlElement {
     /** reset the element*/
     void clear();
 
-    const YAML::Node getElement() const;
+    YAML::Node getElement() const;
     size_t count() const { return (mArrayType) ? mElement.size() : ((mElement) ? 0 : 1); }
     bool isNull() const
     {

@@ -11,7 +11,7 @@
 static const char nullStr[] = "";
 
 yamlElement::yamlElement(const YAML::Node& vElement, std::string newName):
-    mName(newName), mElement(vElement)
+    mName(std::move(newName)), mElement(vElement)
 {
     mElementIndex = 0;
 
@@ -33,7 +33,7 @@ void yamlElement::clear()
     mName = nullStr;
 }
 
-const YAML::Node yamlElement::getElement() const
+YAML::Node yamlElement::getElement() const
 {
     return (mArrayType) ? (mElement[mArrayIndex]) : mElement;
 }

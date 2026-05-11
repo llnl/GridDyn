@@ -45,30 +45,34 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
     }
     m_gds->log(nullptr, print_level::summary, "GridDyn version:" GRIDDYN_VERSION_STRING);
 
-    argv_vals = nullptr;
-    argc_val = 0;
-    arg_string = cmdargs;
-    readerInfo ri;
-    auto ret = loadCommandArgument(ri, false);
-    if (ret != FUNCTION_EXECUTION_SUCCESS) {
-        return ret;
+    mArgValues = nullptr;
+    mArgcValue = 0;
+    mArgumentString = cmdargs;
+    readerInfo readerInformation;
+    auto returnCode = loadCommandArgument(readerInformation, false);
+    if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
+        return returnCode;
     }
 
-    int areas = m_gds->getInt("totalareacount");
-    int buses = m_gds->getInt("totalbuscount");
-    int links = m_gds->getInt("totallinkcount");
-    int relays = m_gds->getInt("totalrelaycount");
-    int gens = m_gds->getInt("gencount");
-    int loads = m_gds->getInt("loadcount");
-    std::cout << "areas=" << areas << " buses=" << buses << " links=" << links
-              << " relays=" << relays << " gens=" << gens << " loads=" << loads << '\n';
+    const int areaCount = m_gds->getInt("totalareacount");
+    const int busCount = m_gds->getInt("totalbuscount");
+    const int linkCount = m_gds->getInt("totallinkcount");
+    const int relayCount = m_gds->getInt("totalrelaycount");
+    const int generatorCount = m_gds->getInt("gencount");
+    const int loadCount = m_gds->getInt("loadcount");
+    std::cout << "areas=" << areaCount << " buses=" << busCount << " links=" << linkCount
+              << " relays=" << relayCount << " gens=" << generatorCount
+              << " loads=" << loadCount << '\n';
 
     // set any flags used by the system
 
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int GriddynRunner::Initialize(int argc, char* argv[], readerInfo& ri, bool allowUnrecognized)
+int GriddynRunner::Initialize(int argc,
+                              char* argv[],
+                              readerInfo& readerInformation,
+                              bool allowUnrecognized)
 {
     if (!m_gds) {
         m_gds = std::make_shared<gridDynSimulation>();
@@ -79,22 +83,23 @@ int GriddynRunner::Initialize(int argc, char* argv[], readerInfo& ri, bool allow
     // TODO(phlpt): Do something different with this.
     GhostSwingBusManager::initialize(&argc, &argv);
 
-    argv_vals = argv;
-    argc_val = argc;
+    mArgValues = argv;
+    mArgcValue = argc;
 
-    auto ret = loadCommandArgument(ri, allowUnrecognized);
-    if (ret != FUNCTION_EXECUTION_SUCCESS) {
-        return ret;
+    auto returnCode = loadCommandArgument(readerInformation, allowUnrecognized);
+    if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
+        return returnCode;
     }
 
-    int areas = m_gds->getInt("totalareacount");
-    int buses = m_gds->getInt("totalbuscount");
-    int links = m_gds->getInt("totallinkcount");
-    int relays = m_gds->getInt("totalrelaycount");
-    int gens = m_gds->getInt("gencount");
-    int loads = m_gds->getInt("loadcount");
-    std::cout << "areas=" << areas << " buses=" << buses << " links=" << links
-              << " relays=" << relays << " gens=" << gens << " loads=" << loads << '\n';
+    const int areaCount = m_gds->getInt("totalareacount");
+    const int busCount = m_gds->getInt("totalbuscount");
+    const int linkCount = m_gds->getInt("totallinkcount");
+    const int relayCount = m_gds->getInt("totalrelaycount");
+    const int generatorCount = m_gds->getInt("gencount");
+    const int loadCount = m_gds->getInt("loadcount");
+    std::cout << "areas=" << areaCount << " buses=" << busCount << " links=" << linkCount
+              << " relays=" << relayCount << " gens=" << generatorCount
+              << " loads=" << loadCount << '\n';
 
     // set any flags used by the system
 
@@ -103,8 +108,8 @@ int GriddynRunner::Initialize(int argc, char* argv[], readerInfo& ri, bool allow
 
 int GriddynRunner::Initialize(int argc, char* argv[], bool allowUnrecognized)
 {
-    readerInfo ri;
-    return Initialize(argc, argv, ri, allowUnrecognized);
+    readerInfo readerInformation;
+    return Initialize(argc, argv, readerInformation, allowUnrecognized);
 }
 
 void GriddynRunner::simInitialize()
@@ -112,7 +117,7 @@ void GriddynRunner::simInitialize()
     m_startTime = std::chrono::high_resolution_clock::now();
     m_gds->dynInitialize();
     if (!(m_gds->hasDynamics())) {
-        eventMode = true;
+        mEventMode = true;
     }
 }
 
@@ -121,11 +126,11 @@ int GriddynRunner::Reset()
     if (!isReady()) {
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    readerInfo ri;
-    return Reset(ri);
+    readerInfo readerInformation;
+    return Reset(readerInformation);
 }
 
-int GriddynRunner::Reset(readerInfo& ri)
+int GriddynRunner::Reset(readerInfo& readerInformation)
 {
     if (!isReady()) {
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
@@ -133,9 +138,9 @@ int GriddynRunner::Reset(readerInfo& ri)
     // make a new simulation object
     m_gds = std::make_shared<gridDynSimulation>();
     // reload it from the existing vm
-    auto ret = loadCommandArgument(ri, false);
-    if (ret != FUNCTION_EXECUTION_SUCCESS) {
-        return (ret);
+    auto returnCode = loadCommandArgument(readerInformation, false);
+    if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
+        return returnCode;
     }
     m_gds->log(m_gds.get(),
                print_level::normal,
@@ -164,7 +169,7 @@ void GriddynRunner::RunAsync()
     if (!isReady()) {
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    async_ret = std::async(std::launch::async, [this] { return Run(); });
+    mAsyncReturn = std::async(std::launch::async, [this] { return Run(); });
 }
 
 coreTime GriddynRunner::Step(coreTime time)
@@ -174,17 +179,19 @@ coreTime GriddynRunner::Step(coreTime time)
     }
     coreTime actual = time;
     if (m_gds) {
-        if (eventMode) {
-            int retval = m_gds->eventDrivenPowerflow(time);
+        if (mEventMode) {
+            int returnValue = m_gds->eventDrivenPowerflow(time);
             actual = time;
-            if (retval < FUNCTION_EXECUTION_SUCCESS) {
-                std::string error = "GridDyn failed to advance retval = " + std::to_string(retval);
+            if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
+                std::string error =
+                    "GridDyn failed to advance retval = " + std::to_string(returnValue);
                 throw(std::runtime_error(error));
             }
         } else {
-            int retval = m_gds->step(time, actual);
-            if (retval < FUNCTION_EXECUTION_SUCCESS) {
-                std::string error = "GridDyn failed to advance retval = " + std::to_string(retval);
+            int returnValue = m_gds->step(time, actual);
+            if (returnValue < FUNCTION_EXECUTION_SUCCESS) {
+                std::string error =
+                    "GridDyn failed to advance retval = " + std::to_string(returnValue);
                 throw(std::runtime_error(error));
             }
         }
@@ -198,7 +205,7 @@ void GriddynRunner::StepAsync(coreTime time)
     if (!isReady()) {
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    async_ret = std::async(std::launch::async, [this, time] { return Step(time); });
+    mAsyncReturn = std::async(std::launch::async, [this, time] { return Step(time); });
 }
 
 std::shared_ptr<gridDynSimulation>& GriddynRunner::getSim()
@@ -211,8 +218,8 @@ std::shared_ptr<gridDynSimulation>& GriddynRunner::getSim()
 
 bool GriddynRunner::isReady() const
 {
-    return (async_ret.valid()) ?
-        (async_ret.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
+    return (mAsyncReturn.valid()) ?
+        (mAsyncReturn.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
         true;
 }
 
@@ -244,21 +251,21 @@ void GriddynRunner::Finalize()
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-int GriddynRunner::loadCommandArgument(readerInfo& ri, bool allowUnrecognized)
+int GriddynRunner::loadCommandArgument(readerInfo& readerInformation, bool allowUnrecognized)
 {
     m_startTime = std::chrono::high_resolution_clock::now();
-    auto app = generateBaseCommandLineParser(ri);
+    auto app = generateBaseCommandLineParser(readerInformation);
     app->allow_extras(allowUnrecognized);
-    auto sub_app = generateLocalCommandLineParser(ri);
+    auto sub_app = generateLocalCommandLineParser(readerInformation);
     if (sub_app) {
         app->add_subcommand(std::move(sub_app));
     }
     try {
-        if (argc_val > 0) {
-            execPath = argv_vals[0];
-            app->parse(argc_val, argv_vals);
+        if (mArgcValue > 0) {
+            mExecutablePath = mArgValues[0];
+            app->parse(mArgcValue, mArgValues);
         } else {
-            app->parse(arg_string);
+            app->parse(mArgumentString);
         }
     }
     catch (const CLI::CallForHelp& e) {
@@ -285,9 +292,12 @@ int GriddynRunner::loadCommandArgument(readerInfo& ri, bool allowUnrecognized)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App>
+    GriddynRunner::generateBaseCommandLineParser(readerInfo& readerInformation)
 {
-    auto defineTransform = [&ri](const std::string& input) { return ri.checkDefines(input); };
+    auto defineTransform = [&readerInformation](const std::string& input) {
+        return readerInformation.checkDefines(input);
+    };
 
     // function for loading parameters from strings
     CLI::callback_t loadParamString = [this](CLI::results_t results) {
@@ -311,9 +321,9 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
     };
 
     // function for loading parameters from strings
-    CLI::callback_t loadFileCallback = [this, &ri](CLI::results_t results) {
+    CLI::callback_t loadFileCallback = [this, &readerInformation](CLI::results_t results) {
         for (auto& file : results) {
-            loadFile(m_gds.get(), file, &ri);
+            loadFile(m_gds.get(), file, &readerInformation);
             if (m_gds->getErrorCode() != 0) {
                 throw(CLI::Error(m_gds->getName(),
                                  "Error loading File " + file,
@@ -452,22 +462,24 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
     readerGroup->add_option("--file-flags", "specify flags to feed to the file reader")
         ->delimiter(',')
         ->type_size(-1)
-        ->each([&ri](const std::string& flag) { addflags(ri, flag); });
+        ->each([&readerInformation](const std::string& flag) {
+            addflags(readerInformation, flag);
+        });
     readerGroup->add_option("--define,-D", "definition strings for the element file readers")
         ->type_size(-1)
-        ->each([&ri](const std::string& defstr) {
+        ->each([&readerInformation](const std::string& defstr) {
             auto N = defstr.find_first_of('=');
             auto def = gmlc::utilities::stringOps::trim(defstr.substr(0, N));
             auto rep = gmlc::utilities::stringOps::trim(defstr.substr(N + 1));
-            ri.addLockedDefinition(def, rep);
+            readerInformation.addLockedDefinition(def, rep);
         });
     readerGroup->add_option("--translate,-T", "translation strings for the element file readers")
         ->type_size(-1)
-        ->each([&ri](const std::string& transstr) {
+        ->each([&readerInformation](const std::string& transstr) {
             auto N = transstr.find_first_of('=');
             auto tran = gmlc::utilities::stringOps::trim(transstr.substr(0, N));
             auto rep = gmlc::utilities::stringOps::trim(transstr.substr(N + 1));
-            ri.addTranslate(tran, rep);
+            readerInformation.addTranslate(tran, rep);
         });
 
     readerGroup
@@ -480,9 +492,9 @@ std::shared_ptr<CLI::App> GriddynRunner::generateBaseCommandLineParser(readerInf
     readerGroup
         ->add_option_function<std::vector<std::string>>(
             "--dir",
-            [&ri](const std::vector<std::string>& dirList) {
+            [&readerInformation](const std::vector<std::string>& dirList) {
                 for (const auto& dirname : dirList) {
-                    ri.addDirectory(dirname);
+                    readerInformation.addDirectory(dirname);
                 }
             },
             "add search directory for input files")

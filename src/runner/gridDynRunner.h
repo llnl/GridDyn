@@ -53,7 +53,10 @@ class GriddynRunner {
     @param[in] ri the readerInfo structure that contains any additional reader information
     @return >0 normal stop,  0 normal, <0 error
     */
-    int Initialize(int argc, char* argv[], readerInfo& ri, bool allowUnrecognized = false);
+    int Initialize(int argc,
+                   char* argv[],
+                   readerInfo& readerInformation,
+                   bool allowUnrecognized = false);
     /** initialization the simulation object so it is ready to run*/
     virtual void simInitialize();
     /**
@@ -99,7 +102,7 @@ class GriddynRunner {
 
     virtual void Finalize();
     virtual int Reset();
-    virtual int Reset(readerInfo& ri);
+    virtual int Reset(readerInfo& readerInformation);
     /** reset the underlying simulation of a runner*/
     void resetSim(std::shared_ptr<gridDynSimulation> sim) { m_gds = std::move(sim); }
     /** get a pointer to the simulation object*/
@@ -119,22 +122,23 @@ class GriddynRunner {
 
     decltype(std::chrono::high_resolution_clock::now()) m_startTime;
     decltype(std::chrono::high_resolution_clock::now()) m_stopTime;
-    bool eventMode = false;
+    bool mEventMode = false;
 
-    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& ri);
+    virtual std::shared_ptr<CLI::App>
+        generateLocalCommandLineParser(readerInfo& readerInformation);
 
-    std::shared_ptr<CLI::App> generateBaseCommandLineParser(readerInfo& ri);
+    std::shared_ptr<CLI::App> generateBaseCommandLineParser(readerInfo& readerInformation);
 
     /** actually load the command line arguments*/
-    int loadCommandArgument(readerInfo& ri, bool allow_unrecognized);
+    int loadCommandArgument(readerInfo& readerInformation, bool allowUnrecognized);
 
   protected:
-    std::string execPath;  //!< the executable path from command line arguments
+    std::string mExecutablePath;  //!< the executable path from command line arguments
   private:
-    std::future<coreTime> async_ret;  //!< future code for the asynchronous operations
-    int argc_val{0};
-    char** argv_vals = nullptr;
-    std::string arg_string;
+    std::future<coreTime> mAsyncReturn;  //!< future code for the asynchronous operations
+    int mArgcValue{0};
+    char** mArgValues = nullptr;
+    std::string mArgumentString;
 };
 
 }  // namespace griddyn

@@ -55,15 +55,15 @@ GridDynObject createGridDynObject(gridComponent* comp)
     if (comp == nullptr) {
         return nullptr;
     }
-    auto* ptr = new coreOwningPtr<gridComponent>(comp);
-    return ptr;
+    auto* componentPointer = new coreOwningPtr<gridComponent>(comp);
+    return componentPointer;
 }
 
 gridComponent* getComponentPointer(GridDynObject obj)
 {
     if (obj != nullptr) {
-        auto* cptr = static_cast<coreOwningPtr<gridComponent>*>(obj);
-        return cptr->get();
+        auto* componentPointer = static_cast<coreOwningPtr<gridComponent>*>(obj);
+        return componentPointer->get();
     }
     return nullptr;
 }
@@ -71,8 +71,8 @@ gridComponent* getComponentPointer(GridDynObject obj)
 const gridComponent* getConstComponentPointer(GridDynObject obj)
 {
     if (obj != nullptr) {
-        const auto* cptr = static_cast<coreOwningPtr<gridComponent> const*>(obj);
-        return cptr->get();
+        const auto* componentPointer = static_cast<coreOwningPtr<gridComponent> const*>(obj);
+        return componentPointer->get();
     }
     return nullptr;
 }
@@ -89,8 +89,8 @@ GridDynObject
     if (comp == nullptr) {
         return nullptr;
     }
-    auto* ptr = new coreOwningPtr<gridComponent>(comp);
-    return ptr;
+    auto* componentPointer = new coreOwningPtr<gridComponent>(comp);
+    return componentPointer;
 }
 
 GridDynObject gridDynObjectClone(GridDynObject obj, GridDynError* err)
@@ -102,20 +102,20 @@ GridDynObject gridDynObjectClone(GridDynObject obj, GridDynError* err)
         return nullptr;
     }
     auto* newObject = comp->clone();
-    auto* comp_clone = dynamic_cast<gridComponent*>(newObject);
-    if (comp_clone == nullptr) {
+    auto* componentClone = dynamic_cast<gridComponent*>(newObject);
+    if (componentClone == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return nullptr;
     }
-    auto* ptr = new coreOwningPtr<gridComponent>(comp_clone);
-    return ptr;
+    auto* componentPointer = new coreOwningPtr<gridComponent>(componentClone);
+    return componentPointer;
 }
 
 void gridDynObjectFree(GridDynObject obj)
 {
     if (obj != nullptr) {
-        auto* cptr = static_cast<coreOwningPtr<gridComponent>*>(obj);
-        delete cptr;
+        auto* componentPointer = static_cast<coreOwningPtr<gridComponent>*>(obj);
+        delete componentPointer;
     }
 }
 
@@ -240,10 +240,10 @@ void gridDynObjectGetString(GridDynObject obj,
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return;
     }
-    auto s = comp->getString(parameter);
-    strncpy(value, s.c_str(), N);
+    auto stringValue = comp->getString(parameter);
+    strncpy(value, stringValue.c_str(), N);
     if (actualSize != nullptr) {
-        *actualSize = static_cast<int>(s.size());
+        *actualSize = static_cast<int>(stringValue.size());
     }
 }
 

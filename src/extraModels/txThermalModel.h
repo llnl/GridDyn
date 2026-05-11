@@ -21,24 +21,24 @@ class txThermalModel: public sensor {
     };
 
   protected:
-    double Ttor = 1.25 * 3600.0;  //!<[s] oil rise time constant
-    double DThs = 35.0;  //!<[C] hot spot rise temp at rated current over top oil
-    double DTtor = 45.0;  //!<[C] Oil rise temp at rated current
-    double Tgr = 5.0 * 60.0;  //!<[s] winding time constant
-    double mp_LR = 6.5;  //!< Loss Ratio
-    double mp_n = 1.0;  //!< oil exponent
-    double mp_m = 1.0;  //!< winding exponent
-    double ambientTemp = 20;  //!<[C] ambient temperature in C
-    double dTempdt = 0.0;  //!<[C/s] rate of change of ambient temperature
-    double alarmTemp1 = 0;  //!<[C] the lower alarm temp
-    double alarmTemp2 = 0;  //!<[C] the level 2 alarm temp
-    double cutoutTemp = 0;  //!<[C] the temp at which the breakers are tripped
-    double alarmDelay = 300;  //!<[s] delay time on the alarms and cutout;
+    double mOilTimeConstant = 1.25 * 3600.0;  //!<[s] oil rise time constant
+    double mRatedHotSpotRise = 35.0;  //!<[C] hot spot rise temp at rated current over top oil
+    double mRatedTopOilRise = 45.0;  //!<[C] Oil rise temp at rated current
+    double mWindingTimeConstant = 5.0 * 60.0;  //!<[s] winding time constant
+    double mLossRatio = 6.5;  //!< Loss Ratio
+    double mOilExponent = 1.0;  //!< oil exponent
+    double mWindingExponent = 1.0;  //!< winding exponent
+    double mAmbientTemp = 20;  //!<[C] ambient temperature in C
+    double mTempRateOfChange = 0.0;  //!<[C/s] rate of change of ambient temperature
+    double mAlarmTemp1 = 0;  //!<[C] the lower alarm temp
+    double mAlarmTemp2 = 0;  //!<[C] the level 2 alarm temp
+    double mCutoutTemp = 0;  //!<[C] the temp at which the breakers are tripped
+    double mAlarmDelay = 300;  //!<[s] delay time on the alarms and cutout;
   private:
-    double rating = 0.0;  //!< transformer rating
-    double Plossr = 0.0;  //!<  the losses at rated power
-    double m_C = 0.0;  //!< transformer thermal capacity
-    double m_k = 0.0;  //!< transformer radiation constant
+    double mRating = 0.0;  //!< transformer rating
+    double mRatedLoss = 0.0;  //!<  the losses at rated power
+    double mThermalCapacity = 0.0;  //!< transformer thermal capacity
+    double mRadiationConstant = 0.0;  //!< transformer radiation constant
   public:
     /** @brief constructor*/
     txThermalModel(const std::string& objName = "txThermal_$");

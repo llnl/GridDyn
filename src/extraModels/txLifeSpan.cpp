@@ -35,10 +35,10 @@ coreObject* txLifeSpan::clone(coreObject* obj) const
         return obj;
     }
 
-    nobj->initialLife = initialLife;
-    nobj->agingConstant = agingConstant;
-    nobj->baseTemp = baseTemp;
-    nobj->agingFactor = agingFactor;
+    nobj->mInitialLife = mInitialLife;
+    nobj->mAgingConstant = mAgingConstant;
+    nobj->mBaseTemp = mBaseTemp;
+    nobj->mAgingFactor = mAgingFactor;
     return nobj;
 }
 
@@ -68,11 +68,11 @@ void txLifeSpan::set(std::string_view param, std::string_view val)
 void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "initial") || (param == "initiallife")) {
-        initialLife = units::convert(val, unitType, units::hr);
+        mInitialLife = units::convert(val, unitType, units::hr);
     } else if (param == "basetemp") {
-        baseTemp = units::convert(val, unitType, units::degC);
+        mBaseTemp = units::convert(val, unitType, units::degC);
     } else if ((param == "agingrate") || (param == "agingconstant")) {
-        agingConstant = val;
+        mAgingConstant = val;
     } else {
         gridPrimary::set(param, val, unitType);
     }
@@ -96,14 +96,14 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     if (updatePeriod > negTime) {  // set the period to the period of the simulation to at least
                                    // 1/5 the winding time constant
-        coreTime pstep = getRoot()->get("steptime");
-        if (pstep < timeZero) {
-            pstep = 1.0;
+        coreTime simulationStep = getRoot()->get("steptime");
+        if (simulationStep < timeZero) {
+            simulationStep = 1.0;
         }
-        coreTime mtimestep = 120.0;  // update once per minute
-        updatePeriod = pstep * std::floor(mtimestep / pstep);
-        if (updatePeriod < pstep) {
-            updatePeriod = pstep;
+        coreTime modelTimestep = 120.0;  // update once per minute
+        updatePeriod = simulationStep * std::floor(modelTimestep / simulationStep);
+        if (updatePeriod < simulationStep) {
+            updatePeriod = simulationStep;
         }
     }
     if (!opFlags[dyn_initialized]) {
@@ -117,11 +117,13 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::add(b1);
         b1->parentSetFlag(separate_processing, true, this);
 
-        sensor::set("output0", std::to_string(initialLife) + "-block0");
+        sensor::set("output0", std::to_string(mInitialLife) + "-block0");
         sensor::set("output1", "block0");
 
         auto g1 = std::make_shared<customGrabber>();
-        g1->setGrabberFunction("rate", [this](coreObject*) -> double { return Faa; });
+        g1->setGrabberFunction(
+            "rate",
+            [this](coreObject*) -> double { return mAgingAccelerationFactor; });
         sensor::add(g1);
 
         sensor::set("output2", "input1");
@@ -170,15 +172,16 @@ void txLifeSpan::updateA(coreTime time)
     if (time == prevTime) {
         return;
     }
-    double Temperature = dataSources[0]->grabData();
+    double temperature = dataSources[0]->grabData();
     if (!opFlags[useIECmethod]) {
-        Faa = agingFactor *
-            exp(agingConstant / (baseTemp + 273.0) - (agingConstant / (Temperature + 273.0)));
+        mAgingAccelerationFactor = mAgingFactor *
+            exp(mAgingConstant / (mBaseTemp + 273.0) -
+                (mAgingConstant / (temperature + 273.0)));
     } else {
-        Faa = agingFactor * exp2((Temperature - baseTemp + 12) / 6.0);
+        mAgingAccelerationFactor = mAgingFactor * exp2((temperature - mBaseTemp + 12) / 6.0);
     }
 
-    filterBlocks[0]->step(time, Faa);
+    filterBlocks[0]->step(time, mAgingAccelerationFactor);
     Relay::updateA(time);
     prevTime = time;
 }
@@ -188,15 +191,15 @@ void txLifeSpan::timestep(coreTime time, const IOdata& /*inputs*/, const solverM
     updateA(time);
 }
 
-void txLifeSpan::actionTaken(index_t ActionNum,
+void txLifeSpan::actionTaken(index_t actionNumber,
                              index_t /*conditionNum*/,
                              change_code /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
     if (m_sinkObject != nullptr) {
-        if (ActionNum == 0) {
+        if (actionNumber == 0) {
             logging::normal(this, "{} lifespan exceeded fault produced", m_sinkObject->getName());
-        } else if (ActionNum == 1) {
+        } else if (actionNumber == 1) {
             logging::normal(this, "{} lifespan exceeded breakers tripped", m_sinkObject->getName());
         }
     }

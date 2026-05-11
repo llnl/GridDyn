@@ -19,14 +19,14 @@ class pmu_udp_socket {
   public:
     int index;
     // PMU not allowed to have multiple packets in flight at the same time
-    std::mutex send_lock;
+    std::mutex sendLock;
     boost::asio::ip::udp::socket socket_;
     pmu_udp_socket(boost::asio::io_context& ios, boost::asio::ip::udp::endpoint ep):
         socket_(ios, ep)
     {
         index = 0;
     }
-    void data_sent(const boost::system::error_code& error, std::size_t size) { send_lock.unlock(); }
+    void data_sent(const boost::system::error_code& error, std::size_t size) { sendLock.unlock(); }
 };
 
 // class for establishing a TCP connection
@@ -45,19 +45,19 @@ class pmu_tcp_session {
   public:
     int index;
     enum session_state_t { accepting = 0, waiting = 1, sending = 2, halted = 3 };
-    session_state_t cstate;
+    session_state_t connectionState;
     boost::asio::ip::tcp::socket socket_;
     // PMU not allowed to have multiple packets in flight at the same time
-    std::mutex send_lock;
+    std::mutex sendLock;
 
-    std::vector<unsigned char> recv_buffer_;
+    std::vector<unsigned char> recvBuffer;
     pmu_tcp_session(boost::asio::io_context& ios): socket_(ios)
     {
         index = 0;
-        recv_buffer_.resize(65536);
-        cstate = accepting;
+        recvBuffer.resize(65536);
+        connectionState = accepting;
     }
-    void data_sent(const boost::system::error_code& error, std::size_t size) { send_lock.unlock(); }
+    void data_sent(const boost::system::error_code& error, std::size_t size) { sendLock.unlock(); }
 };
 
 // class for creating a virtual PMU server
@@ -65,45 +65,45 @@ class gridDynServer {
   public:
     enum ip_protocol_t { tcp = 1, udp = 2 };
 
-    int port;
-    ip_protocol_t ip_protocol;
+    int mPort;
+    ip_protocol_t mIpProtocol;
 
-    int timeBase;
+    int mTimeBase;
 
   protected:
-    int vid;
-    int current_connections;  // the current number of connected sockets
-    int max_connections;  // the maximum number of transmit sockets
+    int mVid;
+    int mCurrentConnections;  // the current number of connected sockets
+    int mMaxConnections;  // the maximum number of transmit sockets
                           // timing information
 
-    double intervalError;
+    double mIntervalError;
 
     // PMU unit itself
 
     // thread for the send data loop
-    std::thread send_thread;
+    std::thread mSendThread;
 
     // network connection information
-    pmu_udp_socket* udpsock;
-    pmu_tcp_acc* tcpacc;
+    pmu_udp_socket* mUdpSocket;
+    pmu_tcp_acc* mTcpAcceptor;
 
     // boost::asio::io_context ioserve;
-    boost::asio::ip::udp::endpoint remote_endpoint_udp;
-    boost::asio::ip::udp::endpoint remote_endpoint_udp_send;
-    boost::asio::ip::udp::endpoint local_endpoint_udp;
+    boost::asio::ip::udp::endpoint mRemoteEndpointUdp;
+    boost::asio::ip::udp::endpoint mRemoteEndpointUdpSend;
+    boost::asio::ip::udp::endpoint mLocalEndpointUdp;
 
-    boost::asio::ip::tcp::endpoint local_endpoint_tcp;
-    std::mutex session_lock;
-    std::vector<pmu_tcp_session*> active_tcp_sessions;
+    boost::asio::ip::tcp::endpoint mLocalEndpointTcp;
+    std::mutex mSessionLock;
+    std::vector<pmu_tcp_session*> mActiveTcpSessions;
 
     // command frame buffer
-    std::vector<unsigned char> recv_buffer_;
+    std::vector<unsigned char> mRecvBuffer;
 
     // frame buffers for send data
-    std::vector<unsigned char> dataFrame;
-    std::vector<unsigned char> header;
-    std::vector<unsigned char> cfg1;
-    std::vector<unsigned char> cfg2;
+    std::vector<unsigned char> mDataFrame;
+    std::vector<unsigned char> mHeader;
+    std::vector<unsigned char> mCfg1;
+    std::vector<unsigned char> mCfg2;
 
   public:
     gridDynServer();

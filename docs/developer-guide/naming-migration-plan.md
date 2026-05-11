@@ -206,7 +206,8 @@ Types of work in this phase:
 - [ ] `src/runner`
 - [ ] `src/plugins`
 - [x] `src/formatInterpreters`
-- [~] `src/fskit`
+- [x] `src/fskit`
+- [~] `src/fmi_export`
 - [ ] `src/extraModels`
 - [ ] `src/gridDynLoader`
 - [ ] `src/gridDynMain`
@@ -455,7 +456,8 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
 | merged      | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | Complete    |
 | merged      | `src/formatInterpreters`  | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, INI, and TOML element/reader adapters                                                            | No                   | CI compile and `clang-tidy` run  | Complete    |
-| working     | `src/fskit`               | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                  | No                   | Not yet run                      | In progress |
+| merged      | `src/fskit`               | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                  | No                   | Not yet run                      | Complete    |
+| working     | `src/fmi_export`          | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                      | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

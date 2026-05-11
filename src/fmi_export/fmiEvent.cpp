@@ -12,11 +12,11 @@
 
 namespace griddyn::fmi {
 fmiEvent::fmiEvent(const std::string& newName, fmiEventType type):
-    reversibleEvent(newName), eventType(type)
+    reversibleEvent(newName), mEventType(type)
 {
 }
 
-fmiEvent::fmiEvent(fmiEventType type): eventType(type) {}
+fmiEvent::fmiEvent(fmiEventType type): mEventType(type) {}
 
 fmiEvent::fmiEvent(const EventInfo& gdEI, coreObject* rootObject): reversibleEvent(gdEI, rootObject)
 {
@@ -33,8 +33,8 @@ std::unique_ptr<Event> fmiEvent::clone() const
 void fmiEvent::cloneTo(Event* evnt) const
 {
     reversibleEvent::cloneTo(evnt);
-    auto fe = dynamic_cast<fmiEvent*>(evnt);
-    if (fe == nullptr) {
+    auto* fmiEventClone = dynamic_cast<fmiEvent*>(evnt);
+    if (fmiEventClone == nullptr) {
         return;
     }
     // gp->valueref = valueref;
@@ -53,10 +53,10 @@ void fmiEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
-            eventType = fmiEventType::string_parameter;
+            mEventType = fmiEventType::string_parameter;
             stringEvent = true;
         } else if ((val == "real") || (val == "number")) {
-            eventType = fmiEventType::parameter;
+            mEventType = fmiEventType::parameter;
             stringEvent = false;
         }
     } else {
@@ -81,7 +81,7 @@ bool fmiEvent::setTarget(coreObject* gdo, std::string_view var)
 
 coreObject* fmiEvent::getOwner() const
 {
-    return coord;
+    return mCoordinator;
 }
 
 void fmiEvent::updateObject(coreObject* gco, object_update_mode mode)
@@ -93,16 +93,16 @@ void fmiEvent::updateObject(coreObject* gco, object_update_mode mode)
 void fmiEvent::findCoordinator()
 {
     if (m_obj != nullptr) {
-        auto rto = m_obj->getRoot();
-        if (rto != nullptr) {
-            auto fmiCont = rto->find("fmiCoordinator");
-            if (dynamic_cast<fmiCoordinator*>(fmiCont) != nullptr) {
-                if (!isSameObject(fmiCont, coord)) {
-                    coord = static_cast<fmiCoordinator*>(fmiCont);
-                    if (eventType == fmiEventType::input) {
-                        coord->registerInput(getName(), this);
+        auto* rootObject = m_obj->getRoot();
+        if (rootObject != nullptr) {
+            auto* fmiCoordinatorObject = rootObject->find("fmiCoordinator");
+            if (dynamic_cast<fmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
+                if (!isSameObject(fmiCoordinatorObject, mCoordinator)) {
+                    mCoordinator = static_cast<fmiCoordinator*>(fmiCoordinatorObject);
+                    if (mEventType == fmiEventType::input) {
+                        mCoordinator->registerInput(getName(), this);
                     } else {
-                        coord->registerParameter(getName(), this);
+                        mCoordinator->registerParameter(getName(), this);
                     }
                 }
             }

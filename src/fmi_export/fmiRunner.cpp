@@ -21,7 +21,7 @@ namespace griddyn::fmi {
 fmiRunner::fmiRunner(const std::string& name,
                      const std::string& resourceLocations,
                      const fmi2CallbackFunctions* functions,
-                     bool ModelExchange): identifier(name), resource_loc(resourceLocations)
+                     bool ModelExchange): identifier(name), mResourceLocation(resourceLocations)
 {
     if (functions != nullptr) {
         loggerFunc = functions->logger;
@@ -29,7 +29,7 @@ fmiRunner::fmiRunner(const std::string& name,
     }
     loadLibraries();
     fmiRunner::Reset();
-    modelExchangeRunner = ModelExchange;
+    mModelExchangeRunner = ModelExchange;
 }
 
 fmiRunner::~fmiRunner() = default;
@@ -38,20 +38,20 @@ int fmiRunner::Reset()
 {
     m_gds = std::make_shared<gridDynSimulation>(identifier);
 
-    coord = make_owningPtr<fmiCoordinator>();
+    mCoordinator = make_owningPtr<fmiCoordinator>();
     // store the coordinator as a support object so everything can find it
-    m_gds->add(coord.get());
+    m_gds->add(mCoordinator.get());
 
-    readerInfo ri;
-    loadFmiExportReaderInfoDefinitions(ri);
+    readerInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
 
-    ri.addDirectory(resource_loc);
+    readerInformation.addDirectory(mResourceLocation);
 
-    std::filesystem::path mainFilePath = resource_loc;
+    std::filesystem::path mainFilePath = mResourceLocation;
     mainFilePath /= "simulation.xml";
 
     if (std::filesystem::exists(mainFilePath)) {
-        loadFile(m_gds.get(), mainFilePath.string(), &ri, "xml");
+        loadFile(m_gds.get(), mainFilePath.string(), &readerInformation, "xml");
     } else {
         throw(std::invalid_argument("unable to locate main file"));
     }
@@ -61,7 +61,7 @@ int fmiRunner::Reset()
 
 void fmiRunner::UpdateOutputs()
 {
-    coord->updateOutputs(m_gds->getSimulationTime());
+    mCoordinator->updateOutputs(m_gds->getSimulationTime());
 }
 
 coreTime fmiRunner::Run()
@@ -72,7 +72,7 @@ coreTime fmiRunner::Run()
 void fmiRunner::StepAsync(coreTime time)
 {
     if (stepFinished != nullptr) {
-        async_retFMI = std::async(std::launch::async, [this, time] {
+        mAsyncReturn = std::async(std::launch::async, [this, time] {
             fmiRunner::Step(time);
             stepFinished(fmiComp, fmi2OK);
         });
@@ -86,14 +86,14 @@ void fmiRunner::StepAsync(coreTime time)
 
 bool fmiRunner::isFinished() const
 {
-    return (async_retFMI.valid()) ?
-        (async_retFMI.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
+    return (mAsyncReturn.valid()) ?
+        (mAsyncReturn.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
         true;
 }
 coreTime fmiRunner::Step(coreTime time)
 {
     auto retTime = GriddynRunner::Step(time);
-    coord->updateOutputs(retTime);
+    mCoordinator->updateOutputs(retTime);
     return retTime;
 }
 
@@ -104,12 +104,12 @@ void fmiRunner::Finalize()
 
 index_t fmiRunner::findVR(const std::string& varName) const
 {
-    return coord->findVR(varName);
+    return mCoordinator->findVR(varName);
 }
 
 void fmiRunner::logger(int level, const std::string& logMessage)
 {
-    if (loggingCategories[level]) {
+    if (mLoggingCategories[level]) {
         if (loggerFunc != nullptr) {
             switch (level) {
                 case 0:
@@ -154,19 +154,19 @@ id_type_t fmiRunner::GetID() const
     return m_gds->getID();
 }
 
-bool fmiRunner::Set(index_t vr, double val)
+bool fmiRunner::Set(index_t valueReference, double inputValue)
 {
-    return coord->sendInput(vr, val);
+    return mCoordinator->sendInput(valueReference, inputValue);
 }
 
-bool fmiRunner::SetString(index_t vr, const char* s)
+bool fmiRunner::SetString(index_t valueReference, const char* stringValue)
 {
-    return coord->sendInput(vr, s);
+    return mCoordinator->sendInput(valueReference, stringValue);
 }
 
-double fmiRunner::Get(index_t vr)
+double fmiRunner::Get(index_t valueReference)
 {
-    return coord->getOutput(vr);
+    return mCoordinator->getOutput(valueReference);
 }
 
 }  // namespace griddyn::fmi

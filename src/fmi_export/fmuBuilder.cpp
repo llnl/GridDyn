@@ -19,7 +19,6 @@
 #include <iostream>
 #include <memory>
 #include <pugixml.hpp>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -54,41 +53,40 @@ fmuBuilder::fmuBuilder(std::shared_ptr<gridDynSimulation> gds): GriddynRunner(st
 
 void fmuBuilder::loadComponents()
 {
-    coord_ = make_owningPtr<fmiCoordinator>();
+    mCoordinator = make_owningPtr<fmiCoordinator>();
     auto gds = getSim();
     if (gds == nullptr) {
         resetSim(std::make_shared<gridDynSimulation>());
         gds = getSim();
     }
-    gds->add(coord_.get());
-    ri_ = std::make_unique<readerInfo>();
-    loadFmiExportReaderInfoDefinitions(*ri_);
-    ri_->captureFiles = true;
+    gds->add(mCoordinator.get());
+    mReaderInfo = std::make_unique<readerInfo>();
+    loadFmiExportReaderInfoDefinitions(*mReaderInfo);
+    mReaderInfo->captureFiles = true;
 }
 
 fmuBuilder::~fmuBuilder() = default;
 
-static const std::set<std::string>
-    valid_platforms{"all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
-
-std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
+    const std::vector<std::string> validPlatforms{
+        "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
     auto app = std::make_shared<CLI::App>("fmu options");
-    app->add_option("--buildfmu,--fmu", fmuLoc, "fmu file to build");
-    app->add_option("--platform", platform, "build the fmu for a specific platform")
+    app->add_option("--buildfmu,--fmu", mFmuLocation, "fmu file to build");
+    app->add_option("--platform", mPlatform, "build the fmu for a specific platform")
         ->transform(CLI::IsMember(
-            valid_platforms, CLI::ignore_case, CLI::ignore_underscore, CLI::ignore_space));
+            validPlatforms, CLI::ignore_case, CLI::ignore_underscore, CLI::ignore_space));
 
-    app->add_flag("--keep_dir", keep_dir, "keep the temporary directory after building")
+    app->add_flag("--keep_dir", mKeepDirectory, "keep the temporary directory after building")
         ->ignore_underscore();
-    loadFmiExportReaderInfoDefinitions(ri);
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     return app;
 }
 
 /** helper function to copy a file and overwrite if requested*/
-bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
+static bool testCopyFile(path const& source, path const& dest, bool overwrite = false)
 {
-    std::cout << "copying " << source << " to " << dest << std::endl;
+    std::cout << "copying " << source << " to " << dest << '\n';
     copy_options option = copy_options::none;
     if (overwrite) {
         option = copy_options::overwrite_existing;
@@ -110,8 +108,8 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
     auto fmupath = path(fmuLocation);
 
     if (fmuLocation.empty()) {
-        if (!fmuLoc.empty()) {
-            fmupath = path(fmuLoc);
+        if (!mFmuLocation.empty()) {
+            fmupath = path(mFmuLocation);
         } else {
             fmupath = path("griddyn.fmu");
         }
@@ -146,10 +144,10 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
     // copy the resource files over to the resource directory
     testCopyFile(getSim()->sourceFile, newFile, true);
 
-    for (const auto& file : ri_->getCapturedFiles()) {
-        path f(file);
-        if (exists(f)) {
-            testCopyFile(f, resource_dir / f.filename());
+    for (const auto& file : mReaderInfo->getCapturedFiles()) {
+        path capturedFile(file);
+        if (exists(capturedFile)) {
+            testCopyFile(capturedFile, resource_dir / capturedFile.filename());
         }
     }
     // now generate the model description file
@@ -157,7 +155,7 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
 
     if (fmupath.is_absolute()) {
         // now zip the fmu
-        int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
         if (status == 0) {
             getSim()->log(nullptr, print_level::summary, "fmu created at " + fmupath.string());
         } else {
@@ -168,7 +166,7 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
         }
     } else {
         auto path2 = current_path() / fmupath;
-        int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
         if (status == 0) {
             getSim()->log(nullptr, print_level::summary, "fmu created at " + path2.string());
         } else {
@@ -185,9 +183,9 @@ void fmuBuilder::copySharedLibrary(const std::string& tempdir)
     path binary_dir = path(tempdir) / "binaries";
     create_directory(binary_dir);
     bool copySome = false;
-    path executable(execPath);
+    path executable(mExecutablePath);
     path execDir = executable.parent_path();
-    if ((platform == "all") || (platform == "windows") || (platform == "win64")) {
+    if ((mPlatform == "all") || (mPlatform == "windows") || (mPlatform == "win64")) {
         auto source = execDir / "win64" / "fmiGridDynSharedLib.dll";
         if (exists(source)) {
             create_directory(binary_dir / "win64");
@@ -205,7 +203,7 @@ void fmuBuilder::copySharedLibrary(const std::string& tempdir)
         }
     }
 
-    if ((platform == "all") || (platform == "linux") || (platform == "linux64")) {
+    if ((mPlatform == "all") || (mPlatform == "linux") || (mPlatform == "linux64")) {
         auto source = execDir / "linux64" / "fmiGridDynSharedLib.so";
         if (exists(source)) {
             create_directory(binary_dir / "linux64");
@@ -222,8 +220,8 @@ void fmuBuilder::copySharedLibrary(const std::string& tempdir)
             }
         }
     }
-    if ((platform == "all") || (platform == "macos") || (platform == "darwin") ||
-        (platform == "darwin64")) {
+    if ((mPlatform == "all") || (mPlatform == "macos") || (mPlatform == "darwin") ||
+        (mPlatform == "darwin64")) {
         auto source = execDir / "darwin64" / "fmiGridDynSharedLib.so";
         if (exists(source)) {
             create_directory(binary_dir / "darwin64");
@@ -442,27 +440,27 @@ void fmuBuilder::generateXML(const std::string& xmlfile)
     sVariable.append_attribute("variability") = "fixed";
     ++index;
 
-    auto fmiInputs = coord_->getInputs();
+    auto fmiInputs = mCoordinator->getInputs();
     for (auto& input : fmiInputs) {
         sVariable = pElement.append_child("ScalarVariable");
         sVariable.append_attribute("name") = input.second.name.c_str();
         sVariable.append_attribute("valueReference") = input.first;
-        auto evntdesc = input.second.evnt->getDescription();
+        auto evntdesc = input.second.event->getDescription();
         if (!evntdesc.empty()) {
             sVariable.append_attribute("description") = evntdesc.c_str();
         }
         sVariable.append_attribute("causality") = "input";
         sVariable.append_attribute("variability") = "continuous";
         auto rType = sVariable.append_child("Real");
-        rType.append_attribute("start") = coord_->getOutput(input.first);
+        rType.append_attribute("start") = mCoordinator->getOutput(input.first);
         ++index;
     }
-    auto fmiParams = coord_->getParameters();
+    auto fmiParams = mCoordinator->getParameters();
     for (auto& param : fmiParams) {
         sVariable = pElement.append_child("ScalarVariable");
         sVariable.append_attribute("name") = param.second.name.c_str();
         sVariable.append_attribute("valueReference") = param.first;
-        auto evntdesc = param.second.evnt->getDescription();
+        auto evntdesc = param.second.event->getDescription();
         if (!evntdesc.empty()) {
             sVariable.append_attribute("description") = evntdesc.c_str();
         }
@@ -475,13 +473,13 @@ void fmuBuilder::generateXML(const std::string& xmlfile)
             sVariable.append_attribute("variability") = "continuous";
 
             auto rType = sVariable.append_child("Real");
-            rType.append_attribute("start") = coord_->getOutput(param.first);
+            rType.append_attribute("start") = mCoordinator->getOutput(param.first);
         }
 
         ++index;
     }
     std::vector<int> outputIndices;
-    auto fmiOutputs = coord_->getOutputs();
+    auto fmiOutputs = mCoordinator->getOutputs();
     for (auto& out : fmiOutputs) {
         sVariable = pElement.append_child("ScalarVariable");
         sVariable.append_attribute("name") = out.second.name.c_str();

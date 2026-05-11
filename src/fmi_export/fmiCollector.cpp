@@ -26,12 +26,12 @@ std::unique_ptr<collector> fmiCollector::clone() const
     return fmicol;
 }
 
-void fmiCollector::cloneTo(collector* gr) const
+void fmiCollector::cloneTo(collector* collectorClone) const
 {
-    collector::cloneTo(gr);
+    collector::cloneTo(collectorClone);
 
-    auto nrec = dynamic_cast<fmiCollector*>(gr);
-    if (nrec == nullptr) {
+    auto* newCollector = dynamic_cast<fmiCollector*>(collectorClone);
+    if (newCollector == nullptr) {
         return;
     }
 }
@@ -61,35 +61,37 @@ static const char defFMIName[] = "fmi";
 const std::string& fmiCollector::getSinkName() const
 {
     static const std::string defaultFMIName{defFMIName};
-    if (coord != nullptr) {
-        return coord->getFMIName();
+    if (mCoordinator != nullptr) {
+        return mCoordinator->getFMIName();
     }
     return defaultFMIName;
 }
 
 coreObject* fmiCollector::getOwner() const
 {
-    return coord;
+    return mCoordinator;
 }
 
-void fmiCollector::dataPointAdded(const collectorPoint& cp)
+void fmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
 {
-    if (coord == nullptr) {
+    if (mCoordinator == nullptr) {
         // find the coordinator first
-        auto gobj = cp.mDataGrabber->getObject();
-        if (gobj != nullptr) {
-            auto rto = gobj->getRoot();
-            if (rto != nullptr) {
-                auto fmiCont = rto->find("fmiCoordinator");
-                if (dynamic_cast<fmiCoordinator*>(fmiCont) != nullptr) {
-                    coord = static_cast<fmiCoordinator*>(fmiCont);
+        auto* gridObject = collectorDataPoint.mDataGrabber->getObject();
+        if (gridObject != nullptr) {
+            auto* rootObject = gridObject->getRoot();
+            if (rootObject != nullptr) {
+                auto* fmiCoordinatorObject = rootObject->find("fmiCoordinator");
+                if (dynamic_cast<fmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
+                    mCoordinator = static_cast<fmiCoordinator*>(fmiCoordinatorObject);
                 }
             }
         }
     }
-    if (coord != nullptr) {
-        if (cp.mColumnCount == 1) {
-            coord->registerOutput(cp.mColumnName, cp.mColumn, this);
+    if (mCoordinator != nullptr) {
+        if (collectorDataPoint.mColumnCount == 1) {
+            mCoordinator->registerOutput(collectorDataPoint.mColumnName,
+                                         collectorDataPoint.mColumn,
+                                         this);
         } else {
             // TODO(phlpt): Deal with output vectors later.
         }

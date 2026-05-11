@@ -19,18 +19,18 @@ namespace griddyn {
 namespace {
     void registerFmiExportFactories()
     {
-        static childClassFactory<fmi::fmiCollector, collector> fmiCollectorFactory(
+        static const childClassFactory<fmi::fmiCollector, collector> fmiCollectorFactory(
             std::vector<std::string>{"fmioutput", "fmicollector"});
 
-        static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
             fmiInputFactory(std::vector<std::string>{"fmiinput", "fmievent"},
                             fmi::fmiEvent::fmiEventType::input);
 
-        static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
             fmiParameterFactory(std::vector<std::string>{"fmiparam", "fmiparameter"},
                                 fmi::fmiEvent::fmiEventType::parameter);
 
-        static typeFactory<fmi::fmiCoordinator> fmiCoordinatorFactory(
+        static const typeFactory<fmi::fmiCoordinator> fmiCoordinatorFactory(
             "extra", std::vector<std::string>{"fmi", "fmicoord"});
 
         static_cast<void>(fmiCollectorFactory);

@@ -15,13 +15,11 @@
 #include "griddyn/gridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 #include "utilities/zipUtilities.h"
-#include <array>
 #include <filesystem>
 #include <iostream>
 #include <memory>
 #include <pugixml.hpp>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -69,11 +67,10 @@ void fmuBuilder::loadComponents()
 
 fmuBuilder::~fmuBuilder() = default;
 
-static constexpr std::array<std::string_view, 8>
-    validPlatforms{"all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
-
 std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
+    const std::vector<std::string> validPlatforms{
+        "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
     auto app = std::make_shared<CLI::App>("fmu options");
     app->add_option("--buildfmu,--fmu", mFmuLocation, "fmu file to build");
     app->add_option("--platform", mPlatform, "build the fmu for a specific platform")

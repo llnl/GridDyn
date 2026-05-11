@@ -22,8 +22,8 @@ class gridDynINIReader: public INIReader {
   public:
     using INIReader::INIReader;
 
-    [[nodiscard]] std::pair<std::string, std::string>
-        getAttribute(const std::string& section, int index) const
+    [[nodiscard]] std::pair<std::string, std::string> getAttribute(const std::string& section,
+                                                                   int index) const
     {
         if (index < 0) {
             return {};

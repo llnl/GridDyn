@@ -19,6 +19,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -294,10 +295,14 @@ void pmu::generateAndTransmitMessage() const
         payload->multiValues.resize(res.size());
         payload->multiUnits.resize(res.size());
         payload->m_time = prevTime;
-        for (size_t ii = 0; ii < res.size(); ++ii) {
-            payload->multiFields[ii] = oname[ii][0];
-            payload->multiValues[ii] = res[ii];
-            payload->multiUnits[ii] = to_string(outputUnits(ii));
+        if (res.size() > static_cast<size_t>(std::numeric_limits<index_t>::max())) {
+            throw std::out_of_range("pmu output count exceeds index_t range");
+        }
+        for (size_t outputIndex = 0; outputIndex < res.size(); ++outputIndex) {
+            const auto unitIndex = static_cast<index_t>(outputIndex);
+            payload->multiFields[outputIndex] = oname[outputIndex][0];
+            payload->multiValues[outputIndex] = res[outputIndex];
+            payload->multiUnits[outputIndex] = to_string(outputUnits(unitIndex));
         }
 
         cManager.send(std::move(message));

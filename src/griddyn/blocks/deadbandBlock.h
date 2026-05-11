@@ -28,25 +28,26 @@ class deadbandBlock: public Block {
     enum class deadbandstate_t { normal, rampup, outside, rampdown, shifted };
 
   protected:
-    model_parameter deadbandHigh = -kBigNum;  //!< upper limit on the deadband
-    model_parameter deadbandLow = kBigNum;  //!< lower deadband limit
-    model_parameter rampUpband = 0;  //!< ramp band on the up side
-    model_parameter rampDownband = 0;  //!< ramp band on the low side
-    model_parameter resetHigh = -kBigNum;  //!< the reset level to go off the deadband
-    model_parameter resetLow =
+    model_parameter mDeadbandHigh = -kBigNum;  //!< upper limit on the deadband
+    model_parameter mDeadbandLow = kBigNum;  //!< lower deadband limit
+    model_parameter mRampUpBand = 0;  //!< ramp band on the up side
+    model_parameter mRampDownBand = 0;  //!< ramp band on the low side
+    model_parameter mResetHigh = -kBigNum;  //!< the reset level to go off the deadband
+    model_parameter mResetLow =
         kBigNum;  //!< the reset level to go back in the deadband on the low side
-    model_parameter deadbandLevel =
+    model_parameter mDeadbandLevel =
         0.0;  //!<  the output level while the input is inside the deadband
-    model_parameter tolerance = 1e-6;  //!< the tolerance for resetting on the check function
-    deadbandstate_t dbstate = deadbandstate_t::normal;  //!< the current state of the deadband block
+    model_parameter mTolerance = 1e-6;  //!< the tolerance for resetting on the check function
+    deadbandstate_t mDeadbandState =
+        deadbandstate_t::normal;  //!< the current state of the deadband block
 
   public:
     /** @brief the default constructor*/
     explicit deadbandBlock(const std::string& objName = "deadband_#");
     /** @brief alternate constructor with a deadband argument
-@param[in] db the size of the deadband
+@param[in] deadbandWidth the size of the deadband
 */
-    deadbandBlock(double db, const std::string& objName = "deadband_#");
+    deadbandBlock(double deadbandWidth, const std::string& objName = "deadband_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -63,23 +64,23 @@ class deadbandBlock: public Block {
     // solverMode &sMode);
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataRef,
                                       double update[],
                                       const solverMode& sMode) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataRef,
                           double roots[],
                           const solverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -87,13 +88,13 @@ class deadbandBlock: public Block {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataRef,
                                   const solverMode& sMode,
                                   check_level_t level) override;
     /** @brief get the deadband state
 @return the state of the deadband block
 */
-    deadbandstate_t getDBState() const { return dbstate; }
+    deadbandstate_t getDBState() const { return mDeadbandState; }
     /** @brief get the output of the deadband portion {not including the gain and limiters
 @param[in] input the input value
 @return the computed output value

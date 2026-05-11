@@ -16,14 +16,14 @@ if the time constant is very small it reverts to the basic block
 */
 class derivativeBlock: public Block {
   protected:
-    model_parameter m_T1 = 0.1;  //!< delay time constant for the derivative filtering operation
+    model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
   public:
     //!< default constructor
     explicit derivativeBlock(const std::string& objName = "derivBlock_#");
     /** alternate constructor to add in the time constant
-@param[in] t1  the time constant
+@param[in] timeConstant  the time constant
 */
-    derivativeBlock(double t1, const std::string& objName = "derivBlock_#");
+    derivativeBlock(double timeConstant, const std::string& objName = "derivBlock_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
   protected:
@@ -40,18 +40,18 @@ class derivativeBlock: public Block {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataRef,
                                  double deriv[],
                                  const solverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataRef,
                                       double update[],
                                       const solverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataRef,
+                                       matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;

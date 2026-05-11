@@ -15,6 +15,7 @@
 #include <string>
 #include <utility>
 
+// NOLINTNEXTLINE(misc-const-correctness): third-party macro expansion owns this definition
 DECLARE_TRIPLINE()
 
 using griddyn::buildFlags;

@@ -215,6 +215,8 @@ option(GRIDDYN_ENABLE_HELICS_EXECUTABLE "Enable the HELICS executable to be buil
 
 option(GRIDDYN_ENABLE_NETWORKING_LIBRARY "Enable network based communication components" OFF)
 
+option(GRIDDYN_ENABLE_SERVER_EXECUTABLE "Enable the gridDynServer executable" OFF)
+
 option(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY "Enable Optimization libraries" OFF)
 
 option(GRIDDYN_ENABLE_CLANG_TOOLS

@@ -78,6 +78,13 @@ if(GRIDDYN_ENABLE_NETWORKING_LIBRARY)
 endif()
 
 # ------------------------------------------------------------
+# Enable compilation of the gridDynServer executable?
+# ------------------------------------------------------------
+if(GRIDDYN_ENABLE_SERVER_EXECUTABLE)
+    add_subdirectory(gridDynServer)
+endif()
+
+# ------------------------------------------------------------
 # Enable compilation of HELICS?
 # ------------------------------------------------------------
 if(GRIDDYN_ENABLE_HELICS_EXECUTABLE)

@@ -103,8 +103,7 @@ double delayBlock::step(coreTime time, double inputA)
             previousInterpolatedInput = currentInput;
         }
         m_state[stateIndex] = interpolatedValue +
-            ((1.0 / mT1) *
-             (((K * (previousInterpolatedInput + input)) / 2.0) - interpolatedValue) *
+            ((1.0 / mT1) * (((K * (previousInterpolatedInput + input)) / 2.0) - interpolatedValue) *
              (time - currentTime + timeStep));
     }
     prevInput = input;

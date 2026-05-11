@@ -31,9 +31,7 @@ class delayBlock: public Block {
 @param[in] gainValue the block gain
 @param[in] objName the name of the object
 */
-    delayBlock(double timeConstant,
-               double gainValue,
-               const std::string& objName = "delayBlock_#");
+    delayBlock(double timeConstant, double gainValue, const std::string& objName = "delayBlock_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
   protected:

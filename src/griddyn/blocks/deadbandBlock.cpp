@@ -150,12 +150,10 @@ double deadbandBlock::computeValue(double input) const
         case deadbandstate_t::rampdown:
             if (input > mDeadbandLevel) {
                 const double transitionBand = mDeadbandHigh - mDeadbandLevel + mRampDownBand;
-                out =
-                    mDeadbandLevel + (((input - mDeadbandHigh) / mRampDownBand) * transitionBand);
+                out = mDeadbandLevel + (((input - mDeadbandHigh) / mRampDownBand) * transitionBand);
             } else {
                 const double transitionBand = mDeadbandLevel - mDeadbandLow + mRampDownBand;
-                out =
-                    mDeadbandLevel - (((mDeadbandLow - input) / mRampDownBand) * transitionBand);
+                out = mDeadbandLevel - (((mDeadbandLow - input) / mRampDownBand) * transitionBand);
             }
             break;
     }

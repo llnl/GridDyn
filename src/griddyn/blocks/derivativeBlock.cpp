@@ -73,8 +73,7 @@ double derivativeBlock::step(coreTime time, double inputA)
         m_state[loc + 1] = K * input;
         m_state[loc] = 0;
     } else if (timeDelta <= fabs(0.05 * mT1)) {
-        m_state[loc + 1] =
-            m_state[loc + 1] +
+        m_state[loc + 1] = m_state[loc + 1] +
             ((1.0 / mT1) * (((K * (input + prevInput)) / 2.0) - m_state[loc + 1]) * timeDelta);
         m_state[loc] = (1.0 / mT1) * (((K * (input + prevInput)) / 2.0) - m_state[loc + 1]);
     } else {

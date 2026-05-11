@@ -137,8 +137,9 @@ void controlBlock::blockJacobianElements(double input,
         if (hasDifferential(sMode)) {
             jacobian.assignCheckCol(locationData.diffOffset, argLoc, K / mT1);
             if (hasAlgebraic(sMode)) {
-                jacobian.assign(
-                    locationData.diffOffset, locationData.algOffset + limiter_alg, -1 / mT1);
+                jacobian.assign(locationData.diffOffset,
+                                locationData.algOffset + limiter_alg,
+                                -1 / mT1);
             }
             jacobian.assign(locationData.diffOffset, locationData.diffOffset, -stateDataRef.cj);
         }
@@ -162,8 +163,7 @@ double controlBlock::step(coreTime time, double input)
         intermediateValue = m_state[limiter_alg + limiter_diff + 1];
         outputValue = m_state[limiter_alg + limiter_diff];
         while (currentTime < time) {
-            currentInput =
-                currentInput + (((inputWithBias - prevInput) / timeDelta) * timeStep);
+            currentInput = currentInput + (((inputWithBias - prevInput) / timeDelta) * timeStep);
             intermediateValue = intermediateValue +
                 ((1.0 / mT1) *
                  (((K * (previousIntermediateInput + currentInput)) / 2.0) - outputValue) *

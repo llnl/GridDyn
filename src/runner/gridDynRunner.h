@@ -124,8 +124,7 @@ class GriddynRunner {
     decltype(std::chrono::high_resolution_clock::now()) m_stopTime;
     bool mEventMode = false;
 
-    virtual std::shared_ptr<CLI::App>
-        generateLocalCommandLineParser(readerInfo& readerInformation);
+    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& readerInformation);
 
     std::shared_ptr<CLI::App> generateBaseCommandLineParser(readerInfo& readerInformation);
 

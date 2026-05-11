@@ -169,10 +169,9 @@ int main(int argc, char* argv[])
                             std::string("GDZ builder not implemented yet"));
             return (-4);
         default:
-            simulation->log(
-                nullptr,
-                griddyn::print_level::error,
-                std::string("unknown execution mode"));
+            simulation->log(nullptr,
+                            griddyn::print_level::error,
+                            std::string("unknown execution mode"));
             return (-4);
             break;
     }

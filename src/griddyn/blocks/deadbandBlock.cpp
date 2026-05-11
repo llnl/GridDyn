@@ -94,10 +94,10 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                     fieldSet[0] = initialValue - (mDeadbandLevel - mDeadbandLow);
                 }
             } else if ((initialValue > mDeadbandHigh + mRampUpBand) ||
-                       (initialValue < mDeadbandLow - mRampUpBand)) {
+                       (initialValue < mDeadbandLow - mRampUpBand) || (mRampUpBand <= 0.0)) {
                 mDeadbandState = deadbandstate_t::outside;
                 fieldSet[0] = initialValue;
-            } else if (mRampUpBand > 0) {
+            } else {
                 mDeadbandState = deadbandstate_t::rampup;
                 if (initialValue > mDeadbandLevel) {
                     fieldSet[0] = mDeadbandHigh +
@@ -110,9 +110,6 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                           (mDeadbandLevel - mDeadbandLow - mRampUpBand)) *
                          mRampUpBand);
                 }
-            } else {
-                mDeadbandState = deadbandstate_t::outside;
-                fieldSet[0] = initialValue;
             }
         } else {
             fieldSet[0] = mDeadbandLevel;

@@ -142,7 +142,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(0)->setConditionRHS(mAlarmTemp1);
             setConditionStatus(0,
                                (mAlarmTemp1 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmtemp2") {
         mAlarmTemp2 = units::convert(val, unitType, units::degC);
@@ -150,7 +150,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(1)->setConditionRHS(mAlarmTemp2);
             setConditionStatus(1,
                                (mAlarmTemp2 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "cutouttemp") {
         mCutoutTemp = units::convert(val, unitType, units::degC);
@@ -158,7 +158,7 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
             getCondition(2)->setConditionRHS(mCutoutTemp);
             setConditionStatus(2,
                                (mCutoutTemp > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmdelay") {
         mAlarmDelay = units::convert(val, unitType, units::second);
@@ -249,9 +249,9 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         topOilDelayBlock->parentSetFlag(separate_processing, true, this);
         windingDelayBlock->parentSetFlag(separate_processing, true, this);
         auto ambientGrabber = std::make_shared<customGrabber>();
-        ambientGrabber->setGrabberFunction(
-            "ambient",
-            [this](coreObject* /*unused*/) -> double { return mAmbientTemp; });
+        ambientGrabber->setGrabberFunction("ambient", [this](coreObject* /*unused*/) -> double {
+            return mAmbientTemp;
+        });
         sensor::add(ambientGrabber);
 
         m_outputSize = (m_outputSize > 3) ? m_outputSize : 3;
@@ -360,8 +360,7 @@ void txThermalModel::updateA(coreTime time)
             const double targetRatio = topOilRise / mRatedTopOilRise;
             const double adjustedTopOilTimeConstant = mOilTimeConstant *
                 ((currentRatio - targetRatio) /
-                 (pow(currentRatio, 1.0 / mOilExponent) -
-                  pow(targetRatio, 1.0 / mOilExponent)));
+                 (pow(currentRatio, 1.0 / mOilExponent) - pow(targetRatio, 1.0 / mOilExponent)));
             filterBlocks[0]->set("t1", adjustedTopOilTimeConstant);
         }
         if (mWindingExponent != 1.0) {

@@ -304,9 +304,8 @@ std::shared_ptr<CLI::App>
                 objInfo objectInformation(parameterDefinition.field, m_gds.get());
                 try {
                     if (parameterDefinition.stringType) {
-                        objectInformation.m_obj->set(
-                            objectInformation.m_field,
-                            parameterDefinition.strVal);
+                        objectInformation.m_obj->set(objectInformation.m_field,
+                                                     parameterDefinition.strVal);
                     } else {
                         objectInformation.m_obj->set(objectInformation.m_field,
                                                      parameterDefinition.value,
@@ -322,8 +321,8 @@ std::shared_ptr<CLI::App>
     };
 
     // function for loading parameters from strings
-    const CLI::callback_t loadFileCallback =
-        [this, &readerInformation](const CLI::results_t& results) {
+    const CLI::callback_t loadFileCallback = [this,
+                                              &readerInformation](const CLI::results_t& results) {
         for (auto& file : results) {
             loadFile(m_gds.get(), file, &readerInformation);
             if (m_gds->getErrorCode() != 0) {

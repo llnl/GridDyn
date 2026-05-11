@@ -23,29 +23,29 @@ class fmiCoordinator: public griddyn::coreObject {
     /** defining a small structure for containing inputs*/
     typedef struct {
         std::string name;
-        fmiEvent* evnt;
+        fmiEvent* event;
     } inputSet;
     /** defining a small structure for containing outputs as members of a collector*/
     typedef struct {
         std::string name;
         int column;
-        index_t outIndex;
-        fmiCollector* col;
+        index_t outputIndex;
+        fmiCollector* collector;
     } outputSet;
     /** appropriate aliases*/
     using vrInputPair = std::pair<index_t, inputSet>;
     using vrOutputPair = std::pair<index_t, outputSet>;
 
-    std::vector<vrInputPair> inputVR;  //!< container for the inputs
-    std::vector<vrInputPair> paramVR;  //!< container for the parameters
-    std::vector<vrOutputPair> outputVR;  //!< container for the outputs
-    std::vector<double> outputPoints;  //!< temporary storage for the outputs
-    std::vector<fmiCollector*> collectors;  //!< storage for the collectors
-    std::vector<std::shared_ptr<helperObject>> helpers;  //!< storage to keep helper objects active
-    std::atomic<index_t> nextVR{10};  //!< atomic to maintain a vr counter
-    std::mutex helperProtector;  //!< mutex lock to accept incoming helpers in a parallel system
+    std::vector<vrInputPair> mInputVr;  //!< container for the inputs
+    std::vector<vrInputPair> mParamVr;  //!< container for the parameters
+    std::vector<vrOutputPair> mOutputVr;  //!< container for the outputs
+    std::vector<double> mOutputPoints;  //!< temporary storage for the outputs
+    std::vector<fmiCollector*> mCollectors;  //!< storage for the collectors
+    std::vector<std::shared_ptr<helperObject>> mHelpers;  //!< storage to keep helper objects active
+    std::atomic<index_t> mNextVr{10};  //!< atomic to maintain a vr counter
+    std::mutex mHelperProtector;  //!< mutex lock to accept incoming helpers in a parallel system
     std::map<std::string, index_t>
-        vrNames;  //!< structure to store the names of all the valueReferences
+        mVrNames;  //!< structure to store the names of all the valueReferences
   public:
     explicit fmiCoordinator(const std::string& name = "");
 
@@ -97,11 +97,11 @@ buffer
     /** get a string representing the FMIName of the current simulation*/
     const std::string& getFMIName() const;
     /** get a vector of the inputs*/
-    const std::vector<vrInputPair>& getInputs() const { return inputVR; }
+    const std::vector<vrInputPair>& getInputs() const { return mInputVr; }
     /** get a vector of the parameter object*/
-    const std::vector<vrInputPair>& getParameters() const { return paramVR; }
+    const std::vector<vrInputPair>& getParameters() const { return mParamVr; }
     /** get a vector of the parameter outputs*/
-    const std::vector<vrOutputPair>& getOutputs() const { return outputVR; }
+    const std::vector<vrOutputPair>& getOutputs() const { return mOutputVr; }
     /** locate value reference by name
 @return kNullLocation if name is not found*/
     index_t findVR(const std::string& varName) const;

@@ -23,14 +23,14 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
 */
     class fmiRunner: public GriddynRunner {
       private:
-        coreOwningPtr<fmiCoordinator> coord;  //!< the coordinator object for managing object that
-                                              //!< manage the fmi inputs and outputs
-        std::bitset<7> loggingCategories;  //!< indicators of which logging categories to use
-        bool runAsync_ = false;  //!< indicator that we should run asynchronously
-        bool modelExchangeRunner =
+        coreOwningPtr<fmiCoordinator> mCoordinator;  //!< the coordinator object for managing object
+                                                     //!< that manage the fmi inputs and outputs
+        std::bitset<7> mLoggingCategories;  //!< indicators of which logging categories to use
+        bool mRunAsync = false;  //!< indicator that we should run asynchronously
+        bool mModelExchangeRunner =
             false;  //!< indicator that the object is running in model exchange mode
         std::future<void>
-            async_retFMI;  //!< the future object corresponding to the asyncrhonous operation
+            mAsyncReturn;  //!< the future object corresponding to the asyncrhonous operation
       public:
         /** construct an fmurunner object
     @param name the name of the runner
@@ -67,17 +67,17 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         virtual bool SetString(index_t vr, const char* s);
         virtual double Get(index_t vr);
 
-        void setLoggingCategories(std::bitset<7> logCat) { loggingCategories = logCat; }
+        void setLoggingCategories(std::bitset<7> logCat) { mLoggingCategories = logCat; }
         /** check whether the runner is set to run asynchronously*/
-        bool runAsynchronously() const { return runAsync_; }
+        bool runAsynchronously() const { return mRunAsync; }
         /** set the asyncrhonous mode for operation*/
         void setAsynchronousMode(bool async)
         {
-            runAsync_ = (stepFinished != nullptr) ? async : false;
+            mRunAsync = (stepFinished != nullptr) ? async : false;
         }
 
         /** return true if the object is a model exchange object*/
-        bool isModelExchangeObject() const { return modelExchangeRunner; }
+        bool isModelExchangeObject() const { return mModelExchangeRunner; }
         /** check whether an asynchronous step call is finished*/
         bool isFinished() const;
         /** locate a value reference from a name*/
@@ -93,7 +93,7 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         fmi2Component fmiComp;
         std::string identifier;
         std::string recordDirectory;
-        std::string resource_loc;
+        std::string mResourceLocation;
     };
 
 }  // namespace fmi

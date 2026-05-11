@@ -12,11 +12,11 @@
 
 namespace griddyn::fmi {
 fmiEvent::fmiEvent(const std::string& newName, fmiEventType type):
-    reversibleEvent(newName), eventType(type)
+    reversibleEvent(newName), mEventType(type)
 {
 }
 
-fmiEvent::fmiEvent(fmiEventType type): eventType(type) {}
+fmiEvent::fmiEvent(fmiEventType type): mEventType(type) {}
 
 fmiEvent::fmiEvent(const EventInfo& gdEI, coreObject* rootObject): reversibleEvent(gdEI, rootObject)
 {
@@ -53,10 +53,10 @@ void fmiEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
-            eventType = fmiEventType::string_parameter;
+            mEventType = fmiEventType::string_parameter;
             stringEvent = true;
         } else if ((val == "real") || (val == "number")) {
-            eventType = fmiEventType::parameter;
+            mEventType = fmiEventType::parameter;
             stringEvent = false;
         }
     } else {
@@ -81,7 +81,7 @@ bool fmiEvent::setTarget(coreObject* gdo, std::string_view var)
 
 coreObject* fmiEvent::getOwner() const
 {
-    return coord;
+    return mCoordinator;
 }
 
 void fmiEvent::updateObject(coreObject* gco, object_update_mode mode)
@@ -97,12 +97,12 @@ void fmiEvent::findCoordinator()
         if (rto != nullptr) {
             auto fmiCont = rto->find("fmiCoordinator");
             if (dynamic_cast<fmiCoordinator*>(fmiCont) != nullptr) {
-                if (!isSameObject(fmiCont, coord)) {
-                    coord = static_cast<fmiCoordinator*>(fmiCont);
-                    if (eventType == fmiEventType::input) {
-                        coord->registerInput(getName(), this);
+                if (!isSameObject(fmiCont, mCoordinator)) {
+                    mCoordinator = static_cast<fmiCoordinator*>(fmiCont);
+                    if (mEventType == fmiEventType::input) {
+                        mCoordinator->registerInput(getName(), this);
                     } else {
-                        coord->registerParameter(getName(), this);
+                        mCoordinator->registerParameter(getName(), this);
                     }
                 }
             }

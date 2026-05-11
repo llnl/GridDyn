@@ -22,85 +22,88 @@ static auto searchFunc = [](const auto& vp1, const auto& vp2) { return (vp1.firs
 
 void fmiCoordinator::registerParameter(const std::string& paramName, fmiEvent* evnt)
 {
-    auto fnd = vrNames.find(paramName);
-    if (fnd == vrNames.end()) {
-        auto vr = nextVR++;
-        paramVR.emplace_back(vr, inputSet{paramName, evnt});
-        vrNames.emplace(paramName, vr);
+    auto found = mVrNames.find(paramName);
+    if (found == mVrNames.end()) {
+        auto valueReference = mNextVr++;
+        mParamVr.emplace_back(valueReference, inputSet{paramName, evnt});
+        mVrNames.emplace(paramName, valueReference);
     } else {
-        auto vr = fnd->second;
-        auto res2 = std::lower_bound(paramVR.begin(),
-                                     paramVR.end(),
-                                     vrInputPair(vr, inputSet()),
-                                     searchFunc);
-        if ((res2 != paramVR.end()) && (res2->first == vr)) {
-            while ((res2 != paramVR.end()) && (res2->first == vr)) {
-                ++res2;
+        auto valueReference = found->second;
+        auto insertLocation = std::lower_bound(mParamVr.begin(),
+                                               mParamVr.end(),
+                                               vrInputPair(valueReference, inputSet()),
+                                               searchFunc);
+        if ((insertLocation != mParamVr.end()) && (insertLocation->first == valueReference)) {
+            while ((insertLocation != mParamVr.end()) &&
+                   (insertLocation->first == valueReference)) {
+                ++insertLocation;
             }
-            paramVR.emplace(res2, vr, inputSet{paramName, evnt});
+            mParamVr.emplace(insertLocation, valueReference, inputSet{paramName, evnt});
         } else {
-            vr = nextVR++;
-            paramVR.emplace_back(vr, inputSet{paramName, evnt});
-            vrNames.emplace(paramName, vr);
+            valueReference = mNextVr++;
+            mParamVr.emplace_back(valueReference, inputSet{paramName, evnt});
+            mVrNames.emplace(paramName, valueReference);
         }
     }
 }
 
 void fmiCoordinator::registerInput(const std::string& inputName, fmiEvent* evnt)
 {
-    auto fnd = vrNames.find(inputName);
-    if (fnd == vrNames.end()) {
-        auto vr = nextVR++;
-        inputVR.emplace_back(vr, inputSet{inputName, evnt});
-        vrNames.emplace(inputName, vr);
+    auto found = mVrNames.find(inputName);
+    if (found == mVrNames.end()) {
+        auto valueReference = mNextVr++;
+        mInputVr.emplace_back(valueReference, inputSet{inputName, evnt});
+        mVrNames.emplace(inputName, valueReference);
     } else {
-        auto vr = fnd->second;
-        auto res2 = std::lower_bound(inputVR.begin(),
-                                     inputVR.end(),
-                                     vrInputPair(vr, inputSet()),
-                                     searchFunc);
-        while ((res2 != paramVR.end()) && (res2->first == vr)) {
-            ++res2;
+        auto valueReference = found->second;
+        auto insertLocation = std::lower_bound(mInputVr.begin(),
+                                               mInputVr.end(),
+                                               vrInputPair(valueReference, inputSet()),
+                                               searchFunc);
+        while ((insertLocation != mParamVr.end()) && (insertLocation->first == valueReference)) {
+            ++insertLocation;
         }
-        if ((res2 != paramVR.end()) && (res2->first == vr)) {
-            inputVR.emplace(++res2, vr, inputSet{inputName, evnt});
+        if ((insertLocation != mParamVr.end()) && (insertLocation->first == valueReference)) {
+            mInputVr.emplace(++insertLocation, valueReference, inputSet{inputName, evnt});
         } else {
-            vr = nextVR++;
-            inputVR.emplace_back(vr, inputSet{inputName, evnt});
-            vrNames.emplace(inputName, vr);
+            valueReference = mNextVr++;
+            mInputVr.emplace_back(valueReference, inputSet{inputName, evnt});
+            mVrNames.emplace(inputName, valueReference);
         }
     }
 }
 
 void fmiCoordinator::registerOutput(const std::string& outputName, int column, fmiCollector* out)
 {
-    auto vr = nextVR++;
-    outputVR.emplace_back(
-        vr, outputSet{outputName, column, static_cast<index_t>(outputVR.size()), out});
-    vrNames.emplace(outputName, vr);
-    collectors.push_back(out);
-    auto lst = std::unique(collectors.begin(), collectors.end());
-    collectors.erase(lst, collectors.end());
-    outputPoints.push_back(0.0);
+    auto valueReference = mNextVr++;
+    mOutputVr.emplace_back(
+        valueReference,
+        outputSet{outputName, column, static_cast<index_t>(mOutputVr.size()), out});
+    mVrNames.emplace(outputName, valueReference);
+    mCollectors.push_back(out);
+    auto collectorEnd = std::unique(mCollectors.begin(), mCollectors.end());
+    mCollectors.erase(collectorEnd, mCollectors.end());
+    mOutputPoints.push_back(0.0);
 }
 
 bool fmiCoordinator::sendInput(index_t vr, double val)
 {
     auto res =
-        std::lower_bound(inputVR.begin(), inputVR.end(), vrInputPair(vr, inputSet()), searchFunc);
-    if ((res != inputVR.end()) && (res->first == vr)) {
-        while ((res != inputVR.end()) && (res->first == vr)) {
-            res->second.evnt->setValue(val);
-            res->second.evnt->trigger();
+        std::lower_bound(mInputVr.begin(), mInputVr.end(), vrInputPair(vr, inputSet()), searchFunc);
+    if ((res != mInputVr.end()) && (res->first == vr)) {
+        while ((res != mInputVr.end()) && (res->first == vr)) {
+            res->second.event->setValue(val);
+            res->second.event->trigger();
             ++res;
         }
         return true;
     }
-    res = std::lower_bound(paramVR.begin(), paramVR.end(), vrInputPair(vr, inputSet()), searchFunc);
-    if ((res != paramVR.end()) && (res->first == vr)) {
-        while ((res != paramVR.end()) && (res->first == vr)) {
-            res->second.evnt->setValue(val);
-            res->second.evnt->trigger();
+    res =
+        std::lower_bound(mParamVr.begin(), mParamVr.end(), vrInputPair(vr, inputSet()), searchFunc);
+    if ((res != mParamVr.end()) && (res->first == vr)) {
+        while ((res != mParamVr.end()) && (res->first == vr)) {
+            res->second.event->setValue(val);
+            res->second.event->trigger();
             ++res;
         }
         return true;
@@ -111,20 +114,20 @@ bool fmiCoordinator::sendInput(index_t vr, double val)
 
 index_t fmiCoordinator::findVR(const std::string& varName) const
 {
-    return mapFind(vrNames, varName, kNullLocation);
+    return mapFind(mVrNames, varName, kNullLocation);
 }
 
 bool fmiCoordinator::sendInput(index_t vr, const char* s)
 {
     auto res =
-        std::lower_bound(paramVR.begin(), paramVR.end(), vrInputPair(vr, inputSet()), searchFunc);
-    if ((res != paramVR.end()) && (res->first == vr) &&
-        (res->second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
-        while ((res != paramVR.end()) && (res->first == vr) &&
-               (res->second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
+        std::lower_bound(mParamVr.begin(), mParamVr.end(), vrInputPair(vr, inputSet()), searchFunc);
+    if ((res != mParamVr.end()) && (res->first == vr) &&
+        (res->second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
+        while ((res != mParamVr.end()) && (res->first == vr) &&
+               (res->second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
             std::println("updating string value {} to {}", res->second.name.c_str(), s);
-            res->second.evnt->updateStringValue(s);
-            res->second.evnt->trigger();
+            res->second.event->updateStringValue(s);
+            res->second.event->trigger();
             ++res;
         }
         return true;
@@ -135,33 +138,34 @@ bool fmiCoordinator::sendInput(index_t vr, const char* s)
 
 double fmiCoordinator::getOutput(index_t vr)
 {
-    auto res = std::lower_bound(outputVR.begin(),
-                                outputVR.end(),
+    auto res = std::lower_bound(mOutputVr.begin(),
+                                mOutputVr.end(),
                                 vrOutputPair(vr, outputSet()),
                                 searchFunc);
-    if ((res != outputVR.end()) && (res->first == vr)) {
-        return outputPoints[res->second.outIndex];
+    if ((res != mOutputVr.end()) && (res->first == vr)) {
+        return mOutputPoints[res->second.outputIndex];
     }
     auto res2 =
-        std::lower_bound(paramVR.begin(), paramVR.end(), vrInputPair(vr, inputSet()), searchFunc);
-    if ((res2 != paramVR.end()) && (res2->first == vr)) {
-        return res2->second.evnt->query();
+        std::lower_bound(mParamVr.begin(), mParamVr.end(), vrInputPair(vr, inputSet()), searchFunc);
+    if ((res2 != mParamVr.end()) && (res2->first == vr)) {
+        return res2->second.event->query();
     }
     auto res3 =
-        std::lower_bound(inputVR.begin(), inputVR.end(), vrInputPair(vr, inputSet()), searchFunc);
-    if ((res3 != inputVR.end()) && (res3->first == vr)) {
-        return res3->second.evnt->query();
+        std::lower_bound(mInputVr.begin(), mInputVr.end(), vrInputPair(vr, inputSet()), searchFunc);
+    if ((res3 != mInputVr.end()) && (res3->first == vr)) {
+        return res3->second.event->query();
     }
     return kNullVal;
 }
 
 void fmiCoordinator::updateOutputs(coreTime time)
 {
-    for (auto col : collectors) {
-        col->trigger(time);
+    for (auto* collector : mCollectors) {
+        collector->trigger(time);
     }
-    for (auto& output : outputVR) {
-        outputPoints[output.second.outIndex] = output.second.col->getValue(output.second.column);
+    for (auto& output : mOutputVr) {
+        mOutputPoints[output.second.outputIndex] =
+            output.second.collector->getValue(output.second.column);
     }
 }
 
@@ -172,13 +176,13 @@ const std::string& fmiCoordinator::getFMIName() const
 
 void fmiCoordinator::addHelper(std::shared_ptr<helperObject> ho)
 {
-    std::lock_guard<std::mutex> hLock(helperProtector);
-    helpers.push_back(std::move(ho));
+    std::lock_guard<std::mutex> helperLock(mHelperProtector);
+    mHelpers.push_back(std::move(ho));
 }
 
 bool fmiCoordinator::isStringParameter(const vrInputPair& param)
 {
-    return (param.second.evnt->eventType == fmi::fmiEvent::fmiEventType::string_parameter);
+    return (param.second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter);
 }
 
 }  // namespace griddyn::fmi

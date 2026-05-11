@@ -23,8 +23,8 @@ class fmiEvent: public events::reversibleEvent {
     };
 
   private:
-    fmiCoordinator* coord = nullptr;  //!< pointer the coordinator
-    fmiEventType eventType = fmiEventType::input;  //!< the type of the event
+    fmiCoordinator* mCoordinator = nullptr;  //!< pointer the coordinator
+    fmiEventType mEventType = fmiEventType::input;  //!< the type of the event
   public:
     /** constructor taking name and eventType
 @param newName the name of the event

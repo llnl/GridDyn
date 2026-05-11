@@ -17,18 +17,20 @@
 
 namespace griddyn {
 static childClassFactory<fmi::fmiCollector, collector>
-    fmiColFac(std::vector<std::string>{"fmioutput", "fmicollector"});
+    fmiCollectorFactory(std::vector<std::string>{"fmioutput", "fmicollector"});
 
 static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
-    fmiIn(std::vector<std::string>{"fmiinput", "fmievent"}, fmi::fmiEvent::fmiEventType::input);
+    fmiInputFactory(std::vector<std::string>{"fmiinput", "fmievent"},
+                    fmi::fmiEvent::fmiEventType::input);
 
 static childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
-    fmiParam(std::vector<std::string>{"fmiparam", "fmiparameter"},
-             fmi::fmiEvent::fmiEventType::parameter);
+    fmiParameterFactory(std::vector<std::string>{"fmiparam", "fmiparameter"},
+                        fmi::fmiEvent::fmiEventType::parameter);
 // static childClassFactory<dimeCommunicator, Communicator>
 // dimeComm(std::vector<std::string>{"dime"});
 
-static typeFactory<fmi::fmiCoordinator> coord("extra", std::vector<std::string>{"fmi", "fmicoord"});
+static typeFactory<fmi::fmiCoordinator>
+    fmiCoordinatorFactory("extra", std::vector<std::string>{"fmi", "fmicoord"});
 
 void loadFMIExportObjects() {}
 

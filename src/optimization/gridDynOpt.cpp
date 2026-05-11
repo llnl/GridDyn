@@ -28,12 +28,12 @@ static typeFactory<gridDynOptimization> gfo("simulation", stringVec{"optimizatio
 gridDynOptimization::gridDynOptimization(const std::string& simName): gridDynSimulation(simName)
 {
     // defaults
-    areaOpt = new gridAreaOpt(this);
+    mAreaOpt = new gridAreaOpt(this);
 }
 
 gridDynOptimization::~gridDynOptimization()
 {
-    delete areaOpt;
+    delete mAreaOpt;
 }
 
 coreObject* gridDynOptimization::clone(coreObject* obj) const
@@ -49,7 +49,7 @@ coreObject* gridDynOptimization::clone(coreObject* obj) const
 void gridDynOptimization::setupOptOffsets(const optimMode& oMode, int setupMode)
 {
     if (setupMode == 0) {  // no distinction between Voltage, angle, and others
-        areaOpt->setOffset(1, 0, oMode);
+        mAreaOpt->setOffset(1, 0, oMode);
         return;
     }
     optimOffsets baseOffset;
@@ -63,23 +63,23 @@ void gridDynOptimization::setupOptOffsets(const optimMode& oMode, int setupMode)
     }
 
     // call the area setOffset function to distribute the offsets
-    areaOpt->setOffsets(baseOffset, oMode);
+    mAreaOpt->setOffsets(baseOffset, oMode);
 }
 
 // --------------- set properties ---------------
 void gridDynOptimization::set(std::string_view param, std::string_view val)
 {
     if (param == "flags") {
-        auto v = gmlc::utilities::stringOps::splitline(val);
-        gmlc::utilities::stringOps::trim(v);
-        for (auto& flagstr : v) {
-            setFlag(flagstr, true);
+        auto flagTokens = gmlc::utilities::stringOps::splitline(val);
+        gmlc::utilities::stringOps::trim(flagTokens);
+        for (auto& flagString : flagTokens) {
+            setFlag(flagString, true);
         }
     } else if ((param == "defaultoptmode") || (param == "defaultopt")) {
-        auto ocf = coreOptObjectFactory::instance();
-        if (ocf->isValidType(val)) {
-            defaultOptMode = val;
-            ocf->setDefaultType(val);
+        auto optFactory = coreOptObjectFactory::instance();
+        if (optFactory->isValidType(val)) {
+            mDefaultOptMode = val;
+            optFactory->setDefaultType(val);
         }
     } else if (param == "optimization_mode") {
         /*default_solution,
@@ -87,11 +87,11 @@ void gridDynOptimization::set(std::string_view param, std::string_view val)
     steppedP, steppedPQ, dynamic, dyanmic_contingency,*/
         auto temp = gmlc::utilities::convertToLowerCase(val);
         if ((temp == "dcopf") || (temp == "opf")) {
-            optimization_mode = DCOPF;
+            mOptimizationMode = DCOPF;
         } else if ((temp == "acopf") || (temp == "ac")) {
-            optimization_mode = ACOPF;
+            mOptimizationMode = ACOPF;
         } else if (temp == "bidstack") {
-            optimization_mode = bidstack;
+            mOptimizationMode = bidstack;
         } else {
             logging::warning(this, "unknown optimization mode {}", temp);
         }
@@ -156,10 +156,10 @@ double gridDynOptimization::get(std::string_view param, units::unit unitType) co
 coreObject* gridDynOptimization::find(std::string_view objName) const
 {
     if (objName == "optroot") {
-        return areaOpt;
+        return mAreaOpt;
     }
     if (objName.substr(0, 3) == "opt") {
-        return areaOpt->find(objName.substr(3));
+        return mAreaOpt->find(objName.substr(3));
     }
     return gridDynSimulation::find(objName);
 }
@@ -167,14 +167,14 @@ coreObject* gridDynOptimization::find(std::string_view objName) const
 coreObject* gridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName.substr(0, 3) == "opt") {
-        return areaOpt->getSubObject(typeName.substr(3), num);
+        return mAreaOpt->getSubObject(typeName.substr(3), num);
     }
     return gridDynSimulation::getSubObject(typeName, num);
 }
 coreObject* gridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName.substr(0, 3) == "opt") {
-        return areaOpt->findByUserID(typeName.substr(3), searchID);
+        return mAreaOpt->findByUserID(typeName.substr(3), searchID);
     }
     return gridDynSimulation::findByUserID(typeName, searchID);
 }
@@ -182,36 +182,36 @@ coreObject* gridDynOptimization::findByUserID(std::string_view typeName, index_t
 gridOptObject* gridDynOptimization::getOptData(coreObject* obj)
 {
     if (obj != nullptr) {
-        coreObject* nobj = areaOpt->find(obj->getName());
-        if (nobj != nullptr) {
-            return static_cast<gridOptObject*>(nobj);
+        coreObject* nextObject = mAreaOpt->find(obj->getName());
+        if (nextObject != nullptr) {
+            return static_cast<gridOptObject*>(nextObject);
         }
         return nullptr;
     }
-    return areaOpt;
+    return mAreaOpt;
 }
 
 gridOptObject* gridDynOptimization::makeOptObjectPath(coreObject* obj)
 {
-    gridOptObject* oo = getOptData(obj);
-    if (oo != nullptr) {
-        return oo;
+    gridOptObject* optObject = getOptData(obj);
+    if (optObject != nullptr) {
+        return optObject;
     }
     if (!(obj->isRoot())) {
-        auto oop = makeOptObjectPath(obj->getParent());
-        oo = coreOptObjectFactory::instance()->createObject(obj);
-        oop->add(oo);
-        return oo;
+        auto parentOptObject = makeOptObjectPath(obj->getParent());
+        optObject = coreOptObjectFactory::instance()->createObject(obj);
+        parentOptObject->add(optObject);
+        return optObject;
     }
     return nullptr;
 }
 
 optimizerInterface* gridDynOptimization::updateOptimizer(const optimMode& oMode)
 {
-    oData[oMode.offsetIndex] = makeOptimizer(this, oMode);
-    optimizerInterface* of = oData[oMode.offsetIndex].get();
+    mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
+    optimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
 
-    return of;
+    return optimizer;
 }
 
 }  // namespace griddyn

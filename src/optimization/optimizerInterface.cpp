@@ -16,10 +16,10 @@ namespace griddyn {
 static childClassFactory<basicOptimizer, optimizerInterface>
     basicFac(stringVec{"basic", "pricestack"});
 
-optimizerInterface::optimizerInterface(std::string_view optName): name(optName) {}
+optimizerInterface::optimizerInterface(std::string_view optName): mName(optName) {}
 
 optimizerInterface::optimizerInterface(gridDynOptimization* gdo, const optimMode& oMode):
-    mode(oMode), m_gdo(gdo)
+    mode(oMode), mGridDynOptimization(gdo)
 {
 }
 
@@ -27,7 +27,7 @@ void optimizerInterface::setOptimizationData(gridDynOptimization* gdo, const opt
 {
     mode = oMode;
     if (gdo != nullptr) {
-        m_gdo = gdo;
+        mGridDynOptimization = gdo;
     }
 }
 
@@ -46,9 +46,9 @@ int optimizerInterface::check_flag(void* flagvalue,
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
-            m_gdo->log(m_gdo,
-                       print_level::error,
-                       std::string{funcname} + " failed - returned nullptr pointer");
+            mGridDynOptimization->log(mGridDynOptimization,
+                                      print_level::error,
+                                      std::string{funcname} + " failed - returned nullptr pointer");
         }
         return (1);
     }
@@ -57,19 +57,20 @@ int optimizerInterface::check_flag(void* flagvalue,
         auto* errflag = reinterpret_cast<int*>(flagvalue);
         if (*errflag < 0) {
             if (printError) {
-                m_gdo->log(m_gdo,
-                           print_level::error,
-                           std::string{funcname} +
-                               " failed with flag = " + std::to_string(*errflag));
+                mGridDynOptimization->log(
+                    mGridDynOptimization,
+                    print_level::error,
+                    std::string{funcname} + " failed with flag = " + std::to_string(*errflag));
             }
             return (1);
         }
     } else if (opt == 2 && flagvalue == nullptr) {
         // Check if function returned nullptr pointer - no memory allocated
         if (printError) {
-            m_gdo->log(m_gdo,
-                       print_level::error,
-                       std::string{funcname} + " failed MEMORY_ERROR- returned nullptr pointer");
+            mGridDynOptimization->log(
+                mGridDynOptimization,
+                print_level::error,
+                std::string{funcname} + " failed MEMORY_ERROR- returned nullptr pointer");
         }
         return (1);
     }
@@ -86,22 +87,22 @@ basicOptimizer::basicOptimizer(gridDynOptimization* gdo, const optimMode& oMode)
 int basicOptimizer::allocate(count_t size)
 {
     // load the vectors
-    if (size == svsize) {
+    if (size == mStateVectorSize) {
         return FUNCTION_EXECUTION_SUCCESS;
     }
 
-    svsize = size;
-    initialized = false;
-    allocated = true;
+    mStateVectorSize = size;
+    mInitialized = false;
+    mAllocated = true;
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
 void basicOptimizer::dynObjectInitializeA(double /*t0*/)
 {
-    if (!allocated) {
+    if (!mAllocated) {
         //  return (-2);
     }
-    initialized = true;
+    mInitialized = true;
     // return FUNCTION_EXECUTION_SUCCESS;
 }
 

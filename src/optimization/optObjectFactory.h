@@ -21,15 +21,15 @@ namespace griddyn {
 class optFactory {
   public:
     std::string name;
-    int m_level = 0;
+    int mLevel = 0;
     optFactory([[maybe_unused]] std::string_view component,
                std::string_view objName,
-               int level = 0): name(objName), m_level(level)
+               int level = 0): name(objName), mLevel(level)
     {
     }
     optFactory([[maybe_unused]] const stringVec& component,
                std::string_view objName,
-               int level = 0): name(objName), m_level(level)
+               int level = 0): name(objName), mLevel(level)
     {
     }
     virtual gridOptObject* makeObject(coreObject* obj) = 0;
@@ -56,8 +56,8 @@ class optComponentFactory {
     optFactory* getFactory(std::string_view typeName);
 
   protected:
-    optMap m_factoryMap;
-    std::vector<optFactory*> m_factoryList;
+    optMap mFactoryMap;
+    std::vector<optFactory*> mFactoryList;
 };
 
 // create a high level object factory for the coreObject class
@@ -91,8 +91,8 @@ class coreOptObjectFactory {
   private:
     coreOptObjectFactory() {}
 
-    optfMap m_factoryMap;
-    std::string m_defaultType;
+    optfMap mFactoryMap;
+    std::string mDefaultType;
 };
 
 /*** template class for opt object ownership*/
@@ -105,11 +105,11 @@ class gridOptObjectHolder: public coreObject {
 
   private:
     std::vector<Ntype> objArray;
-    count_t next = 0;
-    count_t objCount = 0;
+    count_t mNext = 0;
+    count_t mObjectCount = 0;
 
   public:
-    gridOptObjectHolder(count_t objs): objArray(objs), objCount(objs)
+    gridOptObjectHolder(count_t objs): objArray(objs), mObjectCount(objs)
     {
         for (auto& so : objArray) {
             so.addOwningReference();
@@ -118,14 +118,14 @@ class gridOptObjectHolder: public coreObject {
     Ntype* getNext()
     {
         Ntype* obj = nullptr;
-        if (next < objCount) {
-            obj = &(objArray[next]);
-            ++next;
+        if (mNext < mObjectCount) {
+            obj = &(objArray[mNext]);
+            ++mNext;
         }
         return obj;
     }
 
-    count_t remaining() const { return objCount - next; }
+    count_t remaining() const { return mObjectCount - mNext; }
 };
 
 // opt factory is a template class that inherits from cFactory to actually to the construction of a
@@ -138,8 +138,8 @@ class optObjectFactory: public optFactory {
                   "gridDyn class must have base class type of coreObject");
 
   private:
-    bool useBlock = false;
-    gridOptObjectHolder<Ntype, gdType>* gOOH = nullptr;
+    bool mUseBlock = false;
+    gridOptObjectHolder<Ntype, gdType>* mObjectHolder = nullptr;
 
   public:
     optObjectFactory(std::string_view component,
@@ -181,11 +181,11 @@ class optObjectFactory: public optFactory {
     gridOptObject* makeObject(coreObject* obj) override
     {
         gridOptObject* ret = nullptr;
-        if (useBlock) {
-            ret = gOOH->getNext();
+        if (mUseBlock) {
+            ret = mObjectHolder->getNext();
             if (ret == nullptr) {  // means the block was used up
-                useBlock = false;
-                gOOH = nullptr;
+                mUseBlock = false;
+                mObjectHolder = nullptr;
             } else {
                 ret->add(obj);
             }
@@ -199,11 +199,11 @@ class optObjectFactory: public optFactory {
     gridOptObject* makeObject() override
     {
         gridOptObject* ret = nullptr;
-        if (useBlock) {
-            ret = gOOH->getNext();
+        if (mUseBlock) {
+            ret = mObjectHolder->getNext();
             if (ret == nullptr) {  // means the block was used up
-                useBlock = false;
-                gOOH = nullptr;
+                mUseBlock = false;
+                mObjectHolder = nullptr;
             }
         }
         if (ret == nullptr) {
@@ -215,11 +215,11 @@ class optObjectFactory: public optFactory {
     Ntype* makeTypeObject(coreObject* obj)
     {
         Ntype* ret = nullptr;
-        if (useBlock) {
-            ret = gOOH->getNext();
+        if (mUseBlock) {
+            ret = mObjectHolder->getNext();
             if (ret == nullptr) {  // means the block was used up
-                useBlock = false;
-                gOOH = nullptr;
+                mUseBlock = false;
+                mObjectHolder = nullptr;
             } else {
                 ret->add(obj);
             }
@@ -233,11 +233,14 @@ class optObjectFactory: public optFactory {
     virtual void prepObjects(count_t count, coreObject* obj) override
     {
         auto root = obj->getRoot();
-        gOOH = new gridOptObjectHolder<Ntype, gdType>(count);
-        root->add(gOOH);
-        useBlock = true;
+        mObjectHolder = new gridOptObjectHolder<Ntype, gdType>(count);
+        root->add(mObjectHolder);
+        mUseBlock = true;
     }
-    virtual count_t remainingPrepped() const override { return (gOOH) ? (gOOH->remaining()) : 0; }
+    virtual count_t remainingPrepped() const override
+    {
+        return (mObjectHolder) ? (mObjectHolder->remaining()) : 0;
+    }
 };
 
 }  // namespace griddyn

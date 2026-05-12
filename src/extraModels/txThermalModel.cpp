@@ -37,23 +37,23 @@ coreObject* txThermalModel::clone(coreObject* obj) const
         return obj;
     }
 
-    nobj->Ttor = Ttor;
-    nobj->DThs = DThs;
-    nobj->DTtor = DTtor;
-    nobj->Tgr = Tgr;
-    nobj->mp_LR = mp_LR;
-    nobj->mp_n = mp_n;
-    nobj->mp_m = mp_m;
-    nobj->ambientTemp = ambientTemp;
-    nobj->dTempdt = dTempdt;
-    nobj->rating = rating;
-    nobj->Plossr = Plossr;
-    nobj->m_C = m_C;
-    nobj->m_k = m_k;
-    nobj->alarmTemp1 = alarmTemp1;
-    nobj->alarmTemp2 = alarmTemp2;
-    nobj->cutoutTemp = cutoutTemp;
-    nobj->alarmDelay = alarmDelay;
+    nobj->mOilTimeConstant = mOilTimeConstant;
+    nobj->mRatedHotSpotRise = mRatedHotSpotRise;
+    nobj->mRatedTopOilRise = mRatedTopOilRise;
+    nobj->mWindingTimeConstant = mWindingTimeConstant;
+    nobj->mLossRatio = mLossRatio;
+    nobj->mOilExponent = mOilExponent;
+    nobj->mWindingExponent = mWindingExponent;
+    nobj->mAmbientTemp = mAmbientTemp;
+    nobj->mTempRateOfChange = mTempRateOfChange;
+    nobj->mRating = mRating;
+    nobj->mRatedLoss = mRatedLoss;
+    nobj->mThermalCapacity = mThermalCapacity;
+    nobj->mRadiationConstant = mRadiationConstant;
+    nobj->mAlarmTemp1 = mAlarmTemp1;
+    nobj->mAlarmTemp2 = mAlarmTemp2;
+    nobj->mCutoutTemp = mCutoutTemp;
+    nobj->mAlarmDelay = mAlarmDelay;
     return nobj;
 }
 
@@ -73,49 +73,49 @@ void txThermalModel::setFlag(std::string_view flag, bool val)
 void txThermalModel::set(std::string_view param, std::string_view val)
 {
     if ((param == "txtype") || (param == "cooling")) {
-        auto v2 = gmlc::utilities::convertToLowerCase(val);
-        if (v2 == "auto") {
+        const auto normalizedValue = gmlc::utilities::convertToLowerCase(val);
+        if (normalizedValue == "auto") {
             opFlags.set(auto_parameter_load);
-        } else if (v2 == "oa") {
-            DThs = 25.0;
-            DTtor = 55.0;
-            Ttor = 3.0 * 3600.0;
-            Tgr = 5.0 * 60.0;
-            mp_LR = 3.2;
-            mp_n = 0.8;
-            mp_m = 0.8;
-        } else if (v2 == "fa") {
-            DThs = 30.0;
-            DTtor = 50.0;
-            Ttor = 2.0 * 3600.0;
-            Tgr = 5.0 * 60.0;
-            mp_LR = 4.5;
-            mp_n = 0.8;
-            mp_m = 0.8;
-        } else if (v2 == "fahot") {
-            DThs = 35.0;
-            DTtor = 45.0;
-            Ttor = 1.25 * 3600.0;
-            Tgr = 5.0 * 60.0;
-            mp_LR = 6.5;
-            mp_n = 0.9;
-            mp_m = 0.8;
-        } else if (v2 == "ndfoa") {
-            DThs = 35.0;
-            DTtor = 45.0;
-            Ttor = 1.25 * 3600.0;
-            Tgr = 5.0 * 60.0;
-            mp_LR = 6.5;
-            mp_n = 1.0;
-            mp_m = 0.8;
-        } else if (v2 == "dfoa") {
-            DThs = 35.0;
-            DTtor = 45.0;
-            Ttor = 1.25 * 3600.0;
-            Tgr = 5.0 * 60.0;
-            mp_LR = 6.5;
-            mp_n = 1.0;
-            mp_m = 1.0;
+        } else if (normalizedValue == "oa") {
+            mRatedHotSpotRise = 25.0;
+            mRatedTopOilRise = 55.0;
+            mOilTimeConstant = 3.0 * 3600.0;
+            mWindingTimeConstant = 5.0 * 60.0;
+            mLossRatio = 3.2;
+            mOilExponent = 0.8;
+            mWindingExponent = 0.8;
+        } else if (normalizedValue == "fa") {
+            mRatedHotSpotRise = 30.0;
+            mRatedTopOilRise = 50.0;
+            mOilTimeConstant = 2.0 * 3600.0;
+            mWindingTimeConstant = 5.0 * 60.0;
+            mLossRatio = 4.5;
+            mOilExponent = 0.8;
+            mWindingExponent = 0.8;
+        } else if (normalizedValue == "fahot") {
+            mRatedHotSpotRise = 35.0;
+            mRatedTopOilRise = 45.0;
+            mOilTimeConstant = 1.25 * 3600.0;
+            mWindingTimeConstant = 5.0 * 60.0;
+            mLossRatio = 6.5;
+            mOilExponent = 0.9;
+            mWindingExponent = 0.8;
+        } else if (normalizedValue == "ndfoa") {
+            mRatedHotSpotRise = 35.0;
+            mRatedTopOilRise = 45.0;
+            mOilTimeConstant = 1.25 * 3600.0;
+            mWindingTimeConstant = 5.0 * 60.0;
+            mLossRatio = 6.5;
+            mOilExponent = 1.0;
+            mWindingExponent = 0.8;
+        } else if (normalizedValue == "dfoa") {
+            mRatedHotSpotRise = 35.0;
+            mRatedTopOilRise = 45.0;
+            mOilTimeConstant = 1.25 * 3600.0;
+            mWindingTimeConstant = 5.0 * 60.0;
+            mLossRatio = 6.5;
+            mOilExponent = 1.0;
+            mWindingExponent = 1.0;
         }
     } else {
         sensor::set(param, val);
@@ -125,57 +125,57 @@ void txThermalModel::set(std::string_view param, std::string_view val)
 void txThermalModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "ambient") || (param == "ambienttemp")) {
-        ambientTemp = units::convert(val, unitType, units::degC);
+        mAmbientTemp = units::convert(val, unitType, units::degC);
     } else if ((param == "dtempdt") || (param == "temp_rate_of_change")) {
-        dTempdt = units::convert(val, unitType, units::degC);
+        mTempRateOfChange = units::convert(val, unitType, units::degC);
     } else if ((param == "dths") || (param == "rated_hot_spot_rise") || (param == "dthsr")) {
-        DThs = units::convert(val, unitType, units::degC);
+        mRatedHotSpotRise = units::convert(val, unitType, units::degC);
     } else if ((param == "dttor") || (param == "rated_top_oil_rise") || (param == "dtto")) {
-        DTtor = units::convert(val, unitType, units::degC);
+        mRatedTopOilRise = units::convert(val, unitType, units::degC);
     } else if ((param == "ttor") || (param == "oil_time_constant")) {
-        Ttor = units::convert(val, unitType, units::second);
+        mOilTimeConstant = units::convert(val, unitType, units::second);
     } else if ((param == "tgr") || (param == "winding_time_constant")) {
-        Tgr = units::convert(val, unitType, units::second);
+        mWindingTimeConstant = units::convert(val, unitType, units::second);
     } else if ((param == "alarmtemp") || (param == "alarmtemp1")) {
-        alarmTemp1 = units::convert(val, unitType, units::degC);
+        mAlarmTemp1 = units::convert(val, unitType, units::degC);
         if (opFlags[dyn_initialized]) {
-            getCondition(0)->setConditionRHS(alarmTemp1);
+            getCondition(0)->setConditionRHS(mAlarmTemp1);
             setConditionStatus(0,
-                               (alarmTemp1 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                               (mAlarmTemp1 > 0.1) ? condition_status_t::active :
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmtemp2") {
-        alarmTemp2 = units::convert(val, unitType, units::degC);
+        mAlarmTemp2 = units::convert(val, unitType, units::degC);
         if (opFlags[dyn_initialized]) {
-            getCondition(1)->setConditionRHS(alarmTemp1);
+            getCondition(1)->setConditionRHS(mAlarmTemp2);
             setConditionStatus(1,
-                               (alarmTemp1 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                               (mAlarmTemp2 > 0.1) ? condition_status_t::active :
+                                                     condition_status_t::disabled);
         }
     } else if (param == "cutouttemp") {
-        cutoutTemp = units::convert(val, unitType, units::degC);
+        mCutoutTemp = units::convert(val, unitType, units::degC);
         if (opFlags[dyn_initialized]) {
-            getCondition(2)->setConditionRHS(alarmTemp1);
+            getCondition(2)->setConditionRHS(mCutoutTemp);
             setConditionStatus(2,
-                               (alarmTemp1 > 0.1) ? condition_status_t::active :
-                                                    condition_status_t::disabled);
+                               (mCutoutTemp > 0.1) ? condition_status_t::active :
+                                                     condition_status_t::disabled);
         }
     } else if (param == "alarmdelay") {
-        alarmDelay = units::convert(val, unitType, units::second);
+        mAlarmDelay = units::convert(val, unitType, units::second);
         if (opFlags[dyn_initialized]) {
-            setActionTrigger(0, 0, alarmDelay);
-            setActionTrigger(1, 1, alarmDelay);
-            setActionTrigger(2, 2, alarmDelay);
-            setActionTrigger(3, 2, alarmDelay);
+            setActionTrigger(0, 0, mAlarmDelay);
+            setActionTrigger(1, 1, mAlarmDelay);
+            setActionTrigger(2, 2, mAlarmDelay);
+            setActionTrigger(3, 2, mAlarmDelay);
         }
     } else if ((param == "lr") || (param == "loss_ratio")) {
-        mp_LR = val;
+        mLossRatio = val;
     } else if ((param == "m") || (param == "winding_exponent")) {
-        mp_m = val;
+        mWindingExponent = val;
     } else if ((param == "n") || (param == "oil_exponent")) {
-        mp_n = val;
+        mOilExponent = val;
     } else {
-        gridPrimary::set(param, val, unitType);  // NOLINT
+        sensor::set(param, val, unitType);
     }
 }
 
@@ -192,7 +192,8 @@ void txThermalModel::add(coreObject* /*obj*/)
 void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
-        return sensor::dynObjectInitializeA(time0, flags);
+        sensor::dynObjectInitializeA(time0, flags);
+        return;
     }
 
     if (updatePeriod > kHalfBigNum) {  // set the period to the period of the simulation to at
@@ -201,55 +202,57 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         if (pstep < 0) {
             pstep = 1.0;
         }
-        double mtimestep = Tgr / 5.0;
+        const double mtimestep = mWindingTimeConstant / 5.0;
         updatePeriod = pstep * std::floor(mtimestep / pstep);
         if (updatePeriod < pstep) {
             updatePeriod = pstep;
         }
     }
 
-    rating = m_sourceObject->get("rating");
-    double bp = m_sourceObject->get("basepower");
+    mRating = m_sourceObject->get("rating");
+    const double basePower = m_sourceObject->get("basepower");
     if (opFlags[auto_parameter_load]) {
-        if (rating * bp < 2.5) {
+        if (mRating * basePower < 2.5) {
             set("cooling", "oa");
-        } else if (rating * bp < 10) {
+        } else if (mRating * basePower < 10) {
             set("cooling", "fa");
-        } else if (rating * bp < 100) {
+        } else if (mRating * basePower < 100) {
             set("cooling", "fahot");
-        } else if (rating * bp < 200) {
+        } else if (mRating * basePower < 200) {
             set("cooling", "ndfoa");
         } else {
             set("cooling", "dfoa");
         }
     }
-    double resist = m_sourceObject->get("r");
-    double conduct = m_sourceObject->get("g");  // get conductance
-    Plossr = rating * rating * resist + conduct;  // loss is I^2*r+g in per unit;
+    const double resistance = m_sourceObject->get("r");
+    const double conductance = m_sourceObject->get("g");  // get conductance
+    mRatedLoss = (mRating * mRating * resistance) + conductance;  // loss is I^2*r+g in per unit;
 
-    if (conduct > 0.0) {
-        mp_LR = Plossr / conduct;
+    if (conductance > 0.0) {
+        mLossRatio = mRatedLoss / conductance;
     }
 
-    m_k = Plossr / DTtor;  // compute the radiation constant
-    m_C = Ttor * Plossr / DTtor;  // compute the thermal mass constant
+    mRadiationConstant = mRatedLoss / mRatedTopOilRise;  // compute the radiation constant
+    mThermalCapacity =
+        mOilTimeConstant * mRatedLoss / mRatedTopOilRise;  // compute the thermal mass constant
     if (!opFlags[dyn_initialized]) {
         sensor::setFlag("sampled", true);
         sensor::set("input0", "current");
         sensor::set("input1", "loss");
         sensor::set("input2", "attached");
 
-        auto* b1 = new blocks::delayBlock(Ttor);
-        auto* b2 = new blocks::delayBlock(Tgr);
+        auto* topOilDelayBlock = new blocks::delayBlock(mOilTimeConstant);
+        auto* windingDelayBlock = new blocks::delayBlock(mWindingTimeConstant);
 
-        sensor::add(b1);
-        sensor::add(b2);
-        b1->parentSetFlag(separate_processing, true, this);
-        b2->parentSetFlag(separate_processing, true, this);
-        auto g1 = std::make_shared<customGrabber>();
-        g1->setGrabberFunction("ambient",
-                               [this](coreObject* /*unused*/) -> double { return ambientTemp; });
-        sensor::add(g1);
+        sensor::add(topOilDelayBlock);
+        sensor::add(windingDelayBlock);
+        topOilDelayBlock->parentSetFlag(separate_processing, true, this);
+        windingDelayBlock->parentSetFlag(separate_processing, true, this);
+        auto ambientGrabber = std::make_shared<customGrabber>();
+        ambientGrabber->setGrabberFunction("ambient", [this](coreObject* /*unused*/) -> double {
+            return mAmbientTemp;
+        });
+        sensor::add(ambientGrabber);
 
         m_outputSize = (m_outputSize > 3) ? m_outputSize : 3;
 
@@ -262,118 +265,124 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             3;  // the first input was setup as the current, second as the loss, 3rd as attached
         outputs[1] = 0;
         sensor::set("output2", "block0+block1");
-        auto c1 = make_condition("output1", ">", alarmTemp1, this);
-        Relay::add(std::shared_ptr<Condition>(std::move(c1)));
-        c1 = make_condition("output1", ">", alarmTemp2, this);
-        Relay::add(std::shared_ptr<Condition>(std::move(c1)));
-        c1 = make_condition("output1", ">", cutoutTemp, this);
-        Relay::add(std::shared_ptr<Condition>(std::move(c1)));
+        auto condition = make_condition("output1", ">", mAlarmTemp1, this);
+        Relay::add(std::shared_ptr<Condition>(std::move(condition)));
+        condition = make_condition("output1", ">", mAlarmTemp2, this);
+        Relay::add(std::shared_ptr<Condition>(std::move(condition)));
+        condition = make_condition("output1", ">", mCutoutTemp, this);
+        Relay::add(std::shared_ptr<Condition>(std::move(condition)));
 
         Relay::set("action", "alarm temperature_alarm1");  // NOLINT
         Relay::set("action", "alarm temperature_alarm2");  // NOLINT
-        auto ge = std::make_unique<Event>();
-        ge->setTarget(m_sinkObject, "switch1");
-        ge->setValue(1.0);
+        auto generatedEvent = std::make_unique<Event>();
+        generatedEvent->setTarget(m_sinkObject, "switch1");
+        generatedEvent->setValue(1.0);
 
-        Relay::add(std::shared_ptr<Event>(std::move(ge)));
-        ge = std::make_unique<Event>();
+        Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
+        generatedEvent = std::make_unique<Event>();
 
-        ge->setTarget(m_sinkObject, "switch2");
-        ge->setValue(1.0);
+        generatedEvent->setTarget(m_sinkObject, "switch2");
+        generatedEvent->setValue(1.0);
 
-        Relay::add(std::shared_ptr<Event>(std::move(ge)));
+        Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
         // add the triggers
-        setActionTrigger(0, 0, alarmDelay);
-        setActionTrigger(1, 1, alarmDelay);
-        setActionTrigger(2, 2, alarmDelay);
-        setActionTrigger(3, 2, alarmDelay);
+        setActionTrigger(0, 0, mAlarmDelay);
+        setActionTrigger(1, 1, mAlarmDelay);
+        setActionTrigger(2, 2, mAlarmDelay);
+        setActionTrigger(3, 2, mAlarmDelay);
 
-        if (alarmTemp1 <= 0.1) {
+        if (mAlarmTemp1 <= 0.1) {
             setConditionStatus(0, condition_status_t::disabled);
         }
-        if (alarmTemp1 <= 0.1) {
+        if (mAlarmTemp2 <= 0.1) {
             setConditionStatus(1, condition_status_t::disabled);
         }
-        if (cutoutTemp <= 0.1) {
+        if (mCutoutTemp <= 0.1) {
             setConditionStatus(2, condition_status_t::disabled);
         }
     }
-    return sensor::dynObjectInitializeA(time0, flags);
+    sensor::dynObjectInitializeA(time0, flags);
 }
 
 void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
-    dataSources[0]->setGain(1.0 / rating);
-    dataSources[1]->setGain(1.0 / Plossr);
+    dataSources[0]->setGain(1.0 / mRating);
+    dataSources[1]->setGain(1.0 / mRatedLoss);
 
-    double I = dataSources[0]->grabData();
-
-    double K2 = dataSources[1]->grabData();
-    double at = dataSources[2]->grabData();
+    const double currentValue = dataSources[0]->grabData();
+    const double lossMultiplier = dataSources[1]->grabData();
+    const double attachedState = dataSources[2]->grabData();
     IOdata iset(1);
-    if (at > 0.1) {
-        double DTtou = DTtor * pow((I * I * mp_LR + 1) / (mp_LR + 1), mp_n);
-        double DTgu = DThs * pow(K2, mp_m);
+    if (attachedState > 0.1) {
+        const double topOilRise = mRatedTopOilRise *
+            pow(((currentValue * currentValue * mLossRatio) + 1) / (mLossRatio + 1), mOilExponent);
+        const double windingRise = mRatedHotSpotRise * pow(lossMultiplier, mWindingExponent);
 
-        iset[0] = DTtou + ambientTemp;
+        iset[0] = topOilRise + mAmbientTemp;
         filterBlocks[0]->dynInitializeB(
             iset,
             iset,
             iset);  // I don't care what the result is so I use the same vector for all inputs
-        iset[0] = DTgu;
+        iset[0] = windingRise;
         filterBlocks[1]->dynInitializeB(iset, iset, iset);
     } else {
-        iset[0] = ambientTemp;
+        iset[0] = mAmbientTemp;
         filterBlocks[0]->dynInitializeB(iset, iset, iset);
         iset[0] = 0;
         filterBlocks[1]->dynInitializeB(iset, iset, iset);
     }
     // skip over sensor::dynInitializeB since the filter blocks are initialized here.
-    return Relay::dynObjectInitializeB(inputs, desiredOutput, fieldSet);  // NOLINT
+    sensor::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
 
 void txThermalModel::updateA(coreTime time)
 {
-    auto dt = time - prevTime;
-    if (dt == timeZero) {
+    auto deltaTime = time - prevTime;
+    if (deltaTime == timeZero) {
         return;
     }
-    double at = dataSources[2]->grabData();
-    ambientTemp = ambientTemp + dt * dTempdt;
-    if (at > 0.1) {
-        double I = dataSources[0]->grabData();
-        double K2 = dataSources[1]->grabData();
+    const double attachedState = dataSources[2]->grabData();
+    mAmbientTemp = mAmbientTemp + deltaTime * mTempRateOfChange;
+    if (attachedState > 0.1) {
+        const double currentValue = dataSources[0]->grabData();
+        const double lossMultiplier = dataSources[1]->grabData();
 
-        double DTtou = DTtor * pow((I * I * mp_LR + 1) / (mp_LR + 1), mp_n);
-        double DTgu = DThs * pow(K2, mp_m);
+        const double topOilRise = mRatedTopOilRise *
+            pow(((currentValue * currentValue * mLossRatio) + 1) / (mLossRatio + 1), mOilExponent);
+        const double windingRise = mRatedHotSpotRise * pow(lossMultiplier, mWindingExponent);
 
         // update the time constants if required
-        if (mp_n != 1.0) {
-            double Toc = filterBlocks[0]->getOutput();
-            double r1 = (Toc - ambientTemp) / DTtor;
-            double r2 = DTtou / DTtor;
-            double Tto = Ttor * ((r1 - r2) / (pow(r1, 1.0 / mp_n) - pow(r2, 1.0 / mp_n)));
-            filterBlocks[0]->set("t1", Tto);
+        if (mOilExponent != 1.0) {
+            const double topOilCurrent = filterBlocks[0]->getOutput();
+            const double currentRatio = (topOilCurrent - mAmbientTemp) / mRatedTopOilRise;
+            const double targetRatio = topOilRise / mRatedTopOilRise;
+            const double adjustedTopOilTimeConstant = mOilTimeConstant *
+                ((currentRatio - targetRatio) /
+                 (pow(currentRatio, 1.0 / mOilExponent) - pow(targetRatio, 1.0 / mOilExponent)));
+            filterBlocks[0]->set("t1", adjustedTopOilTimeConstant);
         }
-        if (mp_m != 1.0) {
-            double Thsc = filterBlocks[1]->getOutput();
-            double r1 = (Thsc) / DThs;
-            double r2 = DTgu / DThs;
-            double Tg = Ttor * ((r1 - r2) / (pow(r1, 1.0 / mp_m) - pow(r2, 1.0 / mp_m)));
-            filterBlocks[1]->set("t1", Tg);
+        if (mWindingExponent != 1.0) {
+            const double windingCurrent = filterBlocks[1]->getOutput();
+            const double currentRatio = windingCurrent / mRatedHotSpotRise;
+            const double targetRatio = windingRise / mRatedHotSpotRise;
+            const double adjustedWindingTimeConstant = mOilTimeConstant *
+                ((currentRatio - targetRatio) /
+                 (pow(currentRatio, 1.0 / mWindingExponent) -
+                  pow(targetRatio, 1.0 / mWindingExponent)));
+            filterBlocks[1]->set("t1", adjustedWindingTimeConstant);
         }
 
-        filterBlocks[0]->step(time, ambientTemp + DTtou);
-        filterBlocks[1]->step(time, DTgu);
+        filterBlocks[0]->step(time, mAmbientTemp + topOilRise);
+        filterBlocks[1]->step(time, windingRise);
     } else {
-        filterBlocks[0]->step(time, ambientTemp);
+        filterBlocks[0]->step(time, mAmbientTemp);
         filterBlocks[1]->step(time, 0);
     }
     // printf("%f:%s A=%f to(%f)=%f hs(%f)=%f\n",time, name.c_str(), ambientTemp,
     // DTtou+ambientTemp, o1, DTgu, o2);
-    Relay::updateA(time);  // NOLINT
+    sensor::updateA(time);
     prevTime = time;
 }
 

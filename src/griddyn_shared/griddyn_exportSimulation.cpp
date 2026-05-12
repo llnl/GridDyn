@@ -15,6 +15,7 @@
 #include <string>
 #include <utility>
 
+// NOLINTNEXTLINE(misc-const-correctness): third-party macro expansion owns this definition
 DECLARE_TRIPLINE()
 
 using griddyn::buildFlags;
@@ -48,7 +49,7 @@ const char* gridDynGetCompilerVersion(void)
     return compiler;
 }
 
-static constexpr const char* nullstrPtr = "";
+static constexpr const char* nullStringPtr = "";
 
 const char emptyStr[] = "";
 
@@ -56,7 +57,7 @@ GridDynError gridDynErrorInitialize(void)
 {
     GridDynError err;
     err.error_code = 0;
-    err.message = nullstrPtr;
+    err.message = nullStringPtr;
     return err;
 }
 
@@ -65,7 +66,7 @@ void gridDynErrorClear(GridDynError* err)
 {
     if (err != nullptr) {
         err->error_code = 0;
-        err->message = nullstrPtr;
+        err->message = nullStringPtr;
     }
 }
 
@@ -145,8 +146,8 @@ void griddynErrorHandler(GridDynError* err) noexcept
 GridDynSimulation gridDynSimulationCreate(const char* type, const char* name, GridDynError* err)
 {
     static constexpr char invalidSimType[] = "the given simtype is not valid in the shared library";
-    GriddynRunner* sim;
-    std::string typeStr(type);
+    GriddynRunner* runner;
+    const std::string typeStr(type);
     if (typeStr == "helics") {
         assignError(err, griddyn_error_invalid_parameter_value, invalidSimType);
         return nullptr;
@@ -164,14 +165,14 @@ GridDynSimulation gridDynSimulationCreate(const char* type, const char* name, Gr
         return nullptr;
     }
 
-    sim = new GriddynRunner();
-    if (sim != nullptr) {
-        sim->getSim()->setName(name);
+    runner = new GriddynRunner();
+    if (runner != nullptr) {
+        runner->getSim()->setName(name);
     } else {
         static constexpr char creationFailure[] = "unable to create the simulation";
         assignError(err, griddyn_error_function_failure, creationFailure);
     }
-    return reinterpret_cast<GridDynSimulation>(sim);
+    return reinterpret_cast<GridDynSimulation>(runner);
 }
 
 static constexpr char invalidSimulation[] = "the simulation object is not valid";
@@ -430,13 +431,13 @@ const char* MasterObjectHolder::addErrorString(std::string newError)
 {
     auto estring = errorStrings.lock();
     estring->push_back(std::move(newError));
-    auto& v = estring->back();
-    return v.c_str();
+    auto& latestError = estring->back();
+    return latestError.c_str();
 }
 
 std::shared_ptr<MasterObjectHolder> getMasterHolder()
 {
     static auto instance = std::make_shared<MasterObjectHolder>();
-    static gmlc::concurrency::TripWireTrigger tripTriggerholder;
+    static const gmlc::concurrency::TripWireTrigger tripTriggerholder;
     return instance;
 }

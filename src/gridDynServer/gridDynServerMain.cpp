@@ -22,12 +22,12 @@
 int main(int argc, char* argv[])
 {
     loadLibraries();
-    std::shared_ptr<gridDynSimulation> gds = std::make_shared<gridDynSimulation>();
+    std::shared_ptr<gridDynSimulation> simulation = std::make_shared<gridDynSimulation>();
 
     // Store the simulation pointer somewhere so that it can be accessed in other modules.
-    gridDynSimulation::setInstance(gds.get());  // peer to gridDynSimulation::GetInstance ();
+    gridDynSimulation::setInstance(simulation.get());  // peer to gridDynSimulation::GetInstance ();
 
-    if (!gds) {
+    if (!simulation) {
         return (-5);
     }
 

@@ -21,15 +21,15 @@ class txLifeSpan: public sensor {
     };
 
   protected:
-    double initialLife = 150000.0;  //!< initial life in hours
-    double agingConstant = 14594.0;  //!< aging constant default value of 14594 based on
-                                     //!< research 15000 is another commonly used value
-    double baseTemp = 110;  //!< the temperature base for the lifespan equations
-    double agingFactor =
+    double mInitialLife = 150000.0;  //!< initial life in hours
+    double mAgingConstant = 14594.0;  //!< aging constant default value of 14594 based on
+                                      //!< research 15000 is another commonly used value
+    double mBaseTemp = 110;  //!< the temperature base for the lifespan equations
+    double mAgingFactor =
         1.0;  //!<  factor for accelerated or decelerated aging based on insulation properties
 
   private:
-    double Faa = 0.0;
+    double mAgingAccelerationFactor = 0.0;
 
   public:
     txLifeSpan(const std::string& objName = "txlifeSpan_$");
@@ -52,7 +52,7 @@ class txLifeSpan: public sensor {
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     virtual void updateA(coreTime time) override;
 
-    void actionTaken(index_t ActionNum,
+    void actionTaken(index_t actionNumber,
                      index_t conditionNum,
                      change_code actionReturn,
                      coreTime /*actionTime*/) override;

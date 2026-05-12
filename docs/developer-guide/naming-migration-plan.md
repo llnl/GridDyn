@@ -203,16 +203,16 @@ Types of work in this phase:
 - [x] `src/griddyn/blocks`
 - [x] `src/utilities`
 - [x] `src/optimization`
-- [ ] `src/runner`
+- [~] `src/runner`
 - [ ] `src/plugins`
 - [x] `src/formatInterpreters`
 - [x] `src/fskit`
-- [~] `src/fmi_export`
-- [ ] `src/extraModels`
-- [ ] `src/gridDynLoader`
-- [ ] `src/gridDynMain`
-- [ ] `src/gridDynServer`
-- [ ] `src/griddyn_shared`
+- [x] `src/fmi_export`
+- [~] `src/extraModels`
+- [~] `src/gridDynLoader`
+- [~] `src/gridDynMain`
+- [~] `src/gridDynServer`
+- [~] `src/griddyn_shared`
 
 ### Initial Candidate Examples
 
@@ -445,19 +445,20 @@ Use this section to track PR-by-PR progress at a higher level.
 
 Use this table to log each naming migration PR as it lands.
 
-| PR / Branch | Area                      | Phase   | Summary                                                                                                                                                                                                  | Compatibility Needed | Tests Run                        | Status      |
-| ----------- | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------- | ----------- |
-| merged      | `src/networking`          | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                | No                   | Inventory script run             | Complete    |
-| merged      | `src/griddyn/comms`       | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                           | No                   | Not yet run                      | Complete    |
-| merged      | `src/griddyn/measurement` | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                              | No                   | CI `clang-tidy` run              | Complete    |
-| merged      | CI tooling                | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                     | No                   | CI workflow run                  | Complete    |
-| merged      | `src/utilities`           | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                     | No                   | No `clang-tidy` issues to report | Complete    |
-| merged      | `src/griddyn/relays`      | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                        | No                   | CI `clang-tidy` run              | Complete    |
-| merged      | `src/griddyn/blocks`      | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
-| merged      | `src/optimization`        | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | Complete    |
-| merged      | `src/formatInterpreters`  | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, INI, and TOML element/reader adapters                                                            | No                   | CI compile and `clang-tidy` run  | Complete    |
-| merged      | `src/fskit`               | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                  | No                   | Not yet run                      | Complete    |
-| working     | `src/fmi_export`          | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                      | No                   | Not yet run                      | In progress |
+| PR / Branch | Area                                                                                                                    | Phase   | Summary                                                                                                                                                                                                  | Compatibility Needed | Tests Run                        | Status      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------- | ----------- |
+| merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                | No                   | Inventory script run             | Complete    |
+| merged      | `src/griddyn/comms`                                                                                                     | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                           | No                   | Not yet run                      | Complete    |
+| merged      | `src/griddyn/measurement`                                                                                               | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                              | No                   | CI `clang-tidy` run              | Complete    |
+| merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                     | No                   | CI workflow run                  | Complete    |
+| merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                     | No                   | No `clang-tidy` issues to report | Complete    |
+| merged      | `src/griddyn/relays`                                                                                                    | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                        | No                   | CI `clang-tidy` run              | Complete    |
+| merged      | `src/griddyn/blocks`                                                                                                    | Phase 3 | Low-risk block cleanup batch covering member naming and local variable normalization in `controlBlock`, `deadbandBlock`, `delayBlock`, `derivativeBlock`, `filteredDerivativeBlock`, and `functionBlock` | No                   | CI `clang-tidy` run              | Complete    |
+| merged      | `src/optimization`                                                                                                      | Phase 3 | Low-risk optimization cleanup batch covering member naming and local variable normalization in `gridDynOpt`, `gridOptObjects`, `optHelperClasses`, `optimizerInterface`, and `optObjectFactory`          | No                   | Not yet run                      | Complete    |
+| merged      | `src/formatInterpreters`                                                                                                | Phase 3 | Low-risk formatter cleanup batch covering reader-wrapper state and local naming across JSON, YAML, XML, INI, and TOML element/reader adapters                                                            | No                   | CI compile and `clang-tidy` run  | Complete    |
+| merged      | `src/fskit`                                                                                                             | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                  | No                   | Not yet run                      | Complete    |
+| merged      | `src/fmi_export`                                                                                                        | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                      | No                   | CI compile and `clang-tidy` run  | Complete    |
+| working     | `src/runner` + `src/extraModels` + `src/gridDynLoader` + `src/gridDynMain` + `src/gridDynServer` + `src/griddyn_shared` | Phase 3 | Low-risk runtime/bootstrap cleanup batch covering runner state, transformer helper models, loader/main entrypoints, PMU server state, and shared-library wrapper local naming                            | No                   | Not yet run                      | In progress |
 
 ## Open Decisions
 

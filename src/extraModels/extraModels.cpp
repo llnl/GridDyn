@@ -14,18 +14,18 @@
 #include <vector>
 
 namespace griddyn {
-static std::vector<std::shared_ptr<objectFactory>> extraFactories;
+static std::vector<std::shared_ptr<objectFactory>> extraModelFactories;
 
 void loadExtraModels(const std::string& /*subset*/)
 {
-    auto b =
+    auto thermalModelFactory =
         std::make_shared<childTypeFactory<extra::txThermalModel, Relay>>("relay",
                                                                          stringVec{"thermaltx"});
-    extraFactories.push_back(b);
+    extraModelFactories.push_back(thermalModelFactory);
 
-    auto c =
+    auto lifeSpanFactory =
         std::make_shared<childTypeFactory<extra::txLifeSpan, Relay>>("relay",
                                                                      stringVec{"txaging", "txage"});
-    extraFactories.push_back(c);
+    extraModelFactories.push_back(lifeSpanFactory);
 }
 }  // namespace griddyn

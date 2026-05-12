@@ -21,14 +21,6 @@
 #include <string>
 
 namespace griddyn {
-namespace {
-    const IgnoreListType& econIgnoreElements()
-    {
-        static const auto* ignoreElements =
-            new IgnoreListType{"mode", "objecttype", "retype", "parent"};
-        return *ignoreElements;
-    }
-}
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
 coreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
@@ -39,6 +31,14 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
 }
 
 #else
+namespace {
+    const IgnoreListType& econIgnoreElements()
+    {
+        static const auto* ignoreElements =
+            new IgnoreListType{"mode", "objecttype", "retype", "parent"};
+        return *ignoreElements;
+    }
+}
 coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             readerInfo& readerInformation,
                             coreObject* searchObject)

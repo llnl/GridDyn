@@ -22,10 +22,10 @@ namespace {
         return *ignoreVariables;
     }
 
-    static int readElementInteger(std::shared_ptr<readerElement>& element,
-                                  const std::string& name,
-                                  readerInfo& readerInformation,
-                                  int defValue);
+    int readElementInteger(std::shared_ptr<readerElement>& element,
+                           const std::string& name,
+                           readerInfo& readerInformation,
+                           int defValue);
 }
 // "aP" is the XML element passed from the reader
 void readArrayElement(std::shared_ptr<readerElement>& element,
@@ -86,10 +86,10 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
 }
 
 namespace {
-static int readElementInteger(std::shared_ptr<readerElement>& element,
-                              const std::string& name,
-                              readerInfo& readerInformation,
-                              int defValue)
+int readElementInteger(std::shared_ptr<readerElement>& element,
+                       const std::string& name,
+                       readerInfo& readerInformation,
+                       int defValue)
 {
     int returnValue = defValue;
     auto strVal = getElementField(element, name, readerConfig::defMatchType);

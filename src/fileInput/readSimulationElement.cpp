@@ -15,7 +15,7 @@ namespace griddyn {
 using readerConfig::defMatchType;
 
 namespace {
-    static void loadDefaultObjectTranslations(readerInfo& readerInformation);
+    void loadDefaultObjectTranslations(readerInfo& readerInformation);
 
     const IgnoreListType& simIgnoreFields()
     {
@@ -23,8 +23,8 @@ namespace {
         return *ignoreFields;
     }
 
-    static bool isMasterObject(const coreObject* searchObject,
-                               const gridSimulation* simulationObject);
+    bool isMasterObject(const coreObject* searchObject,
+                        const gridSimulation* simulationObject);
 }
 
 static const char libstring[] = "library";
@@ -144,7 +144,7 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
 }
 
 namespace {
-static void loadDefaultObjectTranslations(readerInfo& readerInformation)
+void loadDefaultObjectTranslations(readerInfo& readerInformation)
 {
     readerInformation.addTranslate("fuse", "relay");
     readerInformation.addTranslate("breaker", "relay");
@@ -168,8 +168,8 @@ static void loadDefaultObjectTranslations(readerInfo& readerInformation)
     readerInformation.addTranslate("loop", "array");
 }
 
-static bool isMasterObject(const coreObject* searchObject,
-                           const gridSimulation* simulationObject)
+bool isMasterObject(const coreObject* searchObject,
+                    const gridSimulation* simulationObject)
 {
     if (searchObject != nullptr) {
         return (simulationObject != nullptr) ? (isSameObject(searchObject, simulationObject)) :

@@ -22,7 +22,7 @@ namespace {
         return *ignoreVariables;
     }
 
-    static bool checkCondition(
+    bool checkCondition(
         string_view cond, readerInfo& readerInformation, coreObject* parentObject);
 }
 // "aP" is the XML element passed from the reader
@@ -78,9 +78,9 @@ static bool compare(const X& val1, const X& val2, char op1, char op2)
 }
 
 namespace {
-static bool checkCondition(string_view cond,
-                           readerInfo& readerInformation,
-                           coreObject* parentObject)
+bool checkCondition(string_view cond,
+                    readerInfo& readerInformation,
+                    coreObject* parentObject)
 {
     gmlc::utilities::string_viewOps::trim(cond);
     bool reverseResult = false;

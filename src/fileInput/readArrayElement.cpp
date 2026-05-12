@@ -86,30 +86,30 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
 }
 
 namespace {
-int readElementInteger(std::shared_ptr<readerElement>& element,
-                       const std::string& name,
-                       readerInfo& readerInformation,
-                       int defValue)
+    int readElementInteger(std::shared_ptr<readerElement>& element,
+                           const std::string& name,
+                           readerInfo& readerInformation,
+                           int defValue)
     {
-    int returnValue = defValue;
-    auto strVal = getElementField(element, name, readerConfig::defMatchType);
-    if (strVal.empty()) {
-        return returnValue;
-    }
-
-    returnValue = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
-    if (returnValue == -kBigINT)  // we have a more complicated string
-    {
-        const double val = interpretString(strVal, readerInformation);
-        if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
-            returnValue = static_cast<int>(val);
-        } else {
-            returnValue = defValue;
-            WARNPRINT(READER_WARN_IMPORTANT, "Unable to interpret start variable");
+        int returnValue = defValue;
+        auto strVal = getElementField(element, name, readerConfig::defMatchType);
+        if (strVal.empty()) {
+            return returnValue;
         }
-    }
 
-    return returnValue;
+        returnValue = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
+        if (returnValue == -kBigINT)  // we have a more complicated string
+        {
+            const double val = interpretString(strVal, readerInformation);
+            if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
+                returnValue = static_cast<int>(val);
+            } else {
+                returnValue = defValue;
+                WARNPRINT(READER_WARN_IMPORTANT, "Unable to interpret start variable");
+            }
+        }
+
+        return returnValue;
     }
 }  // namespace
 

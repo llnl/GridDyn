@@ -38,7 +38,7 @@ namespace {
             new IgnoreListType{"mode", "objecttype", "retype", "parent"};
         return *ignoreElements;
     }
-}
+}  // namespace
 coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             readerInfo& readerInformation,
                             coreObject* searchObject)

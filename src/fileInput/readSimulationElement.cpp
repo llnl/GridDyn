@@ -23,8 +23,7 @@ namespace {
         return *ignoreFields;
     }
 
-    bool isMasterObject(const coreObject* searchObject,
-                        const gridSimulation* simulationObject);
+    bool isMasterObject(const coreObject* searchObject, const gridSimulation* simulationObject);
 }  // namespace
 
 static const char libstring[] = "library";
@@ -143,40 +142,39 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
 }
 
 namespace {
-void loadDefaultObjectTranslations(readerInfo& readerInformation)
-{
-    readerInformation.addTranslate("fuse", "relay");
-    readerInformation.addTranslate("breaker", "relay");
-    readerInformation.addTranslate("sensor", "relay");
-    readerInformation.addTranslate("control", "relay");
-    readerInformation.addTranslate("pmu", "relay");
-    readerInformation.addTranslate("controlblock", "block");
-    readerInformation.addTranslate("model", "genmodel");
-    readerInformation.addTranslate("gen", "generator");
-    readerInformation.addTranslate("transformer", "link");
-    readerInformation.addTranslate("line", "link");
-    readerInformation.addTranslate("tie", "link");
-    readerInformation.addTranslate("subsystem", "link");
-    readerInformation.addTranslate("busmodify", "bus");
-    readerInformation.addTranslate("areamodify", "area");
-    readerInformation.addTranslate("linkmodify", "link");
-    readerInformation.addTranslate("gov", "governor");
-    readerInformation.addTranslate("recorder", "collector");
-    readerInformation.addTranslate("player", "event");
-    readerInformation.addTranslate("scenario", "event");
-    readerInformation.addTranslate("loop", "array");
-}
-
-bool isMasterObject(const coreObject* searchObject,
-                    const gridSimulation* simulationObject)
-{
-    if (searchObject != nullptr) {
-        return (simulationObject != nullptr) ? (isSameObject(searchObject, simulationObject)) :
-                                               false;
+    void loadDefaultObjectTranslations(readerInfo& readerInformation)
+    {
+        readerInformation.addTranslate("fuse", "relay");
+        readerInformation.addTranslate("breaker", "relay");
+        readerInformation.addTranslate("sensor", "relay");
+        readerInformation.addTranslate("control", "relay");
+        readerInformation.addTranslate("pmu", "relay");
+        readerInformation.addTranslate("controlblock", "block");
+        readerInformation.addTranslate("model", "genmodel");
+        readerInformation.addTranslate("gen", "generator");
+        readerInformation.addTranslate("transformer", "link");
+        readerInformation.addTranslate("line", "link");
+        readerInformation.addTranslate("tie", "link");
+        readerInformation.addTranslate("subsystem", "link");
+        readerInformation.addTranslate("busmodify", "bus");
+        readerInformation.addTranslate("areamodify", "area");
+        readerInformation.addTranslate("linkmodify", "link");
+        readerInformation.addTranslate("gov", "governor");
+        readerInformation.addTranslate("recorder", "collector");
+        readerInformation.addTranslate("player", "event");
+        readerInformation.addTranslate("scenario", "event");
+        readerInformation.addTranslate("loop", "array");
     }
-    return (simulationObject != nullptr) ? (simulationObject->isRoot()) : true;
-    // return true if both are null since any new object would then be master
-}
+
+    bool isMasterObject(const coreObject* searchObject, const gridSimulation* simulationObject)
+    {
+        if (searchObject != nullptr) {
+            return (simulationObject != nullptr) ? (isSameObject(searchObject, simulationObject)) :
+                                                   false;
+        }
+        return (simulationObject != nullptr) ? (simulationObject->isRoot()) : true;
+        // return true if both are null since any new object would then be master
+    }
 }  // namespace
 
 }  // namespace griddyn

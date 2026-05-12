@@ -15,32 +15,32 @@
 namespace griddyn {
 static const char nameString[] = "name";
 
-static const IgnoreListType collectorIgnoreStrings{"file",
-                                                   "name",
-                                                   "column",
-                                                   "offset",
-                                                   "units",
-                                                   "gain",
-                                                   "bias",
-                                                   "field",
-                                                   "target",
-                                                   "type"};
+namespace {
+    const IgnoreListType& collectorIgnoreStrings()
+    {
+        static const auto* ignoreStrings = new IgnoreListType{
+            "file", "name", "column", "offset", "units", "gain", "bias", "field", "target", "type"};
+        return *ignoreStrings;
+    }
+}  // namespace
 
 static const char collectorNameString[] = "collector";
 
-int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri)
+int loadCollectorElement(std::shared_ptr<readerElement>& element,
+                         coreObject* obj,
+                         readerInfo& readerInformation)
 {
-    int ret = FUNCTION_EXECUTION_SUCCESS;
-    std::string name =
-        ri.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
-    std::string fileName = ri.checkDefines(
+    const int ret = FUNCTION_EXECUTION_SUCCESS;
+    std::string name = readerInformation.checkDefines(
+        getElementField(element, nameString, readerConfig::defMatchType));
+    const std::string fileName = readerInformation.checkDefines(
         getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
-    std::string type =
-        ri.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
+    std::string type = readerInformation.checkDefines(
+        getElementField(element, "type", readerConfig::defMatchType));
 
-    auto col = ri.findCollector(name, fileName);
+    auto collectorObject = readerInformation.findCollector(name, fileName);
     if ((!type.empty()) && (name.empty()) && (fileName.empty())) {
-        col = nullptr;
+        collectorObject = nullptr;
     }
     if (type.empty()) {
         if (element->getName() != collectorNameString) {
@@ -48,88 +48,99 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
         }
     }
 
-    if (!(col)) {
-        col = makeCollector(type, name);
+    if (!collectorObject) {
+        collectorObject = makeCollector(type, name);
 
         if (!fileName.empty()) {
-            col->set("file", fileName);
+            collectorObject->set("file", fileName);
         }
-        ri.collectors.push_back(col);
+        readerInformation.collectors.push_back(collectorObject);
     }
 
-    gridGrabberInfo gdRI;
+    gridGrabberInfo grabberInfo;
     name = getElementField(element, "target", readerConfig::defMatchType);
     if (!name.empty()) {
-        name = ri.checkDefines(name);
-        gdRI.m_target = name;
+        name = readerInformation.checkDefines(name);
+        grabberInfo.m_target = name;
     }
     auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
 
-    if (!(fieldList.empty())) {
-        gdRI.field = "";
-        for (auto& fstr : fieldList) {
-            fstr = ri.checkDefines(fstr);
-            if (gdRI.field.empty()) {
-                gdRI.field = fstr;
+    if (!fieldList.empty()) {
+        grabberInfo.field = "";
+        for (auto& fieldString : fieldList) {
+            fieldString = readerInformation.checkDefines(fieldString);
+            if (grabberInfo.field.empty()) {
+                grabberInfo.field = fieldString;
             } else {
-                gdRI.field += "; " + fstr;
+                grabberInfo.field += "; " + fieldString;
             }
         }
     }
 
     std::string elementText = getElementField(element, "bias", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        gdRI.bias = interpretString(elementText, ri);
+        grabberInfo.bias = interpretString(elementText, readerInformation);
     }
     elementText = getElementField(element, "gain", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        gdRI.gain = interpretString(elementText, ri);
+        grabberInfo.gain = interpretString(elementText, readerInformation);
     }
     elementText = getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
     if (!elementText.empty()) {
-        elementText = ri.checkDefines(elementText);
-        gdRI.outputUnits = units::unit_cast_from_string(elementText);
+        elementText = readerInformation.checkDefines(elementText);
+        grabberInfo.outputUnits = units::unit_cast_from_string(elementText);
     }
     elementText = getElementField(element, "column", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        gdRI.column = static_cast<int>(interpretString(elementText, ri));
+        grabberInfo.column = static_cast<int>(interpretString(elementText, readerInformation));
     }
     elementText = getElementField(element, "offset", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        gdRI.offset = static_cast<int>(interpretString(elementText, ri));
-        if (!(gdRI.field.empty())) {
+        grabberInfo.offset = static_cast<int>(interpretString(elementText, readerInformation));
+        if (!grabberInfo.field.empty()) {
             WARNPRINT(READER_WARN_ALL,
                       "specifying offset in collector overrides field specification");
         }
     }
     // now load the other fields for the collector
 
-    setAttributes(col.get(), element, collectorNameString, ri, collectorIgnoreStrings);
-    setParams(col.get(), element, collectorNameString, ri, collectorIgnoreStrings);
+    setAttributes(collectorObject.get(),
+                  element,
+                  collectorNameString,
+                  readerInformation,
+                  collectorIgnoreStrings());
+    setParams(collectorObject.get(),
+              element,
+              collectorNameString,
+              readerInformation,
+              collectorIgnoreStrings());
     coreObject* targetObj = obj;
 
-    if (!((gdRI.m_target.empty()) || (gdRI.m_target == obj->getName()))) {
-        targetObj = locateObject(gdRI.m_target, obj);
+    if (!grabberInfo.m_target.empty() && (grabberInfo.m_target != obj->getName())) {
+        targetObj = locateObject(grabberInfo.m_target, obj);
     }
     if (targetObj != nullptr) {
         try {
-            col->add(gdRI, targetObj);
-            if (col->getName().empty()) {
-                col->setName(targetObj->getName() + "_" + type);
+            collectorObject->add(grabberInfo, targetObj);
+            if (collectorObject->getName().empty()) {
+                collectorObject->setName(targetObj->getName() + "_" + type);
             }
         }
         catch (const addFailureException&) {
             WARNPRINT(READER_WARN_IMPORTANT,
-                      type << " for " << obj->getName() << "cannot find field " << gdRI.field);
+                      type << " for " << obj->getName() << "cannot find field "
+                           << grabberInfo.field);
         }
     } else {
         WARNPRINT(READER_WARN_IMPORTANT,
-                  type << " for " << gdRI.m_target << "cannot find field " << gdRI.field);
+                  type << " for " << grabberInfo.m_target << "cannot find field "
+                       << grabberInfo.field);
     }
 
-    if (col->getWarningCount() > 0) {
-        for (const auto& warning : col->getWarnings()) {
-            WARNPRINT(READER_WARN_IMPORTANT, "recorder " << col->getName() << " " << warning);
+    if (collectorObject->getWarningCount() > 0) {
+        for (const auto& warning : collectorObject->getWarnings()) {
+            WARNPRINT(READER_WARN_IMPORTANT,
+                      "recorder " << collectorObject->getName() << " " << warning);
         }
     }
     return ret;

@@ -40,35 +40,35 @@ class gridSecondary;
 class gridSubModel;
 
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& ri,
+                        readerInfo& readerInformation,
                         coreObject* searchObject = nullptr);
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& ri,
+                        readerInfo& readerInformation,
                         coreObject* searchObject = nullptr);
 
 // zipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, coreObject
 // *searchObject = nullptr); Generator * readGeneratorElement (std::shared_ptr<readerElement>
 // &element, readerInfo *ri, coreObject *searchObject = nullptr);
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* searchObject = nullptr,
                       bool warnlink = true);
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* searchObject = nullptr);
 gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
-                                      readerInfo& ri,
+                                      readerInfo& readerInformation,
                                       coreObject* searchObject = nullptr,
-                                      gridSimulation* gs = nullptr);
+                                      gridSimulation* simulationObject = nullptr);
 
 coreObject* readEconElement(std::shared_ptr<readerElement>& element,
-                            readerInfo& ri,
+                            readerInfo& readerInformation,
                             coreObject* searchObject = nullptr);
 void readArrayElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* parentObject);
 void loadConditionElement(std::shared_ptr<readerElement>& element,
-                          readerInfo& ri,
+                          readerInfo& readerInformation,
                           coreObject* parentObject);
 void loadSubObjects(std::shared_ptr<readerElement>& element,
                     readerInfo& readerInf,
@@ -89,7 +89,7 @@ void loadCustomSections(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInf);  // NOTE: defined in readLibraryElement.cpp
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
-                       readerInfo& ri,
+                       readerInfo& readerInformation,
                        gridDynSimulation* parentObject);
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf);
 
@@ -125,8 +125,12 @@ void setAttributes(helperObject* obj,
                    readerInfo& readerInfoRef,
                    const IgnoreListType& ignoreList);
 
-int loadEventElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri);
-int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri);
+int loadEventElement(std::shared_ptr<readerElement>& element,
+                     coreObject* obj,
+                     readerInfo& readerInformation);
+int loadCollectorElement(std::shared_ptr<readerElement>& element,
+                         coreObject* obj,
+                         readerInfo& readerInformation);
 
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element);
 void getElementParam(const std::shared_ptr<readerElement>& element, gridParameter& param);

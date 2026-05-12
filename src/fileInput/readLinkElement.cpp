@@ -16,37 +16,43 @@
 #include <string>
 
 namespace griddyn {
-static const IgnoreListType linkIgnoreElements{"to", "from"};
+namespace {
+    const IgnoreListType& linkIgnoreElements()
+    {
+        static const auto* ignoreElements = new IgnoreListType{"to", "from"};
+        return *ignoreElements;
+    }
+}  // namespace
 static const char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* searchObject,
                       bool warnlink)
 {
-    auto riScope = ri.newScope();
+    auto riScope = readerInformation.newScope();
 
     // run the boilerplate code to setup the object
-    Link* lnk = ElementReaderSetup(
-        element, static_cast<Link*>(nullptr), linkComponentName, ri, searchObject);
+    Link* linkObject = ElementReaderSetup(
+        element, static_cast<Link*>(nullptr), linkComponentName, readerInformation, searchObject);
 
     // from bus
-    std::string busname = getElementField(element, "from", readerConfig::defMatchType);
-    if (busname.empty()) {
+    std::string busName = getElementField(element, "from", readerConfig::defMatchType);
+    if (busName.empty()) {
         if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'from' bus");
         }
     } else if (searchObject != nullptr) {
-        busname = ri.checkDefines(busname);
-        auto obj = locateObject(busname, searchObject);
-        auto bus = dynamic_cast<gridBus*>(obj);
+        busName = readerInformation.checkDefines(busName);
+        auto* locatedObject = locateObject(busName, searchObject);
+        auto* bus = dynamic_cast<gridBus*>(locatedObject);
         if (bus != nullptr) {
             try {
-                lnk->updateBus(bus, 1);
+                linkObject->updateBus(bus, 1);
             }
             catch (const objectAddFailure& oaf) {
                 WARNPRINT(READER_WARN_IMPORTANT,
-                          "unable to load 'from' bus " << busname << oaf.what());
+                          "unable to load 'from' bus " << busName << oaf.what());
             }
         } else if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'from' bus");
@@ -54,22 +60,22 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     }
 
     // to bus
-    busname = getElementField(element, "to", readerConfig::defMatchType);
-    if (busname.empty()) {
+    busName = getElementField(element, "to", readerConfig::defMatchType);
+    if (busName.empty()) {
         if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'to' bus");
         }
     } else if (searchObject != nullptr) {
-        busname = ri.checkDefines(busname);
-        auto obj = locateObject(busname, searchObject);
-        auto bus = dynamic_cast<gridBus*>(obj);
+        busName = readerInformation.checkDefines(busName);
+        auto* locatedObject = locateObject(busName, searchObject);
+        auto* bus = dynamic_cast<gridBus*>(locatedObject);
         if (bus != nullptr) {
             try {
-                lnk->updateBus(bus, 2);
+                linkObject->updateBus(bus, 2);
             }
             catch (const objectAddFailure& oaf) {
                 WARNPRINT(READER_WARN_IMPORTANT,
-                          "unable to load 'to' bus " << busname << " error: " << oaf.what());
+                          "unable to load 'to' bus " << busName << " error: " << oaf.what());
             }
         } else if (warnlink) {
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'to' bus");
@@ -78,12 +84,13 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
 
     // properties from link attributes
 
-    loadElementInformation(lnk, element, linkComponentName, ri, linkIgnoreElements);
+    loadElementInformation(
+        linkObject, element, linkComponentName, readerInformation, linkIgnoreElements());
 
-    LEVELPRINT(READER_NORMAL_PRINT, "loaded link " << lnk->getName());
+    LEVELPRINT(READER_NORMAL_PRINT, "loaded link " << linkObject->getName());
 
-    ri.closeScope(riScope);
-    return lnk;
+    readerInformation.closeScope(riScope);
+    return linkObject;
 }
 
 }  // namespace griddyn

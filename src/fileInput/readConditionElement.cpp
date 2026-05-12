@@ -15,17 +15,24 @@
 namespace griddyn {
 using std::string_view;
 
-static const IgnoreListType ignoreConditionVariables{"condition"};
-bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject);
+namespace {
+    const IgnoreListType& ignoreConditionVariables()
+    {
+        static const auto* ignoreVariables = new IgnoreListType{"condition"};
+        return *ignoreVariables;
+    }
+
+    bool checkCondition(string_view cond, readerInfo& readerInformation, coreObject* parentObject);
+}  // namespace
 // "aP" is the XML element passed from the reader
 void loadConditionElement(std::shared_ptr<readerElement>& element,
-                          readerInfo& ri,
+                          readerInfo& readerInformation,
                           coreObject* parentObject)
 {
-    auto riScope = ri.newScope();
+    auto riScope = readerInformation.newScope();
 
-    loadDefines(element, ri);
-    loadDirectories(element, ri);
+    loadDefines(element, readerInformation);
+    loadDirectories(element, readerInformation);
 
     bool eval = false;
     std::string condString = getElementField(element, "condition", readerConfig::defMatchType);
@@ -33,26 +40,27 @@ void loadConditionElement(std::shared_ptr<readerElement>& element,
     if (!condString.empty()) {
         // deal with &gt for > and &lt for < if necessary
         condString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(condString);
-        eval = checkCondition(condString, ri, parentObject);
+        eval = checkCondition(condString, readerInformation, parentObject);
     } else {
         WARNPRINT(READER_WARN_IMPORTANT, "no condition specified");
         eval = false;
     }
 
     if (eval) {
-        readImports(element, ri, parentObject, false);
+        readImports(element, readerInformation, parentObject, false);
         // load the subobjects of gen
-        loadSubObjects(element, ri, parentObject);
+        loadSubObjects(element, readerInformation, parentObject);
         // get all element fields
-        paramLoopElement(parentObject, element, "local", ri, ignoreConditionVariables);
-        readImports(element, ri, parentObject, true);
+        paramLoopElement(
+            parentObject, element, "local", readerInformation, ignoreConditionVariables());
+        readImports(element, readerInformation, parentObject, true);
     }
 
-    ri.closeScope(riScope);
+    readerInformation.closeScope(riScope);
 }
 
 template<class X>
-bool compare(const X& val1, const X& val2, char op1, char op2)
+static bool compare(const X& val1, const X& val2, char op1, char op2)
 {
     switch (op1) {
         case '>':
@@ -68,66 +76,72 @@ bool compare(const X& val1, const X& val2, char op1, char op2)
     }
 }
 
-bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
-{
-    gmlc::utilities::string_viewOps::trim(cond);
-    bool rev = false;
-    if ((cond[0] == '!') || (cond[0] == '~')) {
-        rev = true;
-        cond = cond.substr(1, std::string_view::npos);
-    }
-    size_t pos = cond.find_first_of("><=!");
-    bool eval = false;
-    char A, B;
-    string_view BlockA, BlockB;
-
-    if (pos == std::string_view::npos) {
-        A = '!';
-        B = '=';
-        BlockA = gmlc::utilities::string_viewOps::trim(cond);
-        BlockB = "0";
-        if (BlockA.compare(0, 6, "exists") == 0) {
-            auto a1 = BlockA.find_first_of('(', 6);
-            auto a2 = BlockA.find_last_of(')');
-            auto check = BlockA.substr(a1 + 1, a2 - a1 - 1);
-            coreObject* obj = locateObject(std::string{check}, parentObject, false);
-            return (rev) ? (obj == nullptr) : (obj != nullptr);
+namespace {
+    bool checkCondition(string_view cond, readerInfo& readerInformation, coreObject* parentObject)
+    {
+        gmlc::utilities::string_viewOps::trim(cond);
+        bool reverseResult = false;
+        if ((cond[0] == '!') || (cond[0] == '~')) {
+            reverseResult = true;
+            cond = cond.substr(1, std::string_view::npos);
         }
-    } else {
-        A = cond[pos];
-        B = cond[pos + 1];
-        BlockA = gmlc::utilities::string_viewOps::trim(cond.substr(0, pos));
-        BlockB = (B == '=') ? gmlc::utilities::string_viewOps::trim(cond.substr(pos + 2)) :
-                              gmlc::utilities::string_viewOps::trim(cond.substr(pos + 1));
-    }
+        const size_t operatorPos = cond.find_first_of("><=!");
+        bool eval = false;
+        char primaryOperator;
+        char secondaryOperator;
+        string_view leftOperand;
+        string_view rightOperand;
 
-    ri.setKeyObject(parentObject);
-    double aval = interpretString(std::string{BlockA}, ri);
-    double bval = interpretString(std::string{BlockB}, ri);
+        if (operatorPos == std::string_view::npos) {
+            primaryOperator = '!';
+            secondaryOperator = '=';
+            leftOperand = gmlc::utilities::string_viewOps::trim(cond);
+            rightOperand = "0";
+            if (leftOperand.starts_with("exists")) {
+                auto openParenPos = leftOperand.find_first_of('(', 6);
+                auto closeParenPos = leftOperand.find_last_of(')');
+                auto check = leftOperand.substr(openParenPos + 1, closeParenPos - openParenPos - 1);
+                const coreObject* obj = locateObject(std::string{check}, parentObject, false);
+                return reverseResult ? (obj == nullptr) : (obj != nullptr);
+            }
+        } else {
+            primaryOperator = cond[operatorPos];
+            secondaryOperator = cond[operatorPos + 1];
+            leftOperand = gmlc::utilities::string_viewOps::trim(cond.substr(0, operatorPos));
+            rightOperand = (secondaryOperator == '=') ?
+                gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 2)) :
+                gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 1));
+        }
 
-    if (!std::isnan(aval) && !std::isnan(bval)) {
-        try {
-            eval = compare(aval, bval, A, B);
-        }
-        catch (const std::invalid_argument&) {
-            WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
-        }
-    } else if (std::isnan(aval) && (std::isnan(bval))) {  // do a string comparison
-        std::string astr = ri.checkDefines(std::string{BlockA});
-        std::string bstr = ri.checkDefines(std::string{BlockB});
+        readerInformation.setKeyObject(parentObject);
+        const double leftValue = interpretString(std::string{leftOperand}, readerInformation);
+        const double rightValue = interpretString(std::string{rightOperand}, readerInformation);
 
-        try {
-            eval = compare(astr, bstr, A, B);
-        }
-        catch (const std::invalid_argument&) {
+        if (!std::isnan(leftValue) && !std::isnan(rightValue)) {
+            try {
+                eval = compare(leftValue, rightValue, primaryOperator, secondaryOperator);
+            }
+            catch (const std::invalid_argument&) {
+                WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
+            }
+        } else if (std::isnan(leftValue) && (std::isnan(rightValue))) {  // do a string comparison
+            const std::string leftString = readerInformation.checkDefines(std::string{leftOperand});
+            const std::string rightString =
+                readerInformation.checkDefines(std::string{rightOperand});
+
+            try {
+                eval = compare(leftString, rightString, primaryOperator, secondaryOperator);
+            }
+            catch (const std::invalid_argument&) {
+                WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison terms");
+            }
+        } else {  // mixed string and number comparison
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison terms");
         }
-    } else {  // mixed string and number comparison
-        WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison terms");
-    }
 
-    ri.setKeyObject(nullptr);
-    return (rev) ? !eval : eval;
-}
+        readerInformation.setKeyObject(nullptr);
+        return reverseResult ? !eval : eval;
+    }
+}  // namespace
 
 }  // namespace griddyn

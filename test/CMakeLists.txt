@@ -121,6 +121,10 @@ target_include_directories(
     INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty>
               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/ThirdParty/utilities>
 )
+target_compile_options(
+    griddyn_gtest_base
+    INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:-Wno-c++17-attribute-extensions>
+)
 
 file(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/test_files test_dir)
 

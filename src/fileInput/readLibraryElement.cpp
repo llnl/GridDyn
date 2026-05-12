@@ -162,7 +162,6 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
 {
     auto riScope = readerInf.newScope();
     // readerInfo xm2;
-    const std::string baseName = element->getName();
     element->bookmark();
 
     loadDefines(element, readerInf);
@@ -176,15 +175,14 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         // std::cout<<"library model :"<<fieldName<<":\n";
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
-            auto obname = readerInf.objectNameTranslate(fieldName);
-            const auto* const reader =
-                std::find_if(loadFunctionMap.data(),
-                             loadFunctionMap.data() + loadFunctionMap.size(),
-                             [&obname](const auto& entry) { return entry.name == obname; });
+            auto translatedName = readerInf.objectNameTranslate(fieldName);
+            const auto* const reader = std::find_if(loadFunctionMap.data(),
+                                                    loadFunctionMap.data() + loadFunctionMap.size(),
+                                                    [&translatedName](const auto& entry) {
+                                                        return entry.name == translatedName;
+                                                    });
             if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                const std::string bname = element->getName();
                 obj = reader->loader(element, readerInf);
-                assert(bname == element->getName());
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Unrecognized object type " << fieldName << " in library");
@@ -206,7 +204,6 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
     }
 
     element->restore();
-    assert(element->getName() == baseName);
     readerInf.closeScope(riScope);
 }
 

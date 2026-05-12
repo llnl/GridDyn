@@ -12,24 +12,32 @@
 #include <string>
 
 namespace griddyn {
-static const IgnoreListType areaIgnoreElements{"agc", "reserve", "reservedispatch", "dispatch"};
+namespace {
+    const IgnoreListType& areaIgnoreElements()
+    {
+        static const auto* ignoreElements =
+            new IgnoreListType{"agc", "reserve", "reservedispatch", "dispatch"};
+        return *ignoreElements;
+    }
+}  // namespace
 static const char areaComponentName[] = "area";
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* searchObject)
 {
-    auto riScope = ri.newScope();
+    auto riScope = readerInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
-    Area* area = ElementReaderSetup(
-        element, static_cast<Area*>(nullptr), areaComponentName, ri, searchObject);
+    Area* areaObject = ElementReaderSetup(
+        element, static_cast<Area*>(nullptr), areaComponentName, readerInformation, searchObject);
 
-    loadElementInformation(area, element, areaComponentName, ri, areaIgnoreElements);
+    loadElementInformation(
+        areaObject, element, areaComponentName, readerInformation, areaIgnoreElements());
 
-    LEVELPRINT(READER_NORMAL_PRINT, "loaded Area " << area->getName());
+    LEVELPRINT(READER_NORMAL_PRINT, "loaded Area " << areaObject->getName());
 
-    ri.closeScope(riScope);
-    return area;
+    readerInformation.closeScope(riScope);
+    return areaObject;
 }
 
 }  // namespace griddyn

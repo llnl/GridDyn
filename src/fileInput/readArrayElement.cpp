@@ -14,47 +14,50 @@
 #include <vector>
 
 namespace griddyn {
-int readElementInteger(std::shared_ptr<readerElement>& element,
-                       const std::string& name,
-                       readerInfo& ri,
-                       int defValue);
-
-static const IgnoreListType ignoreArrayVariables{"count",
-                                                 "loopvariable",
-                                                 "interval",
-                                                 "start",
-                                                 "stop"};
-// "aP" is the XML element passed from the reader
-void readArrayElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
-                      coreObject* parentObject)
-{
-    auto riScope = ri.newScope();
-    std::vector<int> indices;
-
-    loadDefines(element, ri);
-    loadDirectories(element, ri);
-    // loop through the other children
-    //  cd = aP->FirstChildElement (false);
-    std::string lvar = getElementField(element, "loopvariable", readerConfig::defMatchType);
-    if (lvar.empty()) {
-        lvar = "#index";
+namespace {
+    const IgnoreListType& ignoreArrayVariables()
+    {
+        static const auto* ignoreVariables =
+            new IgnoreListType{"count", "loopvariable", "interval", "start", "stop"};
+        return *ignoreVariables;
     }
 
-    ri.setKeyObject(parentObject);
-    int count = readElementInteger(element, "count", ri, -1);
-    int start = readElementInteger(element, "start", ri, 1);
-    int stop = readElementInteger(element, "stop", ri, -1);
-    int interval = readElementInteger(element, "interval", ri, 1);
-    ri.setKeyObject(nullptr);
+    int readElementInteger(std::shared_ptr<readerElement>& element,
+                           const std::string& name,
+                           readerInfo& readerInformation,
+                           int defValue);
+}  // namespace
+// "aP" is the XML element passed from the reader
+void readArrayElement(std::shared_ptr<readerElement>& element,
+                      readerInfo& readerInformation,
+                      coreObject* parentObject)
+{
+    auto riScope = readerInformation.newScope();
+    std::vector<int> indices;
+
+    loadDefines(element, readerInformation);
+    loadDirectories(element, readerInformation);
+    // loop through the other children
+    //  cd = aP->FirstChildElement (false);
+    std::string loopVariable = getElementField(element, "loopvariable", readerConfig::defMatchType);
+    if (loopVariable.empty()) {
+        loopVariable = "#index";
+    }
+
+    readerInformation.setKeyObject(parentObject);
+    const int count = readElementInteger(element, "count", readerInformation, -1);
+    const int start = readElementInteger(element, "start", readerInformation, 1);
+    const int stop = readElementInteger(element, "stop", readerInformation, -1);
+    const int interval = readElementInteger(element, "interval", readerInformation, 1);
+    readerInformation.setKeyObject(nullptr);
     if (count > 0) {
         indices.resize(count);
         if (interval == 1) {
             std::iota(indices.begin(), indices.end(), start);
         } else {
             int val = start;
-            for (auto& iv : indices) {
-                iv = val;
+            for (auto& indexValue : indices) {
+                indexValue = val;
                 val += interval;
             }
         }
@@ -74,37 +77,40 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     // fill the vector
 
     for (auto ind : indices) {
-        ri.addDefinition(lvar, std::to_string(ind));
-        loadElementInformation(parentObject, element, "array", ri, ignoreArrayVariables);
+        readerInformation.addDefinition(loopVariable, std::to_string(ind));
+        loadElementInformation(
+            parentObject, element, "array", readerInformation, ignoreArrayVariables());
     }
 
-    ri.closeScope(riScope);
+    readerInformation.closeScope(riScope);
 }
 
-int readElementInteger(std::shared_ptr<readerElement>& element,
-                       const std::string& name,
-                       readerInfo& ri,
-                       int defValue)
-{
-    int ret = defValue;
-    auto strVal = getElementField(element, name, readerConfig::defMatchType);
-    if (strVal.empty()) {
-        return ret;
-    }
-
-    ret = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
-    if (ret == -kBigINT)  // we have a more complicated string
+namespace {
+    int readElementInteger(std::shared_ptr<readerElement>& element,
+                           const std::string& name,
+                           readerInfo& readerInformation,
+                           int defValue)
     {
-        double val = interpretString(strVal, ri);
-        if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
-            ret = static_cast<int>(val);
-        } else {
-            ret = defValue;
-            WARNPRINT(READER_WARN_IMPORTANT, "Unable to interpret start variable");
+        int returnValue = defValue;
+        auto strVal = getElementField(element, name, readerConfig::defMatchType);
+        if (strVal.empty()) {
+            return returnValue;
         }
-    }
 
-    return ret;
-}
+        returnValue = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
+        if (returnValue == -kBigINT)  // we have a more complicated string
+        {
+            const double val = interpretString(strVal, readerInformation);
+            if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
+                returnValue = static_cast<int>(val);
+            } else {
+                returnValue = defValue;
+                WARNPRINT(READER_WARN_IMPORTANT, "Unable to interpret start variable");
+            }
+        }
+
+        return returnValue;
+    }
+}  // namespace
 
 }  // namespace griddyn

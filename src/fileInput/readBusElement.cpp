@@ -16,42 +16,47 @@
 #include <string>
 
 namespace griddyn {
-static const IgnoreListType busIgnore{"area"};
+namespace {
+    const IgnoreListType& busIgnore()
+    {
+        static const auto* ignoreFields = new IgnoreListType{"area"};
+        return *ignoreFields;
+    }
+}  // namespace
 static const char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& ri,
+                        readerInfo& readerInformation,
                         coreObject* searchObject)
 {
-    gridParameter param;
-    auto riScope = ri.newScope();
+    auto riScope = readerInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
     // check for the area field
 
     gridBus* bus = ElementReaderSetup(
-        element, static_cast<gridBus*>(nullptr), busComponentName, ri, searchObject);
+        element, static_cast<gridBus*>(nullptr), busComponentName, readerInformation, searchObject);
 
     std::string valType = getElementField(element, "type", readerConfig::defMatchType);
     if (!valType.empty()) {
-        valType = ri.checkDefines(valType);
-        auto cloc = valType.find_first_of(",;");
-        if (cloc != std::string::npos) {
-            std::string A = valType.substr(0, cloc);
-            std::string B = valType.substr(cloc + 1);
-            gmlc::utilities::stringOps::trimString(A);
-            gmlc::utilities::stringOps::trimString(B);
+        valType = readerInformation.checkDefines(valType);
+        auto delimiterPos = valType.find_first_of(",;");
+        if (delimiterPos != std::string::npos) {
+            std::string primaryType = valType.substr(0, delimiterPos);
+            std::string secondaryType = valType.substr(delimiterPos + 1);
+            gmlc::utilities::stringOps::trimString(primaryType);
+            gmlc::utilities::stringOps::trimString(secondaryType);
             try {
-                bus->set("type", A);
+                bus->set("type", primaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << A);
+                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << primaryType);
             }
             try {
-                bus->set("type", B);
+                bus->set("type", secondaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << B);
+                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << secondaryType);
             }
         } else {
             try  // type can mean two different things to a bus -either the actual type of the bus
@@ -66,17 +71,17 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                                                   // unrecognizedParameter depending on the actual
                                                   // model used
             {
-                if (!(coreObjectFactory::instance()->isValidType(busComponentName, valType))) {
+                if (!coreObjectFactory::instance()->isValidType(busComponentName, valType)) {
                     WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << valType);
                 }
             }
         }
     }
-    loadElementInformation(bus, element, busComponentName, ri, busIgnore);
+    loadElementInformation(bus, element, busComponentName, readerInformation, busIgnore());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded Bus " << bus->getName());
 
-    ri.closeScope(riScope);
+    readerInformation.closeScope(riScope);
     return bus;
 }
 

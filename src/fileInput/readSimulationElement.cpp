@@ -30,13 +30,13 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                                       gridSimulation* gs)
 {
     // pointers
-    bool masterObject = isMasterObject(searchObject, gs);
+    bool isMaster = isMasterObject(searchObject, gs);
 
     auto riScope = ri.newScope();
 
     loadDefines(element, ri);
     loadDirectories(element, ri);
-    if (masterObject) {
+    if (isMaster) {
         loadDefaultObjectTranslations(ri);
     }
     loadTranslations(element, ri);
@@ -44,25 +44,25 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
     gridSimulation* simulation = ElementReaderSetup(element, gs, "simulation", ri, searchObject);
 
     // load the simulation name and id
-    std::string ename = getElementField(element, "name", defMatchType);
-    if (!ename.empty()) {
-        simulation->setName(ename);
+    std::string simulationName = getElementField(element, "name", defMatchType);
+    if (!simulationName.empty()) {
+        simulation->setName(simulationName);
     }
     // load the file version
-    std::string vers = getElementField(element, "version", defMatchType);
-    if (!vers.empty()) {
-        simulation->set("version", vers);
+    std::string versionString = getElementField(element, "version", defMatchType);
+    if (!versionString.empty()) {
+        simulation->set("version", versionString);
     }
     setIndex(element, simulation, ri);
     // load any other attributes
     objSetAttributes(simulation, element, simulation->getName(), ri, simIgnoreFields);
 
-    if (masterObject) {
-        std::string pname = getElementField(element, "basepower", defMatchType);
-        if (!pname.empty()) {
-            double val = interpretString(pname, ri);
-            ri.base = val;
-            simulation->set("basepower", val);
+    if (isMaster) {
+        std::string basePowerText = getElementField(element, "basepower", defMatchType);
+        if (!basePowerText.empty()) {
+            double basePowerValue = interpretString(basePowerText, ri);
+            ri.base = basePowerValue;
+            simulation->set("basepower", basePowerValue);
         }
     }
     // load the libraries
@@ -92,7 +92,7 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
     }
     element->moveToParent();
 
-    if (masterObject) {
+    if (isMaster) {
         int busCount = simulation->getInt("totalbuscount");
         int linkCount = simulation->getInt("totallinkcount");
 

@@ -36,9 +36,10 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     loadDirectories(element, ri);
     // loop through the other children
     //  cd = aP->FirstChildElement (false);
-    std::string lvar = getElementField(element, "loopvariable", readerConfig::defMatchType);
-    if (lvar.empty()) {
-        lvar = "#index";
+    std::string loopVariable =
+        getElementField(element, "loopvariable", readerConfig::defMatchType);
+    if (loopVariable.empty()) {
+        loopVariable = "#index";
     }
 
     ri.setKeyObject(parentObject);
@@ -53,8 +54,8 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
             std::iota(indices.begin(), indices.end(), start);
         } else {
             int val = start;
-            for (auto& iv : indices) {
-                iv = val;
+            for (auto& indexValue : indices) {
+                indexValue = val;
                 val += interval;
             }
         }
@@ -74,7 +75,7 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     // fill the vector
 
     for (auto ind : indices) {
-        ri.addDefinition(lvar, std::to_string(ind));
+        ri.addDefinition(loopVariable, std::to_string(ind));
         loadElementInformation(parentObject, element, "array", ri, ignoreArrayVariables);
     }
 
@@ -86,25 +87,25 @@ int readElementInteger(std::shared_ptr<readerElement>& element,
                        readerInfo& ri,
                        int defValue)
 {
-    int ret = defValue;
+    int returnValue = defValue;
     auto strVal = getElementField(element, name, readerConfig::defMatchType);
     if (strVal.empty()) {
-        return ret;
+        return returnValue;
     }
 
-    ret = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
-    if (ret == -kBigINT)  // we have a more complicated string
+    returnValue = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
+    if (returnValue == -kBigINT)  // we have a more complicated string
     {
         double val = interpretString(strVal, ri);
         if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
-            ret = static_cast<int>(val);
+            returnValue = static_cast<int>(val);
         } else {
-            ret = defValue;
+            returnValue = defValue;
             WARNPRINT(READER_WARN_IMPORTANT, "Unable to interpret start variable");
         }
     }
 
-    return ret;
+    return returnValue;
 }
 
 }  // namespace griddyn

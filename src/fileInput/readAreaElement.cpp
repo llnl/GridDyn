@@ -21,15 +21,15 @@ Area* readAreaElement(std::shared_ptr<readerElement>& element,
     auto riScope = ri.newScope();
 
     // boiler plate code to setup the object from references or new object
-    Area* area = ElementReaderSetup(
+    Area* areaObject = ElementReaderSetup(
         element, static_cast<Area*>(nullptr), areaComponentName, ri, searchObject);
 
-    loadElementInformation(area, element, areaComponentName, ri, areaIgnoreElements);
+    loadElementInformation(areaObject, element, areaComponentName, ri, areaIgnoreElements);
 
-    LEVELPRINT(READER_NORMAL_PRINT, "loaded Area " << area->getName());
+    LEVELPRINT(READER_NORMAL_PRINT, "loaded Area " << areaObject->getName());
 
     ri.closeScope(riScope);
-    return area;
+    return areaObject;
 }
 
 }  // namespace griddyn

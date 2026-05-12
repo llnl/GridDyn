@@ -176,15 +176,17 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         // std::cout<<"library model :"<<fieldName<<":\n";
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
-            auto obname = readerInf.objectNameTranslate(fieldName);
+            auto translatedName = readerInf.objectNameTranslate(fieldName);
             const auto* const reader =
                 std::find_if(loadFunctionMap.data(),
                              loadFunctionMap.data() + loadFunctionMap.size(),
-                             [&obname](const auto& entry) { return entry.name == obname; });
+                             [&translatedName](const auto& entry) {
+                                 return entry.name == translatedName;
+                             });
             if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                const std::string bname = element->getName();
+                const std::string elementName = element->getName();
                 obj = reader->loader(element, readerInf);
-                assert(bname == element->getName());
+                assert(elementName == element->getName());
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Unrecognized object type " << fieldName << " in library");

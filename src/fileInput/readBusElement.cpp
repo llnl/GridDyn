@@ -23,7 +23,6 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& ri,
                         coreObject* searchObject)
 {
-    gridParameter param;
     auto riScope = ri.newScope();
 
     // boiler plate code to setup the object from references or new object
@@ -35,23 +34,25 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
     std::string valType = getElementField(element, "type", readerConfig::defMatchType);
     if (!valType.empty()) {
         valType = ri.checkDefines(valType);
-        auto cloc = valType.find_first_of(",;");
-        if (cloc != std::string::npos) {
-            std::string A = valType.substr(0, cloc);
-            std::string B = valType.substr(cloc + 1);
-            gmlc::utilities::stringOps::trimString(A);
-            gmlc::utilities::stringOps::trimString(B);
+        auto delimiterPos = valType.find_first_of(",;");
+        if (delimiterPos != std::string::npos) {
+            std::string primaryType = valType.substr(0, delimiterPos);
+            std::string secondaryType = valType.substr(delimiterPos + 1);
+            gmlc::utilities::stringOps::trimString(primaryType);
+            gmlc::utilities::stringOps::trimString(secondaryType);
             try {
-                bus->set("type", A);
+                bus->set("type", primaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << A);
+                WARNPRINT(READER_WARN_IMPORTANT,
+                          "Bus type parameter not found " << primaryType);
             }
             try {
-                bus->set("type", B);
+                bus->set("type", secondaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << B);
+                WARNPRINT(READER_WARN_IMPORTANT,
+                          "Bus type parameter not found " << secondaryType);
             }
         } else {
             try  // type can mean two different things to a bus -either the actual type of the bus

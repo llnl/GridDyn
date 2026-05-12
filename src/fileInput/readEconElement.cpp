@@ -37,52 +37,53 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             coreObject* searchObject)
 {
     // get the optimization root
-    auto gdo = dynamic_cast<gridDynOptimization*>(searchObject->getRoot());
-    if (gdo == nullptr)  // there is no optimization engine defined so ignore the economic data
+    auto optimizationRoot = dynamic_cast<gridDynOptimization*>(searchObject->getRoot());
+    if (optimizationRoot ==
+        nullptr)  // there is no optimization engine defined so ignore the economic data
     {
         return nullptr;
     }
-    gridOptObject* oo = nullptr;
-    std::string targetname;
+    gridOptObject* optObject = nullptr;
+    std::string targetName;
     auto riScope = ri.newScope();
     // run the boilerplate code to setup the object
     // lnk = XMLReaderSetup(aP, lnk, "econ", ri, searchObject);
     std::string objectType;
     std::string ename;
-    auto coof = coreOptObjectFactory::instance();
+    auto optObjectFactory = coreOptObjectFactory::instance();
     coreObject* obj;
     coreObject* targetObject = nullptr;
-    gridOptObject* parentOo = nullptr;
+    gridOptObject* parentOptObject = nullptr;
 
     loadDefines(element, ri);
     loadDirectories(element, ri);
     if (searchObject != nullptr) {
-        targetname =
+        targetName =
             getElementFieldOptions(element, {"target", "source"}, readerConfig::defMatchType);
-        if (targetname.empty()) {
+        if (targetName.empty()) {
             targetObject = searchObject;
         } else {
-            targetname = ri.checkDefines(targetname);
-            targetObject = locateObject(targetname, searchObject);
+            targetName = ri.checkDefines(targetName);
+            targetObject = locateObject(targetName, searchObject);
         }
-        oo = gdo->getOptData(targetObject);
-        if (oo != nullptr)  // check for retyping
+        optObject = optimizationRoot->getOptData(targetObject);
+        if (optObject != nullptr)  // check for retyping
         {
             // if we need to do a type override
-            auto ooMode = getElementField(element, "retype", readerConfig::defMatchType);
-            if (!ooMode.empty()) {
-                ooMode = ri.checkDefines(ooMode);
-                makeLowerCase(ooMode);
-                gridOptObject* rtObj = coof->createObject(ooMode, targetObject);
-                if (rtObj == nullptr) {
-                    WARNPRINT(READER_WARN_IMPORTANT, "unknown economic retype " << ooMode);
+            auto optMode = getElementField(element, "retype", readerConfig::defMatchType);
+            if (!optMode.empty()) {
+                optMode = ri.checkDefines(optMode);
+                makeLowerCase(optMode);
+                gridOptObject* retypedObject = optObjectFactory->createObject(optMode, targetObject);
+                if (retypedObject == nullptr) {
+                    WARNPRINT(READER_WARN_IMPORTANT, "unknown economic retype " << optMode);
                 } else {
                     // TODO(phlpt): This isn't quite right yet.
-                    oo->clone(rtObj);
-                    oo->getParent()->remove(oo);
-                    delete oo;
-                    searchObject->add(rtObj);
-                    oo = rtObj;
+                    optObject->clone(retypedObject);
+                    optObject->getParent()->remove(optObject);
+                    delete optObject;
+                    searchObject->add(retypedObject);
+                    optObject = retypedObject;
                 }
             }
         }
@@ -98,38 +99,38 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
         std::string mode = getElementField(element, "mode", readerConfig::defMatchType);
         if (mode.empty()) {
-            oo = coof->createObject(objectType);
+            optObject = optObjectFactory->createObject(objectType);
         } else {
             mode = ri.checkDefines(mode);
             makeLowerCase(mode);
-            oo = coof->createObject(mode, objectType);
-            if (oo == nullptr) {
+            optObject = optObjectFactory->createObject(mode, objectType);
+            if (optObject == nullptr) {
                 WARNPRINT(READER_WARN_IMPORTANT, "unknown economic mode " << mode);
             }
         }
     }
 
-    if (oo == nullptr) {
-        std::string ooMode =
+    if (optObject == nullptr) {
+        std::string optMode =
             getElementFieldOptions(element, {"mode", "retype"}, readerConfig::defMatchType);
-        if (!ooMode.empty()) {
-            ooMode = ri.checkDefines(ooMode);
-            makeLowerCase(ooMode);
-            oo = coof->createObject(ooMode, targetObject);
-            if (oo == nullptr) {
-                WARNPRINT(READER_WARN_IMPORTANT, "unknown economic mode " << ooMode);
+        if (!optMode.empty()) {
+            optMode = ri.checkDefines(optMode);
+            makeLowerCase(optMode);
+            optObject = optObjectFactory->createObject(optMode, targetObject);
+            if (optObject == nullptr) {
+                WARNPRINT(READER_WARN_IMPORTANT, "unknown economic mode " << optMode);
             }
         }
         std::string refName = getElementField(element, "ref", readerConfig::defMatchType);
         if (!refName.empty()) {
             ename = ri.checkDefines(ename);
-            obj = ri.makeLibraryObject(ename, oo);
+            obj = ri.makeLibraryObject(ename, optObject);
             if (obj == nullptr) {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "unable to locate reference object " << ename << " in library");
             } else {
-                oo = dynamic_cast<gridOptObject*>(obj);
-                if (oo == nullptr) {
+                optObject = dynamic_cast<gridOptObject*>(obj);
+                if (optObject == nullptr) {
                     WARNPRINT(READER_WARN_IMPORTANT,
                               "Invalid reference object " << ename << ": wrong type");
                     delete obj;
@@ -140,9 +141,9 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
 
     // check for library references
 
-    if (oo == nullptr) {
-        oo = coof->createObject(targetObject);
-        if (oo == nullptr) {
+    if (optObject == nullptr) {
+        optObject = optObjectFactory->createObject(targetObject);
+        if (optObject == nullptr) {
             WARNPRINT(READER_WARN_IMPORTANT, "Unable to create object ");
             return nullptr;
         }
@@ -151,56 +152,56 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     if (!ename.empty()) {
         ename = ri.checkDefines(ename);
         if (ri.prefix.empty()) {
-            oo->setName(ename);
+            optObject->setName(ename);
         } else {
-            oo->setName(ri.prefix + '_' + ename);
+            optObject->setName(ri.prefix + '_' + ename);
         }
     }
     // locate a parent if any
     ename = getElementField(element, "parent", readerConfig::defMatchType);
     if (!ename.empty()) {
         ename = ri.checkDefines(ename);
-        if (oo->isRoot()) {
+        if (optObject->isRoot()) {
             obj = locateObject(ename, searchObject);
 
             if (obj != nullptr) {
                 if (dynamic_cast<gridOptObject*>(obj) != nullptr) {
-                    parentOo = static_cast<gridOptObject*>(obj);
+                    parentOptObject = static_cast<gridOptObject*>(obj);
                 } else {
-                    parentOo = gdo->getOptData(obj);
+                    parentOptObject = optimizationRoot->getOptData(obj);
                 }
-                if (parentOo == nullptr) {
-                    parentOo = gdo->makeOptObjectPath(obj);
+                if (parentOptObject == nullptr) {
+                    parentOptObject = optimizationRoot->makeOptObjectPath(obj);
                 }
-                addToParent(oo, parentOo);
+                addToParent(optObject, parentOptObject);
             }
         } else {
             WARNPRINT(READER_WARN_IMPORTANT,
-                      "Parent " << ename << "specified for " << oo->getName()
+                      "Parent " << ename << "specified for " << optObject->getName()
                                 << " even though it already has a parent");
         }
-    } else if (oo->isRoot()) {
+    } else if (optObject->isRoot()) {
         if ((targetObject != nullptr) && (targetObject->getParent() != nullptr)) {
-            parentOo = gdo->makeOptObjectPath(targetObject->getParent());
-            addToParent(oo, parentOo);
+            parentOptObject = optimizationRoot->makeOptObjectPath(targetObject->getParent());
+            addToParent(optObject, parentOptObject);
         } else {
             // set the base power to the system default (usually used for library objects
-            oo->set("basepower", ri.base);
+            optObject->set("basepower", ri.base);
         }
     }
 
     // properties from link attributes
 
-    objSetAttributes(oo, element, "econ", ri, econIgnoreElements);
-    loadSubObjects(element, ri, oo);
+    objSetAttributes(optObject, element, "econ", ri, econIgnoreElements);
+    loadSubObjects(element, ri, optObject);
 
     // get all element fields
-    paramLoopElement(oo, element, "econ", ri, econIgnoreElements);
+    paramLoopElement(optObject, element, "econ", ri, econIgnoreElements);
 
-    LEVELPRINT(READER_NORMAL_PRINT, "loaded econ data " << oo->getName());
+    LEVELPRINT(READER_NORMAL_PRINT, "loaded econ data " << optObject->getName());
 
     ri.closeScope(riScope);
-    return oo;
+    return optObject;
 }
 #endif
 }  // namespace griddyn

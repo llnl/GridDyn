@@ -71,53 +71,56 @@ bool compare(const X& val1, const X& val2, char op1, char op2)
 bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
 {
     gmlc::utilities::string_viewOps::trim(cond);
-    bool rev = false;
+    bool reverseResult = false;
     if ((cond[0] == '!') || (cond[0] == '~')) {
-        rev = true;
+        reverseResult = true;
         cond = cond.substr(1, std::string_view::npos);
     }
-    size_t pos = cond.find_first_of("><=!");
+    size_t operatorPos = cond.find_first_of("><=!");
     bool eval = false;
-    char A, B;
-    string_view BlockA, BlockB;
+    char primaryOperator;
+    char secondaryOperator;
+    string_view leftOperand;
+    string_view rightOperand;
 
-    if (pos == std::string_view::npos) {
-        A = '!';
-        B = '=';
-        BlockA = gmlc::utilities::string_viewOps::trim(cond);
-        BlockB = "0";
-        if (BlockA.compare(0, 6, "exists") == 0) {
-            auto a1 = BlockA.find_first_of('(', 6);
-            auto a2 = BlockA.find_last_of(')');
-            auto check = BlockA.substr(a1 + 1, a2 - a1 - 1);
+    if (operatorPos == std::string_view::npos) {
+        primaryOperator = '!';
+        secondaryOperator = '=';
+        leftOperand = gmlc::utilities::string_viewOps::trim(cond);
+        rightOperand = "0";
+        if (leftOperand.compare(0, 6, "exists") == 0) {
+            auto openParenPos = leftOperand.find_first_of('(', 6);
+            auto closeParenPos = leftOperand.find_last_of(')');
+            auto check = leftOperand.substr(openParenPos + 1, closeParenPos - openParenPos - 1);
             coreObject* obj = locateObject(std::string{check}, parentObject, false);
-            return (rev) ? (obj == nullptr) : (obj != nullptr);
+            return (reverseResult) ? (obj == nullptr) : (obj != nullptr);
         }
     } else {
-        A = cond[pos];
-        B = cond[pos + 1];
-        BlockA = gmlc::utilities::string_viewOps::trim(cond.substr(0, pos));
-        BlockB = (B == '=') ? gmlc::utilities::string_viewOps::trim(cond.substr(pos + 2)) :
-                              gmlc::utilities::string_viewOps::trim(cond.substr(pos + 1));
+        primaryOperator = cond[operatorPos];
+        secondaryOperator = cond[operatorPos + 1];
+        leftOperand = gmlc::utilities::string_viewOps::trim(cond.substr(0, operatorPos));
+        rightOperand = (secondaryOperator == '=') ?
+                           gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 2)) :
+                           gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 1));
     }
 
     ri.setKeyObject(parentObject);
-    double aval = interpretString(std::string{BlockA}, ri);
-    double bval = interpretString(std::string{BlockB}, ri);
+    double leftValue = interpretString(std::string{leftOperand}, ri);
+    double rightValue = interpretString(std::string{rightOperand}, ri);
 
-    if (!std::isnan(aval) && !std::isnan(bval)) {
+    if (!std::isnan(leftValue) && !std::isnan(rightValue)) {
         try {
-            eval = compare(aval, bval, A, B);
+            eval = compare(leftValue, rightValue, primaryOperator, secondaryOperator);
         }
         catch (const std::invalid_argument&) {
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
         }
-    } else if (std::isnan(aval) && (std::isnan(bval))) {  // do a string comparison
-        std::string astr = ri.checkDefines(std::string{BlockA});
-        std::string bstr = ri.checkDefines(std::string{BlockB});
+    } else if (std::isnan(leftValue) && (std::isnan(rightValue))) {  // do a string comparison
+        std::string leftString = ri.checkDefines(std::string{leftOperand});
+        std::string rightString = ri.checkDefines(std::string{rightOperand});
 
         try {
-            eval = compare(astr, bstr, A, B);
+            eval = compare(leftString, rightString, primaryOperator, secondaryOperator);
         }
         catch (const std::invalid_argument&) {
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison terms");
@@ -127,7 +130,7 @@ bool checkCondition(string_view cond, readerInfo& ri, coreObject* parentObject)
     }
 
     ri.setKeyObject(nullptr);
-    return (rev) ? !eval : eval;
+    return (reverseResult) ? !eval : eval;
 }
 
 }  // namespace griddyn

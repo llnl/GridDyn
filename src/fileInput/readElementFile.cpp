@@ -38,11 +38,11 @@ void loadElementInformation(coreObject* obj,
     readImports(element, readerInfoRef, obj, true);
 }
 
-static void checkForEndUnits(gridParameter& param, const std::string& paramStr);
+static void checkForEndUnits(gridParameter& param, const std::string& parameterString);
 
 static const char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
-                 readerInfo& readerInfoRef,
+                 readerInfo& readerInformation,
                  coreObject* parentObject,
                  bool finalFlag)
 {
@@ -51,7 +51,7 @@ void readImports(std::shared_ptr<readerElement>& element,
     }
 
     // run any source files
-    const auto bflags = readerInfoRef.getFlags();
+    const auto baseFlags = readerInformation.getFlags();
     element->bookmark();
     element->moveToFirstChild(importString);
     while (element->isValid()) {
@@ -69,7 +69,7 @@ void readImports(std::shared_ptr<readerElement>& element,
 
         const std::string flags = getElementField(element, "flags", readerConfig::defMatchType);
         if (!flags.empty()) {
-            addflags(readerInfoRef, flags);
+            addflags(readerInformation, flags);
         }
         std::string sourceFile = getElementField(element, "file", readerConfig::defMatchType);
         if (sourceFile.empty()) {
@@ -78,14 +78,14 @@ void readImports(std::shared_ptr<readerElement>& element,
         }
 
         // check through the files to find the right location
-        readerInfoRef.checkFileParam(sourceFile, true);
+        readerInformation.checkFileParam(sourceFile, true);
         std::string prefix =
             getElementField(element, "prefix", readerConfig::match_type::capital_case_match);
         // get the prefix if any
         if (prefix.empty()) {
-            prefix = readerInfoRef.prefix;
-        } else if (!(readerInfoRef.prefix.empty())) {
-            auto temp = readerInfoRef.prefix;
+            prefix = readerInformation.prefix;
+        } else if (!readerInformation.prefix.empty()) {
+            auto temp = readerInformation.prefix;
             temp.push_back('_');
             temp.append(prefix);
             prefix = std::move(temp);
@@ -95,15 +95,15 @@ void readImports(std::shared_ptr<readerElement>& element,
         const std::string ext =
             convertToLowerCase(getElementField(element, "filetype", readerConfig::defMatchType));
 
-        std::swap(prefix, readerInfoRef.prefix);
+        std::swap(prefix, readerInformation.prefix);
         if (ext.empty()) {
-            loadFile(parentObject, sourceFile, &readerInfoRef);
+            loadFile(parentObject, sourceFile, &readerInformation);
         } else {
-            loadFile(parentObject, sourceFile, &readerInfoRef, ext);
+            loadFile(parentObject, sourceFile, &readerInformation, ext);
         }
-        std::swap(prefix, readerInfoRef.prefix);
+        std::swap(prefix, readerInformation.prefix);
 
-        readerInfoRef.setAllFlags(bflags);
+        readerInformation.setAllFlags(baseFlags);
         element->moveToNextSibling(importString);  // next import file
     }
     element->restore();
@@ -210,22 +210,23 @@ void getElementParam(const std::shared_ptr<readerElement>& element, gridParamete
     param.valid = true;
 }
 
-void checkForEndUnits(gridParameter& param, const std::string& paramStr)
+void checkForEndUnits(gridParameter& param, const std::string& parameterString)
 {
-    const double val = numeric_conversion(paramStr, readerNullVal);
-    if (val != readerNullVal) {
-        const auto lastNumericPos = paramStr.find_last_of("012345689. )]");
-        if (lastNumericPos < paramStr.size() - 1) {
-            auto unitValue = units::unit_cast_from_string(paramStr.substr(lastNumericPos + 1));
+    const double numericValue = numeric_conversion(parameterString, readerNullVal);
+    if (numericValue != readerNullVal) {
+        const auto lastNumericPos = parameterString.find_last_of("012345689. )]");
+        if (lastNumericPos < parameterString.size() - 1) {
+            auto unitValue =
+                units::unit_cast_from_string(parameterString.substr(lastNumericPos + 1));
             if (units::is_valid(unitValue)) {
-                param.value = val;
+                param.value = numericValue;
                 param.paramUnits = unitValue;
                 param.stringType = false;
                 return;
             }
         }
     }
-    param.strVal = paramStr;
+    param.strVal = parameterString;
     param.stringType = true;
 }
 

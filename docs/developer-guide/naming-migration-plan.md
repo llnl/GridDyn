@@ -203,7 +203,7 @@ Types of work in this phase:
 - [x] `src/griddyn/blocks`
 - [x] `src/utilities`
 - [x] `src/optimization`
-- [~] `src/runner`
+- [x] `src/runner`
 - [~] `src/fileInput`
 - [ ] `src/plugins`
 - [x] `src/formatInterpreters`
@@ -460,7 +460,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/fskit`                                                                                                             | Phase 3 | Low-risk FSKIT cleanup batch covering simulator, scheduler, runner, communicator, and protection/process wrapper naming                                                                                  | No                   | Not yet run                      | Complete    |
 | merged      | `src/fmi_export`                                                                                                        | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                      | No                   | CI compile and `clang-tidy` run  | Complete    |
 | merged      | `src/runner` + `src/extraModels` + `src/gridDynLoader` + `src/gridDynMain` + `src/gridDynServer` + `src/griddyn_shared` | Phase 3 | Low-risk runtime/bootstrap cleanup batch covering runner state, transformer helper models, loader/main entrypoints, PMU server state, and shared-library wrapper local naming                            | No                   | CI compile and `clang-tidy` run  | Complete    |
-| working     | `src/fileInput`                                                                                                         | Phase 3 | Low-risk reader cleanup batch covering file-input reader helpers and element loaders with local naming normalization across the area/bus/link/relay/simulation/econ/event/collector reader path          | No                   | Not yet run                      | In progress |
+| merged      | `src/fileInput`                                                                                                         | Phase 3 | Low-risk reader cleanup batch covering file-input reader helpers and element loaders with local naming normalization across the area/bus/link/relay/simulation/econ/event/collector reader path          | No                   | CI compile and `clang-tidy` run  | Complete    |
 
 ## Open Decisions
 

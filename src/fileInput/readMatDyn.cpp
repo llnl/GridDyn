@@ -39,72 +39,72 @@ void loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Gene
 void loadGenGovArray(coreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
 
 void loadMatDyn(coreObject* parentObject,
-                const std::string& filetext,
+                const std::string& fileText,
                 const basicReaderInfo& /*bri*/)
 {
-    string_view ftext = filetext;
-    mArray M1;
+    string_view fileView = fileText;
+    mArray matrixData;
 
     std::vector<Generator*> genList;
     // read the frequency
-    size_t Aindex = ftext.find_first_of('[', 0);
-    size_t Bindex = ftext.find_first_of(']', 0);
-    auto tstr = ftext.substr(Aindex + 1, Bindex - Aindex - 1);
-    auto Tline = split(tstr, "\t ,", delimiter_compression::on);
+    size_t openBracketPos = fileView.find_first_of('[', 0);
+    size_t closeBracketPos = fileView.find_first_of(']', 0);
+    auto tokenString = fileView.substr(openBracketPos + 1, closeBracketPos - openBracketPos - 1);
+    auto tokens = split(tokenString, "\t ,", delimiter_compression::on);
 
-    size_t Dindex = Bindex;
-    size_t Cindex;
-    Aindex = ftext.find(Tline[3], Dindex);  // freq
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        Cindex = ftext.find_first_of(";\n", Aindex);
-        tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
-        double freq = numeric_conversion(tstr, kNullVal);
+    size_t dataIndex = closeBracketPos;
+    size_t terminatorPos;
+    openBracketPos = fileView.find(tokens[3], dataIndex);  // freq
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        terminatorPos = fileView.find_first_of(";\n", openBracketPos);
+        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        const double freq = numeric_conversion(tokenString, kNullVal);
         parentObject->set("basefreq", freq);
     }
     // get the timestep parameter
-    Aindex = ftext.find(Tline[4], Dindex);  // steptime
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        Cindex = ftext.find_first_of(";\n", Aindex);
-        tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
-        double val = numeric_conversion(tstr, kNullVal);
-        parentObject->set("timestep", val);
+    openBracketPos = fileView.find(tokens[4], dataIndex);  // steptime
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        terminatorPos = fileView.find_first_of(";\n", openBracketPos);
+        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        const double timestep = numeric_conversion(tokenString, kNullVal);
+        parentObject->set("timestep", timestep);
     }
     // get the stoptime parameter
-    Aindex = ftext.find(Tline[5], Dindex);  // stoptime
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        Cindex = ftext.find_first_of(";\n", Aindex);
-        tstr = ftext.substr(Bindex + 1, Cindex - Bindex - 1);
-        double val = numeric_conversion(tstr, kNullVal);
-        parentObject->set("timestop", val);
+    openBracketPos = fileView.find(tokens[5], dataIndex);  // stoptime
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        terminatorPos = fileView.find_first_of(";\n", openBracketPos);
+        tokenString = fileView.substr(closeBracketPos + 1, terminatorPos - closeBracketPos - 1);
+        const double stopTime = numeric_conversion(tokenString, kNullVal);
+        parentObject->set("timestop", stopTime);
     }
-    Aindex = ftext.find(Tline[0], Dindex);  // gen
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        readMatlabArray(filetext, Bindex + 1, M1);
-        loadGenDynArray(parentObject, M1, genList);
-    }
-
-    Aindex = ftext.find(Tline[1], Dindex);  // exc
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        readMatlabArray(filetext, Bindex + 1, M1);
-        loadGenExcArray(parentObject, M1, genList);
+    openBracketPos = fileView.find(tokens[0], dataIndex);  // gen
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenDynArray(parentObject, matrixData, genList);
     }
 
-    Aindex = ftext.find(Tline[2], Dindex);  // gov
-    if (Aindex != std::string_view::npos) {
-        Bindex = ftext.find_first_of('=', Aindex);
-        readMatlabArray(filetext, Bindex + 1, M1);
-        loadGenGovArray(parentObject, M1, genList);
+    openBracketPos = fileView.find(tokens[1], dataIndex);  // exc
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenExcArray(parentObject, matrixData, genList);
     }
-    Aindex = 1;
-    for (auto& ngen : genList) {
+
+    openBracketPos = fileView.find(tokens[2], dataIndex);  // gov
+    if (openBracketPos != std::string_view::npos) {
+        closeBracketPos = fileView.find_first_of('=', openBracketPos);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenGovArray(parentObject, matrixData, genList);
+    }
+    int generatorIndex = 1;
+    for (auto& nextGenerator : genList) {
         auto* gen = static_cast<Generator*>(
-            parentObject->findByUserID("gen", static_cast<index_t>(Aindex)));
-        Aindex++;
+            parentObject->findByUserID("gen", static_cast<index_t>(generatorIndex)));
+        generatorIndex++;
         if (gen == nullptr) {
             std::cout
                 << "the number of generators does not match the matdyn file please run with matching "
@@ -112,19 +112,19 @@ void loadMatDyn(coreObject* parentObject,
             return;
         }
         // now we load the existing components of our generator onto the existing one
-        coreObject* obj = ngen->getSubObject("exciter", 0);
-        if (obj != nullptr) {
-            gen->add(obj);
+        coreObject* subObject = nextGenerator->getSubObject("exciter", 0);
+        if (subObject != nullptr) {
+            gen->add(subObject);
         }
 
-        obj = ngen->getSubObject("genmodel", 0);
-        if (obj != nullptr) {
-            gen->add(obj);
+        subObject = nextGenerator->getSubObject("genmodel", 0);
+        if (subObject != nullptr) {
+            gen->add(subObject);
         }
 
-        obj = ngen->getSubObject("governor", 0);
-        if (obj != nullptr) {
-            gen->add(obj);
+        subObject = nextGenerator->getSubObject("governor", 0);
+        if (subObject != nullptr) {
+            gen->add(subObject);
         }
     }
     // now delete the temporary generators the subobjects should have transferred ownership

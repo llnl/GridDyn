@@ -14,19 +14,19 @@
 
 namespace griddyn {
 coreObject* getParent(std::shared_ptr<readerElement>& element,
-                      readerInfo& ri,
+                      readerInfo& readerInformation,
                       coreObject* parentObject,
                       const std::string& alternateName)
 {
     std::string parentName = getElementField(element, "parent", readerConfig::defMatchType);
     if (!parentName.empty()) {
-        parentName = ri.checkDefines(parentName);
+        parentName = readerInformation.checkDefines(parentName);
         return locateObject(parentName, parentObject);
     }
     if (!alternateName.empty()) {
         parentName = getElementAttribute(element, alternateName, readerConfig::defMatchType);
         if (!parentName.empty()) {
-            parentName = ri.checkDefines(parentName);
+            parentName = readerInformation.checkDefines(parentName);
             return locateObject(parentName, parentObject);
         }
     }

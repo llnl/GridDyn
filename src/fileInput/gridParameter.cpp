@@ -39,25 +39,26 @@ void gridParameter::fromString(const std::string& str)
     using std::string_view;
     string_view strv(str);
     valid = false;
-    size_t rlc = strv.find_last_of('=');
-    if (rlc == std::string::npos) {
+    size_t equalPos = strv.find_last_of('=');
+    if (equalPos == std::string::npos) {
         throw(invalidParameterValue(str));
     }
     valid = true;
-    auto fld = trim(strv.substr(0, rlc));
+    auto fieldString = trim(strv.substr(0, equalPos));
 
     // now read the value
-    strVal = std::string{strv.substr(rlc + 1)};
+    strVal = std::string{strv.substr(equalPos + 1)};
     value = gmlc::utilities::numeric_conversionComplete(strVal, kNullVal);
     stringType = (value == kNullVal);
 
-    rlc = fld.find_first_of('(');
-    if (rlc != std::string_view::npos) {
-        size_t rlc2 = fld.find_last_of(')');
-        paramUnits = units::unit_cast_from_string(std::string{fld.substr(rlc + 1, rlc2 - rlc - 1)});
-        field = std::string{fld.substr(0, rlc)};
+    equalPos = fieldString.find_first_of('(');
+    if (equalPos != std::string_view::npos) {
+        const size_t closingParenPos = fieldString.find_last_of(')');
+        paramUnits = units::unit_cast_from_string(
+            std::string{fieldString.substr(equalPos + 1, closingParenPos - equalPos - 1)});
+        field = std::string{fieldString.substr(0, equalPos)};
     } else {
-        field = std::string{fld};
+        field = std::string{fieldString};
     }
 }
 

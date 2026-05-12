@@ -22,7 +22,7 @@ namespace {
         static const auto* ignoreFields = new IgnoreListType{"flags", "name", "type", "index"};
         return *ignoreFields;
     }
-}
+}  // namespace
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
                        readerInfo& readerInformation,
@@ -91,8 +91,7 @@ void loadSolverElement(std::shared_ptr<readerElement>& element,
 
     setAttributes(
         solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
-    setParams(
-        solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
+    setParams(solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
     // add the solver
     parentObject->add(solverDefinition);
 }

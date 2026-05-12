@@ -18,11 +18,10 @@ using readerConfig::defMatchType;
 namespace {
     const IgnoreListType& relayIgnoreElements()
     {
-        static const auto* ignoreElements =
-            new IgnoreListType{"area", "sink", "source", "target"};
+        static const auto* ignoreElements = new IgnoreListType{"area", "sink", "source", "target"};
         return *ignoreElements;
     }
-}
+}  // namespace
 static const char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
@@ -46,9 +45,8 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     }
 
     std::string relayType = getElementField(element, "type", defMatchType);
-    if (relayType
-            .empty()) {  // if the relay is a subobject of specific type of object then adjust the
-                         // relay to match
+    if (relayType.empty()) {  // if the relay is a subobject of specific type of object then adjust
+                              // the relay to match
         const std::string elementType = gmlc::utilities::convertToLowerCase(element->getName());
         if (elementType == relayComponentName) {
             relayType = getElementField(element, "ref", defMatchType);
@@ -67,8 +65,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
             }
         }
     }
-    relay = ElementReaderSetup(
-        element, relay, relayComponentName, readerInformation, searchObject);
+    relay = ElementReaderSetup(element, relay, relayComponentName, readerInformation, searchObject);
 
     coreObject* targetObj = nullptr;
     std::string objectName = getElementField(element, "target", defMatchType);

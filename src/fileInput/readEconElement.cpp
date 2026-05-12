@@ -28,7 +28,7 @@ namespace {
             new IgnoreListType{"mode", "objecttype", "retype", "parent"};
         return *ignoreElements;
     }
-}
+}  // namespace
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
 coreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
@@ -204,8 +204,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     loadSubObjects(element, readerInformation, optObject);
 
     // get all element fields
-    paramLoopElement(
-        optObject, element, "econ", readerInformation, econIgnoreElements());
+    paramLoopElement(optObject, element, "econ", readerInformation, econIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded econ data " << optObject->getName());
 

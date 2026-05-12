@@ -25,7 +25,7 @@ namespace {
 
     bool isMasterObject(const coreObject* searchObject,
                         const gridSimulation* simulationObject);
-}
+}  // namespace
 
 static const char libstring[] = "library";
 // read XML file
@@ -97,8 +97,7 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
 
     element->moveToFirstChild("solver");
     while (element->isValid()) {
-        loadSolverElement(
-            element, readerInformation, dynamic_cast<gridDynSimulation*>(simulation));
+        loadSolverElement(element, readerInformation, dynamic_cast<gridDynSimulation*>(simulation));
         element->moveToNextSibling("solver");
     }
     element->moveToParent();
@@ -178,6 +177,6 @@ bool isMasterObject(const coreObject* searchObject,
     return (simulationObject != nullptr) ? (simulationObject->isRoot()) : true;
     // return true if both are null since any new object would then be master
 }
-}
+}  // namespace
 
 }  // namespace griddyn

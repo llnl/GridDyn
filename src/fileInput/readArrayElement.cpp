@@ -26,7 +26,7 @@ namespace {
                            const std::string& name,
                            readerInfo& readerInformation,
                            int defValue);
-}
+}  // namespace
 // "aP" is the XML element passed from the reader
 void readArrayElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
@@ -90,7 +90,7 @@ int readElementInteger(std::shared_ptr<readerElement>& element,
                        const std::string& name,
                        readerInfo& readerInformation,
                        int defValue)
-{
+    {
     int returnValue = defValue;
     auto strVal = getElementField(element, name, readerConfig::defMatchType);
     if (strVal.empty()) {
@@ -110,7 +110,7 @@ int readElementInteger(std::shared_ptr<readerElement>& element,
     }
 
     return returnValue;
-}
-}
+    }
+}  // namespace
 
 }  // namespace griddyn

@@ -22,7 +22,7 @@ namespace {
         static const auto* ignoreFields = new IgnoreListType{"area"};
         return *ignoreFields;
     }
-}
+}  // namespace
 static const char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
@@ -35,11 +35,7 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
     // check for the area field
 
     gridBus* bus = ElementReaderSetup(
-        element,
-        static_cast<gridBus*>(nullptr),
-        busComponentName,
-        readerInformation,
-        searchObject);
+        element, static_cast<gridBus*>(nullptr), busComponentName, readerInformation, searchObject);
 
     std::string valType = getElementField(element, "type", readerConfig::defMatchType);
     if (!valType.empty()) {

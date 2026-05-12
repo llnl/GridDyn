@@ -41,7 +41,7 @@ namespace {
                                                               "type"};
         return *ignoreStrings;
     }
-}
+}  // namespace
 
 static void readEventElement(std::shared_ptr<readerElement>& element,
                              EventInfo& eventInfo,
@@ -99,8 +99,8 @@ static void readEventElement(std::shared_ptr<readerElement>& element,
 
     field = getElementFieldOptions(element, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.time = gmlc::utilities::str2vector<coreTime>(
-            readerInformation.checkDefines(field), negTime);
+        eventInfo.time =
+            gmlc::utilities::str2vector<coreTime>(readerInformation.checkDefines(field), negTime);
     } else {
         if (eventInfo.time.empty() && element->getName() == "scenario") {
             eventInfo.time.emplace_back(-1.0);
@@ -121,8 +121,7 @@ static void readEventElement(std::shared_ptr<readerElement>& element,
 
     field = getElementField(element, "column", readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.columns.push_back(
-            static_cast<int>(interpretString(field, readerInformation)));
+        eventInfo.columns.push_back(static_cast<int>(interpretString(field, readerInformation)));
     }
 }
 
@@ -141,8 +140,7 @@ int loadEventElement(std::shared_ptr<readerElement>& element,
     }
     setAttributes(
         eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
-    setParams(
-        eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
+    setParams(eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
 
     if (!eventObject->isArmed()) {
         WARNPRINT(READER_WARN_IMPORTANT, "event for " << eventInfo.name << ":unable to load event");

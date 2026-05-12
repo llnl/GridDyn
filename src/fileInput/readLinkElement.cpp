@@ -22,7 +22,7 @@ namespace {
         static const auto* ignoreElements = new IgnoreListType{"to", "from"};
         return *ignoreElements;
     }
-}
+}  // namespace
 static const char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
@@ -34,11 +34,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
 
     // run the boilerplate code to setup the object
     Link* linkObject = ElementReaderSetup(
-        element,
-        static_cast<Link*>(nullptr),
-        linkComponentName,
-        readerInformation,
-        searchObject);
+        element, static_cast<Link*>(nullptr), linkComponentName, readerInformation, searchObject);
 
     // from bus
     std::string busName = getElementField(element, "from", readerConfig::defMatchType);

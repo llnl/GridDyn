@@ -22,7 +22,7 @@ namespace {
             "file", "name", "column", "offset", "units", "gain", "bias", "field", "target", "type"};
         return *ignoreStrings;
     }
-}
+}  // namespace
 
 static const char collectorNameString[] = "collector";
 
@@ -31,12 +31,12 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element,
                          readerInfo& readerInformation)
 {
     const int ret = FUNCTION_EXECUTION_SUCCESS;
-    std::string name =
-        readerInformation.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
+    std::string name = readerInformation.checkDefines(
+        getElementField(element, nameString, readerConfig::defMatchType));
     const std::string fileName = readerInformation.checkDefines(
         getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
-    std::string type =
-        readerInformation.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
+    std::string type = readerInformation.checkDefines(
+        getElementField(element, "type", readerConfig::defMatchType));
 
     auto collectorObject = readerInformation.findCollector(name, fileName);
     if ((!type.empty()) && (name.empty()) && (fileName.empty())) {

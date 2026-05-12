@@ -19,7 +19,7 @@ namespace {
             new IgnoreListType{"agc", "reserve", "reservedispatch", "dispatch"};
         return *ignoreElements;
     }
-}
+}  // namespace
 static const char areaComponentName[] = "area";
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
@@ -29,11 +29,7 @@ Area* readAreaElement(std::shared_ptr<readerElement>& element,
 
     // boiler plate code to setup the object from references or new object
     Area* areaObject = ElementReaderSetup(
-        element,
-        static_cast<Area*>(nullptr),
-        areaComponentName,
-        readerInformation,
-        searchObject);
+        element, static_cast<Area*>(nullptr), areaComponentName, readerInformation, searchObject);
 
     loadElementInformation(
         areaObject, element, areaComponentName, readerInformation, areaIgnoreElements());

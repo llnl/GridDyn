@@ -128,8 +128,7 @@ bool checkCondition(string_view cond,
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
         }
     } else if (std::isnan(leftValue) && (std::isnan(rightValue))) {  // do a string comparison
-        const std::string leftString =
-            readerInformation.checkDefines(std::string{leftOperand});
+            const std::string leftString = readerInformation.checkDefines(std::string{leftOperand});
         const std::string rightString =
             readerInformation.checkDefines(std::string{rightOperand});
 
@@ -145,7 +144,7 @@ bool checkCondition(string_view cond,
 
     readerInformation.setKeyObject(nullptr);
     return reverseResult ? !eval : eval;
-}
-}
+    }
+}  // namespace
 
 }  // namespace griddyn

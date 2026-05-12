@@ -16,26 +16,31 @@
 namespace griddyn {
 using readerConfig::defMatchType;
 // aP is the link element
-
-static const IgnoreListType solverIgnoreFields{"flags", "name", "type", "index"};
+namespace {
+    const IgnoreListType& solverIgnoreFields()
+    {
+        static const auto* ignoreFields = new IgnoreListType{"flags", "name", "type", "index"};
+        return *ignoreFields;
+    }
+}
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
-                       readerInfo& ri,
+                       readerInfo& readerInformation,
                        gridDynSimulation* parentObject)
 {
     std::shared_ptr<SolverInterface> solverDefinition;
-    std::string type = getElementField(element, "type", defMatchType);
+    const std::string type = getElementField(element, "type", defMatchType);
     if (type.empty()) {
     }
     std::string solverIdentifier = getElementField(element, "index", defMatchType);
     // check for the field attributes
     if (!solverIdentifier.empty()) {
-        int index = gmlc::utilities::numeric_conversion(solverIdentifier, -1);
+        const int index = gmlc::utilities::numeric_conversion(solverIdentifier, -1);
 
         if (index >= 0) {
             solverDefinition = parentObject->getSolverInterface(index);
         }
-        if (!(solverDefinition)) {
+        if (!solverDefinition) {
             if (!type.empty()) {
                 solverDefinition = makeSolver(type);
                 if (solverDefinition) {
@@ -54,7 +59,7 @@ void loadSolverElement(std::shared_ptr<readerElement>& element,
             }
         } else {
             solverDefinition = parentObject->getSolverInterface(solverIdentifier);
-            if (!(solverDefinition)) {
+            if (!solverDefinition) {
                 if (!type.empty()) {
                     solverDefinition = makeSolver(type);
                     if (solverDefinition) {
@@ -64,7 +69,7 @@ void loadSolverElement(std::shared_ptr<readerElement>& element,
             }
         }
     }
-    if (!(solverDefinition)) {
+    if (!solverDefinition) {
         if (type.empty()) {
             if (!solverIdentifier.empty()) {
                 solverDefinition = makeSolver(solverIdentifier);
@@ -72,20 +77,22 @@ void loadSolverElement(std::shared_ptr<readerElement>& element,
         } else {
             solverDefinition = makeSolver(type);
         }
-        if (!(solverDefinition)) {
+        if (!solverDefinition) {
             return;
         }
         if (!solverIdentifier.empty()) {
             solverDefinition->setName(solverIdentifier);
         }
     }
-    std::string indexField = getElementField(element, "index", defMatchType);
+    const std::string indexField = getElementField(element, "index", defMatchType);
     if (!indexField.empty()) {
         solverDefinition->set("flags", indexField);
     }
 
-    setAttributes(solverDefinition.get(), element, "solver", ri, solverIgnoreFields);
-    setParams(solverDefinition.get(), element, "solver", ri, solverIgnoreFields);
+    setAttributes(
+        solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
+    setParams(
+        solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
     // add the solver
     parentObject->add(solverDefinition);
 }

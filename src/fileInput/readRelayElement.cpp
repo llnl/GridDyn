@@ -15,15 +15,22 @@
 
 namespace griddyn {
 using readerConfig::defMatchType;
-static const IgnoreListType relayIgnoreElements{"area", "sink", "source", "target"};
+namespace {
+    const IgnoreListType& relayIgnoreElements()
+    {
+        static const auto* ignoreElements =
+            new IgnoreListType{"area", "sink", "source", "target"};
+        return *ignoreElements;
+    }
+}
 static const char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& ri,
+                        readerInfo& readerInformation,
                         coreObject* searchObject)
 {
-    auto riScope = ri.newScope();
+    auto riScope = readerInformation.newScope();
 
     // check the rest of the elements
 
@@ -31,7 +38,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     // check for the area field
     coreObject* defaultTargetObject = searchObject;
     Relay* relay = nullptr;
-    searchObject = updateSearchObject<gridPrimary>(element, ri, searchObject);
+    searchObject = updateSearchObject<gridPrimary>(element, readerInformation, searchObject);
     if (dynamic_cast<Area*>(searchObject) == nullptr) {
         if (searchObject != nullptr) {
             searchObject = searchObject->getRoot();
@@ -41,7 +48,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     std::string relayType = getElementField(element, "type", defMatchType);
     if (relayType.empty()) {  // if the relay is a subobject of specific type of object then adjust the
                          // relay to match
-        std::string elementType = gmlc::utilities::convertToLowerCase(element->getName());
+        const std::string elementType = gmlc::utilities::convertToLowerCase(element->getName());
         if (elementType == relayComponentName) {
             relayType = getElementField(element, "ref", defMatchType);
             if (relayType.empty()) {
@@ -59,12 +66,13 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
             }
         }
     }
-    relay = ElementReaderSetup(element, relay, relayComponentName, ri, searchObject);
+    relay = ElementReaderSetup(
+        element, relay, relayComponentName, readerInformation, searchObject);
 
     coreObject* targetObj = nullptr;
     std::string objectName = getElementField(element, "target", defMatchType);
     if (!objectName.empty()) {
-        objectName = ri.checkDefines(objectName);
+        objectName = readerInformation.checkDefines(objectName);
         targetObj = locateObject(objectName, searchObject);
         if (targetObj == nullptr) {
             WARNPRINT(READER_WARN_IMPORTANT, "Unable to locate target object " << objectName);
@@ -79,7 +87,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
         if (objectName.empty()) {
             targetObj = defaultTargetObject;
         } else if (searchObject != nullptr) {
-            objectName = ri.checkDefines(objectName);
+            objectName = readerInformation.checkDefines(objectName);
             targetObj = locateObject(objectName, searchObject);
         }
         if (targetObj != nullptr) {
@@ -90,7 +98,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
         if (objectName.empty()) {
             targetObj = defaultTargetObject;
         } else if (searchObject != nullptr) {
-            objectName = ri.checkDefines(objectName);
+            objectName = readerInformation.checkDefines(objectName);
             targetObj = locateObject(objectName, searchObject);
         }
         if (targetObj != nullptr) {
@@ -98,11 +106,12 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
         }
     }
 
-    loadElementInformation(relay, element, relayComponentName, ri, relayIgnoreElements);
+    loadElementInformation(
+        relay, element, relayComponentName, readerInformation, relayIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded relay " << relay->getName());
 
-    ri.closeScope(riScope);
+    readerInformation.closeScope(riScope);
     return relay;
 }
 

@@ -15,30 +15,30 @@
 namespace griddyn {
 static const char nameString[] = "name";
 
-static const IgnoreListType collectorIgnoreStrings{"file",
-                                                   "name",
-                                                   "column",
-                                                   "offset",
-                                                   "units",
-                                                   "gain",
-                                                   "bias",
-                                                   "field",
-                                                   "target",
-                                                   "type"};
+namespace {
+    const IgnoreListType& collectorIgnoreStrings()
+    {
+        static const auto* ignoreStrings = new IgnoreListType{
+            "file", "name", "column", "offset", "units", "gain", "bias", "field", "target", "type"};
+        return *ignoreStrings;
+    }
+}
 
 static const char collectorNameString[] = "collector";
 
-int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri)
+int loadCollectorElement(std::shared_ptr<readerElement>& element,
+                         coreObject* obj,
+                         readerInfo& readerInformation)
 {
-    int ret = FUNCTION_EXECUTION_SUCCESS;
+    const int ret = FUNCTION_EXECUTION_SUCCESS;
     std::string name =
-        ri.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
-    std::string fileName = ri.checkDefines(
+        readerInformation.checkDefines(getElementField(element, nameString, readerConfig::defMatchType));
+    const std::string fileName = readerInformation.checkDefines(
         getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
     std::string type =
-        ri.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
+        readerInformation.checkDefines(getElementField(element, "type", readerConfig::defMatchType));
 
-    auto collectorObject = ri.findCollector(name, fileName);
+    auto collectorObject = readerInformation.findCollector(name, fileName);
     if ((!type.empty()) && (name.empty()) && (fileName.empty())) {
         collectorObject = nullptr;
     }
@@ -48,27 +48,27 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
         }
     }
 
-    if (!(collectorObject)) {
+    if (!collectorObject) {
         collectorObject = makeCollector(type, name);
 
         if (!fileName.empty()) {
             collectorObject->set("file", fileName);
         }
-        ri.collectors.push_back(collectorObject);
+        readerInformation.collectors.push_back(collectorObject);
     }
 
     gridGrabberInfo grabberInfo;
     name = getElementField(element, "target", readerConfig::defMatchType);
     if (!name.empty()) {
-        name = ri.checkDefines(name);
+        name = readerInformation.checkDefines(name);
         grabberInfo.m_target = name;
     }
     auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
 
-    if (!(fieldList.empty())) {
+    if (!fieldList.empty()) {
         grabberInfo.field = "";
         for (auto& fieldString : fieldList) {
-            fieldString = ri.checkDefines(fieldString);
+            fieldString = readerInformation.checkDefines(fieldString);
             if (grabberInfo.field.empty()) {
                 grabberInfo.field = fieldString;
             } else {
@@ -79,36 +79,44 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
 
     std::string elementText = getElementField(element, "bias", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.bias = interpretString(elementText, ri);
+        grabberInfo.bias = interpretString(elementText, readerInformation);
     }
     elementText = getElementField(element, "gain", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.gain = interpretString(elementText, ri);
+        grabberInfo.gain = interpretString(elementText, readerInformation);
     }
     elementText = getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
     if (!elementText.empty()) {
-        elementText = ri.checkDefines(elementText);
+        elementText = readerInformation.checkDefines(elementText);
         grabberInfo.outputUnits = units::unit_cast_from_string(elementText);
     }
     elementText = getElementField(element, "column", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.column = static_cast<int>(interpretString(elementText, ri));
+        grabberInfo.column = static_cast<int>(interpretString(elementText, readerInformation));
     }
     elementText = getElementField(element, "offset", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.offset = static_cast<int>(interpretString(elementText, ri));
-        if (!(grabberInfo.field.empty())) {
+        grabberInfo.offset = static_cast<int>(interpretString(elementText, readerInformation));
+        if (!grabberInfo.field.empty()) {
             WARNPRINT(READER_WARN_ALL,
                       "specifying offset in collector overrides field specification");
         }
     }
     // now load the other fields for the collector
 
-    setAttributes(collectorObject.get(), element, collectorNameString, ri, collectorIgnoreStrings);
-    setParams(collectorObject.get(), element, collectorNameString, ri, collectorIgnoreStrings);
+    setAttributes(collectorObject.get(),
+                  element,
+                  collectorNameString,
+                  readerInformation,
+                  collectorIgnoreStrings());
+    setParams(collectorObject.get(),
+              element,
+              collectorNameString,
+              readerInformation,
+              collectorIgnoreStrings());
     coreObject* targetObj = obj;
 
-    if (!((grabberInfo.m_target.empty()) || (grabberInfo.m_target == obj->getName()))) {
+    if (!grabberInfo.m_target.empty() && (grabberInfo.m_target != obj->getName())) {
         targetObj = locateObject(grabberInfo.m_target, obj);
     }
     if (targetObj != nullptr) {

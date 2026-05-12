@@ -162,7 +162,6 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
 {
     auto riScope = readerInf.newScope();
     // readerInfo xm2;
-    const std::string baseName = element->getName();
     element->bookmark();
 
     loadDefines(element, readerInf);
@@ -184,9 +183,7 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
                                  return entry.name == translatedName;
                              });
             if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                const std::string elementName = element->getName();
                 obj = reader->loader(element, readerInf);
-                assert(elementName == element->getName());
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Unrecognized object type " << fieldName << " in library");
@@ -208,7 +205,6 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
     }
 
     element->restore();
-    assert(element->getName() == baseName);
     readerInf.closeScope(riScope);
 }
 

@@ -19,28 +19,34 @@
 namespace griddyn {
 static const char eventNameString[] = "event";
 
-static const IgnoreListType eventIgnoreStrings{"file",
-                                               "name",
-                                               "column",
-                                               "value",
-                                               "va",
-                                               "units",
-                                               "description",
-                                               "period",
-                                               "time",
-                                               "t",
-                                               "offset",
-                                               "units",
-                                               "gain",
-                                               "bias",
-                                               "field",
-                                               "target",
-                                               "type"};
+namespace {
+    const IgnoreListType& eventIgnoreStrings()
+    {
+        static const auto* ignoreStrings = new IgnoreListType{"file",
+                                                              "name",
+                                                              "column",
+                                                              "value",
+                                                              "va",
+                                                              "units",
+                                                              "description",
+                                                              "period",
+                                                              "time",
+                                                              "t",
+                                                              "offset",
+                                                              "units",
+                                                              "gain",
+                                                              "bias",
+                                                              "field",
+                                                              "target",
+                                                              "type"};
+        return *ignoreStrings;
+    }
+}
 
-void readEventElement(std::shared_ptr<readerElement>& element,
-                      EventInfo& eventInfo,
-                      readerInfo& ri,
-                      coreObject* obj)
+static void readEventElement(std::shared_ptr<readerElement>& element,
+                             EventInfo& eventInfo,
+                             readerInfo& readerInformation,
+                             coreObject* obj)
 {
     if (element->getName() != "event") {
         if (element->getName() != "scenario") {
@@ -56,31 +62,31 @@ void readEventElement(std::shared_ptr<readerElement>& element,
     // check for the field attributes
     std::string name = getElementField(element, "name", readerConfig::defMatchType);
     if (!name.empty()) {
-        name = ri.checkDefines(name);
+        name = readerInformation.checkDefines(name);
         eventInfo.name = name;
     }
 
     // check for the field attributes
-    std::string type = getElementField(element, "type", readerConfig::defMatchType);
+    const std::string type = getElementField(element, "type", readerConfig::defMatchType);
     if (!type.empty()) {
-        eventInfo.type = ri.checkDefines(type);
+        eventInfo.type = readerInformation.checkDefines(type);
     }
 
     // check for the field attributes
     auto targetList = getElementFieldMultiple(element, "target", readerConfig::defMatchType);
     for (auto& targetName : targetList) {
-        targetName = ri.checkDefines(targetName);
+        targetName = readerInformation.checkDefines(targetName);
         eventInfo.targetObjs.push_back(locateObject(targetName, obj));
     }
 
     auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
     for (auto& fieldName : fieldList) {
-        fieldName = ri.checkDefines(fieldName);
+        fieldName = readerInformation.checkDefines(fieldName);
         eventInfo.fieldList.push_back(fieldName);
     }
     auto unitList = getElementFieldMultiple(element, "units", readerConfig::defMatchType);
     for (auto& unitName : unitList) {
-        unitName = ri.checkDefines(unitName);
+        unitName = readerInformation.checkDefines(unitName);
         eventInfo.units.push_back(units::unit_cast_from_string(unitName));
     }
 
@@ -88,55 +94,62 @@ void readEventElement(std::shared_ptr<readerElement>& element,
 
     std::string field = getElementField(element, "period", readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.period = interpretString(field, ri);
+        eventInfo.period = interpretString(field, readerInformation);
     }
 
     field = getElementFieldOptions(element, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.time = gmlc::utilities::str2vector<coreTime>(ri.checkDefines(field), negTime);
+        eventInfo.time = gmlc::utilities::str2vector<coreTime>(
+            readerInformation.checkDefines(field), negTime);
     } else {
         if (eventInfo.time.empty() && element->getName() == "scenario") {
-            eventInfo.time.push_back(-1.0);
+            eventInfo.time.emplace_back(-1.0);
         }
     }
 
     field = getElementFieldOptions(element, {"value", "val"}, readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.value = gmlc::utilities::str2vector(ri.checkDefines(field), kNullVal);
+        eventInfo.value =
+            gmlc::utilities::str2vector(readerInformation.checkDefines(field), kNullVal);
     }
 
     name = getElementField(element, "file", readerConfig::defMatchType);
     if (!name.empty()) {
-        ri.checkFileParam(name);
+        readerInformation.checkFileParam(name);
         eventInfo.file = name;
     }
 
     field = getElementField(element, "column", readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.columns.push_back(static_cast<int>(interpretString(field, ri)));
+        eventInfo.columns.push_back(
+            static_cast<int>(interpretString(field, readerInformation)));
     }
 }
 
-int loadEventElement(std::shared_ptr<readerElement>& element, coreObject* obj, readerInfo& ri)
+int loadEventElement(std::shared_ptr<readerElement>& element,
+                     coreObject* obj,
+                     readerInfo& readerInformation)
 {
-    int ret = FUNCTION_EXECUTION_SUCCESS;
+    int returnValue = FUNCTION_EXECUTION_SUCCESS;
     element->bookmark();
     EventInfo eventInfo;
-    readEventElement(element, eventInfo, ri, obj);
+    readEventElement(element, eventInfo, readerInformation, obj);
     auto eventObject = make_event(eventInfo, obj);
     if (!eventObject) {
         WARNPRINT(READER_WARN_IMPORTANT, "unable to create an event of type " << eventInfo.type);
         return FUNCTION_EXECUTION_FAILURE;
     }
-    setAttributes(eventObject.get(), element, eventNameString, ri, eventIgnoreStrings);
-    setParams(eventObject.get(), element, eventNameString, ri, eventIgnoreStrings);
+    setAttributes(
+        eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
+    setParams(
+        eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
 
-    if (!(eventObject->isArmed())) {
+    if (!eventObject->isArmed()) {
         WARNPRINT(READER_WARN_IMPORTANT,
                   "event for " << eventInfo.name << ":unable to load event");
-        ret = FUNCTION_EXECUTION_FAILURE;
+        returnValue = FUNCTION_EXECUTION_FAILURE;
     } else {
-        auto owner = eventObject->getOwner();
+        auto* owner = eventObject->getOwner();
         if (owner != nullptr) {  // check if the event has a specified owner
             auto ownedEvent = std::shared_ptr<Event>(std::move(eventObject));
             try {  // this could throw in which case we can't move the object into it first
@@ -146,14 +159,14 @@ int loadEventElement(std::shared_ptr<readerElement>& element, coreObject* obj, r
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Event: " << ownedEvent->getName() << " unable to be added to "
                                     << owner->getName());
-                ri.events.push_back(std::move(ownedEvent));
+                readerInformation.events.push_back(std::move(ownedEvent));
             }
         } else {  // if it doesn't just put it on the stack and deal with it later
-            ri.events.push_back(std::move(eventObject));
+            readerInformation.events.push_back(std::move(eventObject));
         }
     }
     element->restore();
-    return ret;
+    return returnValue;
 }
 
 }  // namespace griddyn

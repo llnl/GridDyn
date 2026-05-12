@@ -74,7 +74,8 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
             if (!optMode.empty()) {
                 optMode = ri.checkDefines(optMode);
                 makeLowerCase(optMode);
-                gridOptObject* retypedObject = optObjectFactory->createObject(optMode, targetObject);
+                gridOptObject* retypedObject =
+                    optObjectFactory->createObject(optMode, targetObject);
                 if (retypedObject == nullptr) {
                     WARNPRINT(READER_WARN_IMPORTANT, "unknown economic retype " << optMode);
                 } else {

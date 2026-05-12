@@ -120,8 +120,8 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element, coreObject* ob
         }
         catch (const addFailureException&) {
             WARNPRINT(READER_WARN_IMPORTANT,
-                      type << " for " << obj->getName()
-                           << "cannot find field " << grabberInfo.field);
+                      type << " for " << obj->getName() << "cannot find field "
+                           << grabberInfo.field);
         }
     } else {
         WARNPRINT(READER_WARN_IMPORTANT,

@@ -44,15 +44,13 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                 bus->set("type", primaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT,
-                          "Bus type parameter not found " << primaryType);
+                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << primaryType);
             }
             try {
                 bus->set("type", secondaryType);
             }
             catch (const std::invalid_argument&) {
-                WARNPRINT(READER_WARN_IMPORTANT,
-                          "Bus type parameter not found " << secondaryType);
+                WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << secondaryType);
             }
         } else {
             try  // type can mean two different things to a bus -either the actual type of the bus

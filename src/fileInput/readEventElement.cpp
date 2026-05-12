@@ -132,8 +132,7 @@ int loadEventElement(std::shared_ptr<readerElement>& element, coreObject* obj, r
     setParams(eventObject.get(), element, eventNameString, ri, eventIgnoreStrings);
 
     if (!(eventObject->isArmed())) {
-        WARNPRINT(READER_WARN_IMPORTANT,
-                  "event for " << eventInfo.name << ":unable to load event");
+        WARNPRINT(READER_WARN_IMPORTANT, "event for " << eventInfo.name << ":unable to load event");
         ret = FUNCTION_EXECUTION_FAILURE;
     } else {
         auto owner = eventObject->getOwner();

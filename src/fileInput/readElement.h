@@ -91,8 +91,7 @@ void loadCustomSections(std::shared_ptr<readerElement>& element,
 void loadSolverElement(std::shared_ptr<readerElement>& element,
                        readerInfo& readerInformation,
                        gridDynSimulation* parentObject);
-void readLibraryElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& readerInformation);
+void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
 
 using IgnoreListType = std::unordered_set<std::string>;
 // using IgnoreListType = boost::container::flat_set<std::string>;
@@ -161,8 +160,7 @@ stringVec getElementFieldMultiple(
 void setIndex(std::shared_ptr<readerElement>& element,
               coreObject* mainObject,
               readerInfo& readerInformation);
-std::string getObjectName(std::shared_ptr<readerElement>& element,
-                          readerInfo& readerInformation);
+std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
 
 coreObject* getParent(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,

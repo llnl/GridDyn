@@ -73,7 +73,8 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
             }
         }
     } else {
-        size_t busConfigPos = fileText.find("Bus.con");  // look for the Psat bus configuration array
+        size_t busConfigPos =
+            fileText.find("Bus.con");  // look for the Psat bus configuration array
         if (busConfigPos != std::string::npos) {
             loadPSAT(parentObject, fileText, bri);
         }

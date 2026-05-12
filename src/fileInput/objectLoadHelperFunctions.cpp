@@ -18,8 +18,7 @@ namespace griddyn {
 static const stringVec indexAndNumber = {"index", "number"};
 static const char nameString[] = "name";
 
-std::string getObjectName(std::shared_ptr<readerElement>& element,
-                          readerInfo& readerInformation)
+std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation)
 {
     std::string newName = getElementField(element, nameString, readerConfig::defMatchType);
     if (!newName.empty()) {

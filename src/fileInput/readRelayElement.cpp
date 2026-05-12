@@ -46,7 +46,8 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     }
 
     std::string relayType = getElementField(element, "type", defMatchType);
-    if (relayType.empty()) {  // if the relay is a subobject of specific type of object then adjust the
+    if (relayType
+            .empty()) {  // if the relay is a subobject of specific type of object then adjust the
                          // relay to match
         const std::string elementType = gmlc::utilities::convertToLowerCase(element->getName());
         if (elementType == relayComponentName) {

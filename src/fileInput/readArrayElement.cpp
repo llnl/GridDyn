@@ -39,8 +39,7 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     loadDirectories(element, readerInformation);
     // loop through the other children
     //  cd = aP->FirstChildElement (false);
-    std::string loopVariable =
-        getElementField(element, "loopvariable", readerConfig::defMatchType);
+    std::string loopVariable = getElementField(element, "loopvariable", readerConfig::defMatchType);
     if (loopVariable.empty()) {
         loopVariable = "#index";
     }

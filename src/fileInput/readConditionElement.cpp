@@ -112,8 +112,8 @@ static bool checkCondition(string_view cond,
         secondaryOperator = cond[operatorPos + 1];
         leftOperand = gmlc::utilities::string_viewOps::trim(cond.substr(0, operatorPos));
         rightOperand = (secondaryOperator == '=') ?
-                           gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 2)) :
-                           gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 1));
+            gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 2)) :
+            gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 1));
     }
 
     readerInformation.setKeyObject(parentObject);

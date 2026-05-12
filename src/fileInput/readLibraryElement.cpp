@@ -176,12 +176,11 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
             auto translatedName = readerInf.objectNameTranslate(fieldName);
-            const auto* const reader =
-                std::find_if(loadFunctionMap.data(),
-                             loadFunctionMap.data() + loadFunctionMap.size(),
-                             [&translatedName](const auto& entry) {
-                                 return entry.name == translatedName;
-                             });
+            const auto* const reader = std::find_if(loadFunctionMap.data(),
+                                                    loadFunctionMap.data() + loadFunctionMap.size(),
+                                                    [&translatedName](const auto& entry) {
+                                                        return entry.name == translatedName;
+                                                    });
             if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
                 obj = reader->loader(element, readerInf);
             } else {

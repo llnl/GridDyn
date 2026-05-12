@@ -28,15 +28,20 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewOps::delimiter_compression;
 using gmlc::utilities::string_viewOps::split;
-using gmlc::utilities::string_viewOps::trimString;
 using std::string_view;
 using units::deg;
 using units::MVAR;
 using units::MW;
 
-void loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
-void loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);
-void loadGenGovArray(coreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
+static void loadGenExcArray(coreObject* parentObject,
+                            mArray& excData,
+                            std::vector<Generator*>& genList);
+static void loadGenDynArray(coreObject* parentObject,
+                            mArray& genData,
+                            std::vector<Generator*>& genList);
+static void loadGenGovArray(coreObject* parentObject,
+                            mArray& govData,
+                            std::vector<Generator*>& genList);
 
 void loadMatDyn(coreObject* parentObject,
                 const std::string& fileText,
@@ -52,7 +57,7 @@ void loadMatDyn(coreObject* parentObject,
     auto tokenString = fileView.substr(openBracketPos + 1, closeBracketPos - openBracketPos - 1);
     auto tokens = split(tokenString, "\t ,", delimiter_compression::on);
 
-    size_t dataIndex = closeBracketPos;
+    const size_t dataIndex = closeBracketPos;
     size_t terminatorPos;
     openBracketPos = fileView.find(tokens[3], dataIndex);  // freq
     if (openBracketPos != std::string_view::npos) {
@@ -132,44 +137,44 @@ void loadMatDyn(coreObject* parentObject,
         delete subg;
     }
     // lastly all the loads need to be autoconverted
-    index_t b = static_cast<index_t>(parentObject->get("loadcount"));
-    for (index_t kk = 1; kk <= b; kk++) {
-        auto* ld = static_cast<zipLoad*>(parentObject->findByUserID("load", kk));
-        ld->set("converttoimpedance", 1);
+    const auto loadCount = static_cast<index_t>(parentObject->get("loadcount"));
+    for (index_t loadIndex = 1; loadIndex <= loadCount; loadIndex++) {
+        auto* load = static_cast<zipLoad*>(parentObject->findByUserID("load", loadIndex));
+        load->set("converttoimpedance", 1);
     }
 }
 
-void loadGenDynArray(coreObject* /*parentObject*/,
-                     mArray& genData,
-                     std::vector<Generator*>& genList)
+static void loadGenDynArray(coreObject* /*parentObject*/,
+                            mArray& genData,
+                            std::vector<Generator*>& genList)
 {
     Exciter* exc;
     Governor* gov;
-    GenModel* gm;
+    GenModel* genModel;
 
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& genLine : genData) {
         auto* gen = new DynamicGenerator();
         switch (static_cast<int>(genLine[0])) {
             case 1:  // classical model
-                gm = new genmodels::GenModelClassical();
-                gm->set("h", genLine[3]);
-                gm->set("d", genLine[4]);
-                gm->set("x", genLine[5]);
-                gm->set("xp", genLine[6]);
-                gen->add(gm);
+                genModel = new genmodels::GenModelClassical();
+                genModel->set("h", genLine[3]);
+                genModel->set("d", genLine[4]);
+                genModel->set("x", genLine[5]);
+                genModel->set("xp", genLine[6]);
+                gen->add(genModel);
                 break;
             case 2:  // fourth order model
-                gm = new genmodels::GenModel4();
-                gm->set("h", genLine[3]);
-                gm->set("d", genLine[4]);
-                gm->set("xd", genLine[5]);
-                gm->set("xq", genLine[6]);
-                gm->set("xdp", genLine[7]);
-                gm->set("xqp", genLine[8]);
-                gm->set("tdp", genLine[9]);
-                gm->set("tqp", genLine[10]);
-                gen->add(gm);
+                genModel = new genmodels::GenModel4();
+                genModel->set("h", genLine[3]);
+                genModel->set("d", genLine[4]);
+                genModel->set("xd", genLine[5]);
+                genModel->set("xq", genLine[6]);
+                genModel->set("xdp", genLine[7]);
+                genModel->set("xqp", genLine[8]);
+                genModel->set("tdp", genLine[9]);
+                genModel->set("tqp", genLine[10]);
+                gen->add(genModel);
                 break;
             default:
                 std::cout << "unknown genmodel code in gen matrix\n";
@@ -219,9 +224,9 @@ void loadGenDynArray(coreObject* /*parentObject*/,
 10 Urmin, lower voltage limit
 11 Urmax, upper voltage limit
 */
-void loadGenExcArray(coreObject* /*parentObject*/,
-                     mArray& excData,
-                     std::vector<Generator*>& genList)
+static void loadGenExcArray(coreObject* /*parentObject*/,
+                            mArray& excData,
+                            std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& excLine : excData) {
@@ -229,7 +234,7 @@ void loadGenExcArray(coreObject* /*parentObject*/,
         auto ind1 = static_cast<index_t>(excLine[0]);
 
         if (isValidIndex(ind1, genList)) {
-            Generator* gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
+            Generator* const gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
             exc = static_cast<Exciter*>(gen->getSubObject("exciter", 0));
         }
         if (exc == nullptr) {
@@ -259,9 +264,9 @@ void loadGenExcArray(coreObject* /*parentObject*/,
 8 Pmax, maximal turbine output
 9 Pmin, minimal turbine output
 */
-void loadGenGovArray(coreObject* /*parentObject*/,
-                     mArray& govData,
-                     std::vector<Generator*>& genList)
+static void loadGenGovArray(coreObject* /*parentObject*/,
+                            mArray& govData,
+                            std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& govLine : govData) {
@@ -294,57 +299,57 @@ void loadGenGovArray(coreObject* /*parentObject*/,
 
 // read matdyn Event files
 void loadMatDynEvent(coreObject* parentObject,
-                     const std::string& filetext,
+                     const std::string& fileText,
                      const basicReaderInfo& /*bri*/)
 {
-    string_view ftext = filetext;
+    string_view fileView = fileText;
     mArray event1;
-    mArray M1;
+    mArray matrixData;
     auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make events if we don't have access to the simulation
         return;
     }
     // read the frequency
-    auto locA = ftext.find_first_of('[', 0);
-    auto locB = ftext.find_first_of(']', locA + 1);
-    auto tstr = ftext.substr(locA + 1, locB - locA - 1);
-    auto Tline = split(tstr, "\t ,");
+    auto locA = fileView.find_first_of('[', 0);
+    auto locB = fileView.find_first_of(']', locA + 1);
+    auto tokenString = fileView.substr(locA + 1, locB - locA - 1);
+    auto tokenList = split(tokenString, "\t ,");
     auto locC = locB;
-    locA = ftext.find(Tline[0], locC);  // event
+    locA = fileView.find(tokenList[0], locC);  // event
     if (locA != std::string_view::npos) {
-        locB = ftext.find_first_of('=', locA);
-        readMatlabArray(filetext, locB + 1, event1);
+        locB = fileView.find_first_of('=', locA);
+        readMatlabArray(fileText, locB + 1, event1);
         // loadGenDynArray(parentObject, M1, genList);
     }
 
-    locA = ftext.find(Tline[1], locC);  // buschange
+    locA = fileView.find(tokenList[1], locC);  // buschange
     if (locA != std::string_view::npos) {
-        locB = ftext.find_first_of('=', locA);
-        readMatlabArray(filetext, locB + 1, M1);
-        for (auto& eventSpec : M1) {
+        locB = fileView.find_first_of('=', locA);
+        readMatlabArray(fileText, locB + 1, matrixData);
+        for (auto& eventSpec : matrixData) {
             auto evnt = std::make_shared<Event>(eventSpec[0]);
             auto ind = static_cast<index_t>(eventSpec[1]);
             auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", ind));
-            auto* ld = bus->getLoad();
-            if (ld == nullptr) {
-                ld = new zipLoad();
-                bus->add(ld);
+            auto* load = bus->getLoad();
+            if (load == nullptr) {
+                load = new zipLoad();
+                bus->add(load);
             }
             switch (static_cast<int>(eventSpec[2])) {
                 case 3:  // P
-                    evnt->setTarget(ld, "p");
+                    evnt->setTarget(load, "p");
                     evnt->setValue(eventSpec[3], MW);
                     break;
                 case 4:  // Q
-                    evnt->setTarget(ld, "q");
+                    evnt->setTarget(load, "q");
                     evnt->setValue(eventSpec[3], MVAR);
                     break;
                 case 5:  // GS
-                    evnt->setTarget(ld, "yp");
+                    evnt->setTarget(load, "yp");
                     evnt->setValue(eventSpec[3], MW);
                     break;
                 case 6:  // BS
-                    evnt->setTarget(ld, "yq");
+                    evnt->setTarget(load, "yq");
                     evnt->setValue(-eventSpec[3], MW);
                     break;
                 default:
@@ -355,39 +360,39 @@ void loadMatDynEvent(coreObject* parentObject,
         //    loadGenExcArray(parentObject, M1, genList);
     }
 
-    locA = ftext.find(Tline[2], locC);  // linechange
+    locA = fileView.find(tokenList[2], locC);  // linechange
     if (locA != std::string::npos) {
-        locB = ftext.find_first_of('=', locA);
-        readMatlabArray(filetext, locB + 1, M1);
-        for (const auto& lc : M1) {
-            auto evnt = std::make_shared<Event>(lc[0]);
+        locB = fileView.find_first_of('=', locA);
+        readMatlabArray(fileText, locB + 1, matrixData);
+        for (const auto& lineChange : matrixData) {
+            auto evnt = std::make_shared<Event>(lineChange[0]);
 
-            auto ind = static_cast<index_t>(lc[1]);
-            auto* lnk = static_cast<Link*>(parentObject->findByUserID("link", ind));
-            switch (static_cast<int>(lc[2])) {
+            auto ind = static_cast<index_t>(lineChange[1]);
+            auto* linkObject = static_cast<Link*>(parentObject->findByUserID("link", ind));
+            switch (static_cast<int>(lineChange[2])) {
                 case 3:  // r
-                    evnt->setTarget(lnk, "r");
-                    evnt->setValue(lc[3]);
+                    evnt->setTarget(linkObject, "r");
+                    evnt->setValue(lineChange[3]);
                     break;
                 case 4:  // X
-                    evnt->setTarget(lnk, "x");
-                    evnt->setValue(lc[3]);
+                    evnt->setTarget(linkObject, "x");
+                    evnt->setValue(lineChange[3]);
                     break;
                 case 5:  // B
-                    evnt->setTarget(lnk, "b");
-                    evnt->setValue(lc[3], MW);
+                    evnt->setTarget(linkObject, "b");
+                    evnt->setValue(lineChange[3], MW);
                     break;
                 case 9:  // tap
-                    evnt->setTarget(lnk, "tap");
-                    evnt->setValue(lc[3]);
+                    evnt->setTarget(linkObject, "tap");
+                    evnt->setValue(lineChange[3]);
                     break;
                 case 10:  // BS
-                    evnt->setTarget(lnk, "tapangle");
-                    evnt->setValue(lc[3], deg);
+                    evnt->setTarget(linkObject, "tapangle");
+                    evnt->setValue(lineChange[3], deg);
                     break;
                 case 11:  // BS
-                    evnt->setTarget(lnk, "enable");
-                    evnt->setValue(lc[3]);
+                    evnt->setTarget(linkObject, "enable");
+                    evnt->setValue(lineChange[3]);
                     break;
                 default:
                     break;

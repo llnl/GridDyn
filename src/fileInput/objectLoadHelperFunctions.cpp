@@ -15,7 +15,14 @@
 #include <string>
 
 namespace griddyn {
-static const stringVec indexAndNumber = {"index", "number"};
+namespace {
+    const stringVec& indexAndNumber()
+    {
+        static const auto* indexFields = new stringVec{"index", "number"};
+        return *indexFields;
+    }
+}  // namespace
+
 static const char nameString[] = "name";
 
 std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation)
@@ -35,7 +42,7 @@ void setIndex(std::shared_ptr<readerElement>& element,
               readerInfo& readerInformation)
 {
     std::string indexValue =
-        getElementFieldOptions(element, indexAndNumber, readerConfig::defMatchType);
+        getElementFieldOptions(element, indexAndNumber(), readerConfig::defMatchType);
     if (!indexValue.empty()) {
         indexValue = readerInformation.checkDefines(indexValue);
         const double interpretedIndex = interpretString(indexValue, readerInformation);

@@ -32,13 +32,13 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
     removeMatlabComments(fileText);
     size_t functionPos = fileText.find("function");
 
-    size_t matPowerPos = fileText.find("mpc");
+    const size_t matPowerPos = fileText.find("mpc");
     if ((functionPos != std::string::npos) || (matPowerPos != std::string::npos)) {
         if (functionPos == std::string::npos) {
             functionPos = 0;
         }
         size_t equalsPos = fileText.find_first_of('=', functionPos + 9);
-        std::string baseName = gmlc::utilities::stringOps::trim(
+        const std::string baseName = gmlc::utilities::stringOps::trim(
             fileText.substr(functionPos + 9, equalsPos - functionPos - 9));
 
         size_t busPos = fileText.find(baseName + ".bus");
@@ -73,7 +73,7 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
             }
         }
     } else {
-        size_t busConfigPos =
+        const size_t busConfigPos =
             fileText.find("Bus.con");  // look for the Psat bus configuration array
         if (busConfigPos != std::string::npos) {
             loadPSAT(parentObject, fileText, bri);
@@ -85,7 +85,7 @@ void removeMatlabComments(std::string& text)
 {
     size_t commentPos = text.find_first_of('%');
     while (commentPos != std::string::npos) {
-        size_t lineEndPos = text.find_first_of('\n', commentPos);
+        const size_t lineEndPos = text.find_first_of('\n', commentPos);
         text.erase(commentPos, lineEndPos - commentPos + 1);
         commentPos = text.find_first_of('%');
     }
@@ -93,9 +93,9 @@ void removeMatlabComments(std::string& text)
 
 bool readMatlabArray(const std::string& name, const std::string& text, mArray& matlabArray)
 {
-    size_t startPos = text.find(name);
+    const size_t startPos = text.find(name);
     if (startPos != std::string::npos) {
-        size_t equalsPos = text.find_first_of('=', startPos);
+        const size_t equalsPos = text.find_first_of('=', startPos);
         readMatlabArray(text, equalsPos + 1, matlabArray);
         return true;
     }
@@ -107,8 +107,8 @@ void readMatlabArray(const std::string& text, size_t start, mArray& matlabArray)
     using std::string_view;
 
     string_view svtext = text;
-    size_t openBracketPos = text.find_first_of('[', start);
-    size_t closeBracketPos = text.find_first_of(']', openBracketPos);
+    const size_t openBracketPos = text.find_first_of('[', start);
+    const size_t closeBracketPos = text.find_first_of(']', openBracketPos);
     auto arrayData = svtext.substr(openBracketPos + 1, closeBracketPos - openBracketPos);
     matlabArray.resize(0);
 
@@ -151,12 +151,12 @@ stringVec readMatlabCellArray(const std::string& text, size_t start)
 {
     stringVec cell;
 
-    size_t openBracePos = text.find_first_of('{', start);
-    size_t closeBracePos = text.find_first_of('}', openBracePos);
-    std::string arrayData = text.substr(openBracePos + 1, closeBracePos - openBracePos);
+    const size_t openBracePos = text.find_first_of('{', start);
+    const size_t closeBracePos = text.find_first_of('}', openBracePos);
+    const std::string arrayData = text.substr(openBracePos + 1, closeBracePos - openBracePos);
     size_t quotePos = arrayData.find_first_of('\'', 0);
     while (quotePos != std::string::npos) {
-        size_t delimiterPos = arrayData.find_first_of(";,}", quotePos + 1);
+        const size_t delimiterPos = arrayData.find_first_of(";,}", quotePos + 1);
         if (delimiterPos != std::string::npos) {
             auto line = arrayData.substr(quotePos, delimiterPos - quotePos);
             gmlc::utilities::stringOps::trimString(line);

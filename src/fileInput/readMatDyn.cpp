@@ -33,15 +33,12 @@ using units::deg;
 using units::MVAR;
 using units::MW;
 
-static void loadGenExcArray(coreObject* parentObject,
-                            mArray& excData,
-                            std::vector<Generator*>& genList);
-static void loadGenDynArray(coreObject* parentObject,
-                            mArray& genData,
-                            std::vector<Generator*>& genList);
-static void loadGenGovArray(coreObject* parentObject,
-                            mArray& govData,
-                            std::vector<Generator*>& genList);
+static void
+    loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
+static void
+    loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);
+static void
+    loadGenGovArray(coreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
 
 void loadMatDyn(coreObject* parentObject,
                 const std::string& fileText,
@@ -144,9 +141,8 @@ void loadMatDyn(coreObject* parentObject,
     }
 }
 
-static void loadGenDynArray(coreObject* /*parentObject*/,
-                            mArray& genData,
-                            std::vector<Generator*>& genList)
+static void
+    loadGenDynArray(coreObject* /*parentObject*/, mArray& genData, std::vector<Generator*>& genList)
 {
     Exciter* exc;
     Governor* gov;
@@ -224,9 +220,8 @@ static void loadGenDynArray(coreObject* /*parentObject*/,
 10 Urmin, lower voltage limit
 11 Urmax, upper voltage limit
 */
-static void loadGenExcArray(coreObject* /*parentObject*/,
-                            mArray& excData,
-                            std::vector<Generator*>& genList)
+static void
+    loadGenExcArray(coreObject* /*parentObject*/, mArray& excData, std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& excLine : excData) {
@@ -264,9 +259,8 @@ static void loadGenExcArray(coreObject* /*parentObject*/,
 8 Pmax, maximal turbine output
 9 Pmin, minimal turbine output
 */
-static void loadGenGovArray(coreObject* /*parentObject*/,
-                            mArray& govData,
-                            std::vector<Generator*>& genList)
+static void
+    loadGenGovArray(coreObject* /*parentObject*/, mArray& govData, std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& govLine : govData) {

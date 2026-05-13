@@ -86,8 +86,6 @@ void loadMatPower(coreObject* parentObject,
     }
 }
 
-// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
-
 void loadBusArray(coreObject* parentObject,
                   double basepower,
                   mArray& buses,
@@ -418,5 +416,7 @@ void loadLinkArray(coreObject* parentObject,
         }
     }
 }
+
+// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
 
 }  // namespace griddyn

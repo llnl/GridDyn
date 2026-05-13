@@ -189,8 +189,6 @@ void loadPSAT(coreObject* parentObject,
     loadOtherObjectData(parentObject, filetext, busList);
 }
 
-// NOLINTEND(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
-
 void loadOtherObjectData(coreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<gridBus*>& busList)
@@ -1006,5 +1004,7 @@ void loadPsatMotorArray(coreObject* /*parentObject*/,
         // TODO(phlpt): Add parameters.
     }
 }
+
+// NOLINTEND(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 
 }  // namespace griddyn

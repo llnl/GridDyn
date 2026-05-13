@@ -10,9 +10,7 @@
 #include <string>
 
 namespace griddyn {
-void loadGDZ(coreObject* parentObject,
-             const std::string& fileName,
-             readerInfo& readerInformation)
+void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& readerInformation)
 {
     std::filesystem::path filePath(fileName);
     if (!std::filesystem::exists(filePath)) {

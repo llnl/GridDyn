@@ -91,9 +91,7 @@ void loadFile(coreObject* parentObject,
               readerInfo* readerInf = nullptr,
               std::string ext = "");
 
-void loadGDZ(coreObject* parentObject,
-             const std::string& fileName,
-             readerInfo& readerInformation);
+void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& readerInformation);
 
 void loadCDF(coreObject* parentObject,
              const std::string& fileName,

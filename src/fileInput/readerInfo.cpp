@@ -127,8 +127,7 @@ void readerInfo::addDefinition(const std::string& def, const std::string& replac
         if (currentScope > 0) {
             auto previousDefinition = defines.find(def);
             if (previousDefinition != defines.end()) {
-                scopedDefinitions.emplace_back(
-                    currentScope, def, true, previousDefinition->second);
+                scopedDefinitions.emplace_back(currentScope, def, true, previousDefinition->second);
             } else {
                 scopedDefinitions.emplace_back(currentScope, def, false, "");
             }

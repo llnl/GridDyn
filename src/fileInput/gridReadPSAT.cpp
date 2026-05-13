@@ -173,8 +173,7 @@ void loadPSAT(coreObject* parentObject,
                     if (readerOptions.prefix.empty()) {
                         Vnames[kk] = "Bus-" + std::to_string(M1[kk][0]);
                     } else {
-                        Vnames[kk] =
-                            readerOptions.prefix + "_Bus-" + std::to_string(M1[kk][0]);
+                        Vnames[kk] = readerOptions.prefix + "_Bus-" + std::to_string(M1[kk][0]);
                     }
                 }
             } else {

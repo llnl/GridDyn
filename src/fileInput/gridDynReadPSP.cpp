@@ -157,8 +157,7 @@ void loadPSP(coreObject* parentObject,
                         } else {
                             line2 = "";
                         }
-                        pspReadBranch(
-                            parentObject, line, line2, base, busList, readerOptions);
+                        pspReadBranch(parentObject, line, line2, base, busList, readerOptions);
                     } else {
                         morebranch = false;
                     }

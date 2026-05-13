@@ -76,8 +76,7 @@ void loadCSV(coreObject* parentObject,
                         objectMode = objectName;
                     } else {
                         WARNPRINT(READER_WARN_IMPORTANT,
-                                  "Unrecognized object " << objectMode
-                                                         << " Unable to process CSV");
+                                  "Unrecognized object " << objectMode << " Unable to process CSV");
                         return;
                     }
                 } else {
@@ -111,11 +110,12 @@ void loadCSV(coreObject* parentObject,
                 if (headerToken.back() == ')') {
                     auto unitStartPos = headerToken.find_first_of('(');
                     if (unitStartPos != std::string::npos) {
-                        std::string unitName = headerToken.substr(
-                            unitStartPos + 1, headerToken.length() - 2 - unitStartPos);
+                        std::string unitName =
+                            headerToken.substr(unitStartPos + 1,
+                                               headerToken.length() - 2 - unitStartPos);
                         units[headerIndex] = units::unit_cast_from_string(unitName);
-                        headerToken = gmlc::utilities::stringOps::trim(
-                            headerToken.substr(0, unitStartPos));
+                        headerToken =
+                            gmlc::utilities::stringOps::trim(headerToken.substr(0, unitStartPos));
                     }
                 }
                 ++headerIndex;
@@ -206,8 +206,7 @@ void loadCSV(coreObject* parentObject,
                         static_cast<Link*>(obj)->updateBus(bus, 2);
                     }
                 } else if ((field.compare(0, 4, "from") == 0) && (objectMode == "link")) {
-                    auto str =
-                        readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
+                    auto str = readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     gridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -223,8 +222,7 @@ void loadCSV(coreObject* parentObject,
                                   "line " << lineNumber << ":: unable to locate bus object  "
                                           << str);
                     }
-                } else if ((field == "bus") &&
-                           ((objectMode == "load") || (objectMode == "gen"))) {
+                } else if ((field == "bus") && ((objectMode == "load") || (objectMode == "gen"))) {
                     auto str = readerInformation.checkDefines(std::string{lineTokens[kk]});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     gridBus* bus = nullptr;

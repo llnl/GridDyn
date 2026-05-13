@@ -229,7 +229,7 @@ static void
         auto ind1 = static_cast<index_t>(excLine[0]);
 
         if (isValidIndex(ind1, genList)) {
-            Generator* const gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
+            const Generator* const gen = genList[ind1 - 1];  // zero based in C vs 1 based in matlab
             exc = static_cast<Exciter*>(gen->getSubObject("exciter", 0));
         }
         if (exc == nullptr) {

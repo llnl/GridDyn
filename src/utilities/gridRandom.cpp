@@ -79,7 +79,7 @@ std::unique_ptr<std::mt19937> gridRandom::mGenerator;
 bool gridRandom::mSeeded = false;
 unsigned int gridRandom::mActualSeed = 0;
 
-gridRandom::gridRandom(dist_type_t dist, double param1, double param2):
+gridRandom::gridRandom(DistributionType dist, double param1, double param2):
     mDist(dist), mParam1(param1), mParam2(param2)
 {
     setDistribution(dist);
@@ -126,44 +126,44 @@ unsigned int gridRandom::getSeed()
 {
     return mActualSeed;
 }
-void gridRandom::setDistribution(dist_type_t dist)
+void gridRandom::setDistribution(DistributionType dist)
 {
     mDist = dist;
     switch (dist) {
-        case dist_type_t::constant:
+        case DistributionType::CONSTANT:
             mDistribution = std::make_unique<randomDistributionObject1<void>>(mParam1);
             break;
-        case dist_type_t::exponential:
+        case DistributionType::EXPONENTIAL:
             mDistribution =
                 std::make_unique<randomDistributionObject1<std::exponential_distribution<double>>>(
                     1.0 / mParam1);
             break;
-        case dist_type_t::extreme_value:
+        case DistributionType::EXTREME_VALUE:
             mDistribution = std::make_unique<
                 randomDistributionObject2<std::extreme_value_distribution<double>>>(mParam1,
                                                                                     mParam2);
             break;
-        case dist_type_t::gamma:
+        case DistributionType::GAMMA:
             mDistribution =
                 std::make_unique<randomDistributionObject2<std::gamma_distribution<double>>>(
                     mParam1, mParam2);
             break;
-        case dist_type_t::normal:
+        case DistributionType::NORMAL:
             mDistribution =
                 std::make_unique<randomDistributionObject2<std::normal_distribution<double>>>(
                     mParam1, mParam2);
             break;
-        case dist_type_t::uniform:
+        case DistributionType::UNIFORM:
             mDistribution =
                 std::make_unique<randomDistributionObject2<std::uniform_real_distribution<double>>>(
                     mParam1, mParam2);
             break;
-        case dist_type_t::lognormal:
+        case DistributionType::LOGNORMAL:
             mDistribution =
                 std::make_unique<randomDistributionObject2<std::lognormal_distribution<double>>>(
                     mParam1, mParam2);
             break;
-        case dist_type_t::uniform_int:
+        case DistributionType::UNIFORM_INT:
             mDistribution =
                 std::make_unique<randomDistributionObject2<std::uniform_int_distribution<int>>>(
                     static_cast<int>(mParam1), static_cast<int>(mParam2));
@@ -171,75 +171,75 @@ void gridRandom::setDistribution(dist_type_t dist)
     }
 }
 
-double gridRandom::randNumber(dist_type_t dist)
+double gridRandom::randNumber(DistributionType dist)
 {
     if (!mSeeded) {
         setSeed();
     }
     auto& engine = getEngine();
     switch (dist) {
-        case dist_type_t::constant:
+        case DistributionType::CONSTANT:
         default:
             return 0.0;
             break;
-        case dist_type_t::gamma:
+        case DistributionType::GAMMA:
             return std::gamma_distribution<double>{}(engine);
             break;
-        case dist_type_t::extreme_value:
+        case DistributionType::EXTREME_VALUE:
             return std::extreme_value_distribution<double>{}(engine);
             break;
-        case dist_type_t::exponential:
+        case DistributionType::EXPONENTIAL:
             return std::exponential_distribution<double>{}(engine);
             break;
-        case dist_type_t::normal:
+        case DistributionType::NORMAL:
             return std::normal_distribution<double>{}(engine);
             break;
-        case dist_type_t::uniform:
+        case DistributionType::UNIFORM:
             return std::uniform_real_distribution<double>{}(engine);
             break;
-        case dist_type_t::lognormal:
+        case DistributionType::LOGNORMAL:
             return std::lognormal_distribution<double>{}(engine);
-        case dist_type_t::uniform_int:
+        case DistributionType::UNIFORM_INT:
             return static_cast<double>(std::uniform_int_distribution<int>{}(engine));
             break;
     }
 }
 
-double gridRandom::randNumber(dist_type_t dist, double param1, double param2)
+double gridRandom::randNumber(DistributionType dist, double param1, double param2)
 {
     if (!mSeeded) {
         setSeed();
     }
     auto& engine = getEngine();
     switch (dist) {
-        case dist_type_t::constant:
+        case DistributionType::CONSTANT:
             return param1;
             break;
-        case dist_type_t::gamma:
+        case DistributionType::GAMMA:
             return std::gamma_distribution<double>{}(
                 engine, std::gamma_distribution<double>::param_type(param1, param2));
             break;
-        case dist_type_t::extreme_value:
+        case DistributionType::EXTREME_VALUE:
             return std::extreme_value_distribution<double>{}(
                 engine, std::extreme_value_distribution<double>::param_type(param1, param2));
             break;
-        case dist_type_t::exponential:
+        case DistributionType::EXPONENTIAL:
             return std::exponential_distribution<double>{}(
                 engine, std::exponential_distribution<double>::param_type(1.0 / param1));
             break;
-        case dist_type_t::normal:
+        case DistributionType::NORMAL:
             return std::normal_distribution<double>{}(
                 engine, std::normal_distribution<double>::param_type(param1, param2));
             break;
-        case dist_type_t::uniform:
+        case DistributionType::UNIFORM:
             return std::uniform_real_distribution<double>{}(
                 engine, std::uniform_real_distribution<double>::param_type(param1, param2));
             break;
-        case dist_type_t::lognormal:
+        case DistributionType::LOGNORMAL:
             return std::lognormal_distribution<double>{}(
                 engine, std::lognormal_distribution<double>::param_type(param1, param2));
             break;
-        case dist_type_t::uniform_int:
+        case DistributionType::UNIFORM_INT:
             return static_cast<double>(std::uniform_int_distribution<int>{}(
                 engine,
                 std::uniform_int_distribution<int>::param_type(static_cast<int>(param1),
@@ -276,22 +276,22 @@ std::pair<double, double> gridRandom::getPair()
 {
     return std::make_pair((*mDistribution)(), (*mDistribution)());
 }
-static constexpr auto distmap = makeLookupTable<gridRandom::dist_type_t>({
-    {"constant", gridRandom::dist_type_t::constant},
-    {"const", gridRandom::dist_type_t::constant},
-    {"uniform", gridRandom::dist_type_t::uniform},
-    {"lognormal", gridRandom::dist_type_t::lognormal},
-    {"extreme", gridRandom::dist_type_t::extreme_value},
-    {"exponential", gridRandom::dist_type_t::exponential},
-    {"gamma", gridRandom::dist_type_t::gamma},
-    {"normal", gridRandom::dist_type_t::normal},
-    {"gaussian", gridRandom::dist_type_t::normal},
-    {"uniform_int", gridRandom::dist_type_t::uniform_int},
+static constexpr auto distmap = makeLookupTable<gridRandom::DistributionType>({
+    {"constant", gridRandom::DistributionType::CONSTANT},
+    {"const", gridRandom::DistributionType::CONSTANT},
+    {"uniform", gridRandom::DistributionType::UNIFORM},
+    {"lognormal", gridRandom::DistributionType::LOGNORMAL},
+    {"extreme", gridRandom::DistributionType::EXTREME_VALUE},
+    {"exponential", gridRandom::DistributionType::EXPONENTIAL},
+    {"gamma", gridRandom::DistributionType::GAMMA},
+    {"normal", gridRandom::DistributionType::NORMAL},
+    {"gaussian", gridRandom::DistributionType::NORMAL},
+    {"uniform_int", gridRandom::DistributionType::UNIFORM_INT},
 });
 
-gridRandom::dist_type_t getDist(std::string_view dist_name)
+gridRandom::DistributionType getDist(std::string_view dist_name)
 {
-    return lookupValue(distmap, dist_name, gridRandom::dist_type_t::constant);
+    return lookupValue(distmap, dist_name, gridRandom::DistributionType::CONSTANT);
 }
 
 }  // namespace utilities

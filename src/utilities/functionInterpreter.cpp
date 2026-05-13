@@ -164,19 +164,19 @@ double piValue()
 }
 double randUniform()
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::uniform);
+    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM);
 }
 double randNormal()
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::normal);
+    return gridRandom::randNumber(gridRandom::DistributionType::NORMAL);
 }
 double randExponential()
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::exponential);
+    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL);
 }
 double randLognormal()
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::lognormal);
+    return gridRandom::randNumber(gridRandom::DistributionType::LOGNORMAL);
 }
 
 double signValue(double val)
@@ -200,7 +200,7 @@ double decimalValue(double val)
 }
 double randExpSingle(double val)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::exponential, val, val);
+    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL, val, val);
 }
 
 double pow10Value(double val)
@@ -324,31 +324,31 @@ double median3(double val1, double val2, double val3)
 
 double randUniformRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::uniform, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM, val1, val2);
 }
 double randNormalRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::normal, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::NORMAL, val1, val2);
 }
 double randExponentialRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::exponential, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL, val1, val2);
 }
 double randLognormalRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::lognormal, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::LOGNORMAL, val1, val2);
 }
 double randIntegerRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::uniform_int, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM_INT, val1, val2);
 }
 double randExtremeValueRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::extreme_value, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::EXTREME_VALUE, val1, val2);
 }
 double randGammaRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::dist_type_t::gamma, val1, val2);
+    return gridRandom::randNumber(gridRandom::DistributionType::GAMMA, val1, val2);
 }
 double addValue(double val1, double val2)
 {

@@ -23,33 +23,33 @@ class sensor: public Relay {
   public:
     /** @brief sensor flags controlling operation
      */
-    enum sensor_flags {
-        direct_IO = object_flag6,  //!< indication that the sensor is directly listing all inputs as
+    enum SensorFlags {
+        DIRECT_IO = object_flag6,  //!< indication that the sensor is directly listing all inputs as
                                    //!< outputs with
         //!< no processing
-        link_type_source = object_flag7,  //!< indication that the source is a link
-        link_type_sink = object_flag8,  //!< indicator that the sink is a link object
-        no_message_reply =
+        LINK_TYPE_SOURCE = object_flag7,  //!< indication that the source is a link
+        LINK_TYPE_SINK = object_flag8,  //!< indicator that the sink is a link object
+        NO_MESSAGE_REPLY =
             object_flag9,  //!< indicator that the sensor should not send message replies
-        force_continuous =
+        FORCE_CONTINUOUS =
             object_flag10,  //!< force continuous operation even if the underlying data sources are
         //!< not continuously available
     };
     /** @brief define the possible operation modes for a processing sequence*/
-    enum class sequenceMode_t : unsigned char {
-        normal,  //!< the sequence runs under normal operation with both state and sampled input
+    enum class SequenceMode : unsigned char {
+        NORMAL,  //!< the sequence runs under normal operation with both state and sampled input
                  //!< available
-        sampled,  //!< the sequence only runs with periodic sampling
-        disabled,  //!< the sequence is disabled
+        SAMPLED,  //!< the sequence only runs with periodic sampling
+        DISABLED,  //!< the sequence is disabled
     };
     /** @brief enumeration of the output modes available for the outputs
      the output can be direct from an in input grabber, it can be directly from a block processing
     object or it can a function of block or inputs*/
-    enum class outputMode_t : unsigned char {
-        block,  //!< direct from a filter block output
-        blockderiv,  //!< direct time derivative of a block
-        processed,  //!< processed output
-        direct,  //!< direct from an input
+    enum class OutputMode : unsigned char {
+        BLOCK,  //!< direct from a filter block output
+        BLOCK_DERIV,  //!< direct time derivative of a block
+        PROCESSED,  //!< processed output
+        DIRECT,  //!< direct from an input
     };
 
   protected:
@@ -57,8 +57,8 @@ class sensor: public Relay {
     // PT leaving outputs as int (vs index_t) as negative values here are meaningful and useful
     std::vector<int> outputs;  //!< locations of output values
     std::vector<stringVec> outputStrings;  //!< names for the outputs
-    std::vector<outputMode_t> outputMode;  //!< output modes corresponding to the outputs
-    std::vector<sequenceMode_t> processStatus;  //!< the status of the processing sequence
+    std::vector<OutputMode> outputMode;  //!< output modes corresponding to the outputs
+    std::vector<SequenceMode> processStatus;  //!< the status of the processing sequence
     stringVec inputStrings;  //!< vector of input strings
     index_t m_terminal = 0;  //!< the terminal to use on link operations  NOTE: works with
                              //!< link_source and link_sink flags

@@ -268,15 +268,15 @@ double randomSource::computeBiasAdjust()
     }
     double bias = 0.0;
     switch (valGenerator->getDistribution()) {
-        case utilities::gridRandom::dist_type_t::uniform:
+        case utilities::gridRandom::DistributionType::UNIFORM:
             bias = -(param2_L - param1_L) * zbias * (offset);
             break;
-        case utilities::gridRandom::dist_type_t::exponential:  // load varies in a biexponential
-                                                               // pattern
+        case utilities::gridRandom::DistributionType::EXPONENTIAL:  // load varies in a
+                                                                     // biexponential pattern
             bias = ((offset / param1_L) * zbias) - 0.5;
 
             break;
-        case utilities::gridRandom::dist_type_t::normal:
+        case utilities::gridRandom::DistributionType::NORMAL:
             bias = -param2_L * zbias * (offset);
             break;
         default:

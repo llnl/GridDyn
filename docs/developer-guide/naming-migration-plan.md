@@ -215,6 +215,20 @@ Types of work in this phase:
 - [x] `src/gridDynServer`
 - [x] `src/griddyn_shared`
 
+### Phase 3 Closeout
+
+Phase 3 is complete for the planned low-risk naming-cleanup scope.
+
+Completed Phase 3 work covered:
+
+- subsystem-scoped local-variable and parameter normalization
+- low-risk private/internal helper cleanup
+- targeted `clang-tidy` cleanup needed to keep touched files moving forward
+- completion of the remaining `src/fileInput` and `src/plugins` Phase 3 batches
+
+Phase 4 can now proceed from a cleaner baseline with the remaining work focused
+on internal enums, internal types, and other contained type-level renames.
+
 ### Initial Candidate Examples
 
 These are examples of the kinds of renames expected early in the program:
@@ -461,6 +475,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/fmi_export`                                                                                                        | Phase 3 | Low-risk FMI export cleanup batch covering collector, coordinator, event, runner, builder, and export-loader naming                                                                                      | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/runner` + `src/extraModels` + `src/gridDynLoader` + `src/gridDynMain` + `src/gridDynServer` + `src/griddyn_shared` | Phase 3 | Low-risk runtime/bootstrap cleanup batch covering runner state, transformer helper models, loader/main entrypoints, PMU server state, and shared-library wrapper local naming                            | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/fileInput`                                                                                                         | Phase 3 | Low-risk reader cleanup batch covering file-input reader helpers and element loaders with local naming normalization across the area/bus/link/relay/simulation/econ/event/collector reader path          | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/plugins`                                                                                                           | Phase 3 | Low-risk plugin cleanup batch completing the remaining contained Phase 3 naming work in the plugin entrypoints and support code                                                                          | No                   | CI compile and `clang-tidy` run  | Complete |
 
 ## Open Decisions
 

@@ -49,11 +49,11 @@ coreObject* pmu::clone(coreObject* obj) const
 void pmu::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
-        opFlags.set(transmit_active, val);
+        opFlags.set(TRANSMIT_ACTIVE, val);
     } else if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
         opFlags.set(three_phase_capable, val);
     } else if ((flag == "current_active") || (flag == "current")) {
-        opFlags.set(current_active, val);
+        opFlags.set(CURRENT_ACTIVE, val);
     } else {
         sensor::setFlag(flag, val);
     }
@@ -146,17 +146,17 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     // check for 3 phase sensors
     if (dynamic_cast<gridComponent*>(m_sourceObject) != nullptr) {
         if (static_cast<gridComponent*>(m_sourceObject)->checkFlag(three_phase_capable)) {
-            if (!opFlags[three_phase_set]) {
-                opFlags[three_phase_active] = true;
+            if (!opFlags[THREE_PHASE_SET]) {
+                opFlags[THREE_PHASE_ACTIVE] = true;
             }
         } else {
-            opFlags[three_phase_active] = false;
+            opFlags[THREE_PHASE_ACTIVE] = false;
         }
     }
 
     if (dynamic_cast<gridBus*>(m_sourceObject) != nullptr) {
         // no way to get current from a bus
-        opFlags[current_active] = false;
+        opFlags[CURRENT_ACTIVE] = false;
     }
     generateOutputNames();
     createFilterBlocks();
@@ -166,8 +166,8 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void pmu::generateOutputNames()
 {
     // 4 different scenarios
-    if (opFlags[three_phase_active]) {
-        if (opFlags[current_active]) {
+    if (opFlags[THREE_PHASE_ACTIVE]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             // three phase voltage and current
             outputStrings = {{"voltageA"},
                              {"angleA"},
@@ -195,7 +195,7 @@ void pmu::generateOutputNames()
                              {"rocof"}};
         }
     } else {
-        if (opFlags[current_active]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             // single phase voltage and current
             outputStrings = {{"voltage"},
                              {"angle"},
@@ -216,8 +216,8 @@ void pmu::generateOutputNames()
 void pmu::createFilterBlocks()
 {
     // 4 different scenarios
-    if (opFlags[three_phase_active]) {
-        if (opFlags[current_active]) {  // NOLINT
+    if (opFlags[THREE_PHASE_ACTIVE]) {
+        if (opFlags[CURRENT_ACTIVE]) {  // NOLINT
             // three phase voltage and current
         } else {
             // three phase voltage
@@ -235,7 +235,7 @@ void pmu::createFilterBlocks()
         set("blockinput1", 1);
         setupOutput(0, "block0");
         setupOutput(1, "block1");
-        if (opFlags[current_active]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             vBlock = new blocks::delayBlock(mCurrentFilterTime);
             vBlock->setName("current_real");
             add(vBlock);

@@ -54,23 +54,23 @@ class gridRandom {
     /** get the current seed*/
     static unsigned int getSeed();
     /** enumeration of the different distribution types*/
-    enum class dist_type_t {
-        constant,
-        uniform,
-        exponential,
-        normal,
-        lognormal,
-        extreme_value,
-        gamma,
-        uniform_int,
+    enum class DistributionType {
+        CONSTANT,
+        UNIFORM,
+        EXPONENTIAL,
+        NORMAL,
+        LOGNORMAL,
+        EXTREME_VALUE,
+        GAMMA,
+        UNIFORM_INT,
     };
-    explicit gridRandom(dist_type_t dist = dist_type_t::normal,
+    explicit gridRandom(DistributionType dist = DistributionType::NORMAL,
                         double param1 = 0.0,
                         double param2 = 1.0);
     explicit gridRandom(std::string_view dist_name, double param1 = 0.0, double param2 = 1.0);
 
-    void setDistribution(dist_type_t dist);
-    dist_type_t getDistribution() const { return mDist; }
+    void setDistribution(DistributionType dist);
+    DistributionType getDistribution() const { return mDist; }
     /** generate a random number according to the distribution*/
     double operator()();
     /** generate a random number according to the distribution*/
@@ -78,9 +78,9 @@ class gridRandom {
     /** set the parameters of the distribution*/
     void setParameters(double param1, double param2 = 1.0);
     /** generate a random number from a distribution*/
-    static double randNumber(dist_type_t dist);
+    static double randNumber(DistributionType dist);
     /** generate a random number from a distribution with a two parameter distribution*/
-    static double randNumber(dist_type_t dist, double param1, double param2);
+    static double randNumber(DistributionType dist, double param1, double param2);
     /** generate a pair of random numbers*/
     std::pair<double, double> getPair();
     /** generate a random vector with a specified number of values*/
@@ -96,7 +96,7 @@ class gridRandom {
   private:
     static void ensureEngine();
     std::unique_ptr<distributionObject> mDistribution;
-    dist_type_t mDist;
+    DistributionType mDist;
     double mParam1 = 0.0;
     double mParam2 = 1.0;
 };
@@ -147,6 +147,6 @@ class randomDistributionObject1<void>: public distributionObject {
 };
 
 /** get the distribution type from a string*/
-gridRandom::dist_type_t getDist(std::string_view dist_name);
+gridRandom::DistributionType getDist(std::string_view dist_name);
 
 }  // namespace utilities

@@ -146,7 +146,7 @@ std::shared_ptr<grabberSet> sensor::getGrabberSet(index_t grabberNum)
 void sensor::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "direct_io") || (flag == "direct")) {
-        opFlags.set(direct_IO, val);
+        opFlags.set(DIRECT_IO, val);
     } else if (flag == "sampled") {
         opFlags[sampled_only] = val;
         opFlags[continuous_flag] = !val;
@@ -179,7 +179,7 @@ void sensor::set(std::string_view param, std::string_view val)
                 inputStrings.push_back(istr);
             }
         }
-        if (opFlags[direct_IO]) {
+        if (opFlags[DIRECT_IO]) {
             if (num >= 0) {
                 ensureSizeAtLeast(outputStrings, num + sp.size());
 
@@ -253,7 +253,7 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
         std::string sval = (el != std::string::npos) ? outputString.substr(el + 1) : "";
         ensureSizeAtLeast(outputs, num + 1, -1);
         ensureSizeAtLeast(outputStrings, num + 1);
-        ensureSizeAtLeast(outputMode, num + 1, outputMode_t::block);
+        ensureSizeAtLeast(outputMode, num + 1, OutputMode::BLOCK);
         ensureSizeAtLeast(outGrabbers, num + 1);
         m_outputSize = static_cast<count_t>(outputs.size());
         if (!sval.empty()) {
@@ -262,22 +262,22 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
         auto outputValue = gmlc::utilities::numeric_conversionComplete<int>(v2, -1);
         if (outputValue >= 0) {
             outputs[num] = outputValue;
-            outputMode[num] = outputMode_t::block;
+            outputMode[num] = OutputMode::BLOCK;
         } else {
             int knum = gmlc::utilities::stringOps::trailingStringInt(v2, sval, 0);
             if (sval == "input") {
                 outputs[num] = knum;
-                outputMode[num] = outputMode_t::direct;
+                outputMode[num] = OutputMode::DIRECT;
             } else if (sval == "block") {
                 outputs[num] = knum;
-                outputMode[num] = outputMode_t::block;
+                outputMode[num] = OutputMode::BLOCK;
             } else if (sval == "blockderiv") {
                 outputs[num] = knum;
-                outputMode[num] = outputMode_t::blockderiv;
+                outputMode[num] = OutputMode::BLOCK_DERIV;
             } else {
                 outGrabbers[num] = std::make_shared<grabberSet>(v2, this);
 
-                outputMode[num] = outputMode_t::processed;
+                outputMode[num] = OutputMode::PROCESSED;
             }
         }
     } else {
@@ -303,7 +303,7 @@ void sensor::set(std::string_view param, double val, units::unit unitType)
             blockInputs[num] = static_cast<int>(val);
         }
     } else if (param == "direct") {
-        opFlags.set(direct_IO, (val > 0.1));
+        opFlags.set(DIRECT_IO, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
             throw(invalidParameterValue(param));
@@ -371,7 +371,7 @@ void sensor::generateInputGrabbers()
         auto cloc = istr.find_first_of(':');
 
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
-            if ((opFlags[link_type_source]) && (isdigit(istr.back()) == 0)) {
+            if ((opFlags[LINK_TYPE_SOURCE]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
                     istr.append(std::to_string(m_terminal));
                 }
@@ -396,7 +396,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
                 set(gmlc::utilities::convertToLowerCase(payload->m_field),
                     payload->m_value,
                     units::unit_cast_from_string(payload->m_units));
-                if (!opFlags[no_message_reply])  // unless told not to respond return with the
+                if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<commMessage>(cm::SET_SUCCESS);
                     assert(gres->getPayload<cm>());
@@ -406,7 +406,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
                 }
             }
             catch (const std::invalid_argument&) {
-                if (!opFlags[no_message_reply])  // unless told not to respond return with the
+                if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<commMessage>(cm::SET_FAIL);
                     assert(gres->getPayload<cm>());
@@ -517,11 +517,11 @@ double sensor::getInput(const stateData& sD, const solverMode& sMode, index_t in
 void sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        opFlags.set(link_type_source);
+        opFlags.set(LINK_TYPE_SOURCE);
     }
 
     if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-        opFlags.set(link_type_sink);
+        opFlags.set(LINK_TYPE_SINK);
     }
     generateInputGrabbers();
     // check if we need to go to sampled mode
@@ -554,7 +554,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
 {
     if (filterBlocks.empty())  // no filter blocks, use direct output
     {
-        opFlags.set(direct_IO);
+        opFlags.set(DIRECT_IO);
     }
     for (size_t kk = 0; kk < filterBlocks.size(); ++kk) {
         if (blockInputs[kk] < 0) {
@@ -569,16 +569,16 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
     }
 
     if (outputs.empty()) {
-        if (opFlags[direct_IO]) {
+        if (opFlags[DIRECT_IO]) {
             for (int kk = 0; kk < static_cast<int>(dataSources.size()); ++kk) {
                 outputs.push_back(kk);
-                outputMode.push_back(outputMode_t::direct);
+                outputMode.push_back(OutputMode::DIRECT);
                 outGrabbers.push_back(nullptr);
             }
         } else {
             for (int kk = 0; kk < static_cast<int>(filterBlocks.size()); ++kk) {
                 outputs.push_back(kk);
-                outputMode.push_back(outputMode_t::block);
+                outputMode.push_back(OutputMode::BLOCK);
                 outGrabbers.push_back(nullptr);
             }
         }
@@ -591,7 +591,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
     const auto dataSourceCount = static_cast<int>(dataSources.size());
     for (count_t kk = 0; kk < outputCount; ++kk) {
         switch (outputMode[kk]) {
-            case outputMode_t::block:
+            case OutputMode::BLOCK:
                 if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
                     if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
@@ -601,7 +601,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
                 }
                 ++blkcnt;
                 break;
-            case outputMode_t::blockderiv:
+            case OutputMode::BLOCK_DERIV:
                 if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
                     if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
@@ -610,7 +610,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
                     }
                 }
                 break;
-            case outputMode_t::direct:
+            case OutputMode::DIRECT:
                 if ((outputs[kk] < 0) || (outputs[kk] >= dataSourceCount)) {
                     if (ocount < dataSourceCount) {
                         outputs[kk] = ocount;
@@ -619,7 +619,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
                     }
                 }
                 ++ocount;
-            case outputMode_t::processed:
+            case OutputMode::PROCESSED:
             default:
                 break;
         }
@@ -782,13 +782,13 @@ double sensor::getOutput(const IOdata& /*inputs*/,
         return kNullVal;
     }
     switch (outputMode[outNum]) {
-        case outputMode_t::block:
+        case OutputMode::BLOCK:
             return filterBlocks[outputs[outNum]]->getOutput(noInputs, sD, sMode);
-        case outputMode_t::blockderiv:
+        case OutputMode::BLOCK_DERIV:
             return filterBlocks[outputs[outNum]]->getBlockDoutDt(sD, sMode);
-        case outputMode_t::processed:
+        case OutputMode::PROCESSED:
             return outGrabbers[outNum]->grabData(sD, sMode);
-        case outputMode_t::direct:
+        case OutputMode::DIRECT:
             return dataSources[outputs[outNum]]->grabData(sD, sMode);
         default:
             return kNullVal;
@@ -803,15 +803,15 @@ double sensor::getOutput(index_t outNum) const
         return out;
     }
     switch (outputMode[outNum]) {
-        case outputMode_t::block:
+        case OutputMode::BLOCK:
             out = filterBlocks[outputs[outNum]]->getOutput();
             break;
-        case outputMode_t::blockderiv:
+        case OutputMode::BLOCK_DERIV:
             return filterBlocks[outputs[outNum]]->getBlockDoutDt();
-        case outputMode_t::processed:
+        case OutputMode::PROCESSED:
             out = outGrabbers[outNum]->grabData();
             break;
-        case outputMode_t::direct:
+        case OutputMode::DIRECT:
             out = dataSources[outputs[outNum]]->grabData();
             break;
         default:
@@ -828,10 +828,10 @@ index_t sensor::getOutputLoc(const solverMode& sMode, index_t outNum) const
         return kNullLocation;
     }
     switch (outputMode[outNum]) {
-        case outputMode_t::block:
+        case OutputMode::BLOCK:
             return filterBlocks[outputs[outNum]]->getOutputLoc(sMode);
-        case outputMode_t::processed:
-        case outputMode_t::direct:
+        case OutputMode::PROCESSED:
+        case OutputMode::DIRECT:
         default:
             return kNullLocation;
     }
@@ -846,14 +846,14 @@ void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
     matrixDataTranslate<3, double> aDT(md);
     for (index_t pp = 0; pp < static_cast<index_t>(outputs.size()); ++pp) {
         switch (outputMode[pp]) {
-            case outputMode_t::block:
+            case OutputMode::BLOCK:
                 aDT.setTranslation(0, pp);
                 filterBlocks[outputs[pp]]->outputPartialDerivatives(noInputs, sD, aDT, sMode);
                 break;
-            case outputMode_t::processed:
+            case OutputMode::PROCESSED:
                 // out[pp] = outGrabbers[pp]->grabData(sD, sMode);
                 break;
-            case outputMode_t::direct:
+            case OutputMode::DIRECT:
                 // out[pp] = dataSources[outputs[pp]]->grabData();
                 break;
             default:

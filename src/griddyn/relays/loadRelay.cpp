@@ -38,7 +38,7 @@ coreObject* loadRelay::clone(coreObject* obj) const
 void loadRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
-        opFlags.set(nondirectional_flag, val);
+        opFlags.set(NONDIRECTIONAL_FLAG, val);
     } else {
         Relay::setFlag(flag, val);
     }

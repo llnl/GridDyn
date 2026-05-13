@@ -27,15 +27,19 @@ using gmlc::utilities::stringOps::trim;
 using units::deg;
 using units::MW;
 
-static void
-    cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
+static void cdfReadBusLine(gridBus* bus,
+                           const std::string& line,
+                           double base,
+                           const basicReaderInfo& readerOptions);
 static void cdfReadBranch(coreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<gridBus*> busList,
-                          const basicReaderInfo& bri);
+                          const basicReaderInfo& readerOptions);
 
-void loadCDF(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadCDF(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -74,7 +78,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
         parentObject->set("basepower", base);
         temp1 = line.substr(45, 27);
         gmlc::utilities::stringOps::trimString(temp1);
-        if (bri.prefix.empty()) {
+        if (readerOptions.prefix.empty()) {
             parentObject->setName(temp1);
         }
     }
@@ -105,7 +109,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
                         busList[index] = new acBus();
                         busList[index]->set("basepower", base);  // set the basepower for the bus
                         busList[index]->setUserID(index);
-                        cdfReadBusLine(busList[index], line, base, bri);
+                        cdfReadBusLine(busList[index], line, base, readerOptions);
                         try {
                             parentObject->add(busList[index]);
                         }
@@ -131,7 +135,7 @@ void loadCDF(coreObject* parentObject, const std::string& fileName, const basicR
                     if (temp1.length() < 4) {
                         continue;
                     }
-                    cdfReadBranch(parentObject, line, base, busList, bri);
+                    cdfReadBranch(parentObject, line, base, busList, readerOptions);
                 } else {
                     morebranch = false;
                 }
@@ -172,9 +176,12 @@ Columns 115-122 Shunt susceptance B (per unit) (F) *
 Columns 124-127 Remote controlled bus number
 */
 
-static void
-    cdfReadBusLine(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri)
+static void cdfReadBusLine(gridBus* bus,
+                           const std::string& line,
+                           double base,
+                           const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     zipLoad* load = nullptr;
     Generator* gen = nullptr;
 
@@ -399,8 +406,9 @@ static void cdfReadBranch(coreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<gridBus*> busList,
-                          const basicReaderInfo& bri)
+                          const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     Link* lnk = nullptr;
     // int cntrl = 0;
     int cbus = 0;

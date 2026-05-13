@@ -10,18 +10,20 @@
 #include <string>
 
 namespace griddyn {
-void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& ri)
+void loadGDZ(coreObject* parentObject,
+             const std::string& fileName,
+             readerInfo& readerInformation)
 {
-    std::filesystem::path fpath(fileName);
-    if (!std::filesystem::exists(fpath)) {
+    std::filesystem::path filePath(fileName);
+    if (!std::filesystem::exists(filePath)) {
         return;
     }
 
-    auto extractPath = std::filesystem::temp_directory_path() / fpath.stem();
+    auto extractPath = std::filesystem::temp_directory_path() / filePath.stem();
     auto keyFile = extractPath / "simulation.xml";
     if (!std::filesystem::exists(keyFile)) {
-        auto ret = utilities::unzip(fileName, extractPath.string());
-        if (ret != 0) {
+        const auto unzipResult = utilities::unzip(fileName, extractPath.string());
+        if (unzipResult != 0) {
             return;
         }
     }
@@ -29,12 +31,12 @@ void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& 
     if (!std::filesystem::exists(keyFile)) {
         return;
     }
-    ri.addDirectory(extractPath.string());
+    readerInformation.addDirectory(extractPath.string());
     auto resourcePath = extractPath / "resources";
     if (std::filesystem::exists(resourcePath)) {
-        ri.addDirectory(resourcePath.string());
+        readerInformation.addDirectory(resourcePath.string());
     }
-    loadFile(parentObject, keyFile.string(), &ri, "xml");
+    loadFile(parentObject, keyFile.string(), &readerInformation, "xml");
 }
 
 }  // namespace griddyn

@@ -53,7 +53,9 @@ static typeFactory<Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-void loadPTI(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadPTI(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -64,7 +66,8 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
     Generator* gen;
     index_t index;
     size_t pos;
-    basicReaderInfo opt(bri);
+    basicReaderInfo readerOptionsCopy(readerOptions);
+    auto& opt = readerOptionsCopy;
 
     /*load up the factories*/
     if (busfactory == nullptr) {
@@ -95,9 +98,12 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
     Column  46-73   Case identification (A) */
 
     if (std::getline(file, line)) {
-        auto res = sscanf(line.c_str(), "%*d, %lf,%*d,%*d,%*d,%lf", &(opt.base), &(opt.basefreq));
+        auto res = sscanf(line.c_str(),
+                          "%*d, %lf,%*d,%*d,%*d,%lf",
+                          &(readerOptionsCopy.base),
+                          &(readerOptionsCopy.basefreq));
         if (res > 0) {
-            parentObject->set("systemBasePower", opt.base);
+            parentObject->set("systemBasePower", readerOptionsCopy.base);
         }
         // temp1=line.substr(45,27);
         // parentObject->setName(temp1);
@@ -133,7 +139,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             if (busList[index] == nullptr) {
                 busList[index] = busfactory->makeTypeObject();
                 busList[index]->setUserID(index);
-                ptiReadBus(busList[index], line, opt);
+                ptiReadBus(busList[index], line, readerOptionsCopy);
                 try {
                     parentObject->add(busList[index]);
                 }
@@ -168,7 +174,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             } else {
                 ld = ldfactory->makeTypeObject();
                 busList[index]->add(ld);
-                ptiReadLoad(ld, line, opt);
+                ptiReadLoad(ld, line, readerOptionsCopy);
             }
         } else {
             moreData = false;
@@ -195,7 +201,7 @@ void loadPTI(coreObject* parentObject, const std::string& fileName, const basicR
             } else {
                 ld = ldfactory->makeTypeObject();
                 busList[index]->add(ld);
-                ptiReadFixedShunt(ld, line, opt);
+                ptiReadFixedShunt(ld, line, readerOptionsCopy);
             }
         } else {
             moreData = false;

@@ -45,11 +45,13 @@ bool readMatlabArray(const std::string& name, const std::string& text, mArray& m
 stringVec readMatlabCellArray(const std::string& text, size_t start);
 void removeMatlabComments(std::string& text);
 
-void loadPSAT(coreObject* parentObject, const std::string& fileText, const basicReaderInfo& bri);
+void loadPSAT(coreObject* parentObject,
+              const std::string& fileText,
+              const basicReaderInfo& readerOptions);
 void loadMatPower(coreObject* parentObject,
                   const std::string& fileText,
                   const std::string& baseName,
-                  const basicReaderInfo& bri);
+                  const basicReaderInfo& readerOptions);
 void loadMatDyn(coreObject* parentObject, const std::string& fileText, const basicReaderInfo& bri);
 void loadMatDynEvent(coreObject* parentObject,
                      const std::string& fileText,

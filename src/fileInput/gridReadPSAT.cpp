@@ -112,9 +112,11 @@ static const std::vector<
         {"Pmu.con", loadPsatPmuArray},
     };
 
-void loadPSAT(coreObject* parentObject, const std::string& filetext, const basicReaderInfo& bri)
+void loadPSAT(coreObject* parentObject,
+              const std::string& filetext,
+              const basicReaderInfo& readerOptions)
 {
-    double basepower = 100;
+    double basepower = readerOptions.base;
     // std::string tstr;
     mArray M1, SW, PQ, PV;
     std::vector<gridBus*> busList;
@@ -151,9 +153,9 @@ void loadPSAT(coreObject* parentObject, const std::string& filetext, const basic
         }
     }
     if (nmfnd) {
-        if (!(bri.prefix.empty())) {
+        if (!(readerOptions.prefix.empty())) {
             for (auto& vk : Vnames) {
-                vk = bri.prefix + '_' + vk;
+                vk = readerOptions.prefix + '_' + vk;
             }
         }
     }
@@ -168,10 +170,11 @@ void loadPSAT(coreObject* parentObject, const std::string& filetext, const basic
             if (Vnames.empty()) {
                 Vnames.resize(M1.size());
                 for (stringVec::size_type kk = 0; kk < M1.size(); ++kk) {
-                    if (bri.prefix.empty()) {
+                    if (readerOptions.prefix.empty()) {
                         Vnames[kk] = "Bus-" + std::to_string(M1[kk][0]);
                     } else {
-                        Vnames[kk] = bri.prefix + "_Bus-" + std::to_string(M1[kk][0]);
+                        Vnames[kk] =
+                            readerOptions.prefix + "_Bus-" + std::to_string(M1[kk][0]);
                     }
                 }
             } else {

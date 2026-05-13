@@ -29,11 +29,13 @@ namespace {
     void loadSEXS(coreObject* parentObject, stringVec& tokens);
 }  // namespace
 
-void loadDYR(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& /*bri*/)
+void loadDYR(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& /*readerOptions*/)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
-    std::string line2;
+    std::string continuedLine;
 
     if (!(file.is_open())) {
         parentObject->log(parentObject, print_level::error, "Unable to open file " + fileName);
@@ -45,9 +47,9 @@ void loadDYR(coreObject* parentObject, const std::string& fileName, const basicR
             continue;
         }
         while (line.back() != '/') {
-            if (std::getline(file, line2)) {
-                gmlc::utilities::stringOps::trimString(line2);
-                line += ' ' + line2;
+            if (std::getline(file, continuedLine)) {
+                gmlc::utilities::stringOps::trimString(continuedLine);
+                line += ' ' + continuedLine;
             } else {
                 break;
             }

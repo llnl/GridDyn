@@ -204,8 +204,8 @@ Types of work in this phase:
 - [x] `src/utilities`
 - [x] `src/optimization`
 - [x] `src/runner`
-- [~] `src/fileInput`
-- [ ] `src/plugins`
+- [x] `src/fileInput`
+- [x] `src/plugins`
 - [x] `src/formatInterpreters`
 - [x] `src/fskit`
 - [x] `src/fmi_export`

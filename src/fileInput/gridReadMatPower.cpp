@@ -40,24 +40,24 @@ void loadBusArray(coreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<gridBus*>& busList,
-                  const basicReaderInfo& bri);
+                  const basicReaderInfo& readerOptions);
 int loadGenArray(coreObject* parentObject,
                  mArray& gens,
                  std::vector<gridBus*>& busList,
-                 const basicReaderInfo& bri);
+                 const basicReaderInfo& readerOptions);
 void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount);
 void loadLinkArray(coreObject* parentObject,
                    mArray& lnks,
                    std::vector<gridBus*>& busList,
-                   const basicReaderInfo& bri);
+                   const basicReaderInfo& readerOptions);
 // wrapper function to detect m file format for matpower or PSAT
 
 void loadMatPower(coreObject* parentObject,
                   const std::string& filetext,
                   const std::string& basename,
-                  const basicReaderInfo& bri)
+                  const basicReaderInfo& readerOptions)
 {
-    double basepower = bri.base;
+    double basepower = readerOptions.base;
     gridSimulation::resetObjectCounters();  // reset all the object counters to 0
     mArray M1;
     int gencount = 0;
@@ -72,13 +72,13 @@ void loadMatPower(coreObject* parentObject,
     }
     // now find the bus structure
     if (readMatlabArray(basename + ".bus", filetext, M1)) {
-        loadBusArray(parentObject, basepower, M1, busList, bri);
+        loadBusArray(parentObject, basepower, M1, busList, readerOptions);
     }
     if (readMatlabArray(basename + ".gen", filetext, M1)) {
-        gencount = loadGenArray(parentObject, M1, busList, bri);
+        gencount = loadGenArray(parentObject, M1, busList, readerOptions);
     }
     if (readMatlabArray(basename + ".branch", filetext, M1)) {
-        loadLinkArray(parentObject, M1, busList, bri);
+        loadLinkArray(parentObject, M1, busList, readerOptions);
     }
     if (readMatlabArray(basename + ".gencost", filetext, M1)) {
         loadGenCostArray(parentObject, M1, gencount);
@@ -89,7 +89,7 @@ void loadBusArray(coreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<gridBus*>& busList,
-                  const basicReaderInfo& /*bri*/)
+                  const basicReaderInfo& /*readerOptions*/)
 {
     Load* ld = nullptr;
     auto busFactory = dynamic_cast<typeFactory<gridBus>*>(
@@ -186,8 +186,9 @@ MU QMIN† 25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
 int loadGenArray(coreObject* parentObject,
                  mArray& gens,
                  std::vector<gridBus*>& busList,
-                 const basicReaderInfo& bri)
+                 const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     index_t kk = 1;
     std::string gtype = (bri.checkFlag(assume_powerflow_only)) ? "simple" : "";
     auto genFactory = dynamic_cast<typeFactory<Generator>*>(
@@ -365,7 +366,7 @@ MU ANGMAX‡ 21 Kuhn-Tucker multiplier upper angle difference limit (u/degree)
 void loadLinkArray(coreObject* parentObject,
                    mArray& lnks,
                    std::vector<gridBus*>& busList,
-                   const basicReaderInfo& /*bri*/)
+                   const basicReaderInfo& /*readerOptions*/)
 {
     auto linkFactory = dynamic_cast<typeFactory<Link>*>(
         coreObjectFactory::instance()->getFactory("link")->getFactory(""));

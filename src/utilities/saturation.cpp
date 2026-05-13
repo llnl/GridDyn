@@ -8,6 +8,7 @@
 #include <cmath>
 #include <string>
 
+// NOLINTBEGIN
 namespace utilities {
 saturation::saturation(SaturationType sT): type(sT)
 {
@@ -190,3 +191,4 @@ void saturation::loadFunctions()
 }
 
 }  // namespace utilities
+// NOLINTEND

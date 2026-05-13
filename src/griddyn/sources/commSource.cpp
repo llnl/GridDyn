@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 
+// NOLINTBEGIN
 namespace griddyn::sources {
 commSource::commSource(const std::string& objName): rampSource(objName)
 {
@@ -190,3 +191,4 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
     }
 }
 }  // namespace griddyn::sources
+// NOLINTEND

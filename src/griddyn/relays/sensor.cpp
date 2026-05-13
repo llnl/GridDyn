@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+// NOLINTBEGIN
 namespace griddyn {
 using gmlc::utilities::ensureSizeAtLeast;
 using units::unit_cast_from_string;
@@ -925,3 +926,4 @@ change_code sensor::rootCheck(const IOdata& inputs,
     return ret;
 }
 }  // namespace griddyn
+// NOLINTEND

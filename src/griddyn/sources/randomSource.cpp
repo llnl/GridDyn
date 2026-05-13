@@ -272,7 +272,7 @@ double randomSource::computeBiasAdjust()
             bias = -(param2_L - param1_L) * zbias * (offset);
             break;
         case utilities::gridRandom::DistributionType::EXPONENTIAL:  // load varies in a
-                                                                     // biexponential pattern
+                                                                    // biexponential pattern
             bias = ((offset / param1_L) * zbias) - 0.5;
 
             break;

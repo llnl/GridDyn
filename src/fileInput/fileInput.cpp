@@ -131,9 +131,9 @@ static constexpr std::array<std::pair<std::string_view, int>, 4> flagStringMap{{
 
 void addflags(basicReaderInfo& bri, const std::string& flags)
 {
-    auto flagsep = gmlc::utilities::stringOps::splitline(flags);
-    gmlc::utilities::stringOps::trim(flagsep);
-    for (auto& flag : flagsep) {
+    auto flagStrings = gmlc::utilities::stringOps::splitline(flags);
+    gmlc::utilities::stringOps::trim(flagStrings);
+    for (auto& flag : flagStrings) {
         const auto loweredFlag = gmlc::utilities::convertToLowerCase(flag);
         for (const auto& [name, value] : flagStringMap) {
             if (name == loweredFlag) {
@@ -175,10 +175,10 @@ void loadFile(coreObject* parentObject,
         }
     }
 
-    const std::unique_ptr<readerInfo> uri =
+    const std::unique_ptr<readerInfo> uniqueReaderInfo =
         (readerInf != nullptr) ? nullptr : std::make_unique<readerInfo>();
     if (readerInf == nullptr) {
-        readerInf = uri.get();
+        readerInf = uniqueReaderInfo.get();
     }
 
     // get rid of the . on the extension if it has one

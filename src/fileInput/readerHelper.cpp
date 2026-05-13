@@ -14,18 +14,18 @@
 #include <cmath>
 namespace griddyn {
 
-void paramStringProcess(gridParameter& param, readerInfo& ri)
+void paramStringProcess(gridParameter& param, readerInfo& readerInformation)
 {
     if (!param.stringType) {
         return;
     }
-    double val = interpretString(param.strVal, ri);
-    if (!(std::isnan(val))) {
-        param.value = val;
+    const double interpretedValue = interpretString(param.strVal, readerInformation);
+    if (!std::isnan(interpretedValue)) {
+        param.value = interpretedValue;
         param.stringType = false;
     } else {
         // can't be interpreted as a number so do a last check for string redefinitions
-        param.strVal = ri.checkDefines(param.strVal);
+        param.strVal = readerInformation.checkDefines(param.strVal);
     }
 }
 

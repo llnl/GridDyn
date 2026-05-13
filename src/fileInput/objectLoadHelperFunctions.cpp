@@ -15,38 +15,48 @@
 #include <string>
 
 namespace griddyn {
-static const stringVec indexAndNumber = {"index", "number"};
+namespace {
+    const stringVec& indexAndNumber()
+    {
+        static const auto* indexFields = new stringVec{"index", "number"};
+        return *indexFields;
+    }
+}  // namespace
+
 static const char nameString[] = "name";
 
-std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& ri)
+std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation)
 {
     std::string newName = getElementField(element, nameString, readerConfig::defMatchType);
     if (!newName.empty()) {
-        newName = ri.checkDefines(newName);
-        if (!ri.prefix.empty()) {
-            newName = ri.prefix + '_' + newName;
+        newName = readerInformation.checkDefines(newName);
+        if (!readerInformation.prefix.empty()) {
+            newName = readerInformation.prefix + '_' + newName;
         }
     }
     return newName;
 }
 
-void setIndex(std::shared_ptr<readerElement>& element, coreObject* mobj, readerInfo& ri)
+void setIndex(std::shared_ptr<readerElement>& element,
+              coreObject* mainObject,
+              readerInfo& readerInformation)
 {
-    std::string Index = getElementFieldOptions(element, indexAndNumber, readerConfig::defMatchType);
-    if (!Index.empty()) {
-        Index = ri.checkDefines(Index);
-        double val = interpretString(Index, ri);
-        mobj->locIndex = static_cast<int>(val);
+    std::string indexValue =
+        getElementFieldOptions(element, indexAndNumber(), readerConfig::defMatchType);
+    if (!indexValue.empty()) {
+        indexValue = readerInformation.checkDefines(indexValue);
+        const double interpretedIndex = interpretString(indexValue, readerInformation);
+        mainObject->locIndex = static_cast<int>(interpretedIndex);
     }
     // check if there is a purpose string which is used in some models
-    std::string purp = getElementField(element, "purpose", readerConfig::defMatchType);
-    if (!purp.empty()) {
-        purp = ri.checkDefines(purp);
+    std::string purpose = getElementField(element, "purpose", readerConfig::defMatchType);
+    if (!purpose.empty()) {
+        purpose = readerInformation.checkDefines(purpose);
         try {
-            mobj->set("purpose", purp);
+            mainObject->set("purpose", purpose);
         }
         catch (unrecognizedParameter&) {
-            mobj->set("description", purp);
+            mainObject->set("description", purpose);
         }
     }
 }

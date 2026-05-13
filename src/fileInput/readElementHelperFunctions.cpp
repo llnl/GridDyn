@@ -38,8 +38,8 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
 
             element->moveToFirstChild();
             while (element->isValid()) {
-                std::string tempName = convertToLowerCase(element->getName());
-                if (fieldName == tempName) {
+                const std::string candidateName = convertToLowerCase(element->getName());
+                if (fieldName == candidateName) {
                     fieldName = element->getName();
                     element->moveToParent();
                     return fieldName;
@@ -95,16 +95,16 @@ std::string getElementField(std::shared_ptr<readerElement>& element,
                             const std::string& ename,
                             readerConfig::match_type matching)
 {
-    auto ret = getElementAttribute(element, ename, matching);
+    auto fieldValue = getElementAttribute(element, ename, matching);
     // an element can override an attribute
     auto name = findElementName(element, ename, matching);
     if (name.empty()) {
-        return ret;
+        return fieldValue;
     }
     element->moveToFirstChild(name);
-    ret = element->getText();
+    fieldValue = element->getText();
     element->moveToParent();
-    return ret;
+    return fieldValue;
 }
 
 std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
@@ -112,9 +112,9 @@ std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
                                    readerConfig::match_type matching)
 {
     for (const auto& str : names) {
-        auto ret = getElementField(element, str, matching);
-        if (!ret.empty()) {
-            return ret;
+        auto fieldValue = getElementField(element, str, matching);
+        if (!fieldValue.empty()) {
+            return fieldValue;
         }
     }
     return emptyString;
@@ -125,12 +125,11 @@ stringVec getElementFieldMultiple(std::shared_ptr<readerElement>& element,
                                   readerConfig::match_type matching)
 {
     stringVec val;
-    std::string elname_act;
     // get an attribute if there is one
-    auto ret = getElementAttribute(element, ename, matching);
+    auto fieldValue = getElementAttribute(element, ename, matching);
 
-    if (!ret.empty()) {
-        val.push_back(ret);
+    if (!fieldValue.empty()) {
+        val.push_back(fieldValue);
     }
     auto name = findElementName(element, ename, matching);
     if (name.empty()) {

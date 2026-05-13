@@ -50,7 +50,8 @@ class GriddynRunner {
     * initialize a simulation run from command line arguments using a given readerInfo structure
     @param[in] argc the number of console arguments
     @param[in] argv the actual console arguments
-    @param[in] readerInformation the readerInfo structure that contains any additional reader information
+    @param[in] readerInformation the readerInfo structure that contains any additional reader
+    information
     @return >0 normal stop,  0 normal, <0 error
     */
     int Initialize(int argc,

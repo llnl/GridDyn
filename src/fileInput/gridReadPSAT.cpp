@@ -216,7 +216,7 @@ void loadPSATBusArray(coreObject* parentObject,
     for (size_t kk = 0; kk < buses.size(); ++kk) {
         auto ind1 = static_cast<index_t>(buses[kk][0]);
         if (ind1 >= static_cast<index_t>(busList.size())) {
-            busList.resize(ind1 * 2 + 1);
+            busList.resize((ind1 * 2) + 1);
         }
         auto bus = busList[ind1];
         if (bus == nullptr) {
@@ -305,7 +305,7 @@ void loadPSATGenArray(coreObject* /*parentObject*/,
     for (auto& genInfo : gens) {
         auto ind1 = static_cast<size_t>(genInfo[0]);
         gridBus* bus = busList[ind1];
-        Generator* gen = new Generator();
+        auto gen = new Generator();
         bus->add(gen);
         if (genInfo[1] != 0) {
             gen->set("p", genInfo[1], MW);

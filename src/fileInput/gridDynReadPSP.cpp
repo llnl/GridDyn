@@ -27,6 +27,7 @@ using gmlc::utilities::stringOps::trimString;
 using units::deg;
 using units::MW;
 
+// NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
 void pspReadBus(gridBus* bus,
                 const std::string& line,
                 double base,
@@ -496,4 +497,5 @@ void pspReadBranch(coreObject* parentObject,
     }
 }
 
+// NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn

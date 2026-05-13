@@ -27,6 +27,7 @@ using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewOps::split;
 using gmlc::utilities::string_viewOps::trim;
 
+// NOLINTBEGIN(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 enum mode_state { read_header, read_data };
 
 void loadCSV(coreObject* parentObject,
@@ -305,4 +306,5 @@ void loadCSV(coreObject* parentObject,
     }
 }
 
+// NOLINTEND(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 }  // namespace griddyn

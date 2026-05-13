@@ -29,6 +29,7 @@ using units::deg;
 using units::MVAR;
 using units::MW;
 
+// NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
 void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
@@ -662,4 +663,5 @@ int ptiReadTX(coreObject* parentObject,
     return tline;
 }
 
+// NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 }  // namespace griddyn

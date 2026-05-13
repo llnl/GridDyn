@@ -91,39 +91,39 @@ void loadFile(coreObject* parentObject,
               readerInfo* readerInf = nullptr,
               std::string ext = "");
 
-void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& ri);
+void loadGDZ(coreObject* parentObject, const std::string& fileName, readerInfo& readerInformation);
 
 void loadCDF(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 
 void loadPSP(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 void loadPTI(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 
 void loadRAW(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 
 void loadDYR(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 void loadEPC(coreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& bri = defInfo);
+             const basicReaderInfo& readerOptions = defInfo);
 
 // wrapper function to detect m file format for matpower or PSAT
 void loadMFile(coreObject* parentObject,
                const std::string& fileName,
-               const basicReaderInfo& bri = defInfo);
+               const basicReaderInfo& readerOptions = defInfo);
 
 void loadCSV(coreObject* parentObject,
              const std::string& fileName,
-             readerInfo& ri,
-             const std::string& oname = "");
+             readerInfo& readerInformation,
+             const std::string& objectName = "");
 
 /** function sets a parameter in an object
 @param[in] label the name to be printed if there is a problem

@@ -128,13 +128,16 @@ static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
     return busList[index];
 }
 
-void loadRAW(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadRAW(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
     std::vector<gridBus*> busList;
-    basicReaderInfo opt(bri);
+    basicReaderInfo readerOptionsCopy(readerOptions);
+    auto& opt = readerOptionsCopy;
     Load* loadObject;
     Generator* gen;
     gridBus* bus;
@@ -179,23 +182,23 @@ void loadRAW(coreObject* parentObject, const std::string& fileName, const basicR
 
         auto strvec = splitlineQuotes(line);
         if (strvec.size() == 6) {
-            opt.base = numeric_conversion<double>(strvec[1], 100.0);
-            opt.version = numeric_conversion<int>(strvec[2], 0);
-            opt.basefreq = numeric_conversion<double>(strvec[5], 60.0);
+            readerOptionsCopy.base = numeric_conversion<double>(strvec[1], 100.0);
+            readerOptionsCopy.version = numeric_conversion<int>(strvec[2], 0);
+            readerOptionsCopy.basefreq = numeric_conversion<double>(strvec[5], 60.0);
         }
-        if (opt.base != 100.0) {
-            parentObject->set("basepower", opt.base);
+        if (readerOptionsCopy.base != 100.0) {
+            parentObject->set("basepower", readerOptionsCopy.base);
         }
         // temp1=line.substr(45,27);
         // parentObject->set("name",&temp1);
         // if (res > 2) {
-        if (opt.basefreq != 60.0) {
-            parentObject->set("basefreq", opt.basefreq);
+        if (readerOptionsCopy.basefreq != 60.0) {
+            parentObject->set("basefreq", readerOptionsCopy.basefreq);
         }
         //}
 
-        if (opt.version == 0) {
-            opt.version = getPSSversion(line);
+        if (readerOptionsCopy.version == 0) {
+            readerOptionsCopy.version = getPSSversion(line);
         }
     }
     if (std::getline(file, line)) {

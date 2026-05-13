@@ -125,9 +125,9 @@ void readerInfo::addDefinition(const std::string& def, const std::string& replac
     auto search = lockDefines.find(def);
     if (search == lockDefines.end()) {
         if (currentScope > 0) {
-            auto prevdef = defines.find(def);
-            if (prevdef != defines.end()) {
-                scopedDefinitions.emplace_back(currentScope, def, true, prevdef->second);
+            auto previousDefinition = defines.find(def);
+            if (previousDefinition != defines.end()) {
+                scopedDefinitions.emplace_back(currentScope, def, true, previousDefinition->second);
             } else {
                 scopedDefinitions.emplace_back(currentScope, def, false, "");
             }
@@ -174,12 +174,12 @@ void readerInfo::replaceLockedDefinition(const std::string& def, const std::stri
 std::string readerInfo::checkDefines(const std::string& input)
 {
     std::string out = input;
-    int repcnt = 0;
+    int replacementCount = 0;
     bool rep(true);
     while (rep) {
         rep = false;
-        ++repcnt;
-        if (repcnt > 15) {
+        ++replacementCount;
+        if (replacementCount > 15) {
             WARNPRINT(READER_WARN_IMPORTANT,
                       "probable definition recursion in " << input << "currently " << out);
             continue;
@@ -235,11 +235,11 @@ std::string readerInfo::checkDefines(const std::string& input)
 std::string readerInfo::objectNameTranslate(const std::string& input)
 {
     std::string out = input;
-    int repcnt = 0;
+    int replacementCount = 0;
     bool rep(true);
     while (rep) {
-        ++repcnt;
-        if (repcnt > 15) {
+        ++replacementCount;
+        if (replacementCount > 15) {
             WARNPRINT(READER_WARN_IMPORTANT,
                       "probable Translation recursion in " << input << "currently " << out);
             rep = false;
@@ -352,7 +352,7 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
     }
     strVal = checkDefines(strVal);
     std::filesystem::path sourcePath(strVal);
-    bool ret = false;
+    bool foundPath = false;
     if (sourcePath.has_relative_path()) {
         // check the most recently added directories first
         // NOLINTNEXTLINE(modernize-loop-convert)
@@ -365,11 +365,11 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
 
             if (std::filesystem::exists(tempPath)) {
                 sourcePath = tempPath;
-                ret = true;
+                foundPath = true;
                 break;
             }
         }
-        if (!ret && extra_find) {
+        if (!foundPath && extra_find) {
             // check the most recently added directories first
             // NOLINTNEXTLINE(modernize-loop-convert)
             for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
@@ -384,36 +384,36 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
                     WARNPRINT(READER_WARN_ALL,
                               "file location path change " << strVal << " mapped to "
                                                            << sourcePath.string());
-                    ret = true;
+                    foundPath = true;
                     break;
                 }
             }
         }
-        if (!ret) {
+        if (!foundPath) {
             if (std::filesystem::exists(sourcePath)) {
-                ret = true;
+                foundPath = true;
             }
         }
         strVal = sourcePath.string();
     } else {
         if (std::filesystem::exists(sourcePath)) {
-            ret = true;
+            foundPath = true;
         }
     }
     // if for some reason we need to capture the files
     if (captureFiles) {
-        if (ret) {
+        if (foundPath) {
             capturedFiles.push_back(strVal);
         }
     }
-    return ret;
+    return foundPath;
 }
 
 bool readerInfo::checkDirectoryParam(std::string& strVal)
 {
     strVal = checkDefines(strVal);
     std::filesystem::path sourcePath(strVal);
-    bool ret = false;
+    bool foundDirectory = false;
     if (sourcePath.has_relative_path()) {
         // NOLINTNEXTLINE(modernize-loop-convert)
         for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();
@@ -425,7 +425,7 @@ bool readerInfo::checkDirectoryParam(std::string& strVal)
 
             if (std::filesystem::exists(tempPath)) {
                 sourcePath = tempPath;
-                ret = true;
+                foundDirectory = true;
                 break;
             }
         }
@@ -433,7 +433,7 @@ bool readerInfo::checkDirectoryParam(std::string& strVal)
         strVal = sourcePath.string();
     }
 
-    return ret;
+    return foundDirectory;
 }
 
 // a reader info thing that requires element class information

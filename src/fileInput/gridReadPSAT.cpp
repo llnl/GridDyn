@@ -39,6 +39,7 @@
 namespace griddyn {
 // using namespace units;
 
+// NOLINTBEGIN(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 void loadPSATBusArray(coreObject* parentObject,
                       double basepower,
                       const mArray& buses,
@@ -112,9 +113,11 @@ static const std::vector<
         {"Pmu.con", loadPsatPmuArray},
     };
 
-void loadPSAT(coreObject* parentObject, const std::string& filetext, const basicReaderInfo& bri)
+void loadPSAT(coreObject* parentObject,
+              const std::string& filetext,
+              const basicReaderInfo& readerOptions)
 {
-    double basepower = 100;
+    double basepower = readerOptions.base;
     // std::string tstr;
     mArray M1, SW, PQ, PV;
     std::vector<gridBus*> busList;
@@ -151,9 +154,9 @@ void loadPSAT(coreObject* parentObject, const std::string& filetext, const basic
         }
     }
     if (nmfnd) {
-        if (!(bri.prefix.empty())) {
+        if (!(readerOptions.prefix.empty())) {
             for (auto& vk : Vnames) {
-                vk = bri.prefix + '_' + vk;
+                vk = readerOptions.prefix + '_' + vk;
             }
         }
     }
@@ -168,10 +171,10 @@ void loadPSAT(coreObject* parentObject, const std::string& filetext, const basic
             if (Vnames.empty()) {
                 Vnames.resize(M1.size());
                 for (stringVec::size_type kk = 0; kk < M1.size(); ++kk) {
-                    if (bri.prefix.empty()) {
+                    if (readerOptions.prefix.empty()) {
                         Vnames[kk] = "Bus-" + std::to_string(M1[kk][0]);
                     } else {
-                        Vnames[kk] = bri.prefix + "_Bus-" + std::to_string(M1[kk][0]);
+                        Vnames[kk] = readerOptions.prefix + "_Bus-" + std::to_string(M1[kk][0]);
                     }
                 }
             } else {
@@ -213,7 +216,7 @@ void loadPSATBusArray(coreObject* parentObject,
     for (size_t kk = 0; kk < buses.size(); ++kk) {
         auto ind1 = static_cast<index_t>(buses[kk][0]);
         if (ind1 >= static_cast<index_t>(busList.size())) {
-            busList.resize(ind1 * 2 + 1);
+            busList.resize((ind1 * 2) + 1);
         }
         auto bus = busList[ind1];
         if (bus == nullptr) {
@@ -302,7 +305,7 @@ void loadPSATGenArray(coreObject* /*parentObject*/,
     for (auto& genInfo : gens) {
         auto ind1 = static_cast<size_t>(genInfo[0]);
         gridBus* bus = busList[ind1];
-        Generator* gen = new Generator();
+        auto gen = new Generator();
         bus->add(gen);
         if (genInfo[1] != 0) {
             gen->set("p", genInfo[1], MW);
@@ -1001,5 +1004,7 @@ void loadPsatMotorArray(coreObject* /*parentObject*/,
         // TODO(phlpt): Add parameters.
     }
 }
+
+// NOLINTEND(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 
 }  // namespace griddyn

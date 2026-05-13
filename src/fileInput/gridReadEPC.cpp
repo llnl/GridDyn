@@ -191,8 +191,11 @@ void ProcessSectionObject(std::string line,
     }
 }
 
-void loadEPC(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadEPC(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     std::ifstream file(fileName.c_str(), std::ios::in);
 
     std::string temp1;  // temporary storage for substrings

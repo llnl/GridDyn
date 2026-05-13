@@ -18,7 +18,9 @@
 namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 
-void loadMFile(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadMFile(coreObject* parentObject,
+               const std::string& fileName,
+               const basicReaderInfo& readerOptions)
 {
     std::ifstream infile(fileName.c_str(), std::ios::in);
     std::stringstream stringStream;
@@ -43,29 +45,29 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
 
         size_t busPos = fileText.find(baseName + ".bus");
         if (busPos != std::string::npos) {
-            loadMatPower(parentObject, fileText, baseName, bri);
+            loadMatPower(parentObject, fileText, baseName, readerOptions);
         } else {
             equalsPos = fileText.find("MatDyn");
             if (equalsPos != std::string::npos) {
                 equalsPos = fileText.find("event");
                 if (equalsPos != std::string::npos) {
-                    loadMatDynEvent(parentObject, fileText, bri);
+                    loadMatDynEvent(parentObject, fileText, readerOptions);
                 } else {
-                    loadMatDyn(parentObject, fileText, bri);
+                    loadMatDyn(parentObject, fileText, readerOptions);
                 }
             } else {
                 equalsPos = fileText.find("exc");
                 if (equalsPos != std::string::npos) {
                     busPos = fileText.find("gov");
                     if (busPos != std::string::npos) {
-                        loadMatDyn(parentObject, fileText, bri);
+                        loadMatDyn(parentObject, fileText, readerOptions);
                     } else {
                         std::cout << "unrecognized file structure\n";
                     }
                 } else {
                     equalsPos = fileText.find("event");
                     if (equalsPos != std::string::npos) {
-                        loadMatDynEvent(parentObject, fileText, bri);
+                        loadMatDynEvent(parentObject, fileText, readerOptions);
                     } else {
                         std::cout << "unrecognized file structure\n";
                     }
@@ -76,7 +78,7 @@ void loadMFile(coreObject* parentObject, const std::string& fileName, const basi
         const size_t busConfigPos =
             fileText.find("Bus.con");  // look for the Psat bus configuration array
         if (busConfigPos != std::string::npos) {
-            loadPSAT(parentObject, fileText, bri);
+            loadPSAT(parentObject, fileText, readerOptions);
         }
     }
 }

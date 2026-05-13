@@ -23,17 +23,19 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
-using gmlc::utilities::stringOps::trimString;
 using units::deg;
-using units::MW;
 
-void pspReadBus(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri);
+// NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
+void pspReadBus(gridBus* bus,
+                const std::string& line,
+                double base,
+                const basicReaderInfo& readerOptions);
 void pspReadBranch(coreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,
                    std::vector<gridBus*> busList,
-                   const basicReaderInfo& bri);
+                   const basicReaderInfo& readerOptions);
 
 /*
 The PECO PSAP File Format is fully described in the _PJM Power System
@@ -57,7 +59,9 @@ a 9999 card.
 The 15 card indicates that area interchange data follows. The data ends with
 a 9999 card.
 */
-void loadPSP(coreObject* parentObject, const std::string& fileName, const basicReaderInfo& bri)
+void loadPSP(coreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -85,7 +89,7 @@ void loadPSP(coreObject* parentObject, const std::string& fileName, const basicR
         switch (code) {
             case 1:
                 std::getline(file, line);
-                if (bri.prefix.empty()) {
+                if (readerOptions.prefix.empty()) {
                     parentObject->setName(line);
                 }
                 break;
@@ -113,7 +117,7 @@ void loadPSP(coreObject* parentObject, const std::string& fileName, const basicR
                         }
                         if (busList[index] == nullptr) {
                             busList[index] = new acBus();
-                            pspReadBus(busList[index], line, base, bri);
+                            pspReadBus(busList[index], line, base, readerOptions);
                             try {
                                 parentObject->add(busList[index]);
                             }
@@ -152,7 +156,7 @@ void loadPSP(coreObject* parentObject, const std::string& fileName, const basicR
                         } else {
                             line2 = "";
                         }
-                        pspReadBranch(parentObject, line, line2, base, busList, bri);
+                        pspReadBranch(parentObject, line, line2, base, busList, readerOptions);
                     } else {
                         morebranch = false;
                     }
@@ -208,8 +212,12 @@ Three default decimal places.
 
 */
 
-void pspReadBus(gridBus* bus, const std::string& line, double base, const basicReaderInfo& bri)
+void pspReadBus(gridBus* bus,
+                const std::string& line,
+                double base,
+                const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     std::string temp, temp2;
     Load* ld = nullptr;
     Generator* gen = nullptr;
@@ -402,8 +410,9 @@ void pspReadBranch(coreObject* parentObject,
                    const std::string& line2,
                    double base,
                    std::vector<gridBus*> busList,
-                   const basicReaderInfo& bri)
+                   const basicReaderInfo& readerOptions)
 {
+    const auto& bri = readerOptions;
     gridBus *bus1, *bus2;
     Link* lnk;
     int ind1, ind2;
@@ -486,4 +495,5 @@ void pspReadBranch(coreObject* parentObject,
     }
 }
 
+// NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn

@@ -27,6 +27,7 @@ clang-diagnostic*,
 bugprone-*,
 -bugprone-narrowing-conversions,
 -bugprone-easily-swappable-parameters,
+-bugprone-parent-virtual-call,
 misc-*,
 -misc-use-anonymous-namespace,
 -misc-non-private-member-variables-in-classes,
@@ -69,6 +70,7 @@ clang-analyzer-*,
 clang-diagnostic*,
 bugprone-*,
 -bugprone-narrowing-conversions,
+-bugprone-parent-virtual-call,
 misc-*,
 -misc-use-anonymous-namespace,
 -misc-non-private-member-variables-in-classes,
@@ -305,12 +307,16 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.LocalConstantCase
     value:           aNy_CasE
+  - key:             readability-identifier-naming.LocalConstantIgnoredRegexp
+    value:           '^(ii|jj|kk|nn)$'
   - key:             readability-identifier-naming.LocalConstantPrefix
     value:           ''
   - key:             readability-identifier-naming.LocalConstantSuffix
     value:           ''
   - key:             readability-identifier-naming.LocalVariableCase
     value:           aNy_CasE
+  - key:             readability-identifier-naming.LocalVariableIgnoredRegexp
+    value:           '^(ii|jj|kk|nn)$'
   - key:             readability-identifier-naming.LocalVariablePrefix
     value:           ''
   - key:             readability-identifier-naming.LocalVariableSuffix

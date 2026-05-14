@@ -25,9 +25,10 @@ class powerFlowErrorRecovery {
 
     /** @brief constructor
   @param[in] gds the gridDynSimulation object to work from
-  @param[in] sd the SolverInterface object to work from
+  @param[in] solverData the SolverInterface object to work from
   */
-    powerFlowErrorRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);
+    powerFlowErrorRecovery(gridDynSimulation* gds,
+                           std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
     virtual ~powerFlowErrorRecovery();
@@ -42,9 +43,9 @@ class powerFlowErrorRecovery {
     /** @brief reset the fix counter so it can try again*/
     void reset();
     /** @brief update recovery mechanism to use a different solver
-  @param[in] sd the new solver Data object to use
+  @param[in] solverData the new solver Data object to use
   */
-    void updateInfo(std::shared_ptr<SolverInterface> sd);
+    void updateInfo(std::shared_ptr<SolverInterface> solverData);
 
     /** @brief return the number of attempts taken so far
   @return the number of attempts

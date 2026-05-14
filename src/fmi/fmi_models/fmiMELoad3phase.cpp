@@ -26,7 +26,7 @@ fmiMELoad3phase::fmiMELoad3phase(const std::string& objName):
 
 coreObject* fmiMELoad3phase::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<fmiMELoad3phase, fmiMEWrapper<loads::ThreePhaseLoad>>(this, obj);
+    auto* nobj = cloneBase<fmiMELoad3phase, fmiMEWrapper<loads::ThreePhaseLoad>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -78,40 +78,51 @@ void fmiMELoad3phase::setState(coreTime time,
 }
 
 void fmiMELoad3phase::updateLocalCache(const IOdata& inputs,
-                                       const stateData& sD,
+                                       const stateData& stateDataRef,
                                        const solverMode& sMode)
 {
-    auto V =
+    auto inputVector =
         opFlags[COMPLEX_VOLTAGE] ? generate3PhaseVector(inputs) : generate3PhasePolarVector(inputs);
-    V[1] *= 180.0 / k_PI;
-    V[3] *= 180.0 / k_PI;
-    V[5] *= 180.0 / k_PI;
-    fmisub->updateLocalCache(V, sD, sMode);
-    auto I = fmisub->getOutputs(V, sD, sMode);
+    inputVector[1] *= 180.0 / k_PI;
+    inputVector[3] *= 180.0 / k_PI;
+    inputVector[5] *= 180.0 / k_PI;
+    fmisub->updateLocalCache(inputVector, stateDataRef, sMode);
+    auto outputCurrent = fmisub->getOutputs(inputVector, stateDataRef, sMode);
     // printf("V[%f,%f,%f,%f,%f,%f], I[%f,%f,%f,%f,%f,%f]\n", V[0], V[1], V[2], V[3], V[4],
     // V[5], I[0], I[1], I[2], I[3], I[4], I[5]);
-    auto PQ = ThreePhasePowerPolar(V, I);  // TODO(phlpt): Make this conditional.
-    setPa(PQ[0]);
-    setPb(PQ[2]);
-    setPc(PQ[4]);
-    setQa(PQ[1]);
-    setQb(PQ[3]);
-    setQc(PQ[5]);
+    auto powerValues =
+        ThreePhasePowerPolar(inputVector, outputCurrent);  // TODO(phlpt): Make this conditional.
+    setPa(powerValues[0]);
+    setPb(powerValues[2]);
+    setPc(powerValues[4]);
+    setQa(powerValues[1]);
+    setQb(powerValues[3]);
+    setQc(powerValues[5]);
 }
-static const std::vector<stringVec> inputNamesStr3phaseVoltageOnly{
-    {"voltage_a", "v_a", "volt_a", "vmag_a", "voltage", "v"},
-    {"voltage_b", "v_b", "volt_b", "vmag_b"},
-    {"voltage_c", "v_c", "volt_c", "vmag_c"},
-};
+namespace {
+const std::vector<stringVec>& inputNamesStr3phaseVoltageOnly()
+{
+    static const auto* names = new std::vector<stringVec>{
+        {"voltage_a", "v_a", "volt_a", "vmag_a", "voltage", "v"},
+        {"voltage_b", "v_b", "volt_b", "vmag_b"},
+        {"voltage_c", "v_c", "volt_c", "vmag_c"},
+    };
+    return *names;
+}
 
-static const std::vector<stringVec> inputNamesStr3phaseComplexVoltage{
-    {"v_real_a", "voltage_real_a"},
-    {"v_imag_a", "voltage_imag_a"},
-    {"v_real_b", "voltage_real_b"},
-    {"v_imag_b", "voltage_imag_b"},
-    {"v_real_c", "voltage_real_d"},
-    {"v_imag_c", "voltage_imag_c"},
-};
+const std::vector<stringVec>& inputNamesStr3phaseComplexVoltage()
+{
+    static const auto* names = new std::vector<stringVec>{
+        {"v_real_a", "voltage_real_a"},
+        {"v_imag_a", "voltage_imag_a"},
+        {"v_real_b", "voltage_real_b"},
+        {"v_imag_b", "voltage_imag_b"},
+        {"v_real_c", "voltage_real_d"},
+        {"v_imag_c", "voltage_imag_c"},
+    };
+    return *names;
+}
+}  // namespace
 
 /*
 ignore_voltage_angle = object_flag8,
@@ -123,37 +134,47 @@ complex_output = object_flag11,
 const std::vector<stringVec>& fmiMELoad3phase::fmiInputNames() const
 {
     if (opFlags[IGNORE_VOLTAGE_ANGLE]) {
-        return inputNamesStr3phaseVoltageOnly;
+        return inputNamesStr3phaseVoltageOnly();
     }
     if (opFlags[COMPLEX_VOLTAGE]) {
-        return inputNamesStr3phaseComplexVoltage;
+        return inputNamesStr3phaseComplexVoltage();
     }
     return inputNames();
 }
 
-static const std::vector<stringVec> outputNamesStrCurrentOutput{
-    {"i_a", "current_a", "imag_a"},
-    {"i_angle_a", "current_angle_a"},
-    {"i_b", "current_b", "imag_b"},
-    {"i_angle_b", "current_angle_b"},
-    {"i_c", "current_c", "imag_c"},
-    {"i_angle_c", "current_angle_c"},
-};
+namespace {
+const std::vector<stringVec>& outputNamesStrCurrentOutput()
+{
+    static const auto* names = new std::vector<stringVec>{
+        {"i_a", "current_a", "imag_a"},
+        {"i_angle_a", "current_angle_a"},
+        {"i_b", "current_b", "imag_b"},
+        {"i_angle_b", "current_angle_b"},
+        {"i_c", "current_c", "imag_c"},
+        {"i_angle_c", "current_angle_c"},
+    };
+    return *names;
+}
 
-static const std::vector<stringVec> outputNamesStrComplexCurrentOutput{
-    {"i_a", "current_a", "i_real_a", "current_real_a"},
-    {"i_imag_a", "current_imag_a"},
-    {"i_b", "current_b", "i_real_b", "current_real_b"},
-    {"i_imag_b", "current_imag_b"},
-    {"i_c", "current_c", "i_real_c", "current_real_c"},
-    {"i_imag_c", "current_imag_c"},
-};
+const std::vector<stringVec>& outputNamesStrComplexCurrentOutput()
+{
+    static const auto* names = new std::vector<stringVec>{
+        {"i_a", "current_a", "i_real_a", "current_real_a"},
+        {"i_imag_a", "current_imag_a"},
+        {"i_b", "current_b", "i_real_b", "current_real_b"},
+        {"i_imag_b", "current_imag_b"},
+        {"i_c", "current_c", "i_real_c", "current_real_c"},
+        {"i_imag_c", "current_imag_c"},
+    };
+    return *names;
+}
+}  // namespace
 
 const std::vector<stringVec>& fmiMELoad3phase::fmiOutputNames() const
 {
     if (opFlags[CURRENT_OUTPUT]) {
-        return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrComplexCurrentOutput :
-                                                   outputNamesStrCurrentOutput;
+        return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrComplexCurrentOutput() :
+                                                   outputNamesStrCurrentOutput();
     }
 
     return outputNames();

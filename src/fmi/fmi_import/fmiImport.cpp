@@ -10,7 +10,6 @@
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/zipUtilities.h"
 #include <array>
-#include <bit>
 #include <cstdarg>
 #include <cstdio>
 #include <map>
@@ -171,7 +170,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
                                           fmi2ModelExchange,
                                           information->getString("guid").c_str(),
                                           (R"raw(file:///)raw" + resourceDir.string()).c_str(),
-                                          std::bit_cast<fmi2CallbackFunctions*>(callbacks.get()),
+                                          reinterpret_cast<fmi2CallbackFunctions*>(callbacks.get()),
                                           fmi2False,
                                           fmi2False);
         auto meobj = std::make_unique<fmi2ModelExchangeObject>(comp,
@@ -199,7 +198,7 @@ std::unique_ptr<fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std:
                                           fmi2CoSimulation,
                                           information->getString("guid").c_str(),
                                           (R"raw(file:///)raw" + resourceDir.string()).c_str(),
-                                          std::bit_cast<fmi2CallbackFunctions*>(callbacks.get()),
+                                          reinterpret_cast<fmi2CallbackFunctions*>(callbacks.get()),
                                           fmi2False,
                                           fmi2False);
         auto csobj =

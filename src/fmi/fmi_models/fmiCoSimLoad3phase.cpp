@@ -77,28 +77,28 @@ void fmiCoSimLoad3phase::setState(coreTime time,
 }
 
 namespace {
-const std::vector<stringVec>& inputNamesStr3phaseVoltageOnly()
-{
-    static const auto* names = new std::vector<stringVec>{
-        {"voltage_a", "v_a", "volt_a", "vmag_a", "voltage", "v"},
-        {"voltage_b", "v_b", "volt_b", "vmag_b"},
-        {"voltage_c", "v_c", "volt_c", "vmag_c"},
-    };
-    return *names;
-}
+    const std::vector<stringVec>& inputNamesStr3phaseVoltageOnly()
+    {
+        static const auto* names = new std::vector<stringVec>{
+            {"voltage_a", "v_a", "volt_a", "vmag_a", "voltage", "v"},
+            {"voltage_b", "v_b", "volt_b", "vmag_b"},
+            {"voltage_c", "v_c", "volt_c", "vmag_c"},
+        };
+        return *names;
+    }
 
-const std::vector<stringVec>& inputNamesStr3phaseComplexVoltage()
-{
-    static const auto* names = new std::vector<stringVec>{
-        {"v_real_a", "voltage_real_a"},
-        {"v_imag_a", "voltage_imag_a"},
-        {"v_real_b", "voltage_real_b"},
-        {"v_imag_b", "voltage_imag_b"},
-        {"v_real_c", "voltage_real_d"},
-        {"v_imag_c", "voltage_imag_c"},
-    };
-    return *names;
-}
+    const std::vector<stringVec>& inputNamesStr3phaseComplexVoltage()
+    {
+        static const auto* names = new std::vector<stringVec>{
+            {"v_real_a", "voltage_real_a"},
+            {"v_imag_a", "voltage_imag_a"},
+            {"v_real_b", "voltage_real_b"},
+            {"v_imag_b", "voltage_imag_b"},
+            {"v_real_c", "voltage_real_d"},
+            {"v_imag_c", "voltage_imag_c"},
+        };
+        return *names;
+    }
 }  // namespace
 
 /*
@@ -120,31 +120,31 @@ const std::vector<stringVec>& fmiCoSimLoad3phase::fmiInputNames() const
 }
 
 namespace {
-const std::vector<stringVec>& outputNamesStrCurrentOutput()
-{
-    static const auto* names = new std::vector<stringVec>{
-        {"i_a", "current_a", "imag_a"},
-        {"i_angle_a", "current_angle_a"},
-        {"i_b", "current_b", "imag_b"},
-        {"i_angle_b", "current_angle_b"},
-        {"i_c", "current_c", "imag_c"},
-        {"i_angle_c", "current_angle_c"},
-    };
-    return *names;
-}
+    const std::vector<stringVec>& outputNamesStrCurrentOutput()
+    {
+        static const auto* names = new std::vector<stringVec>{
+            {"i_a", "current_a", "imag_a"},
+            {"i_angle_a", "current_angle_a"},
+            {"i_b", "current_b", "imag_b"},
+            {"i_angle_b", "current_angle_b"},
+            {"i_c", "current_c", "imag_c"},
+            {"i_angle_c", "current_angle_c"},
+        };
+        return *names;
+    }
 
-const std::vector<stringVec>& outputNamesStrComplexCurrentOutput()
-{
-    static const auto* names = new std::vector<stringVec>{
-        {"i_a", "current_a", "i_real_a", "current_real_a"},
-        {"i_imag_a", "current_imag_a"},
-        {"i_b", "current_b", "i_real_b", "current_real_b"},
-        {"i_imag_b", "current_imag_b"},
-        {"i_c", "current_c", "i_real_c", "current_real_c"},
-        {"i_imag_c", "current_imag_c"},
-    };
-    return *names;
-}
+    const std::vector<stringVec>& outputNamesStrComplexCurrentOutput()
+    {
+        static const auto* names = new std::vector<stringVec>{
+            {"i_a", "current_a", "i_real_a", "current_real_a"},
+            {"i_imag_a", "current_imag_a"},
+            {"i_b", "current_b", "i_real_b", "current_real_b"},
+            {"i_imag_b", "current_imag_b"},
+            {"i_c", "current_c", "i_real_c", "current_real_c"},
+            {"i_imag_c", "current_imag_c"},
+        };
+        return *names;
+    }
 }  // namespace
 
 const std::vector<stringVec>& fmiCoSimLoad3phase::fmiOutputNames() const

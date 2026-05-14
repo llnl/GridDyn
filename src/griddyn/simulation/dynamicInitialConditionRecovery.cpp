@@ -76,11 +76,14 @@ int dynamicInitialConditionRecovery::attempts() const
 
 int dynamicInitialConditionRecovery::lowVoltageCheck()
 {
-    const stateData stateDataValue(
-        sim->getSimulationTime(), solver->state_data(), solver->deriv_data());
+    const stateData stateDataValue(sim->getSimulationTime(),
+                                   solver->state_data(),
+                                   solver->deriv_data());
 
-    sim->rootCheck(
-        noInputs, stateDataValue, solver->getSolverMode(), check_level_t::low_voltage_check);
+    sim->rootCheck(noInputs,
+                   stateDataValue,
+                   solver->getSolverMode(),
+                   check_level_t::low_voltage_check);
 
     const int matchCount = JacobianCheck(sim, solver->getSolverMode());
     if (matchCount != 0) {
@@ -120,8 +123,9 @@ int dynamicInitialConditionRecovery::dynamicFix2()
     std::vector<double> voltages;
     int retval = -10;
     sim->getVoltage(voltages, solver->state_data(), solver->getSolverMode());
-    if (std::any_of(
-            voltages.begin(), voltages.end(), [](double voltageValue) { return (voltageValue < 0.7); })) {
+    if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
+            return (voltageValue < 0.7);
+        })) {
         if (!sim->opFlags[prev_setall_pqvlimit]) {
             logging::log_to(sim, sim, print_level::debug, "setting all load to PQ at V=0.9");
             sim->opFlags.set(disable_flag_updates);
@@ -132,8 +136,9 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             sim->opFlags.reset(disable_flag_updates);
             sim->updateFlags();
             sim->handleRootChange(solver->getSolverMode(), solver);
-            const stateData stateDataValue(
-                sim->getSimulationTime(), solver->state_data(), solver->deriv_data());
+            const stateData stateDataValue(sim->getSimulationTime(),
+                                           solver->state_data(),
+                                           solver->deriv_data());
 
             const change_code rootCheckResult = sim->rootCheck(noInputs,
                                                                stateDataValue,
@@ -154,8 +159,9 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                         true);
             }
         } else {
-            const stateData stateDataValue(
-                sim->getSimulationTime(), solver->state_data(), solver->deriv_data());
+            const stateData stateDataValue(sim->getSimulationTime(),
+                                           solver->state_data(),
+                                           solver->deriv_data());
             const change_code rootCheckResult = sim->rootCheck(noInputs,
                                                                stateDataValue,
                                                                solver->getSolverMode(),
@@ -236,9 +242,9 @@ int dynamicInitialConditionRecovery::dynamicFix4()
 {
     std::vector<double> voltages;
     sim->getVoltage(voltages);
-    if (std::any_of(voltages.begin(),
-                    voltages.end(),
-                    [](double voltageValue) { return (voltageValue < 0.1); })) {
+    if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
+            return (voltageValue < 0.1);
+        })) {
         sim->setAll("bus", "lowvdisconnect", 0.03);
         sim->dynamicCheckAndReset(solver->getSolverMode());
     }

@@ -27,8 +27,7 @@ class powerFlowErrorRecovery {
   @param[in] gds the gridDynSimulation object to work from
   @param[in] solverData the SolverInterface object to work from
   */
-    powerFlowErrorRecovery(gridDynSimulation* gds,
-                           std::shared_ptr<SolverInterface> solverData);
+    powerFlowErrorRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
     virtual ~powerFlowErrorRecovery();

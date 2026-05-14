@@ -127,9 +127,9 @@ bool powerFlowErrorRecovery::powerFlowFix3()
 {
     std::vector<double> voltages;
     sim->getVoltage(voltages);
-    if (std::any_of(voltages.begin(),
-                    voltages.end(),
-                    [](double voltageValue) { return (voltageValue < 0.7); })) {
+    if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
+            return (voltageValue < 0.7);
+        })) {
         sim->guessState(sim->getSimulationTime(),
                         solver->state_data(),
                         nullptr,
@@ -204,9 +204,9 @@ bool powerFlowErrorRecovery::powerFlowFix4()
 {
     std::vector<double> voltages;
     sim->getVoltage(voltages);
-    if (std::any_of(voltages.begin(),
-                    voltages.end(),
-                    [](double voltageValue) { return (voltageValue < 0.1); })) {
+    if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
+            return (voltageValue < 0.1);
+        })) {
         sim->setAll("bus", "lowvdisconnect", 0.03);
         sim->reInitpFlow(solver->getSolverMode());
         return true;

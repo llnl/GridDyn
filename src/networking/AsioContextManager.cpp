@@ -141,8 +141,8 @@ AsioContextManager::LoopHandle AsioContextManager::startContextLoop()
 {
     ++runCounter;  // atomic
 
-    loop_mode exp = loop_mode::stopped;
-    if (running.compare_exchange_strong(exp, loop_mode::starting)) {
+    LoopMode exp = LoopMode::STOPPED;
+    if (running.compare_exchange_strong(exp, LoopMode::STARTING)) {
         auto ptr = shared_from_this();
         std::packaged_task<void()> contextTask(
             [ptr = std::move(ptr)]() { contextProcessingLoop(ptr); });
@@ -163,8 +163,8 @@ AsioContextManager::LoopHandle AsioContextManager::startContextLoop()
                 loopRet.get();
             }
             nullLock.unlock();
-            exp = loop_mode::stopped;
-            if (running.compare_exchange_strong(exp, loop_mode::starting)) {
+            exp = LoopMode::STOPPED;
+            if (running.compare_exchange_strong(exp, LoopMode::STARTING)) {
                 auto ptr = shared_from_this();
                 std::packaged_task<void()> contextTask(
                     [ptr = std::move(ptr)]() { contextProcessingLoop(ptr); });
@@ -220,7 +220,7 @@ void contextProcessingLoop(std::shared_ptr<AsioContextManager> ptr)
     while ((ptr->runCounter > 0) && (!(ptr->terminateLoop))) {
         auto clk = std::chrono::steady_clock::now();
         try {
-            ptr->running.store(AsioContextManager::loop_mode::running);
+            ptr->running.store(AsioContextManager::LoopMode::RUNNING);
             ptr->ictx->run();
         }
         catch (const std::system_error& se) {
@@ -239,5 +239,5 @@ void contextProcessingLoop(std::shared_ptr<AsioContextManager> ptr)
     }
 
     //   std::cout << "context loop stopped\n";
-    ptr->running.store(AsioContextManager::loop_mode::stopped);
+    ptr->running.store(AsioContextManager::LoopMode::STOPPED);
 }

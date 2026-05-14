@@ -408,7 +408,7 @@ void stateGrabber::busLoadInfo(std::string_view fld)
         auto jacfind = busJacFunctions.find(nfstr);
         if (jacfind != busJacFunctions.end()) {
             jacIfptr = jacfind->second;
-            jacMode = jacobian_mode::computed;
+            jacMode = JacobianMode::COMPUTED;
         }
     } else {
         objectLoadInfo(nfstr);
@@ -430,7 +430,7 @@ void stateGrabber::linkLoadInfo(std::string_view fld)
         if (jacfind != busJacFunctions.end())
         {
             jacIfptr = jacfind->second;
-            jacMode = jacobian_mode::computed;
+            jacMode = JacobianMode::COMPUTED;
         }
         */
     } else {
@@ -490,7 +490,7 @@ void stateGrabber::secondaryLoadInfo(std::string_view fld)
         fptr = [](gridComponent* comp, const stateData& stateDataValue, const solverMode& sMode) {
             return static_cast<gridSecondary*>(comp)->getRealPower(noInputs, stateDataValue, sMode);
         };
-        jacMode = jacobian_mode::computed;
+        jacMode = JacobianMode::COMPUTED;
         jacIfptr = [](gridComponent* comp,
                       const stateData& stateDataValue,
                       matrixData<double>& matrixDataValue,
@@ -509,7 +509,7 @@ void stateGrabber::secondaryLoadInfo(std::string_view fld)
                                                                        stateDataValue,
                                                                        sMode);
         };
-        jacMode = jacobian_mode::computed;
+        jacMode = JacobianMode::COMPUTED;
         jacIfptr = [](gridComponent* comp,
                       const stateData& stateDataValue,
                       matrixData<double>& matrixDataValue,
@@ -534,7 +534,7 @@ void stateGrabber::secondaryLoadInfo(std::string_view fld)
                 }
                 return (offset != kNullLocation) ? stateDataValue.state[offset] : kNullVal;
             };
-            jacMode = jacobian_mode::computed;
+            jacMode = JacobianMode::COMPUTED;
             jacIfptr = [this](gridComponent* /*comp*/,
                               const stateData& /*sD*/,
                               matrixData<double>& matrixDataValue,
@@ -582,7 +582,7 @@ void stateGrabber::outputPartialDerivatives(const stateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const solverMode& sMode)
 {
-    if (jacMode == jacobian_mode::none) {
+    if (jacMode == JacobianMode::NONE) {
         return;
     }
     if (gain != 1.0) {
@@ -603,7 +603,7 @@ void customStateGrabber::setGrabberFunction(objStateGrabberFunction nfptr)
 void customStateGrabber::setGrabberJacFunction(objJacFunction nJfptr)
 {
     jacIfptr = std::move(nJfptr);
-    jacMode = (jacIfptr) ? jacobian_mode::computed : jacobian_mode::none;
+    jacMode = (jacIfptr) ? JacobianMode::COMPUTED : JacobianMode::NONE;
 }
 
 std::unique_ptr<stateGrabber> customStateGrabber::clone() const
@@ -702,7 +702,7 @@ void stateFunctionGrabber::outputPartialDerivatives(const stateData& stateDataVa
                                                     matrixData<double>& matrixDataValue,
                                                     const solverMode& sMode)
 {
-    if (jacMode == jacobian_mode::none) {
+    if (jacMode == JacobianMode::NONE) {
         return;
     }
 
@@ -828,7 +828,7 @@ void stateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
                                               const solverMode& sMode)
 {
-    if (jacMode == jacobian_mode::none) {
+    if (jacMode == JacobianMode::NONE) {
         return;
     }
 

@@ -37,24 +37,24 @@ void zmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 {
     for (auto& op : ops) {
         switch (op.first) {
-            case socket_ops::bind:
+            case SocketOperation::BIND:
                 sock.bind(op.second);
                 break;
-            case socket_ops::unbind:
+            case SocketOperation::UNBIND:
                 sock.unbind(op.second);
                 break;
-            case socket_ops::connect:
+            case SocketOperation::CONNECT:
                 sock.connect(op.second);
                 break;
-            case socket_ops::disconnect:
+            case SocketOperation::DISCONNECT:
                 sock.disconnect(op.second);
                 break;
-            case socket_ops::subscribe:
+            case SocketOperation::SUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
                     sock.setsockopt(ZMQ_SUBSCRIBE, op.second);
                 }
                 break;
-            case socket_ops::unsubscribe:
+            case SocketOperation::UNSUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
                     sock.setsockopt(ZMQ_UNSUBSCRIBE, op.second);
                 }

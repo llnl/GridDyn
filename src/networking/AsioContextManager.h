@@ -28,7 +28,7 @@
 /** class defining a (potential) singleton Asio io_context manager for all asio usage*/
 class AsioContextManager: public std::enable_shared_from_this<AsioContextManager> {
   private:
-    enum class loop_mode : int { stopped = 0, starting = 1, running = 2 };
+    enum class LoopMode : int { STOPPED = 0, STARTING = 1, RUNNING = 2 };
     static std::map<std::string, std::shared_ptr<AsioContextManager>>
         contexts;  //!< container for pointers to all the available contexts
     std::atomic<int> runCounter{
@@ -38,7 +38,7 @@ class AsioContextManager: public std::enable_shared_from_this<AsioContextManager
     std::unique_ptr<asio::io_context::work>
         nullwork;  //!< pointer to an object used to keep a context running
     bool leakOnDelete = false;  //!< this is done to prevent some warning messages for use in DLL's
-    std::atomic<loop_mode> running{loop_mode::stopped};  //!< flag indicating the loop is running
+    std::atomic<LoopMode> running{LoopMode::STOPPED};  //!< flag indicating the loop is running
     std::mutex runningLoopLock;  //!< lock protecting the nullwork object and the return future
     std::atomic<bool> terminateLoop{false};  //!< flag indicating that the loop should terminate
     std::future<void> loopRet;
@@ -127,7 +127,7 @@ class AsioContextManager: public std::enable_shared_from_this<AsioContextManager
     */
     LoopHandle startContextLoop();
     /** check if the contextLoopo is running*/
-    bool isRunning() const { return (running.load() != loop_mode::stopped); }
+    bool isRunning() const { return (running.load() != LoopMode::STOPPED); }
 
   private:
     /** halt the context loop thread if the counter==0

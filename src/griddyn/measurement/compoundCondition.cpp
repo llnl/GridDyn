@@ -10,9 +10,9 @@
 
 namespace griddyn {
 /*
-enum class compound_mode
+enum class CompoundMode
 {
-    c_and, c_or, c_any, c_xor, c_one_of, c_two_of, c_three_of
+    AND, OR, ANY, XOR, ONE_OF, TWO_OF, THREE_OF
 };
 */
 double compoundCondition::evalCondition()
@@ -69,17 +69,17 @@ void compoundCondition::add(std::shared_ptr<Condition> condition)
     throw(addFailureException());
 }
 
-void compoundCondition::setMode(compound_mode newMode)
+void compoundCondition::setMode(CompoundMode newMode)
 {
     mMode = newMode;
     switch (mMode) {
-        case compound_mode::c_and:
+        case CompoundMode::AND:
             mBreakTrue = false;
             mBreakFalse = true;
             break;
-        case compound_mode::c_any:
-        case compound_mode::c_or:
-        case compound_mode::c_none:
+        case CompoundMode::ANY:
+        case CompoundMode::OR:
+        case CompoundMode::NONE:
             mBreakTrue = true;
             mBreakFalse = false;
             break;
@@ -93,31 +93,31 @@ void compoundCondition::setMode(compound_mode newMode)
 bool compoundCondition::evalCombinations(count_t trueCount) const
 {
     switch (mMode) {
-        case compound_mode::c_and:
-        case compound_mode::c_all:
+        case CompoundMode::AND:
+        case CompoundMode::ALL:
         default:
             return std::cmp_equal(trueCount, mConditions.size());
-        case compound_mode::c_any:
-        case compound_mode::c_or:
+        case CompoundMode::ANY:
+        case CompoundMode::OR:
             return (trueCount > 0);
-        case compound_mode::c_one_of:
+        case CompoundMode::ONE_OF:
             return (trueCount == 1);
-        case compound_mode::c_two_of:
+        case CompoundMode::TWO_OF:
             return (trueCount == 2);
-        case compound_mode::c_three_of:
+        case CompoundMode::THREE_OF:
             return (trueCount == 3);
-        case compound_mode::c_two_or_more:
+        case CompoundMode::TWO_OR_MORE:
             return (trueCount >= 2);
-        case compound_mode::c_three_or_more:
+        case CompoundMode::THREE_OR_MORE:
             return (trueCount >= 3);
-        case compound_mode::c_xor:
-        case compound_mode::c_odd:
+        case CompoundMode::XOR:
+        case CompoundMode::ODD:
             return ((trueCount % count_t{2}) == count_t{1});
-        case compound_mode::c_even:
+        case CompoundMode::EVEN:
             return ((trueCount % count_t{2}) == count_t{0});
-        case compound_mode::c_even_min:
+        case CompoundMode::EVEN_MIN:
             return ((trueCount != count_t{0}) && ((trueCount % count_t{2}) == count_t{0}));
-        case compound_mode::c_none:
+        case CompoundMode::NONE:
             return (trueCount == count_t{0});
     }
 }

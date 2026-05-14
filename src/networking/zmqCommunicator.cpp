@@ -104,7 +104,8 @@ void zmqCommunicator::initialize()
         if (!localProxy->isRunning()) {
             localProxy->startProxy();
         }
-        txDescriptor.addOperation(zmqlib::socket_ops::connect, localProxy->getIncomingConnection());
+        txDescriptor.addOperation(zmqlib::SocketOperation::CONNECT,
+                                  localProxy->getIncomingConnection());
     }
 
     if (flags[use_rx_proxy]) {
@@ -112,24 +113,25 @@ void zmqCommunicator::initialize()
         if (!localProxy->isRunning()) {
             localProxy->startProxy();
         }
-        rxDescriptor.addOperation(zmqlib::socket_ops::connect, localProxy->getIncomingConnection());
+        rxDescriptor.addOperation(zmqlib::SocketOperation::CONNECT,
+                                  localProxy->getIncomingConnection());
     }
 
-    txDescriptor.addOperation(zmqlib::socket_ops::subscribe, getName());
-    rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, getName());
+    txDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE, getName());
+    rxDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE, getName());
 
     auto id = getID();
-    txDescriptor.addOperation(zmqlib::socket_ops::subscribe,
+    txDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE,
                               std::string(reinterpret_cast<char*>(&id),
                                           sizeof(id)));  // I know this is ugly
-    rxDescriptor.addOperation(zmqlib::socket_ops::subscribe,
+    rxDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE,
                               std::string(reinterpret_cast<char*>(&id),
                                           sizeof(id)));  // I know this is ugly
     decltype(id) broadcastId = 0;
-    txDescriptor.addOperation(zmqlib::socket_ops::subscribe,
+    txDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE,
                               std::string(reinterpret_cast<char*>(&broadcastId),
                                           sizeof(broadcastId)));  // I know this is ugly
-    rxDescriptor.addOperation(zmqlib::socket_ops::subscribe,
+    rxDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE,
                               std::string(reinterpret_cast<char*>(&broadcastId),
                                           sizeof(broadcastId)));  // I know this is ugly
 
@@ -153,13 +155,13 @@ void zmqCommunicator::disconnect()
 void zmqCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
-        txDescriptor.addOperation(zmqlib::socket_ops::connect, std::string{val});
+        txDescriptor.addOperation(zmqlib::SocketOperation::CONNECT, std::string{val});
     } else if (param == "rxconnection") {
-        rxDescriptor.addOperation(zmqlib::socket_ops::connect, std::string{val});
+        rxDescriptor.addOperation(zmqlib::SocketOperation::CONNECT, std::string{val});
     } else if (param == "rxsubscription") {
-        rxDescriptor.addOperation(zmqlib::socket_ops::subscribe, std::string{val});
+        rxDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE, std::string{val});
     } else if (param == "txsubscription") {
-        txDescriptor.addOperation(zmqlib::socket_ops::subscribe, std::string{val});
+        txDescriptor.addOperation(zmqlib::SocketOperation::SUBSCRIBE, std::string{val});
     } else if ((param == "proxy") || (param == "proxyname")) {
         proxyName = val;
         setFlag("useproxy", true);

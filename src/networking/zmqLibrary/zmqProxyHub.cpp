@@ -73,11 +73,11 @@ void zmqProxyHub::stopProxy()
     }
 }
 
-void zmqProxyHub::modifyIncomingConnection(socket_ops op, const std::string& connection)
+void zmqProxyHub::modifyIncomingConnection(SocketOperation op, const std::string& connection)
 {
     incoming.addOperation(op, connection);
 }
-void zmqProxyHub::modifyOutgoingConnection(socket_ops op, const std::string& connection)
+void zmqProxyHub::modifyOutgoingConnection(SocketOperation op, const std::string& connection)
 {
     outgoing.addOperation(op, connection);
 }

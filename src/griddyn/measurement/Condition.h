@@ -17,19 +17,19 @@
 namespace griddyn {
 class grabberSet;
 /** enumeration of the available comparison types*/
-enum class comparison_type {
-    eq,
-    ne,
-    gt,
-    ge,
-    le,
-    lt,
-    null,
+enum class ComparisonType {
+    EQ,
+    NE,
+    GT,
+    GE,
+    LE,
+    LT,
+    NULL_COMPARISON,
 };
 /** generate a value of the comparison type enumeration from a string*/
-comparison_type comparisonFromString(std::string_view compStr);
+ComparisonType comparisonFromString(std::string_view compStr);
 /** convert the comparison type to a string description*/
-std::string to_string(comparison_type comp);
+std::string to_string(ComparisonType comp);
 
 /**
  *condition class:  sets up a comparison operator for both states and regular grabbers
@@ -108,7 +108,7 @@ class Condition: public objectOperatorInterface {
     virtual bool checkCondition(const stateData& stateDataValue, const solverMode& sMode) const;
     /** set the comparison operator
     @param[in] comparison the comparison type*/
-    void setComparison(comparison_type comparison);
+    void setComparison(ComparisonType comparison);
     /** set the comparison operator
     @param[in] compStr the comparison type as a string*/
     void setComparison(std::string_view compStr);
@@ -142,7 +142,7 @@ class Condition: public objectOperatorInterface {
   private:
     std::function<double(double A, double B, double margin)>
         mEvalFunction;  //!< the function evaluation used in the condition
-    comparison_type mComparison = comparison_type::gt;  //!< the condition operator
+    ComparisonType mComparison = ComparisonType::GT;  //!< the condition operator
 };
 
 /** make a condition object
@@ -170,7 +170,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 * @param[in] rootObject the root object to find the other objects
 */
 std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          comparison_type comp,
+                                          ComparisonType comp,
                                           double level,
                                           coreObject* rootObject);
 
@@ -179,28 +179,28 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 class compoundCondition: public Condition {
   public:
     /** enumeration of the possible compounding modes*/
-    enum class compound_mode {
-        c_and,  //!< all conditions are true
-        c_all,  //!< same as c_and  all conditions are true
-        c_or,  //!< any of the conditions are true
-        c_any,  //!< same as c_or, any of the conditions are true
-        c_xor,  //!< an odd number of the conditions are true
-        c_one_of,  //!< exactly one of the conditions are true
-        c_two_of,  //!< exactly two of the conditions are true
-        c_three_of,  //!< exactly three of the conditions are true
-        c_none,  //!< no conditions are true
-        c_two_or_more,  //!< 2 or more of the conditions are true
-        c_three_or_more,  //!< 3 or more of the conditions are true
-        c_even,  //!< an even number of conditions is true (0 is an even number)
-        c_even_min,  //!< an even number of conditions are true with at least two being true
-        c_odd,  //!< an odd number of conditions is true, same as xor
+    enum class CompoundMode {
+        AND,  //!< all conditions are true
+        ALL,  //!< same as AND  all conditions are true
+        OR,  //!< any of the conditions are true
+        ANY,  //!< same as OR, any of the conditions are true
+        XOR,  //!< an odd number of the conditions are true
+        ONE_OF,  //!< exactly one of the conditions are true
+        TWO_OF,  //!< exactly two of the conditions are true
+        THREE_OF,  //!< exactly three of the conditions are true
+        NONE,  //!< no conditions are true
+        TWO_OR_MORE,  //!< 2 or more of the conditions are true
+        THREE_OR_MORE,  //!< 3 or more of the conditions are true
+        EVEN,  //!< an even number of conditions is true (0 is an even number)
+        EVEN_MIN,  //!< an even number of conditions are true with at least two being true
+        ODD,  //!< an odd number of conditions is true, same as xor
     };
 
   private:
     bool mBreakFalse = true;  //!< indicator that the checking should stop if a false is encountered
     bool mBreakTrue = false;  //!< indicator that the checking should stop if a true is encountered
     std::vector<std::shared_ptr<Condition>> mConditions;  //!< vector of pointers to the conditions
-    compound_mode mMode = compound_mode::c_and;  //!< the compounding mode to use
+    CompoundMode mMode = CompoundMode::AND;  //!< the compounding mode to use
   public:
     compoundCondition() = default;
 
@@ -213,7 +213,7 @@ class compoundCondition: public Condition {
     void add(std::shared_ptr<Condition> condition);
     /** set the compounding mode
      */
-    void setMode(compound_mode newMode);
+    void setMode(CompoundMode newMode);
 
   private:
     /** evaluate the compounding based on the number of true values encountered*/

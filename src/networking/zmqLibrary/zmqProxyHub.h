@@ -40,8 +40,8 @@ class zmqProxyHub {
 
     void startProxy();
     void stopProxy();
-    void modifyIncomingConnection(socket_ops op, const std::string& connection);
-    void modifyOutgoingConnection(socket_ops op, const std::string& connection);
+    void modifyIncomingConnection(SocketOperation op, const std::string& connection);
+    void modifyOutgoingConnection(SocketOperation op, const std::string& connection);
 
     const std::string& getName() const { return name; }
     const std::string& getIncomingConnection() const { return incomingPrimaryConnection; }

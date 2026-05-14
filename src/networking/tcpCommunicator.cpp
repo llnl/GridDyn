@@ -96,13 +96,13 @@ void tcpCommunicator::disconnect()
 void tcpCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
-        // txDescriptor.addOperation(socket_ops::connect, val);
+        // txDescriptor.addOperation(SocketOperation::CONNECT, val);
     } else if (param == "rxconnection") {
-        //    rxDescriptor.addOperation(socket_ops::connect, val);
+        //    rxDescriptor.addOperation(SocketOperation::CONNECT, val);
     } else if (param == "rxsubscription") {
-        // rxDescriptor.addOperation(socket_ops::subscribe, val);
+        // rxDescriptor.addOperation(SocketOperation::SUBSCRIBE, val);
     } else if (param == "txsubscription") {
-        //    txDescriptor.addOperation(socket_ops::subscribe, val);
+        //    txDescriptor.addOperation(SocketOperation::SUBSCRIBE, val);
     } else if ((param == "proxy") || (param == "proxyname")) {
         proxyName = val;
         setFlag("useproxy", true);

@@ -28,10 +28,10 @@ using objStateGrabberFunction = std::function<
     double(gridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
 
 /** define if the grabber can compute the Jacobian information*/
-enum class jacobian_mode {
-    none,  //!< no Jacobian computed
-    direct,  //!< the result is a state directly
-    computed,  //!< the Jacobian needs to be computed
+enum class JacobianMode {
+    NONE,  //!< no Jacobian computed
+    DIRECT,  //!< the result is a state directly
+    COMPUTED,  //!< the Jacobian needs to be computed
 };
 
 /**class for grabbing a subset of fields directly from the state vector for performing certain
@@ -51,7 +51,7 @@ class stateGrabber: public objectOperatorInterface {
     double bias = 0.0;  //!<  bias on the input
 
   protected:
-    jacobian_mode jacMode = jacobian_mode::none;  //!< the mode of the Jacobian calculation
+    JacobianMode jacMode = JacobianMode::NONE;  //!< the mode of the Jacobian calculation
     gridComponent* cobj = nullptr;  //!< the target object
     objStateGrabberFunction fptr;  //!< the functional to grab the data
     objJacFunction jacIfptr;  //!< the functional to compute the Jacobian
@@ -90,7 +90,7 @@ class stateGrabber: public objectOperatorInterface {
     virtual coreObject* getObject() const override;
     virtual void getObjects(std::vector<coreObject*>& objects) const override;
     /** get the Jacobian abilities of a grabber*/
-    jacobian_mode getJacobianMode() const { return jacMode; }
+    JacobianMode getJacobianMode() const { return jacMode; }
 
   protected:
     /** load bus specific grabber info*/

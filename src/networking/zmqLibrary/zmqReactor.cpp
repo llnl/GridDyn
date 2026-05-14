@@ -47,7 +47,7 @@ zmqReactor::~zmqReactor()
 void zmqReactor::terminateReactor()
 {
     if (reactorLoopRunning) {
-        updates.emplace(reactorInstruction::terminate, std::string());
+        updates.emplace(ReactorInstruction::TERMINATE, std::string());
         notifier->send(zmq::const_buffer(&zero, sizeof(int)));
         loopThread.join();
     }
@@ -78,26 +78,26 @@ std::shared_ptr<zmqReactor> zmqReactor::getReactorInstance(const std::string& re
 
 void zmqReactor::addSocket(const zmqSocketDescriptor& desc)
 {
-    updates.emplace(reactorInstruction::newSocket, desc);
+    updates.emplace(ReactorInstruction::NEW_SOCKET, desc);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
 void zmqReactor::modifySocket(const zmqSocketDescriptor& desc)
 {
-    updates.emplace(reactorInstruction::modify, desc);
+    updates.emplace(ReactorInstruction::MODIFY, desc);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
 void zmqReactor::closeSocket(const std::string& socketName)
 {
-    updates.emplace(reactorInstruction::close, socketName);
+    updates.emplace(ReactorInstruction::CLOSE, socketName);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
 void zmqReactor::addSocketBlocking(const zmqSocketDescriptor& desc)
 {
     unsigned int one(1);
-    updates.emplace(reactorInstruction::newSocket, desc);
+    updates.emplace(ReactorInstruction::NEW_SOCKET, desc);
     notifier->send(zmq::const_buffer(&one, sizeof(int)));
     notifier->recv(zmq::mutable_buffer(&one, 4));
 }
@@ -106,7 +106,7 @@ void zmqReactor::modifySocketBlocking(const zmqSocketDescriptor& desc)
 {
     unsigned int one(1);
 
-    updates.emplace(reactorInstruction::modify, desc);
+    updates.emplace(ReactorInstruction::MODIFY, desc);
     notifier->send(zmq::const_buffer(&one, sizeof(int)));
 
     notifier->recv(zmq::mutable_buffer(&one, 4));
@@ -115,7 +115,7 @@ void zmqReactor::modifySocketBlocking(const zmqSocketDescriptor& desc)
 void zmqReactor::closeSocketBlocking(const std::string& socketName)
 {
     unsigned int one(1);
-    updates.emplace(reactorInstruction::close, socketName);
+    updates.emplace(ReactorInstruction::CLOSE, socketName);
     notifier->send(zmq::const_buffer(&one, sizeof(int)));
     notifier->recv(zmq::mutable_buffer(&one, 4));
 }
@@ -174,7 +174,7 @@ void zmqReactor::reactorLoop()
                     auto instruction = (*socketop).first;
                     auto& descriptor = (*socketop).second;
                     switch (instruction) {
-                        case reactorInstruction::close:
+                        case ReactorInstruction::CLOSE:
                             index = findSocketByName(descriptor.name, socketNames);
                             if (index < static_cast<int>(sockets.size())) {
                                 sockets[index].close();
@@ -185,7 +185,7 @@ void zmqReactor::reactorLoop()
                                 --socketCount;
                             }
                             break;
-                        case reactorInstruction::newSocket:
+                        case ReactorInstruction::NEW_SOCKET:
                             sockets.push_back(descriptor.makeSocket(contextManager->getContext()));
                             socketNames.push_back(descriptor.name);
                             socketCallbacks.emplace_back(descriptor.callback);
@@ -196,7 +196,7 @@ void zmqReactor::reactorLoop()
                             socketPolls.back().revents = 0;
                             ++socketCount;
                             break;
-                        case reactorInstruction::modify:
+                        case ReactorInstruction::MODIFY:
                             index = findSocketByName(descriptor.name, socketNames);
                             if (index < static_cast<int>(sockets.size())) {
                                 descriptor.modifySocket(sockets[index]);
@@ -206,7 +206,7 @@ void zmqReactor::reactorLoop()
                                 socketCallbacks[index] = descriptor.callback;
                             }
                             break;
-                        case reactorInstruction::terminate:
+                        case ReactorInstruction::TERMINATE:
                             // jump out of the loop
                             goto REACTOR_HALT;
                         default:

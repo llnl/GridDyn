@@ -17,6 +17,7 @@ Livermore National Security, LLC.
 
 #include "zmqContextManager.h"
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -47,7 +48,11 @@ zmqReactor::~zmqReactor()
     try {
         terminateReactor();
     }
+    catch (const std::exception& ex) {
+        std::cerr << "zmqReactor destructor suppressed exception: " << ex.what() << '\n';
+    }
     catch (...) {
+        std::cerr << "zmqReactor destructor suppressed unknown exception\n";
     }
 }
 

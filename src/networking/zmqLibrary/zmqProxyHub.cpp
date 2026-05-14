@@ -17,6 +17,7 @@ Livermore National Security, LLC.
 
 #include "zmqProxyHub.h"
 
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -48,7 +49,11 @@ zmqProxyHub::~zmqProxyHub()
     try {
         stopProxy();
     }
+    catch (const std::exception& ex) {
+        std::cerr << "zmqProxyHub destructor suppressed exception: " << ex.what() << '\n';
+    }
     catch (...) {
+        std::cerr << "zmqProxyHub destructor suppressed unknown exception\n";
     }
 }
 

@@ -100,12 +100,15 @@ void tcpCommunicator::set(std::string_view param, std::string_view val)
         (param == "txsubscription") || (param == "txtype") || (param == "sockettype") ||
         (param == "rxtype")) {
         return;
-    } else if ((param == "proxy") || (param == "proxyname")) {
+    }
+
+    if ((param == "proxy") || (param == "proxyname")) {
         proxyName = val;
         setFlag("useproxy", true);
-    } else {
-        Communicator::set(param, val);
+        return;
     }
+
+    Communicator::set(param, val);
 }
 
 void tcpCommunicator::set(std::string_view param, double val)

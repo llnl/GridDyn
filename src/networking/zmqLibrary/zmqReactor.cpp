@@ -128,8 +128,8 @@ void zmqReactor::closeSocketBlocking(const std::string& socketName)
 }
 
 // this is not a member function but a helper function for the reactorLoop
-static auto
-    findSocketByName(const std::string& socketName, const std::vector<std::string>& socketNames)
+static auto findSocketByName(const std::string& socketName,
+                             const std::vector<std::string>& socketNames)
 {
     int index = 0;
     for (const auto& socketLabel : socketNames) {
@@ -197,9 +197,8 @@ void zmqReactor::reactorLoop()
                             }
                             break;
                         case ReactorInstruction::NEW_SOCKET:
-                            sockets.push_back(
-                                descriptor.makeSocket(
-                                    zmqContextManager::getContext(contextManager->getName())));
+                            sockets.push_back(descriptor.makeSocket(
+                                zmqContextManager::getContext(contextManager->getName())));
                             socketNames.push_back(descriptor.name);
                             socketCallbacks.emplace_back(descriptor.callback);
                             socketPolls.resize(socketPolls.size() + 1);

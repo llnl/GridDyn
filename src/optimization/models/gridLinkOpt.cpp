@@ -65,17 +65,17 @@ void gridLinkOpt::loadSizes(const optimMode& oMode)
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
     switch (oMode.flowMode) {
-        case flowModel_t::none:
+        case FlowModel::NONE:
             oo.local.contSize = 0;
             break;
-        case flowModel_t::transport:
+        case FlowModel::TRANSPORT:
             oo.local.contSize = 1;
             break;
-        case flowModel_t::dc:
+        case FlowModel::DC:
             oo.local.contSize = 0;
             oo.local.constraintsSize = 1;
             break;
-        case flowModel_t::ac:
+        case FlowModel::AC:
             oo.local.contSize = 0;
             oo.local.constraintsSize = 1;
             break;

@@ -93,15 +93,15 @@ void gridBusOpt::loadSizes(const optimMode& oMode)
     optimOffsets& oo = offsets.getOffsets(oMode);
     oo.reset();
     switch (oMode.flowMode) {
-        case flowModel_t::none:
-        case flowModel_t::transport:
+        case FlowModel::NONE:
+        case FlowModel::TRANSPORT:
             oo.local.constraintsSize = 1;
             break;
-        case flowModel_t::dc:
+        case FlowModel::DC:
             oo.local.aSize = 1;
             oo.local.constraintsSize = 1;
             break;
-        case flowModel_t::ac:
+        case FlowModel::AC:
             oo.local.aSize = 1;
             oo.local.vSize = 1;
             oo.local.constraintsSize = 2;

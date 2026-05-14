@@ -94,9 +94,9 @@ count_t gridLoadOpt::constraintSize(const optimMode& oMode)
 {
     count_t objs = 0;
     switch (oMode.linMode) {
-        case linearityMode_t::linear:
-        case linearityMode_t::quadratic:
-        case linearityMode_t::nonlinear:
+        case LinearityMode::LINEAR:
+        case LinearityMode::QUADRATIC:
+        case LinearityMode::NONLINEAR:
         default:
             objs = 0;
     }

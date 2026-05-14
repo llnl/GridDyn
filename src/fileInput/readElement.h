@@ -135,27 +135,27 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element,
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element);
 void getElementParam(const std::shared_ptr<readerElement>& element, gridParameter& param);
 
-std::string findElementName(
-    std::shared_ptr<readerElement>& element,
-    const std::string& ename,
-    readerConfig::match_type matching = readerConfig::match_type::strict_case_match);
+std::string
+    findElementName(std::shared_ptr<readerElement>& element,
+                    const std::string& ename,
+                    readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 
-std::string getElementField(
-    std::shared_ptr<readerElement>& element,
-    const std::string& ename,
-    readerConfig::match_type matching = readerConfig::match_type::strict_case_match);
+std::string
+    getElementField(std::shared_ptr<readerElement>& element,
+                    const std::string& ename,
+                    readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 std::string getElementAttribute(
     std::shared_ptr<readerElement>& element,
     const std::string& ename,
-    readerConfig::match_type matching = readerConfig::match_type::strict_case_match);
+    readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 std::string getElementFieldOptions(
     std::shared_ptr<readerElement>& element,
     const stringVec& names,
-    readerConfig::match_type matching = readerConfig::match_type::strict_case_match);
+    readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 stringVec getElementFieldMultiple(
     std::shared_ptr<readerElement>& element,
     const std::string& ename,
-    readerConfig::match_type matching = readerConfig::match_type::strict_case_match);
+    readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 
 void setIndex(std::shared_ptr<readerElement>& element,
               coreObject* mainObject,

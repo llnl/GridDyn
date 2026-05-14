@@ -51,27 +51,27 @@ namespace readerConfig {
     void setDefaultMatchType(const std::string& matchType);
     /** @brief enumeration describing how the matching should be done
      */
-    enum class match_type {
-        strict_case_match,  //!< match only the cases given
-        capital_case_match,  //!< match where the first letter can be either case, or all lower
+    enum class MatchType {
+        STRICT_CASE_MATCH,  //!< match only the cases given
+        CAPITAL_CASE_MATCH,  //!< match where the first letter can be either case, or all lower
                              //!< case, or all capitals
-        any_case_match,  //!< match where any letter can be any case
+        ANY_CASE_MATCH,  //!< match where any letter can be any case
 
     };
 
     constexpr double PI = 3.141592653589793;
-    extern match_type defMatchType;  //!< control for how names are matches in the xm
+    extern MatchType defMatchType;  //!< control for how names are matches in the xm
 }  // namespace readerConfig
 
 enum readerflags {
 
 };
 /** @brief defined flags for the readerInfo*/
-enum readerFlags {
-    ignore_step_up_transformer = 1,  //!< ignore any step up transformer definitions
-    assume_powerflow_only =
+enum ReaderFlags {
+    IGNORE_STEP_UP_TRANSFORMER = 1,  //!< ignore any step up transformer definitions
+    ASSUME_POWERFLOW_ONLY =
         4,  //!< specify that some object construction may assume it will never be used for dynamics
-    no_generator_bus_voltage_reset =
+    NO_GENERATOR_BUS_VOLTAGE_RESET =
         5,  //!< do not use generator specification to alter bus voltages
 
 };

@@ -12,7 +12,7 @@
 namespace griddyn {
 bool isAC(const optimMode& oMode)
 {
-    return (oMode.flowMode == flowModel_t::ac);
+    return (oMode.flowMode == FlowModel::AC);
 }
 
 void optimSizes::reset()

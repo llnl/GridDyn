@@ -191,7 +191,7 @@ int loadGenArray(coreObject* parentObject,
 {
     const auto& bri = readerOptions;
     index_t kk = 1;
-    std::string gtype = (bri.checkFlag(assume_powerflow_only)) ? "simple" : "";
+    std::string gtype = (bri.checkFlag(ASSUME_POWERFLOW_ONLY)) ? "simple" : "";
     auto genFactory = dynamic_cast<typeFactory<Generator>*>(
         coreObjectFactory::instance()->getFactory("generator")->getFactory(gtype));
     genFactory->prepObjects(static_cast<count_t>(gens.size()), parentObject);
@@ -218,12 +218,12 @@ int loadGenArray(coreObject* parentObject,
         if (genLine[7] <= 0.0) {
             gen->disable();
             if (genLine[5] != 1.0) {
-                if (!bri.checkFlag(no_generator_bus_voltage_reset)) {
+                if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
                     bus->set("vtarget", genLine[5]);
                 }
             }
         } else {
-            if (!bri.checkFlag(no_generator_bus_voltage_reset)) {
+            if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
                 bus->set("vtarget", genLine[5]);
                 // bus->set("voltage", genLine[5]);
             }

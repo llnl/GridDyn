@@ -80,16 +80,16 @@ static void rawReadTXadj(coreObject* parentObject,
 //                          basicReaderInfo& opt);
 
 namespace {
-    enum class section_t : std::uint8_t {
-        unknown,
-        bus,
-        branch,
-        load,
-        fixed_shunt,
-        generator,
-        tx,
-        switched_shunt,
-        txadj
+    enum class SectionType : std::uint8_t {
+        UNKNOWN,
+        BUS,
+        BRANCH,
+        LOAD,
+        FIXED_SHUNT,
+        GENERATOR,
+        TX,
+        SWITCHED_SHUNT,
+        TXADJ
     };
 }  // namespace
 
@@ -103,7 +103,7 @@ static childTypeFactory<acLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-static section_t findSectionType(const std::string& line);
+static SectionType findSectionType(const std::string& line);
 
 static bool checkNextLine(std::ifstream& file, std::string& nextLine)
 {
@@ -266,10 +266,10 @@ void loadRAW(coreObject* parentObject,
     bool moreSections = true;
 
     while (moreSections) {
-        const section_t currSection = findSectionType(line);
+        const SectionType currSection = findSectionType(line);
         moreData = true;
         switch (currSection) {
-            case section_t::load:
+            case SectionType::LOAD:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -286,7 +286,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::generator:
+            case SectionType::GENERATOR:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -303,7 +303,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::branch:
+            case SectionType::BRANCH:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadBranch(parentObject, line, busList, opt);
@@ -312,7 +312,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::fixed_shunt:
+            case SectionType::FIXED_SHUNT:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
@@ -329,7 +329,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::switched_shunt:
+            case SectionType::SWITCHED_SHUNT:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadSwitchedShunt(parentObject, line, busList, opt);
@@ -338,7 +338,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::txadj:
+            case SectionType::TXADJ:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
                         rawReadTXadj(parentObject, line, busList, opt);
@@ -347,7 +347,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::tx:
+            case SectionType::TX:
 
                 while (moreData) {
                     if (tline == 5) {
@@ -380,7 +380,7 @@ void loadRAW(coreObject* parentObject,
                     }
                 }
                 break;
-            case section_t::unknown:
+            case SectionType::UNKNOWN:
             default:
                 while (moreData) {
                     if (std::getline(file, line)) {
@@ -430,27 +430,27 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, section_t>, 17> sectionNames{{
-    {"BEGIN FIXED SHUNT", section_t::fixed_shunt},
-    {"BEGIN SWITCHED SHUNT DATA", section_t::switched_shunt},
-    {"BEGIN AREA INTERCHANGE DATA", section_t::unknown},
-    {"BEGIN TWO-TERMINAL DC LINE DATA", section_t::unknown},
-    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", section_t::unknown},
-    {"BEGIN IMPEDANCE CORRECTION DATA", section_t::unknown},
-    {"BEGIN MULTI-TERMINAL DC LINE DATA", section_t::unknown},
-    {"BEGIN MULTI-SECTION LINE GROUP DATA", section_t::unknown},
-    {"BEGIN ZONE DATA", section_t::unknown},
-    {"BEGIN INTER-AREA TRANSFER DATA", section_t::unknown},
-    {"BEGIN OWNER DATA", section_t::unknown},
-    {"BEGIN FACTS CONTROL DEVICE DATA", section_t::unknown},
-    {"BEGIN LOAD DATA", section_t::load},
-    {"BEGIN GENERATOR DATA", section_t::generator},
-    {"BEGIN BRANCH DATA", section_t::branch},
-    {"BEGIN TRANSFORMER ADJUSTMENT DATA", section_t::txadj},
-    {"BEGIN TRANSFORMER DATA", section_t::tx},
+static constexpr std::array<std::pair<std::string_view, SectionType>, 17> sectionNames{{
+    {"BEGIN FIXED SHUNT", SectionType::FIXED_SHUNT},
+    {"BEGIN SWITCHED SHUNT DATA", SectionType::SWITCHED_SHUNT},
+    {"BEGIN AREA INTERCHANGE DATA", SectionType::UNKNOWN},
+    {"BEGIN TWO-TERMINAL DC LINE DATA", SectionType::UNKNOWN},
+    {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
+    {"BEGIN IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
+    {"BEGIN MULTI-TERMINAL DC LINE DATA", SectionType::UNKNOWN},
+    {"BEGIN MULTI-SECTION LINE GROUP DATA", SectionType::UNKNOWN},
+    {"BEGIN ZONE DATA", SectionType::UNKNOWN},
+    {"BEGIN INTER-AREA TRANSFER DATA", SectionType::UNKNOWN},
+    {"BEGIN OWNER DATA", SectionType::UNKNOWN},
+    {"BEGIN FACTS CONTROL DEVICE DATA", SectionType::UNKNOWN},
+    {"BEGIN LOAD DATA", SectionType::LOAD},
+    {"BEGIN GENERATOR DATA", SectionType::GENERATOR},
+    {"BEGIN BRANCH DATA", SectionType::BRANCH},
+    {"BEGIN TRANSFORMER ADJUSTMENT DATA", SectionType::TXADJ},
+    {"BEGIN TRANSFORMER DATA", SectionType::TX},
 }};
 
-static section_t findSectionType(const std::string& line)
+static SectionType findSectionType(const std::string& line)
 {
     const auto upperLine = convertToUpperCase(line);
     for (const auto& sectionName : sectionNames) {
@@ -458,7 +458,7 @@ static section_t findSectionType(const std::string& line)
             return sectionName.second;
         }
     }
-    return section_t::unknown;
+    return SectionType::UNKNOWN;
 }
 
 static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
@@ -686,7 +686,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
             gen->set("vtarget", Vtarget);
             // for raw files the bus doesn't necessarily set a control point it comes from the
             // generator, so we have to set it here.
-            if (!opt.checkFlag(no_generator_bus_voltage_reset)) {
+            if (!opt.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
                 gen->getParent()->set("vtarget", Vtarget);
                 gen->getParent()->set("voltage", Vtarget);
             }
@@ -708,7 +708,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
     auto reactance = numeric_conversion<double>(strvec[10], 0.0);
     gen->set("xs", reactance);
 
-    if (!opt.checkFlag(ignore_step_up_transformer)) {
+    if (!opt.checkFlag(IGNORE_STEP_UP_TRANSFORMER)) {
         resistance = numeric_conversion<double>(strvec[11], 0.0);
         reactance = numeric_conversion<double>(strvec[12], 0.0);
         if ((resistance != 0) || (reactance != 0))  // need to add a step up transformer

@@ -93,12 +93,12 @@ void gridGenOpt::loadSizes(const optimMode& oMode)
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
     switch (oMode.flowMode) {
-        case flowModel_t::none:
-        case flowModel_t::transport:
-        case flowModel_t::dc:
+        case FlowModel::NONE:
+        case FlowModel::TRANSPORT:
+        case FlowModel::DC:
             oo.local.genSize = 1;
             break;
-        case flowModel_t::ac:
+        case FlowModel::AC:
             oo.local.genSize = 1;
             oo.local.qSize = 1;
             break;
@@ -198,10 +198,10 @@ double gridGenOpt::objValue(const optimData& of, const optimMode& oMode)
         int kk = 0;
         int kmax;
         switch (oMode.linMode) {
-            case linearityMode_t::linear:
+            case LinearityMode::LINEAR:
                 kmax = 1;
                 break;
-            case linearityMode_t::quadratic:
+            case LinearityMode::QUADRATIC:
                 kmax = 2;
                 break;
             default:
@@ -240,10 +240,10 @@ void gridGenOpt::gradient(const optimData& of, double deriv[], const optimMode& 
         size_t kmax;
         size_t klim;
         switch (oMode.linMode) {
-            case linearityMode_t::linear:
+            case LinearityMode::LINEAR:
                 kmax = 1;
                 break;
-            case linearityMode_t::quadratic:
+            case LinearityMode::QUADRATIC:
                 kmax = 2;
                 break;
             default:
@@ -279,10 +279,10 @@ void gridGenOpt::jacobianElements(const optimData& of,
         size_t kmax;
         size_t klim;
         switch (oMode.linMode) {
-            case linearityMode_t::linear:
+            case LinearityMode::LINEAR:
                 kmax = 1;
                 break;
-            case linearityMode_t::quadratic:
+            case LinearityMode::QUADRATIC:
                 kmax = 2;
                 break;
             default:

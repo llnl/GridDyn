@@ -31,7 +31,7 @@ class fmiMELoad: public fmiMEWrapper<Load> {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataRef,
                                   const solverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],

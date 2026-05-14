@@ -49,32 +49,32 @@ static void addContingencyIfUnique(std::vector<std::shared_ptr<Contingency>>& co
                                    bool simplified);
 
 size_t buildContingencyList(gridDynSimulation* gds,
-                            contingency_mode_t cmode,
+                            ContingencyMode cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info,
                             int skip)
 {
     auto cnt = contList.size();
     switch (cmode) {
-        case contingency_mode_t::N_1:  // N-1 contingencies
+        case ContingencyMode::N_1:  // N-1 contingencies
         {
             auto contingencies =
-                buildContingencyList(gds, contingency_mode_t::line, contList, info, skip);
+                buildContingencyList(gds, ContingencyMode::LINE, contList, info, skip);
             skip -= static_cast<int>(contingencies);
             if (skip < 0) {
                 skip = 0;
             }
 
             contingencies =
-                buildContingencyList(gds, contingency_mode_t::gen, contList, info, skip);
+                buildContingencyList(gds, ContingencyMode::GEN, contList, info, skip);
             skip -= static_cast<int>(contingencies);
             if (skip < 0) {
                 skip = 0;
             }
-            buildContingencyList(gds, contingency_mode_t::load, contList, info, skip);
+            buildContingencyList(gds, ContingencyMode::LOAD, contList, info, skip);
             break;
         }
-        case contingency_mode_t::N_1_1:  // N-1-1 contingencies
+        case ContingencyMode::N_1_1:  // N-1-1 contingencies
         {
             auto C1 = buildContingencyList(gds, "N-1", info);
             extraContingencyInfo build(info);
@@ -82,10 +82,10 @@ size_t buildContingencyList(gridDynSimulation* gds,
             contList.reserve(C1.size() * C1.size());
             for (auto& cont : C1) {
                 build.baseCont = cont->clone();
-                buildContingencyList(gds, contingency_mode_t::N_1, contList, build);
+                buildContingencyList(gds, ContingencyMode::N_1, contList, build);
             }
         } break;
-        case contingency_mode_t::N_2:  // N-2 contingencies
+        case ContingencyMode::N_2:  // N-2 contingencies
         {
             auto C1 = buildContingencyList(gds, "N-1", info);
             extraContingencyInfo build(info);
@@ -95,7 +95,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
             for (auto& cont : C1) {
                 ++contIndex;
                 build.baseCont = cont->clone();
-                buildContingencyList(gds, contingency_mode_t::N_1, contList, build, contIndex);
+                buildContingencyList(gds, ContingencyMode::N_1, contList, build, contIndex);
             }
             if (skip > 0) {
                 if (static_cast<size_t>(skip) >= contList.size()) {
@@ -105,7 +105,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 }
             }
         } break;
-        case contingency_mode_t::N_2_LINE:  // N-2 line contingencies
+        case ContingencyMode::N_2_LINE:  // N-2 line contingencies
         {
             auto C1 = buildContingencyList(gds, "line", info);
             extraContingencyInfo build(info);
@@ -125,7 +125,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 }
             }
         } break;
-        case contingency_mode_t::N_3_LINE:  // N-3 line contingencies
+        case ContingencyMode::N_3_LINE:  // N-3 line contingencies
         {
             auto C1 = buildContingencyList(gds, "line", info);
             auto C2 = buildContingencyList(gds, "N-2-LINE", info);
@@ -145,24 +145,24 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 }
             }
         } break;
-        case contingency_mode_t::bus:  // bus contingencies --disabling each bus for a contingency
+        case ContingencyMode::BUS:  // bus contingencies --disabling each bus for a contingency
         {
             buildBusContingencies(gds, contList, info, skip);
         } break;
-        case contingency_mode_t::line:  // Disabling each line
+        case ContingencyMode::LINE:  // Disabling each line
         {
             buildLineContingencies(gds, contList, info, skip);
         } break;
-        case contingency_mode_t::load:  // Disabling each load
+        case ContingencyMode::LOAD:  // Disabling each load
         {
             buildLoadContingencies(gds, contList, info, skip);
         } break;
-        case contingency_mode_t::gen:  // disabling each generator
+        case ContingencyMode::GEN:  // disabling each generator
         {
             buildGenContingencies(gds, contList, info, skip);
         } break;
-        case contingency_mode_t::custom:
-        case contingency_mode_t::unknown:
+        case ContingencyMode::CUSTOM:
+        case ContingencyMode::UNKNOWN:
         default:
             break;
     }
@@ -175,7 +175,7 @@ std::vector<std::shared_ptr<Contingency>> buildContingencyList(gridDynSimulation
                                                                const extraContingencyInfo& info,
                                                                int skip)
 {
-    contingency_mode_t cmode = getContingencyMode(contMode);
+    ContingencyMode cmode = getContingencyMode(contMode);
     std::vector<std::shared_ptr<Contingency>> contList;
     buildContingencyList(gds, cmode, contList, info, skip);
 

@@ -136,7 +136,7 @@ int gridDynSimulation::runDynamicSolverStep(std::shared_ptr<SolverInterface>& dy
     int retval = FUNCTION_EXECUTION_SUCCESS;
     if (controlFlags[single_step_mode]) {
         while ((timeActual + tols.timeTol < nextStop) && (retval == FUNCTION_EXECUTION_SUCCESS)) {
-            retval = dynData->solve(nextStop, timeActual, SolverInterface::step_mode::single_step);
+            retval = dynData->solve(nextStop, timeActual, SolverInterface::StepMode::SINGLE_STEP);
             if (retval == FUNCTION_EXECUTION_SUCCESS) {
                 for (auto& sso : singleStepObjects) {
                     sso->setState(timeActual,
@@ -666,7 +666,7 @@ bool gridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, change_cod
 {
     auto dynData = getSolverInterface(sMode);
     if (opFlags[connectivity_change_flag]) {
-        checkNetwork(network_check_type::simplified);
+        checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
     if ((opFlags[state_change_flag]) || (change == change_code::state_count_change)) {
         // we changed object states so we have to do a full reset
@@ -693,7 +693,7 @@ bool gridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, change_cod
         dynData->setMaxNonZeros(jacSize(sMode));
         // Allow for the fact that the new size of Jacobian now also has a different number of
         // non-zeros
-        dynData->sparseReInit(SolverInterface::sparse_reinit_modes::resize);
+        dynData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
     } else if (opFlags[root_change_flag]) {
         handleRootChange(sMode, dynData);
     } else {

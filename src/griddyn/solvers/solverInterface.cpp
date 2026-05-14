@@ -168,7 +168,7 @@ void SolverInterface::initialize(coreTime t0)
 {
     solveTime = t0;
 }
-void SolverInterface::sparseReInit(sparse_reinit_modes /*mode*/) {}
+void SolverInterface::sparseReInit(SparseReinitMode /*mode*/) {}
 void SolverInterface::setConstraints() {}
 int SolverInterface::calcIC(coreTime /*t0*/,
                             coreTime /*tstep0*/,
@@ -231,11 +231,11 @@ void SolverInterface::set(std::string_view param, std::string_view val)
     } else if (param == "printlevel") {
         auto plevel = convertToLowerCase(val);
         if (plevel == "debug") {
-            printLevel = solver_print_level::s_debug_print;
+            printLevel = SolverPrintLevel::DEBUG_PRINT;
         } else if ((plevel == "none") || (plevel == "trap")) {
-            printLevel = solver_print_level::s_error_trap;
+            printLevel = SolverPrintLevel::ERROR_TRAP;
         } else if (plevel == "error") {
-            printLevel = solver_print_level::s_error_log;
+            printLevel = SolverPrintLevel::ERROR_LOG;
         } else {
             throw(invalidParameterValue(plevel));
         }
@@ -284,13 +284,13 @@ void SolverInterface::set(std::string_view param, double val)
     } else if (param == "printlevel") {
         switch (static_cast<int>(val)) {
             case 0:
-                printLevel = solver_print_level::s_error_trap;
+                printLevel = SolverPrintLevel::ERROR_TRAP;
                 break;
             case 1:
-                printLevel = solver_print_level::s_error_log;
+                printLevel = SolverPrintLevel::ERROR_LOG;
                 break;
             case 2:
-                printLevel = solver_print_level::s_debug_print;
+                printLevel = SolverPrintLevel::DEBUG_PRINT;
                 break;
             default:
                 throw(invalidParameterValue(param));
@@ -382,11 +382,11 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
     } else if (flag == "primary") {
         mode.extended_state = !val;
     } else if (flag == "debug") {
-        printLevel = solver_print_level::s_debug_print;
+        printLevel = SolverPrintLevel::DEBUG_PRINT;
     } else if (flag == "trap") {
-        printLevel = solver_print_level::s_error_trap;
+        printLevel = SolverPrintLevel::ERROR_TRAP;
     } else if (flag == "error") {
-        printLevel = solver_print_level::s_error_log;
+        printLevel = SolverPrintLevel::ERROR_LOG;
     } else {
         if (val) {
             setApproximation(flag);
@@ -515,7 +515,7 @@ void SolverInterface::check_flag(void* flagvalue,
     // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.
 }
 
-int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, step_mode /* stepMode */)
+int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, StepMode /* stepMode */)
 {
     return -101;
 }
@@ -523,13 +523,13 @@ void SolverInterface::logSolverStats(print_level /*logLevel*/, bool /*iconly*/) 
 void SolverInterface::logErrorWeights(print_level /*logLevel*/) const {}
 void SolverInterface::logMessage(int errorCode, std::string_view message)
 {
-    if ((errorCode > 0) && (printLevel == solver_print_level::s_debug_print)) {
+    if ((errorCode > 0) && (printLevel == SolverPrintLevel::DEBUG_PRINT)) {
         logging::log_to(m_gds, m_gds, print_level::debug, message);
     }
     if (errorCode != 0) {
         lastErrorCode = errorCode;
         lastErrorString = message;
-        if (printLevel == solver_print_level::s_error_log) {
+        if (printLevel == SolverPrintLevel::ERROR_LOG) {
             logging::log_to(m_gds, m_gds, print_level::warning, message);
         }
     }

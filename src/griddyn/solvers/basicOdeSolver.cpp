@@ -112,7 +112,7 @@ void basicOdeSolver::set(std::string_view param, double val)
     }
 }
 
-int basicOdeSolver::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
+int basicOdeSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     if (solveTime == tStop) {
         tReturn = tStop;
@@ -135,7 +135,7 @@ int basicOdeSolver::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
 
     count_t iterations = 0;
     // if we are in single step mode don't go into the loop
-    if (stepMode == step_mode::normal) {
+    if (stepMode == StepMode::NORMAL) {
         while (solveTime < tStop && iterations < max_iterations) {
             Tstep = (std::min)(deltaT, tStop - solveTime);
             if (mode.pairedOffsetIndex != kNullLocation) {

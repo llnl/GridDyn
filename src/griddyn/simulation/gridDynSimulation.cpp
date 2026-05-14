@@ -235,13 +235,13 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     return modified;
 }
 
-int gridDynSimulation::checkNetwork(network_check_type checkType)
+int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
 {
     // make a full list of all buses
     std::vector<gridBus*> bnetwork;
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
-    if (checkType == network_check_type::full) {
+    if (checkType == NetworkCheckType::FULL) {
         slkBusses.clear();
 
         for (auto& bus : bnetwork) {

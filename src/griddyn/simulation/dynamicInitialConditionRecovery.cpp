@@ -93,7 +93,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
 // Try any non-reversible adjustments which might be out there
 int dynamicInitialConditionRecovery::dynamicFix1()
 {
-    sim->checkNetwork(gridDynSimulation::network_check_type::simplified);  // do a network check
+    sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);  // do a network check
     sim->converge(sim->getSimulationTime(),
                   solver->state_data(),
                   solver->deriv_data(),

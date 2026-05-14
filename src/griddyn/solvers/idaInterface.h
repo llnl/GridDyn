@@ -41,10 +41,10 @@ class idaInterface: public sundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     void setMaxNonZeros(count_t nonZeros) override;
     virtual void initialize(coreTime t0) override;
-    virtual void sparseReInit(sparse_reinit_modes sparseReInitMode) override;
+    virtual void sparseReInit(SparseReinitMode sparseReInitMode) override;
     int calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bool constraints) override;
     virtual void getCurrentData() override;
-    int solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal) override;
+    int solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 

@@ -375,7 +375,7 @@ void arkodeInterface::initialize(coreTime time0)
     flags.set(initialized_flag);
 }
 
-void arkodeInterface::sparseReInit(sparse_reinit_modes sparseReinitMode)
+void arkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
     KLUReInit(sparseReinitMode);
 }
@@ -401,7 +401,7 @@ return(retval);
 */
 }
 
-int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
+int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -411,7 +411,7 @@ int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode
                         tStop,
                         state,
                         &tret,
-                        (stepMode == step_mode::normal) ? ARK_NORMAL : ARK_ONE_STEP);
+                        (stepMode == StepMode::NORMAL) ? ARK_NORMAL : ARK_ONE_STEP);
     tReturn = tret;
     check_flag(&retval, "ARKodeSolve", 1, false);
 

@@ -21,7 +21,7 @@ powerFlowErrorRecovery::powerFlowErrorRecovery(gridDynSimulation* gds,
 }
 powerFlowErrorRecovery::~powerFlowErrorRecovery() = default;
 
-powerFlowErrorRecovery::recovery_return_codes powerFlowErrorRecovery::attemptFix(int error_code)
+powerFlowErrorRecovery::RecoveryReturnCodes powerFlowErrorRecovery::attemptFix(int error_code)
 {
     if ((error_code == -11) &&
         (sim->currentProcessState() !=
@@ -29,8 +29,8 @@ powerFlowErrorRecovery::recovery_return_codes powerFlowErrorRecovery::attemptFix
                                                           // initial setup try a full
                                                           // reinitialization
         sim->reInitpFlow(solver->getSolverMode(), change_code::state_count_change);
-        return (attempt_number > 3) ? recovery_return_codes::out_of_options :
-                                      recovery_return_codes::more_options;
+        return (attempt_number > 3) ? RecoveryReturnCodes::OUT_OF_OPTIONS :
+                                      RecoveryReturnCodes::MORE_OPTIONS;
     }
     if (error_code == SOLVER_INVALID_STATE_ERROR) {
         lowVoltageFix();
@@ -39,35 +39,35 @@ powerFlowErrorRecovery::recovery_return_codes powerFlowErrorRecovery::attemptFix
     switch (attempt_number) {
         case 1:
             if (powerFlowFix1()) {
-                return recovery_return_codes::more_options;
+                return RecoveryReturnCodes::MORE_OPTIONS;
             }
             // if we didn't do anything just move to the next fix method
             return attemptFix();
         case 2:
             if (powerFlowFix2()) {
-                return recovery_return_codes::more_options;
+                return RecoveryReturnCodes::MORE_OPTIONS;
             }
             // if we didn't do anything just move to the next fix method
             return attemptFix();
         case 3:
             if (powerFlowFix3()) {
-                return recovery_return_codes::more_options;
+                return RecoveryReturnCodes::MORE_OPTIONS;
             }
             // if we didn't do anything just move to the next fix method
             return attemptFix();
         case 4:
             if (powerFlowFix4()) {
-                return recovery_return_codes::more_options;
+                return RecoveryReturnCodes::MORE_OPTIONS;
             }
             // if we didn't do anything just move to the next fix method
             return attemptFix();
         case 5:
             powerFlowFix5();
-            return recovery_return_codes::more_options;
+            return RecoveryReturnCodes::MORE_OPTIONS;
         default:
             break;
     }
-    return recovery_return_codes::out_of_options;
+    return RecoveryReturnCodes::OUT_OF_OPTIONS;
 }
 
 void powerFlowErrorRecovery::reset()
@@ -93,7 +93,7 @@ bool powerFlowErrorRecovery::powerFlowFix1()
     change_code eval =
         sim->powerFlowAdjust(noInputs, lower_flags(sim->controlFlags), check_level_t::full_check);
     if (eval > change_code::non_state_change) {
-        sim->checkNetwork(gridDynSimulation::network_check_type::simplified);
+        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }
@@ -218,7 +218,7 @@ bool powerFlowErrorRecovery::lowVoltageFix()
                                             lower_flags(sim->controlFlags),
                                             check_level_t::low_voltage_check);
     if (eval > change_code::no_change) {
-        sim->checkNetwork(gridDynSimulation::network_check_type::simplified);
+        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }
@@ -232,7 +232,7 @@ bool powerFlowErrorRecovery::powerFlowFix5()
                                             lower_flags(sim->controlFlags),
                                             check_level_t::high_angle_trip);
     if (eval > change_code::no_change) {
-        sim->checkNetwork(gridDynSimulation::network_check_type::simplified);
+        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }

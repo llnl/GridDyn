@@ -85,9 +85,9 @@ int gridDynSimulation::powerflow()
                         return retval;
                     }
                     auto prc = pfer.attemptFix(retval);
-                    if (prc == powerFlowErrorRecovery::recovery_return_codes::out_of_options) {
+                    if (prc == powerFlowErrorRecovery::RecoveryReturnCodes::OUT_OF_OPTIONS) {
                         if (tripSlippedLines() > 0) {
-                            checkNetwork(network_check_type::full);
+                            checkNetwork(NetworkCheckType::FULL);
                             reInitpFlow(sm, change_code::jacobian_change);
                             if (hasPowerAdjustments) {
                                 slkBusBase.resize(slkBusses.size());
@@ -167,7 +167,7 @@ int gridDynSimulation::powerflow()
                                                             lower_flags(controlFlags),
                                                             check_level_t::full_check);
                         if (AdjustmentChanges > change_code::no_change) {
-                            checkNetwork(network_check_type::simplified);
+                            checkNetwork(NetworkCheckType::SIMPLIFIED);
                             if (AdjustmentChanges == change_code::state_count_change) {
                                 reInitpFlow(sm, AdjustmentChanges);
                             }
@@ -221,9 +221,9 @@ int gridDynSimulation::powerflow()
 void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
 {
     if (opFlags[slack_bus_change]) {
-        checkNetwork(network_check_type::full);
+        checkNetwork(NetworkCheckType::FULL);
     } else if (opFlags[connectivity_change_flag]) {
-        checkNetwork(network_check_type::simplified);
+        checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
     if (opFlags[reset_voltage_flag]) {
         reset(reset_levels::full);
@@ -251,7 +251,7 @@ void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
             }
             pFlowData->setMaxNonZeros(jacSize(sMode));
             if (!controlFlags[dense_solver]) {
-                pFlowData->sparseReInit(SolverInterface::sparse_reinit_modes::resize);
+                pFlowData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
             }
         } else {
             if (pState >
@@ -265,7 +265,7 @@ void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
                 }
             }
             if ((!controlFlags[dense_solver]) && (opFlags[jacobian_count_change_flag])) {
-                pFlowData->sparseReInit(SolverInterface::sparse_reinit_modes::resize);
+                pFlowData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
             }
         }
         opFlags &= RESET_CHANGE_FLAG_MASK;
@@ -315,7 +315,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     // initialization is divided into two parts to account for complex initialization routines that
     // need to communicate so the A phase is start up and the B phase is to set up the results if
     // needed
-    int retval = checkNetwork(network_check_type::full);
+    int retval = checkNetwork(NetworkCheckType::FULL);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         return retval;
     }

@@ -53,23 +53,23 @@ class Violation {
 
 class Event;
 
-enum class contingency_mode_t {
+enum class ContingencyMode {
     N_1,
     N_1_1,
     N_2,
     N_2_LINE,
     N_3_LINE,
-    line,
-    gen,
-    load,
-    bus,
-    custom,
-    unknown
+    LINE,
+    GEN,
+    LOAD,
+    BUS,
+    CUSTOM,
+    UNKNOWN
 };
 
 class Contingency;
 /** convert a string to a contingency mode*/
-contingency_mode_t getContingencyMode(std::string_view mode);
+ContingencyMode getContingencyMode(std::string_view mode);
 /** class defining some extra optional info used for building contingency lists */
 class extraContingencyInfo {
   public:
@@ -207,7 +207,7 @@ std::vector<std::shared_ptr<Contingency>>
 @return the number of contingencies added to the list
 */
 size_t buildContingencyList(gridDynSimulation* gds,
-                            contingency_mode_t cmode,
+                            ContingencyMode cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info = emptyExtraInfo,
                             int skip = 0);

@@ -62,7 +62,7 @@ namespace solvers {
 
         virtual int solve(coreTime tStop,
                           coreTime& tReturn,
-                          step_mode stepMode = step_mode::normal) override;
+                          StepMode stepMode = StepMode::NORMAL) override;
     };
 
 }  // namespace solvers

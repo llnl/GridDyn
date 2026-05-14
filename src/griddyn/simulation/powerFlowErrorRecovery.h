@@ -18,9 +18,9 @@ class powerFlowErrorRecovery {
   public:
     /** @brief enumeration describing possible return options
      */
-    enum class recovery_return_codes {
-        more_options,
-        out_of_options,
+    enum class RecoveryReturnCodes {
+        MORE_OPTIONS,
+        OUT_OF_OPTIONS,
     };
 
     /** @brief constructor
@@ -34,10 +34,10 @@ class powerFlowErrorRecovery {
 
     /** @brief attempt the various fixes in order
   @param[in] error_code optional error code value
-  @return recovery_return_codes::more_options if attemptFix can be called again without reset
-  recovery_return_codes::out_of_options if no more fix attempts are available
+  @return RecoveryReturnCodes::MORE_OPTIONS if attemptFix can be called again without reset
+  RecoveryReturnCodes::OUT_OF_OPTIONS if no more fix attempts are available
   */
-    virtual recovery_return_codes attemptFix(int error_code = 0);
+    virtual RecoveryReturnCodes attemptFix(int error_code = 0);
 
     /** @brief reset the fix counter so it can try again*/
     void reset();

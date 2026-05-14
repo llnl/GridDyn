@@ -94,7 +94,7 @@ class Event;
 
 #define HANDLER_NO_RETURN (-500)
 
-enum class contingency_mode_t;  // forward declare the enumeration
+enum class ContingencyMode;  // forward declare the enumeration
 /** @brief the GridDyn Simulation Class
   the gridDynSimulation class contains the mechanics for generating solutions to various power
   systems problems of interest
@@ -196,9 +196,9 @@ class gridDynSimulation: public gridSimulation {
 
     // simulation
     /** @brief define an enumeration for the network check level*/
-    enum class network_check_type : char {
-        full,  //!< a full network check
-        simplified  //!< a simplified version of the network check
+    enum class NetworkCheckType : char {
+        FULL,  //!< a full network check
+        SIMPLIFIED  //!< a simplified version of the network check
     };
 
     /** @brief check the simulation network
@@ -206,7 +206,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] checkType  the type of network check to perform
     @return in indicating success (0) or failure (non-zero)
     */
-    int checkNetwork(network_check_type checkType);
+    int checkNetwork(NetworkCheckType checkType);
 
     /** @brief check for any lines that have slipped angle and trip them
     @return int indicating the number of lines that were tripped

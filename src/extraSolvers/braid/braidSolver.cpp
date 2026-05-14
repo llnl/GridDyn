@@ -457,7 +457,7 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
     return 0;
 }
 
-int braidSolver::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
+int braidSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     int mpi_rank;
     MPI_Comm comm = MPI_COMM_WORLD;

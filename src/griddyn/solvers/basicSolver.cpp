@@ -141,7 +141,7 @@ namespace solvers {
                            std::vector<double>& s3,
                            double conv);
 
-    int basicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, step_mode /*stepMode*/)
+    int basicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, StepMode /*stepMode*/)
     {
         double md = 1.0;
         iterations = 0;

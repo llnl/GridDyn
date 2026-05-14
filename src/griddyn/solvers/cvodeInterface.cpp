@@ -356,7 +356,7 @@ void cvodeInterface::initialize(coreTime time0)
     flags.set(initialized_flag);
 }
 
-void cvodeInterface::sparseReInit(sparse_reinit_modes reInitMode)
+void cvodeInterface::sparseReInit(SparseReinitMode reInitMode)
 {
     KLUReInit(reInitMode);
 }
@@ -382,7 +382,7 @@ if (check_flag(&retval, "CVodeGetConsistentIC", 1))
 */
 }
 
-int cvodeInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
+int cvodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -390,7 +390,7 @@ int cvodeInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
 
     double tret;
     int retval = CVode(
-        solverMem, tStop, state, &tret, (stepMode == step_mode::normal) ? CV_NORMAL : CV_ONE_STEP);
+        solverMem, tStop, state, &tret, (stepMode == StepMode::NORMAL) ? CV_NORMAL : CV_ONE_STEP);
     tReturn = tret;
     check_flag(&retval, "CVodeSolve", 1, false);
     if (retval == CV_ROOT_RETURN) {

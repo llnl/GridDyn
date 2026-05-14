@@ -333,7 +333,7 @@ void idaInterface::initialize(coreTime t0)
     flags.set(initialized_flag);
 }
 
-void idaInterface::sparseReInit(sparse_reinit_modes sparseReInitMode)
+void idaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
 {
     KLUReInit(sparseReInitMode);
 }
@@ -363,7 +363,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bo
         flags.set(useMask_flag);
         loadMaskElements();
         if (!flags[dense_flag]) {
-            sparseReInit(sparse_reinit_modes::refactor);
+            sparseReInit(SparseReinitMode::REFACTOR);
         }
         retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
 
@@ -383,7 +383,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bo
                     }
 
                     if (!flags[dense_flag]) {
-                        sparseReInit(sparse_reinit_modes::refactor);
+                        sparseReInit(SparseReinitMode::REFACTOR);
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
                     if (retval == IDA_SUCCESS) {
@@ -408,7 +408,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bo
         }
         flags.reset(useMask_flag);
         if (!flags[dense_flag]) {
-            sparseReInit(sparse_reinit_modes::refactor);
+            sparseReInit(SparseReinitMode::REFACTOR);
         }
     } else if (initCondMode == ic_modes::fixed_diff) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
@@ -450,7 +450,7 @@ void idaInterface::getCurrentData()
     check_flag(&retval, "IDAGetConsistentIC", 1);
 }
 
-int idaInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
+int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -461,7 +461,7 @@ int idaInterface::solve(coreTime tStop, coreTime& tReturn, step_mode stepMode)
                           &tret,
                           state,
                           dstate_dt,
-                          (stepMode == step_mode::normal) ? IDA_NORMAL : IDA_ONE_STEP);
+                          (stepMode == StepMode::NORMAL) ? IDA_NORMAL : IDA_ONE_STEP);
     tReturn = tret;
     switch (retval) {
         case IDA_SUCCESS:  // no error

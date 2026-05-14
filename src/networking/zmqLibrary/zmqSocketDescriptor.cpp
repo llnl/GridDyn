@@ -35,28 +35,28 @@ std::unique_ptr<zmq::socket_t> zmqSocketDescriptor::makeSocketPtr(zmq::context_t
 
 void zmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 {
-    for (auto& op : ops) {
-        switch (op.first) {
+    for (const auto& socketOperation : ops) {
+        switch (socketOperation.first) {
             case SocketOperation::BIND:
-                sock.bind(op.second);
+                sock.bind(socketOperation.second);
                 break;
             case SocketOperation::UNBIND:
-                sock.unbind(op.second);
+                sock.unbind(socketOperation.second);
                 break;
             case SocketOperation::CONNECT:
-                sock.connect(op.second);
+                sock.connect(socketOperation.second);
                 break;
             case SocketOperation::DISCONNECT:
-                sock.disconnect(op.second);
+                sock.disconnect(socketOperation.second);
                 break;
             case SocketOperation::SUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_SUBSCRIBE, op.second);
+                    sock.setsockopt(ZMQ_SUBSCRIBE, socketOperation.second);
                 }
                 break;
             case SocketOperation::UNSUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_UNSUBSCRIBE, op.second);
+                    sock.setsockopt(ZMQ_UNSUBSCRIBE, socketOperation.second);
                 }
                 break;
             default:

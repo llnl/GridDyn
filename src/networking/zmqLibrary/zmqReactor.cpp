@@ -16,8 +16,10 @@ Livermore National Security, LLC.
 #include "zmqReactor.h"
 
 #include "zmqContextManager.h"
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace zmqlib {
@@ -30,8 +32,9 @@ zmqReactor::zmqReactor(const std::string& reactorName, const std::string& contex
 {
     contextManager = zmqContextManager::getContextPointer(context);
     notifier =
-        std::make_unique<zmq::socket_t>(contextManager->getContext(), zmq::socket_type::pair);
-    std::string constring = "inproc://reactor_" + name;
+        std::make_unique<zmq::socket_t>(zmqContextManager::getContext(contextManager->getName()),
+                                        zmq::socket_type::pair);
+    const std::string constring = "inproc://reactor_" + name;
     notifier->bind(constring.c_str());
 
     loopThread = std::thread(&zmqReactor::reactorLoop, this);
@@ -41,7 +44,11 @@ static const int zero(0);
 
 zmqReactor::~zmqReactor()
 {
-    terminateReactor();
+    try {
+        terminateReactor();
+    }
+    catch (...) {
+    }
 }
 
 void zmqReactor::terminateReactor()
@@ -51,7 +58,7 @@ void zmqReactor::terminateReactor()
         notifier->send(zmq::const_buffer(&zero, sizeof(int)));
         loopThread.join();
     }
-    std::lock_guard<std::mutex> creationLock(reactorCreationLock);
+    const std::scoped_lock creationLock(reactorCreationLock);
     for (auto rct = reactors.begin(); rct != reactors.end(); ++rct) {
         if ((*rct)->name == name) {
             reactors.erase(rct);
@@ -63,7 +70,7 @@ void zmqReactor::terminateReactor()
 std::shared_ptr<zmqReactor> zmqReactor::getReactorInstance(const std::string& reactorName,
                                                            const std::string& contextName)
 {
-    std::lock_guard<std::mutex> creationLock(reactorCreationLock);
+    const std::scoped_lock creationLock(reactorCreationLock);
     for (auto& rct : reactors) {
         if (rct->getName() == reactorName) {
             return rct;
@@ -121,11 +128,12 @@ void zmqReactor::closeSocketBlocking(const std::string& socketName)
 }
 
 // this is not a member function but a helper function for the reactorLoop
-auto findSocketByName(const std::string& socketName, const std::vector<std::string>& socketNames)
+static auto
+    findSocketByName(const std::string& socketName, const std::vector<std::string>& socketNames)
 {
     int index = 0;
-    for (auto& nm : socketNames) {
-        if (nm == socketName) {
+    for (const auto& socketLabel : socketNames) {
+        if (socketLabel == socketName) {
             return index;
         }
         ++index;
@@ -140,7 +148,8 @@ void zmqReactor::reactorLoop()
     std::vector<zmq::socket_t> sockets;
     unsigned int messageCode = 0;
 
-    sockets.emplace_back(contextManager->getContext(), zmq::socket_type::pair);
+    sockets.emplace_back(zmqContextManager::getContext(contextManager->getName()),
+                         zmq::socket_type::pair);
     sockets[0].connect(std::string("inproc://reactor_" + name).c_str());
 
     std::vector<zmq_pollitem_t> socketPolls;
@@ -156,16 +165,18 @@ void zmqReactor::reactorLoop()
     socketPolls[0].revents = 0;
     reactorLoopRunning = true;
     while (true) {
-        int val = zmq::poll(socketPolls);
-        if (val > 0) {
+        const int readySocketCount = zmq::poll(socketPolls);
+        if (readySocketCount > 0) {
             // do the callbacks for any socket with a message received
             for (int kk = 1; kk < socketCount; ++kk) {
-                if ((socketPolls[kk].revents & ZMQ_POLLIN) != 0) {
+                const auto pollEvents = static_cast<std::uint16_t>(socketPolls[kk].revents);
+                if ((pollEvents & static_cast<std::uint16_t>(ZMQ_POLLIN)) != 0U) {
                     socketCallbacks[kk](zmq::multipart_t(sockets[kk]));
                 }
             }
             // deal with any socket updates as triggered by a message on socket 0
-            if ((socketPolls[0].revents & ZMQ_POLLIN) != 0) {
+            const auto controlPollEvents = static_cast<std::uint16_t>(socketPolls[0].revents);
+            if ((controlPollEvents & static_cast<std::uint16_t>(ZMQ_POLLIN)) != 0U) {
                 sockets[0].recv(
                     zmq::mutable_buffer(&messageCode, sizeof(unsigned int)));  // clear the message
                 auto socketop = updates.pop();
@@ -176,7 +187,7 @@ void zmqReactor::reactorLoop()
                     switch (instruction) {
                         case ReactorInstruction::CLOSE:
                             index = findSocketByName(descriptor.name, socketNames);
-                            if (index < static_cast<int>(sockets.size())) {
+                            if (std::cmp_less(index, sockets.size())) {
                                 sockets[index].close();
                                 sockets.erase(sockets.begin() + index);
                                 socketNames.erase(socketNames.begin() + index);
@@ -186,7 +197,9 @@ void zmqReactor::reactorLoop()
                             }
                             break;
                         case ReactorInstruction::NEW_SOCKET:
-                            sockets.push_back(descriptor.makeSocket(contextManager->getContext()));
+                            sockets.push_back(
+                                descriptor.makeSocket(
+                                    zmqContextManager::getContext(contextManager->getName())));
                             socketNames.push_back(descriptor.name);
                             socketCallbacks.emplace_back(descriptor.callback);
                             socketPolls.resize(socketPolls.size() + 1);
@@ -198,7 +211,7 @@ void zmqReactor::reactorLoop()
                             break;
                         case ReactorInstruction::MODIFY:
                             index = findSocketByName(descriptor.name, socketNames);
-                            if (index < static_cast<int>(sockets.size())) {
+                            if (std::cmp_less(index, sockets.size())) {
                                 descriptor.modifySocket(sockets[index]);
                             }
                             // replace the callback if needed

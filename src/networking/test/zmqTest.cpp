@@ -18,7 +18,9 @@
 
 [[maybe_unused]] static constexpr char zmq_test_directory[] = GRIDDYN_TEST_DIRECTORY "/zmq_tests/";
 
-class ZmqTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+namespace {
+class ZmqTests: public ::testing::Test {};
+}  // namespace
 
 using zmq::message_t;
 using zmq::socket_type;
@@ -58,7 +60,7 @@ TEST_F(ZmqTests, TestSocketDescriptor)
     auto sock2 = zDescriptor2.makeSocket(defContext);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::string mess1 = "test1:hello";
+    const std::string mess1 = "test1:hello";
     sock1.send(mess1);
 
     message_t rxMessage;
@@ -66,7 +68,7 @@ TEST_F(ZmqTests, TestSocketDescriptor)
 
     EXPECT_EQ(rxMessage.size(), mess1.size());
 
-    std::string mess2(static_cast<const char*>(rxMessage.data()), rxMessage.size());
+    const std::string mess2(static_cast<const char*>(rxMessage.data()), rxMessage.size());
 
     EXPECT_EQ(mess2, mess1);
 }
@@ -92,12 +94,12 @@ TEST_F(ZmqTests, TestReactorA)
     zDescriptor2.callback = [&count](const zmq::multipart_t&) { ++count; };
     reactor->addSocketBlocking(zDescriptor2);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    std::string mess1 = "test1:hello";
+    const std::string mess1 = "test1:hello";
     sock1.send(mess1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_EQ(count, 1);
 
-    std::string mess2 = "test2:hello";
+    const std::string mess2 = "test2:hello";
     sock1.send(mess2);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_EQ(count, 1);
@@ -144,9 +146,9 @@ TEST_F(ZmqTests, TestReactorB)
     zDescriptor3.callback = [&count2](const zmq::multipart_t&) { ++count2; };
     reactor->addSocketBlocking(zDescriptor3);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    std::string mess1 = "test1:hello";
+    const std::string mess1 = "test1:hello";
     sock1.send(mess1);
-    std::string mess2 = "test2:hello";
+    const std::string mess2 = "test2:hello";
     sock1.send(mess2);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_EQ(count1, 1);
@@ -159,7 +161,7 @@ TEST_F(ZmqTests, TestReactorB)
     zDescriptorMod.name = "test_socketr2";
     reactor->modifySocketBlocking(zDescriptorMod);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    std::string mess3 = "test3:hello";
+    const std::string mess3 = "test3:hello";
     sock1.send(mess3);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_EQ(count1, 2);

@@ -407,11 +407,8 @@ int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     ++solverCallCount;
     icCount = 0;
     double tret;
-    int retval = ARKode(solverMem,
-                        tStop,
-                        state,
-                        &tret,
-                        (stepMode == StepMode::NORMAL) ? ARK_NORMAL : ARK_ONE_STEP);
+    int retval = ARKode(
+        solverMem, tStop, state, &tret, (stepMode == StepMode::NORMAL) ? ARK_NORMAL : ARK_ONE_STEP);
     tReturn = tret;
     check_flag(&retval, "ARKodeSolve", 1, false);
 

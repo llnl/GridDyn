@@ -65,8 +65,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
                 skip = 0;
             }
 
-            contingencies =
-                buildContingencyList(gds, ContingencyMode::GEN, contList, info, skip);
+            contingencies = buildContingencyList(gds, ContingencyMode::GEN, contList, info, skip);
             skip -= static_cast<int>(contingencies);
             if (skip < 0) {
                 skip = 0;

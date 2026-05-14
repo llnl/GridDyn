@@ -16,8 +16,8 @@ automatically recovers
 */
 class loadRelay: public Relay {
   public:
-    enum loadrelay_flags {
-        nondirectional_flag = object_flag10,
+    enum LoadRelayFlags {
+        NONDIRECTIONAL_FLAG = object_flag10,
     };
 
   protected:

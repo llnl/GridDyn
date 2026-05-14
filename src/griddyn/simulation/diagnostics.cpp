@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+// NOLINTBEGIN
 namespace griddyn {
 std::pair<double, int> checkResid(gridDynSimulation* gds, coreTime time, const solverMode& sMode)
 {
@@ -551,7 +552,7 @@ void dynamicSolverConvergenceTest(gridDynSimulation* gds,
             break;
         case 1:  // random points
         {
-            utilities::gridRandom rng(utilities::gridRandom::dist_type_t::uniform, 0.0, 1.51);
+            utilities::gridRandom rng(utilities::gridRandom::DistributionType::UNIFORM, 0.0, 1.51);
             std::vector<double> rvals(cvs);
             for (index_t kk = 0; kk < pts; ++kk) {
                 rng.getNewValues(rvals, static_cast<count_t>(cvs));
@@ -830,3 +831,4 @@ void printStateSizes(const gridComponent* comp, const solverMode& sMode)
     printStateSizesPretty(comp, sMode, "");
 }
 }  // namespace griddyn
+// NOLINTEND

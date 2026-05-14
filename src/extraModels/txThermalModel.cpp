@@ -259,8 +259,8 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         outputMode.resize(m_outputSize);
         outputs.resize(m_outputSize);
         outGrabbers.resize(m_outputSize, nullptr);
-        outputMode[0] = outputMode_t::direct;
-        outputMode[1] = outputMode_t::block;
+        outputMode[0] = OutputMode::DIRECT;
+        outputMode[1] = OutputMode::BLOCK;
         outputs[0] =
             3;  // the first input was setup as the current, second as the loss, 3rd as attached
         outputs[1] = 0;

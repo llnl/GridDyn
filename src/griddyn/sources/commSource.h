@@ -24,8 +24,8 @@ namespace sources {
         model_parameter maxRamp = kBigNum;  //!< the maximum rate of change of the source
       public:
         enum commSourceFlags {
-            useRamp = object_flag3,  //!< indicator that the output should be interpolated
-            no_message_reply =
+            USE_RAMP = object_flag3,  //!< indicator that the output should be interpolated
+            NO_MESSAGE_REPLY =
                 object_flag4,  //!< indicator that there should be no response to commands
         };
         commSource(const std::string& objName = "commSource_#");

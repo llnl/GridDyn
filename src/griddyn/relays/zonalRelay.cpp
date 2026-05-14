@@ -48,7 +48,7 @@ coreObject* zonalRelay::clone(coreObject* obj) const
 void zonalRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
-        opFlags.set(nondirectional_flag, val);
+        opFlags.set(NONDIRECTIONAL_FLAG, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -156,7 +156,7 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     const double baseImpedance = m_sourceObject->get("impedance");
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
-        if (opFlags[nondirectional_flag]) {
+        if (opFlags[NONDIRECTIONAL_FLAG]) {
             add(std::shared_ptr<Condition>(
                 make_condition("abs(admittance" + std::to_string(m_terminal) + ")",
                                ">=",

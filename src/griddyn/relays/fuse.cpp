@@ -26,6 +26,7 @@
 #include <string>
 #include <utility>
 
+// NOLINTBEGIN
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
@@ -98,7 +99,7 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     } else {
         add(std::shared_ptr<Condition>(
             make_condition("sqrt(p^2+q^2)/@bus:v", ">=", limit, m_sourceObject)));
-        opFlags.set(nonlink_source_flag);
+        opFlags.set(NONLINK_SOURCE_FLAG);
         ge->setTarget(m_sinkObject, "status");
         ge->setValue(0.0);
         bus = static_cast<gridBus*>(m_sourceObject->find("bus"));
@@ -156,26 +157,26 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void fuse::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     if (conditionNum == 2) {
-        assert(opFlags[overlimit_flag]);
+        assert(opFlags[OVERLIMIT_FLAG]);
 
         setConditionStatus(1, condition_status_t::disabled);
         setConditionStatus(2, condition_status_t::disabled);
         setConditionStatus(0, condition_status_t::active);
         alert(this, JAC_COUNT_DECREASE);
-        opFlags.reset(overlimit_flag);
+        opFlags.reset(OVERLIMIT_FLAG);
         useI2T = false;
     }
 }
 
 change_code fuse::blowFuse()
 {
-    opFlags.set(overlimit_flag);
+    opFlags.set(OVERLIMIT_FLAG);
     setConditionStatus(0, condition_status_t::disabled);
     setConditionStatus(1, condition_status_t::disabled);
     setConditionStatus(2, condition_status_t::disabled);
     alert(this, FUSE_BLOWN_CURRENT);
     logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
-    opFlags.set(fuse_blown_flag);
+    opFlags.set(FUSE_BLOWN_FLAG);
     change_code cchange = change_code::non_state_change;
     if (mp_I2T > 0.0) {
         alert(this, JAC_COUNT_DECREASE);
@@ -190,7 +191,7 @@ change_code fuse::setupFuseEvaluation()
         return blowFuse();
     }
 
-    opFlags.set(overlimit_flag);
+    opFlags.set(OVERLIMIT_FLAG);
     setConditionStatus(0, condition_status_t::disabled);
     double I = getConditionValue(0);
     cI2T = I2Tequation(I) * minBlowTime;
@@ -227,7 +228,7 @@ void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /
     if (limit < kBigNum / 2.0) {
         double val = getConditionValue(0);
         if (val > limit) {
-            opFlags.set(fuse_blown_flag);
+            opFlags.set(FUSE_BLOWN_FLAG);
             disable();
             alert(this, FUSE1_BLOWN_CURRENT);
         }
@@ -258,7 +259,7 @@ void fuse::jacobianElements(const IOdata& /*inputs*/,
         auto Voffset = bus->getOutputLoc(sMode, voltageInLocation);
         auto inputs = bus->getOutputs(noInputs, sD, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
-        if (opFlags[nonlink_source_flag]) {
+        if (opFlags[NONLINK_SOURCE_FLAG]) {
             auto gs = static_cast<gridSecondary*>(m_sourceObject);
             out = gs->getOutputs(inputs, sD, sMode);
             gs->outputPartialDerivatives(inputs, sD, d, sMode);
@@ -325,7 +326,7 @@ void fuse::residual(const IOdata& /*inputs*/,
         auto offset = offsets.getDiffOffset(sMode);
         const double* dst = sD.dstate_dt + offset;
 
-        if (!opFlags[nonlink_source_flag]) {
+        if (!opFlags[NONLINK_SOURCE_FLAG]) {
             static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, sD, sMode);
         }
         double I1 = getConditionValue(0, sD, sMode);
@@ -378,3 +379,4 @@ void fuse::getStateName(stringVec& stNames,
     }
 }
 }  // namespace griddyn::relays
+// NOLINTEND

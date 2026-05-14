@@ -17,15 +17,15 @@ TOBE added
 class deadbandBlock: public Block {
   public:
     /** @brief flags for the deadband block*/
-    enum deadbandblock_flags {
-        uses_deadband = object_flag10,  //!< flag indicating the deadband is in use
-        uses_shiftedoutput =
+    enum DeadbandBlockFlags {
+        USES_DEADBAND = object_flag10,  //!< flag indicating the deadband is in use
+        USES_SHIFTED_OUTPUT =
             object_flag11,  //!< flag indicating the output should shift for continuity
-        dbtrigger_high = object_flag12,  //!< flag indicating the deadband has been triggered on
-                                         //!< the high side
+        DB_TRIGGER_HIGH = object_flag12,  //!< flag indicating the deadband has been triggered on
+                                          //!< the high side
     };
     /** states for the deadband block*/
-    enum class deadbandstate_t { normal, rampup, outside, rampdown, shifted };
+    enum class DeadbandState { NORMAL, RAMP_UP, OUTSIDE, RAMP_DOWN, SHIFTED };
 
   protected:
     model_parameter mDeadbandHigh = -kBigNum;  //!< upper limit on the deadband
@@ -38,8 +38,8 @@ class deadbandBlock: public Block {
     model_parameter mDeadbandLevel =
         0.0;  //!<  the output level while the input is inside the deadband
     model_parameter mTolerance = 1e-6;  //!< the tolerance for resetting on the check function
-    deadbandstate_t mDeadbandState =
-        deadbandstate_t::normal;  //!< the current state of the deadband block
+    DeadbandState mDeadbandState =
+        DeadbandState::NORMAL;  //!< the current state of the deadband block
 
   public:
     /** @brief the default constructor*/
@@ -94,7 +94,7 @@ class deadbandBlock: public Block {
     /** @brief get the deadband state
 @return the state of the deadband block
 */
-    deadbandstate_t getDBState() const { return mDeadbandState; }
+    DeadbandState getDBState() const { return mDeadbandState; }
     /** @brief get the output of the deadband portion {not including the gain and limiters
 @param[in] input the input value
 @return the computed output value

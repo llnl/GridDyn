@@ -17,7 +17,7 @@ class saturation {
   public:
     /** @brief enumeration of saturation types
      */
-    enum class satType_t { none, quadratic, scaled_quadratic, exponential, linear };
+    enum class SaturationType { NONE, QUADRATIC, SCALED_QUADRATIC, EXPONENTIAL, LINEAR };
 
   private:
     double s10 = 0.0;  //!< s10 parameter
@@ -27,13 +27,13 @@ class saturation {
     std::function<double(double)> satFunc;  //!< the function that calculates the saturated value
     std::function<double(double)> derivFunc;  //!< the derivative of the saturation
 
-    satType_t type;  //!< the type of the saturation
+    SaturationType type;  //!< the type of the saturation
   public:
     /** construction saturation from saturation type
      * @details constructor is converting type
      * @param[in] sT saturation Type
      */
-    explicit saturation(satType_t sT = satType_t::scaled_quadratic);
+    explicit saturation(SaturationType sT = SaturationType::SCALED_QUADRATIC);
     /** construct from string naming saturation type
      *@param[in] satType a string containing the type of the saturation*/
     explicit saturation(const std::string& satType);
@@ -54,11 +54,11 @@ class saturation {
      */
     void setParam(double V1, double S1, double V2, double S2);
     /** update the saturation type function by enumeration*/
-    void setType(satType_t sT);
+    void setType(SaturationType sT);
     /** update the saturation function by a string*/
     void setType(const std::string& stype);
     /** get the saturation function type by enumeration*/
-    satType_t getType() const;
+    SaturationType getType() const;
     /** @brief compute the saturation value
      * @param[in] val input value
      * @return the reduction due to the saturation function

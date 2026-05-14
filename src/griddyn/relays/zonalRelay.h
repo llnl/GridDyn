@@ -18,8 +18,8 @@ comparing to specific thresholds. This zonal relays runs off a single impedance 
 */
 class zonalRelay: public Relay {
   public:
-    enum zonalrelay_flags {
-        nondirectional_flag = object_flag10,
+    enum ZonalRelayFlags {
+        NONDIRECTIONAL_FLAG = object_flag10,
     };
 
   protected:

@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+// NOLINTBEGIN
 namespace griddyn::relays {
 controlRelay::controlRelay(const std::string& objName): Relay(objName) {}
 
@@ -41,7 +42,7 @@ coreObject* controlRelay::clone(coreObject* obj) const
 void controlRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "noreply") {
-        opFlags.set(no_message_reply, val);
+        opFlags.set(NO_MESSAGE_REPLY, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -114,10 +115,10 @@ void controlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     Relay::dynObjectInitializeA(time0, flags);
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        opFlags.set(link_type_source);
+        opFlags.set(LINK_TYPE_SOURCE);
     }
     if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-        opFlags.set(link_type_sink);
+        opFlags.set(LINK_TYPE_SINK);
     }
 }
 
@@ -264,7 +265,7 @@ change_code controlRelay::executeAction(index_t actionNum)
             if (findLoc != kNullLocation) {
                 val = getMeasurement(findLoc);
             } else {
-                if (opFlags[link_type_source]) {
+                if (opFlags[LINK_TYPE_SOURCE]) {
                     val = m_sourceObject->get(cact.field + m_terminal_key, cact.unitType);
                     if (val == kNullVal) {
                         val = m_sourceObject->get(cact.field, cact.unitType);
@@ -285,7 +286,7 @@ change_code controlRelay::executeAction(index_t actionNum)
         try {
             std::string field;
 
-            if (opFlags[link_type_sink]) {
+            if (opFlags[LINK_TYPE_SINK]) {
                 if ((cact.field == "breaker") || (cact.field == "switch") ||
                     (cact.field == "breaker_open")) {
                     field = cact.field + m_terminal_key;
@@ -297,7 +298,7 @@ change_code controlRelay::executeAction(index_t actionNum)
             }
             m_sinkObject->set(field, cact.val, cact.unitType);
 
-            if (!opFlags[no_message_reply])  // unless told not to respond return with the
+            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<commMessage>(cm::SET_SUCCESS);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -306,7 +307,7 @@ change_code controlRelay::executeAction(index_t actionNum)
             return change_code::parameter_change;
         }
         catch (const std::invalid_argument&) {
-            if (!opFlags[no_message_reply])  // unless told not to respond return with the
+            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<commMessage>(cm::SET_FAIL);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -325,10 +326,10 @@ void controlRelay::updateObject(coreObject* obj, object_update_mode mode)
         rootSim = dynamic_cast<gridSimulation*>(getRoot());
 
         if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-            opFlags.set(link_type_source);
+            opFlags.set(LINK_TYPE_SOURCE);
         }
         if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-            opFlags.set(link_type_sink);
+            opFlags.set(LINK_TYPE_SINK);
         }
     }
 }
@@ -398,3 +399,4 @@ index_t controlRelay::getFreeAction()
     return asize;
 }
 }  // namespace griddyn::relays
+// NOLINTEND

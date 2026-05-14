@@ -16,10 +16,10 @@ namespace griddyn::relays {
 class fuse: public Relay {
   public:
     /** flags for fuses*/
-    enum fuse_flags {
-        overlimit_flag = object_flag10,  //!< flag indicating the current is over the limit
-        fuse_blown_flag = object_flag11,  //!< flag indicting the fuse was blown
-        nonlink_source_flag = object_flag12,  //!< flag indicating the source is a not a link
+    enum FuseFlags {
+        OVERLIMIT_FLAG = object_flag10,  //!< flag indicating the current is over the limit
+        FUSE_BLOWN_FLAG = object_flag11,  //!< flag indicting the fuse was blown
+        NONLINK_SOURCE_FLAG = object_flag12,  //!< flag indicating the source is a not a link
     };
 
   protected:

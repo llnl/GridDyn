@@ -40,10 +40,10 @@ coreObject* differentialRelay::clone(coreObject* obj) const
 void differentialRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "relative") {
-        opFlags.set(relative_differential_flag, val);
+        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, val);
     }
     if (flag == "absolute") {
-        opFlags.set(relative_differential_flag, !val);
+        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, !val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -52,7 +52,7 @@ void differentialRelay::setFlag(std::string_view flag, bool val)
 bool differentialRelay::getFlag(std::string_view flag) const
 {
     if (flag == "relative") {
-        return opFlags[relative_differential_flag];
+        return opFlags[RELATIVE_DIFFERENTIAL_FLAG];
     }
     return Relay::getFlag(flag);
 }
@@ -93,7 +93,7 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // if the target object is a link of some kind
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         const double tap = m_sourceObject->get("tap");
-        if (opFlags[relative_differential_flag]) {
+        if (opFlags[RELATIVE_DIFFERENTIAL_FLAG]) {
             if (tap != 1.0) {
                 const std::string current1Expression = std::to_string(tap) + "*current1";
                 add(std::shared_ptr<Condition>(
@@ -132,13 +132,13 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                     "abs(current1-current2)", ">", mMaxDifferential, m_sourceObject)));
             }
         }
-        opFlags.set(link_mode);
-        opFlags.reset(bus_mode);
+        opFlags.set(LINK_MODE);
+        opFlags.reset(BUS_MODE);
     } else if (dynamic_cast<gridBus*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
             make_condition("abs(load)", "<=", mMaxDifferential, m_sourceObject)));
-        opFlags.set(bus_mode);
-        opFlags.reset(link_mode);
+        opFlags.set(BUS_MODE);
+        opFlags.reset(LINK_MODE);
     }
 
     // using make shared here since we need a shared object and it won't get translated
@@ -148,7 +148,7 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // action 2 to re-enable object
 
     add(std::move(tripEvent));
-    if ((opFlags[relative_differential_flag]) && (opFlags[link_mode]) && (mMinLevel > 0.0)) {
+    if ((opFlags[RELATIVE_DIFFERENTIAL_FLAG]) && (opFlags[LINK_MODE]) && (mMinLevel > 0.0)) {
         setActionMultiTrigger(0, {0, 1}, mDelayTime);
     } else {
         setActionTrigger(0, 0, mDelayTime);

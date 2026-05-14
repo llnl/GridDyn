@@ -91,7 +91,7 @@ void gridDynOptimization::set(std::string_view param, std::string_view val)
         } else if ((temp == "acopf") || (temp == "ac")) {
             mOptimizationMode = ACOPF;
         } else if (temp == "bidstack") {
-            mOptimizationMode = bidstack;
+            mOptimizationMode = BIDSTACK;
         } else {
             logging::warning(this, "unknown optimization mode {}", temp);
         }

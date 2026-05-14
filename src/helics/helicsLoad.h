@@ -16,10 +16,10 @@ enum class helicsValueType : char;
 /** class defining a load object that links with a helics source*/
 class helicsLoad: public loads::rampLoad {
   public:
-    enum helics_load_flags {
-        use_ramp = object_flag8,
-        predictive_ramp = object_flag9,
-        initial_query = object_flag10,
+    enum HelicsLoadFlags {
+        USE_RAMP = object_flag8,
+        PREDICTIVE_RAMP = object_flag9,
+        INITIAL_QUERY = object_flag10,
     };
 
   protected:

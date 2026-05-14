@@ -192,7 +192,7 @@ void gridOptObject::dynInitializeA(std::uint32_t flags)
 void gridOptObject::dynInitializeB(std::uint32_t flags)
 {
     dynObjectInitializeB(flags);
-    optFlags.set(opt_initialized);
+    optFlags.set(OPT_INITIALIZED);
 }
 
 void gridOptObject::setOffsets(const optimOffsets& newOffsets, const optimMode& oMode)

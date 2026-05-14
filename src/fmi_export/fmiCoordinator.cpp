@@ -138,9 +138,9 @@ bool fmiCoordinator::sendInput(index_t valueReference, const char* stringValue)
                                 vrInputPair(valueReference, inputSet()),
                                 searchFunc);
     if ((res != mParamVr.end()) && (res->first == valueReference) &&
-        (res->second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
+        (res->second.event->mEventType == fmi::fmiEvent::FmiEventType::STRING_PARAMETER)) {
         while ((res != mParamVr.end()) && (res->first == valueReference) &&
-               (res->second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter)) {
+               (res->second.event->mEventType == fmi::fmiEvent::FmiEventType::STRING_PARAMETER)) {
             std::println("updating string value {} to {}", res->second.name, stringValue);
             res->second.event->updateStringValue(stringValue);
             res->second.event->trigger();
@@ -202,7 +202,7 @@ void fmiCoordinator::addHelper(std::shared_ptr<helperObject> helperObjectPtr)
 
 bool fmiCoordinator::isStringParameter(const vrInputPair& param)
 {
-    return (param.second.event->mEventType == fmi::fmiEvent::fmiEventType::string_parameter);
+    return (param.second.event->mEventType == fmi::fmiEvent::FmiEventType::STRING_PARAMETER);
 }
 
 }  // namespace griddyn::fmi

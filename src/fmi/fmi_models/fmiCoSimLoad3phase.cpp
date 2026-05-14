@@ -35,16 +35,16 @@ coreObject* fmiCoSimLoad3phase::clone(coreObject* obj) const
 void fmiCoSimLoad3phase::setFlag(std::string_view flag, bool val)
 {
     if (flag == "current_output") {
-        opFlags[current_output] = val;
+        opFlags[CURRENT_OUTPUT] = val;
     } else if ((flag == "complex_output") || (flag == "complex_current_output")) {
-        opFlags[complex_current_output] = val;
+        opFlags[COMPLEX_CURRENT_OUTPUT] = val;
         if (val) {
-            opFlags[current_output] = true;
+            opFlags[CURRENT_OUTPUT] = true;
         }
     } else if (flag == "complex_voltage") {
-        opFlags[complex_voltage] = val;
+        opFlags[COMPLEX_VOLTAGE] = val;
     } else if ((flag == "ignore_voltage_angle") || (flag == "ignore_angle")) {
-        opFlags[ignore_voltage_angle] = val;
+        opFlags[IGNORE_VOLTAGE_ANGLE] = val;
     } else {
         fmiCoSimWrapper<loads::ThreePhaseLoad>::setFlag(flag, val);
     }
@@ -100,10 +100,10 @@ complex_output = object_flag11,
 
 const std::vector<stringVec>& fmiCoSimLoad3phase::fmiInputNames() const
 {
-    if (opFlags[ignore_voltage_angle]) {
+    if (opFlags[IGNORE_VOLTAGE_ANGLE]) {
         return inputNamesStr3phaseVoltageOnly;
     }
-    if (opFlags[complex_voltage]) {
+    if (opFlags[COMPLEX_VOLTAGE]) {
         return inputNamesStr3phaseComplexVoltage;
     }
     return inputNames();
@@ -129,8 +129,8 @@ static const std::vector<stringVec> outputNamesStrComplexCurrentOutput{
 
 const std::vector<stringVec>& fmiCoSimLoad3phase::fmiOutputNames() const
 {
-    if (opFlags[current_output]) {
-        return (opFlags[complex_current_output]) ? outputNamesStrCurrentOutput :
+    if (opFlags[CURRENT_OUTPUT]) {
+        return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrCurrentOutput :
                                                    outputNamesStrComplexCurrentOutput;
     }
 

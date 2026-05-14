@@ -163,7 +163,7 @@ class fmiInfo {
     explicit fmiInfo(const std::string& xmlFile);
     int loadFile(const std::string& xmlFile);
     /** check if a given flag is set*/
-    bool checkFlag(fmuCapabilityFlags flag) const;
+    bool checkFlag(FmuCapabilityFlags flag) const;
     /** get the counts for various items in a fmu
     @param[in] countType the type of counts to get
     @return the count*/

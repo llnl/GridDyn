@@ -15,10 +15,10 @@ class helicsCoordinator;
 /** class defining an object that pulls in data from a helics co-simulation*/
 class helicsSource: public sources::rampSource {
   public:
-    enum helics_source_flags {
-        use_ramp = object_flag8,
-        predictive_ramp = object_flag9,
-        initial_query = object_flag10,
+    enum HelicsSourceFlags {
+        USE_RAMP = object_flag8,
+        PREDICTIVE_RAMP = object_flag9,
+        INITIAL_QUERY = object_flag10,
     };
 
   protected:

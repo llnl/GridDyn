@@ -23,17 +23,17 @@
 
 namespace griddyn {
 // definitions for defining solution mode
-enum optimization_type_t { default_optimization, bidstack, water, DCOPF, ACOPF };
+enum OptimizationType { DEFAULT_OPTIMIZATION, BIDSTACK, WATER, DCOPF, ACOPF };
 
 // additional flags the controlFlags bitset
-enum gdopt_flags {
+enum GridDynOptFlags {
 
 };
 
 // for the status flags bitset
 
 // extra local flags
-enum gdopt_extra_flags {
+enum GridDynOptExtraFlags {
 
 };
 
@@ -53,16 +53,16 @@ class gridDynOptimization: public gridDynSimulation {
 
     // list of object to PreExecute
     int mConstraintCount = 0;
-    optimization_type_t mOptimizationMode;
+    OptimizationType mOptimizationMode;
 
   public:
     gridDynOptimization(const std::string& simName = "gridDynOptSim_#");
     ~gridDynOptimization();
     coreObject* clone(coreObject* obj) const override;
 
-    void setOptimizationMode(optimization_type_t omode)
+    void setOptimizationMode(OptimizationType omode)
     {
-        if (omode != default_optimization) {
+        if (omode != DEFAULT_OPTIMIZATION) {
             mOptimizationMode = omode;
         }
     }

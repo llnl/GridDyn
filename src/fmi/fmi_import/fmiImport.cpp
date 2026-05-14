@@ -54,17 +54,17 @@ void fmiLibrary::close()
     lib = nullptr;
 }
 
-bool fmiLibrary::checkFlag(fmuCapabilityFlags flag) const
+bool fmiLibrary::checkFlag(FmuCapabilityFlags flag) const
 {
     return information->checkFlag(flag);
 }
 
-bool fmiLibrary::isSoLoaded(fmutype_t type) const
+bool fmiLibrary::isSoLoaded(FmuType type) const
 {
     switch (type) {
-        case fmutype_t::modelExchange:
+        case FmuType::MODEL_EXCHANGE:
             return soMeLoaded;
-        case fmutype_t::cosimulation:
+        case FmuType::COSIMULATION:
             return soCoSimLoaded;
         default:
             return (soMeLoaded || soCoSimLoaded);
@@ -160,7 +160,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
     fmiLibrary::createModelExchangeObject(const std::string& name)
 {
     if (!isSoLoaded()) {
-        loadSharedLibrary(fmutype_t::modelExchange);
+        loadSharedLibrary(FmuType::MODEL_EXCHANGE);
     }
     if (soMeLoaded) {
         if (!callbacks) {
@@ -188,7 +188,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
 std::unique_ptr<fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std::string& name)
 {
     if (!isSoLoaded()) {
-        loadSharedLibrary(fmutype_t::cosimulation);
+        loadSharedLibrary(FmuType::COSIMULATION);
     }
     if (soCoSimLoaded) {
         if (!callbacks) {
@@ -210,7 +210,7 @@ std::unique_ptr<fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std:
     return nullptr;
 }
 
-void fmiLibrary::loadSharedLibrary(fmutype_t type)
+void fmiLibrary::loadSharedLibrary(FmuType type)
 {
     if (isSoLoaded()) {
         return;
@@ -231,11 +231,11 @@ void fmiLibrary::loadSharedLibrary(fmutype_t type)
         loadBaseFunctions();
         loadCommonFunctions();
         // Only load one or the other
-        if (checkFlag(modelExchangeCapable) && type != fmutype_t::cosimulation) {
+        if (checkFlag(MODEL_EXCHANGE_CAPABLE) && type != FmuType::COSIMULATION) {
             loadModelExchangeFunctions();
             soMeLoaded = true;
             soCoSimLoaded = false;
-        } else if (checkFlag(coSimulationCapable)) {
+        } else if (checkFlag(CO_SIMULATION_CAPABLE)) {
             loadCoSimFunctions();
             soCoSimLoaded = true;
             soMeLoaded = false;
@@ -243,32 +243,32 @@ void fmiLibrary::loadSharedLibrary(fmutype_t type)
     }
 }
 
-path fmiLibrary::findSoPath(fmutype_t type)
+path fmiLibrary::findSoPath(FmuType type)
 {
     path sopath = extractDirectory / "binaries";
 
     std::string identifier;
     switch (type) {
-        case fmutype_t::unknown:
+        case FmuType::UNKNOWN:
         default:
-            if (checkFlag(modelExchangeCapable))  // give priority to model Exchange
+            if (checkFlag(MODEL_EXCHANGE_CAPABLE))  // give priority to model Exchange
             {
                 identifier = information->getString("meidentifier");
-            } else if (checkFlag(coSimulationCapable)) {
+            } else if (checkFlag(CO_SIMULATION_CAPABLE)) {
                 identifier = information->getString("cosimidentifier");
             } else {
                 return "";
             }
             break;
-        case fmutype_t::cosimulation:
-            if (checkFlag(coSimulationCapable)) {
+        case FmuType::COSIMULATION:
+            if (checkFlag(CO_SIMULATION_CAPABLE)) {
                 identifier = information->getString("cosimidentifier");
             } else {
                 return "";
             }
             break;
-        case fmutype_t::modelExchange:
-            if (checkFlag(modelExchangeCapable)) {
+        case FmuType::MODEL_EXCHANGE:
+            if (checkFlag(MODEL_EXCHANGE_CAPABLE)) {
                 identifier = information->getString("meidentifier");
             } else {
                 return "";

@@ -32,7 +32,7 @@ void fmiMELoad::updateLocalCache(const IOdata& inputs, const stateData& sD, cons
 {
     auto V = inputs;
     auto vc = std::polar(inputs[voltageInLocation], inputs[angleInLocation]);
-    if (opFlags[complex_voltage]) {
+    if (opFlags[COMPLEX_VOLTAGE]) {
         V[0] = vc.real();
         V[1] = vc.imag();
     }
@@ -80,8 +80,8 @@ IOdata fmiMELoad::outputTranslation(const IOdata& fmiOutput, const IOdata& busV)
 {
     auto busVoltage = std::complex<double>(busV[voltageInLocation], busV[angleInLocation]);
     IOdata powers(2);
-    if (opFlags[current_output]) {
-        if (opFlags[complex_output]) {
+    if (opFlags[CURRENT_OUTPUT]) {
+        if (opFlags[COMPLEX_OUTPUT]) {
             auto I = std::complex<double>(fmiOutput[0], fmiOutput[1]);
             auto Pact = busVoltage * std::conj(I);
             powers[PoutLocation] = Pact.real();
@@ -93,7 +93,7 @@ IOdata fmiMELoad::outputTranslation(const IOdata& fmiOutput, const IOdata& busV)
             powers[QoutLocation] = Pact.imag();
         }
     } else {
-        if (opFlags[complex_output]) {
+        if (opFlags[COMPLEX_OUTPUT]) {
             powers[PoutLocation] = fmiOutput[PoutLocation];
             powers[QoutLocation] = fmiOutput[QoutLocation];
         } else {

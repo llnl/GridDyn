@@ -11,12 +11,12 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiEvent::fmiEvent(const std::string& newName, fmiEventType type):
+fmiEvent::fmiEvent(const std::string& newName, FmiEventType type):
     reversibleEvent(newName), mEventType(type)
 {
 }
 
-fmiEvent::fmiEvent(fmiEventType type): mEventType(type) {}
+fmiEvent::fmiEvent(FmiEventType type): mEventType(type) {}
 
 fmiEvent::fmiEvent(const EventInfo& gdEI, coreObject* rootObject): reversibleEvent(gdEI, rootObject)
 {
@@ -53,10 +53,10 @@ void fmiEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
-            mEventType = fmiEventType::string_parameter;
+            mEventType = FmiEventType::STRING_PARAMETER;
             stringEvent = true;
         } else if ((val == "real") || (val == "number")) {
-            mEventType = fmiEventType::parameter;
+            mEventType = FmiEventType::PARAMETER;
             stringEvent = false;
         }
     } else {
@@ -99,7 +99,7 @@ void fmiEvent::findCoordinator()
             if (dynamic_cast<fmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
                 if (!isSameObject(fmiCoordinatorObject, mCoordinator)) {
                     mCoordinator = static_cast<fmiCoordinator*>(fmiCoordinatorObject);
-                    if (mEventType == fmiEventType::input) {
+                    if (mEventType == FmiEventType::INPUT) {
                         mCoordinator->registerInput(getName(), this);
                     } else {
                         mCoordinator->registerParameter(getName(), this);

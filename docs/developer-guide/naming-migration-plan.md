@@ -258,14 +258,14 @@ Types of work in this phase:
 ### Phase 4 Checklist By Subsystem
 
 - [x] `src/networking`
-- [ ] `src/fmi`
-- [ ] `src/fmi_export`
+- [~] `src/fmi`
+- [~] `src/fmi_export`
 - [~] `src/optimization`
 - [x] `src/griddyn/measurement`
 - [~] `src/griddyn/relays`
 - [~] `src/griddyn/blocks`
-- [~] `src/fileInput`
-- [ ] `src/helics`
+- [x] `src/fileInput`
+- [~] `src/helics`
 - [~] `src/utilities`
 
 ### Examples Of Known Non-Compliant Enum Patterns
@@ -465,6 +465,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                   | No                   | Inventory script run             | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/relays` + `src/griddyn/sources` + `src/extraModels`               | Phase 4 | Internal enum/type cleanup covering `DistributionType`, `SaturationType`, relay and block enum normalization, source-side communication enum fallout, and the dependent `txThermalModel` output-mode update | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/networking` + `src/griddyn/measurement`                                                                            | Phase 4 | Internal enum/type cleanup covering networking loop/reactor/socket operation enums plus measurement comparison, compound-condition, and Jacobian-mode enums                                                 | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/fileInput`                                                                                                         | Phase 4 | Internal enum/type cleanup covering reader match/config enums, file-input reader flags, and contained CSV/RAW section-mode enums                                                                            | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/griddyn/comms`                                                                                                     | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                              | No                   | Not yet run                      | Complete |
 | merged      | `src/griddyn/measurement`                                                                                               | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                                 | No                   | CI `clang-tidy` run              | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                        | No                   | CI workflow run                  | Complete |

@@ -16,24 +16,24 @@ class fmiCoordinator;
 class fmiEvent: public events::reversibleEvent {
   public:
     /** enumeration of the event types*/
-    enum class fmiEventType {
-        parameter,  //!< indicator that the event corresponds to a parameter
-        string_parameter,  //!< indicator that the event is a string parameter
-        input,  //!< indicator that the event corresponds to an input
+    enum class FmiEventType {
+        PARAMETER,  //!< indicator that the event corresponds to a parameter
+        STRING_PARAMETER,  //!< indicator that the event is a string parameter
+        INPUT,  //!< indicator that the event corresponds to an input
     };
 
   private:
     fmiCoordinator* mCoordinator = nullptr;  //!< pointer the coordinator
-    fmiEventType mEventType = fmiEventType::input;  //!< the type of the event
+    FmiEventType mEventType = FmiEventType::INPUT;  //!< the type of the event
   public:
     /** constructor taking name and eventType
 @param newName the name of the event
 @param type the type of event either input or parameter
 */
-    fmiEvent(const std::string& newName, fmiEventType type = fmiEventType::input);
+    fmiEvent(const std::string& newName, FmiEventType type = FmiEventType::INPUT);
     /** default constructor taking optional eventType
      */
-    fmiEvent(fmiEventType type = fmiEventType::input);
+    fmiEvent(FmiEventType type = FmiEventType::INPUT);
     /** event constructor taking an eventInfo structure and root object*/
     fmiEvent(const EventInfo& gdEI, coreObject* rootObject);
 

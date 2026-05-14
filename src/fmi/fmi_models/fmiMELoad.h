@@ -15,11 +15,11 @@ class fmiMESubModel;
 
 class fmiMELoad: public fmiMEWrapper<Load> {
   public:
-    enum threephasefmi_load_flags {
-        ignore_voltage_angle = object_flag8,
-        complex_voltage = object_flag9,
-        current_output = object_flag10,
-        complex_output = object_flag11,
+    enum ThreePhaseFmiLoadFlags {
+        IGNORE_VOLTAGE_ANGLE = object_flag8,
+        COMPLEX_VOLTAGE = object_flag9,
+        CURRENT_OUTPUT = object_flag10,
+        COMPLEX_OUTPUT = object_flag11,
     };
 
   public:

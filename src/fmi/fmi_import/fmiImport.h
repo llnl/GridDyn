@@ -145,7 +145,7 @@ class fmiLibrary {
     bool isXmlLoaded() const { return xmlLoaded; }
     /** check if the shared object file for the fmu has been loaded
     @return true if loaded false if not*/
-    bool isSoLoaded(fmutype_t type = fmutype_t::unknown) const;
+    bool isSoLoaded(FmuType type = FmuType::UNKNOWN) const;
     /** load the FMU from the fmu path
     @param[in] fmupath the fmu*/
     void loadFMU(const std::string& fmupath);
@@ -158,9 +158,9 @@ class fmiLibrary {
     void close();
     const std::string& getName() const { return modelName; }
     int getCounts(const std::string& countType) const;
-    void loadSharedLibrary(fmutype_t type = fmutype_t::unknown);
+    void loadSharedLibrary(FmuType type = FmuType::UNKNOWN);
 
-    bool checkFlag(fmuCapabilityFlags flag) const;
+    bool checkFlag(FmuCapabilityFlags flag) const;
 
     std::unique_ptr<fmi2ModelExchangeObject> createModelExchangeObject(const std::string& name);
     std::unique_ptr<fmi2CoSimObject> createCoSimulationObject(const std::string& name);
@@ -171,7 +171,7 @@ class fmiLibrary {
     void loadInformation();
     int extract();
 
-    std::filesystem::path findSoPath(fmutype_t type = fmutype_t::unknown);
+    std::filesystem::path findSoPath(FmuType type = FmuType::UNKNOWN);
     void loadBaseFunctions();
     void loadCommonFunctions();
     void loadModelExchangeFunctions();

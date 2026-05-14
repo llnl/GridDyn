@@ -125,7 +125,7 @@ void gridGenOpt::valueBounds(double time,
 {
     auto& oo = offsets.getOffsets(oMode);
     double Pup, Pdown;
-    if (optFlags.test(limit_override)) {
+    if (optFlags.test(LIMIT_OVERRIDE)) {
         if (m_Pmax < kHalfBigNum) {
             Pup = m_Pmax;
         } else {
@@ -155,7 +155,7 @@ void gridGenOpt::linearObj(const optimData& /* of */,
                            const optimMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
-    if (optFlags[piecewise_linear_cost]) {
+    if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(0, Pcoeff[0] * oMode.period);
         linObj.assign(oo.gOffset, Pcoeff[1] * oMode.period);
@@ -171,7 +171,7 @@ void gridGenOpt::quadraticObj(const optimData& /* of */,
                               const optimMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
-    if (optFlags[piecewise_linear_cost]) {
+    if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(0, Pcoeff[0] * oMode.period);
         linObj.assign(oo.gOffset, Pcoeff[1] * oMode.period);
@@ -193,7 +193,7 @@ double gridGenOpt::objValue(const optimData& of, const optimMode& oMode)
     double cost = 0;
     auto& oo = offsets.getOffsets(oMode);
     double P = of.val[oo.gOffset];
-    if (optFlags[piecewise_linear_cost]) {
+    if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         int kk = 0;
         int kmax;
@@ -234,7 +234,7 @@ void gridGenOpt::gradient(const optimData& of, double deriv[], const optimMode& 
     auto& oo = offsets.getOffsets(oMode);
     double P = of.val[oo.gOffset];
     double temp;
-    if (optFlags[piecewise_linear_cost]) {
+    if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         size_t kk = 0;
         size_t kmax;
@@ -273,7 +273,7 @@ void gridGenOpt::jacobianElements(const optimData& of,
     auto& oo = offsets.getOffsets(oMode);
     double P = of.val[oo.gOffset];
     double temp;
-    if (optFlags[piecewise_linear_cost]) {
+    if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         size_t kk = 0;
         size_t kmax;
@@ -416,10 +416,10 @@ void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
         m_penaltyCost = convert(val, unitType, currency / puMW / hr, systemBasePower);
     } else if (param == "pmax") {
         m_Pmax = convert(val, unitType, puMW, systemBasePower);
-        optFlags.set(limit_override);
+        optFlags.set(LIMIT_OVERRIDE);
     } else if (param == "pmin") {
         m_Pmin = convert(val, unitType, puMW, systemBasePower);
-        optFlags.set(limit_override);
+        optFlags.set(LIMIT_OVERRIDE);
     } else if (param == "forecast") {
         m_forecast = convert(val, unitType, puMW, systemBasePower);
     } else {

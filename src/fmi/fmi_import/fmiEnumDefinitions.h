@@ -9,10 +9,10 @@
 #include <string>
 
 /** enumeration of the known fmu types*/
-enum class fmutype_t {
-    unknown,  //!< unknown fmu type
-    modelExchange,  //!< fmi for model exchange
-    cosimulation,  //!< fmi for cosimulation
+enum class FmuType {
+    UNKNOWN,  //!< unknown fmu type
+    MODEL_EXCHANGE,  //!< fmi for model exchange
+    COSIMULATION,  //!< fmi for cosimulation
 };
 
 enum class fmi_variability_type_t {
@@ -107,18 +107,18 @@ class fmi_dependency_type {
     fmi_dependency_type_t value() const { return dependency; }
 };
 
-enum fmuCapabilityFlags : int {
-    modelExchangeCapable,
-    coSimulationCapable,
-    canGetAndSetFMUstate,
-    providesDirectionalDerivative,
-    canSerializeFMUstate,
-    needsExecutionTool,
-    completedIntegratorStepNotNeeded,
-    canHandleVariableCommunicationStepSize,
-    canInterpolateInputs,
-    canRunAsynchronously,
-    canBeInstantiatedOnlyOncePerProcess,
-    canNotUseMemoryManagementFunctions,
+enum FmuCapabilityFlags : int {
+    MODEL_EXCHANGE_CAPABLE,
+    CO_SIMULATION_CAPABLE,
+    CAN_GET_AND_SET_FMU_STATE,
+    PROVIDES_DIRECTIONAL_DERIVATIVE,
+    CAN_SERIALIZE_FMU_STATE,
+    NEEDS_EXECUTION_TOOL,
+    COMPLETED_INTEGRATOR_STEP_NOT_NEEDED,
+    CAN_HANDLE_VARIABLE_COMMUNICATION_STEP_SIZE,
+    CAN_INTERPOLATE_INPUTS,
+    CAN_RUN_ASYNCHRONOUSLY,
+    CAN_BE_INSTANTIATED_ONLY_ONCE_PER_PROCESS,
+    CAN_NOT_USE_MEMORY_MANAGEMENT_FUNCTIONS,
 
 };

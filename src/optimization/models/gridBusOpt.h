@@ -19,7 +19,7 @@ class gridBus;
 
 class gridBusOpt: public gridOptObject {
   public:
-    enum bus_flags {
+    enum BusFlags {
 
     };
 

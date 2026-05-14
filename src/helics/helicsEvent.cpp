@@ -18,7 +18,7 @@ helicsEvent::helicsEvent(const std::string& newName): reversibleEvent(newName)
     initRequired = true;
 }
 
-helicsEvent::helicsEvent(helicsEventType type): eventType(type)
+helicsEvent::helicsEvent(HelicsEventType type): eventType(type)
 {
     initRequired = true;
 }
@@ -64,13 +64,13 @@ void helicsEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
-            eventType = helicsEventType::string_parameter;
+            eventType = HelicsEventType::STRING_PARAMETER;
             stringEvent = true;
         } else if ((val == "real") || (val == "number")) {
-            eventType = helicsEventType::parameter;
+            eventType = HelicsEventType::PARAMETER;
             stringEvent = false;
         } else if (val == "vector") {
-            eventType = helicsEventType::parameter;
+            eventType = HelicsEventType::PARAMETER;
             stringEvent = false;
             vectorElement = 0;
         }
@@ -127,7 +127,7 @@ void helicsEvent::initialize()
     if (sub == nullptr) {
         return;
     }
-    if (eventType == helicsEventType::string_parameter) {
+    if (eventType == HelicsEventType::STRING_PARAMETER) {
         sub->setInputNotificationCallback<std::string>(
             [this](const std::string& update, helics::Time /*tval*/) {
                 updateStringValue(update);

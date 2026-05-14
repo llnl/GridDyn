@@ -22,13 +22,13 @@ namespace {
         static const childClassFactory<fmi::fmiCollector, collector> fmiCollectorFactory(
             std::vector<std::string>{"fmioutput", "fmicollector"});
 
-        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::FmiEventType>
             fmiInputFactory(std::vector<std::string>{"fmiinput", "fmievent"},
-                            fmi::fmiEvent::fmiEventType::input);
+                            fmi::fmiEvent::FmiEventType::INPUT);
 
-        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::fmiEventType>
+        static const childClassFactoryArg<fmi::fmiEvent, Event, fmi::fmiEvent::FmiEventType>
             fmiParameterFactory(std::vector<std::string>{"fmiparam", "fmiparameter"},
-                                fmi::fmiEvent::fmiEventType::parameter);
+                                fmi::fmiEvent::FmiEventType::PARAMETER);
 
         static const typeFactory<fmi::fmiCoordinator> fmiCoordinatorFactory(
             "extra", std::vector<std::string>{"fmi", "fmicoord"});

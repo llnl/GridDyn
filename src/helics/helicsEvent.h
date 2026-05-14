@@ -17,14 +17,14 @@ class helicsCoordinator;
 class helicsEvent: public events::reversibleEvent {
   public:
     /** enumeration of the event types*/
-    enum class helicsEventType {
-        parameter,  //!< indicator that the event corresponds to a parameter
-        string_parameter,  //!< indicator that the event is a string parameter
+    enum class HelicsEventType {
+        PARAMETER,  //!< indicator that the event corresponds to a parameter
+        STRING_PARAMETER,  //!< indicator that the event is a string parameter
     };
 
   private:
     helicsCoordinator* coord = nullptr;  //!< pointer the coordinator
-    helicsEventType eventType = helicsEventType::parameter;  //!< the type of the event
+    HelicsEventType eventType = HelicsEventType::PARAMETER;  //!< the type of the event
     std::string key;  //!< helics subscription key
     int32_t subid = -1;  //!< index of the subscription
     int32_t vectorElement = -1;  // element of a vector to use as the event parameter
@@ -32,7 +32,7 @@ class helicsEvent: public events::reversibleEvent {
   public:
     helicsEvent(const EventInfo& gdEI, coreObject* rootObject);
     explicit helicsEvent(const std::string& name);
-    explicit helicsEvent(helicsEventType type = helicsEventType::parameter);
+    explicit helicsEvent(HelicsEventType type = HelicsEventType::PARAMETER);
 
     virtual std::unique_ptr<Event> clone() const override;
     virtual void cloneTo(Event* col) const override;

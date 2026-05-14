@@ -20,7 +20,7 @@ class Link;
 
 class gridLinkOpt: public gridOptObject {
   public:
-    enum bus_flags {
+    enum BusFlags {
 
     };
 

@@ -21,9 +21,9 @@ class Generator;
 
 class gridGenOpt: public gridOptObject {
   public:
-    enum optgen_flags {
-        piecewise_linear_cost = 1,
-        limit_override = 2,
+    enum OptGenFlags {
+        PIECEWISE_LINEAR_COST = 1,
+        LIMIT_OVERRIDE = 2,
     };
 
   protected:

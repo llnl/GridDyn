@@ -16,11 +16,11 @@ class fmiMESubModel;
 
 class fmiMELoad3phase: public fmiMEWrapper<loads::ThreePhaseLoad> {
   public:
-    enum threephasefmi_load_flags {
-        ignore_voltage_angle = object_flag8,
-        complex_voltage = object_flag9,
-        current_output = object_flag10,
-        complex_current_output = object_flag11,
+    enum ThreePhaseFmiLoadFlags {
+        IGNORE_VOLTAGE_ANGLE = object_flag8,
+        COMPLEX_VOLTAGE = object_flag9,
+        CURRENT_OUTPUT = object_flag10,
+        COMPLEX_CURRENT_OUTPUT = object_flag11,
     };
 
   public:
@@ -38,7 +38,7 @@ class fmiMELoad3phase: public fmiMEWrapper<loads::ThreePhaseLoad> {
                           const solverMode& sMode) override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataRef,
                                   const solverMode& sMode) override;
     virtual const std::vector<stringVec>& fmiInputNames() const override;
 

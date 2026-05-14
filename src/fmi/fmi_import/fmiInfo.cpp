@@ -43,19 +43,19 @@ int fmiInfo::loadFile(const std::string& xmlFile)
 static const std::map<std::string, int>& flagMap()
 {
     static const auto* capabilityFlagMap = new std::map<std::string, int>{
-        {"modelExchangeCapable", modelExchangeCapable},
-        {"coSimulationCapable", coSimulationCapable},
-        {"canGetAndSetFMUstate", canGetAndSetFMUstate},
-        {"providesDirectionalDerivative", providesDirectionalDerivative},
-        {"canSerializeFMUstate", canSerializeFMUstate},
-        {"canGetAndSetFMUstate", canGetAndSetFMUstate},
-        {"needsExecutionTool", needsExecutionTool},
-        {"completedIntegratorStepNotNeeded", completedIntegratorStepNotNeeded},
-        {"canHandleVariableCommunicationStepSize", canHandleVariableCommunicationStepSize},
-        {"canInterpolateInputs", canInterpolateInputs},
-        {"canRunAsynchronously", canRunAsynchronously},
-        {"canBeInstantiatedOnlyOncePerProcess", canBeInstantiatedOnlyOncePerProcess},
-        {"canNotUseMemoryManagementFunctions", canNotUseMemoryManagementFunctions}};
+        {"modelExchangeCapable", MODEL_EXCHANGE_CAPABLE},
+        {"coSimulationCapable", CO_SIMULATION_CAPABLE},
+        {"canGetAndSetFMUstate", CAN_GET_AND_SET_FMU_STATE},
+        {"providesDirectionalDerivative", PROVIDES_DIRECTIONAL_DERIVATIVE},
+        {"canSerializeFMUstate", CAN_SERIALIZE_FMU_STATE},
+        {"canGetAndSetFMUstate", CAN_GET_AND_SET_FMU_STATE},
+        {"needsExecutionTool", NEEDS_EXECUTION_TOOL},
+        {"completedIntegratorStepNotNeeded", COMPLETED_INTEGRATOR_STEP_NOT_NEEDED},
+        {"canHandleVariableCommunicationStepSize", CAN_HANDLE_VARIABLE_COMMUNICATION_STEP_SIZE},
+        {"canInterpolateInputs", CAN_INTERPOLATE_INPUTS},
+        {"canRunAsynchronously", CAN_RUN_ASYNCHRONOUSLY},
+        {"canBeInstantiatedOnlyOncePerProcess", CAN_BE_INSTANTIATED_ONLY_ONCE_PER_PROCESS},
+        {"canNotUseMemoryManagementFunctions", CAN_NOT_USE_MEMORY_MANAGEMENT_FUNCTIONS}};
     return *capabilityFlagMap;
 }
 
@@ -68,7 +68,7 @@ static void loadFmuFlag(std::bitset<32>& capabilities, const readerAttribute& at
     }
 }
 
-bool fmiInfo::checkFlag(fmuCapabilityFlags flag) const
+bool fmiInfo::checkFlag(FmuCapabilityFlags flag) const
 {
     return capabilities[flag];
 }
@@ -290,7 +290,7 @@ void fmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
         fmiVersion = std::stod(versionFind->second);
     }
     if (readerElementPtr->hasElement("ModelExchange")) {
-        capabilities.set(modelExchangeCapable, true);
+        capabilities.set(MODEL_EXCHANGE_CAPABLE, true);
         readerElementPtr->moveToFirstChild("ModelExchange");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -307,7 +307,7 @@ void fmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
     }
     if (readerElementPtr->hasElement("CoSimulation")) {
         readerElementPtr->moveToFirstChild("CoSimulation");
-        capabilities.set(coSimulationCapable, true);
+        capabilities.set(CO_SIMULATION_CAPABLE, true);
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
             if (att.getName() == "modelIdentifier") {

@@ -20,7 +20,7 @@ std::atomic<int> CymeDistLoadME::indexCounter{0};
 
 CymeDistLoadME::CymeDistLoadME(const std::string& objName): fmiMELoad3phase(objName)
 {
-    opFlags.set(current_output);
+    opFlags.set(CURRENT_OUTPUT);
     configIndex = indexCounter++;
 }
 

@@ -94,8 +94,8 @@ coreTime helicsLoad::updateB()
     double newP = convert(res.real(), inputUnits, units::puMW, systemBasePower, localBaseVoltage);
     double newQ = convert(res.imag(), inputUnits, units::puMW, systemBasePower, localBaseVoltage);
 
-    if (opFlags[use_ramp]) {
-        if (opFlags[predictive_ramp])  // ramp uses the previous change to guess into the future
+    if (opFlags[USE_RAMP]) {
+        if (opFlags[PREDICTIVE_RAMP])  // ramp uses the previous change to guess into the future
         {
             setP(newP);
             setQ(newQ);
@@ -140,21 +140,21 @@ void helicsLoad::timestep(coreTime ttime, const IOdata& inputs, const solverMode
 void helicsLoad::setFlag(const std::string& flag, bool val)
 {
     if (flag == "initial_query") {
-        opFlags.set(initial_query, val);
+        opFlags.set(INITIAL_QUERY, val);
     } else if (flag == "predictive") {
         if (val) {
-            opFlags.set(use_ramp, val);
-            opFlags.set(predictive_ramp, val);
+            opFlags.set(USE_RAMP, val);
+            opFlags.set(PREDICTIVE_RAMP, val);
         } else {
-            opFlags.set(predictive_ramp, false);
+            opFlags.set(PREDICTIVE_RAMP, false);
         }
     } else if (flag == "interpolate") {
-        opFlags.set(use_ramp, val);
-        opFlags.set(predictive_ramp, !val);
+        opFlags.set(USE_RAMP, val);
+        opFlags.set(PREDICTIVE_RAMP, !val);
     } else if (flag == "step") {
-        opFlags.set(use_ramp, !val);
+        opFlags.set(USE_RAMP, !val);
     } else if (flag == "use_ramp") {
-        opFlags.set(use_ramp, val);
+        opFlags.set(USE_RAMP, val);
     } else {
         rampLoad::setFlag(flag, val);
     }

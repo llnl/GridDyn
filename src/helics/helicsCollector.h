@@ -28,12 +28,12 @@ class helicsCollector: public collector {
         {
         }
     };
-    enum class collectorPubType {
-        as_individual = 0,
-        as_vector = 1,
-        as_string = 2,
+    enum class CollectorPubType {
+        AS_INDIVIDUAL = 0,
+        AS_VECTOR = 1,
+        AS_STRING = 2,
     };
-    collectorPubType pubType = collectorPubType::as_individual;
+    CollectorPubType pubType = CollectorPubType::AS_INDIVIDUAL;
     std::vector<std::pair<std::string, std::string>> complexPairs;
     std::vector<std::string> cnames;
     std::vector<pubInformation> pubs;

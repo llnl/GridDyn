@@ -38,13 +38,13 @@ bool isAC(const optimMode& oMode);
 #define INTEGER_OBJECTIVE_VARIABLE (1)
 #define BINARY_OBJECTIVE_VARIABLE (2)
 
-enum optimization_flags {
-    opt_initialized = 4,
+enum OptimizationFlags {
+    OPT_INITIALIZED = 4,
 
 };
 
 // for the controlFlags bitset
-enum optimization_control_flags {
+enum OptimizationControlFlags {
 
 };
 

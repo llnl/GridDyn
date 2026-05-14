@@ -51,13 +51,13 @@ void helicsCollector::dataPointAdded(const collectorPoint& cp)
 
                     coord->addCollector(this);
                     switch (pubType) {
-                        case collectorPubType::as_vector:
+                        case CollectorPubType::AS_VECTOR:
                             if (!pubName.empty()) {
                                 mpubIndex = coord->addPublication(pubName,
                                                                   helics::data_type::helics_vector);
                             }
                             break;
-                        case collectorPubType::as_string:
+                        case CollectorPubType::AS_STRING:
                             if (!pubName.empty()) {
                                 mpubIndex = coord->addPublication(pubName,
                                                                   helics::data_type::helics_vector);
@@ -72,7 +72,7 @@ void helicsCollector::dataPointAdded(const collectorPoint& cp)
     }
     if (coord != nullptr) {
         if (cp.columnCount == 1) {
-            if (pubType == collectorPubType::as_individual) {
+            if (pubType == CollectorPubType::AS_INDIVIDUAL) {
                 auto index = coord->addPublication(cp.colname,
                                                    helics::data_type::helics_double,
                                                    cp.dataGrabber->outputUnits);
@@ -114,15 +114,15 @@ change_code helicsCollector::trigger(coreTime time)
     }
 
     switch (pubType) {
-        case collectorPubType::as_individual:
+        case CollectorPubType::AS_INDIVIDUAL:
             for (size_t ii = 0; ii < data.size(); ++ii) {
                 if (subscribe[ii]) {
                     coord->publish(pubs[ii].pubIndex, data[ii]);
                 }
             }
             break;
-        case collectorPubType::as_vector:
-        case collectorPubType::as_string:
+        case CollectorPubType::AS_VECTOR:
+        case CollectorPubType::AS_STRING:
             coord->publish(mpubIndex, data);
             break;
     }
@@ -148,17 +148,17 @@ void helicsCollector::set(std::string_view param, std::string_view val)
         // helicsRegister::dataType::helicsComplex);
     } else if (param == "pubtype") {
         if (val == "vector") {
-            pubType = collectorPubType::as_vector;
+            pubType = CollectorPubType::AS_VECTOR;
             if (mpubIndex >= 0) {
                 coord->updatePublication(mpubIndex, pubName, helics::data_type::helics_vector);
             }
         } else if (val == "string") {
-            pubType = collectorPubType::as_string;
+            pubType = CollectorPubType::AS_STRING;
             if (mpubIndex >= 0) {
                 coord->updatePublication(mpubIndex, pubName, helics::data_type::helics_string);
             }
         } else if (val == "individual") {
-            pubType = collectorPubType::as_individual;
+            pubType = CollectorPubType::AS_INDIVIDUAL;
         } else {
             throw(invalidParameterValue(
                 "pubtype must be one of \"vector\",\"string\",\"individual\""));
@@ -169,13 +169,13 @@ void helicsCollector::set(std::string_view param, std::string_view val)
             coord->updatePublication(mpubIndex, pubName, helics::data_type::helics_any);
         } else if (coord) {
             switch (pubType) {
-                case collectorPubType::as_vector:
+                case CollectorPubType::AS_VECTOR:
                     if (!pubName.empty()) {
                         mpubIndex =
                             coord->addPublication(pubName, helics::data_type::helics_vector);
                     }
                     break;
-                case collectorPubType::as_string:
+                case CollectorPubType::AS_STRING:
                     if (!pubName.empty()) {
                         mpubIndex =
                             coord->addPublication(pubName, helics::data_type::helics_string);

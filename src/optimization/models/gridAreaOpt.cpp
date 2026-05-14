@@ -178,13 +178,13 @@ void gridAreaOpt::loadSizes(const optimMode& oMode)
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
     switch (oMode.flowMode) {
-        case flowModel_t::none:
+        case FlowModel::NONE:
         default:
             break;
-        case flowModel_t::transport:
+        case FlowModel::TRANSPORT:
             break;
-        case flowModel_t::dc:
-        case flowModel_t::ac:
+        case FlowModel::DC:
+        case FlowModel::AC:
             break;
     }
 

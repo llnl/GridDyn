@@ -28,7 +28,7 @@ using gmlc::utilities::string_viewOps::split;
 using gmlc::utilities::string_viewOps::trim;
 
 // NOLINTBEGIN(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
-enum mode_state { read_header, read_data };
+enum class ModeState { READ_HEADER, READ_DATA };
 
 void loadCSV(coreObject* parentObject,
              const std::string& fileName,
@@ -50,7 +50,7 @@ void loadCSV(coreObject* parentObject,
     int typekey = -1;
     int refkey = -1;
     std::string field;
-    mode_state mState = read_header;
+    ModeState mState = ModeState::READ_HEADER;
 
     // loop over the sections
     while (std::getline(file, line)) {
@@ -58,11 +58,11 @@ void loadCSV(coreObject* parentObject,
         if (line[0] == '#') {
             if (line[1] == '#')  // new section
             {
-                mState = read_header;
+                mState = ModeState::READ_HEADER;
             }
             continue;
         }
-        if (mState == read_header) {
+        if (mState == ModeState::READ_HEADER) {
             headers = gmlc::utilities::stringOps::splitline(line);
             gmlc::utilities::stringOps::trim(headers);
             objectMode = headers[0];
@@ -122,7 +122,7 @@ void loadCSV(coreObject* parentObject,
                 ++headerIndex;
             }
 
-            mState = read_data;
+            mState = ModeState::READ_DATA;
             // skip the reference
             if (refkey > 0) {
                 skipToken[refkey] = 4;

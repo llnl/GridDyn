@@ -25,7 +25,7 @@ namespace readerConfig {
     int warnMode = READER_WARN_ALL;
     int warnCount = 0;
 
-    match_type defMatchType = match_type::capital_case_match;
+    MatchType defMatchType = MatchType::CAPITAL_CASE_MATCH;
 
     void setPrintMode(int level)
     {
@@ -76,11 +76,11 @@ namespace readerConfig {
     void setDefaultMatchType(const std::string& matchType)
     {
         if ((matchType == "exact") || (matchType == "strict")) {
-            defMatchType = match_type::strict_case_match;
+            defMatchType = MatchType::STRICT_CASE_MATCH;
         } else if ((matchType == "capital") || (matchType == "caps")) {
-            defMatchType = match_type::capital_case_match;
+            defMatchType = MatchType::CAPITAL_CASE_MATCH;
         } else if ((matchType == "any") || (matchType == "all")) {
-            defMatchType = match_type::any_case_match;
+            defMatchType = MatchType::ANY_CASE_MATCH;
         }
     }
 
@@ -123,10 +123,10 @@ int objectParameterSet(const std::string& label, coreObject* obj, gridParameter&
 }
 
 static constexpr std::array<std::pair<std::string_view, int>, 4> flagStringMap{{
-    {"ignore_step_up_transformers", ignore_step_up_transformer},
-    {"powerflow_only", assume_powerflow_only},
-    {"no_generator_bus_reset", no_generator_bus_voltage_reset},
-    {"no_generator_bus_voltage_reset", no_generator_bus_voltage_reset},
+    {"ignore_step_up_transformers", IGNORE_STEP_UP_TRANSFORMER},
+    {"powerflow_only", ASSUME_POWERFLOW_ONLY},
+    {"no_generator_bus_reset", NO_GENERATOR_BUS_VOLTAGE_RESET},
+    {"no_generator_bus_voltage_reset", NO_GENERATOR_BUS_VOLTAGE_RESET},
 }};
 
 void addflags(basicReaderInfo& bri, const std::string& flags)

@@ -11,17 +11,17 @@
 #include <vector>
 
 namespace griddyn {
-enum class flowModel_t { none, transport, dc, ac };
+enum class FlowModel { NONE, TRANSPORT, DC, AC };
 
-enum class linearityMode_t { linear, quadratic, nonlinear };
+enum class LinearityMode { LINEAR, QUADRATIC, NONLINEAR };
 
 /**
  *Helper class for containing the reference lookup
  **/
 class optimMode {
   public:
-    flowModel_t flowMode;
-    linearityMode_t linMode;
+    FlowModel flowMode;
+    LinearityMode linMode;
     index_t offsetIndex;
     count_t numPeriods;
     double period;

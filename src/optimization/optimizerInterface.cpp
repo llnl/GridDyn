@@ -110,13 +110,13 @@ std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, cons
 {
     std::shared_ptr<optimizerInterface> of;
     switch (oMode.flowMode) {
-        case flowModel_t::none:
+        case FlowModel::NONE:
         default:
             of = std::make_shared<basicOptimizer>(gdo, oMode);
             break;
-        case flowModel_t::transport:
-        case flowModel_t::dc:
-        case flowModel_t::ac:
+        case FlowModel::TRANSPORT:
+        case FlowModel::DC:
+        case FlowModel::AC:
             break;
     }
     return of;

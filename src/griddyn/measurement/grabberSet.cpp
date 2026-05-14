@@ -187,7 +187,7 @@ bool grabberSet::stateCapable() const
 bool grabberSet::hasJacobian() const
 {
     if (mStateGrabber) {
-        if (mStateGrabber->getJacobianMode() != jacobian_mode::none) {
+        if (mStateGrabber->getJacobianMode() != JacobianMode::NONE) {
             return true;
         }
     }

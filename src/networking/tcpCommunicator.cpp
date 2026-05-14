@@ -14,11 +14,12 @@ namespace griddyn::tcpLib {
 
 tcpCommunicator::tcpCommunicator(const std::string& name): Communicator(name) {}
 
-tcpCommunicator::tcpCommunicator(const std::string& name, std::uint64_t id): Communicator(name, id)
+tcpCommunicator::tcpCommunicator(const std::string& name, std::uint64_t identifier):
+    Communicator(name, identifier)
 {
 }
 
-tcpCommunicator::tcpCommunicator(std::uint64_t id): Communicator(id) {}
+tcpCommunicator::tcpCommunicator(std::uint64_t identifier): Communicator(identifier) {}
 
 tcpCommunicator::~tcpCommunicator() = default;
 
@@ -95,24 +96,19 @@ void tcpCommunicator::disconnect()
 
 void tcpCommunicator::set(std::string_view param, std::string_view val)
 {
-    if (param == "txconnection") {
-        // txDescriptor.addOperation(socket_ops::connect, val);
-    } else if (param == "rxconnection") {
-        //    rxDescriptor.addOperation(socket_ops::connect, val);
-    } else if (param == "rxsubscription") {
-        // rxDescriptor.addOperation(socket_ops::subscribe, val);
-    } else if (param == "txsubscription") {
-        //    txDescriptor.addOperation(socket_ops::subscribe, val);
-    } else if ((param == "proxy") || (param == "proxyname")) {
+    if ((param == "txconnection") || (param == "rxconnection") || (param == "rxsubscription") ||
+        (param == "txsubscription") || (param == "txtype") || (param == "sockettype") ||
+        (param == "rxtype")) {
+        return;
+    }
+
+    if ((param == "proxy") || (param == "proxyname")) {
         proxyName = val;
         setFlag("useproxy", true);
-    } else if ((param == "txtype") || (param == "sockettype")) {
-        //    txDescriptor.type = socketTypeFromString(val);
-    } else if (param == "rxtype") {
-        //    rxDescriptor.type = socketTypeFromString(val);
-    } else {
-        Communicator::set(param, val);
+        return;
     }
+
+    Communicator::set(param, val);
 }
 
 void tcpCommunicator::set(std::string_view param, double val)

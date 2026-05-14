@@ -35,28 +35,28 @@ std::unique_ptr<zmq::socket_t> zmqSocketDescriptor::makeSocketPtr(zmq::context_t
 
 void zmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 {
-    for (auto& op : ops) {
-        switch (op.first) {
-            case socket_ops::bind:
-                sock.bind(op.second);
+    for (const auto& socketOperation : ops) {
+        switch (socketOperation.first) {
+            case SocketOperation::BIND:
+                sock.bind(socketOperation.second);
                 break;
-            case socket_ops::unbind:
-                sock.unbind(op.second);
+            case SocketOperation::UNBIND:
+                sock.unbind(socketOperation.second);
                 break;
-            case socket_ops::connect:
-                sock.connect(op.second);
+            case SocketOperation::CONNECT:
+                sock.connect(socketOperation.second);
                 break;
-            case socket_ops::disconnect:
-                sock.disconnect(op.second);
+            case SocketOperation::DISCONNECT:
+                sock.disconnect(socketOperation.second);
                 break;
-            case socket_ops::subscribe:
+            case SocketOperation::SUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_SUBSCRIBE, op.second);
+                    sock.setsockopt(ZMQ_SUBSCRIBE, socketOperation.second);
                 }
                 break;
-            case socket_ops::unsubscribe:
+            case SocketOperation::UNSUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_UNSUBSCRIBE, op.second);
+                    sock.setsockopt(ZMQ_UNSUBSCRIBE, socketOperation.second);
                 }
                 break;
             default:

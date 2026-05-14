@@ -33,11 +33,11 @@ class zmqContextManager;
 class zmqReactor {
   private:
     /** enumeration of possible reactor instructions*/
-    enum class reactorInstruction : int {
-        newSocket,  //!< add a new socket
-        close,  //!< close an existing socket
-        modify,  //!< modify an existing socket
-        terminate,  //!< terminate the socket
+    enum class ReactorInstruction : int {
+        NEW_SOCKET,  //!< add a new socket
+        CLOSE,  //!< close an existing socket
+        MODIFY,  //!< modify an existing socket
+        TERMINATE,  //!< terminate the socket
     };
     static std::vector<std::shared_ptr<zmqReactor>>
         reactors;  //!< container for pointers to all the available contexts
@@ -46,7 +46,7 @@ class zmqReactor {
     std::shared_ptr<zmqContextManager>
         contextManager;  //!< pointer the context the reactor is using
 
-    gmlc::containers::SimpleQueue<std::pair<reactorInstruction, zmqSocketDescriptor>>
+    gmlc::containers::SimpleQueue<std::pair<ReactorInstruction, zmqSocketDescriptor>>
         updates;  //!< the modifications to make the reactor sockets
 
     std::unique_ptr<zmq::socket_t> notifier;

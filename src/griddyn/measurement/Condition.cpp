@@ -18,12 +18,12 @@
 
 namespace griddyn {
 namespace {
-    bool isEqualityComparison(comparison_type comparison)
+    bool isEqualityComparison(ComparisonType comparison)
     {
         switch (comparison) {
-            case comparison_type::ge:
-            case comparison_type::le:
-            case comparison_type::eq:
+            case ComparisonType::GE:
+            case ComparisonType::LE:
+            case ComparisonType::EQ:
                 return true;
             default:
                 return false;
@@ -69,46 +69,47 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, coreObjec
 }
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, comparison_type, std::less<std::string_view>> compStrMap{
-    {">", comparison_type::gt},
-    {"gt", comparison_type::gt},
-    {">=", comparison_type::ge},
-    {"ge", comparison_type::ge},
-    {"<", comparison_type::lt},
-    {"lt", comparison_type::lt},
-    {"<=", comparison_type::le},
-    {"le", comparison_type::le},
-    {"=", comparison_type::eq},
-    {"eq", comparison_type::eq},
-    {"==", comparison_type::eq},
-    {"!=", comparison_type::ne},
-    {"ne", comparison_type::ne},
-    {"~=", comparison_type::ne},
-    {"<>", comparison_type::ne},
-    {"===", comparison_type::eq},
-    {"??", comparison_type::null},
+static const std::map<std::string_view, ComparisonType, std::less<std::string_view>> compStrMap{
+    {">", ComparisonType::GT},
+    {"gt", ComparisonType::GT},
+    {">=", ComparisonType::GE},
+    {"ge", ComparisonType::GE},
+    {"<", ComparisonType::LT},
+    {"lt", ComparisonType::LT},
+    {"<=", ComparisonType::LE},
+    {"le", ComparisonType::LE},
+    {"=", ComparisonType::EQ},
+    {"eq", ComparisonType::EQ},
+    {"==", ComparisonType::EQ},
+    {"!=", ComparisonType::NE},
+    {"ne", ComparisonType::NE},
+    {"~=", ComparisonType::NE},
+    {"<>", ComparisonType::NE},
+    {"===", ComparisonType::EQ},
+    {"??", ComparisonType::NULL_COMPARISON},
 };
 
-comparison_type comparisonFromString(std::string_view compStr)
+ComparisonType comparisonFromString(std::string_view compStr)
 {
     const auto foundComparison = compStrMap.find(compStr);
-    return (foundComparison != compStrMap.end()) ? foundComparison->second : comparison_type::null;
+    return (foundComparison != compStrMap.end()) ? foundComparison->second :
+                                                   ComparisonType::NULL_COMPARISON;
 }
 
-std::string to_string(comparison_type comp)
+std::string to_string(ComparisonType comp)
 {
     switch (comp) {
-        case comparison_type::gt:
+        case ComparisonType::GT:
             return ">";
-        case comparison_type::ge:
+        case ComparisonType::GE:
             return ">=";
-        case comparison_type::lt:
+        case ComparisonType::LT:
             return "<";
-        case comparison_type::le:
+        case ComparisonType::LE:
             return "<=";
-        case comparison_type::eq:
+        case ComparisonType::EQ:
             return "==";
-        case comparison_type::ne:
+        case ComparisonType::NE:
             return "!=";
         default:
             return "??";
@@ -125,7 +126,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 }
 
 std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          comparison_type comp,
+                                          ComparisonType comp,
                                           double level,
                                           coreObject* rootObject)
 {
@@ -225,28 +226,28 @@ void Condition::setComparison(std::string_view compStr)
 {
     setComparison(comparisonFromString(compStr));
 }
-void Condition::setComparison(comparison_type comparison)
+void Condition::setComparison(ComparisonType comparison)
 {
     mComparison = comparison;
     switch (mComparison) {
-        case comparison_type::gt:
-        case comparison_type::ge:
+        case ComparisonType::GT:
+        case ComparisonType::GE:
             mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return rightValue - leftValue - margin;
             };
             break;
-        case comparison_type::lt:
-        case comparison_type::le:
+        case ComparisonType::LT:
+        case ComparisonType::LE:
             mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return leftValue - rightValue + margin;
             };
             break;
-        case comparison_type::eq:
+        case ComparisonType::EQ:
             mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return std::abs(leftValue - rightValue) - margin;
             };
             break;
-        case comparison_type::ne:
+        case ComparisonType::NE:
             mEvalFunction = [](double leftValue, double rightValue, double margin) {
                 return -std::abs(leftValue - rightValue) + margin;
             };

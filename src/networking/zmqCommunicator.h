@@ -23,9 +23,9 @@ namespace zmqInterface {
         /** construct with object name*/
         explicit zmqCommunicator(const std::string& name);
         /** construct with object name and id*/
-        zmqCommunicator(const std::string& name, std::uint64_t id);
+        zmqCommunicator(const std::string& name, std::uint64_t identifier);
         /** construct with id*/
-        explicit zmqCommunicator(std::uint64_t id);
+        explicit zmqCommunicator(std::uint64_t identifier);
         /** destructor*/
         virtual ~zmqCommunicator();
 

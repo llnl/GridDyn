@@ -127,8 +127,8 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gc->setConditionRHS(mp_I2T);
     gc2->setConditionRHS(-mp_I2T / 2.0);
 
-    gc->setComparison(comparison_type::gt);
-    gc2->setComparison(comparison_type::lt);
+    gc->setComparison(ComparisonType::GT);
+    gc2->setComparison(ComparisonType::LT);
 
     add(std::shared_ptr<Condition>(std::move(gc)));
     add(std::shared_ptr<Condition>(std::move(gc2)));

@@ -17,6 +17,7 @@ Livermore National Security, LLC.
 
 #include "zmqProxyHub.h"
 
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -25,13 +26,13 @@ Livermore National Security, LLC.
 namespace zmqlib {
 std::vector<std::shared_ptr<zmqProxyHub>> zmqProxyHub::proxies;
 
-std::mutex proxyCreationMutex;
+static std::mutex proxyCreationMutex;
 
 std::shared_ptr<zmqProxyHub> zmqProxyHub::getProxy(const std::string& proxyName,
                                                    const std::string& pairType,
                                                    const std::string& contextName)
 {
-    std::lock_guard<std::mutex> proxyLock(proxyCreationMutex);
+    const std::scoped_lock proxyLock(proxyCreationMutex);
     for (auto& rct : proxies) {
         if (rct->getName() == proxyName) {
             return rct;
@@ -45,7 +46,15 @@ std::shared_ptr<zmqProxyHub> zmqProxyHub::getProxy(const std::string& proxyName,
 
 zmqProxyHub::~zmqProxyHub()
 {
-    stopProxy();
+    try {
+        stopProxy();
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "zmqProxyHub destructor suppressed exception: " << ex.what() << '\n';
+    }
+    catch (...) {
+        std::cerr << "zmqProxyHub destructor suppressed unknown exception\n";
+    }
 }
 
 void zmqProxyHub::startProxy()
@@ -64,7 +73,7 @@ void zmqProxyHub::stopProxy()
         controllerSocket->send(zmq::const_buffer("TERMINATE", 9));
         proxyThread.join();
     }
-    std::lock_guard<std::mutex> proxyLock(proxyCreationMutex);
+    const std::scoped_lock proxyLock(proxyCreationMutex);
     for (auto px = proxies.begin(); px != proxies.end(); ++px) {
         if ((*px)->name == name) {
             proxies.erase(px);
@@ -73,13 +82,13 @@ void zmqProxyHub::stopProxy()
     }
 }
 
-void zmqProxyHub::modifyIncomingConnection(socket_ops op, const std::string& connection)
+void zmqProxyHub::modifyIncomingConnection(SocketOperation operation, const std::string& connection)
 {
-    incoming.addOperation(op, connection);
+    incoming.addOperation(operation, connection);
 }
-void zmqProxyHub::modifyOutgoingConnection(socket_ops op, const std::string& connection)
+void zmqProxyHub::modifyOutgoingConnection(SocketOperation operation, const std::string& connection)
 {
-    outgoing.addOperation(op, connection);
+    outgoing.addOperation(operation, connection);
 }
 
 zmqProxyHub::zmqProxyHub(const std::string& proxyName,
@@ -98,16 +107,20 @@ zmqProxyHub::zmqProxyHub(const std::string& proxyName,
         outgoing.type = zmq::socket_type::push;
     }
     controllerSocket =
-        std::make_unique<zmq::socket_t>(contextManager->getContext(), zmq::socket_type::pair);
+        std::make_unique<zmq::socket_t>(zmqContextManager::getContext(contextManager->getName()),
+                                        zmq::socket_type::pair);
     controllerSocket->bind(std::string("inproc://proxy_" + name).c_str());
 }
 
 void zmqProxyHub::proxyLoop()
 {
-    zmq::socket_t inputSocket = incoming.makeSocket(contextManager->getContext());
-    zmq::socket_t outputSocket = outgoing.makeSocket(contextManager->getContext());
+    zmq::socket_t inputSocket =
+        incoming.makeSocket(zmqContextManager::getContext(contextManager->getName()));
+    zmq::socket_t outputSocket =
+        outgoing.makeSocket(zmqContextManager::getContext(contextManager->getName()));
 
-    zmq::socket_t control(contextManager->getContext(), zmq::socket_type::pair);
+    zmq::socket_t control(zmqContextManager::getContext(contextManager->getName()),
+                          zmq::socket_type::pair);
 
     control.connect(std::string("inproc://proxy_" + name).c_str());
 

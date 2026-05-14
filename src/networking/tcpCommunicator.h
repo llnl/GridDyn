@@ -22,9 +22,9 @@ namespace tcpLib {
         /** construct with object name*/
         explicit tcpCommunicator(const std::string& name);
         /** construct with object name and id*/
-        tcpCommunicator(const std::string& name, std::uint64_t id);
+        tcpCommunicator(const std::string& name, std::uint64_t identifier);
         /** construct with id*/
-        explicit tcpCommunicator(std::uint64_t id);
+        explicit tcpCommunicator(std::uint64_t identifier);
         /** destructor*/
         virtual ~tcpCommunicator();
 

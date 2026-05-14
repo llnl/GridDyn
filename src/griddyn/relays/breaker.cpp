@@ -148,8 +148,8 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     upperCtiCondition->setConditionRHS(1.0);
     lowerCtiCondition->setConditionRHS(-0.5);
-    upperCtiCondition->setComparison(comparison_type::gt);
-    lowerCtiCondition->setComparison(comparison_type::lt);
+    upperCtiCondition->setComparison(ComparisonType::GT);
+    lowerCtiCondition->setComparison(ComparisonType::LT);
 
     add(std::move(upperCtiCondition));
     add(std::move(lowerCtiCondition));

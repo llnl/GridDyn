@@ -24,16 +24,16 @@ Livermore National Security, LLC.
 
 namespace zmqlib {
 /** enumeration of possible operations on a socket*/
-enum class socket_ops {
-    bind,
-    connect,
-    unbind,
-    disconnect,
-    subscribe,
-    unsubscribe,
+enum class SocketOperation {
+    BIND,
+    CONNECT,
+    UNBIND,
+    DISCONNECT,
+    SUBSCRIBE,
+    UNSUBSCRIBE,
 };
 
-typedef std::pair<socket_ops, std::string>
+typedef std::pair<SocketOperation, std::string>
     socketOperation;  //!< easy definition for operation instruction
 
 /** data class describing a socket and some operations on it*/
@@ -49,7 +49,10 @@ class zmqSocketDescriptor {
         name(socketName), type(stype)
     {
     }
-    inline void addOperation(socket_ops op, const std::string& desc) { ops.emplace_back(op, desc); }
+    inline void addOperation(SocketOperation op, const std::string& desc)
+    {
+        ops.emplace_back(op, desc);
+    }
     zmq::socket_t makeSocket(zmq::context_t& ctx) const;
     std::unique_ptr<zmq::socket_t> makeSocketPtr(zmq::context_t& ctx) const;
     void modifySocket(zmq::socket_t& sock) const;

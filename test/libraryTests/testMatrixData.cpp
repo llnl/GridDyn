@@ -22,7 +22,7 @@
 
 TEST(MatrixDataTests, BlockCompute)
 {
-    blockCompute<2, sparse_ordering::column_ordered> bc1;
+    blockCompute<2, SparseOrdering::COLUMN_ORDERED> bc1;
     bc1.setMaxIndex(0, 20);
     std::vector<index_t> colcnt(6, 0);
     for (index_t pp = 0; pp < 20; ++pp) {
@@ -33,7 +33,7 @@ TEST(MatrixDataTests, BlockCompute)
     EXPECT_EQ(colcnt[2], 8);
     EXPECT_EQ(colcnt[3], 2);
 
-    blockCompute<2, sparse_ordering::row_ordered> bc2;
+    blockCompute<2, SparseOrdering::ROW_ORDERED> bc2;
     bc2.setMaxIndex(20, 0);
     std::vector<index_t> colcnt2(6, 0);
     for (index_t pp = 0; pp < 20; ++pp) {
@@ -47,7 +47,7 @@ TEST(MatrixDataTests, BlockCompute)
 
 TEST(MatrixDataTests, BlockCompute2)
 {
-    blockCompute<3, sparse_ordering::column_ordered> bc1;
+    blockCompute<3, SparseOrdering::COLUMN_ORDERED> bc1;
     bc1.setMaxIndex(7893, 7893);
     std::vector<index_t> colcnt(10, 0);
     for (index_t pp = 0; pp < 7893; ++pp) {
@@ -66,11 +66,11 @@ TEST(MatrixDataTests, BlockCompute2)
 
 TEST(MatrixDataTests, Keygen)
 {
-    keyCompute<std::uint32_t, sparse_ordering::column_ordered> kc1;
+    keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED> kc1;
 
     auto key1 = kc1.keyGen(45, 1);
     EXPECT_EQ(key1, (1 << 16) + 45);
-    keyCompute<std::uint32_t, sparse_ordering::row_ordered> kc2;
+    keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED> kc2;
     auto key2 = kc2.keyGen(45, 1);
     EXPECT_EQ(key2, (45 << 16) + 1);
 
@@ -79,11 +79,11 @@ TEST(MatrixDataTests, Keygen)
     EXPECT_EQ(kc2.row(key2), 45);
     EXPECT_EQ(kc2.col(key2), 1);
 
-    keyCompute<std::uint64_t, sparse_ordering::column_ordered> kc3;
+    keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED> kc3;
 
     auto key3 = kc3.keyGen(45, 1);
     EXPECT_EQ(key3, (static_cast<std::uint64_t>(1) << 32) + 45);
-    keyCompute<std::uint64_t, sparse_ordering::row_ordered> kc4;
+    keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED> kc4;
     auto key4 = kc4.keyGen(45, 1);
     EXPECT_EQ(key4, (static_cast<std::uint64_t>(45) << 32) + 1);
 
@@ -133,7 +133,7 @@ TEST(MatrixDataTests, Matrix1)
 
 TEST(MatrixDataTests, Matrix2)
 {
-    matrixDataSparseSMB<3, std::uint64_t, double, sparse_ordering::row_ordered> bigMatrix;
+    matrixDataSparseSMB<3, std::uint64_t, double, SparseOrdering::ROW_ORDERED> bigMatrix;
     bigMatrix.setColLimit(1000000);
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);

@@ -19,7 +19,7 @@ static constexpr char zipargAppend[] = "-a";
 static constexpr char zipargCompression[] = "-3";
 static constexpr char zipargJunkPath[] = "-j";
 
-int zip(const std::string& file, const std::vector<std::string>& filesToZip, zipMode mode)
+int zip(const std::string& file, const std::vector<std::string>& filesToZip, ZipMode mode)
 {
 #define NUMBER_FIXED_ARGS 5
 
@@ -39,7 +39,7 @@ int zip(const std::string& file, const std::vector<std::string>& filesToZip, zip
     -j  exclude path. store only the file name.
     */
     std::vector<const char*> argv{zipname,
-                                  (mode == zipMode::overwrite) ? zipargOverwrite : zipargAppend,
+                                  (mode == ZipMode::OVERWRITE) ? zipargOverwrite : zipargAppend,
                                   zipargCompression,
                                   zipargJunkPath,
                                   fileBuffer.data()};
@@ -86,7 +86,7 @@ static void addToFileList(std::vector<std::filesystem::path>& files,
     }
 }
 
-int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mode)
+int zipFolder(const std::string& file, const std::string& folderLoc, ZipMode mode)
 {
     const std::filesystem::path directoryPath(folderLoc);
     if (!std::filesystem::is_directory(directoryPath)) {
@@ -110,7 +110,7 @@ int zipFolder(const std::string& file, const std::string& folderLoc, zipMode mod
                                  file.c_str() + file.size() + 1U);  // 1U for /0 at end of string
 
     std::vector<const char*> argv{zipname,
-                                  (mode == zipMode::overwrite) ? zipargOverwrite : zipargAppend,
+                                  (mode == ZipMode::OVERWRITE) ? zipargOverwrite : zipargAppend,
                                   zipargCompression,
                                   fileBuffer.data()};
     std::vector<std::vector<char>> fileBuffers(zippedFiles.size());

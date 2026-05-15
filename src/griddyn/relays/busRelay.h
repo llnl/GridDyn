@@ -14,8 +14,8 @@ with a controllable delay time operates on undervoltage and underfrequency
 */
 class busRelay: public Relay {
   public:
-    enum busrelay_flags {
-        nondirectional_flag = object_flag10,  //!< specify that the relay is non directional
+    enum BusRelayFlags {
+        NONDIRECTIONAL_FLAG = object_flag10,  //!< specify that the relay is non directional
     };
 
   protected:

@@ -18,8 +18,8 @@ in a sequence and processes them in the appropriate fashion.
 class blockSequence: public Block {
   public:
   protected:
-    enum sequence_flags {
-        differential_inputActual =
+    enum SequenceFlags {
+        DIFFERENTIAL_INPUT_ACTUAL =
             object_flag11,  //!< flag specifying that the outer input is differential
     };
     std::vector<Block*> blocks;  //!< the building blocks in the sequence

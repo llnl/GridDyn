@@ -23,11 +23,11 @@ class adjustableTransformer: public acLine {
   public:
     /** @brief  enumeration of the available control types
      */
-    enum class control_mode_t {
-        manual_control = 0,  //!< no automatic adjustments
-        voltage_control = 1,  //!< automatic control based on voltage
-        MW_control = 2,  //!< automatic control based on real power flow at a specific terminal
-        MVar_control = 3  //!< automatic control based on real power flow at a specific terminal
+    enum class ControlMode {
+        MANUAL_CONTROL = 0,  //!< no automatic adjustments
+        VOLTAGE_CONTROL = 1,  //!< automatic control based on voltage
+        MW_CONTROL = 2,  //!< automatic control based on real power flow at a specific terminal
+        MVAR_CONTROL = 3  //!< automatic control based on real power flow at a specific terminal
     };
     /** @brief  flags for
      */
@@ -40,7 +40,7 @@ class adjustableTransformer: public acLine {
     };
 
   protected:
-    control_mode_t cMode = control_mode_t::manual_control;  //!< control Mode
+    ControlMode cMode = ControlMode::MANUAL_CONTROL;  //!< control Mode
     model_parameter stepSize =
         0.01;  //!< step size of the adjustment for non-continuous adjustments
     model_parameter maxTapAngle = kPI / 4.0;  //!< maximum tap angle

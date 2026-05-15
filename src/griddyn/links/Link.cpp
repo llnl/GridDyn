@@ -46,10 +46,10 @@ namespace links {
 
     static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});
 
-    static typeFactoryArg<acdcConverter, acdcConverter::mode_t>
-        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::mode_t::rectifier);
-    static typeFactoryArg<acdcConverter, acdcConverter::mode_t>
-        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::mode_t::inverter);
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);
     static childTypeFactory<acdcConverter, Link>
         acdc("link", stringVec{"acdc", "acdcconverter", "dcconverter"});
 }  // namespace links

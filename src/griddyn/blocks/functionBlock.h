@@ -17,8 +17,8 @@ operations*/
 class functionBlock: public Block {
   public:
     //!< flags for function block
-    enum functionblock_flags {
-        uses_constantarg =
+    enum FunctionBlockFlags {
+        USES_CONSTANT_ARG =
             object_flag10,  //!< flag indicating that the function should use a constant
                             //!< argument for the second argument of functions
     };

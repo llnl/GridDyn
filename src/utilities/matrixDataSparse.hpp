@@ -42,7 +42,7 @@ class matrixDataSparse: public matrixData<ValueT> {
     /**
      * sort the index based first on column number then column number
      */
-    void sortIndex(sparse_ordering ordering = sparse_ordering::row_ordered);
+    void sortIndex(SparseOrdering ordering = SparseOrdering::ROW_ORDERED);
 
     /**
      * @brief compact the index merging values with the same row and

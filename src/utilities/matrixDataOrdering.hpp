@@ -9,15 +9,15 @@
 #include <utility>
 
 /** @brief enumeration specifying sparse ordering patterns*/
-enum class sparse_ordering {
-    row_ordered = 0,
-    column_ordered = 1,
+enum class SparseOrdering {
+    ROW_ORDERED = 0,
+    COLUMN_ORDERED = 1,
 };
 
 // default to row major ordering
 /** class to reorder row and column into primary and secondary indices
  */
-template<class Y, sparse_ordering M>
+template<class Y, SparseOrdering M>
 class keyOrder {
   public:
     static Y primary(Y rowIndex, Y /*colIndex*/) { return rowIndex; }
@@ -26,7 +26,7 @@ class keyOrder {
 };
 
 template<class Y>
-class keyOrder<Y, sparse_ordering::column_ordered> {
+class keyOrder<Y, SparseOrdering::COLUMN_ORDERED> {
   public:
     static Y primary(Y /*rowIndex*/, Y colIndex) { return colIndex; }
     static Y secondary(Y rowIndex, Y /*colIndex*/) { return rowIndex; }

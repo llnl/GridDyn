@@ -11,14 +11,14 @@
 #include <vector>
 
 /** @brief enumeration of the different function types*/
-enum class function_type {
-    all,  //!< all possible function types
-    no_args,  //!< functions with no arguments
-    arg,  //!< function with 1 argument
-    arg2,  //!< functions with 2 arguments
-    arg3,  // 1< functions with 3 arguments
-    vect_arg,  //!< function with a vector arguments
-    vect_arg2  //!< functions with 2 vector arguments
+enum class FunctionType {
+    ALL,  //!< all possible function types
+    NO_ARGS,  //!< functions with no arguments
+    ARG,  //!< function with 1 argument
+    ARG2,  //!< functions with 2 arguments
+    ARG3,  // 1< functions with 3 arguments
+    VECT_ARG,  //!< function with a vector arguments
+    VECT_ARG2  //!< functions with 2 vector arguments
 };
 
 using function0_t = double (*)();
@@ -80,7 +80,7 @@ double evalFunction(std::string_view functionName,
 @param[in] ftype the class of functions to check
 @return true if the string is a function name false otherwise
 */
-bool isFunctionName(std::string_view functionName, function_type ftype = function_type::all);
+bool isFunctionName(std::string_view functionName, FunctionType ftype = FunctionType::ALL);
 
 /** @brief find a no argument function and return the corresponding lambda function
 @param[in] functionName the function name

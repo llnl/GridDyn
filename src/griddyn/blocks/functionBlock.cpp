@@ -52,7 +52,7 @@ void functionBlock::dynObjectInitializeB(const IOdata& inputs,
                                          IOdata& fieldSet)
 {
     if (desiredOutput.empty()) {
-        if (opFlags[uses_constantarg]) {
+        if (opFlags[USES_CONSTANT_ARG]) {
             m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (inputs[0] + bias), mArg2);
         } else {
             m_state[limiter_alg] = K * mFunctionPtr(mGain * (inputs[0] + bias));
@@ -69,7 +69,7 @@ void functionBlock::blockAlgebraicUpdate(double input,
                                          const solverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
-    if (opFlags[uses_constantarg]) {
+    if (opFlags[USES_CONSTANT_ARG]) {
         update[offset] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);
     } else {
         update[offset] = K * mFunctionPtr(mGain * (input + bias));
@@ -89,7 +89,7 @@ void functionBlock::blockJacobianElements(double input,
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    if (opFlags[uses_constantarg]) {
+    if (opFlags[USES_CONSTANT_ARG]) {
         const double temp1 = mBinaryFunctionPtr(mGain * (input + bias), mArg2);
         const double temp2 = mBinaryFunctionPtr(mGain * (input + 1e-8 + bias), mArg2);
         matrixDataValue.assignCheck(offset, argLoc, K * (temp2 - temp1) / 1e-8);
@@ -112,7 +112,7 @@ void functionBlock::blockJacobianElements(double input,
 
 double functionBlock::step(coreTime time, double input)
 {
-    if (opFlags[uses_constantarg]) {
+    if (opFlags[USES_CONSTANT_ARG]) {
         m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);
     } else {
         m_state[limiter_alg] = K * mFunctionPtr(mGain * (input + bias));
@@ -153,12 +153,12 @@ void functionBlock::setFunction(const std::string& functionName)
         mFunctionPtr = unaryFunctionPtr;
         mDerivativeFunctionPtr = getDerivative1ArgFunction(functionName);
         mBinaryFunctionPtr = nullptr;
-        opFlags.reset(uses_constantarg);
+        opFlags.reset(USES_CONSTANT_ARG);
     } else if (auto binaryFunctionPtr = get2ArgFunction(functionName)) {
         mFunctionPtr = nullptr;
         mDerivativeFunctionPtr = nullptr;
         mBinaryFunctionPtr = binaryFunctionPtr;
-        opFlags.set(uses_constantarg);
+        opFlags.set(USES_CONSTANT_ARG);
     } else {
         mFunctionPtr = nullptr;
         mDerivativeFunctionPtr = nullptr;
@@ -175,7 +175,7 @@ offsets.getLocations(sD, sMode, &Loc, this);
 double val = Loc.algStateLoc[1];
 if (!inputs.empty())
 {
-if (opFlags[uses_constantarg])
+if (opFlags[USES_CONSTANT_ARG])
 {
   val = fptr2(gain*(inputs[0] + bias), arg2);
 }

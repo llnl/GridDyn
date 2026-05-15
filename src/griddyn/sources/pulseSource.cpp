@@ -13,14 +13,6 @@
 #include <string>
 
 namespace griddyn::sources {
-/*
-enum pulse_type_t{ square = 0, triangle = 1, gaussian = 2, biexponential = 3, exponential = 4 };
-pulse_type_t ptype;
-protected:
-double period;
-double duty_cylce;
-double A;
-double nextCycleTime;*/
 using units::unit;
 
 pulseSource::pulseSource(const std::string& objName, double startVal):
@@ -108,19 +100,19 @@ void pulseSource::set(std::string_view param, std::string_view val)
     if ((param == "type") || (param == "pulsetype")) {
         auto vtype = gmlc::utilities::convertToLowerCase(val);
         if (vtype == "square") {
-            ptype = pulse_type_t::square;
+            ptype = PulseType::SQUARE;
         } else if (vtype == "triangle") {
-            ptype = pulse_type_t::triangle;
+            ptype = PulseType::TRIANGLE;
         } else if (vtype == "gaussian") {
-            ptype = pulse_type_t::gaussian;
+            ptype = PulseType::GAUSSIAN;
         } else if (vtype == "exponential") {
-            ptype = pulse_type_t::exponential;
+            ptype = PulseType::EXPONENTIAL;
         } else if (vtype == "biexponential") {
-            ptype = pulse_type_t::biexponential;
+            ptype = PulseType::BIEXPONENTIAL;
         } else if (vtype == "monocycle") {
-            ptype = pulse_type_t::monocycle;
+            ptype = PulseType::MONOCYCLE;
         } else if ((vtype == "sine") || (vtype == "cosine")) {
-            ptype = pulse_type_t::cosine;
+            ptype = PulseType::COSINE;
         }
 
         cycleTime -= period;
@@ -186,36 +178,36 @@ double pulseSource::pulseCalc(double td) const
 
     double pamp = 0.0;
     switch (ptype) {
-        case pulse_type_t::square:
+        case PulseType::SQUARE:
             pamp = Amplitude;
             break;
-        case pulse_type_t::triangle:
+        case PulseType::TRIANGLE:
             pamp = 2.0 * Amplitude * ((prop < 0.5) ? prop : (1.0 - prop));
             break;
-        case pulse_type_t::gaussian:
+        case PulseType::GAUSSIAN:
             pamp = mult * Amplitude * exp((prop - 0.5) * (prop - 0.5) * 25.0);
             break;
-        case pulse_type_t::monocycle:
+        case PulseType::MONOCYCLE:
             pamp = mult * Amplitude * 11.6583 * (prop - 0.5) * exp(-(prop - 0.5) * (prop - 0.5));
             break;
-        case pulse_type_t::biexponential:
+        case PulseType::BIEXPONENTIAL:
             if (prop < 0.5) {
                 pamp = mult * Amplitude * exp(-(0.5 - prop) * 12.0);
             } else {
                 pamp = mult * Amplitude * exp(-(prop - 0.5) * 12.0);
             }
             break;
-        case pulse_type_t::exponential:
+        case PulseType::EXPONENTIAL:
             if (prop < 0.5) {
                 mult = 1.0;
             }
             pamp = mult * Amplitude * exp(-prop * 6.0);
             break;
-        case pulse_type_t::cosine:
+        case PulseType::COSINE:
 
             pamp = Amplitude * sin(prop * kPI);
             break;
-        case pulse_type_t::flattop:
+        case PulseType::FLATTOP:
             if (prop < 0.25) {
                 pamp = Amplitude / 2.0 * (-cos(kPI * prop * 4.0) + 1.0);
             } else if (prop > 0.75) {

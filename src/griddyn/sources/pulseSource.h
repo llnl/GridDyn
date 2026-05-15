@@ -15,17 +15,17 @@ class pulseSource: public Source {
   public:
     static const char invert_flag = object_flag3;  //!< flag location indicating an inverse waveform
     /** enumeration of the different available pulse types*/
-    enum class pulse_type_t {
-        square,
-        triangle,
-        gaussian,
-        biexponential,
-        exponential,
-        cosine,
-        flattop,
-        monocycle
+    enum class PulseType {
+        SQUARE,
+        TRIANGLE,
+        GAUSSIAN,
+        BIEXPONENTIAL,
+        EXPONENTIAL,
+        COSINE,
+        FLATTOP,
+        MONOCYCLE
     };
-    pulse_type_t ptype = pulse_type_t::square;  //!< the type of the pulse
+    PulseType ptype = PulseType::SQUARE;  //!< the type of the pulse
   protected:
     coreTime period = maxTime;  //!<[s] pulse period
     model_parameter dutyCycle = 0.5;  //!<[%] pulse duty cycle

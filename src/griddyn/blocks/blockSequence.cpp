@@ -32,7 +32,7 @@ coreObject* blockSequence::clone(coreObject* obj) const
 
 void blockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    bool diffInput = opFlags[differential_inputActual];
+    bool diffInput = opFlags[DIFFERENTIAL_INPUT_ACTUAL];
     if (sequence.empty()) {  // create a default sequence with all the blocks
         for (int kk = 0; kk < static_cast<int>(blocks.size()); ++kk) {
             sequence.push_back(kk);
@@ -269,7 +269,7 @@ change_code blockSequence::rootCheck(const IOdata& inputs,
 void blockSequence::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
-        opFlags.set(differential_inputActual, val);
+        opFlags.set(DIFFERENTIAL_INPUT_ACTUAL, val);
     } else {
         Block::setFlag(flag, val);
     }

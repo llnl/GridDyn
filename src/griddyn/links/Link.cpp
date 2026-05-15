@@ -39,26 +39,26 @@ using units::unit;
 static typeFactory<Link> blf("link", stringVec{"trivial", "basic", "transport"});
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static childTypeFactory<acLine, Link> glf(
-    "link", stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"}, "ac");
+static childTypeFactory<acLine, Link>
+    glf("link", stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"}, "ac");
 
 namespace links {
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static childTypeFactory<adjustableTransformer, Link> gfad(
-        "link", stringVec{"adjust", "adjustable", "adjustabletransformer"});
+    static childTypeFactory<adjustableTransformer, Link>
+        gfad("link", stringVec{"adjust", "adjustable", "adjustabletransformer"});
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcrect(
-        "link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcinv(
-        "link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static childTypeFactory<acdcConverter, Link> acdc(
-        "link", stringVec{"acdc", "acdcconverter", "dcconverter"});
+    static childTypeFactory<acdcConverter, Link>
+        acdc("link", stringVec{"acdc", "acdcconverter", "dcconverter"});
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

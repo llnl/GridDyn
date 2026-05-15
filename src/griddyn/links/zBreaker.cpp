@@ -17,8 +17,8 @@
 namespace griddyn::links {
 using units::unit;
 
-static typeFactory<zBreaker> glf(
-    "link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
+static typeFactory<zBreaker>
+    glf("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
 
 zBreaker::zBreaker(const std::string& objName): Link(objName), merged(coreObject::extra_bool)
 {

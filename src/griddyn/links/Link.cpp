@@ -36,20 +36,21 @@ using units::unit;
 // make the object factory types
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<Link>
-    blf("link", std::to_array<std::string_view>({"trivial", "basic", "transport"}));
+static typeFactory<Link> blf("link",
+                             std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static childTypeFactory<acLine, Link>
-    glf("link",
-        std::to_array<std::string_view>(
-            {"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
-        "ac");  // NOLINT(bugprone-throwing-static-initialization)
+static childTypeFactory<acLine, Link> glf(
+    "link",
+    std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
+    "ac");  // NOLINT(bugprone-throwing-static-initialization)
 
 namespace links {
-    static childTypeFactory<adjustableTransformer, Link> gfad(
-        "link",
-        std::to_array<std::string_view>(
-            {"adjust", "adjustable", "adjustabletransformer"}));  // NOLINT(bugprone-throwing-static-initialization)
+    static childTypeFactory<adjustableTransformer, Link>
+        gfad("link",
+             std::to_array<std::string_view>(
+                 {"adjust",
+                  "adjustable",
+                  "adjustabletransformer"}));  // NOLINT(bugprone-throwing-static-initialization)
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link>
@@ -66,7 +67,9 @@ namespace links {
     static childTypeFactory<acdcConverter, Link>
         acdc("link",
              std::to_array<std::string_view>(
-                 {"acdc", "acdcconverter", "dcconverter"}));  // NOLINT(bugprone-throwing-static-initialization)
+                 {"acdc",
+                  "acdcconverter",
+                  "dcconverter"}));  // NOLINT(bugprone-throwing-static-initialization)
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

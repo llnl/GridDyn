@@ -38,21 +38,19 @@ namespace genmodels {
         gfgm5("genmodel",
               std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 
-    static childTypeFactory<GenModel5type2, GenModel>
-        gfgm5p2("genmodel",
-                std::to_array<std::string_view>(
-                    {"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
+    static childTypeFactory<GenModel5type2, GenModel> gfgm5p2(
+        "genmodel",
+        std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 
     // static typeFactory<GenModel5type3> gfgm5p3 ("genmodel", stringVec{"5.3",
     // "fifthtype3", "fifthordertype3", "Vtype3"});
 
-    static childTypeFactory<GenModel6, GenModel> gfgm6(
-        "genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
+    static childTypeFactory<GenModel6, GenModel>
+        gfgm6("genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
 
-    static childTypeFactory<GenModel6type2, GenModel>
-        gfgm6p2("genmodel",
-                std::to_array<std::string_view>(
-                    {"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
+    static childTypeFactory<GenModel6type2, GenModel> gfgm6p2(
+        "genmodel",
+        std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
     /*
 static typeFactory<GenModelGENROU> gfgm6p3("genmodel", stringVec{"6.3",
 "sixtype3", "sixthordertype3", "VItype3", "VI.3","genrou"});

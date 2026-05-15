@@ -37,8 +37,8 @@ static childTypeFactory<acBus, gridBus>
     gbfac("bus",
           std::to_array<std::string_view>({"ac", "pq", "pv", "slk", "slack", "afix", "ref"}),
           "ac");
-static childTypeFactory<dcBus, gridBus>
-    gbfdc("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
+static childTypeFactory<dcBus, gridBus> gbfdc("bus",
+                                              std::to_array<std::string_view>({"dc", "hvdc"}));
 static childTypeFactory<infiniteBus, gridBus>
     igbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
 

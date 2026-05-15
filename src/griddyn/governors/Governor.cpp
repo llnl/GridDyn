@@ -16,25 +16,22 @@
 
 namespace griddyn {
 // Create the component factories for the various governors
-static typeFactory<Governor> gfgov1(
-    "governor", std::to_array<std::string_view>({"simple", "fast"}));
+static typeFactory<Governor> gfgov1("governor",
+                                    std::to_array<std::string_view>({"simple", "fast"}));
 namespace governors {
     static childTypeFactory<GovernorIeeeSimple, Governor>
         gfgovsi("governor", std::to_array<std::string_view>({"basic", "ieeesimple"}), "basic");
 
     static childTypeFactory<GovernorReheat, Governor>
         gfgovrh("governor", std::to_array<std::string_view>({"reheat"}));
-    static childTypeFactory<GovernorHydro, Governor> gfgov2("governor",
-                                                            std::to_array<std::string_view>(
-                                                                {"ieeehydro", "hydro"}));
+    static childTypeFactory<GovernorHydro, Governor>
+        gfgov2("governor", std::to_array<std::string_view>({"ieeehydro", "hydro"}));
 
-    static childTypeFactory<GovernorSteamNR, Governor> gfgov3("governor",
-                                                              std::to_array<std::string_view>(
-                                                                  {"ieeesteamnr", "steamnr"}));
+    static childTypeFactory<GovernorSteamNR, Governor>
+        gfgov3("governor", std::to_array<std::string_view>({"ieeesteamnr", "steamnr"}));
 
     static childTypeFactory<GovernorSteamTCSR, Governor>
-        gfgov4("governor",
-               std::to_array<std::string_view>({"ieeesteamtcsr", "steamtcsr"}));
+        gfgov4("governor", std::to_array<std::string_view>({"ieeesteamtcsr", "steamtcsr"}));
 
     static childTypeFactory<GovernorTgov1, Governor>
         gfgov5("governor", std::to_array<std::string_view>({"tgov1"}));

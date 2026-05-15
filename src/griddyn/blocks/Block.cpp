@@ -19,8 +19,8 @@
 
 namespace griddyn {
 // object factory statements
-static typeFactory<Block> bbof(
-    "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
+static typeFactory<Block>
+    bbof("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
 namespace blocks {
     static childTypeFactory<controlBlock, Block> cbof("block", "control");
     static childTypeFactory<deadbandBlock, Block>
@@ -38,8 +38,7 @@ namespace blocks {
         derbof("block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
     static childTypeFactory<filteredDerivativeBlock, Block>
         fderbof("block",
-                std::to_array<std::string_view>(
-                    {"fder", "filtered_deriv", "filtered_derivative"}));
+                std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
 }  // namespace blocks
 
 Block::Block(const std::string& objName): gridSubModel(objName)

@@ -17,8 +17,7 @@ objectFactory::objectFactory(std::string_view /*component*/, std::string typeNam
 }
 
 objectFactory::objectFactory(std::string_view /*component*/,
-                             std::span<const std::string_view> typeNames):
-    name(typeNames[0])
+                             std::span<const std::string_view> typeNames): name(typeNames[0])
 {
 }
 

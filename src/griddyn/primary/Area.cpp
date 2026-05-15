@@ -40,8 +40,7 @@ using units::unit;
 
 std::atomic<count_t> Area::areaCounter{0};
 
-static typeFactory<Area> gf(
-    "area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
+static typeFactory<Area> gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
 
 Area::Area(const std::string& objName): gridPrimary(objName)
 {

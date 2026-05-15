@@ -13,8 +13,8 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-static typeFactory<aggregateLoad> glfld(
-    "load", std::to_array<std::string_view>({"composite", "cluster", "group"}));
+static typeFactory<aggregateLoad>
+    glfld("load", std::to_array<std::string_view>({"composite", "cluster", "group"}));
 
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;

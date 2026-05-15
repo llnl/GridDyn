@@ -33,8 +33,9 @@ using units::unit;
 
 // setup the load object factories
 static typeFactory<Load> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
-static childTypeFactory<zipLoad, Load>
-    zlf("load", std::to_array<std::string_view>({"basic", "zip"}), "zip");  // set basic to the default
+static childTypeFactory<zipLoad, Load> zlf("load",
+                                           std::to_array<std::string_view>({"basic", "zip"}),
+                                           "zip");  // set basic to the default
 namespace loads {
     static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
         glfp("load", "pulse", sourceLoad::sourceType::pulse);
@@ -53,13 +54,11 @@ namespace loads {
     static childTypeFactory<exponentialLoad, Load>
         glexp("load", std::to_array<std::string_view>({"exponential", "exp"}));
     static childTypeFactory<fDepLoad, Load> glfd("load", "fdep");
-    static childTypeFactory<ThreePhaseLoad, Load> gl3("load",
-                                                      std::to_array<std::string_view>(
-                                                          {"3phase", "3p", "threephase"}));
+    static childTypeFactory<ThreePhaseLoad, Load>
+        gl3("load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
-    static childTypeFactory<approximatingLoad, Load> apld("load",
-                                                          std::to_array<std::string_view>(
-                                                              {"approx", "approximating"}));
+    static childTypeFactory<approximatingLoad, Load>
+        apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
 
 zipLoad::zipLoad(const std::string& objName): Load(objName) {}

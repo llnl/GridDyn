@@ -48,6 +48,7 @@ static void addContingencyIfUnique(std::vector<std::shared_ptr<Contingency>>& co
                                    const Contingency& contingency2,
                                    bool simplified);
 
+// NOLINTNEXTLINE(misc-no-recursion)
 size_t buildContingencyList(gridDynSimulation* gds,
                             ContingencyMode cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
@@ -60,38 +61,32 @@ size_t buildContingencyList(gridDynSimulation* gds,
         {
             auto contingencies =
                 buildContingencyList(gds, ContingencyMode::LINE, contList, info, skip);
-            skip -= static_cast<int>(contingencies);
-            if (skip < 0) {
-                skip = 0;
-            }
+            skip = std::max(skip - static_cast<int>(contingencies), 0);
 
             contingencies = buildContingencyList(gds, ContingencyMode::GEN, contList, info, skip);
-            skip -= static_cast<int>(contingencies);
-            if (skip < 0) {
-                skip = 0;
-            }
+            skip = std::max(skip - static_cast<int>(contingencies), 0);
             buildContingencyList(gds, ContingencyMode::LOAD, contList, info, skip);
             break;
         }
         case ContingencyMode::N_1_1:  // N-1-1 contingencies
         {
-            auto C1 = buildContingencyList(gds, "N-1", info);
+            const auto nMinusOneContingencies = buildContingencyList(gds, "N-1", info);
             extraContingencyInfo build(info);
             build.stage = 1;
-            contList.reserve(C1.size() * C1.size());
-            for (auto& cont : C1) {
+            contList.reserve(nMinusOneContingencies.size() * nMinusOneContingencies.size());
+            for (auto& cont : nMinusOneContingencies) {
                 build.baseCont = cont->clone();
                 buildContingencyList(gds, ContingencyMode::N_1, contList, build);
             }
         } break;
         case ContingencyMode::N_2:  // N-2 contingencies
         {
-            auto C1 = buildContingencyList(gds, "N-1", info);
+            const auto nMinusOneContingencies = buildContingencyList(gds, "N-1", info);
             extraContingencyInfo build(info);
             build.stage = 0;
-            contList.reserve(C1.size() * C1.size() / 2);
+            contList.reserve(nMinusOneContingencies.size() * nMinusOneContingencies.size() / 2);
             int contIndex{0};
-            for (auto& cont : C1) {
+            for (auto& cont : nMinusOneContingencies) {
                 ++contIndex;
                 build.baseCont = cont->clone();
                 buildContingencyList(gds, ContingencyMode::N_1, contList, build, contIndex);
@@ -106,12 +101,12 @@ size_t buildContingencyList(gridDynSimulation* gds,
         } break;
         case ContingencyMode::N_2_LINE:  // N-2 line contingencies
         {
-            auto C1 = buildContingencyList(gds, "line", info);
+            const auto lineContingencies = buildContingencyList(gds, "line", info);
             extraContingencyInfo build(info);
             build.stage = 0;
-            contList.reserve(C1.size() * C1.size() / 2);
+            contList.reserve(lineContingencies.size() * lineContingencies.size() / 2);
             int contIndex{0};
-            for (auto& cont : C1) {
+            for (auto& cont : lineContingencies) {
                 ++contIndex;
                 build.baseCont = cont->clone();
                 buildLineContingencies(gds, contList, build, contIndex);
@@ -126,13 +121,13 @@ size_t buildContingencyList(gridDynSimulation* gds,
         } break;
         case ContingencyMode::N_3_LINE:  // N-3 line contingencies
         {
-            auto C1 = buildContingencyList(gds, "line", info);
-            auto C2 = buildContingencyList(gds, "N-2-LINE", info);
+            const auto lineContingencies = buildContingencyList(gds, "line", info);
+            const auto nMinusTwoLineContingencies = buildContingencyList(gds, "N-2-LINE", info);
             extraContingencyInfo build(info);
             build.stage = 0;
-            contList.reserve(C2.size() * C1.size() / 2);
-            for (const auto& cont2 : C2) {
-                for (const auto& cont1 : C1) {
+            contList.reserve(nMinusTwoLineContingencies.size() * lineContingencies.size() / 2);
+            for (const auto& cont2 : nMinusTwoLineContingencies) {
+                for (const auto& cont1 : lineContingencies) {
                     addContingencyIfUnique(contList, *cont2, *cont1, info.simplified);
                 }
             }
@@ -169,12 +164,13 @@ size_t buildContingencyList(gridDynSimulation* gds,
     return static_cast<index_t>(contList.size() - cnt);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 std::vector<std::shared_ptr<Contingency>> buildContingencyList(gridDynSimulation* gds,
                                                                const std::string& contMode,
                                                                const extraContingencyInfo& info,
                                                                int skip)
 {
-    ContingencyMode cmode = getContingencyMode(contMode);
+    const ContingencyMode cmode = getContingencyMode(contMode);
     std::vector<std::shared_ptr<Contingency>> contList;
     buildContingencyList(gds, cmode, contList, info, skip);
 
@@ -219,9 +215,9 @@ void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
             break;
         }
     }
-    if (output.compare(0, 6, "file:/") == 0) {
+    if (output.starts_with("file:/")) {
         saveContingencyOutput(usedList, output.substr(7), numContingencies);
-    } else if (output.compare(0, 10, "database:/") == 0) {
+    } else if (output.starts_with("database:/")) {
         // TODO(PT)::something with a database
     } else {
         // assume it is a file output
@@ -236,7 +232,7 @@ void buildBusContingencies(gridDynSimulation* gds,
 {
     std::vector<gridBus*> buses;
     gds->getBusVector(buses);
-    size_t startSize = contList.size();
+    const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());
     int busIndex{0};
     for (auto& bus : buses) {
@@ -244,10 +240,10 @@ void buildBusContingencies(gridDynSimulation* gds,
             if (busIndex++ < skip) {
                 continue;
             }
-            std::shared_ptr<Event> ge = std::make_shared<Event>();
-            ge->setTarget(bus, "enabled");
-            ge->setValue(0.0);
-            addContingency(gds, contList, ge, info);
+            std::shared_ptr<Event> event = std::make_shared<Event>();
+            event->setTarget(bus, "enabled");
+            event->setValue(0.0);
+            addContingency(gds, contList, event, info);
         }
     }
 }
@@ -259,7 +255,7 @@ void buildLineContingencies(gridDynSimulation* gds,
 {
     std::vector<Link*> links;
     gds->getLinkVector(links);
-    size_t startSize = contList.size();
+    const size_t startSize = contList.size();
     int lineIndex{0};
     contList.reserve(startSize + links.size());
     for (auto& lnk : links) {
@@ -267,10 +263,10 @@ void buildLineContingencies(gridDynSimulation* gds,
             if (lineIndex++ < skip) {
                 continue;
             }
-            std::shared_ptr<Event> ge = std::make_shared<Event>();
-            ge->setTarget(lnk, "connected");
-            ge->setValue(0.0);
-            addContingency(gds, contList, ge, info);
+            std::shared_ptr<Event> event = std::make_shared<Event>();
+            event->setTarget(lnk, "connected");
+            event->setValue(0.0);
+            addContingency(gds, contList, event, info);
         }
     }
 }
@@ -282,23 +278,25 @@ void buildLoadContingencies(gridDynSimulation* gds,
 {
     std::vector<gridBus*> buses;
     gds->getBusVector(buses);
-    size_t startSize = contList.size();
+    const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());
     int loadIndex{0};
     for (auto& bus : buses) {
         if (bus->isConnected()) {
-            index_t kk = 0;
-            auto* ld = bus->getLoad(0);
-            while (ld != nullptr) {
+            index_t loadOffset = 0;
+            auto* load = bus->getLoad(0);
+            while (load != nullptr) {
                 if (loadIndex++ < skip) {
+                    ++loadOffset;
+                    load = bus->getLoad(loadOffset);
                     continue;
                 }
-                auto ge = std::make_shared<Event>();
-                ge->setTarget(ld, "connected");
-                ge->setValue(0.0);
-                addContingency(gds, contList, ge, info);
-                ++kk;
-                ld = bus->getLoad(kk);
+                auto event = std::make_shared<Event>();
+                event->setTarget(load, "connected");
+                event->setValue(0.0);
+                addContingency(gds, contList, event, info);
+                ++loadOffset;
+                load = bus->getLoad(loadOffset);
             }
         }
     }
@@ -311,23 +309,25 @@ void buildGenContingencies(gridDynSimulation* gds,
 {
     std::vector<gridBus*> buses;
     gds->getBusVector(buses);
-    size_t startSize = contList.size();
+    const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());
     int genIndex{0};
     for (auto& bus : buses) {
         if (bus->isConnected()) {
-            index_t kk = 0;
+            index_t genOffset = 0;
             auto* gen = bus->getGen(0);
             while (gen != nullptr) {
                 if (genIndex++ < skip) {
+                    ++genOffset;
+                    gen = bus->getGen(genOffset);
                     continue;
                 }
-                auto ge = std::make_shared<Event>();
-                ge->setTarget(gen, "connected");
-                ge->setValue(0.0);
-                addContingency(gds, contList, ge, info);
-                ++kk;
-                gen = bus->getGen(kk);
+                auto event = std::make_shared<Event>();
+                event->setTarget(gen, "connected");
+                event->setValue(0.0);
+                addContingency(gds, contList, event, info);
+                ++genOffset;
+                gen = bus->getGen(genOffset);
             }
         }
     }

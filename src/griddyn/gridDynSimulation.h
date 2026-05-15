@@ -428,13 +428,13 @@ class gridDynSimulation: public gridSimulation {
     @param[in] sMode the solverMode to use for the computations
     */
     void parameterDerivatives(coreTime time,
-                              parameterSet& po,
+                              parameterSet& parameterOperators,
                               const index_t indices[],
                               const double values[],
                               count_t parameterCount,
                               const double state[],
                               const double dstate_dt[],
-                              matrixData<double>& md,
+                              matrixData<double>& matrixDataRef,
                               const solverMode& sMode);
 
     /** @brief solve for the algebraic components of a system for use with the ode solvers
@@ -555,7 +555,7 @@ class gridDynSimulation: public gridSimulation {
     @return if sMode is valid it returns that if not it finds the current active mode and returns a
     reference to that
     */
-    const solverMode& getCurrentMode(const solverMode& sMode = cEmptySolverMode) const;
+    solverMode getCurrentMode(const solverMode& sMode = cEmptySolverMode) const;
 
     /** @brief makes sure the SolverInterface object is ready to run solutions
     @param[in] solver pointer to a solver to make ready
@@ -565,7 +565,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] sD the stateData object to load
     @param[in] sMode the solverMode of the state Data object
     */
-    void fillExtraStateData(stateData& sD, const solverMode& sMode) const;
+    void fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const;
     /** @brief add an initialization function that will execute prior to the internal initialization
     in HELICS
     @param fptr a function object that returns an int.  if the value is non-zero it returns a

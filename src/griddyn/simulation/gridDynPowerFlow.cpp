@@ -28,12 +28,12 @@ namespace griddyn {
 // power flow solver
 int gridDynSimulation::powerflow()
 {
-    const solverMode& sm = *defPowerFlowMode;
-    int out = FUNCTION_EXECUTION_SUCCESS;
+    const solverMode& solverModeRef = *defPowerFlowMode;
+    const int out = FUNCTION_EXECUTION_SUCCESS;
     count_t voltage_iteration_count = 0;
     count_t power_iteration_count = 0;
     double prevPower = 0;
-    int retval = makeReady(gridState_t::INITIALIZED, sm);
+    int retval = makeReady(gridState_t::INITIALIZED, solverModeRef);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         logging::error(this, "Unable to get simulation ready for power flow");
         return retval;
@@ -44,7 +44,7 @@ int gridDynSimulation::powerflow()
 
     std::vector<double> slkBusBase(slkBusses.size());
 
-    auto pFlowData = getSolverInterface(sm);
+    auto pFlowData = getSolverInterface(solverModeRef);
     // Create the error recovery object to use if necessary
     powerFlowErrorRecovery pfer(this, pFlowData);
 
@@ -64,7 +64,7 @@ int gridDynSimulation::powerflow()
             voltage_iteration_count = 0;
             change_code AdjustmentChanges = change_code::no_change;
             do {
-                guessState(currentTime, pFlowData->state_data(), nullptr, sm);
+                guessState(currentTime, pFlowData->state_data(), nullptr, solverModeRef);
                 if ((controlFlags[save_power_flow_input_data] &&
                      !controlFlags[power_flow_input_saved])) {
                     savePowerFlow(this, powerFlowInputFile);
@@ -88,7 +88,7 @@ int gridDynSimulation::powerflow()
                     if (prc == powerFlowErrorRecovery::RecoveryReturnCodes::OUT_OF_OPTIONS) {
                         if (tripSlippedLines() > 0) {
                             checkNetwork(NetworkCheckType::FULL);
-                            reInitpFlow(sm, change_code::jacobian_change);
+                            reInitpFlow(solverModeRef, change_code::jacobian_change);
                             if (hasPowerAdjustments) {
                                 slkBusBase.resize(slkBusses.size());
                                 for (size_t kk = 0; kk < slkBusses.size(); ++kk) {
@@ -100,8 +100,8 @@ int gridDynSimulation::powerflow()
                         if (!controlFlags[disable_automatic_load_loss]) {
                             ++rebalance_count;
                             if (rebalance_count < 3) {
-                                int check = rebalanceLoadGen();
-                                if (check == 0) {
+                                const int rebalanceStatus = rebalanceLoadGen();
+                                if (rebalanceStatus == 0) {
                                     continue;
                                 }
                             }
@@ -121,14 +121,14 @@ int gridDynSimulation::powerflow()
                 if (pfer.attempts() > 0) {
                     if (!std::all_of(pFlowData->state_data(),
                                      pFlowData->state_data() + pFlowData->size(),
-                                     [](double a) { return std::isfinite(a); })) {
+                                     [](double stateValue) { return std::isfinite(stateValue); })) {
                         logging::warning(this, "solver returned an infinite or nan");
                         retval = -30;
                     }
                 }
                 currentTime = returnTime;
                 // pass the solution to the bus objects
-                setState(currentTime, pFlowData->state_data(), nullptr, sm);
+                setState(currentTime, pFlowData->state_data(), nullptr, solverModeRef);
                 // tell the components to calculate some parameters and power flows
                 updateLocalCache();
 
@@ -158,7 +158,7 @@ int gridDynSimulation::powerflow()
                     }
 
                     if (AdjustmentChanges > change_code::non_state_change) {
-                        reInitpFlow(sm, AdjustmentChanges);
+                        reInitpFlow(solverModeRef, AdjustmentChanges);
                     }
                     if (AdjustmentChanges == change_code::no_change) {
                         // if there were no adjustable changes check if there was any non-reversable
@@ -169,7 +169,7 @@ int gridDynSimulation::powerflow()
                         if (AdjustmentChanges > change_code::no_change) {
                             checkNetwork(NetworkCheckType::SIMPLIFIED);
                             if (AdjustmentChanges == change_code::state_count_change) {
-                                reInitpFlow(sm, AdjustmentChanges);
+                                reInitpFlow(solverModeRef, AdjustmentChanges);
                             }
                         }
                     }
@@ -185,7 +185,7 @@ int gridDynSimulation::powerflow()
                         reset(reset_levels::minimal);
                     }
                     if (opFlags[state_change_flag]) {
-                        reInitpFlow(sm);
+                        reInitpFlow(solverModeRef);
                     }
                 }
                 power_iteration_count++;
@@ -202,7 +202,7 @@ int gridDynSimulation::powerflow()
             pFlowData->logSolverStats(print_level::trace);
         }
     } else {
-        setState(currentTime, nullptr, nullptr, sm);
+        setState(currentTime, nullptr, nullptr, solverModeRef);
         updateLocalCache();
     }
 
@@ -299,8 +299,8 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     EvQ->executeEvents(time0 - 0.001);
 
     auto pFlowData = getSolverInterface(*defPowerFlowMode);
-    const solverMode& sm = pFlowData->getSolverMode();
-    defPowerFlowMode = &sm;
+    const solverMode& solverModeRef = pFlowData->getSolverMode();
+    defPowerFlowMode = &solverModeRef;
     // dynInitializeB
     // this->savePowerFlowXML("testflow.xml");
     // check the network to ensure we have a solvable power flow
@@ -309,7 +309,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     linkCount = getInt("totallinkcount");
     currentTime = time0;
     pFlowInitializeA(time0, lower_flags(controlFlags));
-    auto ssize = stateSize(sm);
+    auto ssize = stateSize(solverModeRef);
     pFlowData->allocate(ssize);
 
     // initialization is divided into two parts to account for complex initialization routines that
@@ -319,7 +319,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         return retval;
     }
-    updateOffsets(sm);
+    updateOffsets(solverModeRef);
     // Occasionally there is a need to execute some function in between the two phases of setup this
     // section of code calls those customized functions
     for (auto& setupOperation : additionalPowerflowSetupFunctions) {
@@ -355,7 +355,7 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
         for (auto& bus : gbusses) {
             if ((bus->isEnabled()) && (bus->getAdjustableCapacityUp() > 0.0)) {
                 double maxGen = bus->getMaxGenReal();
-                double participation = bus->get("participation");
+                const double participation = bus->get("participation");
                 if (maxGen > kBigNum / 2) {
                     maxGen = -(1.0 + participation) * (bus->getGenerationReal());
                 }
@@ -368,7 +368,7 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
         for (auto& bus : gbusses) {
             if ((bus->isEnabled()) && (bus->getAdjustableCapacityDown() > 0.0)) {
                 double maxGen = bus->getMaxGenReal();
-                double participation = bus->get("participation");
+                const double participation = bus->get("participation");
                 if (maxGen > kBigNum / 2) {
                     maxGen = -(1.0 + participation) * (bus->getGenerationReal());
                 }
@@ -393,12 +393,12 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
 {
     double cPower = 0.0;
 
-    auto pv = prevSlkGen.begin();
+    auto prevGeneration = prevSlkGen.begin();
     for (auto& bus : slkBusses) {
         cPower -= (bus->getLinkReal() + bus->getLoadReal());
         // reset the slk generators to previous levels so the adjustments work properly
-        bus->set("p", -(*pv));
-        ++pv;
+        bus->set("p", -(*prevGeneration));
+        ++prevGeneration;
     }
 
     cPower = -(cPower - prevPower);
@@ -413,14 +413,14 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
 
 void gridDynSimulation::continuationPowerFlow(std::string_view contName)
 {
-    std::shared_ptr<continuationSequence> cS;
+    std::shared_ptr<continuationSequence> continuation;
     for (auto& clN : continList) {
         if (contName == clN->name) {
-            cS = clN;
+            continuation = clN;
         }
     }
 
-    if (!cS) {
+    if (!continuation) {
         return;
     }
 }
@@ -441,15 +441,15 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
     }
     auto ret = EvQ->executeEvents(currentTime);
     if (ret != change_code::no_change) {
-        int pret = powerflow();
-        if (pret != FUNCTION_EXECUTION_SUCCESS) {
-            return pret;
+        const int powerflowResult = powerflow();
+        if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
+            return powerflowResult;
         }
     } else if (t_end == currentTime) {
         if (controlFlags[force_extra_powerflow]) {
-            int pret = powerflow();
-            if (pret != FUNCTION_EXECUTION_SUCCESS) {
-                return pret;
+            const int powerflowResult = powerflow();
+            if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
+                return powerflowResult;
             }
         }
     }
@@ -467,10 +467,10 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
         // run the power flow
         if ((ret >= change_code::parameter_change) || (controlFlags[force_power_flow]) ||
             (EvQ->getNullEventTime() >= getSimulationTime() + t_step)) {
-            int pret = powerflow();
+            const int powerflowResult = powerflow();
             powerflow_executed = true;
-            if (pret != FUNCTION_EXECUTION_SUCCESS) {
-                return pret;
+            if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
+                return powerflowResult;
             }
         }
 
@@ -479,9 +479,9 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
         // if something changed rerun the power flow to get a good solution
         // NOTE this would be an atypical situation to have to rerun this
         if (ret >= change_code::parameter_change) {
-            int pret = powerflow();
-            if (pret != FUNCTION_EXECUTION_SUCCESS) {
-                return pret;
+            const int powerflowResult = powerflow();
+            if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
+                return powerflowResult;
             }
         }
         nextEvent = EvQ->getNextTime();
@@ -496,9 +496,9 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
     if (getSimulationTime() != t_end) {
         Area::timestep(t_end, noInputs, *defPowerFlowMode);
         currentTime = t_end;
-        int pret = powerflow();
-        if (pret != FUNCTION_EXECUTION_SUCCESS) {
-            return pret;
+        const int powerflowResult = powerflow();
+        if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
+            return powerflowResult;
         }
     }
     return FUNCTION_EXECUTION_SUCCESS;
@@ -511,8 +511,8 @@ int gridDynSimulation::algUpdateFunction(coreTime time,
                                          double alpha) noexcept
 {
     ++evalCount;
-    stateData sD(time, state);
-    sD.seqID = (sMode.approx[force_recalc] ? 0 : evalCount);
+    stateData stateDataValue(time, state);
+    stateDataValue.seqID = (sMode.approx[force_recalc] ? 0 : evalCount);
 
 #ifdef CHECK_STATE
     auto dynDataa = getSolverInterface(sMode);
@@ -525,12 +525,12 @@ int gridDynSimulation::algUpdateFunction(coreTime time,
 #endif
 
     if ((!(isDAE(sMode))) && (isDynamic(sMode))) {
-        sD.fullState = solverInterfaces[defDAEMode->offsetIndex]->state_data();
+        stateDataValue.fullState = solverInterfaces[defDAEMode->offsetIndex]->state_data();
     }
     // call the area based function to handle the looping
-    preEx(noInputs, sD, sMode);
-    algebraicUpdate(noInputs, sD, update, sMode, alpha);
-    delayedAlgebraicUpdate(noInputs, sD, update, sMode, alpha);
+    preEx(noInputs, stateDataValue, sMode);
+    algebraicUpdate(noInputs, stateDataValue, update, sMode, alpha);
+    delayedAlgebraicUpdate(noInputs, stateDataValue, update, sMode, alpha);
     return FUNCTION_EXECUTION_SUCCESS;
 }
 }  // namespace griddyn

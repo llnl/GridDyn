@@ -36,36 +36,40 @@ using units::unit;
 // make the object factory types
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<Link> blf("link", stringVec{"trivial", "basic", "transport"});
+static typeFactory<Link> blf("link",
+                             std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static childTypeFactory<acLine, Link>
-    glf("link",
-        stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"},
-        "ac");  // NOLINT(bugprone-throwing-static-initialization)
+static childTypeFactory<acLine, Link> glf(
+    "link",
+    std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
+    "ac");  // NOLINT(bugprone-throwing-static-initialization)
 
 namespace links {
-    static childTypeFactory<adjustableTransformer, Link> gfad(
-        "link",
-        stringVec{"adjust",
+    static childTypeFactory<adjustableTransformer, Link>
+        gfad("link",
+             std::to_array<std::string_view>(
+                 {"adjust",
                   "adjustable",
-                  "adjustabletransformer"});  // NOLINT(bugprone-throwing-static-initialization)
+                  "adjustabletransformer"}));  // NOLINT(bugprone-throwing-static-initialization)
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});
+    static childTypeFactory<dcLink, Link>
+        dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcrect("link",
-               stringVec{"rectifier", "rect"},
+               std::to_array<std::string_view>({"rectifier", "rect"}),
                acdcConverter::Mode::RECTIFIER);  // NOLINT(bugprone-throwing-static-initialization)
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcinv("link",
-              stringVec{"inverter", "inv"},
+              std::to_array<std::string_view>({"inverter", "inv"}),
               acdcConverter::Mode::INVERTER);  // NOLINT(bugprone-throwing-static-initialization)
     static childTypeFactory<acdcConverter, Link>
         acdc("link",
-             stringVec{"acdc",
-                       "acdcconverter",
-                       "dcconverter"});  // NOLINT(bugprone-throwing-static-initialization)
+             std::to_array<std::string_view>(
+                 {"acdc",
+                  "acdcconverter",
+                  "dcconverter"}));  // NOLINT(bugprone-throwing-static-initialization)
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

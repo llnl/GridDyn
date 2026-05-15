@@ -16,43 +16,48 @@
 #include <vector>
 
 namespace griddyn {
-static typeFactory<GenModel> gdm("genmodel", stringVec{"trivial"});
+static typeFactory<GenModel> gdm("genmodel", std::to_array<std::string_view>({"trivial"}));
 
 namespace genmodels {
-    static childTypeFactory<GenModelInverter, GenModel> gfgm("genmodel", stringVec{"inverter"});
+    static childTypeFactory<GenModelInverter, GenModel>
+        gfgm("genmodel", std::to_array<std::string_view>({"inverter"}));
 
     static childTypeFactory<GenModelClassical, GenModel>
         gfgm2("genmodel",
-              stringVec{"basic", "2", "second", "secondorder", "classic", "classical", "II"});
+              std::to_array<std::string_view>(
+                  {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
 
     static childTypeFactory<GenModel3, GenModel>
-        gfgm3("genmodel", stringVec{"3", "third", "thirdorder", "III"});
+        gfgm3("genmodel", std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
     static childTypeFactory<GenModel4, GenModel>
         gfgm4("genmodel",
-              stringVec{"4", "fourth", "fourthorder", "IV", "grdc"},
+              std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
               "4");  // set 4th order as the default
 
     static childTypeFactory<GenModel5, GenModel>
-        gfgm5("genmodel", stringVec{"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"});
+        gfgm5("genmodel",
+              std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 
-    static childTypeFactory<GenModel5type2, GenModel>
-        gfgm5p2("genmodel", stringVec{"5.2", "fifthtype2", "fifthordertype2", "Vtype2"});
+    static childTypeFactory<GenModel5type2, GenModel> gfgm5p2(
+        "genmodel",
+        std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 
     // static typeFactory<GenModel5type3> gfgm5p3 ("genmodel", stringVec{"5.3",
     // "fifthtype3", "fifthordertype3", "Vtype3"});
 
-    static childTypeFactory<GenModel6, GenModel> gfgm6("genmodel",
-                                                       stringVec{"6", "six", "sixthorder", "VI"});
+    static childTypeFactory<GenModel6, GenModel>
+        gfgm6("genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
 
-    static childTypeFactory<GenModel6type2, GenModel>
-        gfgm6p2("genmodel", stringVec{"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"});
+    static childTypeFactory<GenModel6type2, GenModel> gfgm6p2(
+        "genmodel",
+        std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
     /*
 static typeFactory<GenModelGENROU> gfgm6p3("genmodel", stringVec{"6.3",
 "sixtype3", "sixthordertype3", "VItype3", "VI.3","genrou"});
 */
 
     static childTypeFactory<GenModel8, GenModel>
-        gfgm8("genmodel", stringVec{"8", "eight", "eighthorder", "VIII"});
+        gfgm8("genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
 
 }  // namespace genmodels
 

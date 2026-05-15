@@ -65,7 +65,7 @@ protected:
 };
 */
 
-static typeFactory<Block> bbof("agc", {"basic", "agc"}, "basic");
+static typeFactory<Block> bbof("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
 
 AGControl::~AGControl() = default;
 

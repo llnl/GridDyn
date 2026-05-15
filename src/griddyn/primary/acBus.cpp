@@ -27,7 +27,7 @@
 
 namespace griddyn {
 // factory is for the cloning function
-static childTypeFactory<acBus, gridBus> gbfac("bus", stringVec{"psystem"});
+static childTypeFactory<acBus, gridBus> gbfac("bus", std::to_array<std::string_view>({"psystem"}));
 
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::solve2x2;

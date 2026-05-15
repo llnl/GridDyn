@@ -26,7 +26,8 @@ namespace helicsLib {
 
     static childClassFactory<helicsCommunicator, Communicator> hcomms(stringVec{"helics"});
 
-    static childTypeFactory<helicsSource, sources::rampSource> fnsrc("source", stringVec{"helics"});
+    static childTypeFactory<helicsSource, sources::rampSource>
+        fnsrc("source", std::to_array<std::string_view>({"helics"}));
     static childTypeFactory<helicsLoad, loads::rampLoad> fnld("load", "helics");
 
     // the factory for the coordinator

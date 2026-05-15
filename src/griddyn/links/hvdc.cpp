@@ -21,7 +21,7 @@
 namespace griddyn::links {
 using units::unit;
 
-static typeFactory<hvdc> gf("link", stringVec{"hvdc"});
+static typeFactory<hvdc> gf("link", std::to_array<std::string_view>({"hvdc"}));
 
 hvdc::hvdc(const std::string& objName): subsystem(4, objName)
 {

@@ -23,7 +23,8 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<gridDynOptimization> gfo("simulation", stringVec{"optimization", "optim"});
+static typeFactory<gridDynOptimization>
+    gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
 gridDynOptimization::gridDynOptimization(const std::string& simName): gridDynSimulation(simName)
 {

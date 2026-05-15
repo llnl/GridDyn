@@ -14,7 +14,9 @@
 #include <vector>
 
 namespace griddyn::loads {
-static typeFactory<svd> svdld("load", stringVec{"svd", "switched shunt", "switchedshunt", "ssd"});
+static typeFactory<svd>
+    svdld("load",
+          std::to_array<std::string_view>({"svd", "switched shunt", "switchedshunt", "ssd"}));
 
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::numeric_conversion;

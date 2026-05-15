@@ -262,11 +262,11 @@ Types of work in this phase:
 - [~] `src/fmi_export`
 - [~] `src/optimization`
 - [x] `src/griddyn/measurement`
-- [~] `src/griddyn/relays`
-- [~] `src/griddyn/blocks`
+- [x] `src/griddyn/relays`
+- [x] `src/griddyn/blocks`
 - [x] `src/fileInput`
 - [~] `src/helics`
-- [~] `src/utilities`
+- [x] `src/utilities`
 
 ### Examples Of Known Non-Compliant Enum Patterns
 
@@ -462,6 +462,7 @@ Use this table to log each naming migration PR as it lands.
 
 | PR / Branch | Area                                                                                                                    | Phase   | Summary                                                                                                                                                                                                     | Compatibility Needed | Tests Run                        | Status   |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------- | -------- |
+| merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/links` + `src/griddyn/sources` + `test/libraryTests`              | Phase 4 | Internal enum/type cleanup covering function-interpreter and sparse-ordering renames, block and source enum normalization, selected link-side control enum fallout, and the associated `clang-tidy` cleanup | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                   | No                   | Inventory script run             | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/relays` + `src/griddyn/sources` + `src/extraModels`               | Phase 4 | Internal enum/type cleanup covering `DistributionType`, `SaturationType`, relay and block enum normalization, source-side communication enum fallout, and the dependent `txThermalModel` output-mode update | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/networking` + `src/griddyn/measurement`                                                                            | Phase 4 | Internal enum/type cleanup covering networking loop/reactor/socket operation enums plus measurement comparison, compound-condition, and Jacobian-mode enums                                                 | No                   | CI compile and `clang-tidy` run  | Complete |

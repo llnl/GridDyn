@@ -23,7 +23,8 @@
 
 // #define SGS_DEBUG
 namespace griddyn::loads {
-static typeFactory<gridLabDLoad> gfgld("load", stringVec{"gridlabd", "gridlab"});
+static typeFactory<gridLabDLoad> gfgld("load",
+                                       std::to_array<std::string_view>({"gridlabd", "gridlab"}));
 // constants for rotating a complex number by +120 and -120 degrees
 static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
 static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);

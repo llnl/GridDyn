@@ -47,7 +47,8 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<DynamicGenerator> generatorFactory("generator", stringVec{"local_dynamic"});
+static typeFactory<DynamicGenerator>
+    generatorFactory("generator", std::to_array<std::string_view>({"local_dynamic"}));
 
 using units::convert;
 using units::MVAR;

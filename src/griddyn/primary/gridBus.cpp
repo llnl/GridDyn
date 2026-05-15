@@ -32,11 +32,15 @@
 
 namespace griddyn {
 std::atomic<count_t> gridBus::busCount(0);
-static typeFactory<gridBus> gbf("bus", stringVec{"basic"});
+static typeFactory<gridBus> gbf("bus", std::to_array<std::string_view>({"basic"}));
 static childTypeFactory<acBus, gridBus>
-    gbfac("bus", stringVec{"ac", "pq", "pv", "slk", "slack", "afix", "ref"}, "ac");
-static childTypeFactory<dcBus, gridBus> gbfdc("bus", stringVec{"dc", "hvdc"});
-static childTypeFactory<infiniteBus, gridBus> igbc("bus", stringVec{"inf", "infinite"});
+    gbfac("bus",
+          std::to_array<std::string_view>({"ac", "pq", "pv", "slk", "slack", "afix", "ref"}),
+          "ac");
+static childTypeFactory<dcBus, gridBus> gbfdc("bus",
+                                              std::to_array<std::string_view>({"dc", "hvdc"}));
+static childTypeFactory<infiniteBus, gridBus>
+    igbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
 
 using units::convert;
 using units::defunit;

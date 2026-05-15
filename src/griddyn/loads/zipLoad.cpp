@@ -32,26 +32,33 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-static typeFactory<Load> glf("load", stringVec{"simple", "constant"});
-static childTypeFactory<zipLoad, Load>
-    zlf("load", stringVec{"basic", "zip"}, "zip");  // set basic to the default
+static typeFactory<Load> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
+static childTypeFactory<zipLoad, Load> zlf("load",
+                                           std::to_array<std::string_view>({"basic", "zip"}),
+                                           "zip");  // set basic to the default
 namespace loads {
     static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
         glfp("load", "pulse", sourceLoad::sourceType::pulse);
     static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
-        cfgsl("load", stringVec{"sine", "sin", "sinusoidal"}, sourceLoad::sourceType::sine);
+        cfgsl("load",
+              std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
+              sourceLoad::sourceType::sine);
     static childTypeFactory<rampLoad, Load> glfr("load", "ramp");
     static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
-        glfrand("load", stringVec{"random", "rand"}, sourceLoad::sourceType::random);
+        glfrand("load",
+                std::to_array<std::string_view>({"random", "rand"}),
+                sourceLoad::sourceType::random);
     static childTypeFactory<fileLoad, Load> glfld("load", "file");
-    static childTypeFactory<sourceLoad, Load> srcld("load", stringVec{"src", "source"});
-    static childTypeFactory<exponentialLoad, Load> glexp("load", stringVec{"exponential", "exp"});
+    static childTypeFactory<sourceLoad, Load>
+        srcld("load", std::to_array<std::string_view>({"src", "source"}));
+    static childTypeFactory<exponentialLoad, Load>
+        glexp("load", std::to_array<std::string_view>({"exponential", "exp"}));
     static childTypeFactory<fDepLoad, Load> glfd("load", "fdep");
-    static childTypeFactory<ThreePhaseLoad, Load> gl3("load",
-                                                      stringVec{"3phase", "3p", "threephase"});
+    static childTypeFactory<ThreePhaseLoad, Load>
+        gl3("load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
-    static childTypeFactory<approximatingLoad, Load> apld("load",
-                                                          stringVec{"approx", "approximating"});
+    static childTypeFactory<approximatingLoad, Load>
+        apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
 
 zipLoad::zipLoad(const std::string& objName): Load(objName) {}

@@ -22,8 +22,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
-#include <compare>
 #include <cassert>
+#include <compare>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -36,8 +36,11 @@
 #include <vector>
 
 namespace griddyn {
-static typeFactory<gridDynSimulation> simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
-    "simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
+static typeFactory<gridDynSimulation>
+    simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
+        "simulation",
+        stringVec{"GridDyn", "gridlab", "gridlabd"},
+        "GridDyn");
 
 std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
 

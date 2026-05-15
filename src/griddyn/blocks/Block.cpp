@@ -19,20 +19,27 @@
 
 namespace griddyn {
 // object factory statements
-static typeFactory<Block> bbof("block", stringVec{"basic", "gain"}, "basic");
+static typeFactory<Block> bbof(
+    "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
 namespace blocks {
     static childTypeFactory<controlBlock, Block> cbof("block", "control");
-    static childTypeFactory<deadbandBlock, Block> dbbof("block", stringVec{"deadband", "db"});
-    static childTypeFactory<delayBlock, Block> dbof("block", stringVec{"delay", "filter"});
+    static childTypeFactory<deadbandBlock, Block>
+        dbbof("block", std::to_array<std::string_view>({"deadband", "db"}));
+    static childTypeFactory<delayBlock, Block>
+        dbof("block", std::to_array<std::string_view>({"delay", "filter"}));
     static childTypeFactory<pidBlock, Block> pidbof("block", "pid");
-    static childTypeFactory<integralBlock, Block> ibof("block",
-                                                       stringVec{"integrator", "integral"});
-    static childTypeFactory<functionBlock, Block> fbof("block", stringVec{"function", "func"});
-    static childTypeFactory<lutBlock, Block> lutbof("block", stringVec{"lut", "lookuptable"});
-    static childTypeFactory<derivativeBlock, Block> derbof("block",
-                                                           stringVec{"der", "derivative", "deriv"});
+    static childTypeFactory<integralBlock, Block>
+        ibof("block", std::to_array<std::string_view>({"integrator", "integral"}));
+    static childTypeFactory<functionBlock, Block>
+        fbof("block", std::to_array<std::string_view>({"function", "func"}));
+    static childTypeFactory<lutBlock, Block>
+        lutbof("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
+    static childTypeFactory<derivativeBlock, Block>
+        derbof("block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
     static childTypeFactory<filteredDerivativeBlock, Block>
-        fderbof("block", stringVec{"fder", "filtered_deriv", "filtered_derivative"});
+        fderbof("block",
+                std::to_array<std::string_view>(
+                    {"fder", "filtered_deriv", "filtered_derivative"}));
 }  // namespace blocks
 
 Block::Block(const std::string& objName): gridSubModel(objName)

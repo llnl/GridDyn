@@ -28,7 +28,8 @@ using gmlc::utilities::signn;
 using gmlc::utilities::sum;
 using units::unit;
 
-static typeFactory<subsystem> gf("link", std::vector<std::string>{"subsystem", "simple"});
+static typeFactory<subsystem> gf(
+    "link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
 subsystem::subsystem(const std::string& objName): Link(objName)
 {

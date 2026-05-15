@@ -25,13 +25,16 @@ using units::puV;
 
 // setup the load object factories
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad> mlf1("load", stringVec{"motor", "motor1"});
+static typeFactory<motorLoad> mlf1(
+    "load", std::to_array<std::string_view>({"motor", "motor1"}));
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad3> mlf3("load", stringVec{"motor3", "motorIII", "m3"});
+static typeFactory<motorLoad3> mlf3(
+    "load", std::to_array<std::string_view>({"motor3", "motorIII", "m3"}));
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad5> mlf5("load", stringVec{"motor5", "motorIV", "m5"});
+static typeFactory<motorLoad5> mlf5(
+    "load", std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
 
 static constexpr double cSmallDiff = 1e-7;
 motorLoad::motorLoad(const std::string& objName): Load(objName)

@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -33,6 +34,7 @@ class objectFactory {
     @param[in] component  the name of component this factory is a constructor for
     @param[in] typeNames  the names of the specific types of objects this factor builds
     */
+    objectFactory(std::string_view component, std::span<const std::string_view> typeNames);
     objectFactory(std::string_view component, const stringVec& typeNames);
 
     /** @brief make and object   abstract function

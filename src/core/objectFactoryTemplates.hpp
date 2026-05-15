@@ -9,6 +9,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreOwningPtr.hpp"
 #include "objectFactory.hpp"
+#include <array>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -179,6 +180,15 @@ class typeFactory: public objectFactory {
         tF->registerFactory(typeName, this);
     }
 
+    typeFactory(const std::string& component, std::span<const std::string_view> typeNames):
+        objectFactory(component, typeNames)
+    {
+        auto tF = coreObjectFactory::instance()->getFactory(component);
+        for (auto tname : typeNames) {
+            tF->registerFactory(tname, this);
+        }
+    }
+
     typeFactory(const std::string& component, const stringVec& typeNames):
         objectFactory(component, typeNames)
     {
@@ -186,6 +196,16 @@ class typeFactory: public objectFactory {
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
+    }
+    typeFactory(const std::string& component,
+                std::span<const std::string_view> typeNames,
+                const std::string& defType): objectFactory(component, typeNames)
+    {
+        auto tF = coreObjectFactory::instance()->getFactory(component);
+        for (auto tname : typeNames) {
+            tF->registerFactory(tname, this);
+        }
+        tF->setDefault(defType);
     }
     typeFactory(const std::string& component,
                 const stringVec& typeNames,
@@ -249,8 +269,18 @@ class childTypeFactory: public typeFactory<Btype> {
     {
     }
 
+    childTypeFactory(const std::string& component, std::span<const std::string_view> typeNames):
+        typeFactory<Btype>(component, typeNames)
+    {
+    }
+
     childTypeFactory(const std::string& component, const stringVec& typeNames):
         typeFactory<Btype>(component, typeNames)
+    {
+    }
+    childTypeFactory(const std::string& component,
+                     std::span<const std::string_view> typeNames,
+                     const std::string& defType): typeFactory<Btype>(component, typeNames, defType)
     {
     }
     childTypeFactory(const std::string& component,
@@ -315,6 +345,16 @@ class typeFactoryArg: public objectFactory {
     {
         auto tF = coreObjectFactory::instance()->getFactory(component);
         tF->registerFactory(typeName, this);
+    }
+
+    typeFactoryArg(const std::string& component,
+                   std::span<const std::string_view> typeNames,
+                   const argType iArg): objectFactory(component, typeNames), arg(iArg)
+    {
+        auto tF = coreObjectFactory::instance()->getFactory(component);
+        for (auto tname : typeNames) {
+            tF->registerFactory(tname, this);
+        }
     }
 
     typeFactoryArg(const std::string& component, const stringVec& typeNames, const argType iArg):

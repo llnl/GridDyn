@@ -20,9 +20,7 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<dcBus> gbf("bus",
-                              stringVec{"dc"
-                                        "hvdc"});
+static typeFactory<dcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
 
 using units::convert;
 using units::unit;

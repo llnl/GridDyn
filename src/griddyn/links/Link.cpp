@@ -35,23 +35,23 @@ using units::unit;
 
 // make the object factory types
 
-static typeFactory<Link> blf("link", stringVec{"trivial", "basic", "transport"});
+static typeFactory<Link> blf("link", stringVec{"trivial", "basic", "transport"});  // NOLINT(bugprone-throwing-static-initialization)
 
 static childTypeFactory<acLine, Link>
-    glf("link", stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"}, "ac");
+    glf("link", stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"}, "ac");  // NOLINT(bugprone-throwing-static-initialization)
 
 namespace links {
     static childTypeFactory<adjustableTransformer, Link>
-        gfad("link", stringVec{"adjust", "adjustable", "adjustabletransformer"});
+        gfad("link", stringVec{"adjust", "adjustable", "adjustabletransformer"});  // NOLINT(bugprone-throwing-static-initialization)
 
-    static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});
+    static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});  // NOLINT(bugprone-throwing-static-initialization)
 
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);
+        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);  // NOLINT(bugprone-throwing-static-initialization)
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);
+        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);  // NOLINT(bugprone-throwing-static-initialization)
     static childTypeFactory<acdcConverter, Link>
-        acdc("link", stringVec{"acdc", "acdcconverter", "dcconverter"});
+        acdc("link", stringVec{"acdc", "acdcconverter", "dcconverter"});  // NOLINT(bugprone-throwing-static-initialization)
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense
@@ -125,7 +125,7 @@ void Link::followNetwork(int network, std::queue<gridBus*>& stk)
 
 void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
 {
-    double mva = std::max(getCurrent(0), getCurrent(1));
+    const double mva = std::max(getCurrent(0), getCurrent(1));
     if (mva > ratingA) {
         Violation viol(getName(), MVA_EXCEED_RATING_A);
         viol.level = mva;
@@ -168,8 +168,8 @@ void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const solverM
     }*/
 }
 
-static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};
-static const stringVec locStrStrings{"from", "to"};
+static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};  // NOLINT(bugprone-throwing-static-initialization)
+static const stringVec locStrStrings{"from", "to"};  // NOLINT(bugprone-throwing-static-initialization)
 static const stringVec flagStrings{};
 void Link::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
@@ -196,10 +196,10 @@ void Link::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(param));
         }
     } else if (param == "status") {
-        auto v2 = gmlc::utilities::convertToLowerCase(val);
-        if ((v2 == "closed") || (v2 == "connected")) {
+        auto statusValue = gmlc::utilities::convertToLowerCase(val);
+        if ((statusValue == "closed") || (statusValue == "connected")) {
             reconnect();
-        } else if ((v2 == "open") || (v2 == "disconnected")) {
+        } else if ((statusValue == "open") || (statusValue == "disconnected")) {
             disconnect();
         }
     } else {
@@ -356,7 +356,13 @@ void Link::set(std::string_view param, double val, unit unitType)
 coreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
-        return (num == 1) ? B1 : ((num == 2) ? B2 : nullptr);
+        if (num == 1) {
+            return B1;
+        }
+        if (num == 2) {
+            return B2;
+        }
+        return nullptr;
     }
     return nullptr;
 }
@@ -430,7 +436,7 @@ int Link::fixRealPower(double power,
     return 1;
 }
 
-static IOlocs aLoc{0, 1};
+static IOlocs aLoc{0, 1};  // NOLINT(bugprone-throwing-static-initialization)
 
 int Link::fixPower(double rPower,
                    double /*qPower*/,
@@ -452,7 +458,7 @@ void Link::computePowers()
 {
     if (isConnected()) {
         linkFlows.P1 = Pset;
-        linkFlows.P2 = Pset - std::abs(Pset) * lossFraction;
+        linkFlows.P2 = Pset - (std::abs(Pset) * lossFraction);
     } else {
         linkFlows.P1 = 0;
         linkFlows.P2 = 0;
@@ -479,12 +485,12 @@ count_t Link::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/
     return 0;
 }
 IOdata
-    Link::getOutputs(const IOdata& /*inputs*/, const stateData& sD, const solverMode& sMode) const
+    Link::getOutputs(const IOdata& /*inputs*/, const stateData& stateData, const solverMode& sMode) const
 {
-    return getOutputs(1, sD, sMode);
+    return getOutputs(1, stateData, sMode);
 }
 
-bool isBus2(id_type_t busId, gridBus* bus)
+static bool isBus2(id_type_t busId, gridBus* bus)
 {
     return ((busId == 2) || (isSameObject(busId, bus)));
 }
@@ -497,7 +503,7 @@ IOdata Link::getOutputs(id_type_t busId, const stateData& /*sD*/, const solverMo
     if (isBus2(busId, B2)) {
         out[PoutLocation] = Pset;
     } else {
-        out[PoutLocation] = Pset - std::abs(Pset) * lossFraction;
+        out[PoutLocation] = Pset - (std::abs(Pset) * lossFraction);
     }
     return out;
 }
@@ -540,7 +546,7 @@ double Link::getMaxTransfer() const
         return ratingA;
     }
 
-    return (kBigNum);
+    return kBigNum;
 }
 
 double Link::getBusAngle(id_type_t busId) const
@@ -566,7 +572,7 @@ double Link::getBusAngle(id_type_t busId) const
     return kNullVal;
 }
 
-double Link::getBusAngle(const stateData& sD, const solverMode& sMode, id_type_t busId) const
+double Link::getBusAngle(const stateData& stateData, const solverMode& sMode, id_type_t busId) const
 {
     if (busId < 500_ind) {
         const auto* bus = getBus(static_cast<index_t>(busId));
@@ -576,15 +582,15 @@ double Link::getBusAngle(const stateData& sD, const solverMode& sMode, id_type_t
     }
     // these are special cases for getting opposite angles as called by the attached buses
     if (isSameObject(busId, B2)) {
-        return (B1 != nullptr) ? B1->getAngle(sD, sMode) : kNullVal;
+        return (B1 != nullptr) ? B1->getAngle(stateData, sMode) : kNullVal;
     }
     if (isSameObject(busId, B1)) {
-        return (B2 != nullptr) ? B2->getAngle(sD, sMode) : kNullVal;
+        return (B2 != nullptr) ? B2->getAngle(stateData, sMode) : kNullVal;
     }
     // now just default to the original behavior
     const auto* bus = getBus(static_cast<index_t>(busId));
     if (bus != nullptr) {
-        return bus->getAngle(sD, sMode);
+        return bus->getAngle(stateData, sMode);
     }
     return kNullVal;
 }
@@ -605,22 +611,22 @@ void Link::setState(coreTime time,
     prevTime = time;
 }
 
-void Link::updateLocalCache(const IOdata& /*inputs*/, const stateData& sD, const solverMode& sMode)
+void Link::updateLocalCache(const IOdata& /*inputs*/, const stateData& stateData, const solverMode& sMode)
 {
     if (!isEnabled()) {
         return;
     }
-    if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
+    if ((linkInfo.seqID == stateData.seqID) && (stateData.seqID != 0)) {
         return;  // already computed
     }
-    linkInfo.v1 = B1->getVoltage(sD, sMode);
-    double t1 = B1->getAngle(sD, sMode);
-    linkInfo.v2 = B2->getVoltage(sD, sMode);
-    double t2 = B2->getAngle(sD, sMode);
+    linkInfo.v1 = B1->getVoltage(stateData, sMode);
+    const double angle1 = B1->getAngle(stateData, sMode);
+    linkInfo.v2 = B2->getVoltage(stateData, sMode);
+    const double angle2 = B2->getAngle(stateData, sMode);
 
-    linkInfo.theta1 = t1 - t2;
-    linkInfo.theta2 = t2 - t1;
-    linkInfo.seqID = sD.seqID;
+    linkInfo.theta1 = angle1 - angle2;
+    linkInfo.theta2 = angle2 - angle1;
+    linkInfo.seqID = stateData.seqID;
 }
 
 void Link::updateLocalCache()
@@ -629,12 +635,12 @@ void Link::updateLocalCache()
         return;
     }
     linkInfo.v1 = B1->getVoltage();
-    double t1 = B1->getAngle();
+    const double angle1 = B1->getAngle();
     linkInfo.v2 = B2->getVoltage();
-    double t2 = B2->getAngle();
+    const double angle2 = B2->getAngle();
 
-    linkInfo.theta1 = t1 - t2;
-    linkInfo.theta2 = t2 - t1;
+    linkInfo.theta1 = angle1 - angle2;
+    linkInfo.theta2 = angle2 - angle1;
 }
 
 gridBus* Link::getBus(index_t busInd) const
@@ -673,9 +679,9 @@ double Link::remainingCapacity() const
 }
 double Link::getAngle(const double state[], const solverMode& sMode) const
 {
-    double t1 = B1->getAngle(state, sMode);
-    double t2 = B2->getAngle(state, sMode);
-    return t1 - t2;
+    const double angle1 = B1->getAngle(state, sMode);
+    const double angle2 = B2->getAngle(state, sMode);
+    return angle1 - angle2;
 }
 
 double Link::getAngle() const
@@ -694,25 +700,25 @@ double Link::getRealImpedance(id_type_t busId) const
 {
     if (isBus2(busId, B2))  // from bus
     {
-        std::complex<double> Z =
+        const std::complex<double> impedance =
             (linkInfo.v2 * linkInfo.v2) / std::complex<double>(linkFlows.P2, linkFlows.Q2);
-        return std::isnormal(Z.real()) ? Z.real() : kBigNum;
+        return std::isnormal(impedance.real()) ? impedance.real() : kBigNum;
     }
-    std::complex<double> Z =
+    const std::complex<double> impedance =
         (linkInfo.v1 * linkInfo.v1) / std::complex<double>(linkFlows.P1, linkFlows.Q1);
-    return std::isnormal(Z.real()) ? Z.real() : kBigNum;
+    return std::isnormal(impedance.real()) ? impedance.real() : kBigNum;
 }
 double Link::getImagImpedance(id_type_t busId) const
 {
     if (isBus2(busId, B2))  // from bus
     {
-        std::complex<double> Z =
+        const std::complex<double> impedance =
             (linkInfo.v2 * linkInfo.v2) / std::complex<double>(linkFlows.P2, linkFlows.Q2);
-        return std::isnormal(Z.imag()) ? Z.imag() : kBigNum;
+        return std::isnormal(impedance.imag()) ? impedance.imag() : kBigNum;
     }
-    std::complex<double> Z =
+    const std::complex<double> impedance =
         (linkInfo.v1 * linkInfo.v1) / std::complex<double>(linkFlows.P1, linkFlows.Q1);
-    return std::isnormal(Z.imag()) ? Z.imag() : kBigNum;
+    return std::isnormal(impedance.imag()) ? impedance.imag() : kBigNum;
 }
 
 double Link::getTotalImpedance(id_type_t busId) const
@@ -722,13 +728,13 @@ double Link::getTotalImpedance(id_type_t busId) const
     {
         //  printf("id2 impedance=%f\n", signn(linkFlows.P2 +
         //  linkFlows.Q2)*(linkInfo.v2*linkInfo.v2) / std::hypot(linkFlows.P2, linkFlows.Q2));
-        double val = signn(linkFlows.P2 + linkFlows.Q2) * (linkInfo.v2 * linkInfo.v2) /
+        const double val = signn(linkFlows.P2 + linkFlows.Q2) * (linkInfo.v2 * linkInfo.v2) /
             std::hypot(linkFlows.P2, linkFlows.Q2);
         return (std::isnormal(val) ? val : kBigNum);
     }
     // printf("id1 impedance=%f\n", signn(linkFlows.P1 + linkFlows.Q1)*(linkInfo.v1*linkInfo.v1) /
     // std::hypot(linkFlows.P1, linkFlows.Q1));
-    double val = signn(linkFlows.P1 + linkFlows.Q1) * (linkInfo.v1 * linkInfo.v1) /
+    const double val = signn(linkFlows.P1 + linkFlows.Q1) * (linkInfo.v1 * linkInfo.v1) /
         std::hypot(linkFlows.P1, linkFlows.Q1);
     return (std::isnormal(val) ? val : kBigNum);
 }
@@ -784,13 +790,13 @@ double Link::getImagCurrent(id_type_t busId) const
 
 Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
 {
-    Link* L2 = nullptr;
+    Link* matchingLink = nullptr;
     if (lnk->isRoot()) {
         return nullptr;
     }
     if (isSameObject(lnk->getParent(), src))  // if this is true then things are easy
     {
-        L2 = sec->getLink(lnk->locIndex);
+        matchingLink = sec->getLink(lnk->locIndex);
     } else {
         std::vector<int> lkind;
         auto* par = dynamic_cast<gridPrimary*>(lnk->getParent());
@@ -810,9 +816,9 @@ Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
         for (size_t kk = lkind.size() - 1; kk > 0; --kk) {
             par = dynamic_cast<gridPrimary*>(par->getArea(lkind[kk]));
         }
-        L2 = par->getLink(lkind[0]);
+        matchingLink = par->getLink(lkind[0]);
     }
-    return L2;
+    return matchingLink;
 }
 
 bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus, bool printDiff)

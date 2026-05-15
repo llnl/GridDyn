@@ -20,6 +20,7 @@
 #include <random>
 #include <vector>
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, BlockCompute)
 {
     blockCompute<2, SparseOrdering::COLUMN_ORDERED> bc1;
@@ -66,33 +67,32 @@ TEST(MatrixDataTests, BlockCompute2)
 
 TEST(MatrixDataTests, Keygen)
 {
-    keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED> kc1;
-
-    auto key1 = kc1.keyGen(45, 1);
+    auto key1 = keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key1, (1 << 16) + 45);
-    keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED> kc2;
-    auto key2 = kc2.keyGen(45, 1);
+    auto key2 = keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key2, (45 << 16) + 1);
 
+    keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED> kc1;
+    keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED> kc2;
     EXPECT_EQ(kc1.row(key1), 45);
     EXPECT_EQ(kc1.col(key1), 1);
     EXPECT_EQ(kc2.row(key2), 45);
     EXPECT_EQ(kc2.col(key2), 1);
 
-    keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED> kc3;
-
-    auto key3 = kc3.keyGen(45, 1);
+    auto key3 = keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key3, (static_cast<std::uint64_t>(1) << 32) + 45);
-    keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED> kc4;
-    auto key4 = kc4.keyGen(45, 1);
+    auto key4 = keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key4, (static_cast<std::uint64_t>(45) << 32) + 1);
 
+    keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED> kc3;
+    keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED> kc4;
     EXPECT_EQ(kc3.row(key3), 45);
     EXPECT_EQ(kc3.col(key3), 1);
     EXPECT_EQ(kc4.row(key4), 45);
     EXPECT_EQ(kc4.col(key4), 1);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, Matrix1)
 {
     matrixDataSparseSMB<4, std::uint64_t> bigMatrix;
@@ -100,7 +100,7 @@ TEST(MatrixDataTests, Matrix1)
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
 
-    std::default_random_engine generator;
+    std::default_random_engine generator(12345);
     std::uniform_int_distribution<std::uint32_t> distribution(1, 999998);
     for (size_t pp = 0; pp < 199997; ++pp) {
         auto index1 = distribution(generator);
@@ -114,23 +114,24 @@ TEST(MatrixDataTests, Matrix1)
 
     bigMatrix.start();
 
-    auto A = bigMatrix.next();
-    EXPECT_EQ(A.col, 0);
-    EXPECT_EQ(A.row, 0);
-    EXPECT_DOUBLE_EQ(A.data, 3.27);
-    auto pcol = A.col;
+    auto entry = bigMatrix.next();
+    EXPECT_EQ(entry.col, 0);
+    EXPECT_EQ(entry.row, 0);
+    EXPECT_DOUBLE_EQ(entry.data, 3.27);
+    auto pcol = entry.col;
     for (index_t pp = 1; pp < bigMatrix.size(); ++pp) {
-        A = bigMatrix.next();
-        if (A.col < pcol) {
-            EXPECT_LT(A.col, pcol);
+        entry = bigMatrix.next();
+        if (entry.col < pcol) {
+            EXPECT_LT(entry.col, pcol);
         }
-        pcol = A.col;
+        pcol = entry.col;
     }
-    EXPECT_EQ(A.col, 999999);
-    EXPECT_EQ(A.row, 999999);
-    EXPECT_DOUBLE_EQ(A.data, 6.129);
+    EXPECT_EQ(entry.col, 999999);
+    EXPECT_EQ(entry.row, 999999);
+    EXPECT_DOUBLE_EQ(entry.data, 6.129);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, Matrix2)
 {
     matrixDataSparseSMB<3, std::uint64_t, double, SparseOrdering::ROW_ORDERED> bigMatrix;
@@ -138,7 +139,7 @@ TEST(MatrixDataTests, Matrix2)
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
 
-    std::default_random_engine generator;
+    std::default_random_engine generator(12345);
     std::uniform_int_distribution<std::uint32_t> distribution(1, 999998);
     for (size_t pp = 0; pp < 199997; ++pp) {
         auto index1 = distribution(generator);
@@ -152,21 +153,21 @@ TEST(MatrixDataTests, Matrix2)
 
     bigMatrix.start();
 
-    auto A = bigMatrix.next();
-    EXPECT_EQ(A.col, 0);
-    EXPECT_EQ(A.row, 0);
-    EXPECT_DOUBLE_EQ(A.data, 3.27);
-    auto prow = A.row;
+    auto entry = bigMatrix.next();
+    EXPECT_EQ(entry.col, 0);
+    EXPECT_EQ(entry.row, 0);
+    EXPECT_DOUBLE_EQ(entry.data, 3.27);
+    auto prow = entry.row;
     for (index_t pp = 1; pp < bigMatrix.size(); ++pp) {
-        A = bigMatrix.next();
-        if (A.row < prow) {
-            EXPECT_LT(A.row, prow);
+        entry = bigMatrix.next();
+        if (entry.row < prow) {
+            EXPECT_LT(entry.row, prow);
         }
-        prow = A.row;
+        prow = entry.row;
     }
-    EXPECT_EQ(A.col, 999999);
-    EXPECT_EQ(A.row, 999999);
-    EXPECT_DOUBLE_EQ(A.data, 6.129);
+    EXPECT_EQ(entry.col, 999999);
+    EXPECT_EQ(entry.row, 999999);
+    EXPECT_DOUBLE_EQ(entry.data, 6.129);
 }
 
 TEST(MatrixDataTests, SparseMatrix)
@@ -185,14 +186,14 @@ TEST(MatrixDataTests, SparseMatrix)
 
     auto itend = testMatrix.end();
     auto itbegin = testMatrix.begin();
-    auto me = *itbegin;
-    EXPECT_NEAR(me.data, 3.1, 1e-12);
+    auto matrixEntry = *itbegin;
+    EXPECT_NEAR(matrixEntry.data, 3.1, 1e-12);
     ++itbegin;
-    me = *itbegin;
-    EXPECT_NEAR(me.data, 5.1, 1e-12);
+    matrixEntry = *itbegin;
+    EXPECT_NEAR(matrixEntry.data, 5.1, 1e-12);
     auto it2 = itbegin++;
-    me = *itbegin;
-    EXPECT_NEAR(me.data, 4.2, 1e-12);
+    matrixEntry = *itbegin;
+    EXPECT_NEAR(matrixEntry.data, 4.2, 1e-12);
     EXPECT_NEAR((*it2).data, 5.1, 1e-12);
     ++itbegin;
     EXPECT_EQ(itbegin, itend);
@@ -207,9 +208,9 @@ TEST(MatrixDataTests, SparseMatrixMultiply)
         testMatrix.assign(ii, ii, static_cast<double>(ii));
     }
 
-    std::vector<double> v(10, 1.0);
-    auto res = matrixDataMultiply(testMatrix, v.data());
-    EXPECT_EQ(res.size(), 10u);
+    std::vector<double> values(10, 1.0);
+    auto res = matrixDataMultiply(testMatrix, values.data());
+    EXPECT_EQ(res.size(), 10U);
 
     int ecount = 0;
     for (int kk = 0; kk < 10; ++kk) {

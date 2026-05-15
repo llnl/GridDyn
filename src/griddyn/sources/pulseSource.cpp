@@ -22,7 +22,7 @@ pulseSource::pulseSource(const std::string& objName, double startVal):
 
 coreObject* pulseSource::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<pulseSource, Source>(this, obj);
+    auto* nobj = cloneBase<pulseSource, Source>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -59,7 +59,7 @@ void pulseSource::updateOutput(coreTime time)
         }
     }
 
-    double pcalc = pulseCalc(static_cast<double>(tdiff));
+    const double pcalc = pulseCalc(static_cast<double>(tdiff));
 
     m_output = baseValue + pcalc;
     // printf("at %f setting output to %f\n", static_cast<double>(time), m_output);
@@ -80,19 +80,20 @@ double pulseSource::computeOutput(coreTime time) const
 }
 
 double pulseSource::getDoutdt(const IOdata& /*inputs*/,
-                              const stateData& sD,
+                              const stateData& stateData,
                               const solverMode& /*sMode*/,
                               index_t /*num*/) const
 {
-    double o1, o2;
-    if (!sD.empty()) {
-        o1 = computeOutput(sD.time - 0.0001);
-        o2 = computeOutput(sD.time);
+    double output1;
+    double output2;
+    if (!stateData.empty()) {
+        output1 = computeOutput(stateData.time - 0.0001);
+        output2 = computeOutput(stateData.time);
     } else {
-        o1 = computeOutput(lastTime - 0.0001);
-        o2 = m_tempOut;
+        output1 = computeOutput(lastTime - 0.0001);
+        output2 = m_tempOut;
     }
-    return ((o2 - o1) / 0.0001);
+    return ((output2 - output1) / 0.0001);
 }
 
 void pulseSource::set(std::string_view param, std::string_view val)
@@ -160,11 +161,11 @@ void pulseSource::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double pulseSource::pulseCalc(double td) const
+double pulseSource::pulseCalc(double timeDelta) const
 {
     double mult = 1.0;
-    double cloc = td / period;
-    double prop = (cloc - dutyCycle / 2) / dutyCycle;
+    const double cycleLocation = timeDelta / period;
+    const double prop = (cycleLocation - (dutyCycle / 2)) / dutyCycle;
     if ((prop < 0) || (prop >= 1.0)) {
         return (opFlags[invert_flag]) ? Amplitude : 0.0;
     }
@@ -211,7 +212,7 @@ double pulseSource::pulseCalc(double td) const
             if (prop < 0.25) {
                 pamp = Amplitude / 2.0 * (-cos(kPI * prop * 4.0) + 1.0);
             } else if (prop > 0.75) {
-                pamp = Amplitude / 2.0 * cos(kPI * ((1.0 - prop) * 4) + 1.0);
+                pamp = Amplitude / 2.0 * cos((kPI * ((1.0 - prop) * 4)) + 1.0);
             } else {
                 pamp = Amplitude;
             }

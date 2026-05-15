@@ -207,9 +207,8 @@ class typeFactory: public objectFactory {
         }
         tF->setDefault(defType);
     }
-    typeFactory(std::string_view component,
-                const stringVec& typeNames,
-                std::string_view defType): objectFactory(component, typeNames)
+    typeFactory(std::string_view component, const stringVec& typeNames, std::string_view defType):
+        objectFactory(component, typeNames)
     {
         auto tF = coreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {

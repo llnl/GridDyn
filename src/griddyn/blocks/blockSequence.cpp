@@ -120,9 +120,8 @@ void blockSequence::updateLocalCache(const IOdata& /*inputs*/,
     for (index_t kk = 0; std::cmp_less(kk, sequenceSize); ++kk) {
         const Block* block = blocks[sequence[kk]];
         blockOutputs[kk] = block->getBlockOutput(stateData, sMode);
-        blockDoutDt[kk] = (block->checkFlag(differential_output)) ?
-            block->getBlockDoutDt(stateData, sMode) :
-            0.0;
+        blockDoutDt[kk] =
+            (block->checkFlag(differential_output)) ? block->getBlockDoutDt(stateData, sMode) : 0.0;
     }
 
     seqID = stateData.seqID;

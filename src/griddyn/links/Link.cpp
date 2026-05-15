@@ -493,8 +493,9 @@ count_t Link::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/
 {
     return 0;
 }
-IOdata
-    Link::getOutputs(const IOdata& /*inputs*/, const stateData& stateData, const solverMode& sMode) const
+IOdata Link::getOutputs(const IOdata& /*inputs*/,
+                        const stateData& stateData,
+                        const solverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
 }
@@ -620,7 +621,9 @@ void Link::setState(coreTime time,
     prevTime = time;
 }
 
-void Link::updateLocalCache(const IOdata& /*inputs*/, const stateData& stateData, const solverMode& sMode)
+void Link::updateLocalCache(const IOdata& /*inputs*/,
+                            const stateData& stateData,
+                            const solverMode& sMode)
 {
     if (!isEnabled()) {
         return;

@@ -36,8 +36,8 @@
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<gridDynSimulation> simulationFactory(
-    "simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
+static typeFactory<gridDynSimulation>
+    simulationFactory("simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
 
 std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
 
@@ -247,8 +247,7 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 if (bus->checkCapable()) {
                     bus->Network = 0;
                     const auto busType = bus->getType();
-                    if ((busType == gridBus::busType::SLK) ||
-                        (busType == gridBus::busType::afix)) {
+                    if ((busType == gridBus::busType::SLK) || (busType == gridBus::busType::afix)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -557,8 +556,7 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             if (cmd.val_double == kNullVal) {
                 objectInfo.m_obj->set(objectInfo.m_field, cmd.string2);
             } else {
-                objectInfo.m_obj->set(
-                    objectInfo.m_field, cmd.val_double, objectInfo.m_unitType);
+                objectInfo.m_obj->set(objectInfo.m_field, cmd.val_double, objectInfo.m_unitType);
             }
         } break;
         case gridDynAction::gd_action_t::setall:
@@ -1311,7 +1309,8 @@ void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
         }
         nextIndex = offsetIndex;
     } else {
-        nextIndex = (std::max)(nextIndex, static_cast<decltype(nextIndex)>(5));  // new modes start at 5
+        nextIndex =
+            (std::max)(nextIndex, static_cast<decltype(nextIndex)>(5));  // new modes start at 5
         nSolver->setIndex(nextIndex);
         if (nextIndex >= static_cast<count_t>(solverInterfaces.size())) {
             solverInterfaces.resize(nextIndex + 1);

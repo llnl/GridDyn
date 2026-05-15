@@ -646,11 +646,14 @@ void gridDynSimulation::handleEarlySolverReturn(int retval,
             rootTrigger(timeActual, noInputs, dynData->rootsfound, dynData->getSolverMode());
         } else if (retval == SOLVER_INVALID_STATE_ERROR) {
             // if we get into here the most likely cause is a very low voltage bus
-            const stateData stateDataValue(
-                timeActual, dynData->state_data(), dynData->deriv_data());
+            const stateData stateDataValue(timeActual,
+                                           dynData->state_data(),
+                                           dynData->deriv_data());
 
-            rootCheck(
-                noInputs, stateDataValue, dynData->getSolverMode(), check_level_t::low_voltage_check);
+            rootCheck(noInputs,
+                      stateDataValue,
+                      dynData->getSolverMode(),
+                      check_level_t::low_voltage_check);
             // return dynData->calcIC(getSimulationTime(), probeStepTime,
             // SolverInterface::ic_modes::fixed_diff, true);
             opFlags.reset(low_bus_voltage);
@@ -727,11 +730,14 @@ int gridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         }
     }
     if (opFlags[low_bus_voltage]) {
-        const stateData stateDataValue(
-            getSimulationTime(), dynData->state_data(), dynData->deriv_data());
+        const stateData stateDataValue(getSimulationTime(),
+                                       dynData->state_data(),
+                                       dynData->deriv_data());
 
-        rootCheck(
-            noInputs, stateDataValue, dynData->getSolverMode(), check_level_t::low_voltage_check);
+        rootCheck(noInputs,
+                  stateDataValue,
+                  dynData->getSolverMode(),
+                  check_level_t::low_voltage_check);
         // return dynData->calcIC(getSimulationTime(), probeStepTime,
         // SolverInterface::ic_modes::fixed_diff, true);
         opFlags.reset(low_bus_voltage);

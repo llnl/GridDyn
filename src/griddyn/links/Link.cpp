@@ -38,27 +38,30 @@ using units::unit;
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static typeFactory<Link> blf("link", stringVec{"trivial", "basic", "transport"});
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static childTypeFactory<acLine, Link>
-    glf("link", stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"}, "ac");
+static childTypeFactory<acLine, Link> glf(
+    "link",
+    stringVec{"ac", "line", "phaseshifter", "phase_shifter", "transformer"},
+    "ac");  // NOLINT(bugprone-throwing-static-initialization)
 
 namespace links {
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static childTypeFactory<adjustableTransformer, Link>
-        gfad("link", stringVec{"adjust", "adjustable", "adjustabletransformer"});
+    static childTypeFactory<adjustableTransformer, Link> gfad(
+        "link",
+        stringVec{"adjust", "adjustable", "adjustabletransformer"});  // NOLINT(bugprone-throwing-static-initialization)
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link> dclnk("link", stringVec{"dc", "dclink", "dcline"});
 
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcrect("link", stringVec{"rectifier", "rect"}, acdcConverter::Mode::RECTIFIER);
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcinv("link", stringVec{"inverter", "inv"}, acdcConverter::Mode::INVERTER);
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static childTypeFactory<acdcConverter, Link>
-        acdc("link", stringVec{"acdc", "acdcconverter", "dcconverter"});
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcrect(
+        "link",
+        stringVec{"rectifier", "rect"},
+        acdcConverter::Mode::RECTIFIER);  // NOLINT(bugprone-throwing-static-initialization)
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcinv(
+        "link",
+        stringVec{"inverter", "inv"},
+        acdcConverter::Mode::INVERTER);  // NOLINT(bugprone-throwing-static-initialization)
+    static childTypeFactory<acdcConverter, Link> acdc(
+        "link",
+        stringVec{"acdc", "acdcconverter", "dcconverter"});  // NOLINT(bugprone-throwing-static-initialization)
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

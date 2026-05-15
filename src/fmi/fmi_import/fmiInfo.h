@@ -145,11 +145,11 @@ class fmiInfo {
     std::map<std::string, int>
         variableLookup;  //!< map translating strings to indices into the variables array
 
-    matrixDataOrdered<sparse_ordering::row_ordered, int>
+    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         outputDep;  //!< the output dependency information
-    matrixDataOrdered<sparse_ordering::row_ordered, int>
+    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         derivDep;  //!< the derivative dependency information
-    matrixDataOrdered<sparse_ordering::row_ordered, int>
+    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         unknownDep;  //!< the initial unknown dependency information
     std::vector<int> outputs;  //!< a list of the output indices
     std::vector<int> parameters;  //!< a list of all the parameters

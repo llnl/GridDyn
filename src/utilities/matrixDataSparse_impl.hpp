@@ -26,13 +26,13 @@ void matrixDataSparse<ValueT>::assign(index_t row, index_t col, ValueT num)
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::sortIndex(sparse_ordering ordering)
+void matrixDataSparse<ValueT>::sortIndex(SparseOrdering ordering)
 {
     switch (ordering) {
-        case sparse_ordering::column_ordered:
+        case SparseOrdering::COLUMN_ORDERED:
             std::stable_sort(data_.begin(), data_.end(), compareCol<ValueT>);
             break;
-        case sparse_ordering::row_ordered:
+        case SparseOrdering::ROW_ORDERED:
             std::stable_sort(data_.begin(), data_.end(), compareRow<ValueT>);
             break;
     }
@@ -46,7 +46,7 @@ void matrixDataSparse<ValueT>::compact()
         return;
     }
     if (!isSorted()) {
-        sortIndex(sparse_ordering::column_ordered);
+        sortIndex(SparseOrdering::COLUMN_ORDERED);
     }
 
     auto currentDataLocation = data_.begin();
@@ -75,7 +75,7 @@ template<typename ValueT>
 std::vector<count_t> matrixDataSparse<ValueT>::columnCount()
 {
     if (!isSorted()) {
-        sortIndex(sparse_ordering::column_ordered);
+        sortIndex(SparseOrdering::COLUMN_ORDERED);
     }
     auto dataEnd = data_.end();
     std::vector<count_t> colCount((*(dataEnd - 1)).row, 0);
@@ -203,7 +203,7 @@ void matrixDataSparse<ValueT>::cascade(matrixDataSparse<ValueT>& a2, index_t ele
 template<typename ValueT>
 std::vector<ValueT> matrixDataSparse<ValueT>::vectorMult(std::vector<ValueT> V)
 {
-    sortIndex(sparse_ordering::row_ordered);
+    sortIndex(SparseOrdering::ROW_ORDERED);
     auto maxRow = data_.back().row;
     std::vector<ValueT> out(maxRow, 0);
     auto res = data_.begin();
@@ -222,7 +222,7 @@ std::vector<index_t> findMissing(matrixDataSparse<ValueT>& md)
 {
     std::vector<index_t> missing;
     md.compact();
-    md.sortIndex(sparse_ordering::row_ordered);
+    md.sortIndex(SparseOrdering::ROW_ORDERED);
     index_t pp = 0;
     for (index_t kk = 0; kk < md.rowLimit(); ++kk) {
         bool good = false;
@@ -260,9 +260,9 @@ std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
     if (rowLimit <= 1) {
         return mrows;
     }
-    md.sortIndex(sparse_ordering::column_ordered);
+    md.sortIndex(SparseOrdering::COLUMN_ORDERED);
     md.compact();
-    md.sortIndex(sparse_ordering::row_ordered);
+    md.sortIndex(SparseOrdering::ROW_ORDERED);
     ValueT factor{0};
     index_t pp{0};
     index_t qq{0};

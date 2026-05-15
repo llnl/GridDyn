@@ -596,29 +596,29 @@ static constexpr auto ArrFuncList2 = makeFunctionTable<vector_function2_t>({
     {"vecprod", vectorProductArray},
 });
 
-bool isFunctionName(std::string_view functionName, function_type ftype)
+bool isFunctionName(std::string_view functionName, FunctionType ftype)
 {
-    if (((ftype == function_type::all) || (ftype == function_type::arg)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG)) &&
         containsFunction(FuncList1, functionName)) {
         return true;
     }
-    if (((ftype == function_type::all) || (ftype == function_type::arg2)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG2)) &&
         containsFunction(FuncList2, functionName)) {
         return true;
     }
-    if (((ftype == function_type::all) || (ftype == function_type::arg3)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::ARG3)) &&
         containsFunction(FuncList3, functionName)) {
         return true;
     }
-    if (((ftype == function_type::all) || (ftype == function_type::no_args)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::NO_ARGS)) &&
         containsFunction(FuncList0, functionName)) {
         return true;
     }
-    if (((ftype == function_type::all) || (ftype == function_type::vect_arg)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::VECT_ARG)) &&
         containsFunction(ArrFuncList1, functionName)) {
         return true;
     }
-    if (((ftype == function_type::all) || (ftype == function_type::vect_arg2)) &&
+    if (((ftype == FunctionType::ALL) || (ftype == FunctionType::VECT_ARG2)) &&
         containsFunction(ArrFuncList2, functionName)) {
         return true;
     }

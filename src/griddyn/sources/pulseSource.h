@@ -15,17 +15,17 @@ class pulseSource: public Source {
   public:
     static const char invert_flag = object_flag3;  //!< flag location indicating an inverse waveform
     /** enumeration of the different available pulse types*/
-    enum class pulse_type_t {
-        square,
-        triangle,
-        gaussian,
-        biexponential,
-        exponential,
-        cosine,
-        flattop,
-        monocycle
+    enum class PulseType {
+        SQUARE,
+        TRIANGLE,
+        GAUSSIAN,
+        BIEXPONENTIAL,
+        EXPONENTIAL,
+        COSINE,
+        FLATTOP,
+        MONOCYCLE
     };
-    pulse_type_t ptype = pulse_type_t::square;  //!< the type of the pulse
+    PulseType ptype = PulseType::SQUARE;  //!< the type of the pulse
   protected:
     coreTime period = maxTime;  //!<[s] pulse period
     model_parameter dutyCycle = 0.5;  //!<[%] pulse duty cycle
@@ -46,16 +46,16 @@ class pulseSource: public Source {
     virtual void updateOutput(coreTime time) override;
     virtual double computeOutput(coreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateData,
                              const solverMode& sMode,
                              index_t num = 0) const override;
 
     virtual void setLevel(double val) override;
     /** function to calculate a value of the pulsing output
-@param[in] td the time change from the last update
+@param[in] timeDelta the time change from the last update
 @return the output value
 */
-    double pulseCalc(double td) const;
+    double pulseCalc(double timeDelta) const;
 };
 
 }  // namespace griddyn::sources

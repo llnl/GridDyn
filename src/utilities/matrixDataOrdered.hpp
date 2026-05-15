@@ -14,7 +14,7 @@
 /** @brief class implementing an expandable sparse matrix with an expandable data vector for each
  *row also adding a function to get all the data in a particular row.
  */
-template<sparse_ordering M = sparse_ordering::row_ordered, class ValueT = double>
+template<SparseOrdering M = SparseOrdering::ROW_ORDERED, class ValueT = double>
 class matrixDataOrdered: public matrixData<ValueT> {
   private:
     std::vector<std::vector<std::pair<index_t, ValueT>>>

@@ -11,21 +11,12 @@
 #include <string>
 
 namespace griddyn::sources {
-/*
-enum pulse_type_t{ square = 0, triangle = 1, gaussian = 2, biexponential = 3, exponential = 4 };
-pulse_type_t ptype;
-protected:
-double period;
-double duty_cylce;
-double A;
-double nextCycleTime;*/
-
 sineSource::sineSource(const std::string& objName, double startVal): pulseSource(objName, startVal)
 {
 }
 coreObject* sineSource::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<sineSource, pulseSource>(this, obj);
+    auto* nobj = cloneBase<sineSource, pulseSource>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -52,16 +43,16 @@ void sineSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 double sineSource::computeOutput(coreTime time) const
 {
-    auto dt = time - prevTime;
-    if (dt == timeZero) {
+    auto timeDelta = time - prevTime;
+    if (timeDelta == timeZero) {
         return m_output;
     }
     // account for the frequency shift
-    double Nfrequency = frequency + dfdt * dt;
-    double NAmp = Amp + dAdt * dt;
+    const double nextFrequency = frequency + dfdt * timeDelta;
+    const double nextAmplitude = Amp + dAdt * timeDelta;
     // compute the sine wave component
     auto tdiff = time - lastCycle;
-    double addComponent = NAmp * sin(2.0 * kPI * (Nfrequency * tdiff) + phase);
+    const double addComponent = nextAmplitude * sin((2.0 * kPI * (nextFrequency * tdiff)) + phase);
     double mult = 1.0;
 
     if (opFlags[pulsed_flag]) {
@@ -77,8 +68,8 @@ double sineSource::computeOutput(coreTime time) const
 
 void sineSource::updateOutput(coreTime time)
 {
-    auto dt = time - prevTime;
-    if (dt == timeZero) {
+    auto timeDelta = time - prevTime;
+    if (timeDelta == timeZero) {
         return;
     }
     auto tdiff = time - lastCycle;
@@ -86,7 +77,7 @@ void sineSource::updateOutput(coreTime time)
     frequency += dfdt * (time - prevTime);
     Amp += dAdt * (time - prevTime);
     // compute the sine wave component
-    double addComponent = Amp * sin(2.0 * kPI * (frequency * tdiff) + phase);
+    const double addComponent = Amp * sin((2.0 * kPI * (frequency * tdiff)) + phase);
     double mult = 1.0;
     while (tdiff > sinePeriod) {
         tdiff -= sinePeriod;

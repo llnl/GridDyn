@@ -18,8 +18,8 @@ in a sequence and processes them in the appropriate fashion.
 class blockSequence: public Block {
   public:
   protected:
-    enum sequence_flags {
-        differential_inputActual =
+    enum SequenceFlags {
+        DIFFERENTIAL_INPUT_ACTUAL =
             object_flag11,  //!< flag specifying that the outer input is differential
     };
     std::vector<Block*> blocks;  //!< the building blocks in the sequence
@@ -53,31 +53,31 @@ class blockSequence: public Block {
 
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& sD,
+                               const stateData& stateData,
                                double resid[],
                                const solverMode& sMode) override;
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateData,
                                  double deriv[],
                                  const solverMode& sMode) override;
 
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateData,
                                       double update[],
                                       const solverMode& sMode) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateData,
+                                       matrixData<double>& matrixDataRef,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
 
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateData,
                           double roots[],
                           const solverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -85,7 +85,7 @@ class blockSequence: public Block {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateData,
                                   const solverMode& sMode,
                                   check_level_t level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
@@ -101,7 +101,7 @@ class blockSequence: public Block {
     double subBlockOutput(const std::string& blockname) const;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateData,
                                   const solverMode& sMode) override;
 
     virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;

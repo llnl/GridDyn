@@ -30,17 +30,17 @@ const char rect[] = "rectifier_$";
 const char inv[] = "inverter_$";
 const char bidir[] = "acdcConveter_$";
 
-static std::string modeToName(acdcConverter::mode_t mode, const std::string& name)
+static std::string modeToName(acdcConverter::Mode mode, const std::string& name)
 {
     if (!name.empty()) {
         return name;
     }
     switch (mode) {
-        case acdcConverter::mode_t::rectifier:
+        case acdcConverter::Mode::RECTIFIER:
             return rect;
-        case acdcConverter::mode_t::inverter:
+        case acdcConverter::Mode::INVERTER:
             return inv;
-        case acdcConverter::mode_t::bidirectional:
+        case acdcConverter::Mode::BIDIRECTIONAL:
         default:
             return bidir;
     }
@@ -54,10 +54,10 @@ acdcConverter::acdcConverter(double resistanceParameter,
     buildSubsystem();
 }
 
-acdcConverter::acdcConverter(mode_t opType, const std::string& objName):
+acdcConverter::acdcConverter(Mode opType, const std::string& objName):
     Link(modeToName(opType, objName)), type(opType)
 {
-    if (opType == mode_t::inverter) {
+    if (opType == Mode::INVERTER) {
         dirMult = -1.0;
     }
     buildSubsystem();
@@ -149,21 +149,21 @@ void acdcConverter::set(std::string_view param, std::string_view val)
 {
     if (param == "mode") {
         if (val == "rectifier") {
-            type = mode_t::rectifier;
+            type = Mode::RECTIFIER;
             if (dirMult < 0.0) {
                 firingAngleControl->set("p", -mp_Kp);
                 firingAngleControl->set("i", -mp_Ki);
             }
             dirMult = 1.0;
         } else if (val == "inverter") {
-            type = mode_t::inverter;
+            type = Mode::INVERTER;
             if (dirMult > 0) {
                 firingAngleControl->set("p", mp_Kp);
                 firingAngleControl->set("i", mp_Ki);
             }
             dirMult = -1.0;
         } else if (val == "bidirectional") {
-            type = mode_t::bidirectional;
+            type = Mode::BIDIRECTIONAL;
             if (dirMult < 0) {
                 firingAngleControl->set("p", -mp_Kp);
                 firingAngleControl->set("i", -mp_Ki);
@@ -187,7 +187,7 @@ void acdcConverter::set(std::string_view param, double val, unit unitType)
         Pset = convert(val, unitType, puMW, systemBasePower);
         Pset = (Pset < 0) ? dirMult * Pset : Pset;
         opFlags.set(fixed_target_power);
-        control_mode = control_mode_t::power;
+        control_mode = ControlMode::POWER;
         if (opFlags[dyn_initialized]) {
             tap = linkInfo.v2 * linkInfo.v1 / Pset;
         }
@@ -206,7 +206,7 @@ void acdcConverter::set(std::string_view param, double val, unit unitType)
     } else if ((param == "gammamax") || (param == "alphamax") || (param == "anglemax") ||
                (param == "maxangle")) {
         maxAngle = val;
-        if (type == mode_t::inverter) {
+        if (type == Mode::INVERTER) {
             firingAngleControl->set("max", cos(kPI - maxAngle));
         } else {
             firingAngleControl->set("max", cos(maxAngle));
@@ -214,7 +214,7 @@ void acdcConverter::set(std::string_view param, double val, unit unitType)
     } else if ((param == "gammamin") || (param == "alphamin") || (param == "anglemin") ||
                (param == "minangle")) {
         minAngle = val;
-        if (type == mode_t::inverter) {
+        if (type == Mode::INVERTER) {
             firingAngleControl->set("min", cos(kPI - minAngle));
         } else {
             firingAngleControl->set("min", cos(minAngle));
@@ -273,7 +273,7 @@ void acdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     {
         controlDelay->disable();
     }
-    if (control_mode != control_mode_t::voltage) {
+    if (control_mode != ControlMode::VOLTAGE) {
         powerLevelControl->disable();
         controlDelay->disable();
     }
@@ -289,7 +289,7 @@ void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
                                          IOdata& fieldSet)
 {
     firingAngleControl->dynInitializeB(noInputs, {angle}, fieldSet);
-    if (control_mode == control_mode_t::voltage) {
+    if (control_mode == ControlMode::VOLTAGE) {
         vTarget = B2->getVoltage();
         powerLevelControl->dynInitializeB({vTarget}, noInputs, fieldSet);
         if (tD > 0.0001) {
@@ -491,7 +491,7 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
         matrixDataSparse<double> translatedInputJacobian;
 
         if (refAlg != kNullLocation) {
-            if (control_mode == control_mode_t::voltage) {
+            if (control_mode == ControlMode::VOLTAGE) {
                 double powerAdjustment;
                 if (tD > 0.0001) {
                     powerAdjustment =
@@ -527,7 +527,7 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
         translatedAngleJacobian.cascade(translatedInputJacobian, 0);
         matrixDataValue.merge(translatedAngleJacobian);
 
-        if (control_mode == control_mode_t::voltage) {
+        if (control_mode == ControlMode::VOLTAGE) {
             controlSignalInput[0] = linkInfo.v2 - vTarget;
             argL[0] = B2Voffset;
             powerLevelControl->jacobianElements(
@@ -571,7 +571,7 @@ void acdcConverter::residual(const IOdata& inputs,
     if (isDynamic(sMode)) {
         auto Loc = offsets.getLocations(stateDataValue, resid, sMode, this);
         IOdata controlSignalInput{linkInfo.v2 - vTarget};
-        if (control_mode == control_mode_t::voltage) {
+        if (control_mode == ControlMode::VOLTAGE) {
             const double powerAdjustment = (tD > 0.0001) ?
                 controlDelay->getOutput(controlSignalInput, stateDataValue, sMode) :
                 powerLevelControl->getOutput(controlSignalInput, stateDataValue, sMode);
@@ -585,7 +585,7 @@ void acdcConverter::residual(const IOdata& inputs,
             ((3.0 / kPI) * x * Loc.algStateLoc[0]) - linkInfo.v2;
 
         firingAngleControl->residual(controlSignalInput, stateDataValue, resid, sMode);
-        if (control_mode == control_mode_t::voltage) {
+        if (control_mode == ControlMode::VOLTAGE) {
             controlSignalInput[0] = linkInfo.v2 - vTarget;
             powerLevelControl->residual(controlSignalInput, stateDataValue, resid, sMode);
             if (tD > 0.0001) {
@@ -678,7 +678,7 @@ void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
 
     // Q2 is 0 since bus k is a DC bus.
     /*
-if (type == mode_t::inverter)
+if (type == Mode::INVERTER)
 {
   printf ("inv sid=%d P1=%f P2=%f Q1=%f\n", linkInfo.seqID, linkFlows.P1, linkFlows.P2,
 linkFlows.Q1);

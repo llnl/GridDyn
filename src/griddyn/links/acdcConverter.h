@@ -25,10 +25,10 @@ namespace links {
         enum inverter_flags {
             fixed_power_control = object_flag6,
         };
-        enum class mode_t { rectifier, inverter, bidirectional };
+        enum class Mode { RECTIFIER, INVERTER, BIDIRECTIONAL };
 
       protected:
-        enum class control_mode_t { current, power, voltage };
+        enum class ControlMode { CURRENT, POWER, VOLTAGE };
         model_parameter r = 0.0;  //!< [puOhm] per unit resistance
         model_parameter x = 0.001;  //!< [puOhm] per unit reactance
         model_parameter tap = 1.0;  //!< converter tap
@@ -38,7 +38,7 @@ namespace links {
         model_parameter mp_Ki = 0.03;  //!< integral gain angle control
         model_parameter mp_Kp = 0.97;  //!< proportional gain angle control
         double Idc = 0.0;  //!< storage for dc current
-        mode_t type = mode_t::bidirectional;  //!< converter type
+        Mode type = Mode::BIDIRECTIONAL;  //!< converter type
         model_parameter vTarget = 1.0;  //!< [puV] ac voltage target
         model_parameter mp_controlKi = -0.03;  //!< integral gain angle control
         model_parameter mp_controlKp = -0.97;  //!< proportional gain angle control
@@ -47,7 +47,7 @@ namespace links {
         double dirMult = 1.0;
         model_parameter minAngle = -kPI / 2.0;  //!< [rad] minimum tap angle
         model_parameter maxAngle = kPI / 2.0;  //!< [rad]  maximum tap angle
-        control_mode_t control_mode = control_mode_t::voltage;
+        ControlMode control_mode = ControlMode::VOLTAGE;
 
         coreOwningPtr<blocks::pidBlock> firingAngleControl;  //!< block controlling firing angle
         coreOwningPtr<blocks::pidBlock> powerLevelControl;  //!< block controlling power
@@ -56,7 +56,7 @@ namespace links {
       public:
         explicit acdcConverter(const std::string& objName = "acdcConveter_$");
         // name will be based on opType
-        acdcConverter(mode_t opType, const std::string& objName = "");
+        acdcConverter(Mode opType, const std::string& objName = "");
         acdcConverter(double resistanceParameter,
                       double reactanceParameter,
                       const std::string& objName = "acdcConveter_$");

@@ -17,7 +17,7 @@
 #include <vector>
 
 /** @brief simple class for compute the keyIndex from a row and column and inverting it*/
-template<class X, sparse_ordering M>
+template<class X, SparseOrdering M>
 class keyCompute {  // default is row ordered
   public:
     static X keyGen(index_t rowIndex, index_t colIndex)
@@ -34,7 +34,7 @@ class keyCompute {  // default is row ordered
 };
 
 template<class X>
-class keyCompute<X, sparse_ordering::column_ordered> {
+class keyCompute<X, SparseOrdering::COLUMN_ORDERED> {
   public:
     static X keyGen(index_t rowIndex, index_t colIndex)
     {
@@ -50,17 +50,17 @@ class keyCompute<X, sparse_ordering::column_ordered> {
 };
 
 /** @brief simple class for compute the blockIndex from a row and column and inverting it*/
-template<count_t K, sparse_ordering M>
+template<count_t K, SparseOrdering M>
 class blockCompute {
   public:
     index_t blockIndexGen(index_t row, index_t col) const
     {
-        return (((M == sparse_ordering::row_ordered) ? row : col) + bias) >> kShift;
+        return (((M == SparseOrdering::ROW_ORDERED) ? row : col) + bias) >> kShift;
     };
 
     void setMaxIndex(index_t rowMax, index_t colMax)
     {
-        index_t keyMax = (M == sparse_ordering::row_ordered) ? rowMax : colMax;
+        index_t keyMax = (M == SparseOrdering::ROW_ORDERED) ? rowMax : colMax;
         index_t remaining = keyMax;
         int shiftCount = 0;
         while (remaining > 1) {
@@ -84,17 +84,17 @@ class blockCompute {
 };
 
 /** @brief simple class for compute the blockIndex from a row and column and inverting it*/
-template<sparse_ordering M>
+template<SparseOrdering M>
 class blockCompute<1, M> {
   public:
     index_t blockIndexGen(index_t row, index_t col) const
     {
-        return (((M == sparse_ordering::row_ordered) ? row : col) >= split);
+        return (((M == SparseOrdering::ROW_ORDERED) ? row : col) >= split);
     }
 
     void setMaxIndex(index_t rowMax, index_t colMax)
     {
-        index_t key = (M == sparse_ordering::row_ordered) ? rowMax : colMax;
+        index_t key = (M == SparseOrdering::ROW_ORDERED) ? rowMax : colMax;
         split = (key >> 1);
     }
 
@@ -112,7 +112,7 @@ is approximately 2x that used in the single column structure
 template<count_t K,
          class X = std::uint32_t,
          class ValueT = double,
-         sparse_ordering M = sparse_ordering::row_ordered>
+         SparseOrdering M = SparseOrdering::ROW_ORDERED>
 class matrixDataSparseSMB: public matrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
@@ -395,7 +395,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
 necessary the vector contains a single 32 bit unsigned number composed by using col<<16+row to make
 the sorting faster when done
 */
-template<class X, class ValueT, sparse_ordering M>
+template<class X, class ValueT, SparseOrdering M>
 class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
@@ -546,7 +546,7 @@ allowing support for up to 2^32-2 rows and columns to make the sorting faster wh
 parameter K indicates that the structure should use 2^K vectors for data storage the space allocated
 is approximately 2x that used in the single column structure
 */
-template<class X, class ValueT, sparse_ordering M>
+template<class X, class ValueT, SparseOrdering M>
 class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");

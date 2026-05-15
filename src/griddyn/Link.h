@@ -114,7 +114,7 @@ class Link: public gridPrimary {
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateData,
                                   const solverMode& sMode) override;
 
     /** @brief allow the real power flow to be fixed by adjusting the properties of one bus or
@@ -200,7 +200,8 @@ class Link: public gridPrimary {
     * @return the absolute angle
     */
 
-    double getBusAngle(const stateData& sD, const solverMode& sMode, id_type_t busId = 0) const;
+    double
+        getBusAngle(const stateData& stateData, const solverMode& sMode, id_type_t busId = 0) const;
     /** @brief get the voltage of an attached bus
     @param[in] busId  either 1 or 2 or the object id of the bus
     * @return the voltage
@@ -314,7 +315,7 @@ class Link: public gridPrimary {
                                           const solverMode& sMode);
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateData,
                               const solverMode& sMode) const override;
     virtual IOdata getOutputs(id_type_t busId, const stateData& sD, const solverMode& sMode) const;
     virtual void setState(coreTime time,

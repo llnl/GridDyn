@@ -35,7 +35,7 @@ void blockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     bool diffInput = opFlags[DIFFERENTIAL_INPUT_ACTUAL];
     if (sequence.empty()) {  // create a default sequence with all the blocks
-        for (index_t kk = 0; kk < static_cast<index_t>(blocks.size()); ++kk) {
+        for (index_t kk = 0; std::cmp_less(kk, blocks.size()); ++kk) {
             sequence.push_back(kk);
         }
     }
@@ -117,7 +117,7 @@ void blockSequence::updateLocalCache(const IOdata& /*inputs*/,
         blockOutputs.resize(sequenceSize);
         blockDoutDt.resize(sequenceSize);
     }
-    for (index_t kk = 0; kk < static_cast<index_t>(sequenceSize); ++kk) {
+    for (index_t kk = 0; std::cmp_less(kk, sequenceSize); ++kk) {
         const Block* block = blocks[sequence[kk]];
         blockOutputs[kk] = block->getBlockOutput(stateData, sMode);
         blockDoutDt[kk] = (block->checkFlag(differential_output)) ?

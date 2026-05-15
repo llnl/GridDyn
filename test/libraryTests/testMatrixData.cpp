@@ -46,6 +46,7 @@ TEST(MatrixDataTests, BlockCompute)
     EXPECT_EQ(colcnt2[3], 2);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, BlockCompute2)
 {
     blockCompute<3, SparseOrdering::COLUMN_ORDERED> bc1;
@@ -100,6 +101,7 @@ TEST(MatrixDataTests, Matrix1)
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
 
+    // NOLINTNEXTLINE(bugprone-random-generator-seed,cert-msc32-c,cert-msc51-cpp)
     std::default_random_engine generator(12345);
     std::uniform_int_distribution<std::uint32_t> distribution(1, 999998);
     for (size_t pp = 0; pp < 199997; ++pp) {
@@ -139,6 +141,7 @@ TEST(MatrixDataTests, Matrix2)
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
 
+    // NOLINTNEXTLINE(bugprone-random-generator-seed,cert-msc32-c,cert-msc51-cpp)
     std::default_random_engine generator(12345);
     std::uniform_int_distribution<std::uint32_t> distribution(1, 999998);
     for (size_t pp = 0; pp < 199997; ++pp) {

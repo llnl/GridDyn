@@ -70,8 +70,9 @@ coreObject* adjustableTransformer::clone(coreObject* obj) const
     return lnk;
 }
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locNumStrings{"vmin",
-                                      "vmax",
+                                     "vmax",
                                      "vtarget",
                                      "pmin",
                                      "pmax",
@@ -87,9 +88,11 @@ static const stringVec locNumStrings{"vmin",
                                      "stepsize",
                                      "nsteps",
                                      "dtapdt",
-                                      "dtapadt"};  // NOLINT(bugprone-throwing-static-initialization)
-static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};  // NOLINT(bugprone-throwing-static-initialization)
-static const stringVec flagStrings{"no_pflow_adjustments"};  // NOLINT(bugprone-throwing-static-initialization)
+                                     "dtapadt"};
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const stringVec flagStrings{"no_pflow_adjustments"};
 void adjustableTransformer::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
     getParamString<adjustableTransformer, acLine>(

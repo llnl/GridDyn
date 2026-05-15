@@ -23,6 +23,7 @@
 #include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 #include <cassert>
+#include <compare>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -36,15 +37,18 @@
 
 namespace griddyn {
 static typeFactory<gridDynSimulation>
-    gf("simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
+    simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
+        "simulation",
+        stringVec{"GridDyn", "gridlab", "gridlabd"},
+        "GridDyn");
 
 std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
 
 // local search functions for MPI based objects
-count_t searchForGridlabDobject(const coreObject* obj);
+static count_t searchForGridlabDobject(const coreObject* obj);
 
 gridDynSimulation::gridDynSimulation(const std::string& objName):
-    gridSimulation(objName), controlFlags(0ll)
+    gridSimulation(objName), controlFlags(0LL)
 {
 // defaults
 #ifndef GRIDDYN_ENABLE_KLU
@@ -55,8 +59,8 @@ gridDynSimulation::gridDynSimulation(const std::string& objName):
 gridDynSimulation::~gridDynSimulation()
 {
     // if we are destroying the primary instance then we need to remove it from access
-    auto ptr = this;
-    s_instance.compare_exchange_strong(ptr, static_cast<gridDynSimulation*>(nullptr));
+    auto* instancePtr = this;
+    s_instance.compare_exchange_strong(instancePtr, static_cast<gridDynSimulation*>(nullptr));
 }
 
 void gridDynSimulation::setInstance(gridDynSimulation* gds)
@@ -71,7 +75,7 @@ gridDynSimulation* gridDynSimulation::getInstance()
 
 coreObject* gridDynSimulation::clone(coreObject* obj) const
 {
-    auto sim = cloneBase<gridDynSimulation, gridSimulation>(this, obj);
+    auto* sim = cloneBase<gridDynSimulation, gridSimulation>(this, obj);
     if (sim == nullptr) {
         return obj;
     }
@@ -148,15 +152,11 @@ int gridDynSimulation::rebalanceLoadGen()
     getBusVector(bnetwork);
     double totalLoad{0.0};
     double totalGen{0.0};
-    int maxNetwork{1};
-    int currentNetwork{1};
     for (auto& bus : bnetwork) {
         if (bus->isConnected() && bus->isEnabled()) {
-            if (bus->Network == currentNetwork) {
+            if (bus->Network == 1) {
                 totalLoad += bus->getLoadReal();
                 totalGen += bus->getGenerationReal();
-            } else if (bus->Network > maxNetwork) {
-                maxNetwork = bus->Network;
             }
         } else {
             bus->Network = 8;
@@ -181,16 +181,16 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     for (auto& bus : bnetwork) {
         if (bus->getLoadReal() != 0.0) {
             if (bus->getVoltage() < 0.95) {
-                int ii{0};
+                int loadIndex{0};
                 do {
-                    auto* ld = bus->getLoad(ii);
-                    if (ld != nullptr) {
-                        if (ld->isConnected()) {
+                    auto* load = bus->getLoad(loadIndex);
+                    if (load != nullptr) {
+                        if (load->isConnected()) {
                             modified = true;
-                            ld->disconnect();
+                            load->disconnect();
                             break;
                         }
-                        ++ii;
+                        ++loadIndex;
                     } else {
                         break;
                     }
@@ -200,7 +200,7 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     }
 
     if (!modified) {
-        gridBus* mxBus{nullptr};
+        const gridBus* maxDiffBus{nullptr};
         double maxDiff{0.0};
         for (auto& bus : bnetwork) {
             auto ldp = bus->getLoadReal();
@@ -211,21 +211,21 @@ bool gridDynSimulation::doAutomaticLoadLoss()
             auto lnkp = bus->getLinkReal();
             auto sum = lnkp + ldp + genp;
             if (sum > maxDiff) {
-                mxBus = bus;
+                maxDiffBus = bus;
                 maxDiff = sum;
             }
         }
-        if (maxDiff > 0.01) {
-            int ii{0};
+        if ((maxDiff > 0.01) && (maxDiffBus != nullptr)) {
+            int loadIndex{0};
             do {
-                auto* ld = mxBus->getLoad(ii);
-                if (ld != nullptr) {
-                    if (ld->isConnected()) {
+                auto* load = maxDiffBus->getLoad(loadIndex);
+                if (load != nullptr) {
+                    if (load->isConnected()) {
                         modified = true;
-                        ld->disconnect();
+                        load->disconnect();
                         break;
                     }
-                    ++ii;
+                    ++loadIndex;
                 } else {
                     break;
                 }
@@ -235,13 +235,13 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     return modified;
 }
 
-int gridDynSimulation::checkNetwork(network_check_type checkType)
+int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
 {
     // make a full list of all buses
     std::vector<gridBus*> bnetwork;
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
-    if (checkType == network_check_type::full) {
+    if (checkType == NetworkCheckType::FULL) {
         slkBusses.clear();
 
         for (auto& bus : bnetwork) {
@@ -249,8 +249,8 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                 // check to make sure the bus can actually work
                 if (bus->checkCapable()) {
                     bus->Network = 0;
-                    auto bt = bus->getType();
-                    if ((bt == gridBus::busType::SLK) || (bt == gridBus::busType::afix)) {
+                    const auto busType = bus->getType();
+                    if ((busType == gridBus::busType::SLK) || (busType == gridBus::busType::afix)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -263,17 +263,15 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
         }
     } else {
         for (auto& bus : bnetwork) {
-            if (bus->Network > 0) {
-                bus->Network = 0;
-            }
+            bus->Network = (std::min)(bus->Network, 0);
         }
     }
     int32_t networkNum = 0;
     std::queue<gridBus*> bstk;
-    for (auto& bn : bnetwork) {
-        if ((bn->Network == 0) && (bn->isConnected())) {
+    for (auto& networkBus : bnetwork) {
+        if ((networkBus->Network == 0) && (networkBus->isConnected())) {
             networkNum++;
-            bn->followNetwork(networkNum, bstk);
+            networkBus->followNetwork(networkNum, bstk);
             while (!bstk.empty()) {
                 if (bstk.front()->Network != networkNum) {
                     bstk.front()->followNetwork(networkNum, bstk);
@@ -285,30 +283,32 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
     // check to make sure we have a swing bus for each network
     networkCount = networkNum;
     for (int32_t nn = 1; nn <= networkNum; nn++) {
-        bool slkfnd = false, pvfnd = false, afixfnd = false;
-        for (auto& bn : slkBusses) {
-            if (bn->Network == nn) {
-                if (bn->getType() == gridBus::busType::SLK) {
-                    slkfnd = true;
+        bool slackFound = false;
+        bool pvFound = false;
+        bool afixFound = false;
+        for (auto& slackBus : slkBusses) {
+            if (slackBus->Network == nn) {
+                if (slackBus->getType() == gridBus::busType::SLK) {
+                    slackFound = true;
                     break;
                 }
-                afixfnd = true;
+                afixFound = true;
             }
         }
-        if (!slkfnd) {
-            for (auto& bn : bnetwork) {
-                if (bn->Network == nn) {
-                    if (bn->getType() == gridBus::busType::SLK) {
-                        slkfnd = true;
+        if (!slackFound) {
+            for (auto& networkBus : bnetwork) {
+                if (networkBus->Network == nn) {
+                    if (networkBus->getType() == gridBus::busType::SLK) {
+                        slackFound = true;
                         break;
                     }
-                    if (bn->getType() == gridBus::busType::PV) {
-                        pvfnd = true;
-                    } else if (bn->getType() == gridBus::busType::afix) {
-                        afixfnd = true;
+                    if (networkBus->getType() == gridBus::busType::PV) {
+                        pvFound = true;
+                    } else if (networkBus->getType() == gridBus::busType::afix) {
+                        afixFound = true;
                     }
-                    if (afixfnd && pvfnd) {
-                        slkfnd =
+                    if (afixFound && pvFound) {
+                        slackFound =
                             true;  // a pv bus and a separate afix bus can function as a slk bus
                         break;
                     }
@@ -316,7 +316,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
             }
         }
         // now we go into a loop to make a new slack bus
-        if (!slkfnd) {
+        if (!slackFound) {
             if (controlFlags[disable_auto_slack_bus]) {
                 if (controlFlags[disable_auto_disconnect]) {
                     logging::error(this, "no SLK bus found in network {}", nn);
@@ -333,9 +333,9 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                 }
 
                 logging::warning(this, "no SLK bus found in network {} disconnecting buses", nn);
-                for (auto& bn : bnetwork) {
-                    if (bn->Network == nn) {
-                        bn->disconnect();
+                for (auto& networkBus : bnetwork) {
+                    if (networkBus->Network == nn) {
+                        networkBus->disconnect();
                     }
                 }
             } else {
@@ -344,7 +344,7 @@ int gridDynSimulation::checkNetwork(network_check_type checkType)
                 for (auto& networkBus : bnetwork) {
                     if (networkBus->Network == nn) {
                         if (networkBus->getType() == gridBus::busType::PV) {
-                            double cap = networkBus->getAdjustableCapacityUp();
+                            const double cap = networkBus->getAdjustableCapacityUp();
                             if (cap > maxcap) {
                                 maxcap = cap;
                                 maxCapBus = networkBus;
@@ -455,16 +455,16 @@ std::vector<double> gridDynSimulation::getState(const solverMode& sMode) const
         }
     }
 
-    std::vector<double> st;
+    std::vector<double> states;
     auto solData = getSolverInterface(nMode);
     if (solData) {
         const double* state = solData->state_data();
         if (solData->size() != 0) {
-            st.assign(state, state + solData->size());
+            states.assign(state, state + solData->size());
         }
     }
 
-    return st;
+    return states;
 }
 
 /*
@@ -478,43 +478,43 @@ with differential first
 
 void gridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering offsetOrdering)
 {
-    solverOffsets b;
+    solverOffsets offsetValues;
     switch (offsetOrdering) {
         case offset_ordering::mixed:
         default:
-            b.algOffset = 0;
+            offsetValues.algOffset = 0;
             break;
         case offset_ordering::grouped:
         case offset_ordering::voltage_first:
-            b.vOffset = 0;
-            b.aOffset = voltageStateCount(sMode);
-            b.algOffset = b.aOffset + angleStateCount(sMode);
+            offsetValues.vOffset = 0;
+            offsetValues.aOffset = voltageStateCount(sMode);
+            offsetValues.algOffset = offsetValues.aOffset + angleStateCount(sMode);
             if (hasDifferential(sMode)) {
-                b.diffOffset = totalAlgSize(sMode);
+                offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
         case offset_ordering::algebraic_grouped:
-            b.algOffset = 0;
+            offsetValues.algOffset = 0;
             if (hasDifferential(sMode)) {
-                b.diffOffset = totalAlgSize(sMode);
+                offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
         case offset_ordering::angle_first:
-            b.aOffset = 0;
-            b.vOffset = angleStateCount(sMode);
-            b.algOffset = b.aOffset + voltageStateCount(sMode);
+            offsetValues.aOffset = 0;
+            offsetValues.vOffset = angleStateCount(sMode);
+            offsetValues.algOffset = offsetValues.aOffset + voltageStateCount(sMode);
             if (hasDifferential(sMode)) {
-                b.diffOffset = totalAlgSize(sMode);
+                offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
         case offset_ordering::differential_first:
-            b.diffOffset = 0;
-            b.algOffset = diffSize(sMode);
+            offsetValues.diffOffset = 0;
+            offsetValues.algOffset = diffSize(sMode);
             break;
     }
 
     // call the area setOffset function to distribute the offsets
-    setOffsets(b, sMode);
+    setOffsets(offsetValues, sMode);
 }
 
 // --------------- run the simulation ---------------
@@ -542,10 +542,11 @@ void gridDynSimulation::add(gridDynAction& newAction)
 
 int gridDynSimulation::execute(std::string_view cmd)
 {
-    gridDynAction gda(std::string{cmd});
+    const gridDynAction gda(std::string{cmd});
     return execute(gda);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 int gridDynSimulation::execute(const gridDynAction& cmd)
 {
     int out = FUNCTION_EXECUTION_SUCCESS;
@@ -554,11 +555,11 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
         default:
             break;
         case gridDynAction::gd_action_t::set: {
-            objInfo obi(cmd.string1, this);
+            objInfo objectInfo(cmd.string1, this);
             if (cmd.val_double == kNullVal) {
-                obi.m_obj->set(obi.m_field, cmd.string2);
+                objectInfo.m_obj->set(objectInfo.m_field, cmd.string2);
             } else {
-                obi.m_obj->set(obi.m_field, cmd.val_double, obi.m_unitType);
+                objectInfo.m_obj->set(objectInfo.m_field, cmd.val_double, objectInfo.m_unitType);
             }
         } break;
         case gridDynAction::gd_action_t::setall:
@@ -577,16 +578,16 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                 std::vector<Violation> violations;
                 pFlowCheck(violations);
                 if (cmd.string2.empty()) {
-                    for (auto& v : violations) {
-                        std::cout << v.to_string() << '\n';
+                    for (auto& violation : violations) {
+                        std::cout << violation.to_string() << '\n';
                     }
                 } else {
                     std::ofstream outF(cmd.string2, std::ios_base::app);
                     if (outF.is_open()) {
                         outF << "Violations for " << getName() << "at "
                              << std::to_string(static_cast<double>(getSimulationTime())) << '\n';
-                        for (auto& v : violations) {
-                            outF << v.to_string() << '\n';
+                        for (auto& violation : violations) {
+                            outF << violation.to_string() << '\n';
                         }
                         out = FUNCTION_EXECUTION_SUCCESS;
                     } else {
@@ -615,16 +616,17 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             out = FUNCTION_EXECUTION_FAILURE;
             break;
         case gridDynAction::gd_action_t::initialize: {
-            coreTime t_start = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : startTime;
+            const coreTime startTimeValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : startTime;
 
             if (pState == gridState_t::STARTUP) {
-                out = pFlowInitialize(t_start);
+                out = pFlowInitialize(startTimeValue);
                 if (out == 1) {
                     logging::error(this, "unable to initialize powerflow");
                     out = FUNCTION_EXECUTION_FAILURE;
                 }
             } else if (pState == gridState_t::POWERFLOW_COMPLETE) {
-                out = dynInitialize(t_start);
+                out = dynInitialize(startTimeValue);
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     logging::error(this, "unable to complete dynamic power initialization");
                     return FUNCTION_EXECUTION_FAILURE;
@@ -632,23 +634,27 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
             }
         } break;
         case gridDynAction::gd_action_t::iterate: {
-            coreTime t_step = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
-            coreTime t_end = (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
-            out = eventDrivenPowerflow(t_end, t_step);
+            const coreTime timeStepValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
+            const coreTime endTimeValue =
+                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
+            out = eventDrivenPowerflow(endTimeValue, timeStepValue);
         } break;
         case gridDynAction::gd_action_t::eventmode: {
-            coreTime t_end = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const coreTime endTimeValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
             if (cmd.val_double2 != kNullVal) {
-                coreTime t_step = cmd.val_double2;
-                out = eventDrivenPowerflow(t_end, t_step);
+                const coreTime timeStepValue = cmd.val_double2;
+                out = eventDrivenPowerflow(endTimeValue, timeStepValue);
             } else {
-                out = eventDrivenPowerflow(t_end);
+                out = eventDrivenPowerflow(endTimeValue);
             }
         }
 
         break;
         case gridDynAction::gd_action_t::dynamicDAE: {
-            coreTime t_end = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const coreTime endTimeValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
             if (pState < gridState_t::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -660,11 +666,13 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                 logging::warning(this, "No Differential states halting computation");
                 return out;
             }
-            out = dynamicDAE(t_end);
+            out = dynamicDAE(endTimeValue);
         } break;
         case gridDynAction::gd_action_t::dynamicPart: {
-            double t_end = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
-            double t_step = (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
+            const double endTimeValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const double timeStepValue =
+                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
             if (pState < gridState_t::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -676,11 +684,13 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                 logging::warning(this, "No Differential states halting computation");
                 return out;
             }
-            out = dynamicPartitioned(t_end, t_step);
+            out = dynamicPartitioned(endTimeValue, timeStepValue);
         } break;
         case gridDynAction::gd_action_t::dynamicDecoupled: {
-            double t_end = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
-            double t_step = (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
+            const double endTimeValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const double timeStepValue =
+                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
             if (pState < gridState_t::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -688,11 +698,13 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
 
-            out = dynamicDecoupled(t_end, t_step);
+            out = dynamicDecoupled(endTimeValue, timeStepValue);
         } break;
         case gridDynAction::gd_action_t::step: {
-            coreTime t_step = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
-            coreTime t_end = (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
+            const coreTime timeStepValue =
+                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
+            coreTime timeActual =
+                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
             if (pState < gridState_t::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -704,11 +716,12 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                 logging::warning(this, "No Differential states halting computation");
                 return out;
             }
-            out = step(t_step, t_end);
+            out = step(timeStepValue, timeActual);
         } break;
         case gridDynAction::gd_action_t::run:
             if (actionQueue.empty()) {
-                coreTime t_end = (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+                const coreTime endTimeValue =
+                    (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
                 if (controlFlags[power_flow_only]) {
                     out = powerflow();
                 } else {
@@ -723,19 +736,19 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                         switch (defaultDynamicSolverMethod) {
                             case dynamic_solver_methods::dae:
                             default:
-                                out = dynamicDAE(t_end);
+                                out = dynamicDAE(endTimeValue);
                                 break;
                             case dynamic_solver_methods::partitioned:
-                                out = dynamicPartitioned(t_end, stepTime);
+                                out = dynamicPartitioned(endTimeValue, stepTime);
                                 break;
                             case dynamic_solver_methods::decoupled:
-                                out = dynamicDecoupled(t_end, stepTime);
+                                out = dynamicDecoupled(endTimeValue, stepTime);
                                 break;
                         }
                     } else {
                         logging::summary(this,
                                          "No Differential states reverting to stepped power flow");
-                        out = eventDrivenPowerflow(t_end, stepTime);
+                        out = eventDrivenPowerflow(endTimeValue, stepTime);
                     }
 
                     if (getSimulationTime() >= stopTime) {
@@ -770,20 +783,15 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
                                                      cmd.string2);
             } else if (cmd.string1 == "powerflow") {
                 savePowerFlow(this, (cmd.string2.empty()) ? powerFlowFile : cmd.string2);
-            } else if (cmd.string1 == "voltage") {
-            } else if (cmd.string1 == "jacstate") {
+            } else if ((cmd.string1 == "voltage") || (cmd.string1 == "jacstate")) {
             }
             break;
         case gridDynAction::gd_action_t::load:
-            if (cmd.string1 == "state") {
-            } else if (cmd.string1 == "powerflow") {
+            if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
             }
             break;
         case gridDynAction::gd_action_t::add:
-            break;
-
         case gridDynAction::gd_action_t::rollback:
-            break;
         case gridDynAction::gd_action_t::checkpoint:
             break;
     }
@@ -792,14 +800,14 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
 
 bool gridDynSimulation::hasDynamics() const
 {
-    return (diffSize(*defDAEMode) > 0);
+    return diffSize(*defDAEMode) > 0;
 }
 
 // need to update probably with a new field in SolverInterface
 count_t gridDynSimulation::nonZeros(const solverMode& sMode) const
 {
     auto solverInterface = getSolverInterface(sMode);
-    return (solverInterface) ? solverInterface->nonZeros() : 0;
+    return solverInterface ? solverInterface->nonZeros() : 0;
 }
 
 // --------------- set properties ---------------
@@ -820,9 +828,9 @@ void gridDynSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "defdyndiff") {
         setDefaultMode(solution_modes_t::differential_mode, getSolverMode(std::string{val}));
     } else if (param == "action") {
-        auto v = gmlc::utilities::stringOps::splitline(val, ';');
-        gmlc::utilities::stringOps::trim(v);
-        for (auto& actionString : v) {
+        auto actions = gmlc::utilities::stringOps::splitline(val, ';');
+        gmlc::utilities::stringOps::trim(actions);
+        for (auto& actionString : actions) {
             add(actionString);
         }
     } else if (param == "ordering") {
@@ -871,21 +879,21 @@ std::string gridDynSimulation::getString(std::string_view param) const
 
 void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& sMode)
 {
-    auto sd = getSolverInterface(sMode);
-    if (!sd) {
-        sd = makeSolver(this, sMode);
-        add(sd);
+    auto solverData = getSolverInterface(sMode);
+    if (!solverData) {
+        solverData = makeSolver(this, sMode);
+        add(solverData);
     }
     switch (mode) {
         case solution_modes_t::powerflow_mode:
             if (isAlgebraicOnly(sMode)) {
                 if (opFlags[pFlow_initialized]) {
-                    if (sd->isInitialized()) {
-                        reInitpFlow((sd->getSolverMode()));
+                    if (solverData->isInitialized()) {
+                        reInitpFlow(solverData->getSolverMode());
                     }
                 }
-                sd->set("mode", "powerflow");
-                defPowerFlowMode = &(sd->getSolverMode());
+                solverData->set("mode", "powerflow");
+                defPowerFlowMode = &(solverData->getSolverMode());
             } else {
                 throw(invalidParameterValue("mode"));
             }
@@ -893,12 +901,12 @@ void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
         case solution_modes_t::dae_mode:
             if (isDAE(sMode)) {
                 if (opFlags[dyn_initialized]) {
-                    if (sd->isInitialized()) {
-                        reInitDyn((sd->getSolverMode()));
+                    if (solverData->isInitialized()) {
+                        reInitDyn(solverData->getSolverMode());
                     }
                 }
 
-                defDAEMode = &(sd->getSolverMode());
+                defDAEMode = &(solverData->getSolverMode());
             } else {
                 throw(invalidParameterValue("mode"));
             }
@@ -906,12 +914,12 @@ void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
         case solution_modes_t::algebraic_mode:
             if (isAlgebraicOnly(sMode)) {
                 if (opFlags[dyn_initialized]) {
-                    if (sd->isInitialized()) {
-                        reInitDyn((sd->getSolverMode()));
+                    if (solverData->isInitialized()) {
+                        reInitDyn(solverData->getSolverMode());
                     }
                 }
-                sd->setFlag("dynamic", true);
-                defDynAlgMode = &(sd->getSolverMode());
+                solverData->setFlag("dynamic", true);
+                defDynAlgMode = &(solverData->getSolverMode());
             } else {
                 throw(invalidParameterValue("mode"));
             }
@@ -919,11 +927,11 @@ void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
         case solution_modes_t::differential_mode:
             if (isDifferentialOnly(sMode)) {
                 if (opFlags[dyn_initialized]) {
-                    if (sd->isInitialized()) {
-                        reInitDyn(sd->getSolverMode());
+                    if (solverData->isInitialized()) {
+                        reInitDyn(solverData->getSolverMode());
                     }
                 }
-                defDynDiffMode = &(sd->getSolverMode());
+                defDynDiffMode = &(solverData->getSolverMode());
             } else {
                 throw(invalidParameterValue("mode"));
             }
@@ -934,42 +942,47 @@ void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
     }
 }
 
-static const std::unordered_map<std::string, int> flagControlMap{
-    {"autoallocate", power_adjust_enabled},
-    {"power_adjust", power_adjust_enabled},
-    {"sparse", -dense_solver},
-    {"dense", dense_solver},
-    {"no_auto_autogen", no_auto_autogen},
-    {"auto_bus_disconnect", auto_bus_disconnect},
-    {"roots_disabled", roots_disabled},
-    {"voltageconstraints", voltage_constraints_flag},
-    {"record_on_halt", record_on_halt_flag},
-    {"constraints_disabled", constraints_disabled},
-    {"dc_mode", dc_mode},
-    {"dcFlow_initialization", dcFlow_initialization},
-    {"no_link_adjustments", disable_link_adjustments},
-    {"disable_link_adjustments", disable_link_adjustments},
-    {"ignore_bus_limits", ignore_bus_limits},
-    {"powerflow_only", power_flow_only},
-    {"no_powerflow_adjustments", no_powerflow_adjustments},
-    {"savepowerflow", save_power_flow_data},
-    {"savepowerflowinput", save_power_flow_input_data},
-    {"low_voltage_check", low_voltage_checking},
-    {"no_powerflow_error_recovery", no_powerflow_error_recovery},
-    {"dae_initialization_for_partitioned", dae_initialization_for_partitioned},
-    {"force_powerflow", force_extra_powerflow},
-    {"force_extra_powerflow", force_extra_powerflow},
-    {"droop_power_flow", droop_power_flow},
-};
+static const std::unordered_map<std::string, int>& getFlagControlMap()
+{
+    static const std::unordered_map<std::string, int> flagControlMap{
+        {"autoallocate", power_adjust_enabled},
+        {"power_adjust", power_adjust_enabled},
+        {"sparse", -dense_solver},
+        {"dense", dense_solver},
+        {"no_auto_autogen", no_auto_autogen},
+        {"auto_bus_disconnect", auto_bus_disconnect},
+        {"roots_disabled", roots_disabled},
+        {"voltageconstraints", voltage_constraints_flag},
+        {"record_on_halt", record_on_halt_flag},
+        {"constraints_disabled", constraints_disabled},
+        {"dc_mode", dc_mode},
+        {"dcFlow_initialization", dcFlow_initialization},
+        {"no_link_adjustments", disable_link_adjustments},
+        {"disable_link_adjustments", disable_link_adjustments},
+        {"ignore_bus_limits", ignore_bus_limits},
+        {"powerflow_only", power_flow_only},
+        {"no_powerflow_adjustments", no_powerflow_adjustments},
+        {"savepowerflow", save_power_flow_data},
+        {"savepowerflowinput", save_power_flow_input_data},
+        {"low_voltage_check", low_voltage_checking},
+        {"no_powerflow_error_recovery", no_powerflow_error_recovery},
+        {"dae_initialization_for_partitioned", dae_initialization_for_partitioned},
+        {"force_powerflow", force_extra_powerflow},
+        {"force_extra_powerflow", force_extra_powerflow},
+        {"droop_power_flow", droop_power_flow},
+    };
+    return flagControlMap;
+}
 
 void gridDynSimulation::setFlag(std::string_view flag, bool val)
 {
-    auto mpf = flagControlMap.find(std::string{flag});
-    if (mpf != flagControlMap.end()) {
-        if (mpf->second >= 0) {
-            controlFlags.set(mpf->second, val);
+    const auto& flagControlMap = getFlagControlMap();
+    auto flagIter = flagControlMap.find(std::string{flag});
+    if (flagIter != flagControlMap.end()) {
+        if (flagIter->second >= 0) {
+            controlFlags.set(flagIter->second, val);
         } else {
-            controlFlags.set(-mpf->second, !val);
+            controlFlags.set(-flagIter->second, !val);
         }
     } else if (flag == "threads") {
         /*parallel_residual_enabled = 7,
@@ -1027,16 +1040,16 @@ void gridDynSimulation::set(std::string_view param, double val, units::unit unit
 
 void gridDynSimulation::solverSet(std::string_view solverName, std::string_view field, double val)
 {
-    auto sd = getSolverInterface(solverName);
-    sd->set(field, val);
+    auto solverData = getSolverInterface(solverName);
+    solverData->set(field, val);
 }
 
 void gridDynSimulation::solverSet(std::string_view solverName,
                                   std::string_view field,
                                   std::string_view val)
 {
-    auto sd = getSolverInterface(solverName);
-    sd->set(field, val);
+    auto solverData = getSolverInterface(solverName);
+    solverData->set(field, val);
 }
 
 double gridDynSimulation::get(std::string_view param, units::unit unitType) const
@@ -1107,9 +1120,9 @@ double gridDynSimulation::get(std::string_view param, units::unit unitType) cons
     } else if (param == "rootcount") {
         val = rootCount;
     } else if (param == "stepcount") {
-        auto sd = getSolverInterface(*defDAEMode);
-        if ((sd) && (sd->isInitialized())) {
-            fval = sd->get("resevals");
+        auto solverData = getSolverInterface(*defDAEMode);
+        if (solverData && solverData->isInitialized()) {
+            fval = solverData->get("resevals");
         } else {
             fval = 0;
         }
@@ -1127,33 +1140,38 @@ double gridDynSimulation::get(std::string_view param, units::unit unitType) cons
     return (val != kInvalidCount) ? static_cast<double>(val) : fval;
 }
 
-static const std::map<int, size_t> alertFlags{
-    std::make_pair(STATE_COUNT_CHANGE, state_change_flag),
-    std::make_pair(STATE_COUNT_INCREASE, state_change_flag),
-    std::make_pair(STATE_COUNT_DECREASE, state_change_flag),
-    std::make_pair(ROOT_COUNT_CHANGE, root_change_flag),
-    std::make_pair(ROOT_COUNT_INCREASE, root_change_flag),
-    std::make_pair(ROOT_COUNT_DECREASE, root_change_flag),
-    std::make_pair(JAC_COUNT_CHANGE, jacobian_count_change_flag),
-    std::make_pair(JAC_COUNT_DECREASE, jacobian_count_change_flag),
-    std::make_pair(JAC_COUNT_INCREASE, jacobian_count_change_flag),
-    std::make_pair(OBJECT_COUNT_CHANGE, object_change_flag),
-    std::make_pair(OBJECT_COUNT_INCREASE, object_change_flag),
-    std::make_pair(OBJECT_COUNT_DECREASE, object_change_flag),
-    std::make_pair(CONSTRAINT_COUNT_CHANGE, constraint_change_flag),
-    std::make_pair(CONSTRAINT_COUNT_INCREASE, constraint_change_flag),
-    std::make_pair(CONSTRAINT_COUNT_DECREASE, constraint_change_flag),
-    std::make_pair(SLACK_BUS_CHANGE, slack_bus_change),
-    std::make_pair(POTENTIAL_FAULT_CHANGE, reset_voltage_flag),
-    std::make_pair(VERY_LOW_VOLTAGE_ALERT, low_bus_voltage),
-    std::make_pair(INVALID_STATE_ALERT, invalid_state_flag),
-    std::make_pair(CONNECTIVITY_CHANGE, connectivity_change_flag),
+static const std::map<int, size_t>& getAlertFlags()
+{
+    static const std::map<int, size_t> alertFlags{
+        std::make_pair(STATE_COUNT_CHANGE, state_change_flag),
+        std::make_pair(STATE_COUNT_INCREASE, state_change_flag),
+        std::make_pair(STATE_COUNT_DECREASE, state_change_flag),
+        std::make_pair(ROOT_COUNT_CHANGE, root_change_flag),
+        std::make_pair(ROOT_COUNT_INCREASE, root_change_flag),
+        std::make_pair(ROOT_COUNT_DECREASE, root_change_flag),
+        std::make_pair(JAC_COUNT_CHANGE, jacobian_count_change_flag),
+        std::make_pair(JAC_COUNT_DECREASE, jacobian_count_change_flag),
+        std::make_pair(JAC_COUNT_INCREASE, jacobian_count_change_flag),
+        std::make_pair(OBJECT_COUNT_CHANGE, object_change_flag),
+        std::make_pair(OBJECT_COUNT_INCREASE, object_change_flag),
+        std::make_pair(OBJECT_COUNT_DECREASE, object_change_flag),
+        std::make_pair(CONSTRAINT_COUNT_CHANGE, constraint_change_flag),
+        std::make_pair(CONSTRAINT_COUNT_INCREASE, constraint_change_flag),
+        std::make_pair(CONSTRAINT_COUNT_DECREASE, constraint_change_flag),
+        std::make_pair(SLACK_BUS_CHANGE, slack_bus_change),
+        std::make_pair(POTENTIAL_FAULT_CHANGE, reset_voltage_flag),
+        std::make_pair(VERY_LOW_VOLTAGE_ALERT, low_bus_voltage),
+        std::make_pair(INVALID_STATE_ALERT, invalid_state_flag),
+        std::make_pair(CONNECTIVITY_CHANGE, connectivity_change_flag),
 
-};
+    };
+    return alertFlags;
+}
 
 void gridDynSimulation::alert(coreObject* object, int code)
 {
     if ((code >= MIN_CHANGE_ALERT) && (code < MAX_CHANGE_ALERT)) {
+        const auto& alertFlags = getAlertFlags();
         auto res = alertFlags.find(code);
         if (res != alertFlags.end()) {
             auto flagNum = res->second;
@@ -1228,12 +1246,12 @@ int gridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
         }
     }
     // now check the SolverInterface
-    auto sd = getSolverInterface(sMode);
-    if (!(sd))  // we need to create the solver
+    auto solverData = getSolverInterface(sMode);
+    if (!solverData)  // we need to create the solver
     {
-        sd = updateSolver(sMode);
+        solverData = updateSolver(sMode);
     }
-    if (!(sd->isInitialized())) {
+    if (!solverData->isInitialized()) {
         if (desiredState == gridState_t::INITIALIZED) {
             reInitpFlow(sMode);
         } else if (desiredState == gridState_t::DYNAMIC_INITIALIZED) {
@@ -1245,7 +1263,7 @@ int gridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
 
 int gridDynSimulation::countMpiObjects(bool printInfo) const
 {
-    int gridlabdObjects = searchForGridlabDobject(this);
+    const int gridlabdObjects = searchForGridlabDobject(this);
     // print out the gridlabd objects
     if (printInfo) {
         std::cout << "NumberOfGridLABDInstances = " << gridlabdObjects << '\n';
@@ -1283,22 +1301,21 @@ std::shared_ptr<const SolverInterface>
 
 void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
 {
-    auto oI = nSolver->getSolverMode().offsetIndex;
+    auto offsetIndex = nSolver->getSolverMode().offsetIndex;
 
     auto nextIndex = offsets.size();
-    if (oI != kNullLocation) {
-        if (oI <= nextIndex) {
-            if (solverInterfaces[oI] == nSolver) {
+    if (offsetIndex != kNullLocation) {
+        if (offsetIndex <= nextIndex) {
+            if (solverInterfaces[offsetIndex] == nSolver) {
                 return;
             }
         }
-        nextIndex = oI;
+        nextIndex = offsetIndex;
     } else {
-        if (nextIndex < 5) {
-            nextIndex = 5;  // new modes start at 5
-        }
+        nextIndex =
+            (std::max)(nextIndex, static_cast<decltype(nextIndex)>(5));  // new modes start at 5
         nSolver->setIndex(nextIndex);
-        if (nextIndex >= static_cast<count_t>(solverInterfaces.size())) {
+        if (std::cmp_greater_equal(nextIndex, solverInterfaces.size())) {
             solverInterfaces.resize(nextIndex + 1);
             extraStateInformation.resize(nextIndex + 1, nullptr);
             extraDerivInformation.resize(nextIndex + 1, nullptr);
@@ -1331,9 +1348,9 @@ solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
         return *defDynDiffMode;
     }
 
-    for (auto& sd : solverInterfaces) {
-        if ((sd) && (sd->getName() == solverType)) {
-            return sd->getSolverMode();
+    for (auto& solverData : solverInterfaces) {
+        if (solverData && (solverData->getName() == solverType)) {
+            return solverData->getSolverMode();
         }
     }
     if ((solverType == "dc") || (solverType == "dcflow")) {
@@ -1356,10 +1373,10 @@ solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
             sMode.dynamic = true;
             sMode.algebraic = false;
         } else {
-            std::shared_ptr<SolverInterface> sd = makeSolver(solverType);
-            if (sd) {
-                add(sd);
-                return sd->getSolverMode();
+            const std::shared_ptr<SolverInterface> solverData = makeSolver(solverType);
+            if (solverData) {
+                add(solverData);
+                return solverData->getSolverMode();
             }
             return sMode;
         }
@@ -1369,15 +1386,13 @@ solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
         }
 
         sMode.offsetIndex = offsets.size();
-        if (sMode.offsetIndex < 6) {
-            sMode.offsetIndex = 6;  // new modes start at 6
-        }
+        sMode.offsetIndex = (std::max)(sMode.offsetIndex, static_cast<index_t>(6));
         updateSolver(sMode);
     }
     return sMode;
 }
 
-const solverMode& gridDynSimulation::getCurrentMode(const solverMode& sMode) const
+solverMode gridDynSimulation::getCurrentMode(const solverMode& sMode) const
 {
     if (sMode.offsetIndex != kNullLocation) {
         return sMode;
@@ -1434,9 +1449,9 @@ const solverMode* gridDynSimulation::getSolverModePtr(std::string_view solverTyp
         return defDynAlgMode;
     }
 
-    for (auto& sd : solverInterfaces) {
-        if ((sd) && (sd->getName() == solverType)) {
-            return &(sd->getSolverMode());
+    for (const auto& solverData : solverInterfaces) {
+        if (solverData && (solverData->getName() == solverType)) {
+            return &(solverData->getSolverMode());
         }
     }
     return nullptr;
@@ -1482,9 +1497,9 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(std::stri
         }
         return nullptr;
     }
-    for (auto& sd : solverInterfaces) {
-        if ((sd) && (sd->getName() == solverName)) {
-            return sd;
+    for (auto& solverData : solverInterfaces) {
+        if (solverData && (solverData->getName() == solverName)) {
+            return solverData;
         }
     }
     return nullptr;
@@ -1493,11 +1508,11 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(std::stri
 std::shared_ptr<SolverInterface> gridDynSimulation::updateSolver(const solverMode& sMode)
 {
     auto kIndex = sMode.offsetIndex;
-    solverMode sm = sMode;
+    solverMode solverModeValue = sMode;
     if (!isValidIndex(kIndex, solverInterfaces)) {
         if ((kIndex > 10000) || (kIndex < 0)) {
             kIndex = static_cast<index_t>(solverInterfaces.size());
-            sm.offsetIndex = kIndex;
+            solverModeValue.offsetIndex = kIndex;
         }
         solverInterfaces.resize(kIndex + 1);
         extraStateInformation.resize(kIndex + 1, nullptr);
@@ -1507,84 +1522,86 @@ std::shared_ptr<SolverInterface> gridDynSimulation::updateSolver(const solverMod
         solverInterfaces[kIndex] = makeSolver(this, sMode);
     }
 
-    auto sd = solverInterfaces[kIndex];
-    assert(sd);
+    auto solverData = solverInterfaces[kIndex];
+    assert(solverData);
     if (controlFlags[dense_solver]) {
-        sd->set("dense", 1.0);
+        solverData->set("dense", 1.0);
     }
-    sd->set("tolerance", tols.rtol);
-    if ((pState >= gridState_t::INITIALIZED) && (!isDynamic(sm))) {
-        auto ss = stateSize(sm);
-        sd->allocate(ss, rootSize(sm));
-        checkOffsets(sm);
-        guessState(currentTime, sd->state_data(), nullptr, sm);
-        sd->initialize(currentTime);
+    solverData->set("tolerance", tols.rtol);
+    if ((pState >= gridState_t::INITIALIZED) && (!isDynamic(solverModeValue))) {
+        const auto stateCount = stateSize(solverModeValue);
+        solverData->allocate(stateCount, rootSize(solverModeValue));
+        checkOffsets(solverModeValue);
+        guessState(currentTime, solverData->state_data(), nullptr, solverModeValue);
+        solverData->initialize(currentTime);
     } else if (pState >= gridState_t::DYNAMIC_INITIALIZED) {
-        auto ss = stateSize(sm);
-        sd->allocate(ss, rootSize(sm));
-        checkOffsets(sm);
+        const auto stateCount = stateSize(solverModeValue);
+        solverData->allocate(stateCount, rootSize(solverModeValue));
+        checkOffsets(solverModeValue);
 
         guessState(currentTime,
-                   sd->state_data(),
-                   (hasDifferential(sMode)) ? sd->deriv_data() : nullptr,
-                   sm);
+                   solverData->state_data(),
+                   (hasDifferential(sMode)) ? solverData->deriv_data() : nullptr,
+                   solverModeValue);
 
-        sd->initialize(currentTime);
+        solverData->initialize(currentTime);
     }
-    return sd;
+    return solverData;
 }
 
 void gridDynSimulation::parameterDerivatives(coreTime time,
-                                             parameterSet& po,
+                                             parameterSet& parameterOperators,
                                              const index_t indices[],
                                              const double values[],
                                              count_t parameterCount,
                                              const double state[],
                                              const double dstate_dt[],
-                                             matrixData<double>& md,
+                                             matrixData<double>& matrixDataRef,
                                              const solverMode& sMode)
 {
     const double delta = 1e-7;
     for (index_t ii = 0; ii < parameterCount; ++ii) {
-        po[indices[ii]]->setParameter(values[ii]);
+        parameterOperators[indices[ii]]->setParameter(values[ii]);
     }
 
-    stateData sD(time, state, dstate_dt, 0);
+    stateData stateDataValue(time, state, dstate_dt, 0);
 
-    fillExtraStateData(sD, sMode);
+    fillExtraStateData(stateDataValue, sMode);
     // compute this for the base case with the specified parameters
-    preEx(noInputs, sD, sMode);
-    count_t nsize = stateSize(sMode);
+    preEx(noInputs, stateDataValue, sMode);
+    const count_t nsize = stateSize(sMode);
     std::vector<double> residbase(nsize);
 
     std::vector<double> residChange(nsize);
 
     if (isDifferentialOnly(sMode)) {
-        derivative(noInputs, sD, residbase.data(), sMode);
-        delayedDerivative(noInputs, sD, residbase.data(), sMode);
+        derivative(noInputs, stateDataValue, residbase.data(), sMode);
+        delayedDerivative(noInputs, stateDataValue, residbase.data(), sMode);
     } else {
-        residual(noInputs, sD, residbase.data(), sMode);
-        delayedResidual(noInputs, sD, residbase.data(), sMode);
+        residual(noInputs, stateDataValue, residbase.data(), sMode);
+        delayedResidual(noInputs, stateDataValue, residbase.data(), sMode);
     }
 
     for (index_t pp = 0; pp < parameterCount; ++pp) {
-        double newval = values[pp] + delta;
-        po[indices[pp]]->setParameter(newval);
+        const double newval = values[pp] + delta;
+        parameterOperators[indices[pp]]->setParameter(newval);
         if (isDifferentialOnly(sMode)) {
-            derivative(noInputs, sD, residChange.data(), sMode);
-            delayedDerivative(noInputs, sD, residChange.data(), sMode);
+            derivative(noInputs, stateDataValue, residChange.data(), sMode);
+            delayedDerivative(noInputs, stateDataValue, residChange.data(), sMode);
         } else {
-            residual(noInputs, sD, residChange.data(), sMode);
-            delayedResidual(noInputs, sD, residChange.data(), sMode);
+            residual(noInputs, stateDataValue, residChange.data(), sMode);
+            delayedResidual(noInputs, stateDataValue, residChange.data(), sMode);
         }
         // find the changed elements
-        for (index_t ss = 0; ss < nsize; ++ss) {
-            if (std::abs(residbase[ss] - residChange[ss]) > 1e-12) {
-                md.assign(ss, pp, (residChange[ss] - residbase[ss]) / delta);
+        for (index_t stateIndex = 0; stateIndex < nsize; ++stateIndex) {
+            if (std::abs(residbase[stateIndex] - residChange[stateIndex]) > 1e-12) {
+                matrixDataRef.assign(stateIndex,
+                                     pp,
+                                     (residChange[stateIndex] - residbase[stateIndex]) / delta);
             }
         }
         // reset the parameters
-        po[indices[pp]]->setParameter(values[pp]);
+        parameterOperators[indices[pp]]->setParameter(values[pp]);
     }
 }
 
@@ -1597,8 +1614,8 @@ void gridDynSimulation::checkOffsets(const solverMode& sMode)
 
 void gridDynSimulation::getSolverReady(std::shared_ptr<SolverInterface>& solver)
 {
-    auto ss = stateSize(solver->getSolverMode());
-    if (ss != solver->size()) {
+    const auto stateCount = stateSize(solver->getSolverMode());
+    if (stateCount != solver->size()) {
         reInitDyn(solver->getSolverMode());
     } else {
         checkOffsets(solver->getSolverMode());
@@ -1610,31 +1627,31 @@ void gridDynSimulation::addInitOperation(std::function<int()> fptr)
         additionalPowerflowSetupFunctions.push_back(std::move(fptr));
     }
 }
-void gridDynSimulation::fillExtraStateData(stateData& sD, const solverMode& sMode) const
+void gridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const
 {
     if ((!isDAE(sMode)) && (isDynamic(sMode))) {
         if (sMode.pairedOffsetIndex != kNullLocation) {
             const solverMode& pSMode = getSolverMode(sMode.pairedOffsetIndex);
             if (isDifferentialOnly(pSMode)) {
                 if (extraStateInformation[pSMode.offsetIndex] != nullptr) {
-                    sD.diffState = extraStateInformation[pSMode.offsetIndex];
-                    sD.dstate_dt = extraDerivInformation[pSMode.offsetIndex];
-                    sD.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
-                    sD.pairIndex = pSMode.offsetIndex;
+                    stateDataRef.diffState = extraStateInformation[pSMode.offsetIndex];
+                    stateDataRef.dstate_dt = extraDerivInformation[pSMode.offsetIndex];
+                    stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
+                    stateDataRef.pairIndex = pSMode.offsetIndex;
                 } else {
-                    sD.diffState = solverInterfaces[pSMode.offsetIndex]->state_data();
-                    sD.dstate_dt = solverInterfaces[pSMode.offsetIndex]->deriv_data();
-                    sD.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
-                    sD.pairIndex = pSMode.offsetIndex;
+                    stateDataRef.diffState = solverInterfaces[pSMode.offsetIndex]->state_data();
+                    stateDataRef.dstate_dt = solverInterfaces[pSMode.offsetIndex]->deriv_data();
+                    stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
+                    stateDataRef.pairIndex = pSMode.offsetIndex;
                 }
             } else if (isAlgebraicOnly(pSMode)) {
-                sD.algState = solverInterfaces[pSMode.offsetIndex]->state_data();
-                sD.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
-                sD.pairIndex = pSMode.offsetIndex;
+                stateDataRef.algState = solverInterfaces[pSMode.offsetIndex]->state_data();
+                stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
+                stateDataRef.pairIndex = pSMode.offsetIndex;
             } else if (isDAE(pSMode)) {
-                sD.fullState = solverInterfaces[pSMode.offsetIndex]->state_data();
-                sD.pairIndex = pSMode.offsetIndex;
-                sD.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
+                stateDataRef.fullState = solverInterfaces[pSMode.offsetIndex]->state_data();
+                stateDataRef.pairIndex = pSMode.offsetIndex;
+                stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
             }
         }
     }
@@ -1651,44 +1668,45 @@ bool gridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverM
     return false;
 }
 
-count_t searchForGridlabDobject(const coreObject* obj)
+// NOLINTNEXTLINE(misc-no-recursion)
+static count_t searchForGridlabDobject(const coreObject* obj)
 {
     count_t cnt = 0;
-    auto bus = dynamic_cast<const gridBus*>(obj);
+    const auto* bus = dynamic_cast<const gridBus*>(obj);
     if (bus != nullptr) {
-        index_t kk = 0;
-        coreObject* obj2 = bus->getLoad(kk);
-        while (obj2 != nullptr) {
-            auto gLd = dynamic_cast<const loads::gridLabDLoad*>(obj2);
-            if (gLd != nullptr) {
-                cnt += gLd->mpiCount();
+        index_t loadIndex = 0;
+        const coreObject* loadObject = bus->getLoad(loadIndex);
+        while (loadObject != nullptr) {
+            const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(loadObject);
+            if (gridLabdLoad != nullptr) {
+                cnt += gridLabdLoad->mpiCount();
             }
-            ++kk;
-            obj2 = bus->getLoad(kk);
+            ++loadIndex;
+            loadObject = bus->getLoad(loadIndex);
         }
         return cnt;
     }
-    auto area = dynamic_cast<const Area*>(obj);
+    const auto* area = dynamic_cast<const Area*>(obj);
     if (area != nullptr) {
-        index_t kk = 0;
-        bus = area->getBus(kk);
+        index_t areaIndex = 0;
+        bus = area->getBus(areaIndex);
         while (bus != nullptr) {
             cnt += searchForGridlabDobject(bus);
-            ++kk;
-            bus = area->getBus(kk);
+            ++areaIndex;
+            bus = area->getBus(areaIndex);
         }
-        kk = 0;
-        Area* a2 = area->getArea(kk);
-        while (a2 != nullptr) {
-            cnt += searchForGridlabDobject(a2);
-            ++kk;
-            a2 = area->getArea(kk);
+        areaIndex = 0;
+        const Area* subArea = area->getArea(areaIndex);
+        while (subArea != nullptr) {
+            cnt += searchForGridlabDobject(subArea);
+            ++areaIndex;
+            subArea = area->getArea(areaIndex);
         }
         return cnt;
     }
-    auto gLd = dynamic_cast<const loads::gridLabDLoad*>(obj);
-    if (gLd != nullptr) {
-        cnt += gLd->mpiCount();
+    const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(obj);
+    if (gridLabdLoad != nullptr) {
+        cnt += gridLabdLoad->mpiCount();
     }
     return cnt;
 }

@@ -15,10 +15,10 @@
 #include <string_view>
 #include <vector>
 namespace griddyn {
-enum class solver_print_level {
-    s_debug_print = 2,
-    s_error_log = 1,
-    s_error_trap = 0,
+enum class SolverPrintLevel {
+    DEBUG_PRINT = 2,
+    ERROR_LOG = 1,
+    ERROR_TRAP = 0,
 };
 
 class gridDynSimulation;
@@ -94,10 +94,10 @@ particular solver methodology
 class SolverInterface: public helperObject {
   public:
     /** @brief enumeration of solver call modes*/
-    enum class step_mode {
-        normal,  //!< normal operation
-        single_step,  //!< single step operation
-        block,  //!< the solver runs in a block mode all at once
+    enum class StepMode {
+        NORMAL,  //!< normal operation
+        SINGLE_STEP,  //!< single step operation
+        BLOCK,  //!< the solver runs in a block mode all at once
     };
     /** @brief enumeration of initiaL condition call modes*/
     enum class ic_modes {
@@ -105,9 +105,9 @@ class SolverInterface: public helperObject {
         fixed_diff,  //!< differential states are fixed
     };
     /** @brief enumeration of initiaL condition call modes*/
-    enum class sparse_reinit_modes {
-        refactor,  //!< refactor the sparse matrix
-        resize  //!< destroy and completely reinit the sparse calculations
+    enum class SparseReinitMode {
+        REFACTOR,  //!< refactor the sparse matrix
+        RESIZE  //!< destroy and completely reinit the sparse calculations
     };
 
     std::vector<int> rootsfound;  //!< mask vector for which roots were found
@@ -118,7 +118,7 @@ class SolverInterface: public helperObject {
 
     std::vector<index_t> maskElements;  //!< vector of constant states in any problem
     std::string solverLogFile;  //!< file name and location of log file reference
-    solver_print_level printLevel = solver_print_level::s_error_trap;  //!< print_level for solver
+    SolverPrintLevel printLevel = SolverPrintLevel::ERROR_TRAP;  //!< print_level for solver
     int solverPrintLevel = 1;  //!< print level for internal solver logging
     count_t rootCount = 0;  //!< the number of root finding functions
     count_t solverCallCount = 0;  //!< the number of times the solver has been called
@@ -203,7 +203,7 @@ class SolverInterface: public helperObject {
     /** @brief reinitialize the sparse components
     @param[in] mode the reinitialization mode
     */
-    virtual void sparseReInit(sparse_reinit_modes mode);
+    virtual void sparseReInit(SparseReinitMode mode);
 
     /** @brief load the constraints*/
     virtual void setConstraints();
@@ -261,7 +261,7 @@ class SolverInterface: public helperObject {
   @param[in] stepMode  the step mode
   @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
   */
-    virtual int solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal);
+    virtual int solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL);
     /** @brief resize the storage array for the Jacobian
     @param[in] nonZeroCount  the number of elements to potentially store
     */

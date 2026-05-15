@@ -18,33 +18,33 @@ class powerFlowErrorRecovery {
   public:
     /** @brief enumeration describing possible return options
      */
-    enum class recovery_return_codes {
-        more_options,
-        out_of_options,
+    enum class RecoveryReturnCodes {
+        MORE_OPTIONS,
+        OUT_OF_OPTIONS,
     };
 
     /** @brief constructor
   @param[in] gds the gridDynSimulation object to work from
-  @param[in] sd the SolverInterface object to work from
+  @param[in] solverData the SolverInterface object to work from
   */
-    powerFlowErrorRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);
+    powerFlowErrorRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
     virtual ~powerFlowErrorRecovery();
 
     /** @brief attempt the various fixes in order
   @param[in] error_code optional error code value
-  @return recovery_return_codes::more_options if attemptFix can be called again without reset
-  recovery_return_codes::out_of_options if no more fix attempts are available
+  @return RecoveryReturnCodes::MORE_OPTIONS if attemptFix can be called again without reset
+  RecoveryReturnCodes::OUT_OF_OPTIONS if no more fix attempts are available
   */
-    virtual recovery_return_codes attemptFix(int error_code = 0);
+    virtual RecoveryReturnCodes attemptFix(int error_code = 0);
 
     /** @brief reset the fix counter so it can try again*/
     void reset();
     /** @brief update recovery mechanism to use a different solver
-  @param[in] sd the new solver Data object to use
+  @param[in] solverData the new solver Data object to use
   */
-    void updateInfo(std::shared_ptr<SolverInterface> sd);
+    void updateInfo(std::shared_ptr<SolverInterface> solverData);
 
     /** @brief return the number of attempts taken so far
   @return the number of attempts

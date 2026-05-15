@@ -44,27 +44,27 @@ namespace {
         return {};
     }
 
-    using ContingencyModeEntry = std::pair<std::string_view, contingency_mode_t>;
+    using ContingencyModeEntry = std::pair<std::string_view, ContingencyMode>;
     constexpr std::array<ContingencyModeEntry, 37> kContingencyModeMap{{
-        {"n-1", contingency_mode_t::N_1},           {"N-1", contingency_mode_t::N_1},
-        {"n_1", contingency_mode_t::N_1},           {"N_1", contingency_mode_t::N_1},
-        {"n-1-1", contingency_mode_t::N_1_1},       {"N-1-1", contingency_mode_t::N_1_1},
-        {"n_1_1", contingency_mode_t::N_1_1},       {"N_1_1", contingency_mode_t::N_1_1},
-        {"n-2", contingency_mode_t::N_2},           {"N-2", contingency_mode_t::N_2},
-        {"n_2", contingency_mode_t::N_2},           {"N_2", contingency_mode_t::N_2},
-        {"n-2-line", contingency_mode_t::N_2_LINE}, {"N-2-LINE", contingency_mode_t::N_2_LINE},
-        {"n_2_line", contingency_mode_t::N_2_LINE}, {"N_2_LINE", contingency_mode_t::N_2_LINE},
-        {"N_2_Line", contingency_mode_t::N_2_LINE}, {"n-3-line", contingency_mode_t::N_3_LINE},
-        {"N-3-LINE", contingency_mode_t::N_3_LINE}, {"n_3_line", contingency_mode_t::N_3_LINE},
-        {"N_3_LINE", contingency_mode_t::N_3_LINE}, {"N_3_Line", contingency_mode_t::N_3_LINE},
-        {"line", contingency_mode_t::line},         {"Line", contingency_mode_t::line},
-        {"LINE", contingency_mode_t::line},         {"gen", contingency_mode_t::gen},
-        {"Gen", contingency_mode_t::gen},           {"GEN", contingency_mode_t::gen},
-        {"bus", contingency_mode_t::bus},           {"Bus", contingency_mode_t::bus},
-        {"BUS", contingency_mode_t::bus},           {"load", contingency_mode_t::load},
-        {"Load", contingency_mode_t::load},         {"LOAD", contingency_mode_t::load},
-        {"custom", contingency_mode_t::custom},     {"Custom", contingency_mode_t::custom},
-        {"CUSTOM", contingency_mode_t::custom},
+        {"n-1", ContingencyMode::N_1},           {"N-1", ContingencyMode::N_1},
+        {"n_1", ContingencyMode::N_1},           {"N_1", ContingencyMode::N_1},
+        {"n-1-1", ContingencyMode::N_1_1},       {"N-1-1", ContingencyMode::N_1_1},
+        {"n_1_1", ContingencyMode::N_1_1},       {"N_1_1", ContingencyMode::N_1_1},
+        {"n-2", ContingencyMode::N_2},           {"N-2", ContingencyMode::N_2},
+        {"n_2", ContingencyMode::N_2},           {"N_2", ContingencyMode::N_2},
+        {"n-2-line", ContingencyMode::N_2_LINE}, {"N-2-LINE", ContingencyMode::N_2_LINE},
+        {"n_2_line", ContingencyMode::N_2_LINE}, {"N_2_LINE", ContingencyMode::N_2_LINE},
+        {"N_2_Line", ContingencyMode::N_2_LINE}, {"n-3-line", ContingencyMode::N_3_LINE},
+        {"N-3-LINE", ContingencyMode::N_3_LINE}, {"n_3_line", ContingencyMode::N_3_LINE},
+        {"N_3_LINE", ContingencyMode::N_3_LINE}, {"N_3_Line", ContingencyMode::N_3_LINE},
+        {"line", ContingencyMode::LINE},         {"Line", ContingencyMode::LINE},
+        {"LINE", ContingencyMode::LINE},         {"gen", ContingencyMode::GEN},
+        {"Gen", ContingencyMode::GEN},           {"GEN", ContingencyMode::GEN},
+        {"bus", ContingencyMode::BUS},           {"Bus", ContingencyMode::BUS},
+        {"BUS", ContingencyMode::BUS},           {"load", ContingencyMode::LOAD},
+        {"Load", ContingencyMode::LOAD},         {"LOAD", ContingencyMode::LOAD},
+        {"custom", ContingencyMode::CUSTOM},     {"Custom", ContingencyMode::CUSTOM},
+        {"CUSTOM", ContingencyMode::CUSTOM},
     }};
 }  // namespace
 
@@ -93,14 +93,14 @@ std::string Violation::to_string() const
     return violationString;
 }
 
-contingency_mode_t getContingencyMode(std::string_view mode)
+ContingencyMode getContingencyMode(std::string_view mode)
 {
     for (const auto& entry : kContingencyModeMap) {
         if (entry.first == mode) {
             return entry.second;
         }
     }
-    return contingency_mode_t::unknown;
+    return ContingencyMode::UNKNOWN;
 }
 
 std::atomic_int Contingency::contingencyCount{0};

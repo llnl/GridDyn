@@ -66,7 +66,7 @@ class braidSolver: public SolverInterface {
     virtual int calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints) override;
 
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal) override;
+        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     /** execute the braid solve*/
     virtual int RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
     virtual void getRoots() override;

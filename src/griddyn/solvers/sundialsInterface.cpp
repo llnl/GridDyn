@@ -245,18 +245,18 @@ void sundialsInterface::registerErrorHandler()
     check_flag(&retval, "SUNContext_PushErrHandler", 1);
 }
 
-void sundialsInterface::KLUReInit(sparse_reinit_modes sparseReInitModes)
+void sundialsInterface::KLUReInit(SparseReinitMode sparseReInitModes)
 {
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[dense_flag]) {
         return;
     }
     switch (sparseReInitModes) {
-        case sparse_reinit_modes::refactor: {
+        case SparseReinitMode::REFACTOR: {
             int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
             check_flag(&retval, "SUNLinSol_KLUReInit", 1);
         } break;
-        case sparse_reinit_modes::resize:
+        case SparseReinitMode::RESIZE:
             /*there is a major bug in sundials with KLU on resize*/
             {
                 if (maxNNZ > SM_NNZ_S(J)) {

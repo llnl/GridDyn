@@ -45,10 +45,10 @@ class arkodeInterface: public sundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(coreTime time0) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
-    virtual void sparseReInit(sparse_reinit_modes sparseReinitMode) override;
+    virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
     virtual void getCurrentData() override;
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal) override;
+        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 

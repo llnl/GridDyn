@@ -50,7 +50,7 @@ class basicOdeSolver: public SolverInterface {
     virtual void set(std::string_view param, double val) override;
 
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, step_mode stepMode = step_mode::normal) override;
+        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
 };
 
 }  // namespace griddyn::solvers

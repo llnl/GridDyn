@@ -60,9 +60,8 @@ namespace solvers {
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void set(std::string_view param, double val) override;
 
-        virtual int solve(coreTime tStop,
-                          coreTime& tReturn,
-                          step_mode stepMode = step_mode::normal) override;
+        virtual int
+            solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     };
 
 }  // namespace solvers

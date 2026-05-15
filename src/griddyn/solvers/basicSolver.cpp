@@ -141,7 +141,7 @@ namespace solvers {
                            std::vector<double>& s3,
                            double conv);
 
-    int basicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, step_mode /*stepMode*/)
+    int basicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, StepMode /*stepMode*/)
     {
         double md = 1.0;
         iterations = 0;
@@ -221,7 +221,7 @@ namespace solvers {
             double roc =
                 std::abs(s3[kk] - s1[kk]) / (std::abs(s2[kk] - s3[kk]) + std::abs(s1[kk] - s2[kk]));
             if (roc < conv) {
-                s3[kk] = 0.5 * (s3[kk] * (1.0 + roc) + s2[kk] * (1.0 - roc));
+                s3[kk] = 0.5 * ((s3[kk] * (1.0 + roc)) + (s2[kk] * (1.0 - roc)));
             }
         }
     }

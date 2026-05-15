@@ -222,7 +222,7 @@ void kinsolInterface::initialize(coreTime /*t0*/)
     flags.set(initialized_flag);
 }
 
-void kinsolInterface::sparseReInit(sparse_reinit_modes sparseReinitMode)
+void kinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
     KLUReInit(sparseReinitMode);
 }
@@ -278,7 +278,7 @@ double kinsolInterface::get(std::string_view param) const
 // #define KIN_LINESEARCH 1
 // #define KIN_PICARD     2
 // #define KIN_FP         3
-int kinsolInterface::solve(coreTime tStop, coreTime& tReturn, step_mode /*mode*/)
+int kinsolInterface::solve(coreTime tStop, coreTime& tReturn, StepMode /*mode*/)
 {
     // check if the multiple data sets are in use and if we should toggle the data to use
     solveTime = tStop;

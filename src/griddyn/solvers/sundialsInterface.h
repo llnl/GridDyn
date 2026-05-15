@@ -126,7 +126,7 @@ class sundialsInterface: public SolverInterface {
                            N_Vector tmp2);
 
   protected:
-    void KLUReInit(sparse_reinit_modes sparseReInitMode);
+    void KLUReInit(SparseReinitMode sparseReinitMode);
     void registerErrorHandler();
 };
 

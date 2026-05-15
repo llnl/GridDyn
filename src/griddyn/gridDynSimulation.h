@@ -94,7 +94,7 @@ class Event;
 
 #define HANDLER_NO_RETURN (-500)
 
-enum class contingency_mode_t;  // forward declare the enumeration
+enum class ContingencyMode;  // forward declare the enumeration
 /** @brief the GridDyn Simulation Class
   the gridDynSimulation class contains the mechanics for generating solutions to various power
   systems problems of interest
@@ -196,9 +196,9 @@ class gridDynSimulation: public gridSimulation {
 
     // simulation
     /** @brief define an enumeration for the network check level*/
-    enum class network_check_type : char {
-        full,  //!< a full network check
-        simplified  //!< a simplified version of the network check
+    enum class NetworkCheckType : char {
+        FULL,  //!< a full network check
+        SIMPLIFIED  //!< a simplified version of the network check
     };
 
     /** @brief check the simulation network
@@ -206,7 +206,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] checkType  the type of network check to perform
     @return in indicating success (0) or failure (non-zero)
     */
-    int checkNetwork(network_check_type checkType);
+    int checkNetwork(NetworkCheckType checkType);
 
     /** @brief check for any lines that have slipped angle and trip them
     @return int indicating the number of lines that were tripped
@@ -399,8 +399,8 @@ class gridDynSimulation: public gridSimulation {
     int jacobianFunction(coreTime time,
                          const double state[],
                          const double dstate_dt[],
-                         matrixData<double>& md,
-                         double cj,
+                         matrixData<double>& matrixDataRef,
+                         double cjValue,
                          const solverMode& sMode) noexcept;
 
     /** @brief compute any root values
@@ -428,13 +428,13 @@ class gridDynSimulation: public gridSimulation {
     @param[in] sMode the solverMode to use for the computations
     */
     void parameterDerivatives(coreTime time,
-                              parameterSet& po,
+                              parameterSet& parameterOperators,
                               const index_t indices[],
                               const double values[],
                               count_t parameterCount,
                               const double state[],
                               const double dstate_dt[],
-                              matrixData<double>& md,
+                              matrixData<double>& matrixDataRef,
                               const solverMode& sMode);
 
     /** @brief solve for the algebraic components of a system for use with the ode solvers
@@ -555,7 +555,7 @@ class gridDynSimulation: public gridSimulation {
     @return if sMode is valid it returns that if not it finds the current active mode and returns a
     reference to that
     */
-    const solverMode& getCurrentMode(const solverMode& sMode = cEmptySolverMode) const;
+    solverMode getCurrentMode(const solverMode& sMode = cEmptySolverMode) const;
 
     /** @brief makes sure the SolverInterface object is ready to run solutions
     @param[in] solver pointer to a solver to make ready
@@ -565,7 +565,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] sD the stateData object to load
     @param[in] sMode the solverMode of the state Data object
     */
-    void fillExtraStateData(stateData& sD, const solverMode& sMode) const;
+    void fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const;
     /** @brief add an initialization function that will execute prior to the internal initialization
     in HELICS
     @param fptr a function object that returns an int.  if the value is non-zero it returns a

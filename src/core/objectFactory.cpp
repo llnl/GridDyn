@@ -11,8 +11,8 @@
 #include <string_view>
 #include <utility>
 namespace griddyn {
-objectFactory::objectFactory(std::string_view /*component*/, std::string typeName):
-    name(std::move(typeName))
+objectFactory::objectFactory(std::string_view /*component*/, std::string_view typeName):
+    name(typeName)
 {
 }
 

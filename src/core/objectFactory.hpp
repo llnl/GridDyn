@@ -28,7 +28,7 @@ class objectFactory {
     @param[in] component  the name of the type of component this factory is a constructor for
     @param[in] typeName  the name of the specific type of object this factor builds
     */
-    objectFactory(std::string_view component, std::string typeName);
+    objectFactory(std::string_view component, std::string_view typeName);
 
     /** @brief constructor B
     @param[in] component  the name of component this factory is a constructor for

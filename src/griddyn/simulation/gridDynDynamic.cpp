@@ -18,6 +18,7 @@
 // system libraries
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <cstdio>
 #include <memory>
 #include <print>
@@ -896,10 +897,10 @@ void gridDynSimulation::handleRootChange(const solverMode& sMode,
 {
     if (opFlags[root_change_flag])  // something with the roots changed
     {
-        const auto rootCount = rootSize(sMode);
-        if (std::cmp_not_equal(rootCount, dynData->rootsfound.size())) {
-            dynData->setRootFinding(rootCount);
-            if (rootCount > 0) {
+        const auto modeRootCount = rootSize(sMode);
+        if (std::cmp_not_equal(modeRootCount, dynData->rootsfound.size())) {
+            dynData->setRootFinding(modeRootCount);
+            if (modeRootCount > 0) {
                 setRootOffset(0, sMode);
             }
         }

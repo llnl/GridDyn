@@ -15,6 +15,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridDynSimulationFileOps.h"
 #include "utilities/GlobalWorkQueue.hpp"
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -61,10 +62,10 @@ size_t buildContingencyList(gridDynSimulation* gds,
         {
             auto contingencies =
                 buildContingencyList(gds, ContingencyMode::LINE, contList, info, skip);
-            skip = std::max(skip - static_cast<int>(contingencies), 0);
+            skip = (std::max)(skip - static_cast<int>(contingencies), 0);
 
             contingencies = buildContingencyList(gds, ContingencyMode::GEN, contList, info, skip);
-            skip = std::max(skip - static_cast<int>(contingencies), 0);
+            skip = (std::max)(skip - static_cast<int>(contingencies), 0);
             buildContingencyList(gds, ContingencyMode::LOAD, contList, info, skip);
             break;
         }
@@ -74,7 +75,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
             extraContingencyInfo build(info);
             build.stage = 1;
             contList.reserve(nMinusOneContingencies.size() * nMinusOneContingencies.size());
-            for (auto& cont : nMinusOneContingencies) {
+            for (const auto& cont : nMinusOneContingencies) {
                 build.baseCont = cont->clone();
                 buildContingencyList(gds, ContingencyMode::N_1, contList, build);
             }
@@ -86,7 +87,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
             build.stage = 0;
             contList.reserve(nMinusOneContingencies.size() * nMinusOneContingencies.size() / 2);
             int contIndex{0};
-            for (auto& cont : nMinusOneContingencies) {
+            for (const auto& cont : nMinusOneContingencies) {
                 ++contIndex;
                 build.baseCont = cont->clone();
                 buildContingencyList(gds, ContingencyMode::N_1, contList, build, contIndex);
@@ -106,7 +107,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
             build.stage = 0;
             contList.reserve(lineContingencies.size() * lineContingencies.size() / 2);
             int contIndex{0};
-            for (auto& cont : lineContingencies) {
+            for (const auto& cont : lineContingencies) {
                 ++contIndex;
                 build.baseCont = cont->clone();
                 buildLineContingencies(gds, contList, build, contIndex);

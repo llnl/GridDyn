@@ -399,8 +399,8 @@ class gridDynSimulation: public gridSimulation {
     int jacobianFunction(coreTime time,
                          const double state[],
                          const double dstate_dt[],
-                         matrixData<double>& md,
-                         double cj,
+                         matrixData<double>& matrixDataRef,
+                         double cjValue,
                          const solverMode& sMode) noexcept;
 
     /** @brief compute any root values

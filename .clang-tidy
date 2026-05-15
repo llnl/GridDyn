@@ -321,6 +321,10 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.LocalVariableSuffix
     value:           ''
+  - key:             readability-identifier-length.IgnoredVariableNames
+    value:           'ii;jj;kk;nn'
+  - key:             readability-identifier-length.IgnoredLoopCounterNames
+    value:           'i;j;k;ii;jj;kk;nn'
   - key:             readability-identifier-naming.MemberCase
     value:           aNy_CasE
   - key:             readability-identifier-naming.MemberPrefix

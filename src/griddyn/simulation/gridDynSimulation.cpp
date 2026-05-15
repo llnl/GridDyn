@@ -22,6 +22,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
+#include <compare>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -35,9 +36,8 @@
 #include <vector>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<gridDynSimulation>
-    simulationFactory("simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
+static typeFactory<gridDynSimulation> simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
+    "simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
 
 std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
 
@@ -178,16 +178,16 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     for (auto& bus : bnetwork) {
         if (bus->getLoadReal() != 0.0) {
             if (bus->getVoltage() < 0.95) {
-                int ii{0};
+                int loadIndex{0};
                 do {
-                    auto* load = bus->getLoad(ii);
+                    auto* load = bus->getLoad(loadIndex);
                     if (load != nullptr) {
                         if (load->isConnected()) {
                             modified = true;
                             load->disconnect();
                             break;
                         }
-                        ++ii;
+                        ++loadIndex;
                     } else {
                         break;
                     }
@@ -197,7 +197,7 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     }
 
     if (!modified) {
-        gridBus* maxDiffBus{nullptr};
+        const gridBus* maxDiffBus{nullptr};
         double maxDiff{0.0};
         for (auto& bus : bnetwork) {
             auto ldp = bus->getLoadReal();
@@ -213,16 +213,16 @@ bool gridDynSimulation::doAutomaticLoadLoss()
             }
         }
         if ((maxDiff > 0.01) && (maxDiffBus != nullptr)) {
-            int ii{0};
+            int loadIndex{0};
             do {
-                auto* load = maxDiffBus->getLoad(ii);
+                auto* load = maxDiffBus->getLoad(loadIndex);
                 if (load != nullptr) {
                     if (load->isConnected()) {
                         modified = true;
                         load->disconnect();
                         break;
                     }
-                    ++ii;
+                    ++loadIndex;
                 } else {
                     break;
                 }
@@ -1312,7 +1312,7 @@ void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
         nextIndex =
             (std::max)(nextIndex, static_cast<decltype(nextIndex)>(5));  // new modes start at 5
         nSolver->setIndex(nextIndex);
-        if (nextIndex >= static_cast<count_t>(solverInterfaces.size())) {
+        if (std::cmp_greater_equal(nextIndex, solverInterfaces.size())) {
             solverInterfaces.resize(nextIndex + 1);
             extraStateInformation.resize(nextIndex + 1, nullptr);
             extraDerivInformation.resize(nextIndex + 1, nullptr);
@@ -1671,33 +1671,33 @@ static count_t searchForGridlabDobject(const coreObject* obj)
     count_t cnt = 0;
     const auto* bus = dynamic_cast<const gridBus*>(obj);
     if (bus != nullptr) {
-        index_t kk = 0;
-        const coreObject* loadObject = bus->getLoad(kk);
+        index_t loadIndex = 0;
+        const coreObject* loadObject = bus->getLoad(loadIndex);
         while (loadObject != nullptr) {
             const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(loadObject);
             if (gridLabdLoad != nullptr) {
                 cnt += gridLabdLoad->mpiCount();
             }
-            ++kk;
-            loadObject = bus->getLoad(kk);
+            ++loadIndex;
+            loadObject = bus->getLoad(loadIndex);
         }
         return cnt;
     }
     const auto* area = dynamic_cast<const Area*>(obj);
     if (area != nullptr) {
-        index_t kk = 0;
-        bus = area->getBus(kk);
+        index_t areaIndex = 0;
+        bus = area->getBus(areaIndex);
         while (bus != nullptr) {
             cnt += searchForGridlabDobject(bus);
-            ++kk;
-            bus = area->getBus(kk);
+            ++areaIndex;
+            bus = area->getBus(areaIndex);
         }
-        kk = 0;
-        const Area* subArea = area->getArea(kk);
+        areaIndex = 0;
+        const Area* subArea = area->getArea(areaIndex);
         while (subArea != nullptr) {
             cnt += searchForGridlabDobject(subArea);
-            ++kk;
-            subArea = area->getArea(kk);
+            ++areaIndex;
+            subArea = area->getArea(areaIndex);
         }
         return cnt;
     }

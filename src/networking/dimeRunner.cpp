@@ -35,8 +35,7 @@ DimeRunner::DimeRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(st
     loadDimeLibrary();
 }
 
-std::shared_ptr<CLI::App>
-    DimeRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
+std::shared_ptr<CLI::App> DimeRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
     loadDimeReaderInfoDefinitions(readerInformation);
 

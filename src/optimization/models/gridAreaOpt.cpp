@@ -254,7 +254,8 @@ void GridAreaOpt::quadraticObj(const OptimizationData& optimizationData,
     }
 }
 
-double GridAreaOpt::objValue(const OptimizationData& optimizationData, const OptimizationMode& oMode)
+double GridAreaOpt::objValue(const OptimizationData& optimizationData,
+                             const OptimizationMode& oMode)
 {
     double cost = 0;
     for (auto* childObject : objectList) {

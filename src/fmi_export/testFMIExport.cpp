@@ -43,7 +43,7 @@ class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Tes
 
 TEST_F(FmiExportTests, TestFmiEvents)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -65,7 +65,7 @@ TEST_F(FmiExportTests, TestFmiEvents)
 
 TEST_F(FmiExportTests, TestFmiOutput)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -87,7 +87,7 @@ TEST_F(FmiExportTests, TestFmiOutput)
 
 TEST_F(FmiExportTests, TestFmiSimulation)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
@@ -117,7 +117,7 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 
 TEST_F(FmiExportTests, TestFmiRunner)
 {
-    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
+    auto runner = std::make_unique<griddyn::fmi::FmiRunner>("testsim", fmi_test_directory, nullptr);
 
     runner->simInitialize();
     runner->UpdateOutputs();
@@ -141,7 +141,7 @@ TEST_F(FmiExportTests, TestFmiRunner)
 namespace {
 void generateFMU(const std::string& target, const std::string& inputfile)
 {
-    auto builder = std::make_unique<griddyn::fmi::fmuBuilder>();
+    auto builder = std::make_unique<griddyn::fmi::FmuBuilder>();
 
     builder->InitializeFromString("--buildfmu=\"" + target + "\" \"" + inputfile + "\"");
 
@@ -246,7 +246,7 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
 
 TEST_F(FmiExportTests, TestFmiRunner2)
 {
-    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim",
+    auto runner = std::make_unique<griddyn::fmi::FmiRunner>("testsim",
                                                             fmi_test_directory + "/three_phase_fmu",
                                                             nullptr);
     runner->simInitialize();

@@ -16,15 +16,15 @@ namespace griddyn {
 class readerInfo;
 
 namespace fmi {
-    class fmiCoordinator;
+    class FmiCoordinator;
 
     // class gridDynSimulation;
     /** object to build an FMI object from a gridDyn simulation file*/
-    class fmuBuilder: public GriddynRunner {
+    class FmuBuilder: public GriddynRunner {
       private:
         std::string mFmuLocation;  //!< location to place the FMU
         std::vector<unsigned int> mValueReferences;  //!< the value references
-        coreOwningPtr<fmiCoordinator>
+        coreOwningPtr<FmiCoordinator>
             mCoordinator;  //!< coordinator to maintain organize everything
         std::unique_ptr<readerInfo> mReaderInfo;  //!< location of readerInfo
         std::string mExecutablePath;  //!< location of the executable making the fmu
@@ -35,9 +35,9 @@ namespace fmi {
         void generateXML(const std::string& xmlfile);
 
       public:
-        fmuBuilder();
-        fmuBuilder(std::shared_ptr<gridDynSimulation> gds);
-        virtual ~fmuBuilder();
+        FmuBuilder();
+        FmuBuilder(std::shared_ptr<gridDynSimulation> gds);
+        virtual ~FmuBuilder();
 
       public:
         virtual std::shared_ptr<CLI::App>

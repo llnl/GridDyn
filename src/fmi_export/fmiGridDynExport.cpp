@@ -27,13 +27,13 @@ const char* fmi2GetVersion(void)
 
 using griddyn::coreObjectException;
 using griddyn::id_type_t;
-using griddyn::fmi::fmiRunner;
+using griddyn::fmi::FmiRunner;
 
-using runner_t = fmiRunner*;
+using runner_t = FmiRunner*;
 static std::mutex fmiLock;  //!< lock for allowing multi-threaded access
 
-static std::vector<std::unique_ptr<fmiRunner>>
-    fmiRunnerInstances(1);  // vector of fmiRunner Instances
+static std::vector<std::unique_ptr<FmiRunner>>
+    fmiRunnerInstances(1);  // vector of FMI runner instances
 
 using compID = std::pair<unsigned int, id_type_t>;
 
@@ -107,7 +107,7 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
             }
         }
         try {
-            auto fmiM = std::make_unique<fmiRunner>(instanceName,
+            auto fmiM = std::make_unique<FmiRunner>(instanceName,
                                                     locString,
                                                     functions,
                                                     (fmuType == fmi2Type::fmi2ModelExchange));

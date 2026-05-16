@@ -11,9 +11,9 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiCoordinator;
+class FmiCoordinator;
 /** class to manage the inputs for an FMI configuration in GridDyn*/
-class fmiEvent: public events::reversibleEvent {
+class FmiEvent: public events::reversibleEvent {
   public:
     /** enumeration of the event types*/
     enum class FmiEventType {
@@ -23,19 +23,19 @@ class fmiEvent: public events::reversibleEvent {
     };
 
   private:
-    fmiCoordinator* mCoordinator = nullptr;  //!< pointer the coordinator
+    FmiCoordinator* mCoordinator = nullptr;  //!< pointer the coordinator
     FmiEventType mEventType = FmiEventType::INPUT;  //!< the type of the event
   public:
     /** constructor taking name and eventType
 @param newName the name of the event
 @param type the type of event either input or parameter
 */
-    fmiEvent(const std::string& newName, FmiEventType type = FmiEventType::INPUT);
+    FmiEvent(const std::string& newName, FmiEventType type = FmiEventType::INPUT);
     /** default constructor taking optional eventType
      */
-    fmiEvent(FmiEventType type = FmiEventType::INPUT);
+    FmiEvent(FmiEventType type = FmiEventType::INPUT);
     /** event constructor taking an eventInfo structure and root object*/
-    fmiEvent(const EventInfo& gdEI, coreObject* rootObject);
+    FmiEvent(const EventInfo& gdEI, coreObject* rootObject);
 
     virtual std::unique_ptr<Event> clone() const override;
 
@@ -50,7 +50,7 @@ class fmiEvent: public events::reversibleEvent {
     virtual void updateObject(coreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
     virtual coreObject* getOwner() const override;
-    friend class fmiCoordinator;
+    friend class FmiCoordinator;
 
   private:
     /** function to find the fmi coordinator so we can connect to that*/

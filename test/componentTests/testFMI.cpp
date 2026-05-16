@@ -23,18 +23,18 @@
 #include "fmi/fmi_models/fmiMELoad3phase.h"
 #include "griddyn/loads/approximatingLoad.h"
 
-static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_tests/");
-static const std::string fmu_directory(GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_fmus/");
+static constexpr std::string_view fmi_test_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/";
+static constexpr std::string_view fmu_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_fmus/";
 
 // create a test fixture that makes sure everything gets deleted properly
 
 using namespace std::filesystem;
 class FmiTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-TEST_F(FmiTests, TestFmiXml)
+TEST_F(FmiTests, TestFmiXml)  // NOLINT(readability-function-cognitive-complexity)
 {
-    std::string fmu = fmu_directory + "Rectifier.fmu";
-    path rectDir(fmu_directory + "Rectifier");
+    std::string fmu = std::string{fmu_directory} + "Rectifier.fmu";
+    path rectDir(std::string{fmu_directory} + "Rectifier");
     fmiLibrary rectFmu(fmu);
     EXPECT_TRUE(rectFmu.isXmlLoaded());
     EXPECT_EQ(rectFmu.getCounts("states"), 4);
@@ -46,16 +46,15 @@ TEST_F(FmiTests, TestFmiXml)
     EXPECT_EQ(rectFmu.getCounts("locals"), vars - 23 - 8);
     rectFmu.close();
     ASSERT_TRUE(exists(rectDir)) << "fmu directory does not exist";
-    try {
-        remove_all(rectDir);
-    }
-    catch (filesystem_error const& e) {
-        ADD_FAILURE() << "unable to remove the folder: " << e.what();
+    std::error_code cleanupError;
+    remove_all(rectDir, cleanupError);
+    if (cleanupError) {
+        ADD_FAILURE() << "unable to remove the folder: " << cleanupError.message();
     }
 
     // test second fmu with different load mechanics
-    std::string fmu2 = fmu_directory + "Rectifier2.fmu";
-    path rectDir2(fmu_directory + "Rectifier2");
+    std::string fmu2 = std::string{fmu_directory} + "Rectifier2.fmu";
+    path rectDir2(std::string{fmu_directory} + "Rectifier2");
     fmiLibrary rect2Fmu(fmu2, rectDir2.string());
     EXPECT_TRUE(rect2Fmu.isXmlLoaded());
     EXPECT_EQ(rect2Fmu.getCounts("states"), 4);
@@ -68,19 +67,18 @@ TEST_F(FmiTests, TestFmiXml)
 
     rect2Fmu.close();
     ASSERT_TRUE(exists(rectDir2)) << "fmu directory does not exist";
-    try {
-        remove_all(rectDir2);
-    }
-    catch (filesystem_error const& e) {
-        ADD_FAILURE() << "unable to remove the folder: " << e.what();
+    cleanupError.clear();
+    remove_all(rectDir2, cleanupError);
+    if (cleanupError) {
+        ADD_FAILURE() << "unable to remove the folder: " << cleanupError.message();
     }
 }
 
 #if defined _WIN32 && defined _WIN64
 TEST_F(FmiTests, TestFmiLoadShared)
 {
-    std::string fmu = fmu_directory + "Rectifier.fmu";
-    path rectDir(fmu_directory + "Rectifier");
+    std::string fmu = std::string{fmu_directory} + "Rectifier.fmu";
+    path rectDir(std::string{fmu_directory} + "Rectifier");
     {
         fmiLibrary rectFmu(fmu);
         rectFmu.loadSharedLibrary();
@@ -88,7 +86,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
 
         auto b = rectFmu.createModelExchangeObject("rctf");
         ASSERT_TRUE(b);
-        b->setMode(fmuMode::initializationMode);
+        b->setMode(FmuMode::initializationMode);
         auto v = b->get<double>("VAC");
         EXPECT_NEAR(v, 400.0, 4e-2 + 1e-12);
         auto phase = b->get<double>("SineVoltage1.phase");
@@ -101,11 +99,10 @@ TEST_F(FmiTests, TestFmiLoadShared)
         b.reset();
         rectFmu.close();
     }
-    try {
-        remove_all(rectDir);
-    }
-    catch (filesystem_error const& e) {
-        ADD_FAILURE() << "unable to remove the folder: " << e.what();
+    std::error_code cleanupError;
+    remove_all(rectDir, cleanupError);
+    if (cleanupError) {
+        ADD_FAILURE() << "unable to remove the folder: " << cleanupError.message();
     }
 }
 
@@ -114,7 +111,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
 #if defined _WIN32 && !defined _WIN64
 TEST_F(FmiTests, Test3phaseFmu)
 {
-    std::string fmu = fmu_directory + "DUMMY_0CYMDIST.fmu";
+    std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";
     fmiLibrary loadFmu(fmu);
     EXPECT_TRUE(loadFmu.isXmlLoaded());
     auto states = loadFmu.getCounts("states");
@@ -130,7 +127,7 @@ TEST_F(FmiTests, Test3phaseFmu)
     double inp[6];
     double out[6];
     double out2[6];
-    fm->setMode(fmuMode::continuousTimeMode);
+    fm->setMode(FmuMode::continuousTimeMode);
     fm->getCurrentInputs(inp);
     inp[0] = 1.0;
     inp[1] = 1.0;
@@ -156,7 +153,7 @@ TEST_F(FmiTests, TestFmiApproxLoad)
     approximatingLoad apload("apload1");
 
     auto ld1 = new griddyn::fmi::fmiMELoad3phase("fmload1");
-    std::string fmu = fmu_directory + "DUMMY_0CYMDIST.fmu";
+    std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";
     ld1->set("fmu", fmu);
     apload.add(ld1);
     ld1->set("a2", 0.0);
@@ -206,7 +203,7 @@ TEST_F(FmiTests, TestFmiApproxLoad)
 TEST_F(FmiTests, TestFmiApproxLoadXml)
 {
     using namespace griddyn::loads;
-    std::string fileName = fmi_test_directory + "approxLoad_testfmi.xml";
+    std::string fileName = std::string{fmi_test_directory} + "approxLoad_testfmi.xml";
 
     gds = griddyn::readSimXMLFile(fileName);
     ASSERT_TRUE(gds);

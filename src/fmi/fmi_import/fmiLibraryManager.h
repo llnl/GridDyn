@@ -12,8 +12,8 @@
 #include <string>
 
 class fmiLibrary;
-class fmi2ModelExchangeObject;
-class fmi2CoSimObject;
+class Fmi2ModelExchangeObject;
+class Fmi2CoSimObject;
 
 /** singleton class for managing fmi library objects*/
 class fmiLibraryManager {
@@ -25,9 +25,9 @@ class fmiLibraryManager {
   public:
     ~fmiLibraryManager();
     std::shared_ptr<fmiLibrary> getLibrary(const std::string& libFile);
-    std::unique_ptr<fmi2ModelExchangeObject>
+    std::unique_ptr<Fmi2ModelExchangeObject>
         createModelExchangeObject(const std::string& fmuIdentifier, const std::string& ObjectName);
-    std::unique_ptr<fmi2CoSimObject> createCoSimulationObject(const std::string& fmuIdentifier,
+    std::unique_ptr<Fmi2CoSimObject> createCoSimulationObject(const std::string& fmuIdentifier,
                                                               const std::string& ObjectName);
     void loadBookMarkFile(const std::string& bookmarksFile);
     void addShortCut(const std::string& name, const std::string& fmuLocation);

@@ -26,12 +26,12 @@ namespace griddyn::fmi {
 using gmlc::utilities::vectorMultAdd;
 
 fmiMESubModel::fmiMESubModel(const std::string& newName,
-                             std::shared_ptr<fmi2ModelExchangeObject> fmi):
+                             std::shared_ptr<Fmi2ModelExchangeObject> fmi):
     gridSubModel(newName), me(std::move(fmi))
 {
 }
 
-fmiMESubModel::fmiMESubModel(std::shared_ptr<fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
+fmiMESubModel::fmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
 
 fmiMESubModel::~fmiMESubModel() = default;
 
@@ -55,7 +55,7 @@ void fmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization)) {
         //    printf("GridDyn pflow_init_required\n");
         opFlags.set(pflow_init_required);
-        me->setMode(fmuMode::initializationMode);
+        me->setMode(FmuMode::initializationMode);
         //    printf("finished setting init mode\n");
     }
     prevTime = time0;
@@ -64,7 +64,7 @@ void fmiMESubModel::pFlowObjectInitializeB()
 {
     if (opFlags[pflow_init_required]) {
         // printf("enter continuous time mode\n");
-        me->setMode(fmuMode::continuousTimeMode);
+        me->setMode(FmuMode::continuousTimeMode);
         // printf("finished setting continuous time mode");
         oEst.resize(m_outputSize);
         probeFMU();
@@ -94,7 +94,7 @@ void fmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
 
                 loadOutputJac();
                 for (index_t pp = 0; pp < m_outputSize; ++pp) {
-                    if (outputInformation[pp].refMode >= refMode_t::level4) {
+                    if (outputInformation[pp].refMode >= RefMode::level4) {
                         const double val = me->getOutput(pp);
                         oEst[pp]->update(prevTime, val, inputs, m_state.data());
                     }
@@ -104,11 +104,11 @@ void fmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
         }
     } else {
         // printf("GridDyn Dyn B pflowInit NOT required\n");
-        me->setMode(fmuMode::initializationMode);
+        me->setMode(FmuMode::initializationMode);
         if (!inputs.empty()) {
             me->setInputs(inputs.data());
         }
-        me->setMode(fmuMode::continuousTimeMode);
+        me->setMode(FmuMode::continuousTimeMode);
         if (!m_state.empty()) {
             me->getStates(m_state.data());
         }
@@ -136,11 +136,11 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
-                if (info->getVariableInfo(kk).type == fmi_variable_type_t::string) {
+                if (info->getVariableInfo(kk).type == FmiVariableType::string) {
                     ++strpcnt;
                 } else if (checkType(info->getVariableInfo(kk),
-                                     fmi_variable_type_t::numeric,
-                                     fmi_causality_type_t::parameter)) {
+                                     FmiVariableType::numeric,
+                                     FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -150,8 +150,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -162,8 +162,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -173,8 +173,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -184,8 +184,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -195,8 +195,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -207,8 +207,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -219,8 +219,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -278,7 +278,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         // updateDependencyInfo();
     } else {
         if (me) {
-            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
+            const bool isparam = me->isParameter(std::string{param}, FmiVariableType::string);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, std::string{val});
@@ -303,7 +303,7 @@ void fmiMESubModel::set(std::string_view param, double val, units::unit unitType
         localIntegrationTime = val;
     } else {
         if (me) {
-            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+            const bool isparam = me->isParameter(std::string{param}, FmiVariableType::numeric);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, val);
@@ -327,7 +327,7 @@ double fmiMESubModel::get(std::string_view param, units::unit unitType) const
     if (param == "localintegrationtime") {
         return static_cast<double>(localIntegrationTime);
     }
-    if ((me) && (me->isVariable(std::string{param}, fmi_variable_type_t::numeric))) {
+    if ((me) && (me->isVariable(std::string{param}, FmiVariableType::numeric))) {
         return me->get<double>(std::string{param});
     }
     return gridSubModel::get(param, unitType);
@@ -381,7 +381,7 @@ void fmiMESubModel::setState(coreTime time,
 
             me->getCurrentInputs(ip.data());
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
-                if (outputInformation[pp].refMode >= refMode_t::level4) {
+                if (outputInformation[pp].refMode >= RefMode::level4) {
                     double val;
                     val = me->getOutput(pp);
                     bool reload =
@@ -510,12 +510,12 @@ void fmiMESubModel::derivative(const IOdata& inputs,
 }
 
 static constexpr double gap{1e-8};
-double fmiMESubModel::getPartial(int depIndex, int refIndex, refMode_t mode)
+double fmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
 {
     double res{0.0};
     double ich{1.0};
-    fmiVariableSet vx = me->getVariableSet(depIndex);
-    fmiVariableSet vy = me->getVariableSet(refIndex);
+    FmiVariableSet vx = me->getVariableSet(depIndex);
+    FmiVariableSet vy = me->getVariableSet(refIndex);
     if (opFlags[has_derivative_function]) {
         res = me->getPartialDerivative(depIndex, refIndex, ich);
     } else {
@@ -529,19 +529,19 @@ double fmiMESubModel::getPartial(int depIndex, int refIndex, refMode_t mode)
         me->get(vx, &out1);
         me->get(vy, &val1);
         val2 = val1 + gap;
-        if (mode == refMode_t::direct) {
+        if (mode == RefMode::direct) {
             me->set(vy, &val2);
             me->get(vx, &out2);
             me->set(vy, &val1);
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level1) {
+        } else if (mode == RefMode::level1) {
             me->set(vy, &val2);
             me->getDerivatives(tempdState.data());
             me->get(vx, &out2);
             me->set(vy, &val1);
             me->getDerivatives(tempdState.data());
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level2) {
+        } else if (mode == RefMode::level2) {
             me->getStates(tempState.data());
             tempState[refIndex] = val2;
             me->setStates(tempState.data());
@@ -551,7 +551,7 @@ double fmiMESubModel::getPartial(int depIndex, int refIndex, refMode_t mode)
             me->setStates(tempState.data());
             me->getDerivatives(tempdState.data());
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level3) {
+        } else if (mode == RefMode::level3) {
             // max useful for states dependent variables
             me->getStates(tempState.data());
             tempState[refIndex] = val2;
@@ -565,14 +565,14 @@ double fmiMESubModel::getPartial(int depIndex, int refIndex, refMode_t mode)
             me->getDerivatives(tempdState.data());
             me->completedIntegratorStep(fmi2False, &evmd, &term);
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level4) {  // for input dependencies only
+        } else if (mode == RefMode::level4) {  // for input dependencies only
             me->set(vy, &val2);
             me->completedIntegratorStep(fmi2False, &evmd, &term);
             me->get(vx, &out2);
             me->set(vy, &val1);
             me->completedIntegratorStep(fmi2False, &evmd, &term);
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level5) {  // for input dependencies only
+        } else if (mode == RefMode::level5) {  // for input dependencies only
             me->set(vy, &val2);
             me->getStates(tempState.data());
             me->setStates(tempState.data());
@@ -582,13 +582,13 @@ double fmiMESubModel::getPartial(int depIndex, int refIndex, refMode_t mode)
             me->setStates(tempState.data());
             me->getDerivatives(tempdState.data());
             res = (out2 - out1) / gap;
-        } else if (mode == refMode_t::level7) {  // use the estimators
+        } else if (mode == RefMode::level7) {  // use the estimators
             if (opFlags[fixed_output_interval]) {
                 res = 0;
             } else {
                 res = oEst[depIndex]->stateDiff[refIndex];
             }
-        } else if (mode == refMode_t::level8) {  // use the estimators
+        } else if (mode == RefMode::level8) {  // use the estimators
             if (opFlags[fixed_output_interval]) {
                 res = 0;
             } else {
@@ -715,9 +715,9 @@ void fmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
     for (index_t kk = 0; kk < m_outputSize; ++kk) {
         int vu = outputInformation[kk].varIndex;
         auto kmode = outputInformation[kk].refMode;
-        if (kmode >= refMode_t::level4) {
+        if (kmode >= RefMode::level4) {
             if (isDynamic(sMode)) {
-                kmode = refMode_t::level8;
+                kmode = RefMode::level8;
             }
         }
         for (auto& sR : outputInformation[kk].inputDep) {
@@ -745,9 +745,9 @@ void fmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
     for (index_t kk = 0; kk < m_outputSize; ++kk) {
         int vu = outputInformation[kk].varIndex;
         auto kmode = outputInformation[kk].refMode;
-        if (kmode >= refMode_t::level4) {
+        if (kmode >= RefMode::level4) {
             if (isDynamic(sMode)) {
-                kmode = refMode_t::level7;
+                kmode = RefMode::level7;
             }
         }
         if (outputInformation[kk].isState) {
@@ -779,9 +779,9 @@ void fmiMESubModel::rootTrigger(coreTime /*time*/,
                                 const std::vector<int>& /*rootMask*/,
                                 const solverMode& /*sMode*/)
 {
-    me->setMode(fmuMode::eventMode);
+    me->setMode(FmuMode::eventMode);
     // TODO(PT): deal with the event
-    me->setMode(fmuMode::continuousTimeMode);
+    me->setMode(FmuMode::continuousTimeMode);
 }
 
 IOdata fmiMESubModel::getOutputs(const IOdata& inputs,
@@ -789,7 +789,7 @@ IOdata fmiMESubModel::getOutputs(const IOdata& inputs,
                                  const solverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
-    if (me->getCurrentMode() >= fmuMode::initializationMode) {
+    if (me->getCurrentMode() >= FmuMode::initializationMode) {
         // updateInfo(inputs, sD, sMode);
         me->getOutputs(out.data());
         // printf("time=%f, out1 =%f, out 2=%f\n", static_cast<double>((!sD.empty()) ? sD.time :
@@ -797,7 +797,7 @@ IOdata fmiMESubModel::getOutputs(const IOdata& inputs,
         if ((opFlags[use_output_estimator]) && (!sD.empty()) && (!opFlags[fixed_output_interval]) &&
             (isDynamic(sMode))) {
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
-                if (outputInformation[pp].refMode >= refMode_t::level4) {
+                if (outputInformation[pp].refMode >= RefMode::level4) {
                     const double res = oEst[pp]->estimate(sD.time,
                                                           inputs,
                                                           sD.state + offsets.getDiffOffset(sMode));
@@ -823,12 +823,12 @@ double fmiMESubModel::getOutput(const IOdata& inputs,
                                 index_t outputNum) const
 {
     double out = kNullVal;
-    if (me->getCurrentMode() >= fmuMode::initializationMode) {
+    if (me->getCurrentMode() >= FmuMode::initializationMode) {
         // updateInfo(inputs, sD, sMode);
 
         if ((opFlags[use_output_estimator]) && (!sD.empty()) && (!opFlags[fixed_output_interval]) &&
             (isDynamic(sMode))) {
-            if (outputInformation[outputNum].refMode >= refMode_t::level4) {
+            if (outputInformation[outputNum].refMode >= RefMode::level4) {
                 out = oEst[outputNum]->estimate(sD.time,
                                                 inputs,
                                                 sD.state + offsets.getDiffOffset(sMode));
@@ -843,7 +843,7 @@ double fmiMESubModel::getOutput(const IOdata& inputs,
 double fmiMESubModel::getOutput(index_t outputNum) const
 {
     double out = kNullVal;
-    if (me->getCurrentMode() >= fmuMode::initializationMode) {
+    if (me->getCurrentMode() >= FmuMode::initializationMode) {
         out = me->getOutput(outputNum);
     }
     return out;
@@ -898,7 +898,7 @@ void fmiMESubModel::makeSettableState()
 {
     if (opFlags[dyn_initialized]) {
         prevFmiState = me->getCurrentMode();
-        me->setMode(fmuMode::eventMode);
+        me->setMode(FmuMode::eventMode);
     }
 }
 void fmiMESubModel::resetState()
@@ -913,32 +913,32 @@ void fmiMESubModel::resetState()
 
 void fmiMESubModel::probeFMU()
 {
-    refMode_t defMode = (m_stateSize > 0) ? refMode_t::level1 : refMode_t::level4;
+    RefMode defMode = (m_stateSize > 0) ? RefMode::level1 : RefMode::level4;
 
     if (opFlags[reprobe_flag]) {
-        defMode = (m_stateSize > 0) ? refMode_t::direct : refMode_t::level4;
+        defMode = (m_stateSize > 0) ? RefMode::direct : RefMode::level4;
     }
     for (auto& stateInfo : stateInformation) {
-        auto mode = refMode_t::direct;
+        auto mode = RefMode::direct;
         for (auto& dep : stateInfo.stateDep) {
             auto depIndex = stateInformation[dep].varIndex;
-            double res = getPartial(stateInfo.varIndex, depIndex, refMode_t::direct);
+            double res = getPartial(stateInfo.varIndex, depIndex, RefMode::direct);
             if (res != 0.0) {
                 continue;
             }
-            res = getPartial(stateInfo.varIndex, depIndex, refMode_t::level1);
+            res = getPartial(stateInfo.varIndex, depIndex, RefMode::level1);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level1);
+                mode = (std::max)(mode, RefMode::level1);
                 continue;
             }
-            res = getPartial(stateInfo.varIndex, depIndex, refMode_t::level2);
+            res = getPartial(stateInfo.varIndex, depIndex, RefMode::level2);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level2);
+                mode = (std::max)(mode, RefMode::level2);
                 continue;
             }
-            res = getPartial(stateInfo.varIndex, depIndex, refMode_t::level3);
+            res = getPartial(stateInfo.varIndex, depIndex, RefMode::level3);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level3);
+                mode = (std::max)(mode, RefMode::level3);
                 continue;
             }
             mode = (std::max)(mode, defMode);
@@ -946,13 +946,13 @@ void fmiMESubModel::probeFMU()
         }
         for (auto& dep : stateInfo.stateDep) {
             auto depIndex = stateInformation[dep].varIndex;
-            double res = getPartial(stateInfo.varIndex, depIndex, refMode_t::direct);
+            double res = getPartial(stateInfo.varIndex, depIndex, RefMode::direct);
             if (res != 0) {
                 continue;
             }
-            res = getPartial(stateInfo.varIndex, depIndex, refMode_t::level1);
+            res = getPartial(stateInfo.varIndex, depIndex, RefMode::level1);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level1);
+                mode = (std::max)(mode, RefMode::level1);
                 continue;
             }
             mode = (std::max)(mode, defMode);
@@ -961,31 +961,31 @@ void fmiMESubModel::probeFMU()
         stateInfo.refMode = mode;
     }
     for (auto& outputInfo : outputInformation) {
-        auto mode = refMode_t::direct;
+        auto mode = RefMode::direct;
         for (auto dep : outputInfo.stateDep) {
             auto depIndex = stateInformation[dep].varIndex;
-            double res = getPartial(outputInfo.varIndex, depIndex, refMode_t::direct);
+            double res = getPartial(outputInfo.varIndex, depIndex, RefMode::direct);
             if (res != 0) {
                 continue;
             }
-            res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level1);
+            res = getPartial(outputInfo.varIndex, depIndex, RefMode::level1);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level1);
+                mode = (std::max)(mode, RefMode::level1);
                 continue;
             }
-            res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level2);
+            res = getPartial(outputInfo.varIndex, depIndex, RefMode::level2);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level2);
+                mode = (std::max)(mode, RefMode::level2);
                 continue;
             }
-            res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level4);
+            res = getPartial(outputInfo.varIndex, depIndex, RefMode::level4);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level4);
+                mode = (std::max)(mode, RefMode::level4);
                 continue;
             }
-            res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level5);
+            res = getPartial(outputInfo.varIndex, depIndex, RefMode::level5);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level5);
+                mode = (std::max)(mode, RefMode::level5);
                 continue;
             }
             mode = (std::max)(mode, defMode);
@@ -993,26 +993,26 @@ void fmiMESubModel::probeFMU()
         }
         for (auto& dep : outputInfo.inputDep) {
             auto depIndex = stateInformation[dep].varIndex;
-            double res = getPartial(outputInfo.varIndex, depIndex, refMode_t::direct);
+            double res = getPartial(outputInfo.varIndex, depIndex, RefMode::direct);
             if (res != 0) {
                 continue;
             }
             if (m_stateSize > 0) {
-                res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level1);
+                res = getPartial(outputInfo.varIndex, depIndex, RefMode::level1);
                 if (res != 0) {
-                    mode = (std::max)(mode, refMode_t::level1);
+                    mode = (std::max)(mode, RefMode::level1);
                     continue;
                 }
             }
-            res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level4);
+            res = getPartial(outputInfo.varIndex, depIndex, RefMode::level4);
             if (res != 0) {
-                mode = (std::max)(mode, refMode_t::level4);
+                mode = (std::max)(mode, RefMode::level4);
                 continue;
             }
             if (m_stateSize > 0) {
-                res = getPartial(outputInfo.varIndex, depIndex, refMode_t::level5);
+                res = getPartial(outputInfo.varIndex, depIndex, RefMode::level5);
                 if (res != 0) {
-                    mode = (std::max)(mode, refMode_t::level5);
+                    mode = (std::max)(mode, RefMode::level5);
                     continue;
                 }
             }
@@ -1020,7 +1020,7 @@ void fmiMESubModel::probeFMU()
             opFlags.set(reprobe_flag);
         }
         outputInfo.refMode = mode;
-        if (mode >= refMode_t::level4) {
+        if (mode >= RefMode::level4) {
             opFlags.set(use_output_estimator);
             std::vector<int> sDep(outputInfo.stateDep.size());
             std::vector<int> iDep(outputInfo.inputDep.size());
@@ -1030,7 +1030,7 @@ void fmiMESubModel::probeFMU()
             for (size_t dd = 0; dd < outputInfo.inputDep.size(); ++dd) {
                 iDep[dd] = outputInfo.inputDep[dd];
             }
-            oEst[outputInfo.index] = new outputEstimator(sDep, iDep);
+            oEst[outputInfo.index] = new OutputEstimator(sDep, iDep);
         }
     }
 }
@@ -1041,7 +1041,7 @@ void fmiMESubModel::loadOutputJac(int index)
     int ct = 0;
     if (index == -1) {
         for (auto& out : outputInformation) {
-            if (out.refMode >= refMode_t::level4) {
+            if (out.refMode >= RefMode::level4) {
                 ct = 0;
                 for (auto kk : out.stateDep) {
                     pd = getPartial(out.varIndex, stateInformation[kk].varIndex, out.refMode);
@@ -1057,7 +1057,7 @@ void fmiMESubModel::loadOutputJac(int index)
             }
         }
     } else {
-        if (outputInformation[index].refMode >= refMode_t::level4) {
+        if (outputInformation[index].refMode >= RefMode::level4) {
             ct = 0;
             for (auto kk : outputInformation[index].stateDep) {
                 pd = getPartial(outputInformation[index].varIndex,

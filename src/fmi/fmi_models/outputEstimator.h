@@ -16,7 +16,7 @@ always stay updated in intermediate time values Thus the output may need to be e
 the rest of the system.  The estimate is done by using the Jacobian values for the output from both
 the input and states and summing them with the actual difference between the last known value
 */
-class outputEstimator {
+class OutputEstimator {
   private:
     coreTime time = timeZero;  //!< the last time of known values
     double prevValue = 0.0;  //!< the previous known value
@@ -31,9 +31,9 @@ class outputEstimator {
     double timeDiff =
         0.0;  //!< the partial derivative with respect to time (if there is a constant ramp
   public:
-    outputEstimator() = default;
+    OutputEstimator() = default;
     /** construct with the known indices of the dependencies*/
-    outputEstimator(std::vector<int> sDep, std::vector<int> iDep);
+    OutputEstimator(std::vector<int> sDep, std::vector<int> iDep);
     /** make a guess as to the present output based on time inputs and states*/
     double estimate(coreTime time, const IOdata& inputs, const double state[]);
     /** update the estimator with new values inputs and states*/

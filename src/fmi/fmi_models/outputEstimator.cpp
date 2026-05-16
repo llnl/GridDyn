@@ -13,7 +13,7 @@
 
 namespace griddyn::fmi {
 
-outputEstimator::outputEstimator(std::vector<int> sDep, std::vector<int> iDep):
+OutputEstimator::OutputEstimator(std::vector<int> sDep, std::vector<int> iDep):
     stateDep(std::move(sDep)), inputDep(std::move(iDep))
 {
     stateDiff.resize(stateDep.size(), 0);
@@ -22,7 +22,7 @@ outputEstimator::outputEstimator(std::vector<int> sDep, std::vector<int> iDep):
     prevInputs.resize(inputDep.size());
 }
 
-double outputEstimator::estimate(coreTime t, const IOdata& inputs, const double state[])
+double OutputEstimator::estimate(coreTime timeVal, const IOdata& inputs, const double state[])
 {
     double val = prevValue;
     for (size_t kk = 0; kk < stateDep.size(); ++kk) {
@@ -31,15 +31,18 @@ double outputEstimator::estimate(coreTime t, const IOdata& inputs, const double 
     for (size_t kk = 0; kk < inputDep.size(); ++kk) {
         val += (inputs[inputDep[kk]] - prevInputs[kk]) * inputDiff[kk];
     }
-    val += timeDiff * (t - time);
+    val += timeDiff * (timeVal - time);
     return val;
 }
 
-bool outputEstimator::update(coreTime t, double val, const IOdata& inputs, const double state[])
+bool OutputEstimator::update(coreTime timeVal,
+                             double val,
+                             const IOdata& inputs,
+                             const double state[])
 {
-    time = t;
+    time = timeVal;
 
-    double pred = estimate(t, inputs, state);
+    const double pred = estimate(timeVal, inputs, state);
     prevValue = val;
     for (size_t kk = 0; kk < stateDep.size(); ++kk) {
         prevStates[kk] = state[stateDep[kk]];
@@ -47,10 +50,10 @@ bool outputEstimator::update(coreTime t, double val, const IOdata& inputs, const
     for (size_t kk = 0; kk < inputDep.size(); ++kk) {
         prevInputs[kk] = inputs[inputDep[kk]];
     }
-    double diff = (std::abs)(pred - val);
-    double scaled_error = diff / (std::max)(std::abs(pred), std::abs(val));
-    bool diff_large_enough = diff > 1e-4;
-    bool scaled_error_large_enough = scaled_error > 0.02;
+    const double diff = std::abs(pred - val);
+    const double scaled_error = diff / (std::max)(std::abs(pred), std::abs(val));
+    const bool diff_large_enough = diff > 1e-4;
+    const bool scaled_error_large_enough = scaled_error > 0.02;
     return diff_large_enough && scaled_error_large_enough;
 }
 

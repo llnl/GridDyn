@@ -12,12 +12,12 @@
 #include <utility>
 #include <vector>
 
-fmi2ModelExchangeObject::fmi2ModelExchangeObject(
+Fmi2ModelExchangeObject::Fmi2ModelExchangeObject(
     fmi2Component cmp,
     std::shared_ptr<const fmiInfo> keyInfo,
     std::shared_ptr<const fmiCommonFunctions> comFunc,
     std::shared_ptr<const fmiModelExchangeFunctions> meFunc):
-    fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)),
+    Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)),
     ModelExchangeFunctions(std::move(meFunc))
 {
     numIndicators = info->getCounts("events");
@@ -27,17 +27,17 @@ fmi2ModelExchangeObject::fmi2ModelExchangeObject(
     }
 }
 
-void fmi2ModelExchangeObject::setMode(fmuMode mode)
+void Fmi2ModelExchangeObject::setMode(FmuMode mode)
 {
     std::println("setting mode {}", static_cast<int>(mode));
     fmi2Status ret = fmi2Error;
     switch (currentMode) {
-        case fmuMode::instantiatedMode:
-        case fmuMode::initializationMode:
+        case FmuMode::instantiatedMode:
+        case FmuMode::initializationMode:
 
-            if (mode == fmuMode::continuousTimeMode) {
+            if (mode == FmuMode::continuousTimeMode) {
                 std::println(" entering event mode");
-                fmi2Object::setMode(fmuMode::eventMode);
+                Fmi2Object::setMode(FmuMode::eventMode);
                 std::println(" now in event event mode");
                 if (numStates > 0) {
                     std::println("now entering continuous time mode");
@@ -48,18 +48,18 @@ void fmi2ModelExchangeObject::setMode(fmuMode mode)
                     ret = fmi2OK;
                 }
             } else {
-                fmi2Object::setMode(mode);
+                Fmi2Object::setMode(mode);
             }
             break;
-        case fmuMode::continuousTimeMode:
-            if (mode == fmuMode::eventMode) {
+        case FmuMode::continuousTimeMode:
+            if (mode == FmuMode::eventMode) {
                 ret = ModelExchangeFunctions->fmi2EnterEventMode(comp);
             }
             break;
-        case fmuMode::eventMode:
-            if (mode == fmuMode::eventMode) {
+        case FmuMode::eventMode:
+            if (mode == FmuMode::eventMode) {
                 ret = ModelExchangeFunctions->fmi2EnterEventMode(comp);
-            } else if (mode == fmuMode::continuousTimeMode) {
+            } else if (mode == FmuMode::continuousTimeMode) {
                 if (numStates > 0) {
                     std::println("now entering continuous time mode");
                     ret = ModelExchangeFunctions->fmi2EnterContinuousTimeMode(comp);
@@ -71,7 +71,7 @@ void fmi2ModelExchangeObject::setMode(fmuMode mode)
             }
             break;
         default:
-            fmi2Object::setMode(mode);
+            Fmi2Object::setMode(mode);
             return;
     }
 
@@ -82,14 +82,14 @@ void fmi2ModelExchangeObject::setMode(fmuMode mode)
     }
 }
 
-void fmi2ModelExchangeObject::newDiscreteStates(fmi2EventInfo* fmi2eventInfo)
+void Fmi2ModelExchangeObject::newDiscreteStates(fmi2EventInfo* fmi2eventInfo)
 {
     auto ret = ModelExchangeFunctions->fmi2NewDiscreteStates(comp, fmi2eventInfo);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::completedIntegratorStep(fmi2Boolean noSetFMUStatePriorToCurrentPoint,
+void Fmi2ModelExchangeObject::completedIntegratorStep(fmi2Boolean noSetFMUStatePriorToCurrentPoint,
                                                       fmi2Boolean* enterEventMode,
                                                       fmi2Boolean* terminatesSimulation)
 {
@@ -101,7 +101,7 @@ void fmi2ModelExchangeObject::completedIntegratorStep(fmi2Boolean noSetFMUStateP
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::setTime(fmi2Real time)
+void Fmi2ModelExchangeObject::setTime(fmi2Real time)
 {
     if (hasTime) {
         auto ret = ModelExchangeFunctions->fmi2SetTime(comp, time);
@@ -110,35 +110,35 @@ void fmi2ModelExchangeObject::setTime(fmi2Real time)
         }
     }
 }
-void fmi2ModelExchangeObject::setStates(const fmi2Real states[])
+void Fmi2ModelExchangeObject::setStates(const fmi2Real states[])
 {
     auto ret = ModelExchangeFunctions->fmi2SetContinuousStates(comp, states, numStates);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::getDerivatives(fmi2Real derivatives[]) const
+void Fmi2ModelExchangeObject::getDerivatives(fmi2Real derivatives[]) const
 {
     auto ret = ModelExchangeFunctions->fmi2GetDerivatives(comp, derivatives, numStates);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::getEventIndicators(fmi2Real eventIndicators[]) const
+void Fmi2ModelExchangeObject::getEventIndicators(fmi2Real eventIndicators[]) const
 {
     auto ret = ModelExchangeFunctions->fmi2GetEventIndicators(comp, eventIndicators, numIndicators);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::getStates(fmi2Real states[]) const
+void Fmi2ModelExchangeObject::getStates(fmi2Real states[]) const
 {
     auto ret = ModelExchangeFunctions->fmi2GetContinuousStates(comp, states, numStates);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2ModelExchangeObject::getNominalsOfContinuousStates(fmi2Real nominalValues[]) const
+void Fmi2ModelExchangeObject::getNominalsOfContinuousStates(fmi2Real nominalValues[]) const
 {
     auto ret =
         ModelExchangeFunctions->fmi2GetNominalsOfContinuousStates(comp, nominalValues, numStates);
@@ -147,7 +147,7 @@ void fmi2ModelExchangeObject::getNominalsOfContinuousStates(fmi2Real nominalValu
     }
 }
 
-std::vector<std::string> fmi2ModelExchangeObject::getStateNames() const
+std::vector<std::string> Fmi2ModelExchangeObject::getStateNames() const
 {
     return info->getVariableNames("state");
 }

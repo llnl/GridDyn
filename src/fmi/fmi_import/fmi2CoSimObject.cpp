@@ -5,38 +5,40 @@
  */
 
 #include "fmiObjects.h"
-
-#define MAX_DERIV_ORDER 10
-#define MAX_IO 1000
-
 #include <array>
 #include <memory>
 #include <string>
 #include <utility>
+
+namespace {
+constexpr int maxDerivOrder = 10;
+constexpr int maxIo = 1000;
 /**the co-simulation functions need an array of the derivative order, which for the primary function
 calls will be all identical, so there was no need to have to reconstruct this every time so this
 function just builds a common case to handle a large majority of cases without any additional
 copying or allocation
 */
-auto makeDerivOrderBlocks()
+constexpr auto makeDerivOrderBlocks()
 {
-    std::array<std::array<fmi2Integer, MAX_IO>, MAX_DERIV_ORDER + 1> dblock;
-    for (int ii = 0; ii <= MAX_DERIV_ORDER; ++ii) {
+    std::array<std::array<fmi2Integer, maxIo>, maxDerivOrder + 1> dblock{};
+    for (int ii = 0; ii <= maxDerivOrder; ++ii) {
         dblock[ii].fill(ii);
     }
     return dblock;
 }
-static const auto derivOrder = makeDerivOrderBlocks();
+constexpr auto derivOrder = makeDerivOrderBlocks();
+}  // namespace
 
-fmi2CoSimObject::fmi2CoSimObject(fmi2Component cmp,
+Fmi2CoSimObject::Fmi2CoSimObject(fmi2Component cmp,
                                  std::shared_ptr<const fmiInfo> keyInfo,
                                  std::shared_ptr<const fmiCommonFunctions> comFunc,
                                  std::shared_ptr<const fmiCoSimFunctions> csFunc):
-    fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc))
+    Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc)),
+    stepPending(false)
 {
 }
 
-void fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
+void Fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
 {
     auto ret = CoSimFunctions->fmi2SetRealInputDerivatives(comp,
                                                            activeInputs.getValueRef(),
@@ -48,7 +50,7 @@ void fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
     }
 }
 
-void fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
+void Fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
 {
     auto ret = CoSimFunctions->fmi2GetRealOutputDerivatives(comp,
                                                             activeOutputs.getValueRef(),
@@ -60,7 +62,7 @@ void fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
     }
 }
 
-void fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
+void Fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
                              fmi2Real communicationStepSize,
                              fmi2Boolean noSetFMUStatePriorToCurrentPoint)
 {
@@ -78,7 +80,7 @@ void fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
         stepPending = false;
     }
 }
-void fmi2CoSimObject::cancelStep()
+void Fmi2CoSimObject::cancelStep()
 {
     auto ret = CoSimFunctions->fmi2CancelStep(comp);
     if (ret != fmi2Status::fmi2OK) {
@@ -86,7 +88,7 @@ void fmi2CoSimObject::cancelStep()
     }
 }
 
-fmi2Real fmi2CoSimObject::getLastStepTime() const
+fmi2Real Fmi2CoSimObject::getLastStepTime() const
 {
     fmi2Real lastTime;
     auto ret =
@@ -97,7 +99,7 @@ fmi2Real fmi2CoSimObject::getLastStepTime() const
     return lastTime;
 }
 
-bool fmi2CoSimObject::isPending()
+bool Fmi2CoSimObject::isPending()
 {
     if (!stepPending) {
         return false;
@@ -115,15 +117,17 @@ bool fmi2CoSimObject::isPending()
     return true;
 }
 
-std::string fmi2CoSimObject::getStatus() const
+std::string Fmi2CoSimObject::getStatus() const
 {
     if (stepPending) {
-        fmi2String s;
-        auto ret = CoSimFunctions->fmi2GetStringStatus(comp, fmi2StatusKind::fmi2PendingStatus, &s);
+        fmi2String statusString;
+        auto ret = CoSimFunctions->fmi2GetStringStatus(comp,
+                                                       fmi2StatusKind::fmi2PendingStatus,
+                                                       &statusString);
         if (ret != fmi2Status::fmi2OK) {
             handleNonOKReturnValues(ret);
         }
-        return std::string(s);
+        return {statusString};
     }
     return "";
 }

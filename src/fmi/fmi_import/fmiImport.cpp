@@ -155,7 +155,7 @@ int fmiLibrary::extract()
     return ret;
 }
 
-std::unique_ptr<fmi2ModelExchangeObject>
+std::unique_ptr<Fmi2ModelExchangeObject>
     fmiLibrary::createModelExchangeObject(const std::string& name)
 {
     if (!isSoLoaded()) {
@@ -173,7 +173,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
                                           reinterpret_cast<fmi2CallbackFunctions*>(callbacks.get()),
                                           fmi2False,
                                           fmi2False);
-        auto meobj = std::make_unique<fmi2ModelExchangeObject>(comp,
+        auto meobj = std::make_unique<Fmi2ModelExchangeObject>(comp,
                                                                information,
                                                                commonFunctions,
                                                                ModelExchangeFunctions);
@@ -184,7 +184,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
     return nullptr;
 }
 
-std::unique_ptr<fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std::string& name)
+std::unique_ptr<Fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std::string& name)
 {
     if (!isSoLoaded()) {
         loadSharedLibrary(FmuType::COSIMULATION);
@@ -202,7 +202,7 @@ std::unique_ptr<fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std:
                                           fmi2False,
                                           fmi2False);
         auto csobj =
-            std::make_unique<fmi2CoSimObject>(comp, information, commonFunctions, CoSimFunctions);
+            std::make_unique<Fmi2CoSimObject>(comp, information, commonFunctions, CoSimFunctions);
         ++cosimcount;
         return csobj;
     }

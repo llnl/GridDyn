@@ -120,33 +120,33 @@ double fmiInfo::getReal(const std::string& field) const
         return fmiVersion;
     }
     if ((fld == "start") || (fld == "starttime")) {
-        return defaultExpirement.startTime;
+        return defaultExperiment.startTime;
     }
     if ((fld == "stop") || (fld == "stoptime")) {
-        return defaultExpirement.stopTime;
+        return defaultExperiment.stopTime;
     }
     if ((fld == "step") || (fld == "stepsize")) {
-        return defaultExpirement.stepSize;
+        return defaultExperiment.stepSize;
     }
     if (fld == "tolerance") {
-        return defaultExpirement.tolerance;
+        return defaultExperiment.tolerance;
     }
     return (-1.0e-48);
 }
 
-static const variableInformation& emptyVI()
+static const VariableInformation& emptyVI()
 {
-    static const auto* emptyVariableInfo = new variableInformation{};
+    static const auto* emptyVariableInfo = new VariableInformation{};
     return *emptyVariableInfo;
 }
 
-static const fmiVariableSet& emptyVset()
+static const FmiVariableSet& emptyVset()
 {
-    static const auto* emptyVariableSet = new fmiVariableSet{};
+    static const auto* emptyVariableSet = new FmiVariableSet{};
     return *emptyVariableSet;
 }
 
-const variableInformation& fmiInfo::getVariableInfo(const std::string& variableName) const
+const VariableInformation& fmiInfo::getVariableInfo(const std::string& variableName) const
 {
     auto variablefind = variableLookup.find(variableName);
     if (variablefind != variableLookup.end()) {
@@ -155,7 +155,7 @@ const variableInformation& fmiInfo::getVariableInfo(const std::string& variableN
     return emptyVI();
 }
 
-const variableInformation& fmiInfo::getVariableInfo(unsigned int index) const
+const VariableInformation& fmiInfo::getVariableInfo(unsigned int index) const
 {
     if (index < variables.size()) {
         return variables[index];
@@ -163,9 +163,9 @@ const variableInformation& fmiInfo::getVariableInfo(unsigned int index) const
     return emptyVI();
 }
 
-fmiVariableSet fmiInfo::getReferenceSet(const std::vector<std::string>& variableList) const
+FmiVariableSet fmiInfo::getReferenceSet(const std::vector<std::string>& variableList) const
 {
-    fmiVariableSet vset;
+    FmiVariableSet vset;
     for (const auto& vname : variableList) {
         auto vref = getVariableInfo(vname);
         if (vref.valueRef > 0) {
@@ -175,7 +175,7 @@ fmiVariableSet fmiInfo::getReferenceSet(const std::vector<std::string>& variable
     return vset;
 }
 
-fmiVariableSet fmiInfo::getVariableSet(const std::string& variable) const
+FmiVariableSet fmiInfo::getVariableSet(const std::string& variable) const
 {
     auto vref = getVariableInfo(variable);
     if (vref.valueRef > 0) {
@@ -184,7 +184,7 @@ fmiVariableSet fmiInfo::getVariableSet(const std::string& variable) const
     return emptyVset();
 }
 
-fmiVariableSet fmiInfo::getVariableSet(unsigned int index) const
+FmiVariableSet fmiInfo::getVariableSet(unsigned int index) const
 {
     if (index < variables.size()) {
         return {variables[index].valueRef};
@@ -192,9 +192,9 @@ fmiVariableSet fmiInfo::getVariableSet(unsigned int index) const
     return emptyVset();
 }
 
-fmiVariableSet fmiInfo::getOutputReference() const
+FmiVariableSet fmiInfo::getOutputReference() const
 {
-    fmiVariableSet vset;
+    FmiVariableSet vset;
     vset.reserve(outputs.size());
     for (const auto& outInd : outputs) {
         vset.push(variables[outInd].valueRef);
@@ -202,9 +202,9 @@ fmiVariableSet fmiInfo::getOutputReference() const
     return vset;
 }
 
-fmiVariableSet fmiInfo::getInputReference() const
+FmiVariableSet fmiInfo::getInputReference() const
 {
-    fmiVariableSet vset;
+    FmiVariableSet vset;
     vset.reserve(inputs.size());
     for (const auto& inInd : inputs) {
         vset.push(variables[inInd].valueRef);
@@ -220,9 +220,9 @@ std::vector<std::string> fmiInfo::getVariableNames(const std::string& type) cons
             vnames.push_back(variables[varIndex].name);
         }
     } else {
-        const fmi_causality caus = type;
+        const FmiCausality caus = type;
         for (const auto& var : variables) {
-            if ((caus == fmi_causality_type_t::any) || (var.causality == caus)) {
+            if ((caus == FmiCausalityType::any) || (var.causality == caus)) {
                 vnames.push_back(var.name);
             }
         }
@@ -328,13 +328,13 @@ void fmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
             if (att.getName() == "startTime") {
-                defaultExpirement.startTime = att.getValue();
+                defaultExperiment.startTime = att.getValue();
             } else if (att.getName() == "stopTime") {
-                defaultExpirement.stopTime = att.getValue();
+                defaultExperiment.stopTime = att.getValue();
             } else if (att.getName() == "stepSize") {
-                defaultExpirement.stepSize = att.getValue();
+                defaultExperiment.stepSize = att.getValue();
             } else if (att.getName() == "tolerance") {
-                defaultExpirement.tolerance = att.getValue();
+                defaultExperiment.tolerance = att.getValue();
             }
 
             att = readerElementPtr->getNextAttribute();
@@ -343,7 +343,7 @@ void fmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
     }
 }
 
-static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, fmiUnit& unitInfo);
+static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, FmiUnit& unitInfo);
 
 void fmiInfo::loadUnitInformation(std::shared_ptr<readerElement>& readerElementPtr)
 {
@@ -368,7 +368,7 @@ void fmiInfo::loadUnitInformation(std::shared_ptr<readerElement>& readerElementP
     readerElementPtr->restore();
 }
 
-static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, fmiUnit& unitInfo)
+static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, FmiUnit& unitInfo)
 {
     unitInfo.name = readerElementPtr->getAttributeText("name");
     if (readerElementPtr->hasElement("BaseUnit")) {
@@ -390,11 +390,11 @@ static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, fmiUn
     if (readerElementPtr->hasElement("DisplayUnit")) {
         readerElementPtr->moveToFirstChild("DisplayUnit");
         while (readerElementPtr->isValid()) {
-            unitDef Dunit;
-            Dunit.name = readerElementPtr->getAttributeText("name");
-            Dunit.factor = readerElementPtr->getAttributeValue("factor");
-            Dunit.offset = readerElementPtr->getAttributeValue("offset");
-            unitInfo.displayUnits.push_back(Dunit);
+            UnitDef displayUnit;
+            displayUnit.name = readerElementPtr->getAttributeText("name");
+            displayUnit.factor = readerElementPtr->getAttributeValue("factor");
+            displayUnit.offset = readerElementPtr->getAttributeValue("offset");
+            unitInfo.displayUnits.push_back(displayUnit);
             readerElementPtr->moveToNextSibling("DisplayUnit");
         }
         readerElementPtr->moveToParent();
@@ -406,7 +406,7 @@ static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, fmiUn
 @param[out] vInfo the variable information to store the data to
 */
 static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
-                             variableInformation& vInfo);
+                             VariableInformation& vInfo);
 
 /*
 valueReference="100663424"
@@ -444,13 +444,13 @@ void fmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
         // lower case parameters and may not be needed
         variableLookup.emplace(convertToLowerCase(variables[variableIndex].name), variableIndex);
         switch (variables[variableIndex].causality.value()) {
-            case fmi_causality_type_t::parameter:
+            case FmiCausalityType::parameter:
                 parameters.push_back(variableIndex);
                 break;
-            case fmi_causality_type_t::local:
+            case FmiCausalityType::local:
                 local.push_back(variableIndex);
                 break;
-            case fmi_causality_type_t::input:
+            case FmiCausalityType::input:
                 inputs.push_back(variableIndex);
                 break;
             default:
@@ -463,7 +463,7 @@ void fmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
 }
 
 static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
-                             variableInformation& vInfo)
+                             VariableInformation& vInfo)
 {
     auto att = readerElementPtr->getFirstAttribute();
     while (att.isValid()) {
@@ -483,7 +483,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         att = readerElementPtr->getNextAttribute();
     }
     if (readerElementPtr->hasElement("Real")) {
-        vInfo.type = fmi_variable_type_t::real;
+        vInfo.type = FmiVariableType::real;
         readerElementPtr->moveToFirstChild("Real");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -505,7 +505,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Boolean")) {
-        vInfo.type = fmi_variable_type_t::boolean;
+        vInfo.type = FmiVariableType::boolean;
         readerElementPtr->moveToFirstChild("Boolean");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -516,7 +516,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("String")) {
-        vInfo.type = fmi_variable_type_t::string;
+        vInfo.type = FmiVariableType::string;
         readerElementPtr->moveToFirstChild("String");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -527,7 +527,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Integer")) {
-        vInfo.type = fmi_variable_type_t::integer;
+        vInfo.type = FmiVariableType::integer;
         readerElementPtr->moveToFirstChild("Integer");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -631,23 +631,22 @@ void fmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
     readerElementPtr->restore();
 }
 
-bool checkType(const variableInformation& info, fmi_variable_type_t type, fmi_causality_type_t caus)
+bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus)
 {
     if (!(info.causality == caus)) {
-        if ((info.causality != fmi_causality_type_t::input) ||
-            (caus != fmi_causality_type_t::parameter)) {
+        if ((info.causality != FmiCausalityType::input) || (caus != FmiCausalityType::parameter)) {
             return false;
         }
     }
     if (info.type == type) {
         return true;
     }
-    if (type == fmi_variable_type_t::numeric) {
+    if (type == FmiVariableType::numeric) {
         switch (info.type.value()) {
-            case fmi_variable_type_t::boolean:
-            case fmi_variable_type_t::integer:
-            case fmi_variable_type_t::real:
-            case fmi_variable_type_t::enumeration:
+            case FmiVariableType::boolean:
+            case FmiVariableType::integer:
+            case FmiVariableType::real:
+            case FmiVariableType::enumeration:
                 return true;
             default:
                 return false;

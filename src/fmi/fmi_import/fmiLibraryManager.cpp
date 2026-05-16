@@ -33,7 +33,7 @@ std::shared_ptr<fmiLibrary> fmiLibraryManager::getLibrary(const std::string& lib
     return newLib;
 }
 
-std::unique_ptr<fmi2ModelExchangeObject>
+std::unique_ptr<Fmi2ModelExchangeObject>
     fmiLibraryManager::createModelExchangeObject(const std::string& fmuIdentifier,
                                                  const std::string& ObjectName)
 {
@@ -41,7 +41,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
     return Lib->createModelExchangeObject(ObjectName);
 }
 
-std::unique_ptr<fmi2CoSimObject>
+std::unique_ptr<Fmi2CoSimObject>
     fmiLibraryManager::createCoSimulationObject(const std::string& fmuIdentifier,
                                                 const std::string& ObjectName)
 {
@@ -56,7 +56,7 @@ void fmiLibraryManager::loadBookMarkFile(const std::string& /*bookmarksFile*/)
 
 void fmiLibraryManager::addShortCut(const std::string& name, const std::string& fmuLocation)
 {
-    std::lock_guard<std::mutex> lock(libraryLock);
+    const std::scoped_lock lock(libraryLock);
     quickReferenceLibraries.emplace(name, fmuLocation);
 }
 

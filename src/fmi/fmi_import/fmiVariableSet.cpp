@@ -7,55 +7,55 @@
 #include "fmiInfo.h"
 #include <algorithm>
 
-fmiVariableSet::fmiVariableSet() = default;
+FmiVariableSet::FmiVariableSet() = default;
 
-fmiVariableSet::fmiVariableSet(fmi2ValueReference newvr): vrset({newvr}) {}
-fmiVariableSet::fmiVariableSet(const fmiVariableSet& vset) = default;
+FmiVariableSet::FmiVariableSet(fmi2ValueReference newvr): vrset({newvr}) {}
+FmiVariableSet::FmiVariableSet(const FmiVariableSet& vset) = default;
 
-fmiVariableSet::fmiVariableSet(fmiVariableSet&& vset) = default;
+FmiVariableSet::FmiVariableSet(FmiVariableSet&& vset) = default;
 
-fmiVariableSet& fmiVariableSet::operator=(const fmiVariableSet& other) = default;
+FmiVariableSet& FmiVariableSet::operator=(const FmiVariableSet& other) = default;
 
-fmiVariableSet& fmiVariableSet::operator=(fmiVariableSet&& other) = default;
+FmiVariableSet& FmiVariableSet::operator=(FmiVariableSet&& other) = default;
 
-const fmi2ValueReference* fmiVariableSet::getValueRef() const
+const fmi2ValueReference* FmiVariableSet::getValueRef() const
 {
     return vrset.data();
 }
 
-size_t fmiVariableSet::getVRcount() const
+size_t FmiVariableSet::getVRcount() const
 {
     return vrset.size();
 }
 
-fmi_variable_type_t fmiVariableSet::getType() const
+FmiVariableType FmiVariableSet::getType() const
 {
     return type.value();
 }
 
-void fmiVariableSet::push(fmi2ValueReference newvr)
+void FmiVariableSet::push(fmi2ValueReference newvr)
 {
     vrset.push_back(newvr);
 }
 
-void fmiVariableSet::push(const fmiVariableSet& vset)
+void FmiVariableSet::push(const FmiVariableSet& vset)
 {
     vrset.reserve(vset.vrset.size() + vrset.size());
     vrset.insert(vrset.end(), vset.vrset.begin(), vset.vrset.end());
 }
 
-void fmiVariableSet::reserve(size_t newSize)
+void FmiVariableSet::reserve(size_t newSize)
 {
     vrset.reserve(newSize);
 }
 
-void fmiVariableSet::clear()
+void FmiVariableSet::clear()
 {
     vrset.clear();
 }
 
-void fmiVariableSet::remove(fmi2ValueReference rmvr)
+void FmiVariableSet::remove(fmi2ValueReference rmvr)
 {
-    auto rm = std::remove(vrset.begin(), vrset.end(), rmvr);
-    vrset.erase(rm, vrset.end());
+    auto removeLocation = std::remove(vrset.begin(), vrset.end(), rmvr);
+    vrset.erase(removeLocation, vrset.end());
 }

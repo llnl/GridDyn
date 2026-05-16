@@ -121,8 +121,8 @@ class fmiCoSimFunctions {
 };
 
 // forward declarations NOTE:: may move around later
-class fmi2ModelExchangeObject;
-class fmi2CoSimObject;
+class Fmi2ModelExchangeObject;
+class Fmi2CoSimObject;
 
 /** @brief class for loading an fmu file information
  *@details class extracts and FMU if needed then searches for the xml file and loads the information
@@ -162,8 +162,8 @@ class fmiLibrary {
 
     bool checkFlag(FmuCapabilityFlags flag) const;
 
-    std::unique_ptr<fmi2ModelExchangeObject> createModelExchangeObject(const std::string& name);
-    std::unique_ptr<fmi2CoSimObject> createCoSimulationObject(const std::string& name);
+    std::unique_ptr<Fmi2ModelExchangeObject> createModelExchangeObject(const std::string& name);
+    std::unique_ptr<Fmi2CoSimObject> createCoSimulationObject(const std::string& name);
     std::string getTypes() const;
     std::string getVersion() const;
 

@@ -25,12 +25,12 @@ namespace griddyn::fmi {
 [[maybe_unused]] static constexpr bool unimplemented = false;
 
 fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
-                                   std::shared_ptr<fmi2CoSimObject> fmi):
+                                   std::shared_ptr<Fmi2CoSimObject> fmi):
     gridSubModel(newName), cs(std::move(fmi))
 {
 }
 
-fmiCoSimSubModel::fmiCoSimSubModel(std::shared_ptr<fmi2CoSimObject> fmi): cs(std::move(fmi)) {}
+fmiCoSimSubModel::fmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi): cs(std::move(fmi)) {}
 
 fmiCoSimSubModel::~fmiCoSimSubModel() = default;
 
@@ -77,7 +77,7 @@ void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
         loadOutputJac();
         for (size_t pp = 0; pp < m_outputSize; ++pp)
             {
-                if (outputInformation[pp].refMode >= refMode_t::level4)
+                if (outputInformation[pp].refMode >= RefMode::level4)
                 {
                     val = cs->getOutput(pp);
                     oEst[pp]->update(prevTime, val, inputs, m_state.data());
@@ -88,10 +88,10 @@ void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
         */
             opFlags.set(dyn_initialized);
         } else {  // in pflow mode
-            cs->setMode(fmuMode::initializationMode);
+            cs->setMode(FmuMode::initializationMode);
 
             cs->setInputs(inputs.data());
-            cs->setMode(fmuMode::continuousTimeMode);
+            cs->setMode(FmuMode::continuousTimeMode);
             estimators.resize(m_outputSize);
             // probeFMU();
             opFlags.set(pFlow_initialized);
@@ -99,10 +99,10 @@ void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
     } else {
         assert(unimplemented);
         /*
-    cs->setMode (fmuMode::initializationMode);
+    cs->setMode(FmuMode::initializationMode);
 
     cs->setInputs (inputs.data ());
-    cs->setMode (fmuMode::continuousTimeMode);
+    cs->setMode(FmuMode::continuousTimeMode);
 
     cs->getStates (m_state.data ());
     oEst.resize (m_outputSize);
@@ -134,11 +134,11 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                          m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
-                if (info->getVariableInfo(kk).type == fmi_variable_type_t::string) {
+                if (info->getVariableInfo(kk).type == FmiVariableType::string) {
                     ++strpcnt;
                 } else if (checkType(info->getVariableInfo(kk),
-                                     fmi_variable_type_t::numeric,
-                                     fmi_causality_type_t::parameter)) {
+                                     FmiVariableType::numeric,
+                                     FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -148,8 +148,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -160,8 +160,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -171,8 +171,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -182,8 +182,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -193,8 +193,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -205,8 +205,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -217,8 +217,8 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -262,7 +262,7 @@ void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
         m_inputSize = cs->inputSize();
         //    updateDependencyInfo();
     } else {
-        const bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::string);
+        const bool isparam = cs->isParameter(std::string{param}, FmiVariableType::string);
         if (isparam) {
             makeSettableState();
             cs->set(std::string{param}, std::string{val});
@@ -278,7 +278,7 @@ void fmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
     if ((param == "timestep") || (param == localIntegrationtimeString)) {
         localIntegrationTime = val;
     } else {
-        const bool isparam = cs->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+        const bool isparam = cs->isParameter(std::string{param}, FmiVariableType::numeric);
         if (isparam) {
             makeSettableState();
             cs->set(std::string{param}, val);
@@ -294,18 +294,18 @@ double fmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
     if (param == localIntegrationtimeString) {
         return localIntegrationTime;
     }
-    if (cs->isVariable(std::string{param}, fmi_variable_type_t::numeric)) {
+    if (cs->isVariable(std::string{param}, FmiVariableType::numeric)) {
         return cs->get<double>(std::string{param});
     }
     return gridSubModel::get(param, unitType);
 }
 
-double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode*/)
+double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/)
 {
     double res = 0.0;
     const double ich = 1.0;
-    const fmiVariableSet dependentSet = cs->getVariableSet(depIndex);
-    const fmiVariableSet referenceSet = cs->getVariableSet(refIndex);
+    const FmiVariableSet dependentSet = cs->getVariableSet(depIndex);
+    const FmiVariableSet referenceSet = cs->getVariableSet(refIndex);
     if (opFlags[has_derivative_function]) {
         res = cs->getPartialDerivative(depIndex, refIndex, ich);
     } else {
@@ -320,14 +320,14 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
     cs->get (dependentSet, &out1);
     cs->get (referenceSet, &out1);
     val2 = val1 + gap;
-    if (mode == refMode_t::direct)
+    if (mode == RefMode::direct)
     {
         cs->set (referenceSet, &val2);
         cs->get (dependentSet, &out2);
         cs->set (referenceSet, &val1);
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level1)
+    else if (mode == RefMode::level1)
     {
         cs->set (referenceSet, &val2);
         cs->getDerivatives (tempdState.data ());
@@ -336,7 +336,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
         cs->getDerivatives (tempdState.data ());
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level2)
+    else if (mode == RefMode::level2)
     {
         cs->getStates (tempState.data ());
         tempState[refIndex] = val2;
@@ -348,7 +348,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
         cs->getDerivatives (tempdState.data ());
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level3)  // max useful for states dependent variables
+    else if (mode == RefMode::level3)  // max useful for states dependent variables
     {
         cs->getStates (tempState.data ());
         tempState[refIndex] = val2;
@@ -363,7 +363,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
         cs->completedIntegratorStep (false, &evmd, &term);
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level4)  // for input dependencies only
+    else if (mode == RefMode::level4)  // for input dependencies only
     {
         cs->set (vy, &val2);
         cs->completedIntegratorStep (false, &evmd, &term);
@@ -372,7 +372,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
         cs->completedIntegratorStep (false, &evmd, &term);
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level5)  // for input dependencies only
+    else if (mode == RefMode::level5)  // for input dependencies only
     {
         cs->set (vy, &val2);
         cs->getStates (tempState.data ());
@@ -384,7 +384,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
         cs->getDerivatives (tempdState.data ());
         res = (out2 - out1) / gap;
     }
-    else if (mode == refMode_t::level7)  // use the estimators
+    else if (mode == RefMode::level7)  // use the estimators
     {
         if (opFlags[fixed_output_interval])
         {
@@ -395,7 +395,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, refMode_t /*mode
             res = oEst[depIndex]->stateDiff[refIndex];
         }
     }
-    else if (mode == refMode_t::level8)  // use the estimators
+    else if (mode == RefMode::level8)  // use the estimators
     {
         if (opFlags[fixed_output_interval])
         {
@@ -483,11 +483,11 @@ for (kk = 0; kk < m_outputSize; ++kk)
 {
     vu = outputInformation[kk].varIndex;
     auto kmode = outputInformation[kk].refMode;
-    if (kmode >= refMode_t::level4)
+    if (kmode >= RefMode::level4)
     {
         if (isDynamic (sMode))
         {
-            kmode = refMode_t::level8;
+            kmode = RefMode::level8;
         }
     }
     for (auto &sR : outputInformation[kk].inputDep)
@@ -515,7 +515,7 @@ IOdata fmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
                                     const solverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
-    if (cs->getCurrentMode() >= fmuMode::initializationMode) {
+    if (cs->getCurrentMode() >= FmuMode::initializationMode) {
         // updateInfo(inputs, sD, sMode);
         cs->getOutputs(out.data());
         /*   printf("time=%f, out1 =%f, out 2=%f\n",
@@ -527,7 +527,7 @@ IOdata fmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
             (isDynamic(sMode))) {
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
                 /*
-            if (outputInformation[pp].refMode >= refMode_t::level4)
+            if (outputInformation[pp].refMode >= RefMode::level4)
             {
                 const double res = oEst[pp]->estimate(sD.time, inputs, sD.state +
                     offsets.getDiffOffset(sMode)); out[pp] = res;
@@ -553,13 +553,13 @@ double fmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
                                    index_t outputNum) const
 {
     double out = kNullVal;
-    if (cs->getCurrentMode() >= fmuMode::initializationMode) {
+    if (cs->getCurrentMode() >= FmuMode::initializationMode) {
         // updateInfo(inputs, sD, sMode);
 
         if ((opFlags[use_output_estimator]) && (!sD.empty()) && (!opFlags[fixed_output_interval]) &&
             (isDynamic(sMode))) {
             /*
-        if (outputInformation[num].refMode >= refMode_t::level4)
+        if (outputInformation[num].refMode >= RefMode::level4)
         {
             out = oEst[num]->estimate(sD.time, inputs, sD.state + offsets.getDiffOffset(sMode));
         }
@@ -574,7 +574,7 @@ double fmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
 double fmiCoSimSubModel::getOutput(index_t outputNum) const
 {
     double out = kNullVal;
-    if (cs->getCurrentMode() >= fmuMode::initializationMode) {
+    if (cs->getCurrentMode() >= FmuMode::initializationMode) {
         out = cs->getOutput(outputNum);
     }
     return out;
@@ -639,7 +639,7 @@ void fmiCoSimSubModel::makeSettableState()
 {
     if (opFlags[dyn_initialized]) {
         // prevFmiState = cs->getCurrentMode();
-        cs->setMode(fmuMode::eventMode);
+        cs->setMode(FmuMode::eventMode);
     }
 }
 void fmiCoSimSubModel::resetState()
@@ -661,7 +661,7 @@ void fmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
         /*
     for (auto &out : outputInformation)
     {
-        if (out.refMode >= refMode_t::level4)
+        if (out.refMode >= RefMode::level4)
         {
             ct = 0;
             for (auto kk : out.stateDep)
@@ -682,7 +682,7 @@ void fmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
     */
     } else {  // NOLINT
         /*
-    if (outputInformation[index].refMode >= refMode_t::level4)
+    if (outputInformation[index].refMode >= RefMode::level4)
     {
         ct = 0;
         for (auto kk : outputInformation[index].stateDep)

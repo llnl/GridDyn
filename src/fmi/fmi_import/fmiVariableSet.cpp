@@ -56,6 +56,6 @@ void FmiVariableSet::clear()
 
 void FmiVariableSet::remove(fmi2ValueReference rmvr)
 {
-    auto rm = std::remove(vrset.begin(), vrset.end(), rmvr);
-    vrset.erase(rm, vrset.end());
+    auto removeLocation = std::remove(vrset.begin(), vrset.end(), rmvr);
+    vrset.erase(removeLocation, vrset.end());
 }

@@ -7,10 +7,8 @@
 #include "fmiEnumDefinitions.h"
 
 #include "fmiInfo.h"
-#include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
-#include <unordered_map>
 
 FmiVariability::FmiVariability(const std::string& vstring)
 {
@@ -52,25 +50,25 @@ std::string FmiVariability::to_string() const
     }
 }
 
-static const std::unordered_map<std::string, FmiCausalityType> causality_map{
-    {"local", FmiCausalityType::local},
-    {"parameter", FmiCausalityType::parameter},
-    {"param", FmiCausalityType::parameter},
-    {"calculatedParameter", FmiCausalityType::calculatedParameter},
-    {"calculated", FmiCausalityType::calculatedParameter},
-    {"input", FmiCausalityType::input},
-    {"inputs", FmiCausalityType::input},
-    {"output", FmiCausalityType::output},
-    {"outputs", FmiCausalityType::output},
-    {"independent", FmiCausalityType::independent},
-    {"time", FmiCausalityType::independent},
-    {"any", FmiCausalityType::any},
-    {"unknown", FmiCausalityType::unknown},
-};
-
 FmiCausality::FmiCausality(const std::string& vstring)
 {
-    causality = mapFind(causality_map, vstring, FmiCausalityType::unknown);
+    if (vstring == "local") {
+        causality = FmiCausalityType::local;
+    } else if ((vstring == "parameter") || (vstring == "param")) {
+        causality = FmiCausalityType::parameter;
+    } else if ((vstring == "calculatedParameter") || (vstring == "calculated")) {
+        causality = FmiCausalityType::calculatedParameter;
+    } else if ((vstring == "input") || (vstring == "inputs")) {
+        causality = FmiCausalityType::input;
+    } else if ((vstring == "output") || (vstring == "outputs")) {
+        causality = FmiCausalityType::output;
+    } else if ((vstring == "independent") || (vstring == "time")) {
+        causality = FmiCausalityType::independent;
+    } else if (vstring == "any") {
+        causality = FmiCausalityType::any;
+    } else {
+        causality = FmiCausalityType::unknown;
+    }
 }
 
 std::string FmiCausality::to_string() const

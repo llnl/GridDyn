@@ -56,7 +56,7 @@ void fmiLibraryManager::loadBookMarkFile(const std::string& /*bookmarksFile*/)
 
 void fmiLibraryManager::addShortCut(const std::string& name, const std::string& fmuLocation)
 {
-    std::lock_guard<std::mutex> lock(libraryLock);
+    const std::scoped_lock lock(libraryLock);
     quickReferenceLibraries.emplace(name, fmuLocation);
 }
 

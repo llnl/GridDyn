@@ -41,23 +41,31 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 
 namespace griddyn {
 static childTypeFactory<fmi::FmiMELoad, Load>
-    fmild("load", std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
+    fmild(  // NOLINT(bugprone-throwing-static-initialization)
+        "load", std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
 static childTypeFactory<fmi::FmiCoSimLoad, Load>
-    fmiCSld("load", std::to_array<std::string_view>({"fmicosimload", "cosim"}));
+    fmiCSld(  // NOLINT(bugprone-throwing-static-initialization)
+        "load", std::to_array<std::string_view>({"fmicosimload", "cosim"}));
 static childTypeFactory<fmi::FmiCoSimLoad3phase, Load>
-    fmiCSld3("load", std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
+    fmiCSld3(  // NOLINT(bugprone-throwing-static-initialization)
+        "load", std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
 static childTypeFactory<fmi::FmiMELoad3phase, Load>
-    fmiMEld3("load",
-             std::to_array<std::string_view>(
-                 {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
+    fmiMEld3(  // NOLINT(bugprone-throwing-static-initialization)
+        "load",
+        std::to_array<std::string_view>(
+            {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
 static childTypeFactory<fmi::FmiGovernor, Governor>
-    fmiGov("governor", std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
+    fmiGov(  // NOLINT(bugprone-throwing-static-initialization)
+        "governor", std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
 static childTypeFactory<fmi::FmiExciter, Exciter>
-    fmiExciter("exciter", std::to_array<std::string_view>({"fmiexiter", "fmi"}));
+    fmiExciter(  // NOLINT(bugprone-throwing-static-initialization)
+        "exciter", std::to_array<std::string_view>({"fmiexiter", "fmi"}));
 static childTypeFactory<fmi::FmiGenModel, GenModel>
-    fmiGM("genmodel", std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
+    fmiGM(  // NOLINT(bugprone-throwing-static-initialization)
+        "genmodel", std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
 static childTypeFactory<fmi::CymeDistLoadME, Load>
-    cymeME("load", std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
+    cymeME(  // NOLINT(bugprone-throwing-static-initialization)
+        "load", std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
 
 void loadFmiLibrary()
 {
@@ -72,19 +80,20 @@ void loadFmiLibrary()
 
 // Someday I will get plugins to work
 namespace fmi_plugin_namespace {
+namespace {
 class FmiPlugin: public gridDynPlugInApi {
     static std::vector<std::shared_ptr<griddyn::objectFactory>> fmiFactories;
     FmiPlugin() = default;
 
   public:
-    std::string name() const override { return "fmi"; }
+    [[nodiscard]] std::string name() const override { return "fmi"; }
 
     void load() override
     {
-        auto b =
+        auto factory =
             std::make_shared<griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::Load>>(
                 "load", griddyn::stringVec{"fmiload", "fmi"});
-        fmiFactories.push_back(b);
+        fmiFactories.push_back(factory);
     }
 
     void load(const std::string& /*section*/) override { load(); }
@@ -94,6 +103,7 @@ class FmiPlugin: public gridDynPlugInApi {
         return std::shared_ptr<FmiPlugin>(new FmiPlugin());
     }
 };
+}  // namespace
 
 std::vector<std::shared_ptr<griddyn::objectFactory>> FmiPlugin::fmiFactories;
 

@@ -19,7 +19,7 @@ FmiCoSimLoad::FmiCoSimLoad(const std::string& objName): FmiCoSimWrapper<Load>(ob
 
 coreObject* FmiCoSimLoad::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<Load>>(this, obj);
+    auto* nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<Load>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }

@@ -18,7 +18,7 @@ FmiGenModel::FmiGenModel(const std::string& objName): FmiMEWrapper<GenModel>(obj
 
 coreObject* FmiGenModel::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<FmiGenModel, FmiMEWrapper<GenModel>>(this, obj);
+    auto* nobj = cloneBase<FmiGenModel, FmiMEWrapper<GenModel>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }

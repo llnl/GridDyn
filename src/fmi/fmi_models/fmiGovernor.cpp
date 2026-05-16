@@ -18,7 +18,7 @@ FmiGovernor::FmiGovernor(const std::string& objName): FmiMEWrapper<Governor>(obj
 
 coreObject* FmiGovernor::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<FmiGovernor, FmiMEWrapper<Governor>>(this, obj);
+    auto* nobj = cloneBase<FmiGovernor, FmiMEWrapper<Governor>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }

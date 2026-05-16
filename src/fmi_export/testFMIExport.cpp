@@ -172,7 +172,7 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     }
     ASSERT_TRUE(exists(fmuPath)) << "unable to generate FMU";
     path gdDir(std::string{fmiTestDirectory} + "griddyn");
-    ::fmiLibrary gdFmu(fmuPath);
+    ::FmiLibrary gdFmu(fmuPath);
     gdFmu.loadSharedLibrary();
     ASSERT_TRUE(gdFmu.isSoLoaded());
 

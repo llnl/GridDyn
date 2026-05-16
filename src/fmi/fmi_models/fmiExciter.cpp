@@ -18,7 +18,7 @@ FmiExciter::FmiExciter(const std::string& objName): FmiMEWrapper<Exciter>(objNam
 
 coreObject* FmiExciter::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<FmiExciter, FmiMEWrapper<Exciter>>(this, obj);
+    auto* nobj = cloneBase<FmiExciter, FmiMEWrapper<Exciter>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }

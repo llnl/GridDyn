@@ -5,7 +5,6 @@
  */
 
 #include "fmiObjects.h"
-
 #include <array>
 #include <memory>
 #include <string>
@@ -34,8 +33,7 @@ Fmi2CoSimObject::Fmi2CoSimObject(fmi2Component cmp,
                                  std::shared_ptr<const fmiInfo> keyInfo,
                                  std::shared_ptr<const fmiCommonFunctions> comFunc,
                                  std::shared_ptr<const fmiCoSimFunctions> csFunc):
-    Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)),
-    CoSimFunctions(std::move(csFunc)),
+    Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc)),
     stepPending(false)
 {
 }
@@ -123,8 +121,9 @@ std::string Fmi2CoSimObject::getStatus() const
 {
     if (stepPending) {
         fmi2String statusString;
-        auto ret =
-            CoSimFunctions->fmi2GetStringStatus(comp, fmi2StatusKind::fmi2PendingStatus, &statusString);
+        auto ret = CoSimFunctions->fmi2GetStringStatus(comp,
+                                                       fmi2StatusKind::fmi2PendingStatus,
+                                                       &statusString);
         if (ret != fmi2Status::fmi2OK) {
             handleNonOKReturnValues(ret);
         }

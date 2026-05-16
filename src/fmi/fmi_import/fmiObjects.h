@@ -14,41 +14,41 @@
 #include <vector>
 
 /** base fmiException*/
-class fmiException: public std::exception {
+class FmiException: public std::exception {
     virtual const char* what() const noexcept override { return "fmi Exception"; }
 };
 
 /** fmi exception for when fmiDiscard was returned*/
-class fmiDiscardException: public fmiException {
+class FmiDiscardException: public FmiException {
     virtual const char* what() const noexcept override { return "return fmiDiscard"; }
 };
 /** fmi exception for when fmiWarning was returned*/
-class fmiWarningException: public fmiException {
+class FmiWarningException: public FmiException {
     virtual const char* what() const noexcept override { return "return fmiWarning"; }
 };
 
 /** fmi exception for when an error was returned*/
-class fmiErrorException: public fmiException {
+class FmiErrorException: public FmiException {
     virtual const char* what() const noexcept override { return "return fmiError"; }
 };
 
 /** fmi exception for when a fatal error was returned*/
-class fmiFatalException: public fmiException {
+class FmiFatalException: public FmiException {
     virtual const char* what() const noexcept override { return "return fmiFatal"; }
 };
 
 /** base class containing the operation functions for working with an FMU*/
-class fmi2Object {
+class Fmi2Object {
   public:
     bool exceptionOnDiscard =
         true;  //!< flag indicating that an exception should be thrown when an input is discarded
     bool exceptionOnWarning =
         false;  //!< flag indicating that an exception should be thrown on a fmiWarning
   public:
-    fmi2Object(fmi2Component cmp,
+    Fmi2Object(fmi2Component cmp,
                std::shared_ptr<const fmiInfo> keyInfo,
                std::shared_ptr<const fmiCommonFunctions> comFunc);
-    virtual ~fmi2Object();
+    virtual ~Fmi2Object();
     void setupExperiment(fmi2Boolean toleranceDefined,
                          fmi2Real tolerance,
                          fmi2Real startTime,
@@ -65,22 +65,22 @@ class fmi2Object {
         fmi2Status retval = fmi2Status::fmi2Discard;
         T ret(0);
         switch (ref.type.value()) {
-            case fmi_variable_type_t::real: {
+            case FmiVariableType::real: {
                 fmi2Real res;
                 retval = commonFunctions->fmi2GetReal(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case fmi_variable_type_t::integer: {
+            case FmiVariableType::integer: {
                 fmi2Integer res;
                 retval = commonFunctions->fmi2GetInteger(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case fmi_variable_type_t::boolean: {
+            case FmiVariableType::boolean: {
                 fmi2Boolean res;
                 retval = commonFunctions->fmi2GetBoolean(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case fmi_variable_type_t::enumeration: {
+            case FmiVariableType::enumeration: {
                 fmi2Integer res;
                 retval = commonFunctions->fmi2GetInteger(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
@@ -113,19 +113,19 @@ class fmi2Object {
         auto ref = info->getVariableInfo(param);
         fmi2Status ret = fmi2Status::fmi2Discard;
         switch (ref.type.value()) {
-            case fmi_variable_type_t::real: {
+            case FmiVariableType::real: {
                 fmi2Real val2 = static_cast<fmi2Real>(val);
                 ret = commonFunctions->fmi2SetReal(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case fmi_variable_type_t::integer: {
+            case FmiVariableType::integer: {
                 fmi2Integer val2 = static_cast<fmi2Integer>(val);
                 ret = commonFunctions->fmi2SetInteger(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case fmi_variable_type_t::boolean: {
+            case FmiVariableType::boolean: {
                 fmi2Boolean val2 = static_cast<fmi2Boolean>(val);
                 ret = commonFunctions->fmi2SetBoolean(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case fmi_variable_type_t::enumeration: {
+            case FmiVariableType::enumeration: {
                 fmi2Integer val2 = static_cast<fmi2Integer>(val);
                 ret = commonFunctions->fmi2SetInteger(comp, &(ref.valueRef), 1, &val2);
             } break;
@@ -172,9 +172,9 @@ class fmi2Object {
     std::vector<std::string> getInputNames() const;
 
     bool isParameter(const std::string& param,
-                     fmi_variable_type_t type = fmi_variable_type_t::numeric);
+                     FmiVariableType type = FmiVariableType::numeric);
     bool isVariable(const std::string& var,
-                    fmi_variable_type_t type = fmi_variable_type_t::numeric);
+                    FmiVariableType type = FmiVariableType::numeric);
     std::shared_ptr<const fmiCommonFunctions> getFmiCommonFunctions() const
     {
         return commonFunctions;
@@ -204,12 +204,12 @@ class fmi2Object {
 
 /** template overload for getting strings*/
 template<>
-std::string fmi2Object::get<std::string>(const std::string& param) const;
+std::string Fmi2Object::get<std::string>(const std::string& param) const;
 
 /** class containing the information for working with a model exchange object*/
-class fmi2ModelExchangeObject: public fmi2Object {
+class Fmi2ModelExchangeObject: public Fmi2Object {
   public:
-    fmi2ModelExchangeObject(fmi2Component cmp,
+    Fmi2ModelExchangeObject(fmi2Component cmp,
                             std::shared_ptr<const fmiInfo> keyInfo,
                             std::shared_ptr<const fmiCommonFunctions> comFunc,
                             std::shared_ptr<const fmiModelExchangeFunctions> meFunc);
@@ -265,10 +265,10 @@ class fmi2ModelExchangeObject: public fmi2Object {
 };
 
 /** class containing the Information for working with a FMI coSimulation object*/
-class fmi2CoSimObject: public fmi2Object {
+class Fmi2CoSimObject: public Fmi2Object {
   public:
     /**constructor*/
-    fmi2CoSimObject(fmi2Component cmp,
+    Fmi2CoSimObject(fmi2Component cmp,
                     std::shared_ptr<const fmiInfo> keyInfo,
                     std::shared_ptr<const fmiCommonFunctions> comFunc,
                     std::shared_ptr<const fmiCoSimFunctions> csFunc);

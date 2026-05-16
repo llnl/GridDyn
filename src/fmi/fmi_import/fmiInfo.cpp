@@ -220,9 +220,9 @@ std::vector<std::string> fmiInfo::getVariableNames(const std::string& type) cons
             vnames.push_back(variables[varIndex].name);
         }
     } else {
-        const fmi_causality caus = type;
+        const FmiCausality caus = type;
         for (const auto& var : variables) {
-            if ((caus == fmi_causality_type_t::any) || (var.causality == caus)) {
+            if ((caus == FmiCausalityType::any) || (var.causality == caus)) {
                 vnames.push_back(var.name);
             }
         }
@@ -444,13 +444,13 @@ void fmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
         // lower case parameters and may not be needed
         variableLookup.emplace(convertToLowerCase(variables[variableIndex].name), variableIndex);
         switch (variables[variableIndex].causality.value()) {
-            case fmi_causality_type_t::parameter:
+            case FmiCausalityType::parameter:
                 parameters.push_back(variableIndex);
                 break;
-            case fmi_causality_type_t::local:
+            case FmiCausalityType::local:
                 local.push_back(variableIndex);
                 break;
-            case fmi_causality_type_t::input:
+            case FmiCausalityType::input:
                 inputs.push_back(variableIndex);
                 break;
             default:
@@ -483,7 +483,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         att = readerElementPtr->getNextAttribute();
     }
     if (readerElementPtr->hasElement("Real")) {
-        vInfo.type = fmi_variable_type_t::real;
+        vInfo.type = FmiVariableType::real;
         readerElementPtr->moveToFirstChild("Real");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -505,7 +505,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Boolean")) {
-        vInfo.type = fmi_variable_type_t::boolean;
+        vInfo.type = FmiVariableType::boolean;
         readerElementPtr->moveToFirstChild("Boolean");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -516,7 +516,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("String")) {
-        vInfo.type = fmi_variable_type_t::string;
+        vInfo.type = FmiVariableType::string;
         readerElementPtr->moveToFirstChild("String");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -527,7 +527,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Integer")) {
-        vInfo.type = fmi_variable_type_t::integer;
+        vInfo.type = FmiVariableType::integer;
         readerElementPtr->moveToFirstChild("Integer");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -631,23 +631,23 @@ void fmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
     readerElementPtr->restore();
 }
 
-bool checkType(const VariableInformation& info, fmi_variable_type_t type, fmi_causality_type_t caus)
+bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus)
 {
     if (!(info.causality == caus)) {
-        if ((info.causality != fmi_causality_type_t::input) ||
-            (caus != fmi_causality_type_t::parameter)) {
+        if ((info.causality != FmiCausalityType::input) ||
+            (caus != FmiCausalityType::parameter)) {
             return false;
         }
     }
     if (info.type == type) {
         return true;
     }
-    if (type == fmi_variable_type_t::numeric) {
+    if (type == FmiVariableType::numeric) {
         switch (info.type.value()) {
-            case fmi_variable_type_t::boolean:
-            case fmi_variable_type_t::integer:
-            case fmi_variable_type_t::real:
-            case fmi_variable_type_t::enumeration:
+            case FmiVariableType::boolean:
+            case FmiVariableType::integer:
+            case FmiVariableType::real:
+            case FmiVariableType::enumeration:
                 return true;
             default:
                 return false;

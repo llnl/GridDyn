@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-class fmi2ModelExchangeObject;
+class Fmi2ModelExchangeObject;
 
 enum class FmuMode;  // forward declare enumeration
 
@@ -36,7 +36,7 @@ class fmiMESubModel: public gridSubModel {
     count_t m_stateSize = 0;  //!< the total state count
     count_t m_jacElements = 0;  //!< the number of Jacobian elements
     count_t m_eventCount = 0;  //!< the number of event indicators
-    std::shared_ptr<fmi2ModelExchangeObject> me;
+    std::shared_ptr<Fmi2ModelExchangeObject> me;
 
     std::vector<OutputEstimator*> oEst;  //!< vector of objects used for output estimation
                                          //!< //TODO:: Make this an actual vector of objects
@@ -54,9 +54,9 @@ class fmiMESubModel: public gridSubModel {
 
   public:
     fmiMESubModel(const std::string& newName = "fmisubmodel2_#",
-                  std::shared_ptr<fmi2ModelExchangeObject> fmi = nullptr);
+                  std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
 
-    fmiMESubModel(std::shared_ptr<fmi2ModelExchangeObject> fmi = nullptr);
+    fmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
     virtual ~fmiMESubModel();
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 

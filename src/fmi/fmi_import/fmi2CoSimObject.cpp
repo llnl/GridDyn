@@ -28,15 +28,15 @@ auto makeDerivOrderBlocks()
 }
 static const auto derivOrder = makeDerivOrderBlocks();
 
-fmi2CoSimObject::fmi2CoSimObject(fmi2Component cmp,
+Fmi2CoSimObject::Fmi2CoSimObject(fmi2Component cmp,
                                  std::shared_ptr<const fmiInfo> keyInfo,
                                  std::shared_ptr<const fmiCommonFunctions> comFunc,
                                  std::shared_ptr<const fmiCoSimFunctions> csFunc):
-    fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc))
+    Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc))
 {
 }
 
-void fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
+void Fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
 {
     auto ret = CoSimFunctions->fmi2SetRealInputDerivatives(comp,
                                                            activeInputs.getValueRef(),
@@ -48,7 +48,7 @@ void fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
     }
 }
 
-void fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
+void Fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
 {
     auto ret = CoSimFunctions->fmi2GetRealOutputDerivatives(comp,
                                                             activeOutputs.getValueRef(),
@@ -60,7 +60,7 @@ void fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
     }
 }
 
-void fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
+void Fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
                              fmi2Real communicationStepSize,
                              fmi2Boolean noSetFMUStatePriorToCurrentPoint)
 {
@@ -78,7 +78,7 @@ void fmi2CoSimObject::doStep(fmi2Real currentCommunicationPoint,
         stepPending = false;
     }
 }
-void fmi2CoSimObject::cancelStep()
+void Fmi2CoSimObject::cancelStep()
 {
     auto ret = CoSimFunctions->fmi2CancelStep(comp);
     if (ret != fmi2Status::fmi2OK) {
@@ -86,7 +86,7 @@ void fmi2CoSimObject::cancelStep()
     }
 }
 
-fmi2Real fmi2CoSimObject::getLastStepTime() const
+fmi2Real Fmi2CoSimObject::getLastStepTime() const
 {
     fmi2Real lastTime;
     auto ret =
@@ -97,7 +97,7 @@ fmi2Real fmi2CoSimObject::getLastStepTime() const
     return lastTime;
 }
 
-bool fmi2CoSimObject::isPending()
+bool Fmi2CoSimObject::isPending()
 {
     if (!stepPending) {
         return false;
@@ -115,7 +115,7 @@ bool fmi2CoSimObject::isPending()
     return true;
 }
 
-std::string fmi2CoSimObject::getStatus() const
+std::string Fmi2CoSimObject::getStatus() const
 {
     if (stepPending) {
         fmi2String s;

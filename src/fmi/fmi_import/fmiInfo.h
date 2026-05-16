@@ -54,9 +54,9 @@ class VariableInformation {
     bool reinit = false;
     bool derivative = false;
     bool isAlias = false;
-    fmi_variability variability = fmi_variability_type_t::continuous;
-    fmi_causality causality = fmi_causality_type_t::local;
-    fmi_variable_type type = fmi_variable_type_t::real;
+    FmiVariability variability = FmiVariabilityType::continuous;
+    FmiCausality causality = FmiCausalityType::local;
+    FmiVariableTypeInfo type = FmiVariableType::real;
     double start = 0;
     double min = -1e48;
     double max = 1e48;
@@ -87,7 +87,7 @@ class FmiTypeDefinition {
     std::string quantity;
     std::string unit;
     std::string displayUnit;
-    fmi_variable_type type;
+    FmiVariableTypeInfo type;
     bool relativeQuantity = false;
     bool unbounded = false;
     double min;
@@ -108,7 +108,7 @@ class FmiVariableSet {
 
     const fmi2ValueReference* getValueRef() const;
     size_t getVRcount() const;
-    fmi_variable_type_t getType() const;
+    FmiVariableType getType() const;
     /** add a new reference
     @param[in] newvr the value reference to add
     */
@@ -124,7 +124,7 @@ class FmiVariableSet {
     void clear();
 
   private:
-    fmi_variable_type type = fmi_variable_type_t::real;
+    FmiVariableTypeInfo type = FmiVariableType::real;
     // boost::container::small_vector<fmi2ValueReference, 4> vrset;
     std::vector<fmi2ValueReference> vrset;
 };
@@ -216,5 +216,5 @@ enum class FmuMode {
 };
 
 bool checkType(const VariableInformation& info,
-               fmi_variable_type_t type,
-               fmi_causality_type_t caus);
+               FmiVariableType type,
+               FmiCausalityType caus);

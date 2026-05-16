@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-class fmi2CoSimObject;
+class Fmi2CoSimObject;
 class OutputEstimator;
 
 namespace griddyn::fmi {
@@ -27,7 +27,7 @@ class fmiCoSimSubModel: public gridSubModel {
     };
 
   protected:
-    std::shared_ptr<fmi2CoSimObject> cs;
+    std::shared_ptr<Fmi2CoSimObject> cs;
 
     std::vector<OutputEstimator*> estimators;  //!< vector of objects used for output estimation
     double localIntegrationTime = 0.01;
@@ -37,9 +37,9 @@ class fmiCoSimSubModel: public gridSubModel {
 
   public:
     fmiCoSimSubModel(const std::string& newName = "fmicosimsubmodel_#",
-                     std::shared_ptr<fmi2CoSimObject> fmi = nullptr);
+                     std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
 
-    fmiCoSimSubModel(std::shared_ptr<fmi2CoSimObject> fmi = nullptr);
+    fmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
     virtual ~fmiCoSimSubModel();
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time, std::uint32_t flags) override;

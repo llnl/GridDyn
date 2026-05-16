@@ -33,7 +33,7 @@ std::shared_ptr<fmiLibrary> fmiLibraryManager::getLibrary(const std::string& lib
     return newLib;
 }
 
-std::unique_ptr<fmi2ModelExchangeObject>
+std::unique_ptr<Fmi2ModelExchangeObject>
     fmiLibraryManager::createModelExchangeObject(const std::string& fmuIdentifier,
                                                  const std::string& ObjectName)
 {
@@ -41,7 +41,7 @@ std::unique_ptr<fmi2ModelExchangeObject>
     return Lib->createModelExchangeObject(ObjectName);
 }
 
-std::unique_ptr<fmi2CoSimObject>
+std::unique_ptr<Fmi2CoSimObject>
     fmiLibraryManager::createCoSimulationObject(const std::string& fmuIdentifier,
                                                 const std::string& ObjectName)
 {

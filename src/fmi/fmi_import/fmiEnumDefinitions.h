@@ -15,7 +15,7 @@ enum class FmuType {
     COSIMULATION,  //!< fmi for cosimulation
 };
 
-enum class fmi_variability_type_t {
+enum class FmiVariabilityType {
     continuous = 0,
     constant,
     fixed,
@@ -25,19 +25,19 @@ enum class fmi_variability_type_t {
 };
 /** class wrapper for fmi variability
  */
-class fmi_variability {
+class FmiVariability {
   public:
-    fmi_variability_type_t variability;  //!< variability data member
+    FmiVariabilityType variability;  //!< variability data member
 
-    fmi_variability(const std::string& vstring);
-    fmi_variability(fmi_variability_type_t type): variability(type) {}
+    FmiVariability(const std::string& vstring);
+    FmiVariability(FmiVariabilityType type): variability(type) {}
     std::string to_string() const;
-    bool operator==(fmi_variability_type_t type) const { return (variability == type); }
-    bool operator==(const fmi_variability v) const { return (v.variability == variability); }
-    fmi_variability_type_t value() const { return variability; }
+    bool operator==(FmiVariabilityType type) const { return (variability == type); }
+    bool operator==(const FmiVariability v) const { return (v.variability == variability); }
+    FmiVariabilityType value() const { return variability; }
 };
 
-enum class fmi_causality_type_t {
+enum class FmiCausalityType {
     local,
     parameter,
     calculatedParameter,
@@ -48,19 +48,19 @@ enum class fmi_causality_type_t {
     any,
 };
 
-class fmi_causality {
+class FmiCausality {
   public:
-    fmi_causality_type_t causality;  //!< causality data member
+    FmiCausalityType causality;  //!< causality data member
 
-    fmi_causality(const std::string& vstring);
-    fmi_causality(fmi_causality_type_t type): causality(type) {}
+    FmiCausality(const std::string& vstring);
+    FmiCausality(FmiCausalityType type): causality(type) {}
     std::string to_string() const;
-    bool operator==(fmi_causality_type_t type) const { return (causality == type); }
-    bool operator==(const fmi_causality v) const { return (v.causality == causality); }
-    fmi_causality_type_t value() const { return causality; }
+    bool operator==(FmiCausalityType type) const { return (causality == type); }
+    bool operator==(const FmiCausality v) const { return (v.causality == causality); }
+    FmiCausalityType value() const { return causality; }
 };
 
-enum class fmi_variable_type_t {
+enum class FmiVariableType {
     real = 0,
     integer,
     boolean,
@@ -71,20 +71,20 @@ enum class fmi_variable_type_t {
               //!< operations
 };
 
-class fmi_variable_type {
+class FmiVariableTypeInfo {
   public:
-    fmi_variable_type_t variable = fmi_variable_type_t::real;  //!< variable type data member
-    fmi_variable_type() {}
-    fmi_variable_type(const std::string& vstring);
-    fmi_variable_type(fmi_variable_type_t type): variable(type) {}
+    FmiVariableType variable = FmiVariableType::real;  //!< variable type data member
+    FmiVariableTypeInfo() {}
+    FmiVariableTypeInfo(const std::string& vstring);
+    FmiVariableTypeInfo(FmiVariableType type): variable(type) {}
     std::string to_string() const;
-    bool operator==(fmi_variable_type_t type) const { return (variable == type); }
-    bool operator!=(fmi_variable_type_t type) const { return (variable != type); }
-    bool operator==(const fmi_variable_type v) const { return (v.variable == variable); }
-    fmi_variable_type_t value() const { return variable; }
+    bool operator==(FmiVariableType type) const { return (variable == type); }
+    bool operator!=(FmiVariableType type) const { return (variable != type); }
+    bool operator==(const FmiVariableTypeInfo v) const { return (v.variable == variable); }
+    FmiVariableType value() const { return variable; }
 };
 
-enum class fmi_dependency_type_t {
+enum class FmiDependencyType {
     dependent = 0,
     constant,
     fixed,
@@ -94,17 +94,17 @@ enum class fmi_dependency_type_t {
     unknown,
 };
 
-class fmi_dependency_type {
+class FmiDependencyTypeInfo {
   public:
-    fmi_dependency_type_t dependency =
-        fmi_dependency_type_t::dependent;  //!< dependency data member
-    fmi_dependency_type() {}
-    fmi_dependency_type(const std::string& vstring);
-    fmi_dependency_type(fmi_dependency_type_t type): dependency(type) {}
+    FmiDependencyType dependency =
+        FmiDependencyType::dependent;  //!< dependency data member
+    FmiDependencyTypeInfo() {}
+    FmiDependencyTypeInfo(const std::string& vstring);
+    FmiDependencyTypeInfo(FmiDependencyType type): dependency(type) {}
     std::string to_string() const;
-    bool operator==(fmi_dependency_type_t type) const { return (dependency == type); }
-    bool operator==(const fmi_dependency_type v) const { return (v.dependency == dependency); }
-    fmi_dependency_type_t value() const { return dependency; }
+    bool operator==(FmiDependencyType type) const { return (dependency == type); }
+    bool operator==(const FmiDependencyTypeInfo v) const { return (v.dependency == dependency); }
+    FmiDependencyType value() const { return dependency; }
 };
 
 enum FmuCapabilityFlags : int {

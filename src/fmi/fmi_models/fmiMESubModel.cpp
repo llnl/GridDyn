@@ -26,12 +26,12 @@ namespace griddyn::fmi {
 using gmlc::utilities::vectorMultAdd;
 
 fmiMESubModel::fmiMESubModel(const std::string& newName,
-                             std::shared_ptr<fmi2ModelExchangeObject> fmi):
+                             std::shared_ptr<Fmi2ModelExchangeObject> fmi):
     gridSubModel(newName), me(std::move(fmi))
 {
 }
 
-fmiMESubModel::fmiMESubModel(std::shared_ptr<fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
+fmiMESubModel::fmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
 
 fmiMESubModel::~fmiMESubModel() = default;
 
@@ -136,11 +136,11 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
-                if (info->getVariableInfo(kk).type == fmi_variable_type_t::string) {
+                if (info->getVariableInfo(kk).type == FmiVariableType::string) {
                     ++strpcnt;
                 } else if (checkType(info->getVariableInfo(kk),
-                                     fmi_variable_type_t::numeric,
-                                     fmi_causality_type_t::parameter)) {
+                                     FmiVariableType::numeric,
+                                     FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -150,8 +150,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -162,8 +162,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -173,8 +173,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -184,8 +184,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -195,8 +195,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::numeric,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::numeric,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -207,8 +207,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::string,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::string,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -219,8 +219,8 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInfo(kk),
-                              fmi_variable_type_t::boolean,
-                              fmi_causality_type_t::parameter)) {
+                              FmiVariableType::boolean,
+                              FmiCausalityType::parameter)) {
                     pstr.push_back(info->getVariableInfo(kk).name);
                 }
             }
@@ -278,7 +278,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         // updateDependencyInfo();
     } else {
         if (me) {
-            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::string);
+            const bool isparam = me->isParameter(std::string{param}, FmiVariableType::string);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, std::string{val});
@@ -303,7 +303,7 @@ void fmiMESubModel::set(std::string_view param, double val, units::unit unitType
         localIntegrationTime = val;
     } else {
         if (me) {
-            const bool isparam = me->isParameter(std::string{param}, fmi_variable_type_t::numeric);
+            const bool isparam = me->isParameter(std::string{param}, FmiVariableType::numeric);
             if (isparam) {
                 makeSettableState();
                 me->set(std::string{param}, val);
@@ -327,7 +327,7 @@ double fmiMESubModel::get(std::string_view param, units::unit unitType) const
     if (param == "localintegrationtime") {
         return static_cast<double>(localIntegrationTime);
     }
-    if ((me) && (me->isVariable(std::string{param}, fmi_variable_type_t::numeric))) {
+    if ((me) && (me->isVariable(std::string{param}, FmiVariableType::numeric))) {
         return me->get<double>(std::string{param});
     }
     return gridSubModel::get(param, unitType);

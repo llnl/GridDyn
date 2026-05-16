@@ -28,7 +28,7 @@ size_t FmiVariableSet::getVRcount() const
     return vrset.size();
 }
 
-fmi_variable_type_t FmiVariableSet::getType() const
+FmiVariableType FmiVariableSet::getType() const
 {
     return type.value();
 }

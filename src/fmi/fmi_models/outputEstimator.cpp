@@ -13,7 +13,7 @@
 
 namespace griddyn::fmi {
 
-outputEstimator::outputEstimator(std::vector<int> sDep, std::vector<int> iDep):
+OutputEstimator::OutputEstimator(std::vector<int> sDep, std::vector<int> iDep):
     stateDep(std::move(sDep)), inputDep(std::move(iDep))
 {
     stateDiff.resize(stateDep.size(), 0);
@@ -22,7 +22,7 @@ outputEstimator::outputEstimator(std::vector<int> sDep, std::vector<int> iDep):
     prevInputs.resize(inputDep.size());
 }
 
-double outputEstimator::estimate(coreTime t, const IOdata& inputs, const double state[])
+double OutputEstimator::estimate(coreTime t, const IOdata& inputs, const double state[])
 {
     double val = prevValue;
     for (size_t kk = 0; kk < stateDep.size(); ++kk) {
@@ -35,7 +35,7 @@ double outputEstimator::estimate(coreTime t, const IOdata& inputs, const double 
     return val;
 }
 
-bool outputEstimator::update(coreTime t, double val, const IOdata& inputs, const double state[])
+bool OutputEstimator::update(coreTime t, double val, const IOdata& inputs, const double state[])
 {
     time = t;
 

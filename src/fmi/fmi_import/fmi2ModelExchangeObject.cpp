@@ -27,17 +27,17 @@ fmi2ModelExchangeObject::fmi2ModelExchangeObject(
     }
 }
 
-void fmi2ModelExchangeObject::setMode(fmuMode mode)
+void fmi2ModelExchangeObject::setMode(FmuMode mode)
 {
     std::println("setting mode {}", static_cast<int>(mode));
     fmi2Status ret = fmi2Error;
     switch (currentMode) {
-        case fmuMode::instantiatedMode:
-        case fmuMode::initializationMode:
+        case FmuMode::instantiatedMode:
+        case FmuMode::initializationMode:
 
-            if (mode == fmuMode::continuousTimeMode) {
+            if (mode == FmuMode::continuousTimeMode) {
                 std::println(" entering event mode");
-                fmi2Object::setMode(fmuMode::eventMode);
+                fmi2Object::setMode(FmuMode::eventMode);
                 std::println(" now in event event mode");
                 if (numStates > 0) {
                     std::println("now entering continuous time mode");
@@ -51,15 +51,15 @@ void fmi2ModelExchangeObject::setMode(fmuMode mode)
                 fmi2Object::setMode(mode);
             }
             break;
-        case fmuMode::continuousTimeMode:
-            if (mode == fmuMode::eventMode) {
+        case FmuMode::continuousTimeMode:
+            if (mode == FmuMode::eventMode) {
                 ret = ModelExchangeFunctions->fmi2EnterEventMode(comp);
             }
             break;
-        case fmuMode::eventMode:
-            if (mode == fmuMode::eventMode) {
+        case FmuMode::eventMode:
+            if (mode == FmuMode::eventMode) {
                 ret = ModelExchangeFunctions->fmi2EnterEventMode(comp);
-            } else if (mode == fmuMode::continuousTimeMode) {
+            } else if (mode == FmuMode::continuousTimeMode) {
                 if (numStates > 0) {
                     std::println("now entering continuous time mode");
                     ret = ModelExchangeFunctions->fmi2EnterContinuousTimeMode(comp);

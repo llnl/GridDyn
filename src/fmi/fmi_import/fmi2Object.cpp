@@ -36,27 +36,27 @@ void fmi2Object::setupExperiment(fmi2Boolean toleranceDefined,
     }
 }
 
-fmuMode fmi2Object::getCurrentMode() const
+FmuMode fmi2Object::getCurrentMode() const
 {
     return currentMode;
 }
 
-void fmi2Object::setMode(fmuMode newMode)
+void fmi2Object::setMode(FmuMode newMode)
 {
-    if (newMode == fmuMode::error) {
-        currentMode = fmuMode::error;
+    if (newMode == FmuMode::error) {
+        currentMode = FmuMode::error;
         throw(fmiErrorException());
     }
     fmi2Status ret = fmi2Error;
-    if (newMode == fmuMode::terminated) {
-        currentMode = fmuMode::terminated;
+    if (newMode == FmuMode::terminated) {
+        currentMode = FmuMode::terminated;
         ret = commonFunctions->fmi2Terminate(comp);
     }
 
     switch (currentMode) {
-        case fmuMode::instantiatedMode:
+        case FmuMode::instantiatedMode:
             switch (newMode) {
-                case fmuMode::initializationMode:
+                case FmuMode::initializationMode:
                     if (inputSize() == 0) {
                         setDefaultInputs();
                     }
@@ -67,18 +67,18 @@ void fmi2Object::setMode(fmuMode newMode)
                     ret = commonFunctions->fmi2EnterInitializationMode(comp);
                     // printf("return from fmiEnterInitializationMode with code %d\n", ret);
                     break;
-                case fmuMode::eventMode:
-                case fmuMode::stepMode:
+                case FmuMode::eventMode:
+                case FmuMode::stepMode:
                     fmi2Object::setMode(
-                        fmuMode::initializationMode);  // go into initialization first
+                        FmuMode::initializationMode);  // go into initialization first
                     ret = commonFunctions->fmi2ExitInitializationMode(comp);
                     break;
                 default:
                     break;
             }
             break;
-        case fmuMode::initializationMode:
-            if ((newMode == fmuMode::eventMode) || (newMode == fmuMode::stepMode)) {
+        case FmuMode::initializationMode:
+            if ((newMode == FmuMode::eventMode) || (newMode == FmuMode::stepMode)) {
                 // printf("calling exit initMode\n");
                 if (!commonFunctions->fmi2ExitInitializationMode) {
                     std::println("function is not present");
@@ -101,7 +101,7 @@ void fmi2Object::setMode(fmuMode newMode)
 
 void fmi2Object::reset()
 {
-    currentMode = fmuMode::instantiatedMode;
+    currentMode = FmuMode::instantiatedMode;
     auto ret = commonFunctions->fmi2Reset(comp);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
@@ -124,14 +124,14 @@ std::string fmi2Object::get<std::string>(const std::string& param) const
     return std::string(res);  // this should copy the actual the string
 }
 
-void fmi2Object::get(const fmiVariableSet& vrset, fmi2Real value[]) const
+void fmi2Object::get(const FmiVariableSet& vrset, fmi2Real value[]) const
 {
     auto ret = commonFunctions->fmi2GetReal(comp, vrset.getValueRef(), vrset.getVRcount(), value);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void fmi2Object::get(const fmiVariableSet& vrset, fmi2Integer value[]) const
+void fmi2Object::get(const FmiVariableSet& vrset, fmi2Integer value[]) const
 {
     auto ret =
         commonFunctions->fmi2GetInteger(comp, vrset.getValueRef(), vrset.getVRcount(), value);
@@ -140,7 +140,7 @@ void fmi2Object::get(const fmiVariableSet& vrset, fmi2Integer value[]) const
     }
 }
 
-void fmi2Object::get(const fmiVariableSet& vrset, fmi2String value[]) const
+void fmi2Object::get(const FmiVariableSet& vrset, fmi2String value[]) const
 {
     auto ret = commonFunctions->fmi2GetString(comp, vrset.getValueRef(), vrset.getVRcount(), value);
     if (ret != fmi2Status::fmi2OK) {
@@ -148,7 +148,7 @@ void fmi2Object::get(const fmiVariableSet& vrset, fmi2String value[]) const
     }
 }
 
-void fmi2Object::set(const fmiVariableSet& vrset, fmi2Integer value[])
+void fmi2Object::set(const FmiVariableSet& vrset, fmi2Integer value[])
 {
     auto ret =
         commonFunctions->fmi2GetInteger(comp, vrset.getValueRef(), vrset.getVRcount(), value);
@@ -157,7 +157,7 @@ void fmi2Object::set(const fmiVariableSet& vrset, fmi2Integer value[])
     }
 }
 
-void fmi2Object::set(const fmiVariableSet& vrset, fmi2Real value[])
+void fmi2Object::set(const FmiVariableSet& vrset, fmi2Real value[])
 {
     auto retval =
         commonFunctions->fmi2SetReal(comp, vrset.getValueRef(), vrset.getVRcount(), value);
@@ -275,14 +275,14 @@ fmi2Real fmi2Object::getPartialDerivative(int index_x, int index_y, double dx)
 }
 
 /** check if an output is real and actually is an output*/
-bool isRealOutput(const variableInformation& vI)
+bool isRealOutput(const VariableInformation& vI)
 {
     return ((vI.index >= 0) && (vI.type == fmi_variable_type_t::real) &&
             (vI.causality == fmi_causality_type_t::output));
 }
 
 /** check if an input is real and actually is an input*/
-bool isRealInput(const variableInformation& vI)
+bool isRealInput(const VariableInformation& vI)
 {
     return ((vI.index >= 0) && (vI.type == fmi_variable_type_t::real) &&
             (vI.causality == fmi_causality_type_t::input));
@@ -405,12 +405,12 @@ fmi2Real fmi2Object::getOutput(size_t outNum) const
     return out;
 }
 
-fmiVariableSet fmi2Object::getVariableSet(const std::string& variable) const
+FmiVariableSet fmi2Object::getVariableSet(const std::string& variable) const
 {
     return info->getVariableSet(variable);
 }
 
-fmiVariableSet fmi2Object::getVariableSet(int index) const
+FmiVariableSet fmi2Object::getVariableSet(int index) const
 {
     return info->getVariableSet(index);
 }

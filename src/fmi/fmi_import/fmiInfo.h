@@ -30,7 +30,7 @@
 #include <vector>
 
 /** data class containing the default experiment information*/
-class fmuDefaultExpirement {
+class FmuDefaultExperiment {
   public:
     double startTime = 0.0;
     double stopTime = 0.0;
@@ -39,7 +39,7 @@ class fmuDefaultExpirement {
 };
 
 /** data class containing information about a variable*/
-class variableInformation {
+class VariableInformation {
   public:
     int index = -1;
     int derivativeIndex = -1;
@@ -66,21 +66,21 @@ typedef struct {
     std::string name;
     double factor;
     double offset;
-} unitDef;
+} UnitDef;
 
 /** data class for storing fmi unit information*/
-class fmiUnit {
+class FmiUnit {
   public:
     std::string name;
     double factor = 1.0;
     double offset = 0.0;
-    std::vector<unitDef> baseUnits;
+    std::vector<UnitDef> baseUnits;
 
-    std::vector<unitDef> displayUnits;
+    std::vector<UnitDef> displayUnits;
 };
 
 /**data class matching the definition of an FMI type*/
-class fmiTypeDefinition {
+class FmiTypeDefinition {
   public:
     std::string name;
     std::string description;
@@ -96,15 +96,15 @@ class fmiTypeDefinition {
 };
 
 /** class for storing references to fmi variables*/
-class fmiVariableSet {
+class FmiVariableSet {
   public:
-    fmiVariableSet();
-    fmiVariableSet(fmi2ValueReference newvr);
-    fmiVariableSet(const fmiVariableSet& vset);
-    fmiVariableSet(fmiVariableSet&& vset);
+    FmiVariableSet();
+    FmiVariableSet(fmi2ValueReference newvr);
+    FmiVariableSet(const FmiVariableSet& vset);
+    FmiVariableSet(FmiVariableSet&& vset);
 
-    fmiVariableSet& operator=(const fmiVariableSet& other);
-    fmiVariableSet& operator=(fmiVariableSet&& other);
+    FmiVariableSet& operator=(const FmiVariableSet& other);
+    FmiVariableSet& operator=(FmiVariableSet&& other);
 
     const fmi2ValueReference* getValueRef() const;
     size_t getVRcount() const;
@@ -116,7 +116,7 @@ class fmiVariableSet {
     /** add a variable set the existing variable set*
     @param[in] vset the variableSet to add
     */
-    void push(const fmiVariableSet& vset);
+    void push(const FmiVariableSet& vset);
     /** reserve a set amount of space in the set
     @param[in] newSize the number of elements to reserve*/
     void reserve(size_t newSize);
@@ -137,10 +137,10 @@ class fmiInfo {
     double fmiVersion = 0.0;  //!< the fmi version used
     int maxOrder = 0;  //!< the maximum derivative order for CoSimulation FMU's
     std::bitset<32> capabilities;  //!< bitset containing the capabilities of the FMU
-    std::vector<variableInformation> variables;  //!< information all the defined variables
-    std::vector<fmiUnit> units;  //!< all the units defined in the FMU
-    fmuDefaultExpirement
-        defaultExpirement;  //!< the information about the specified default experiment
+    std::vector<VariableInformation> variables;  //!< information all the defined variables
+    std::vector<FmiUnit> units;  //!< all the units defined in the FMU
+    FmuDefaultExperiment
+        defaultExperiment;  //!< the information about the specified default experiment
 
     std::map<std::string, int>
         variableLookup;  //!< map translating strings to indices into the variables array
@@ -171,18 +171,18 @@ class fmiInfo {
     const std::string& getString(const std::string& field) const;
     /** get a Real variable by name*/
     double getReal(const std::string& field) const;
-    const variableInformation& getVariableInfo(const std::string& variableName) const;
-    const variableInformation& getVariableInfo(unsigned int index) const;
+    const VariableInformation& getVariableInfo(const std::string& variableName) const;
+    const VariableInformation& getVariableInfo(unsigned int index) const;
     /** get a set of variables for the specified parameters*/
-    fmiVariableSet getReferenceSet(const std::vector<std::string>& variableList) const;
+    FmiVariableSet getReferenceSet(const std::vector<std::string>& variableList) const;
     /** get a variable set with a single member*/
-    fmiVariableSet getVariableSet(const std::string& variable) const;
+    FmiVariableSet getVariableSet(const std::string& variable) const;
     /** get a variable set with a single member based on index*/
-    fmiVariableSet getVariableSet(unsigned int index) const;
+    FmiVariableSet getVariableSet(unsigned int index) const;
     /** get a set of the current outputs*/
-    fmiVariableSet getOutputReference() const;
+    FmiVariableSet getOutputReference() const;
     /** get a set of the current inputs*/
-    fmiVariableSet getInputReference() const;
+    FmiVariableSet getInputReference() const;
     /** get a list of variable names by type
     @param[in] type the type of variable
     @return a vector of strings with the names of the variables
@@ -205,7 +205,7 @@ class fmiInfo {
     void loadStructure(std::shared_ptr<readerElement>& readerElementPtr);
 };
 
-enum class fmuMode {
+enum class FmuMode {
     instantiatedMode,
     initializationMode,
     continuousTimeMode,
@@ -215,6 +215,6 @@ enum class fmuMode {
     error,
 };
 
-bool checkType(const variableInformation& info,
+bool checkType(const VariableInformation& info,
                fmi_variable_type_t type,
                fmi_causality_type_t caus);

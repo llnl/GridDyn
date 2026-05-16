@@ -14,7 +14,7 @@
 #include <vector>
 
 class fmi2CoSimObject;
-class outputEstimator;
+class OutputEstimator;
 
 namespace griddyn::fmi {
 /** class defining a subModel interacting with an FMU v2.0 object using cosimulation*/
@@ -29,7 +29,7 @@ class fmiCoSimSubModel: public gridSubModel {
   protected:
     std::shared_ptr<fmi2CoSimObject> cs;
 
-    std::vector<outputEstimator*> estimators;  //!< vector of objects used for output estimation
+    std::vector<OutputEstimator*> estimators;  //!< vector of objects used for output estimation
     double localIntegrationTime = 0.01;
 
   private:
@@ -89,7 +89,7 @@ class fmiCoSimSubModel: public gridSubModel {
     void instantiateFMU();
     void makeSettableState();
     void resetState();
-    double getPartial(int depIndex, int refIndex, refMode_t mode);
+    double getPartial(int depIndex, int refIndex, RefMode mode);
 
     void loadOutputJac(int index = -1);
 };

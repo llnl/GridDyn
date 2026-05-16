@@ -54,8 +54,8 @@ class fmi2Object {
                          fmi2Real startTime,
                          fmi2Boolean stopTimeDefined,
                          fmi2Real stopTime);
-    virtual void setMode(fmuMode newMode);
-    fmuMode getCurrentMode() const;
+    virtual void setMode(FmuMode newMode);
+    FmuMode getCurrentMode() const;
     void reset();
 
     template<typename T>
@@ -96,13 +96,13 @@ class fmi2Object {
         return ret;
     }
 
-    void get(const fmiVariableSet& vrset, fmi2Real[]) const;
-    void get(const fmiVariableSet& vrset, fmi2Integer[]) const;
-    void get(const fmiVariableSet& vrset, fmi2String[]) const;
+    void get(const FmiVariableSet& vrset, fmi2Real[]) const;
+    void get(const FmiVariableSet& vrset, fmi2Integer[]) const;
+    void get(const FmiVariableSet& vrset, fmi2String[]) const;
 
-    void set(const fmiVariableSet& vrset, fmi2Integer[]);
+    void set(const FmiVariableSet& vrset, fmi2Integer[]);
 
-    void set(const fmiVariableSet& vrset, fmi2Real[]);
+    void set(const FmiVariableSet& vrset, fmi2Real[]);
     //!< concepts would be really useful here
     void set(const std::string& param, const char* val);
     void set(const std::string& param, const std::string& val);
@@ -162,8 +162,8 @@ class fmi2Object {
     void setInputVariables(const std::vector<std::string>& inNames);
     void setInputVariables(const std::vector<int>& inIndices);
 
-    fmiVariableSet getVariableSet(const std::string& variable) const;
-    fmiVariableSet getVariableSet(int index) const;
+    FmiVariableSet getVariableSet(const std::string& variable) const;
+    FmiVariableSet getVariableSet(int index) const;
     const fmiInfo* fmuInformation() const { return info.get(); }
     int inputSize() const { return static_cast<int>(activeInputs.getVRcount()); }
     int outputSize() const { return static_cast<int>(activeOutputs.getVRcount()); }
@@ -184,12 +184,12 @@ class fmi2Object {
 
   protected:
     fmi2Component comp;
-    fmuMode currentMode = fmuMode::instantiatedMode;
+    FmuMode currentMode = FmuMode::instantiatedMode;
     std::shared_ptr<const fmiInfo> info;
     // structures for maintaining the inputs and outputs
-    fmiVariableSet activeInputs;
+    FmiVariableSet activeInputs;
     std::vector<int> activeInputIndices;
-    fmiVariableSet activeOutputs;
+    FmiVariableSet activeOutputs;
     std::vector<int> activeOutputIndices;
 
     void handleNonOKReturnValues(fmi2Status retval) const;
@@ -241,7 +241,7 @@ class fmi2ModelExchangeObject: public fmi2Object {
     void getNominalsOfContinuousStates(fmi2Real nominalValues[]) const;
     /** set the operating state of the FMU
      */
-    virtual void setMode(fmuMode mode) override;
+    virtual void setMode(FmuMode mode) override;
     /** get the number of the states*/
     size_t getNumberOfStates() const { return numStates; }
     /** get the number of indicators*/

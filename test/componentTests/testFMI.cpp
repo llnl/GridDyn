@@ -88,7 +88,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
 
         auto b = rectFmu.createModelExchangeObject("rctf");
         ASSERT_TRUE(b);
-        b->setMode(fmuMode::initializationMode);
+        b->setMode(FmuMode::initializationMode);
         auto v = b->get<double>("VAC");
         EXPECT_NEAR(v, 400.0, 4e-2 + 1e-12);
         auto phase = b->get<double>("SineVoltage1.phase");
@@ -130,7 +130,7 @@ TEST_F(FmiTests, Test3phaseFmu)
     double inp[6];
     double out[6];
     double out2[6];
-    fm->setMode(fmuMode::continuousTimeMode);
+    fm->setMode(FmuMode::continuousTimeMode);
     fm->getCurrentInputs(inp);
     inp[0] = 1.0;
     inp[1] = 1.0;

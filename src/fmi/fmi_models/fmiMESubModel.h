@@ -18,10 +18,10 @@
 
 class fmi2ModelExchangeObject;
 
-enum class fmuMode;  // forward declare enumeration
+enum class FmuMode;  // forward declare enumeration
 
 namespace griddyn::fmi {
-class outputEstimator;
+class OutputEstimator;
 /** class defining a subModel interacting with an FMU v2.0 object for model exchange*/
 class fmiMESubModel: public gridSubModel {
   public:
@@ -38,12 +38,12 @@ class fmiMESubModel: public gridSubModel {
     count_t m_eventCount = 0;  //!< the number of event indicators
     std::shared_ptr<fmi2ModelExchangeObject> me;
 
-    std::vector<outputEstimator*> oEst;  //!< vector of objects used for output estimation
+    std::vector<OutputEstimator*> oEst;  //!< vector of objects used for output estimation
                                          //!< //TODO:: Make this an actual vector of objects
     coreTime localIntegrationTime = 0.01;
-    fmuMode prevFmiState = fmuMode::instantiatedMode;
-    std::vector<vInfo> stateInformation;
-    std::vector<vInfo> outputInformation;
+    FmuMode prevFmiState = FmuMode::instantiatedMode;
+    std::vector<ValueDependencyInfo> stateInformation;
+    std::vector<ValueDependencyInfo> outputInformation;
     std::vector<int> inputVarIndices;
     propertyBuffer paramBuffer;
 
@@ -158,7 +158,7 @@ class fmiMESubModel: public gridSubModel {
   protected:
     void makeSettableState();
     void resetState();
-    double getPartial(int depIndex, int refIndex, refMode_t mode);
+    double getPartial(int depIndex, int refIndex, RefMode mode);
     void probeFMU();
     void loadOutputJac(int index = -1);
     // int searchByRef(fmi2_value_reference_t ref);

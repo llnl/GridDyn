@@ -134,8 +134,9 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 
 TEST_F(FmiExportTests, TestFmiRunner)
 {
-    auto runner =
-        std::make_unique<griddyn::fmi::FmiRunner>("testsim", std::string{fmiTestDirectory}, nullptr);
+    auto runner = std::make_unique<griddyn::fmi::FmiRunner>("testsim",
+                                                            std::string{fmiTestDirectory},
+                                                            nullptr);
 
     runner->simInitialize();
     runner->UpdateOutputs();

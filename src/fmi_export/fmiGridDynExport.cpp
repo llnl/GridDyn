@@ -496,9 +496,7 @@ fmi2Status fmi2GetStatus(fmi2Component comp, const fmi2StatusKind statusKind, fm
     return fmi2Discard;
 }
 
-fmi2Status fmi2GetRealStatus(fmi2Component comp,
-                             const fmi2StatusKind statusKind,
-                             fmi2Real* status)
+fmi2Status fmi2GetRealStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2Real* status)
 {
     auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
@@ -517,9 +515,8 @@ fmi2Status fmi2GetIntegerStatus(fmi2Component /*comp*/,
 {
     return fmi2Discard;
 }
-fmi2Status fmi2GetBooleanStatus(fmi2Component comp,
-                                const fmi2StatusKind statusKind,
-                                fmi2Boolean* status)
+fmi2Status
+    fmi2GetBooleanStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2Boolean* status)
 {
     auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
@@ -531,9 +528,8 @@ fmi2Status fmi2GetBooleanStatus(fmi2Component comp,
     }
     return fmi2Discard;
 }
-fmi2Status fmi2GetStringStatus(fmi2Component comp,
-                               const fmi2StatusKind statusKind,
-                               fmi2String* status)
+fmi2Status
+    fmi2GetStringStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2String* status)
 {
     auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {

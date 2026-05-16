@@ -12,9 +12,9 @@
 #include <vector>
 
 namespace griddyn::fmi {
-class fmiCoSimSubModel;
+class FmiCoSimSubModel;
 
-class fmiCoSimLoad3phase: public fmiCoSimWrapper<loads::ThreePhaseLoad> {
+class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
   public:
     enum ThreePhaseFmiLoadFlags {
         IGNORE_VOLTAGE_ANGLE = object_flag8,
@@ -24,7 +24,7 @@ class fmiCoSimLoad3phase: public fmiCoSimWrapper<loads::ThreePhaseLoad> {
     };
 
   public:
-    fmiCoSimLoad3phase(const std::string& objName = "fmi3phase_$");
+    FmiCoSimLoad3phase(const std::string& objName = "fmi3phase_$");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;

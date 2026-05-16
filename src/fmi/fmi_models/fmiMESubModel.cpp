@@ -25,31 +25,31 @@ namespace griddyn::fmi {
 // NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 using gmlc::utilities::vectorMultAdd;
 
-fmiMESubModel::fmiMESubModel(const std::string& newName,
+FmiMESubModel::FmiMESubModel(const std::string& newName,
                              std::shared_ptr<Fmi2ModelExchangeObject> fmi):
     gridSubModel(newName), me(std::move(fmi))
 {
 }
 
-fmiMESubModel::fmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
+FmiMESubModel::FmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi): me(std::move(fmi)) {}
 
-fmiMESubModel::~fmiMESubModel() = default;
+FmiMESubModel::~FmiMESubModel() = default;
 
-coreObject* fmiMESubModel::clone(coreObject* obj) const
+coreObject* FmiMESubModel::clone(coreObject* obj) const
 {
-    auto* gco = cloneBase<fmiMESubModel, gridSubModel>(this, obj);
+    auto* gco = cloneBase<FmiMESubModel, gridSubModel>(this, obj);
     if (gco == nullptr) {
         return obj;
     }
     return gco;
 }
 
-bool fmiMESubModel::isLoaded() const
+bool FmiMESubModel::isLoaded() const
 {
     return static_cast<bool>(me);
 }
 
-void fmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // printf("GridDyn Pflow A\n");
     if (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization)) {
@@ -60,7 +60,7 @@ void fmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     prevTime = time0;
 }
-void fmiMESubModel::pFlowObjectInitializeB()
+void FmiMESubModel::pFlowObjectInitializeB()
 {
     if (opFlags[pflow_init_required]) {
         // printf("enter continuous time mode\n");
@@ -72,12 +72,12 @@ void fmiMESubModel::pFlowObjectInitializeB()
     }
 }
 
-void fmiMESubModel::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void FmiMESubModel::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
     prevTime = time0;
 }
 
-void fmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
+void FmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& /*desiredOutput*/,
                                          IOdata& /*inputSet*/)
 {
@@ -125,7 +125,7 @@ void fmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
     int strpcnt{0};
     const auto* info = me->fmuInformation();
@@ -229,17 +229,17 @@ void fmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
     }
 }
 
-stringVec fmiMESubModel::getOutputNames() const
+stringVec FmiMESubModel::getOutputNames() const
 {
     return me->getOutputNames();
 }
 
-stringVec fmiMESubModel::getInputNames() const
+stringVec FmiMESubModel::getInputNames() const
 {
     return me->getInputNames();
 }
 
-void fmiMESubModel::set(std::string_view param, std::string_view val)
+void FmiMESubModel::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::stringOps::splitline;
     using gmlc::utilities::stringOps::trim;
@@ -248,7 +248,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
         if (!(me)) {
             try {
                 // printf("loading instance of fmi %s\n", val.c_str());
-                me = fmiLibraryManager::instance().createModelExchangeObject(std::string{val},
+                me = FmiLibraryManager::instance().createModelExchangeObject(std::string{val},
                                                                              getName());
             }
             catch (const std::filesystem::filesystem_error& fse) {
@@ -297,7 +297,7 @@ void fmiMESubModel::set(std::string_view param, std::string_view val)
     }
 }
 
-void fmiMESubModel::set(std::string_view param, double val, units::unit unitType)
+void FmiMESubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == "localintegrationtime")) {
         localIntegrationTime = val;
@@ -322,7 +322,7 @@ void fmiMESubModel::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-double fmiMESubModel::get(std::string_view param, units::unit unitType) const
+double FmiMESubModel::get(std::string_view param, units::unit unitType) const
 {
     if (param == "localintegrationtime") {
         return static_cast<double>(localIntegrationTime);
@@ -333,7 +333,7 @@ double fmiMESubModel::get(std::string_view param, units::unit unitType) const
     return gridSubModel::get(param, unitType);
 }
 
-stateSizes fmiMESubModel::LocalStateSizes(const solverMode& sMode) const
+stateSizes FmiMESubModel::LocalStateSizes(const solverMode& sMode) const
 {
     stateSizes stateSizeInfo;
     if (hasDifferential(sMode)) {
@@ -344,7 +344,7 @@ stateSizes fmiMESubModel::LocalStateSizes(const solverMode& sMode) const
     return stateSizeInfo;
 }
 
-count_t fmiMESubModel::LocalJacobianCount(const solverMode& sMode) const
+count_t FmiMESubModel::LocalJacobianCount(const solverMode& sMode) const
 {
     count_t jacSize = 0;
     if (hasDifferential(sMode) || (!isDynamic(sMode) && opFlags[pflow_init_required])) {
@@ -353,12 +353,12 @@ count_t fmiMESubModel::LocalJacobianCount(const solverMode& sMode) const
     return jacSize;
 }
 
-std::pair<count_t, count_t> fmiMESubModel::LocalRootCount(const solverMode& /* sMode */) const
+std::pair<count_t, count_t> FmiMESubModel::LocalRootCount(const solverMode& /* sMode */) const
 {
     return {0, m_eventCount};
 }
 
-void fmiMESubModel::setState(coreTime time,
+void FmiMESubModel::setState(coreTime time,
                              const double state[],
                              const double dstate_dt[],
                              const solverMode& sMode)
@@ -406,7 +406,7 @@ void fmiMESubModel::setState(coreTime time,
     prevTime = time;
 }
 // for saving the state
-void fmiMESubModel::guessState(coreTime /*time*/,
+void FmiMESubModel::guessState(coreTime /*time*/,
                                double state[],
                                double dstate_dt[],
                                const solverMode& sMode)
@@ -424,9 +424,9 @@ void fmiMESubModel::guessState(coreTime /*time*/,
     }
 }
 
-void fmiMESubModel::getTols(double /*tols*/[], const solverMode& /*sMode*/) {}
+void FmiMESubModel::getTols(double /*tols*/[], const solverMode& /*sMode*/) {}
 
-void fmiMESubModel::getStateName(stringVec& stNames,
+void FmiMESubModel::getStateName(stringVec& stNames,
                                  const solverMode& sMode,
                                  const std::string& prefix) const
 {
@@ -459,7 +459,7 @@ void fmiMESubModel::getStateName(stringVec& stNames,
     }
 }
 
-index_t fmiMESubModel::findIndex(std::string_view field, const solverMode& /*sMode*/) const
+index_t FmiMESubModel::findIndex(std::string_view field, const solverMode& /*sMode*/) const
 {
     auto fmistNames = me->getStateNames();
     auto fnd = std::find(fmistNames.begin(), fmistNames.end(), field);
@@ -469,7 +469,7 @@ index_t fmiMESubModel::findIndex(std::string_view field, const solverMode& /*sMo
     return kInvalidLocation;
 }
 
-void fmiMESubModel::residual(const IOdata& inputs,
+void FmiMESubModel::residual(const IOdata& inputs,
                              const stateData& sD,
                              double resid[],
                              const solverMode& sMode)
@@ -485,7 +485,7 @@ void fmiMESubModel::residual(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::derivative(const IOdata& inputs,
+void FmiMESubModel::derivative(const IOdata& inputs,
                                const stateData& sD,
                                double deriv[],
                                const solverMode& sMode)
@@ -510,7 +510,7 @@ void fmiMESubModel::derivative(const IOdata& inputs,
 }
 
 static constexpr double gap{1e-8};
-double fmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
+double FmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
 {
     double res{0.0};
     double ich{1.0};
@@ -598,7 +598,7 @@ double fmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
     }
     return res;
 }
-void fmiMESubModel::jacobianElements(const IOdata& inputs,
+void FmiMESubModel::jacobianElements(const IOdata& inputs,
                                      const stateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
@@ -659,7 +659,7 @@ void fmiMESubModel::jacobianElements(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
 {
     coreTime h = localIntegrationTime;
     // int sv = 0;
@@ -703,7 +703,7 @@ void fmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMo
     prevTime = time;
 }
 
-void fmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
+void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
                                          const stateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& /*inputLocs*/,
@@ -733,7 +733,7 @@ void fmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
+void FmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
                                              const stateData& sD,
                                              matrixData<double>& md,
                                              const solverMode& sMode)
@@ -764,7 +764,7 @@ void fmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::rootTest(const IOdata& inputs,
+void FmiMESubModel::rootTest(const IOdata& inputs,
                              const stateData& sD,
                              double roots[],
                              const solverMode& sMode)
@@ -774,7 +774,7 @@ void fmiMESubModel::rootTest(const IOdata& inputs,
     me->getEventIndicators(&(roots[rootOffset]));
 }
 
-void fmiMESubModel::rootTrigger(coreTime /*time*/,
+void FmiMESubModel::rootTrigger(coreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const std::vector<int>& /*rootMask*/,
                                 const solverMode& /*sMode*/)
@@ -784,7 +784,7 @@ void fmiMESubModel::rootTrigger(coreTime /*time*/,
     me->setMode(FmuMode::continuousTimeMode);
 }
 
-IOdata fmiMESubModel::getOutputs(const IOdata& inputs,
+IOdata FmiMESubModel::getOutputs(const IOdata& inputs,
                                  const stateData& sD,
                                  const solverMode& sMode) const
 {
@@ -809,7 +809,7 @@ IOdata fmiMESubModel::getOutputs(const IOdata& inputs,
     return out;
 }
 
-double fmiMESubModel::getDoutdt(const IOdata& /*inputs*/,
+double FmiMESubModel::getDoutdt(const IOdata& /*inputs*/,
                                 const stateData& /*sD*/,
                                 const solverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
@@ -817,7 +817,7 @@ double fmiMESubModel::getDoutdt(const IOdata& /*inputs*/,
     return 0;
 }
 
-double fmiMESubModel::getOutput(const IOdata& inputs,
+double FmiMESubModel::getOutput(const IOdata& inputs,
                                 const stateData& sD,
                                 const solverMode& sMode,
                                 index_t outputNum) const
@@ -840,7 +840,7 @@ double fmiMESubModel::getOutput(const IOdata& inputs,
     return out;
 }
 
-double fmiMESubModel::getOutput(index_t outputNum) const
+double FmiMESubModel::getOutput(index_t outputNum) const
 {
     double out = kNullVal;
     if (me->getCurrentMode() >= FmuMode::initializationMode) {
@@ -849,12 +849,12 @@ double fmiMESubModel::getOutput(index_t outputNum) const
     return out;
 }
 
-index_t fmiMESubModel::getOutputLoc(const solverMode& /*sMode*/, index_t /*outputNum*/) const
+index_t FmiMESubModel::getOutputLoc(const solverMode& /*sMode*/, index_t /*outputNum*/) const
 {
     return kNullLocation;
 }
 
-void fmiMESubModel::updateLocalCache(const IOdata& inputs,
+void FmiMESubModel::updateLocalCache(const IOdata& inputs,
                                      const stateData& sD,
                                      const solverMode& sMode)
 {
@@ -894,14 +894,14 @@ void fmiMESubModel::updateLocalCache(const IOdata& inputs,
     }
 }
 
-void fmiMESubModel::makeSettableState()
+void FmiMESubModel::makeSettableState()
 {
     if (opFlags[dyn_initialized]) {
         prevFmiState = me->getCurrentMode();
         me->setMode(FmuMode::eventMode);
     }
 }
-void fmiMESubModel::resetState()
+void FmiMESubModel::resetState()
 {
     if (opFlags[dyn_initialized]) {
         if (prevFmiState == me->getCurrentMode()) {
@@ -911,7 +911,7 @@ void fmiMESubModel::resetState()
     }
 }
 
-void fmiMESubModel::probeFMU()
+void FmiMESubModel::probeFMU()
 {
     RefMode defMode = (m_stateSize > 0) ? RefMode::level1 : RefMode::level4;
 
@@ -1035,7 +1035,7 @@ void fmiMESubModel::probeFMU()
     }
 }
 
-void fmiMESubModel::loadOutputJac(int index)
+void FmiMESubModel::loadOutputJac(int index)
 {
     double pd;
     int ct = 0;

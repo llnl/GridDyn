@@ -30,9 +30,9 @@ constexpr auto derivOrder = makeDerivOrderBlocks();
 }  // namespace
 
 Fmi2CoSimObject::Fmi2CoSimObject(fmi2Component cmp,
-                                 std::shared_ptr<const fmiInfo> keyInfo,
-                                 std::shared_ptr<const fmiCommonFunctions> comFunc,
-                                 std::shared_ptr<const fmiCoSimFunctions> csFunc):
+                                 std::shared_ptr<const FmiInfo> keyInfo,
+                                 std::shared_ptr<const FmiCommonFunctions> comFunc,
+                                 std::shared_ptr<const FmiCoSimFunctions> csFunc):
     Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)), CoSimFunctions(std::move(csFunc)),
     stepPending(false)
 {

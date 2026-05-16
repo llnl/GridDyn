@@ -22,7 +22,7 @@ namespace griddyn::fmi {
 @tparam BaseObj the component class this object is a part of
 */
 template<class FMItype, class BaseObj>
-class fmiWrapper: public BaseObj {
+class FmiWrapper: public BaseObj {
   protected:
     FMItype* fmisub = nullptr;  //!< a pointer to an fmi submodel of some kind either
                                 //!< FMIMESubModel or FMICoSimSubmodel
@@ -35,10 +35,10 @@ class fmiWrapper: public BaseObj {
     /** constructor taking an object name
 @param[in] objName the name of the object
 */
-    fmiWrapper(const std::string& objName): BaseObj(objName) {}
+    FmiWrapper(const std::string& objName): BaseObj(objName) {}
     virtual coreObject* clone(coreObject* obj) const override
     {
-        auto nobj = cloneBase<fmiWrapper, BaseObj>(this, obj);
+        auto nobj = cloneBase<FmiWrapper, BaseObj>(this, obj);
         if (nobj == nullptr) {
             return obj;
         }

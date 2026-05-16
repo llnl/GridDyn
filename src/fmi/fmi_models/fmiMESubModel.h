@@ -23,7 +23,7 @@ enum class FmuMode;  // forward declare enumeration
 namespace griddyn::fmi {
 class OutputEstimator;
 /** class defining a subModel interacting with an FMU v2.0 object for model exchange*/
-class fmiMESubModel: public gridSubModel {
+class FmiMESubModel: public gridSubModel {
   public:
     enum fmiSubModelFlags {
         use_output_estimator = object_flag2,
@@ -53,11 +53,11 @@ class fmiMESubModel: public gridSubModel {
     std::vector<double> tempdState;
 
   public:
-    fmiMESubModel(const std::string& newName = "fmisubmodel2_#",
+    FmiMESubModel(const std::string& newName = "fmisubmodel2_#",
                   std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
 
-    fmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
-    virtual ~fmiMESubModel();
+    FmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
+    virtual ~FmiMESubModel();
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
   protected:

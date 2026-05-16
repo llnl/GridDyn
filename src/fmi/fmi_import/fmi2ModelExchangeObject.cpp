@@ -14,9 +14,9 @@
 
 Fmi2ModelExchangeObject::Fmi2ModelExchangeObject(
     fmi2Component cmp,
-    std::shared_ptr<const fmiInfo> keyInfo,
-    std::shared_ptr<const fmiCommonFunctions> comFunc,
-    std::shared_ptr<const fmiModelExchangeFunctions> meFunc):
+    std::shared_ptr<const FmiInfo> keyInfo,
+    std::shared_ptr<const FmiCommonFunctions> comFunc,
+    std::shared_ptr<const FmiModelExchangeFunctions> meFunc):
     Fmi2Object(cmp, std::move(keyInfo), std::move(comFunc)),
     ModelExchangeFunctions(std::move(meFunc))
 {

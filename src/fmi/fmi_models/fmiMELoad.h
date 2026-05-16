@@ -11,9 +11,9 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiMESubModel;
+class FmiMESubModel;
 
-class fmiMELoad: public fmiMEWrapper<Load> {
+class FmiMELoad: public FmiMEWrapper<Load> {
   public:
     enum ThreePhaseFmiLoadFlags {
         IGNORE_VOLTAGE_ANGLE = object_flag8,
@@ -23,7 +23,7 @@ class fmiMELoad: public fmiMEWrapper<Load> {
     };
 
   public:
-    fmiMELoad(const std::string& objName = "fmiLoad_$");
+    FmiMELoad(const std::string& objName = "fmiLoad_$");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;

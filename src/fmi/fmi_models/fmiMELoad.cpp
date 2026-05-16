@@ -16,11 +16,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiMELoad::fmiMELoad(const std::string& objName): fmiMEWrapper<Load>(objName) {}
+FmiMELoad::FmiMELoad(const std::string& objName): FmiMEWrapper<Load>(objName) {}
 
-coreObject* fmiMELoad::clone(coreObject* obj) const
+coreObject* FmiMELoad::clone(coreObject* obj) const
 {
-    auto* nobj = cloneBase<fmiMELoad, fmiMEWrapper<Load>>(this, obj);
+    auto* nobj = cloneBase<FmiMELoad, FmiMEWrapper<Load>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -28,7 +28,7 @@ coreObject* fmiMELoad::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiMELoad::updateLocalCache(const IOdata& inputs,
+void FmiMELoad::updateLocalCache(const IOdata& inputs,
                                  const stateData& stateDataRef,
                                  const solverMode& sMode)
 {
@@ -49,27 +49,27 @@ void fmiMELoad::updateLocalCache(const IOdata& inputs,
     setQ(translatedOutput[QoutLocation]);
 }
 
-void fmiMELoad::set(std::string_view param, std::string_view val)
+void FmiMELoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<Load>::set(param, val);
+        FmiMEWrapper<Load>::set(param, val);
     }
 }
-void fmiMELoad::set(std::string_view param, double val, units::unit unitType)
+void FmiMELoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<Load>::set(param, val, unitType);
+        FmiMEWrapper<Load>::set(param, val, unitType);
     }
 }
 
-void fmiMELoad::setState(coreTime time,
+void FmiMELoad::setState(coreTime time,
                          const double state[],
                          const double dstate_dt[],
                          const solverMode& sMode)
 {
-    fmiMEWrapper<Load>::setState(time, state, dstate_dt, sMode);
+    FmiMEWrapper<Load>::setState(time, state, dstate_dt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
     const IOdata voltageState = {bus->getVoltage(state, sMode), bus->getAngle(state, sMode)};
@@ -78,7 +78,7 @@ void fmiMELoad::setState(coreTime time,
     setQ(translatedOutput[QoutLocation]);
 }
 
-IOdata fmiMELoad::outputTranslation(const IOdata& fmiOutput, const IOdata& busV)
+IOdata FmiMELoad::outputTranslation(const IOdata& fmiOutput, const IOdata& busV)
 {
     auto busVoltage = std::complex<double>(busV[voltageInLocation], busV[angleInLocation]);
     IOdata powers(2);

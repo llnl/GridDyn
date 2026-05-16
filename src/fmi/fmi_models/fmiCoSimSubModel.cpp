@@ -24,19 +24,19 @@ namespace griddyn::fmi {
 
 [[maybe_unused]] static constexpr bool unimplemented = false;
 
-fmiCoSimSubModel::fmiCoSimSubModel(const std::string& newName,
+FmiCoSimSubModel::FmiCoSimSubModel(const std::string& newName,
                                    std::shared_ptr<Fmi2CoSimObject> fmi):
     gridSubModel(newName), cs(std::move(fmi))
 {
 }
 
-fmiCoSimSubModel::fmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi): cs(std::move(fmi)) {}
+FmiCoSimSubModel::FmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi): cs(std::move(fmi)) {}
 
-fmiCoSimSubModel::~fmiCoSimSubModel() = default;
+FmiCoSimSubModel::~FmiCoSimSubModel() = default;
 
-coreObject* fmiCoSimSubModel::clone(coreObject* obj) const
+coreObject* FmiCoSimSubModel::clone(coreObject* obj) const
 {
-    auto* gco = cloneBase<fmiCoSimSubModel, gridSubModel>(this, obj);
+    auto* gco = cloneBase<FmiCoSimSubModel, gridSubModel>(this, obj);
     if (gco == nullptr) {
         return obj;
     }
@@ -44,12 +44,12 @@ coreObject* fmiCoSimSubModel::clone(coreObject* obj) const
     return gco;
 }
 
-bool fmiCoSimSubModel::isLoaded() const
+bool FmiCoSimSubModel::isLoaded() const
 {
     return static_cast<bool>(cs);
 }
 
-void fmiCoSimSubModel::dynObjectInitializeA(coreTime time, std::uint32_t flags)
+void FmiCoSimSubModel::dynObjectInitializeA(coreTime time, std::uint32_t flags)
 {
     if (CHECK_CONTROLFLAG(force_constant_pflow_initialization, flags)) {
         opFlags.set(pflow_init_required);
@@ -57,7 +57,7 @@ void fmiCoSimSubModel::dynObjectInitializeA(coreTime time, std::uint32_t flags)
     prevTime = time;
 }
 
-void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
+void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
                                             const IOdata& /*desiredOutput*/,
                                             IOdata& /*fieldSet*/)
 {
@@ -123,7 +123,7 @@ void fmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
 static const char paramString[] = "params";
 static const char inputString[] = "inputs";
 
-void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
     int strpcnt = 0;
     const auto* info = cs->fmuInformation();
@@ -227,17 +227,17 @@ void fmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
     }
 }
 
-stringVec fmiCoSimSubModel::getOutputNames() const
+stringVec FmiCoSimSubModel::getOutputNames() const
 {
     return cs->getOutputNames();
 }
 
-stringVec fmiCoSimSubModel::getInputNames() const
+stringVec FmiCoSimSubModel::getInputNames() const
 {
     return cs->getInputNames();
 }
 
-void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
+void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::stringOps::splitline;
     using gmlc::utilities::stringOps::trim;
@@ -245,7 +245,7 @@ void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
     if ((param == "fmu") || (param == "file")) {
         if (!(cs)) {
             cs =
-                fmiLibraryManager::instance().createCoSimulationObject(std::string{val}, getName());
+                FmiLibraryManager::instance().createCoSimulationObject(std::string{val}, getName());
         } else {
             // return INVALID_PARAMETER_VALUE;
             return;
@@ -273,7 +273,7 @@ void fmiCoSimSubModel::set(std::string_view param, std::string_view val)
     }
 }
 static const char localIntegrationtimeString[] = "localintegrationtime";
-void fmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
+void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == localIntegrationtimeString)) {
         localIntegrationTime = val;
@@ -289,7 +289,7 @@ void fmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
     }
 }
 
-double fmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
+double FmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 {
     if (param == localIntegrationtimeString) {
         return localIntegrationTime;
@@ -300,7 +300,7 @@ double fmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
     return gridSubModel::get(param, unitType);
 }
 
-double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/)
+double FmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/)
 {
     double res = 0.0;
     const double ich = 1.0;
@@ -412,7 +412,7 @@ double fmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/
     return res;
 }
 
-void fmiCoSimSubModel::timestep(coreTime /*time*/,
+void FmiCoSimSubModel::timestep(coreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const solverMode& /*sMode*/)
 {
@@ -465,7 +465,7 @@ return out;
 */
 }
 
-void fmiCoSimSubModel::ioPartialDerivatives(const IOdata& /*inputs*/,
+void FmiCoSimSubModel::ioPartialDerivatives(const IOdata& /*inputs*/,
                                             const stateData& /*sD*/,
                                             matrixData<double>& /* md*/,
                                             const IOlocs& /*inputLocs*/,
@@ -510,7 +510,7 @@ for (kk = 0; kk < m_outputSize; ++kk)
 */
 }
 
-IOdata fmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
+IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
                                     const stateData& sD,
                                     const solverMode& sMode) const
 {
@@ -539,7 +539,7 @@ IOdata fmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
     return out;
 }
 
-double fmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
+double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
                                    const stateData& /*sD*/,
                                    const solverMode& /*sMode*/,
                                    index_t /*outputNum*/) const
@@ -547,7 +547,7 @@ double fmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
     return 0;
 }
 
-double fmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
+double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
                                    const stateData& sD,
                                    const solverMode& sMode,
                                    index_t outputNum) const
@@ -571,7 +571,7 @@ double fmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
     return out;
 }
 
-double fmiCoSimSubModel::getOutput(index_t outputNum) const
+double FmiCoSimSubModel::getOutput(index_t outputNum) const
 {
     double out = kNullVal;
     if (cs->getCurrentMode() >= FmuMode::initializationMode) {
@@ -580,7 +580,7 @@ double fmiCoSimSubModel::getOutput(index_t outputNum) const
     return out;
 }
 
-void fmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
+void FmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
                                         [[maybe_unused]] const stateData& sD,
                                         [[maybe_unused]] const solverMode& sMode)
 {
@@ -635,14 +635,14 @@ else if (!inputs.empty())
 */
 }
 
-void fmiCoSimSubModel::makeSettableState()
+void FmiCoSimSubModel::makeSettableState()
 {
     if (opFlags[dyn_initialized]) {
         // prevFmiState = cs->getCurrentMode();
         cs->setMode(FmuMode::eventMode);
     }
 }
-void fmiCoSimSubModel::resetState()
+void FmiCoSimSubModel::resetState()
 {
     if (opFlags[dyn_initialized]) {
         // if (prevFmiState == cs->getCurrentMode())
@@ -653,7 +653,7 @@ void fmiCoSimSubModel::resetState()
     }
 }
 
-void fmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
+void FmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
 {
     // double pd;
     // int ct = 0;

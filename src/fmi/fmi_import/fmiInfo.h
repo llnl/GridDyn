@@ -131,7 +131,7 @@ class FmiVariableSet {
 
 class readerElement;
 /** class to extract and store the information in an FMU XML file*/
-class fmiInfo {
+class FmiInfo {
   private:
     std::map<std::string, std::string> headerInfo;  //!< the header information contained in strings
     double fmiVersion = 0.0;  //!< the fmi version used
@@ -159,8 +159,8 @@ class fmiInfo {
     std::vector<int> initUnknown;  //!< a list of the unknowns
     std::vector<int> inputs;  //!< a list of the inputs
   public:
-    fmiInfo();
-    explicit fmiInfo(const std::string& xmlFile);
+    FmiInfo();
+    explicit FmiInfo(const std::string& xmlFile);
     int loadFile(const std::string& xmlFile);
     /** check if a given flag is set*/
     bool checkFlag(FmuCapabilityFlags flag) const;

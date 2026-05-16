@@ -40,21 +40,21 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 // create the component factories
 
 namespace griddyn {
-static childTypeFactory<fmi::fmiMELoad, Load>
+static childTypeFactory<fmi::FmiMELoad, Load>
     fmild("load", std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
-static childTypeFactory<fmi::fmiCoSimLoad, Load>
+static childTypeFactory<fmi::FmiCoSimLoad, Load>
     fmiCSld("load", std::to_array<std::string_view>({"fmicosimload", "cosim"}));
-static childTypeFactory<fmi::fmiCoSimLoad3phase, Load>
+static childTypeFactory<fmi::FmiCoSimLoad3phase, Load>
     fmiCSld3("load", std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
-static childTypeFactory<fmi::fmiMELoad3phase, Load>
+static childTypeFactory<fmi::FmiMELoad3phase, Load>
     fmiMEld3("load",
              std::to_array<std::string_view>(
                  {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
-static childTypeFactory<fmi::fmiGovernor, Governor>
+static childTypeFactory<fmi::FmiGovernor, Governor>
     fmiGov("governor", std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
-static childTypeFactory<fmi::fmiExciter, Exciter>
+static childTypeFactory<fmi::FmiExciter, Exciter>
     fmiExciter("exciter", std::to_array<std::string_view>({"fmiexiter", "fmi"}));
-static childTypeFactory<fmi::fmiGenModel, GenModel>
+static childTypeFactory<fmi::FmiGenModel, GenModel>
     fmiGM("genmodel", std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
 static childTypeFactory<fmi::CymeDistLoadME, Load>
     cymeME("load", std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
@@ -72,9 +72,9 @@ void loadFmiLibrary()
 
 // Someday I will get plugins to work
 namespace fmi_plugin_namespace {
-class fmiPlugin: public gridDynPlugInApi {
+class FmiPlugin: public gridDynPlugInApi {
     static std::vector<std::shared_ptr<griddyn::objectFactory>> fmiFactories;
-    fmiPlugin() = default;
+    FmiPlugin() = default;
 
   public:
     std::string name() const override { return "fmi"; }
@@ -82,23 +82,23 @@ class fmiPlugin: public gridDynPlugInApi {
     void load() override
     {
         auto b =
-            std::make_shared<griddyn::childTypeFactory<griddyn::fmi::fmiMELoad, griddyn::Load>>(
+            std::make_shared<griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::Load>>(
                 "load", griddyn::stringVec{"fmiload", "fmi"});
         fmiFactories.push_back(b);
     }
 
     void load(const std::string& /*section*/) override { load(); }
     // Factory method
-    static std::shared_ptr<fmiPlugin> create()
+    static std::shared_ptr<FmiPlugin> create()
     {
-        return std::shared_ptr<fmiPlugin>(new fmiPlugin());
+        return std::shared_ptr<FmiPlugin>(new FmiPlugin());
     }
 };
 
-std::vector<std::shared_ptr<griddyn::objectFactory>> fmiPlugin::fmiFactories;
+std::vector<std::shared_ptr<griddyn::objectFactory>> FmiPlugin::fmiFactories;
 
 /*BOOST_DLL_ALIAS(
-    fmi_plugin_namespace::fmiPlugin::create, // <-- this function is exported with...
+    fmi_plugin_namespace::FmiPlugin::create, // <-- this function is exported with...
     load_plugin                               // <-- ...this alias name
 )*/
 

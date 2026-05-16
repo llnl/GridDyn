@@ -14,11 +14,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiGenModel::fmiGenModel(const std::string& objName): fmiMEWrapper<GenModel>(objName) {}
+FmiGenModel::FmiGenModel(const std::string& objName): FmiMEWrapper<GenModel>(objName) {}
 
-coreObject* fmiGenModel::clone(coreObject* obj) const
+coreObject* FmiGenModel::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<fmiGenModel, fmiMEWrapper<GenModel>>(this, obj);
+    auto nobj = cloneBase<FmiGenModel, FmiMEWrapper<GenModel>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -26,19 +26,19 @@ coreObject* fmiGenModel::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiGenModel::set(std::string_view param, std::string_view val)
+void FmiGenModel::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<GenModel>::set(param, val);
+        FmiMEWrapper<GenModel>::set(param, val);
     }
 }
 
-void fmiGenModel::set(std::string_view param, double val, units::unit unitType)
+void FmiGenModel::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<GenModel>::set(param, val, unitType);
+        FmiMEWrapper<GenModel>::set(param, val, unitType);
     }
 }
 

@@ -18,7 +18,7 @@
 namespace griddyn::fmi {
 std::atomic<int> CymeDistLoadME::indexCounter{0};
 
-CymeDistLoadME::CymeDistLoadME(const std::string& objName): fmiMELoad3phase(objName)
+CymeDistLoadME::CymeDistLoadME(const std::string& objName): FmiMELoad3phase(objName)
 {
     opFlags.set(CURRENT_OUTPUT);
     configIndex = indexCounter++;
@@ -39,7 +39,7 @@ void CymeDistLoadME::set(std::string_view param, std::string_view val)
         const std::string sparam{param};
         const std::string sval{val};
         std::println("setting parameter {} to {}", sparam, sval);
-        fmiMELoad3phase::set(param, val);
+        FmiMELoad3phase::set(param, val);
     }
 }
 
@@ -48,7 +48,7 @@ void CymeDistLoadME::set(std::string_view param, double val, units::unit unitTyp
     if ((param == "configindex") || (param == "config")) {
         configIndex = static_cast<int>(val);
     } else {
-        fmiMELoad3phase::set(param, val, unitType);
+        FmiMELoad3phase::set(param, val, unitType);
     }
 }
 
@@ -83,14 +83,14 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     if (model.is_object()) {
         auto fmu_path = model["fmu_path"].get<std::string>();
         std::println(stderr, "setting fmu_path to {}", fmu_path);
-        fmiMELoad3phase::set("fmu", fmu_path);
+        FmiMELoad3phase::set("fmu", fmu_path);
         logging::debug(this, "setting fmu to {}", model["fmu_path"].get<std::string>());
 
         if (model.contains("fmu_config_path")) {
             auto config_path = model["fmu_config_path"].get<std::string>();
             std::println(stderr, "fmu config_path={}", config_path);
             if (config_path.size() > 5) {
-                fmiMELoad3phase::set("_configurationFileName", config_path);
+                FmiMELoad3phase::set("_configurationFileName", config_path);
                 logging::debug(this, "setting config file to {}", config_path);
             }
         }

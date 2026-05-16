@@ -16,23 +16,23 @@
 #include <vector>
 
 namespace griddyn::fmi {
-fmiCoSimLoad3phase::fmiCoSimLoad3phase(const std::string& objName):
-    fmiCoSimWrapper<loads::ThreePhaseLoad>(objName)
+FmiCoSimLoad3phase::FmiCoSimLoad3phase(const std::string& objName):
+    FmiCoSimWrapper<loads::ThreePhaseLoad>(objName)
 {
     opFlags.set(three_phase_input);
     opFlags.set(three_phase_output);
 }
 
-coreObject* fmiCoSimLoad3phase::clone(coreObject* obj) const
+coreObject* FmiCoSimLoad3phase::clone(coreObject* obj) const
 {
-    auto* nobj = cloneBase<fmiCoSimLoad3phase, fmiCoSimWrapper<loads::ThreePhaseLoad>>(this, obj);
+    auto* nobj = cloneBase<FmiCoSimLoad3phase, FmiCoSimWrapper<loads::ThreePhaseLoad>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
     return nobj;
 }
 
-void fmiCoSimLoad3phase::setFlag(std::string_view flag, bool val)
+void FmiCoSimLoad3phase::setFlag(std::string_view flag, bool val)
 {
     if (flag == "current_output") {
         opFlags[CURRENT_OUTPUT] = val;
@@ -46,26 +46,26 @@ void fmiCoSimLoad3phase::setFlag(std::string_view flag, bool val)
     } else if ((flag == "ignore_voltage_angle") || (flag == "ignore_angle")) {
         opFlags[IGNORE_VOLTAGE_ANGLE] = val;
     } else {
-        fmiCoSimWrapper<loads::ThreePhaseLoad>::setFlag(flag, val);
+        FmiCoSimWrapper<loads::ThreePhaseLoad>::setFlag(flag, val);
     }
 }
 
-void fmiCoSimLoad3phase::set(std::string_view param, std::string_view val)
+void FmiCoSimLoad3phase::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        fmiCoSimWrapper<loads::ThreePhaseLoad>::set(param, val);
+        FmiCoSimWrapper<loads::ThreePhaseLoad>::set(param, val);
     }
 }
-void fmiCoSimLoad3phase::set(std::string_view param, double val, units::unit unitType)
+void FmiCoSimLoad3phase::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        fmiCoSimWrapper<loads::ThreePhaseLoad>::set(param, val, unitType);
+        FmiCoSimWrapper<loads::ThreePhaseLoad>::set(param, val, unitType);
     }
 }
 
-void fmiCoSimLoad3phase::setState(coreTime time,
+void FmiCoSimLoad3phase::setState(coreTime time,
                                   const double state[],
                                   const double dstate_dt[],
                                   const solverMode& sMode)
@@ -108,7 +108,7 @@ current_output = object_flag10,
 complex_output = object_flag11,
 */
 
-const std::vector<stringVec>& fmiCoSimLoad3phase::fmiInputNames() const
+const std::vector<stringVec>& FmiCoSimLoad3phase::fmiInputNames() const
 {
     if (opFlags[IGNORE_VOLTAGE_ANGLE]) {
         return inputNamesStr3phaseVoltageOnly();
@@ -147,7 +147,7 @@ namespace {
     }
 }  // namespace
 
-const std::vector<stringVec>& fmiCoSimLoad3phase::fmiOutputNames() const
+const std::vector<stringVec>& FmiCoSimLoad3phase::fmiOutputNames() const
 {
     if (opFlags[CURRENT_OUTPUT]) {
         return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrCurrentOutput() :

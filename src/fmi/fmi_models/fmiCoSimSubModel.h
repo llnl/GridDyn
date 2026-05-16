@@ -18,7 +18,7 @@ class OutputEstimator;
 
 namespace griddyn::fmi {
 /** class defining a subModel interacting with an FMU v2.0 object using cosimulation*/
-class fmiCoSimSubModel: public gridSubModel {
+class FmiCoSimSubModel: public gridSubModel {
   public:
     enum fmiSubModelFlags {
         use_output_estimator = object_flag2,
@@ -36,11 +36,11 @@ class fmiCoSimSubModel: public gridSubModel {
     int lastSeqID = 0;
 
   public:
-    fmiCoSimSubModel(const std::string& newName = "fmicosimsubmodel_#",
+    FmiCoSimSubModel(const std::string& newName = "fmicosimsubmodel_#",
                      std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
 
-    fmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
-    virtual ~fmiCoSimSubModel();
+    FmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
+    virtual ~FmiCoSimSubModel();
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

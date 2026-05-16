@@ -24,41 +24,41 @@ using std::filesystem::exists;
 using std::filesystem::is_directory;
 using std::filesystem::path;
 
-fmiLibrary::fmiLibrary()
+FmiLibrary::FmiLibrary()
 {
-    information = std::make_shared<fmiInfo>();
+    information = std::make_shared<FmiInfo>();
 }
 
-fmiLibrary::fmiLibrary(const std::string& fmupath): fmiLibrary()
+FmiLibrary::FmiLibrary(const std::string& fmupath): FmiLibrary()
 {
     loadFMU(fmupath);
 }
 
-fmiLibrary::fmiLibrary(const std::string& fmupath, const std::string& extractPath):
+FmiLibrary::FmiLibrary(const std::string& fmupath, const std::string& extractPath):
     extractDirectory(extractPath), fmuName(fmupath)
 {
-    information = std::make_shared<fmiInfo>();
+    information = std::make_shared<FmiInfo>();
     if (!exists(extractDirectory)) {
         create_directories(extractDirectory);
     }
     loadInformation();
 }
 
-fmiLibrary::~fmiLibrary() = default;
+FmiLibrary::~FmiLibrary() = default;
 
-void fmiLibrary::close()
+void FmiLibrary::close()
 {
     soMeLoaded = false;
     soCoSimLoaded = false;
     lib = nullptr;
 }
 
-bool fmiLibrary::checkFlag(FmuCapabilityFlags flag) const
+bool FmiLibrary::checkFlag(FmuCapabilityFlags flag) const
 {
     return information->checkFlag(flag);
 }
 
-bool fmiLibrary::isSoLoaded(FmuType type) const
+bool FmiLibrary::isSoLoaded(FmuType type) const
 {
     switch (type) {
         case FmuType::MODEL_EXCHANGE:
@@ -70,7 +70,7 @@ bool fmiLibrary::isSoLoaded(FmuType type) const
     }
 }
 
-void fmiLibrary::loadFMU(const std::string& fmupath)
+void FmiLibrary::loadFMU(const std::string& fmupath)
 {
     path ipath(fmupath);
     if (is_directory(ipath)) {
@@ -82,14 +82,14 @@ void fmiLibrary::loadFMU(const std::string& fmupath)
     loadInformation();
 }
 
-void fmiLibrary::loadFMU(const std::string& fmupath, const std::string& extractPath)
+void FmiLibrary::loadFMU(const std::string& fmupath, const std::string& extractPath)
 {
     extractDirectory = extractPath;
     fmuName = fmupath;
     loadInformation();
 }
 
-int fmiLibrary::getCounts(const std::string& countType) const
+int FmiLibrary::getCounts(const std::string& countType) const
 {
     int cnt{-1};
     if (countType == "meobjects") {
@@ -106,7 +106,7 @@ int fmiLibrary::getCounts(const std::string& countType) const
     return cnt;
 }
 
-void fmiLibrary::loadInformation()
+void FmiLibrary::loadInformation()
 {
     auto xmlfile = extractDirectory / "modelDescription.xml";
     if (!exists(xmlfile)) {
@@ -130,7 +130,7 @@ void fmiLibrary::loadInformation()
     }
 }
 
-std::string fmiLibrary::getTypes() const
+std::string FmiLibrary::getTypes() const
 {
     if (isSoLoaded()) {
         return {baseFunctions.fmi2GetTypesPlatform()};
@@ -138,7 +138,7 @@ std::string fmiLibrary::getTypes() const
     return {};
 }
 
-std::string fmiLibrary::getVersion() const
+std::string FmiLibrary::getVersion() const
 {
     if (isSoLoaded()) {
         return {baseFunctions.fmi2GetVersion()};
@@ -146,7 +146,7 @@ std::string fmiLibrary::getVersion() const
     return {};
 }
 
-int fmiLibrary::extract()
+int FmiLibrary::extract()
 {
     const int ret = utilities::unzip(fmuName.string(), extractDirectory.string());
     if (ret != 0) {
@@ -156,7 +156,7 @@ int fmiLibrary::extract()
 }
 
 std::unique_ptr<Fmi2ModelExchangeObject>
-    fmiLibrary::createModelExchangeObject(const std::string& name)
+    FmiLibrary::createModelExchangeObject(const std::string& name)
 {
     if (!isSoLoaded()) {
         loadSharedLibrary(FmuType::MODEL_EXCHANGE);
@@ -184,7 +184,7 @@ std::unique_ptr<Fmi2ModelExchangeObject>
     return nullptr;
 }
 
-std::unique_ptr<Fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std::string& name)
+std::unique_ptr<Fmi2CoSimObject> FmiLibrary::createCoSimulationObject(const std::string& name)
 {
     if (!isSoLoaded()) {
         loadSharedLibrary(FmuType::COSIMULATION);
@@ -209,7 +209,7 @@ std::unique_ptr<Fmi2CoSimObject> fmiLibrary::createCoSimulationObject(const std:
     return nullptr;
 }
 
-void fmiLibrary::loadSharedLibrary(FmuType type)
+void FmiLibrary::loadSharedLibrary(FmuType type)
 {
     if (isSoLoaded()) {
         return;
@@ -242,7 +242,7 @@ void fmiLibrary::loadSharedLibrary(FmuType type)
     }
 }
 
-path fmiLibrary::findSoPath(FmuType type)
+path FmiLibrary::findSoPath(FmuType type)
 {
     path sopath = extractDirectory / "binaries";
 
@@ -318,7 +318,7 @@ path fmiLibrary::findSoPath(FmuType type)
     return {};
 }
 
-void fmiLibrary::loadBaseFunctions()
+void FmiLibrary::loadBaseFunctions()
 {
     baseFunctions.fmi2GetVersion = lib->get<fmi2GetVersionTYPE>("fmi2GetVersion");
     baseFunctions.fmi2GetTypesPlatform = lib->get<fmi2GetTypesPlatformTYPE>("fmi2GetTypesPlatform");
@@ -326,9 +326,9 @@ void fmiLibrary::loadBaseFunctions()
 }
 
 // TODO(PT): move these to the constructors of the function libraries
-void fmiLibrary::loadCommonFunctions()
+void FmiLibrary::loadCommonFunctions()
 {
-    commonFunctions = std::make_shared<fmiCommonFunctions>();
+    commonFunctions = std::make_shared<FmiCommonFunctions>();
 
     commonFunctions->lib = lib;
     commonFunctions->fmi2SetDebugLogging = lib->get<fmi2SetDebugLoggingTYPE>("fmi2SetDebugLogging");
@@ -372,9 +372,9 @@ void fmiLibrary::loadCommonFunctions()
     commonFunctions->fmi2GetDirectionalDerivative =
         lib->get<fmi2GetDirectionalDerivativeTYPE>("fmi2GetDirectionalDerivative");
 }
-void fmiLibrary::loadModelExchangeFunctions()
+void FmiLibrary::loadModelExchangeFunctions()
 {
-    ModelExchangeFunctions = std::make_shared<fmiModelExchangeFunctions>();
+    ModelExchangeFunctions = std::make_shared<FmiModelExchangeFunctions>();
 
     ModelExchangeFunctions->lib = lib;
     ModelExchangeFunctions->fmi2EnterEventMode =
@@ -401,9 +401,9 @@ void fmiLibrary::loadModelExchangeFunctions()
     ModelExchangeFunctions->fmi2GetNominalsOfContinuousStates =
         lib->get<fmi2GetNominalsOfContinuousStatesTYPE>("fmi2GetNominalsOfContinuousStates");
 }
-void fmiLibrary::loadCoSimFunctions()
+void FmiLibrary::loadCoSimFunctions()
 {
-    CoSimFunctions = std::make_shared<fmiCoSimFunctions>();
+    CoSimFunctions = std::make_shared<FmiCoSimFunctions>();
     CoSimFunctions->lib = lib;
     CoSimFunctions->fmi2SetRealInputDerivatives =
         lib->get<fmi2SetRealInputDerivativesTYPE>("fmi2SetRealInputDerivatives");
@@ -423,7 +423,7 @@ void fmiLibrary::loadCoSimFunctions()
     CoSimFunctions->fmi2GetStringStatus = lib->get<fmi2GetStringStatusTYPE>("fmi2GetStringStatus");
 }
 
-void fmiLibrary::makeCallbackFunctions()
+void FmiLibrary::makeCallbackFunctions()
 {
     callbacks = std::make_shared<fmi2CallbackFunctions_nc>();
     callbacks->allocateMemory = &calloc;

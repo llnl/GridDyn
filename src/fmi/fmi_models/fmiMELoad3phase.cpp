@@ -17,23 +17,23 @@
 #include <vector>
 
 namespace griddyn::fmi {
-fmiMELoad3phase::fmiMELoad3phase(const std::string& objName):
-    fmiMEWrapper<loads::ThreePhaseLoad>(objName)
+FmiMELoad3phase::FmiMELoad3phase(const std::string& objName):
+    FmiMEWrapper<loads::ThreePhaseLoad>(objName)
 {
     loads::ThreePhaseLoad::setFlag("three_phase_input");
     loads::ThreePhaseLoad::setFlag("three_phase_output");
 }
 
-coreObject* fmiMELoad3phase::clone(coreObject* obj) const
+coreObject* FmiMELoad3phase::clone(coreObject* obj) const
 {
-    auto* nobj = cloneBase<fmiMELoad3phase, fmiMEWrapper<loads::ThreePhaseLoad>>(this, obj);
+    auto* nobj = cloneBase<FmiMELoad3phase, FmiMEWrapper<loads::ThreePhaseLoad>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
     return nobj;
 }
 
-void fmiMELoad3phase::setFlag(std::string_view flag, bool val)
+void FmiMELoad3phase::setFlag(std::string_view flag, bool val)
 {
     if (flag == "current_output") {
         opFlags[CURRENT_OUTPUT] = val;
@@ -47,26 +47,26 @@ void fmiMELoad3phase::setFlag(std::string_view flag, bool val)
     } else if ((flag == "ignore_voltage_angle") || (flag == "ignore_angle")) {
         opFlags[IGNORE_VOLTAGE_ANGLE] = val;
     } else {
-        fmiMEWrapper<loads::ThreePhaseLoad>::setFlag(flag, val);
+        FmiMEWrapper<loads::ThreePhaseLoad>::setFlag(flag, val);
     }
 }
 
-void fmiMELoad3phase::set(std::string_view param, std::string_view val)
+void FmiMELoad3phase::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<loads::ThreePhaseLoad>::set(param, val);
+        FmiMEWrapper<loads::ThreePhaseLoad>::set(param, val);
     }
 }
-void fmiMELoad3phase::set(std::string_view param, double val, units::unit unitType)
+void FmiMELoad3phase::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<loads::ThreePhaseLoad>::set(param, val, unitType);
+        FmiMEWrapper<loads::ThreePhaseLoad>::set(param, val, unitType);
     }
 }
 
-void fmiMELoad3phase::setState(coreTime time,
+void FmiMELoad3phase::setState(coreTime time,
                                const double state[],
                                const double dstate_dt[],
                                const solverMode& sMode)
@@ -77,7 +77,7 @@ void fmiMELoad3phase::setState(coreTime time,
     setQ(out[QoutLocation]);
 }
 
-void fmiMELoad3phase::updateLocalCache(const IOdata& inputs,
+void FmiMELoad3phase::updateLocalCache(const IOdata& inputs,
                                        const stateData& stateDataRef,
                                        const solverMode& sMode)
 {
@@ -131,7 +131,7 @@ current_output = object_flag10,
 complex_output = object_flag11,
 */
 
-const std::vector<stringVec>& fmiMELoad3phase::fmiInputNames() const
+const std::vector<stringVec>& FmiMELoad3phase::fmiInputNames() const
 {
     if (opFlags[IGNORE_VOLTAGE_ANGLE]) {
         return inputNamesStr3phaseVoltageOnly();
@@ -170,7 +170,7 @@ namespace {
     }
 }  // namespace
 
-const std::vector<stringVec>& fmiMELoad3phase::fmiOutputNames() const
+const std::vector<stringVec>& FmiMELoad3phase::fmiOutputNames() const
 {
     if (opFlags[CURRENT_OUTPUT]) {
         return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrComplexCurrentOutput() :

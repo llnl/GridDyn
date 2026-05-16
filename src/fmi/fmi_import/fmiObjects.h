@@ -46,8 +46,8 @@ class Fmi2Object {
         false;  //!< flag indicating that an exception should be thrown on a fmiWarning
   public:
     Fmi2Object(fmi2Component cmp,
-               std::shared_ptr<const fmiInfo> keyInfo,
-               std::shared_ptr<const fmiCommonFunctions> comFunc);
+               std::shared_ptr<const FmiInfo> keyInfo,
+               std::shared_ptr<const FmiCommonFunctions> comFunc);
     virtual ~Fmi2Object();
     void setupExperiment(fmi2Boolean toleranceDefined,
                          fmi2Real tolerance,
@@ -164,7 +164,7 @@ class Fmi2Object {
 
     FmiVariableSet getVariableSet(const std::string& variable) const;
     FmiVariableSet getVariableSet(int index) const;
-    const fmiInfo* fmuInformation() const { return info.get(); }
+    const FmiInfo* fmuInformation() const { return info.get(); }
     int inputSize() const { return static_cast<int>(activeInputs.getVRcount()); }
     int outputSize() const { return static_cast<int>(activeOutputs.getVRcount()); }
 
@@ -173,7 +173,7 @@ class Fmi2Object {
 
     bool isParameter(const std::string& param, FmiVariableType type = FmiVariableType::numeric);
     bool isVariable(const std::string& var, FmiVariableType type = FmiVariableType::numeric);
-    std::shared_ptr<const fmiCommonFunctions> getFmiCommonFunctions() const
+    std::shared_ptr<const FmiCommonFunctions> getFmiCommonFunctions() const
     {
         return commonFunctions;
     }
@@ -183,7 +183,7 @@ class Fmi2Object {
   protected:
     fmi2Component comp;
     FmuMode currentMode = FmuMode::instantiatedMode;
-    std::shared_ptr<const fmiInfo> info;
+    std::shared_ptr<const FmiInfo> info;
     // structures for maintaining the inputs and outputs
     FmiVariableSet activeInputs;
     std::vector<int> activeInputIndices;
@@ -197,7 +197,7 @@ class Fmi2Object {
     void setDefaultOutputs();
 
   private:
-    std::shared_ptr<const fmiCommonFunctions> commonFunctions;
+    std::shared_ptr<const FmiCommonFunctions> commonFunctions;
 };
 
 /** template overload for getting strings*/
@@ -208,9 +208,9 @@ std::string Fmi2Object::get<std::string>(const std::string& param) const;
 class Fmi2ModelExchangeObject: public Fmi2Object {
   public:
     Fmi2ModelExchangeObject(fmi2Component cmp,
-                            std::shared_ptr<const fmiInfo> keyInfo,
-                            std::shared_ptr<const fmiCommonFunctions> comFunc,
-                            std::shared_ptr<const fmiModelExchangeFunctions> meFunc);
+                            std::shared_ptr<const FmiInfo> keyInfo,
+                            std::shared_ptr<const FmiCommonFunctions> comFunc,
+                            std::shared_ptr<const FmiModelExchangeFunctions> meFunc);
     void newDiscreteStates(fmi2EventInfo* fmi2eventInfo);
     /** call for a completed integrator step
     @param[in] noSetFMUStatePriorToCurrentPoint flag indicating that the state will not be updated
@@ -246,7 +246,7 @@ class Fmi2ModelExchangeObject: public Fmi2Object {
     size_t getNumberOfIndicators() const { return numIndicators; }
     /** get a pointer to the model exchange functions from the library
      */
-    std::shared_ptr<const fmiModelExchangeFunctions> getModelExchangeFunctions() const
+    std::shared_ptr<const FmiModelExchangeFunctions> getModelExchangeFunctions() const
     {
         return ModelExchangeFunctions;
     }
@@ -258,7 +258,7 @@ class Fmi2ModelExchangeObject: public Fmi2Object {
     size_t numStates = 0;  //!< the number of states in the FMU
     size_t numIndicators = 0;  //!< the number of event Indicators in the FMU
     bool hasTime = true;  //!< flag indicating that there is a time variable in the system
-    std::shared_ptr<const fmiModelExchangeFunctions>
+    std::shared_ptr<const FmiModelExchangeFunctions>
         ModelExchangeFunctions;  //!< pointer the library model exchange functions
 };
 
@@ -267,9 +267,9 @@ class Fmi2CoSimObject: public Fmi2Object {
   public:
     /**constructor*/
     Fmi2CoSimObject(fmi2Component cmp,
-                    std::shared_ptr<const fmiInfo> keyInfo,
-                    std::shared_ptr<const fmiCommonFunctions> comFunc,
-                    std::shared_ptr<const fmiCoSimFunctions> csFunc);
+                    std::shared_ptr<const FmiInfo> keyInfo,
+                    std::shared_ptr<const FmiCommonFunctions> comFunc,
+                    std::shared_ptr<const FmiCoSimFunctions> csFunc);
     /** set the input derivatives of particular order
     @param[in] order the derivative order to set
     @param[in] dIdt the input derivatives must be of the size as the number of inputs
@@ -298,12 +298,12 @@ class Fmi2CoSimObject: public Fmi2Object {
     /** get the status string*/
     std::string getStatus() const;
 
-    std::shared_ptr<const fmiCoSimFunctions> getCoSimulationFunctions() const
+    std::shared_ptr<const FmiCoSimFunctions> getCoSimulationFunctions() const
     {
         return CoSimFunctions;
     }
 
   private:
-    std::shared_ptr<const fmiCoSimFunctions> CoSimFunctions;
+    std::shared_ptr<const FmiCoSimFunctions> CoSimFunctions;
     bool stepPending;
 };

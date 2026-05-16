@@ -15,11 +15,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiCoSimLoad::fmiCoSimLoad(const std::string& objName): fmiCoSimWrapper<Load>(objName) {}
+FmiCoSimLoad::FmiCoSimLoad(const std::string& objName): FmiCoSimWrapper<Load>(objName) {}
 
-coreObject* fmiCoSimLoad::clone(coreObject* obj) const
+coreObject* FmiCoSimLoad::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<fmiCoSimLoad, fmiCoSimWrapper<Load>>(this, obj);
+    auto nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<Load>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -27,7 +27,7 @@ coreObject* fmiCoSimLoad::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (fmisub->isLoaded()) {
         setupFmiIo();
@@ -42,20 +42,20 @@ void fmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         disable();
     }
 }
-void fmiCoSimLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiCoSimLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     fmisub->dynInitializeA(time0, flags);
     // zipLoad::dynObjectInitializeA(time0, flags);
 }
 
-void fmiCoSimLoad::dynObjectInitializeB(const IOdata& inputs,
+void FmiCoSimLoad::dynObjectInitializeB(const IOdata& inputs,
                                         const IOdata& desiredOutput,
                                         IOdata& fieldSet)
 {
     fmisub->dynInitializeB(inputs, desiredOutput, fieldSet);
 }
 
-void fmiCoSimLoad::setState(coreTime time,
+void FmiCoSimLoad::setState(coreTime time,
                             const double state[],
                             const double dstate_dt[],
                             const solverMode& sMode)

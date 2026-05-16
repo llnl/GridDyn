@@ -11,11 +11,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiMESubModel;
+class FmiMESubModel;
 
-class fmiGenModel: public fmiMEWrapper<GenModel> {
+class FmiGenModel: public FmiMEWrapper<GenModel> {
   public:
-    fmiGenModel(const std::string& objName = "fmiGenModel_#");
+    FmiGenModel(const std::string& objName = "fmiGenModel_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags) override;
     // virtual void dynObjectInitializeB (const IOdata &inputs, const IOdata &desiredOutput,

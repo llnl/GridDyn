@@ -13,8 +13,8 @@
 #include <vector>
 
 Fmi2Object::Fmi2Object(fmi2Component cmp,
-                       std::shared_ptr<const fmiInfo> keyInfo,
-                       std::shared_ptr<const fmiCommonFunctions> comFunc):
+                       std::shared_ptr<const FmiInfo> keyInfo,
+                       std::shared_ptr<const FmiCommonFunctions> comFunc):
     comp(cmp), info(std::move(keyInfo)), commonFunctions(std::move(comFunc))
 {
 }

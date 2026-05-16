@@ -258,14 +258,14 @@ Types of work in this phase:
 ### Phase 4 Checklist By Subsystem
 
 - [x] `src/networking`
-- [~] `src/fmi`
+- [x] `src/fmi`
 - [x] `src/fmi_export`
 - [x] `src/optimization`
 - [x] `src/griddyn/measurement`
 - [x] `src/griddyn/relays`
 - [x] `src/griddyn/blocks`
 - [x] `src/fileInput`
-- [~] `src/helics`
+- [x] `src/helics`
 - [x] `src/utilities`
 
 ### Examples Of Known Non-Compliant Enum Patterns
@@ -278,6 +278,18 @@ Types of work in this phase:
 
 These examples illustrate the kind of work expected, but the exact rename order
 should follow subsystem boundaries and dependency analysis.
+
+### Phase 4 Closeout
+
+Phase 4 is complete for the planned internal enum and contained-type cleanup
+scope.
+
+Completed Phase 4 work covered:
+
+- subsystem-scoped internal enum normalization
+- contained helper and leaf-type PascalCase renames
+- limited public-type cleanup where include fallout stayed subsystem-bounded
+- associated build and `clang-tidy` cleanup needed to land the renames safely
 
 ## Phase 5: Subsystem Public APIs
 

@@ -11,11 +11,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiMESubModel;
+class FmiMESubModel;
 /** class defining an exciter wrapper for an FMU*/
-class fmiExciter: public fmiMEWrapper<Exciter> {
+class FmiExciter: public FmiMEWrapper<Exciter> {
   public:
-    fmiExciter(const std::string& objName = "fmiExciter_#");
+    FmiExciter(const std::string& objName = "fmiExciter_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;

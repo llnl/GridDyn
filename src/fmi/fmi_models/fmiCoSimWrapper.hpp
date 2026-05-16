@@ -13,12 +13,12 @@
 
 namespace griddyn::fmi {
 template<class BaseObj>
-class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
+class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
   public:
-    fmiCoSimWrapper(const std::string& objName): fmiWrapper<fmiCoSimSubModel, BaseObj>(objName) {}
+    FmiCoSimWrapper(const std::string& objName): FmiWrapper<FmiCoSimSubModel, BaseObj>(objName) {}
     coreObject* clone(coreObject* obj) const override
     {
-        auto nobj = cloneBase<fmiCoSimWrapper, fmiWrapper<fmiCoSimSubModel, BaseObj>>(this, obj);
+        auto nobj = cloneBase<FmiCoSimWrapper, FmiWrapper<FmiCoSimSubModel, BaseObj>>(this, obj);
         if (nobj == nullptr) {
             return obj;
         }
@@ -27,8 +27,8 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
 
     void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
     {
-        if (fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->isLoaded()) {
-            fmiWrapper<fmiCoSimSubModel, BaseObj>::setupFmiIo();
+        if (FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->isLoaded()) {
+            FmiWrapper<FmiCoSimSubModel, BaseObj>::setupFmiIo();
             SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
 
             BaseObj::pFlowObjectInitializeA(time0, flags);
@@ -43,7 +43,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                   double resid[],
                   const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->residual(inputs, sD, resid, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->residual(inputs, sD, resid, sMode);
     }
 
     void derivative(const IOdata& inputs,
@@ -51,7 +51,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                     double deriv[],
                     const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->derivative(inputs, sD, deriv, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->derivative(inputs, sD, deriv, sMode);
     }
 
     void outputPartialDerivatives(const IOdata& inputs,
@@ -59,7 +59,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                                   matrixData<double>& md,
                                   const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->outputPartialDerivatives(inputs,
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->outputPartialDerivatives(inputs,
                                                                                 sD,
                                                                                 md,
                                                                                 sMode);
@@ -70,7 +70,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                               const IOlocs& inputLocs,
                               const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->ioPartialDerivatives(
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->ioPartialDerivatives(
             inputs, sD, md, inputLocs, sMode);
     }
     void jacobianElements(const IOdata& inputs,
@@ -79,7 +79,7 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                           const IOlocs& inputLocs,
                           const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->jacobianElements(
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->jacobianElements(
             inputs, sD, md, inputLocs, sMode);
     }
 
@@ -88,14 +88,14 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                   double roots[],
                   const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->rootTest(inputs, sD, roots, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->rootTest(inputs, sD, roots, sMode);
     }
     void rootTrigger(coreTime time,
                      const IOdata& inputs,
                      const std::vector<int>& rootMask,
                      const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->rootTrigger(time, inputs, rootMask, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->rootTrigger(time, inputs, rootMask, sMode);
     }
 
     void setState(coreTime time,
@@ -103,18 +103,18 @@ class fmiCoSimWrapper: public fmiWrapper<fmiCoSimSubModel, BaseObj> {
                   const double dstate_dt[],
                   const solverMode& sMode) override
     {
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->setState(time, state, dstate_dt, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->setState(time, state, dstate_dt, sMode);
     }
 
     index_t findIndex(std::string_view field, const solverMode& sMode) const override
     {
-        return fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->findIndex(field, sMode);
+        return FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->findIndex(field, sMode);
     }
 
     void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override
     {
         BaseObj::prevTime = time;
-        fmiWrapper<fmiCoSimSubModel, BaseObj>::fmisub->timestep(time, inputs, sMode);
+        FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->timestep(time, inputs, sMode);
     }
 };
 }  // namespace griddyn::fmi

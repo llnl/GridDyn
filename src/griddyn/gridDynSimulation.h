@@ -391,8 +391,8 @@ class gridDynSimulation: public gridSimulation {
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
     @param[in] dstate_dt  the time derivative of the state
-    @param[out] md the matrixData object to store the Jacobian information into
-    @param[in] cj the constant of integration for use in Jacobian elements using derivatives
+    @param[out] matrixDataRef the matrixData object to store the Jacobian information into
+    @param[in] cjValue the constant of integration for use in Jacobian elements using derivatives
     @param[in] sMode the solverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
@@ -424,7 +424,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] values the values for the parameters
     @param[in] state  the state information to evaluation
     @param[in] dstate_dt  the time derivative of the state
-    @param[out] md the matrixData object to store the partial derivatives
+    @param[out] matrixDataRef the matrixData object to store the partial derivatives
     @param[in] sMode the solverMode to use for the computations
     */
     void parameterDerivatives(coreTime time,
@@ -562,7 +562,7 @@ class gridDynSimulation: public gridSimulation {
     */
     void getSolverReady(std::shared_ptr<SolverInterface>& solver);
     /** @brief load a stateData object with extra state information if necessary
-    @param[in] sD the stateData object to load
+    @param[in] stateDataRef the stateData object to load
     @param[in] sMode the solverMode of the state Data object
     */
     void fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const;

@@ -14,11 +14,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiGovernor::fmiGovernor(const std::string& objName): fmiMEWrapper<Governor>(objName) {}
+FmiGovernor::FmiGovernor(const std::string& objName): FmiMEWrapper<Governor>(objName) {}
 
-coreObject* fmiGovernor::clone(coreObject* obj) const
+coreObject* FmiGovernor::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<fmiGovernor, fmiMEWrapper<Governor>>(this, obj);
+    auto* nobj = cloneBase<FmiGovernor, FmiMEWrapper<Governor>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -26,19 +26,19 @@ coreObject* fmiGovernor::clone(coreObject* obj) const
     return nobj;
 }
 
-void fmiGovernor::set(std::string_view param, std::string_view val)
+void FmiGovernor::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<Governor>::set(param, val);
+        FmiMEWrapper<Governor>::set(param, val);
     }
 }
 
-void fmiGovernor::set(std::string_view param, double val, units::unit unitType)
+void FmiGovernor::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        fmiMEWrapper<Governor>::set(param, val, unitType);
+        FmiMEWrapper<Governor>::set(param, val, unitType);
     }
 }
 

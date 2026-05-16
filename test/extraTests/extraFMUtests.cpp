@@ -25,7 +25,7 @@ class ExtraFmuTests: public gridDynSimulationTestFixture, public ::testing::Test
 
 TEST_F(ExtraFmuTests, LoadFmu)
 {
-    fmi::fmiMELoad3phase ld3;
+    fmi::FmiMELoad3phase ld3;
     ld3.set(
         "fmu",
         "C:\\Users\\top1\\Documents\\codeProjects\\griddyn_test_cases\\fmus\\DUMMY_0CYMDIST.fmu");

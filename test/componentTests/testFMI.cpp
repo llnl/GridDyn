@@ -35,7 +35,7 @@ TEST_F(FmiTests, TestFmiXml)  // NOLINT(readability-function-cognitive-complexit
 {
     std::string fmu = std::string{fmu_directory} + "Rectifier.fmu";
     path rectDir(std::string{fmu_directory} + "Rectifier");
-    fmiLibrary rectFmu(fmu);
+    FmiLibrary rectFmu(fmu);
     EXPECT_TRUE(rectFmu.isXmlLoaded());
     EXPECT_EQ(rectFmu.getCounts("states"), 4);
     EXPECT_EQ(rectFmu.getCounts("outputs"), 8);
@@ -55,7 +55,7 @@ TEST_F(FmiTests, TestFmiXml)  // NOLINT(readability-function-cognitive-complexit
     // test second fmu with different load mechanics
     std::string fmu2 = std::string{fmu_directory} + "Rectifier2.fmu";
     path rectDir2(std::string{fmu_directory} + "Rectifier2");
-    fmiLibrary rect2Fmu(fmu2, rectDir2.string());
+    FmiLibrary rect2Fmu(fmu2, rectDir2.string());
     EXPECT_TRUE(rect2Fmu.isXmlLoaded());
     EXPECT_EQ(rect2Fmu.getCounts("states"), 4);
     EXPECT_EQ(rect2Fmu.getCounts("outputs"), 1);
@@ -80,7 +80,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
     std::string fmu = std::string{fmu_directory} + "Rectifier.fmu";
     path rectDir(std::string{fmu_directory} + "Rectifier");
     {
-        fmiLibrary rectFmu(fmu);
+        FmiLibrary rectFmu(fmu);
         rectFmu.loadSharedLibrary();
         ASSERT_TRUE(rectFmu.isSoLoaded());
 
@@ -112,7 +112,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
 TEST_F(FmiTests, Test3phaseFmu)
 {
     std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";
-    fmiLibrary loadFmu(fmu);
+    FmiLibrary loadFmu(fmu);
     EXPECT_TRUE(loadFmu.isXmlLoaded());
     auto states = loadFmu.getCounts("states");
     EXPECT_EQ(states, 0);
@@ -152,7 +152,7 @@ TEST_F(FmiTests, TestFmiApproxLoad)
     using namespace griddyn::loads;
     approximatingLoad apload("apload1");
 
-    auto ld1 = new griddyn::fmi::fmiMELoad3phase("fmload1");
+    auto ld1 = new griddyn::fmi::FmiMELoad3phase("fmload1");
     std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";
     ld1->set("fmu", fmu);
     apload.add(ld1);

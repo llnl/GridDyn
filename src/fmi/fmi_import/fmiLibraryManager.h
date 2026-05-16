@@ -11,28 +11,28 @@
 #include <mutex>
 #include <string>
 
-class fmiLibrary;
+class FmiLibrary;
 class Fmi2ModelExchangeObject;
 class Fmi2CoSimObject;
 
 /** singleton class for managing fmi library objects*/
-class fmiLibraryManager {
+class FmiLibraryManager {
   private:
-    std::map<std::string, std::shared_ptr<fmiLibrary>> libraries;
+    std::map<std::string, std::shared_ptr<FmiLibrary>> libraries;
     std::map<std::string, std::string> quickReferenceLibraries;
     mutable std::mutex libraryLock;
 
   public:
-    ~fmiLibraryManager();
-    std::shared_ptr<fmiLibrary> getLibrary(const std::string& libFile);
+    ~FmiLibraryManager();
+    std::shared_ptr<FmiLibrary> getLibrary(const std::string& libFile);
     std::unique_ptr<Fmi2ModelExchangeObject>
         createModelExchangeObject(const std::string& fmuIdentifier, const std::string& ObjectName);
     std::unique_ptr<Fmi2CoSimObject> createCoSimulationObject(const std::string& fmuIdentifier,
                                                               const std::string& ObjectName);
     void loadBookMarkFile(const std::string& bookmarksFile);
     void addShortCut(const std::string& name, const std::string& fmuLocation);
-    static fmiLibraryManager& instance();
+    static FmiLibraryManager& instance();
 
   private:
-    fmiLibraryManager();
+    FmiLibraryManager();
 };

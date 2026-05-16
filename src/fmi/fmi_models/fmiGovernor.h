@@ -11,11 +11,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiMESubModel;
+class FmiMESubModel;
 /** class defining a governor with the dynamics through an FMI object*/
-class fmiGovernor: public fmiMEWrapper<Governor> {
+class FmiGovernor: public FmiMEWrapper<Governor> {
   public:
-    fmiGovernor(const std::string& objName = "fmiExciter_#");
+    FmiGovernor(const std::string& objName = "fmiExciter_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;

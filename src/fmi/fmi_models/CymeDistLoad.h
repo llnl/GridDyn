@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn::fmi {
-class CymeDistLoadME: public fmiMELoad3phase {
+class CymeDistLoadME: public FmiMELoad3phase {
     static std::atomic<int> indexCounter;
     std::string configFile;
     index_t configIndex = 0;

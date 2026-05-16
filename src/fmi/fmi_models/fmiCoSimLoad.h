@@ -11,7 +11,7 @@
 #include <string>
 
 namespace griddyn::fmi {
-class fmiCoSimLoad: public fmiCoSimWrapper<Load> {
+class FmiCoSimLoad: public FmiCoSimWrapper<Load> {
   public:
     enum ThreePhaseFmiLoadFlags {
         IGNORE_VOLTAGE_ANGLE = object_flag8,
@@ -21,7 +21,7 @@ class fmiCoSimLoad: public fmiCoSimWrapper<Load> {
     };
 
   public:
-    fmiCoSimLoad(const std::string& objName = "fmiLoad_$");
+    FmiCoSimLoad(const std::string& objName = "fmiLoad_$");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;

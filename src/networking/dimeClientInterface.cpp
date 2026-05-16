@@ -23,8 +23,7 @@ std::string toJsonString(const JsonValue& value)
 bool receivedOkResponse(zmq::socket_t& socket)
 {
     char buffer[3] = {};
-    const auto receivedSize =
-        socket.recv(zmq::mutable_buffer(buffer, 2), zmq::recv_flags::none);
+    const auto receivedSize = socket.recv(zmq::mutable_buffer(buffer, 2), zmq::recv_flags::none);
     return receivedSize && (*receivedSize == 2) && (std::strncmp(buffer, "OK", 2) == 0);
 }
 

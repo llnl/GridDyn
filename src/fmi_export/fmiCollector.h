@@ -12,16 +12,16 @@
 #include <vector>
 
 namespace griddyn::fmi {
-class fmiCoordinator;
+class FmiCoordinator;
 
 /** collector object to interface with an fmi output*/
-class fmiCollector: public collector {
+class FmiCollector: public collector {
   protected:
     std::vector<index_t> mValueReferences;  //!< vector of fmi value references that match the data
-    fmiCoordinator* mCoordinator = nullptr;  //!< pointer the fmi coordination object
+    FmiCoordinator* mCoordinator = nullptr;  //!< pointer the fmi coordination object
   public:
-    fmiCollector();
-    explicit fmiCollector(const std::string& name);
+    FmiCollector();
+    explicit FmiCollector(const std::string& name);
     //~fmiCollector();
 
     virtual std::unique_ptr<collector> clone() const override;
@@ -35,7 +35,7 @@ class fmiCollector: public collector {
     virtual const std::string& getSinkName() const override;
 
     virtual coreObject* getOwner() const override;
-    friend class fmiCoordinator;
+    friend class FmiCoordinator;
 
   protected:
     virtual void dataPointAdded(const collectorPoint& collectorDataPoint) override;

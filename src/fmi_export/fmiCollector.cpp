@@ -12,44 +12,44 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiCollector::fmiCollector(): collector(maxTime, maxTime) {}
-fmiCollector::fmiCollector(const std::string& name): collector(name)
+FmiCollector::FmiCollector(): collector(maxTime, maxTime) {}
+FmiCollector::FmiCollector(const std::string& name): collector(name)
 {
     mTriggerTime = maxTime;
     mTimePeriod = maxTime;
 }
 
-std::unique_ptr<collector> fmiCollector::clone() const
+std::unique_ptr<collector> FmiCollector::clone() const
 {
-    std::unique_ptr<collector> fmicol = std::make_unique<fmiCollector>();
-    fmiCollector::cloneTo(fmicol.get());
+    std::unique_ptr<collector> fmicol = std::make_unique<FmiCollector>();
+    FmiCollector::cloneTo(fmicol.get());
     return fmicol;
 }
 
-void fmiCollector::cloneTo(collector* collectorClone) const
+void FmiCollector::cloneTo(collector* collectorClone) const
 {
     collector::cloneTo(collectorClone);
 
-    auto* newCollector = dynamic_cast<fmiCollector*>(collectorClone);
+    auto* newCollector = dynamic_cast<FmiCollector*>(collectorClone);
     if (newCollector == nullptr) {
         return;
     }
 }
 
-change_code fmiCollector::trigger(coreTime time)
+change_code FmiCollector::trigger(coreTime time)
 {
     collector::trigger(time);
     return change_code::no_change;
 }
 
-void fmiCollector::set(std::string_view param, double val)
+void FmiCollector::set(std::string_view param, double val)
 {
     if (param.empty()) {
     } else {
         collector::set(param, val);
     }
 }
-void fmiCollector::set(std::string_view param, std::string_view val)
+void FmiCollector::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -58,7 +58,7 @@ void fmiCollector::set(std::string_view param, std::string_view val)
 }
 
 static const char defFMIName[] = "fmi";
-const std::string& fmiCollector::getSinkName() const
+const std::string& FmiCollector::getSinkName() const
 {
     static const std::string defaultFMIName{defFMIName};
     if (mCoordinator != nullptr) {
@@ -67,12 +67,12 @@ const std::string& fmiCollector::getSinkName() const
     return defaultFMIName;
 }
 
-coreObject* fmiCollector::getOwner() const
+coreObject* FmiCollector::getOwner() const
 {
     return mCoordinator;
 }
 
-void fmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
+void FmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
 {
     if (mCoordinator == nullptr) {
         // find the coordinator first
@@ -81,8 +81,8 @@ void fmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
             auto* rootObject = gridObject->getRoot();
             if (rootObject != nullptr) {
                 auto* fmiCoordinatorObject = rootObject->find("fmiCoordinator");
-                if (dynamic_cast<fmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
-                    mCoordinator = static_cast<fmiCoordinator*>(fmiCoordinatorObject);
+                if (dynamic_cast<FmiCoordinator*>(fmiCoordinatorObject) != nullptr) {
+                    mCoordinator = static_cast<FmiCoordinator*>(fmiCoordinatorObject);
                 }
             }
         }

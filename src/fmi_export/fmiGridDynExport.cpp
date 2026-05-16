@@ -8,6 +8,7 @@
 #include "core/coreExceptions.h"
 #include "fmiRunner.h"
 #include "griddyn/gridDynSimulation.h"
+#include <bitset>
 #include <cstdio>
 #include <memory>
 #include <mutex>
@@ -27,23 +28,25 @@ const char* fmi2GetVersion(void)
 
 using griddyn::coreObjectException;
 using griddyn::id_type_t;
-using griddyn::fmi::fmiRunner;
+using griddyn::fmi::FmiRunner;
 
-using runner_t = fmiRunner*;
+using runner_t = FmiRunner*;
 static std::mutex fmiLock;  //!< lock for allowing multi-threaded access
 
-static std::vector<std::unique_ptr<fmiRunner>>
-    fmiRunnerInstances(1);  // vector of fmiRunner Instances
+static std::vector<std::unique_ptr<FmiRunner>>
+    fmiRunnerInstances;  // vector of FMI runner instances
 
-using compID = std::pair<unsigned int, id_type_t>;
+using CompId = std::pair<unsigned int, id_type_t>;
 
-runner_t getFmiRunner(fmi2Component comp)
+static runner_t getFmiRunner(fmi2Component comp)
 {
-    auto p = static_cast<compID*>(comp);
-    std::lock_guard<std::mutex> lock(fmiLock);
-    auto& runner = (p->first < fmiRunnerInstances.size()) ? fmiRunnerInstances[p->first] :
-                                                            fmiRunnerInstances[0];
-    if ((!runner) || (runner->GetID() != p->second)) {
+    auto* componentId = static_cast<CompId*>(comp);
+    const std::scoped_lock lock(fmiLock);
+    if (componentId->first >= fmiRunnerInstances.size()) {
+        return nullptr;
+    }
+    auto& runner = fmiRunnerInstances[componentId->first];
+    if ((!runner) || (runner->GetID() != componentId->second)) {
         return nullptr;
     }
     return runner.get();
@@ -54,7 +57,7 @@ fmi2Status fmi2SetDebugLogging(fmi2Component comp,
                                size_t nCategories,
                                const fmi2String categories[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -62,18 +65,18 @@ fmi2Status fmi2SetDebugLogging(fmi2Component comp,
     logCat[0] = true;
     if (loggingOn != 0) {
         for (size_t ii = 0; ii < nCategories; ++ii) {
-            std::string lcat(categories[ii]);
-            if (lcat == "logError") {
+            const std::string logCategory(categories[ii]);
+            if (logCategory == "logError") {
                 logCat[1] = true;
-            } else if (lcat == "logWarning") {
+            } else if (logCategory == "logWarning") {
                 logCat[2] = true;
-            } else if (lcat == "logSummary") {
+            } else if (logCategory == "logSummary") {
                 logCat[3] = true;
-            } else if (lcat == "logNormal") {
+            } else if (logCategory == "logNormal") {
                 logCat[4] = true;
-            } else if (lcat == "logDebug") {
+            } else if (logCategory == "logDebug") {
                 logCat[5] = true;
-            } else if (lcat == "logTrace") {
+            } else if (logCategory == "logTrace") {
                 logCat[6] = true;
             } else {
                 return fmi2Warning;
@@ -95,7 +98,7 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
 {
     if ((fmuType == fmi2Type::fmi2CoSimulation) || (fmuType == fmi2Type::fmi2ModelExchange)) {
         auto locString = std::string(fmuResourceLocation);
-        if (locString.compare(0, 6, "file:/") == 0) {
+        if (locString.starts_with("file:/")) {
             if (locString[6] == '/') {
                 if (locString[7] == '/') {
                     locString.erase(0, 8);
@@ -107,14 +110,14 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
             }
         }
         try {
-            auto fmiM = std::make_unique<fmiRunner>(instanceName,
+            auto fmiM = std::make_unique<FmiRunner>(instanceName,
                                                     locString,
                                                     functions,
                                                     (fmuType == fmi2Type::fmi2ModelExchange));
-            auto rv = new compID;
-            rv->second = fmiM->GetID();
-            fmiM->fmiComp = static_cast<fmi2Component>(rv);
-            std::lock_guard<std::mutex> arrayLock(fmiLock);
+            auto* componentId = new CompId;
+            componentId->second = fmiM->GetID();
+            fmiM->fmiComp = static_cast<fmi2Component>(componentId);
+            const std::scoped_lock arrayLock(fmiLock);
             if (loggingOn == fmi2False) {
                 std::bitset<7> logCat{0};
                 logCat[0] = true;
@@ -124,9 +127,9 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
                 fmiM->setLoggingCategories(logCat);
             }
             fmiRunnerInstances.push_back(std::move(fmiM));
-            rv->first = static_cast<unsigned int>(fmiRunnerInstances.size()) - 1;
+            componentId->first = static_cast<unsigned int>(fmiRunnerInstances.size()) - 1;
 
-            return static_cast<fmi2Component>(rv);
+            return static_cast<fmi2Component>(componentId);
         }
         catch (const std::invalid_argument&) {
             return nullptr;
@@ -138,11 +141,11 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
 
 void fmi2FreeInstance(fmi2Component comp)
 {
-    auto p = static_cast<compID*>(comp);
+    auto* componentId = static_cast<CompId*>(comp);
     if (getFmiRunner(comp) != nullptr) {
-        std::lock_guard<std::mutex> lock(fmiLock);
-        fmiRunnerInstances[p->first] = nullptr;
-        delete p;
+        const std::scoped_lock lock(fmiLock);
+        fmiRunnerInstances[componentId->first] = nullptr;
+        delete componentId;
     }
 }
 
@@ -154,7 +157,7 @@ fmi2Status fmi2SetupExperiment(fmi2Component comp,
                                fmi2Boolean stopTimeDefined,
                                fmi2Real stopTime)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -174,7 +177,7 @@ fmi2Status fmi2EnterInitializationMode(fmi2Component /*comp*/)
 }
 fmi2Status fmi2ExitInitializationMode(fmi2Component comp)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -190,7 +193,7 @@ fmi2Status fmi2ExitInitializationMode(fmi2Component comp)
 }
 fmi2Status fmi2Terminate(fmi2Component comp)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -201,7 +204,7 @@ fmi2Status fmi2Terminate(fmi2Component comp)
 }
 fmi2Status fmi2Reset(fmi2Component comp)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -210,16 +213,18 @@ fmi2Status fmi2Reset(fmi2Component comp)
 }
 
 /* Getting and setting variable values */
-fmi2Status
-    fmi2GetReal(fmi2Component comp, const fmi2ValueReference vr[], size_t nvr, fmi2Real value[])
+fmi2Status fmi2GetReal(fmi2Component comp,
+                       const fmi2ValueReference valueReferences[],
+                       size_t valueReferenceCount,
+                       fmi2Real value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        value[ii] = runner->Get(vr[ii]);
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        value[ii] = runner->Get(valueReferences[ii]);
         if (value[ii] < -1e45) {
             // send a log message
             ret = fmi2Warning;
@@ -228,20 +233,20 @@ fmi2Status
     return ret;
 }
 fmi2Status fmi2GetInteger(fmi2Component comp,
-                          const fmi2ValueReference vr[],
-                          size_t nvr,
+                          const fmi2ValueReference valueReferences[],
+                          size_t valueReferenceCount,
                           fmi2Integer value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 0) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 0) {
             value[ii] = runner->runAsynchronously() ? 1 : 0;
         } else {
-            auto res = runner->Get(vr[ii]);
+            auto res = runner->Get(valueReferences[ii]);
             if (res < -1e45) {
                 ret = fmi2Warning;
             }
@@ -251,20 +256,20 @@ fmi2Status fmi2GetInteger(fmi2Component comp,
     return ret;
 }
 fmi2Status fmi2GetBoolean(fmi2Component comp,
-                          const fmi2ValueReference vr[],
-                          size_t nvr,
+                          const fmi2ValueReference valueReferences[],
+                          size_t valueReferenceCount,
                           fmi2Boolean value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 0) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 0) {
             value[ii] = runner->runAsynchronously() ? fmi2True : fmi2False;
         } else {
-            auto res = runner->Get(vr[ii]);
+            auto res = runner->Get(valueReferences[ii]);
             if (res < -1e45) {
                 ret = fmi2Warning;
             }
@@ -273,16 +278,18 @@ fmi2Status fmi2GetBoolean(fmi2Component comp,
     }
     return ret;
 }
-fmi2Status
-    fmi2GetString(fmi2Component comp, const fmi2ValueReference vr[], size_t nvr, fmi2String value[])
+fmi2Status fmi2GetString(fmi2Component comp,
+                         const fmi2ValueReference valueReferences[],
+                         size_t valueReferenceCount,
+                         fmi2String value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 1) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 1) {
             runner->recordDirectory = runner->getSim()->getString("recorddirectory");
             value[ii] = runner->recordDirectory.c_str();
         } else {
@@ -293,39 +300,39 @@ fmi2Status
 }
 
 fmi2Status fmi2SetReal(fmi2Component comp,
-                       const fmi2ValueReference vr[],
-                       size_t nvr,
+                       const fmi2ValueReference valueReferences[],
+                       size_t valueReferenceCount,
                        const fmi2Real value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        auto res = runner->Set(vr[ii], value[ii]);
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        auto res = runner->Set(valueReferences[ii], value[ii]);
         if (!res) {
-            // printf("set of vr %d failed\n", vr[ii]);
+            // printf("set of value reference %d failed\n", valueReferences[ii]);
             ret = fmi2Warning;
         }
     }
     return ret;
 }
 fmi2Status fmi2SetInteger(fmi2Component comp,
-                          const fmi2ValueReference vr[],
-                          size_t nvr,
+                          const fmi2ValueReference valueReferences[],
+                          size_t valueReferenceCount,
                           const fmi2Integer value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 0) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 0) {
             runner->setAsynchronousMode(value[ii] > 0);
         } else {
-            auto res = runner->Set(vr[ii], static_cast<double>(value[ii]));
+            auto res = runner->Set(valueReferences[ii], static_cast<double>(value[ii]));
             if (!res) {
                 ret = fmi2Warning;
             }
@@ -335,21 +342,21 @@ fmi2Status fmi2SetInteger(fmi2Component comp,
 }
 
 fmi2Status fmi2SetBoolean(fmi2Component comp,
-                          const fmi2ValueReference vr[],
-                          size_t nvr,
+                          const fmi2ValueReference valueReferences[],
+                          size_t valueReferenceCount,
                           const fmi2Boolean value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
 
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 0) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 0) {
             runner->setAsynchronousMode(value[ii] == fmi2True);
         } else {
-            auto res = runner->Set(vr[ii], static_cast<double>(value[ii]));
+            auto res = runner->Set(valueReferences[ii], static_cast<double>(value[ii]));
             if (!res) {
                 ret = fmi2Warning;
             }
@@ -359,22 +366,22 @@ fmi2Status fmi2SetBoolean(fmi2Component comp,
 }
 
 fmi2Status fmi2SetString(fmi2Component comp,
-                         const fmi2ValueReference vr[],
-                         size_t nvr,
+                         const fmi2ValueReference valueReferences[],
+                         size_t valueReferenceCount,
                          const fmi2String value[])
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
     auto ret = fmi2OK;
-    for (size_t ii = 0; ii < nvr; ++ii) {
-        if (vr[ii] == 1) {
+    for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
+        if (valueReferences[ii] == 1) {
             runner->recordDirectory = value[ii];
             runner->getSim()->set("recorddirectory", runner->recordDirectory);
         } else {
-            std::println(" setting string {} to {}", vr[ii], value[ii]);
-            auto res = runner->SetString(vr[ii], value[ii]);
+            std::println(" setting string {} to {}", valueReferences[ii], value[ii]);
+            auto res = runner->SetString(valueReferences[ii], value[ii]);
             if (!res) {
                 ret = fmi2Warning;
             }
@@ -458,7 +465,7 @@ fmi2Status fmi2DoStep(fmi2Component comp,
                       fmi2Real communicationStepSize,
                       fmi2Boolean /*noSetPriorPoint*/)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -476,26 +483,26 @@ fmi2Status fmi2CancelStep(fmi2Component /*comp*/)
 }
 
 /* Inquire slave status */
-fmi2Status fmi2GetStatus(fmi2Component comp, const fmi2StatusKind s, fmi2Status* status)
+fmi2Status fmi2GetStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2Status* status)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
-    if ((s == fmi2DoStepStatus) || (s == fmi2PendingStatus)) {
+    if ((statusKind == fmi2DoStepStatus) || (statusKind == fmi2PendingStatus)) {
         *status = (runner->isFinished()) ? fmi2OK : fmi2Pending;
         return fmi2OK;
     }
     return fmi2Discard;
 }
 
-fmi2Status fmi2GetRealStatus(fmi2Component comp, const fmi2StatusKind s, fmi2Real* status)
+fmi2Status fmi2GetRealStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2Real* status)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
-    if (s == fmi2LastSuccessfulTime) {
+    if (statusKind == fmi2LastSuccessfulTime) {
         *status = static_cast<fmi2Real>(runner->getSim()->getSimulationTime());
         return fmi2OK;
     }
@@ -503,30 +510,32 @@ fmi2Status fmi2GetRealStatus(fmi2Component comp, const fmi2StatusKind s, fmi2Rea
 }
 
 fmi2Status fmi2GetIntegerStatus(fmi2Component /*comp*/,
-                                const fmi2StatusKind /*s*/,
+                                const fmi2StatusKind /*statusKind*/,
                                 fmi2Integer* /*status*/)
 {
     return fmi2Discard;
 }
-fmi2Status fmi2GetBooleanStatus(fmi2Component comp, const fmi2StatusKind s, fmi2Boolean* status)
+fmi2Status
+    fmi2GetBooleanStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2Boolean* status)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
-    if (s == fmi2LastSuccessfulTime) {
+    if (statusKind == fmi2LastSuccessfulTime) {
         *status = fmi2False;
         return fmi2OK;
     }
     return fmi2Discard;
 }
-fmi2Status fmi2GetStringStatus(fmi2Component comp, const fmi2StatusKind s, fmi2String* status)
+fmi2Status
+    fmi2GetStringStatus(fmi2Component comp, const fmi2StatusKind statusKind, fmi2String* status)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
-    if ((s == fmi2DoStepStatus) || (s == fmi2PendingStatus)) {
+    if ((statusKind == fmi2DoStepStatus) || (statusKind == fmi2PendingStatus)) {
         *status = (runner->isFinished()) ? "finished" : "pending";
         return fmi2OK;
     }
@@ -537,7 +546,7 @@ fmi2Status fmi2GetStringStatus(fmi2Component comp, const fmi2StatusKind s, fmi2S
 
 fmi2Status fmi2EnterEventMode(fmi2Component comp)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -546,7 +555,7 @@ fmi2Status fmi2EnterEventMode(fmi2Component comp)
 
 fmi2Status fmi2NewDiscreteStates(fmi2Component comp, fmi2EventInfo* /* fmi2eventInfo */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -555,7 +564,7 @@ fmi2Status fmi2NewDiscreteStates(fmi2Component comp, fmi2EventInfo* /* fmi2event
 
 fmi2Status fmi2EnterContinuousTimeMode(fmi2Component comp)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -567,7 +576,7 @@ fmi2Status fmi2CompletedIntegratorStep(fmi2Component comp,
                                        fmi2Boolean* /* enterEventMode */,
                                        fmi2Boolean* /* terminateSimulation */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -577,7 +586,7 @@ fmi2Status fmi2CompletedIntegratorStep(fmi2Component comp,
 /* Providing independent variables and re-initialization of caching */
 fmi2Status fmi2SetTime(fmi2Component comp, fmi2Real /* time */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -586,7 +595,7 @@ fmi2Status fmi2SetTime(fmi2Component comp, fmi2Real /* time */)
 
 fmi2Status fmi2SetContinuousStates(fmi2Component comp, const fmi2Real /* x */[], size_t /* nx */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -596,7 +605,7 @@ fmi2Status fmi2SetContinuousStates(fmi2Component comp, const fmi2Real /* x */[],
 /* Evaluation of the model equations */
 fmi2Status fmi2GetDerivatives(fmi2Component comp, fmi2Real /* derivatives */[], size_t /* nx */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -606,7 +615,7 @@ fmi2Status fmi2GetDerivatives(fmi2Component comp, fmi2Real /* derivatives */[], 
 fmi2Status
     fmi2GetEventIndicators(fmi2Component comp, fmi2Real /* eventIndicators */[], size_t /* ni */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -615,7 +624,7 @@ fmi2Status
 
 fmi2Status fmi2GetContinuousStates(fmi2Component comp, fmi2Real /* x */[], size_t /* nx */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }
@@ -626,7 +635,7 @@ fmi2Status fmi2GetNominalsOfContinuousStates(fmi2Component comp,
                                              fmi2Real /* x_nominals */[],
                                              size_t /* nx */)
 {
-    auto runner = getFmiRunner(comp);
+    auto* runner = getFmiRunner(comp);
     if (runner == nullptr) {
         return fmi2Error;
     }

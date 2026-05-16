@@ -18,7 +18,7 @@
 #include <string>
 
 namespace griddyn::fmi {
-fmiRunner::fmiRunner(const std::string& name,
+FmiRunner::FmiRunner(const std::string& name,
                      const std::string& resourceLocations,
                      const fmi2CallbackFunctions* functions,
                      bool ModelExchange): identifier(name), mResourceLocation(resourceLocations)
@@ -28,17 +28,17 @@ fmiRunner::fmiRunner(const std::string& name,
         stepFinished = functions->stepFinished;
     }
     loadLibraries();
-    fmiRunner::Reset();
+    FmiRunner::Reset();
     mModelExchangeRunner = ModelExchange;
 }
 
-fmiRunner::~fmiRunner() = default;
+FmiRunner::~FmiRunner() = default;
 
-int fmiRunner::Reset()
+int FmiRunner::Reset()
 {
     m_gds = std::make_shared<gridDynSimulation>(identifier);
 
-    mCoordinator = make_owningPtr<fmiCoordinator>();
+    mCoordinator = make_owningPtr<FmiCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(mCoordinator.get());
 
@@ -59,21 +59,21 @@ int fmiRunner::Reset()
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void fmiRunner::UpdateOutputs()
+void FmiRunner::UpdateOutputs()
 {
     mCoordinator->updateOutputs(m_gds->getSimulationTime());
 }
 
-coreTime fmiRunner::Run()
+coreTime FmiRunner::Run()
 {
     return GriddynRunner::Run();
 }
 
-void fmiRunner::StepAsync(coreTime time)
+void FmiRunner::StepAsync(coreTime time)
 {
     if (stepFinished != nullptr) {
         mAsyncReturn = std::async(std::launch::async, [this, time] {
-            fmiRunner::Step(time);
+            FmiRunner::Step(time);
             stepFinished(fmiComp, fmi2OK);
         });
     } else {
@@ -84,30 +84,30 @@ void fmiRunner::StepAsync(coreTime time)
     }
 }
 
-bool fmiRunner::isFinished() const
+bool FmiRunner::isFinished() const
 {
     return (mAsyncReturn.valid()) ?
         (mAsyncReturn.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
         true;
 }
-coreTime fmiRunner::Step(coreTime time)
+coreTime FmiRunner::Step(coreTime time)
 {
     auto retTime = GriddynRunner::Step(time);
     mCoordinator->updateOutputs(retTime);
     return retTime;
 }
 
-void fmiRunner::Finalize()
+void FmiRunner::Finalize()
 {
     GriddynRunner::Finalize();
 }
 
-index_t fmiRunner::findVR(const std::string& varName) const
+index_t FmiRunner::findVR(const std::string& varName) const
 {
     return mCoordinator->findVR(varName);
 }
 
-void fmiRunner::logger(int level, const std::string& logMessage)
+void FmiRunner::logger(int level, const std::string& logMessage)
 {
     if (mLoggingCategories[level]) {
         if (loggerFunc != nullptr) {
@@ -149,22 +149,22 @@ void fmiRunner::logger(int level, const std::string& logMessage)
     }
 }
 
-id_type_t fmiRunner::GetID() const
+id_type_t FmiRunner::GetID() const
 {
     return m_gds->getID();
 }
 
-bool fmiRunner::Set(index_t valueReference, double inputValue)
+bool FmiRunner::Set(index_t valueReference, double inputValue)
 {
     return mCoordinator->sendInput(valueReference, inputValue);
 }
 
-bool fmiRunner::SetString(index_t valueReference, const char* stringValue)
+bool FmiRunner::SetString(index_t valueReference, const char* stringValue)
 {
     return mCoordinator->sendInput(valueReference, stringValue);
 }
 
-double fmiRunner::Get(index_t valueReference)
+double FmiRunner::Get(index_t valueReference)
 {
     return mCoordinator->getOutput(valueReference);
 }

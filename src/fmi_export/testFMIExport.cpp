@@ -24,8 +24,27 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 
-static const std::string fmi_test_directory(GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/");
+namespace {
+
+constexpr std::string_view fmiTestDirectory{GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/"};
+
+// NOLINTNEXTLINE(misc-multiple-inheritance)
+class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+
+void generateFMU(const std::string& target, const std::string& inputFile)
+{
+    auto builder = std::make_unique<griddyn::fmi::FmuBuilder>();
+
+    builder->InitializeFromString("--buildfmu=\"" + target + "\" \"" + inputFile + "\"");
+
+    builder->MakeFmu();
+
+    EXPECT_TRUE(std::filesystem::exists(target));
+}
+
+}  // namespace
 
 using griddyn::coreTime;
 using griddyn::gridBus;
@@ -39,77 +58,75 @@ using std::filesystem::path;
 using std::filesystem::remove;
 using std::filesystem::remove_all;
 
-class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
-
 TEST_F(FmiExportTests, TestFmiEvents)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
 
-    auto fmc = gds->find("fmiCoordinator");
-    ASSERT_NE(fmc, nullptr);
-    EXPECT_EQ(fmc->getID(), fmiCon->getID());
+    auto* coordinatorObject = gds->find("fmiCoordinator");
+    ASSERT_NE(coordinatorObject, nullptr);
+    EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo ri;
-    loadFmiExportReaderInfoDefinitions(ri);
-    std::string file = fmi_test_directory + "fmi_export_fmiinput.xml";
-    loadFile(gds.get(), file, &ri, "xml");
+    readerInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
+    const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmiinput.xml";
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
-    auto& ev = fmiCon->getInputs();
-    ASSERT_EQ(ev.size(), 1U);
+    const auto& inputEvents = fmiCon->getInputs();
+    ASSERT_EQ(inputEvents.size(), 1U);
 
-    EXPECT_EQ(ev[0].second.name, "power");
+    EXPECT_EQ(inputEvents[0].second.name, "power");
 }
 
 TEST_F(FmiExportTests, TestFmiOutput)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
 
-    auto fmc = gds->find("fmiCoordinator");
-    ASSERT_NE(fmc, nullptr);
-    EXPECT_EQ(fmc->getID(), fmiCon->getID());
+    auto* coordinatorObject = gds->find("fmiCoordinator");
+    ASSERT_NE(coordinatorObject, nullptr);
+    EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo ri;
-    loadFmiExportReaderInfoDefinitions(ri);
-    std::string file = fmi_test_directory + "fmi_export_fmioutput.xml";
-    loadFile(gds.get(), file, &ri, "xml");
+    readerInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
+    const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmioutput.xml";
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
-    auto& ev = fmiCon->getOutputs();
-    ASSERT_EQ(ev.size(), 1U);
+    const auto& outputEvents = fmiCon->getOutputs();
+    ASSERT_EQ(outputEvents.size(), 1U);
 
-    EXPECT_EQ(ev[0].second.name, "load");
+    EXPECT_EQ(outputEvents[0].second.name, "load");
 }
 
 TEST_F(FmiExportTests, TestFmiSimulation)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::fmiCoordinator>();
+    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<gridDynSimulation>();
     gds->add(fmiCon.get());
 
-    auto fmc = gds->find("fmiCoordinator");
-    ASSERT_NE(fmc, nullptr);
-    EXPECT_EQ(fmc->getID(), fmiCon->getID());
+    auto* coordinatorObject = gds->find("fmiCoordinator");
+    ASSERT_NE(coordinatorObject, nullptr);
+    EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo ri;
-    loadFmiExportReaderInfoDefinitions(ri);
-    std::string file = fmi_test_directory + "simulation.xml";
-    loadFile(gds.get(), file, &ri, "xml");
+    readerInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
+    const std::string inputFile = std::string{fmiTestDirectory} + "simulation.xml";
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
-    auto& ev = fmiCon->getInputs();
-    ASSERT_EQ(ev.size(), 1U);
+    const auto& inputEvents = fmiCon->getInputs();
+    ASSERT_EQ(inputEvents.size(), 1U);
 
-    EXPECT_EQ(ev[0].second.name, "power");
+    EXPECT_EQ(inputEvents[0].second.name, "power");
 
-    auto& ev2 = fmiCon->getOutputs();
-    ASSERT_EQ(ev2.size(), 1U);
+    const auto& outputEvents = fmiCon->getOutputs();
+    ASSERT_EQ(outputEvents.size(), 1U);
 
-    EXPECT_EQ(ev2[0].second.name, "load");
+    EXPECT_EQ(outputEvents[0].second.name, "load");
 
     gds->run(30);
     checkState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
@@ -117,7 +134,9 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 
 TEST_F(FmiExportTests, TestFmiRunner)
 {
-    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim", fmi_test_directory, nullptr);
+    auto runner = std::make_unique<griddyn::fmi::FmiRunner>("testsim",
+                                                            std::string{fmiTestDirectory},
+                                                            nullptr);
 
     runner->simInitialize();
     runner->UpdateOutputs();
@@ -138,124 +157,107 @@ TEST_F(FmiExportTests, TestFmiRunner)
     runner->Finalize();
 }
 
-namespace {
-void generateFMU(const std::string& target, const std::string& inputfile)
-{
-    auto builder = std::make_unique<griddyn::fmi::fmuBuilder>();
-
-    builder->InitializeFromString("--buildfmu=\"" + target + "\" \"" + inputfile + "\"");
-
-    builder->MakeFmu();
-
-    EXPECT_TRUE(exists(target));
-}
-}  // namespace
-
 TEST_F(FmiExportTests, BuildGriddynFmu)
 {
-    generateFMU(fmi_test_directory + "griddyn.fmu", fmi_test_directory + "simulation.xml");
+    generateFMU(std::string{fmiTestDirectory} + "griddyn.fmu",
+                std::string{fmiTestDirectory} + "simulation.xml");
 }
 
 TEST_F(FmiExportTests, LoadGriddynFmu)
 {
-    std::string fmu = fmi_test_directory + "griddyn.fmu";
+    const std::string fmuPath = std::string{fmiTestDirectory} + "griddyn.fmu";
 
-    if (!exists(fmu)) {
-        generateFMU(fmu, fmi_test_directory + "simulation.xml");
+    if (!exists(fmuPath)) {
+        generateFMU(fmuPath, std::string{fmiTestDirectory} + "simulation.xml");
     }
-    ASSERT_TRUE(exists(fmu)) << "unable to generate FMU";
-    path gdDir(fmi_test_directory + "griddyn");
-    ::fmiLibrary gdFmu(fmu);
+    ASSERT_TRUE(exists(fmuPath)) << "unable to generate FMU";
+    path gdDir(std::string{fmiTestDirectory} + "griddyn");
+    ::fmiLibrary gdFmu(fmuPath);
     gdFmu.loadSharedLibrary();
     ASSERT_TRUE(gdFmu.isSoLoaded());
 
-    auto types = gdFmu.getTypes();
+    const auto types = gdFmu.getTypes();
     EXPECT_EQ(types, "default");
-    auto ver = gdFmu.getVersion();
-    EXPECT_EQ(ver, "2.0");
+    const auto version = gdFmu.getVersion();
+    EXPECT_EQ(version, "2.0");
 
-    auto b = gdFmu.createCoSimulationObject("gd1");
+    auto coSimObject1 = gdFmu.createCoSimulationObject("gd1");
 
-    auto b2 = gdFmu.createCoSimulationObject("gd2");
+    auto coSimObject2 = gdFmu.createCoSimulationObject("gd2");
 
-    EXPECT_TRUE(static_cast<bool>(b));
-    EXPECT_TRUE(static_cast<bool>(b2));
+    EXPECT_TRUE(static_cast<bool>(coSimObject1));
+    EXPECT_TRUE(static_cast<bool>(coSimObject2));
 
-    b->setMode(::fmuMode::initializationMode);
-    b2->setMode(::fmuMode::initializationMode);
+    coSimObject1->setMode(::fmuMode::initializationMode);
+    coSimObject2->setMode(::fmuMode::initializationMode);
 
-    EXPECT_EQ(b->getCurrentMode(), ::fmuMode::initializationMode);
-    ASSERT_EQ(b->inputSize(), 1);
-    ASSERT_EQ(b->outputSize(), 1);
+    EXPECT_EQ(coSimObject1->getCurrentMode(), ::fmuMode::initializationMode);
+    ASSERT_EQ(coSimObject1->inputSize(), 1);
+    ASSERT_EQ(coSimObject1->outputSize(), 1);
 
     double input = 0.6;
-    b->setInputs(&input);
-    auto inputName = b->getInputNames();
+    coSimObject1->setInputs(&input);
+    auto inputName = coSimObject1->getInputNames();
     ASSERT_EQ(inputName[0], "power");
-    auto outputName = b->getOutputNames();
+    auto outputName = coSimObject1->getOutputNames();
     ASSERT_EQ(outputName[0], "load");
-    b->setMode(::fmuMode::stepMode);
-    b2->setMode(::fmuMode::stepMode);
-    EXPECT_EQ(b2->getCurrentMode(), ::fmuMode::stepMode);
+    coSimObject1->setMode(::fmuMode::stepMode);
+    coSimObject2->setMode(::fmuMode::stepMode);
+    EXPECT_EQ(coSimObject2->getCurrentMode(), ::fmuMode::stepMode);
 
-    auto val = b->getOutput(0);
-    auto val2 = b2->getOutput(0);
+    auto val = coSimObject1->getOutput(0);
+    auto val2 = coSimObject2->getOutput(0);
 
     EXPECT_NEAR(val, 0.6, 0.000001);
     EXPECT_NEAR(val2, 0.5, 0.0000001);
     input = 0.7;
-    b->setInputs(&input);
+    coSimObject1->setInputs(&input);
     input = 0.3;
-    b2->setInputs(&input);
-    b->doStep(0, 1.0, false);
-    b2->doStep(0, 1.0, false);
-    val = b->getOutput(0);
-    val2 = b2->getOutput(0);
+    coSimObject2->setInputs(&input);
+    coSimObject1->doStep(0, 1.0, fmi2False);
+    coSimObject2->doStep(0, 1.0, fmi2False);
+    val = coSimObject1->getOutput(0);
+    val2 = coSimObject2->getOutput(0);
 
     EXPECT_NEAR(val, 0.7, 0.000001);
     EXPECT_NEAR(val2, 0.3, 0.0000001);
 
     input = 0.3;
-    b->setInputs(&input);
+    coSimObject1->setInputs(&input);
     input = 0.7;
-    b2->setInputs(&input);
-    b->doStep(1.0, 2.0, false);
-    b2->doStep(1.0, 2.0, false);
-    val = b->getOutput(0);
-    val2 = b2->getOutput(0);
+    coSimObject2->setInputs(&input);
+    coSimObject1->doStep(1.0, 2.0, fmi2False);
+    coSimObject2->doStep(1.0, 2.0, fmi2False);
+    val = coSimObject1->getOutput(0);
+    val2 = coSimObject2->getOutput(0);
 
     EXPECT_NEAR(val, 0.3, 0.000001);
     EXPECT_NEAR(val2, 0.7, 0.0000001);
 
-    b = nullptr;
-    b2 = nullptr;
+    coSimObject1 = nullptr;
+    coSimObject2 = nullptr;
     gdFmu.close();
 
     EXPECT_FALSE(gdFmu.isSoLoaded());
-    try {
-        remove_all(gdDir);
-    }
-    catch (...) {
-    }
-    try {
-        remove(fmu);
-    }
-    catch (...) {
-    }
+    std::error_code errorCode;
+    remove_all(gdDir, errorCode);
+    errorCode.clear();
+    remove(fmuPath, errorCode);
 }
 
 TEST_F(FmiExportTests, TestFmiRunner2)
 {
-    auto runner = std::make_unique<griddyn::fmi::fmiRunner>("testsim",
-                                                            fmi_test_directory + "/three_phase_fmu",
+    auto runner = std::make_unique<griddyn::fmi::FmiRunner>("testsim",
+                                                            std::string{fmiTestDirectory} +
+                                                                "/three_phase_fmu",
                                                             nullptr);
     runner->simInitialize();
     runner->UpdateOutputs();
 
-    auto bus = static_cast<gridBus*>(runner->getSim()->getSubObject("bus", 11));
+    auto* bus = static_cast<gridBus*>(runner->getSim()->getSubObject("bus", 11));
 
-    auto ld = dynamic_cast<griddyn::loads::ThreePhaseLoad*>(bus->getLoad(0));
-    ASSERT_NE(ld, nullptr);
+    auto* loadObject = dynamic_cast<griddyn::loads::ThreePhaseLoad*>(bus->getLoad(0));
+    ASSERT_NE(loadObject, nullptr);
 
     auto ret = runner->Step(10.0);
     EXPECT_EQ(ret, coreTime(10.0));
@@ -283,8 +285,8 @@ TEST_F(FmiExportTests, TestFmiRunner2)
     EXPECT_GT(val6, -2000.0);
     auto time = 20.0;
     const std::set<std::string> currentInputs{"Bus11_IA", "Bus11_IB", "Bus11_IC"};
-    for (auto& ifld : currentInputs) {
-        auto ivr = runner->findVR(ifld);
+    for (const auto& inputField : currentInputs) {
+        auto ivr = runner->findVR(inputField);
         runner->Set(ivr, 100.0);
         ret = runner->Step(time);
         time += 10.0;
@@ -298,17 +300,17 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         val1 = val1b;
         val2 = val2b;
         val3 = val3b;
-        auto gb = runner->Get(ivr);
-        EXPECT_NEAR(gb, 100.0, 0.5);
+        auto actualValue = runner->Get(ivr);
+        EXPECT_NEAR(actualValue, 100.0, 0.5);
     }
 
     const std::set<std::string> currentAngleInputs{"Bus11_IAngleA",
                                                    "Bus11_IAngleB",
                                                    "Bus11_IAngleC"};
     double phase = 0.0;
-    for (auto& ifld : currentAngleInputs) {
-        auto ivr = runner->findVR(ifld);
-        runner->Set(ivr, 0.0 + phase * 120.0);
+    for (const auto& inputField : currentAngleInputs) {
+        auto ivr = runner->findVR(inputField);
+        runner->Set(ivr, 0.0 + (phase * 120.0));
 
         ret = runner->Step(time);
         time += 10.0;
@@ -322,8 +324,8 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         val1 = val1b;
         val2 = val2b;
         val3 = val3b;
-        auto gb = runner->Get(ivr);
-        double diff = std::abs(gb - (0.0 + phase * 120.0));
+        auto actualValue = runner->Get(ivr);
+        double diff = std::abs(actualValue - (0.0 + (phase * 120.0)));
         if (diff > 359.5) {
             diff -= 360.0;
         }

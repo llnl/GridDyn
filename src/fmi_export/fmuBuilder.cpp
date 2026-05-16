@@ -41,19 +41,19 @@ using std::filesystem::filesystem_error;
 using std::filesystem::path;
 using std::filesystem::temp_directory_path;
 
-fmuBuilder::fmuBuilder()
+FmuBuilder::FmuBuilder()
 {
     loadComponents();
 }
 
-fmuBuilder::fmuBuilder(std::shared_ptr<gridDynSimulation> gds): GriddynRunner(std::move(gds))
+FmuBuilder::FmuBuilder(std::shared_ptr<gridDynSimulation> gds): GriddynRunner(std::move(gds))
 {
     loadComponents();
 }
 
-void fmuBuilder::loadComponents()
+void FmuBuilder::loadComponents()
 {
-    mCoordinator = make_owningPtr<fmiCoordinator>();
+    mCoordinator = make_owningPtr<FmiCoordinator>();
     auto gds = getSim();
     if (gds == nullptr) {
         resetSim(std::make_shared<gridDynSimulation>());
@@ -65,9 +65,9 @@ void fmuBuilder::loadComponents()
     mReaderInfo->captureFiles = true;
 }
 
-fmuBuilder::~fmuBuilder() = default;
+FmuBuilder::~FmuBuilder() = default;
 
-std::shared_ptr<CLI::App> fmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
+std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
     const std::vector<std::string> validPlatforms{
         "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
@@ -101,7 +101,7 @@ static bool testCopyFile(path const& source, path const& dest, bool overwrite = 
     }
 }
 
-void fmuBuilder::MakeFmu(const std::string& fmuLocation)
+void FmuBuilder::MakeFmu(const std::string& fmuLocation)
 {
     auto bpath = temp_directory_path();
 
@@ -178,7 +178,7 @@ void fmuBuilder::MakeFmu(const std::string& fmuLocation)
     }
 }
 
-void fmuBuilder::copySharedLibrary(const std::string& tempdir)
+void FmuBuilder::copySharedLibrary(const std::string& tempdir)
 {
     path binary_dir = path(tempdir) / "binaries";
     create_directory(binary_dir);
@@ -365,7 +365,7 @@ void fmuBuilder::copySharedLibrary(const std::string& tempdir)
     throw(std::runtime_error("unable to locate shared fmu library file"));
 }
 
-void fmuBuilder::generateXML(const std::string& xmlfile)
+void FmuBuilder::generateXML(const std::string& xmlfile)
 {
     pugi::xml_document doc;
     int index = 1;
@@ -465,7 +465,7 @@ void fmuBuilder::generateXML(const std::string& xmlfile)
             sVariable.append_attribute("description") = evntdesc.c_str();
         }
         sVariable.append_attribute("causality") = "parameter";
-        if (fmiCoordinator::isStringParameter(param)) {
+        if (FmiCoordinator::isStringParameter(param)) {
             sVariable.append_attribute("variability") = "fixed";
             auto sParamType = sVariable.append_child("String");
             sParamType.append_attribute("start") = "";

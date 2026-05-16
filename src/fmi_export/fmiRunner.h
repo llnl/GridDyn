@@ -16,14 +16,14 @@
 namespace griddyn {
 class readerInfo;
 namespace fmi {
-    class fmiCoordinator;
+    class FmiCoordinator;
 
     /** fmiRunner is the execution object for executing under an fmi context
 it inherits from gridDynRunner and adds some extra features necessary for executing under an fMI
 */
-    class fmiRunner: public GriddynRunner {
+    class FmiRunner: public GriddynRunner {
       private:
-        coreOwningPtr<fmiCoordinator> mCoordinator;  //!< the coordinator object for managing object
+        coreOwningPtr<FmiCoordinator> mCoordinator;  //!< the coordinator object for managing object
                                                      //!< that manage the fmi inputs and outputs
         std::bitset<7> mLoggingCategories;  //!< indicators of which logging categories to use
         bool mRunAsync = false;  //!< indicator that we should run asynchronously
@@ -39,11 +39,11 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
     @param ModelExchange set to true if this is instantiating a model exchange object (optional
     defaults to false)
     */
-        fmiRunner(const std::string& name,
+        FmiRunner(const std::string& name,
                   const std::string& resourceLocations,
                   const fmi2CallbackFunctions* functions,
                   bool ModelExchange = false);
-        ~fmiRunner();
+        ~FmiRunner();
 
       public:
         virtual coreTime Run() override;

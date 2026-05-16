@@ -12,14 +12,16 @@
 #include "dimeCommunicator.h"
 #include "fileInput/readerInfo.h"
 #include <string>
+#include <vector>
 
 namespace griddyn {
 void loadDimeLibrary()
 {
     static const bool loaded = []() {
-        static childClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
+        static const childClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
             std::vector<std::string>{"dime"});
-        static childClassFactory<dimeLib::DimeCommunicator, Communicator> dimeCommunicatorFactory(
+        static const childClassFactory<dimeLib::DimeCommunicator, Communicator>
+            dimeCommunicatorFactory(
             std::vector<std::string>{"dime"});
         return true;
     }();

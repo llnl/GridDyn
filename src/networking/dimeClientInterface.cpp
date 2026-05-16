@@ -25,10 +25,10 @@ bool receivedOkResponse(zmq::socket_t& socket)
     char buffer[3] = {};
     const auto receivedSize =
         socket.recv(zmq::mutable_buffer(buffer, 2), zmq::recv_flags::none);
-    return receivedSize && (*receivedSize == 2) && (std::strncmp(buffer, "OK", 2) == 0);
+    return receivedSize && (receivedSize->size == 2) && (std::strncmp(buffer, "OK", 2) == 0);
 }
 
-static void encodeVariableMessage(JsonValue& data, double val)
+void encodeVariableMessage(JsonValue& data, double val)
 {
     JsonValue content;
     content["stdout"] = "";

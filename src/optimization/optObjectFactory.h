@@ -18,67 +18,67 @@
 namespace griddyn {
 // class definitions for the object factories that can create the objects
 // cFactory is a virtual base class for object Construction functions
-class optFactory {
+class OptFactory {
   public:
     std::string name;
     int mLevel = 0;
-    optFactory([[maybe_unused]] std::string_view component,
+    OptFactory([[maybe_unused]] std::string_view component,
                std::string_view objName,
                int level = 0): name(objName), mLevel(level)
     {
     }
-    optFactory([[maybe_unused]] const stringVec& component,
+    OptFactory([[maybe_unused]] const stringVec& component,
                std::string_view objName,
                int level = 0): name(objName), mLevel(level)
     {
     }
-    virtual gridOptObject* makeObject(coreObject* obj) = 0;
-    virtual gridOptObject* makeObject() = 0;
+    virtual GridOptObject* makeObject(coreObject* obj) = 0;
+    virtual GridOptObject* makeObject() = 0;
     virtual void prepObjects(count_t /*count*/, coreObject* /*obj*/) {}
     virtual count_t remainingPrepped() const { return 0; }
     virtual bool testObject(coreObject*) { return true; }
 };
 
-using optMap = std::map<std::string, optFactory*, std::less<>>;
+using optMap = std::map<std::string, OptFactory*, std::less<>>;
 
-class optComponentFactory {
+class OptComponentFactory {
   public:
     std::string name;
-    optComponentFactory() {}
-    optComponentFactory(std::string_view typeName);
-    ~optComponentFactory();
+    OptComponentFactory() {}
+    OptComponentFactory(std::string_view typeName);
+    ~OptComponentFactory();
     stringVec getObjNames();
-    gridOptObject* makeObject(coreObject* obj);
-    gridOptObject* makeObject(std::string_view objType);
-    gridOptObject* makeObject();
-    void registerFactory(optFactory* optFac);
+    GridOptObject* makeObject(coreObject* obj);
+    GridOptObject* makeObject(std::string_view objType);
+    GridOptObject* makeObject();
+    void registerFactory(OptFactory* optFac);
     bool isValidObject(std::string_view objName);
-    optFactory* getFactory(std::string_view typeName);
+    OptFactory* getFactory(std::string_view typeName);
 
   protected:
     optMap mFactoryMap;
-    std::vector<optFactory*> mFactoryList;
+    std::vector<OptFactory*> mFactoryList;
 };
 
 // create a high level object factory for the coreObject class
-using optfMap = std::map<std::string, std::shared_ptr<optComponentFactory>, std::less<>>;
+using optfMap = std::map<std::string, std::shared_ptr<OptComponentFactory>, std::less<>>;
 
-class coreOptObjectFactory {
+class CoreOptObjectFactory {
   public:
     /** public destructor
      * Destructor must be public to work with shared_ptr
      */
-    ~coreOptObjectFactory() {}
-    static std::shared_ptr<coreOptObjectFactory> instance();
-    void registerFactory(std::string_view name, std::shared_ptr<optComponentFactory> componentFac);
-    void registerFactory(std::shared_ptr<optComponentFactory> componentFac);
+    ~CoreOptObjectFactory() {}
+    static std::shared_ptr<CoreOptObjectFactory> instance();
+    void registerFactory(std::string_view name, std::shared_ptr<OptComponentFactory> componentFac);
+    void registerFactory(std::shared_ptr<OptComponentFactory> componentFac);
     stringVec getFactoryNames();
     stringVec getObjNames(std::string_view factoryName);
-    gridOptObject* createObject(std::string_view optType, std::string_view typeName);
-    gridOptObject* createObject(std::string_view optType, coreObject* obj);
-    gridOptObject* createObject(coreObject* obj);
-    gridOptObject* createObject(std::string_view typeName);
-    std::shared_ptr<optComponentFactory> getFactory(std::string_view factoryName);
+    GridOptObject* createObject(std::string_view optType, std::string_view typeName);
+    GridOptObject* createObject(std::string_view optType, coreObject* obj);
+    GridOptObject* createObject(coreObject* obj);
+    GridOptObject* createObject(std::string_view typeName);
+    std::shared_ptr<OptComponentFactory> getFactory(std::string_view factoryName);
     bool isValidType(std::string_view obComponent);
     bool isValidObject(std::string_view optType, std::string_view objName);
     void setDefaultType(std::string_view defType);
@@ -89,7 +89,7 @@ class coreOptObjectFactory {
     void prepObjects(std::string_view typeName, count_t numObjects, coreObject* baseObj);
 
   private:
-    coreOptObjectFactory() {}
+    CoreOptObjectFactory() {}
 
     optfMap mFactoryMap;
     std::string mDefaultType;
@@ -97,9 +97,9 @@ class coreOptObjectFactory {
 
 /*** template class for opt object ownership*/
 template<class Ntype, class gdType>
-class gridOptObjectHolder: public coreObject {
-    static_assert(std::is_base_of<gridOptObject, Ntype>::value,
-                  "opt class must have a base class of gridOptObject");
+class GridOptObjectHolder: public coreObject {
+    static_assert(std::is_base_of<GridOptObject, Ntype>::value,
+                  "opt class must have a base class of GridOptObject");
     static_assert(std::is_base_of<coreObject, gdType>::value,
                   "gridDyn class must have base class type of coreObject");
 
@@ -109,7 +109,7 @@ class gridOptObjectHolder: public coreObject {
     count_t mObjectCount = 0;
 
   public:
-    gridOptObjectHolder(count_t objs): objArray(objs), mObjectCount(objs)
+    GridOptObjectHolder(count_t objs): objArray(objs), mObjectCount(objs)
     {
         for (auto& so : objArray) {
             so.addOwningReference();
@@ -131,23 +131,23 @@ class gridOptObjectHolder: public coreObject {
 // opt factory is a template class that inherits from cFactory to actually to the construction of a
 // specific object
 template<class Ntype, class gdType>
-class optObjectFactory: public optFactory {
-    static_assert(std::is_base_of<gridOptObject, Ntype>::value,
-                  "opt class must have a base class of gridOptObject");
+class OptObjectFactory: public OptFactory {
+    static_assert(std::is_base_of<GridOptObject, Ntype>::value,
+                  "opt class must have a base class of GridOptObject");
     static_assert(std::is_base_of<coreObject, gdType>::value,
                   "gridDyn class must have base class type of coreObject");
 
   private:
     bool mUseBlock = false;
-    gridOptObjectHolder<Ntype, gdType>* mObjectHolder = nullptr;
+    GridOptObjectHolder<Ntype, gdType>* mObjectHolder = nullptr;
 
   public:
-    optObjectFactory(std::string_view component,
+    OptObjectFactory(std::string_view component,
                      std::string_view objName,
                      int level = 0,
-                     bool makeDefault = false): optFactory(component, objName, level)
+                     bool makeDefault = false): OptFactory(component, objName, level)
     {
-        auto coof = coreOptObjectFactory::instance();
+        auto coof = CoreOptObjectFactory::instance();
         auto fac = coof->getFactory(component);
         fac->registerFactory(this);
         if (makeDefault) {
@@ -155,12 +155,12 @@ class optObjectFactory: public optFactory {
         }
     }
 
-    optObjectFactory(const stringVec& components,
+    OptObjectFactory(const stringVec& components,
                      std::string_view objName,
                      int level = 0,
-                     bool makeDefault = false): optFactory(components[0], objName, level)
+                     bool makeDefault = false): OptFactory(components[0], objName, level)
     {
-        auto coof = coreOptObjectFactory::instance();
+        auto coof = CoreOptObjectFactory::instance();
         for (auto& tname : components) {
             coof->getFactory(tname)->registerFactory(this);
         }
@@ -178,9 +178,9 @@ class optObjectFactory: public optFactory {
         }
     }
 
-    gridOptObject* makeObject(coreObject* obj) override
+    GridOptObject* makeObject(coreObject* obj) override
     {
-        gridOptObject* ret = nullptr;
+        GridOptObject* ret = nullptr;
         if (mUseBlock) {
             ret = mObjectHolder->getNext();
             if (ret == nullptr) {  // means the block was used up
@@ -196,9 +196,9 @@ class optObjectFactory: public optFactory {
         return ret;
     }
 
-    gridOptObject* makeObject() override
+    GridOptObject* makeObject() override
     {
-        gridOptObject* ret = nullptr;
+        GridOptObject* ret = nullptr;
         if (mUseBlock) {
             ret = mObjectHolder->getNext();
             if (ret == nullptr) {  // means the block was used up
@@ -233,7 +233,7 @@ class optObjectFactory: public optFactory {
     virtual void prepObjects(count_t count, coreObject* obj) override
     {
         auto root = obj->getRoot();
-        mObjectHolder = new gridOptObjectHolder<Ntype, gdType>(count);
+        mObjectHolder = new GridOptObjectHolder<Ntype, gdType>(count);
         root->add(mObjectHolder);
         mUseBlock = true;
     }

@@ -10,11 +10,11 @@
 #include "helicsSupport.h"
 #include <string>
 namespace griddyn::helicsLib {
-class helicsCoordinator;
-enum class helicsValueType : char;
+class HelicsCoordinator;
+enum class HelicsValueType : char;
 
 /** class defining a load object that links with a helics source*/
-class helicsLoad: public loads::rampLoad {
+class HelicsLoad: public loads::rampLoad {
   public:
     enum HelicsLoadFlags {
         USE_RAMP = object_flag8,
@@ -31,14 +31,14 @@ class helicsLoad: public loads::rampLoad {
     helics::data_type loadType;
     helics::data_type voltageType;
     double scaleFactor = 1.0;  //!< scaling factor on the load
-    helicsCoordinator* coord =
+    HelicsCoordinator* coord =
         nullptr;  //!< the coordinator for interaction with the helics interface
   private:
     double prevP = 0;
     double prevQ = 0;
 
   public:
-    explicit helicsLoad(const std::string& objName = "helicsLoad_$");
+    explicit HelicsLoad(const std::string& objName = "helicsLoad_$");
 
     coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;

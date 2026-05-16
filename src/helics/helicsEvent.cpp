@@ -13,34 +13,34 @@
 #include <vector>
 
 namespace griddyn::helicsLib {
-helicsEvent::helicsEvent(const std::string& newName): reversibleEvent(newName)
+HelicsEvent::HelicsEvent(const std::string& newName): reversibleEvent(newName)
 {
     initRequired = true;
 }
 
-helicsEvent::helicsEvent(HelicsEventType type): eventType(type)
+HelicsEvent::HelicsEvent(HelicsEventType type): eventType(type)
 {
     initRequired = true;
 }
 
-helicsEvent::helicsEvent(const EventInfo& gdEI, coreObject* rootObject):
+HelicsEvent::HelicsEvent(const EventInfo& gdEI, coreObject* rootObject):
     reversibleEvent(gdEI, rootObject)
 {
     initRequired = true;
     findCoordinator();
 }
 
-std::unique_ptr<Event> helicsEvent::clone() const
+std::unique_ptr<Event> HelicsEvent::clone() const
 {
-    std::unique_ptr<Event> evnt = std::make_unique<helicsEvent>();
+    std::unique_ptr<Event> evnt = std::make_unique<HelicsEvent>();
     cloneTo(evnt.get());
     return evnt;
 }
 
-void helicsEvent::cloneTo(Event* evnt) const
+void HelicsEvent::cloneTo(Event* evnt) const
 {
     reversibleEvent::cloneTo(evnt);
-    auto fe = dynamic_cast<helicsEvent*>(evnt);
+    auto fe = dynamic_cast<HelicsEvent*>(evnt);
     if (fe == nullptr) {
         return;
     }
@@ -49,7 +49,7 @@ void helicsEvent::cloneTo(Event* evnt) const
     fe->key = key;
 }
 
-void helicsEvent::set(std::string_view param, double val)
+void HelicsEvent::set(std::string_view param, double val)
 {
     if ((param == "element") || (param == "vectorelement")) {
         vectorElement = static_cast<int32_t>(val);
@@ -60,7 +60,7 @@ void helicsEvent::set(std::string_view param, double val)
     }
 }
 
-void helicsEvent::set(std::string_view param, std::string_view val)
+void HelicsEvent::set(std::string_view param, std::string_view val)
 {
     if (param == "datatype") {
         if (val == "string") {
@@ -95,13 +95,13 @@ void helicsEvent::set(std::string_view param, std::string_view val)
     }
 }
 
-void helicsEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void HelicsEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
 {
     reversibleEvent::updateEvent(gdEI, rootObject);
     findCoordinator();
 }
 
-bool helicsEvent::setTarget(coreObject* gdo, std::string_view var)
+bool HelicsEvent::setTarget(coreObject* gdo, std::string_view var)
 {
     auto ret = reversibleEvent::setTarget(gdo, var);
     if (ret) {
@@ -110,12 +110,12 @@ bool helicsEvent::setTarget(coreObject* gdo, std::string_view var)
     return ret;
 }
 
-coreObject* helicsEvent::getOwner() const
+coreObject* HelicsEvent::getOwner() const
 {
     return coord;
 }
 
-void helicsEvent::initialize()
+void HelicsEvent::initialize()
 {
     if (coord == nullptr) {
         findCoordinator();
@@ -152,21 +152,21 @@ void helicsEvent::initialize()
     initRequired = false;
 }
 
-void helicsEvent::updateObject(coreObject* gco, object_update_mode mode)
+void HelicsEvent::updateObject(coreObject* gco, object_update_mode mode)
 {
     reversibleEvent::updateObject(gco, mode);
     findCoordinator();
 }
 
-void helicsEvent::findCoordinator()
+void HelicsEvent::findCoordinator()
 {
     if (m_obj) {
         auto rto = m_obj->getRoot();
         if (rto) {
             auto helicsCont = rto->find("helics");
-            if (dynamic_cast<helicsCoordinator*>(helicsCont)) {
+            if (dynamic_cast<HelicsCoordinator*>(helicsCont)) {
                 if (!isSameObject(helicsCont, coord)) {
-                    coord = static_cast<helicsCoordinator*>(helicsCont);
+                    coord = static_cast<HelicsCoordinator*>(helicsCont);
                     if (!key.empty()) {
                         subid = coord->addSubscription(key, unitType);
                     }

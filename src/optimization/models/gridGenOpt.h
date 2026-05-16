@@ -13,13 +13,13 @@
 // forward classes
 
 namespace griddyn {
-class gridLinkOpt;
-class gridLoadOpt;
-class gridGenOpt;
-class gridBusOpt;
+class GridLinkOpt;
+class GridLoadOpt;
+class GridGenOpt;
+class GridBusOpt;
 class Generator;
 
-class gridGenOpt: public gridOptObject {
+class GridGenOpt: public GridOptObject {
   public:
     enum OptGenFlags {
         PIECEWISE_LINEAR_COST = 1,
@@ -28,7 +28,7 @@ class gridGenOpt: public gridOptObject {
 
   protected:
     Generator* gen = nullptr;
-    gridBusOpt* bus;
+    GridBusOpt* bus;
     double m_heatRate = -kBigNum;
     std::vector<double> Pcoeff;
     std::vector<double> Qcoeff;
@@ -40,8 +40,8 @@ class gridGenOpt: public gridOptObject {
     double systemBasePower = 100.0;  //!< the base power of the generator
     double mBase = 100.0;  //!< the machine base of the generator
   public:
-    gridGenOpt(const std::string& objName = "");
-    gridGenOpt(coreObject* obj, const std::string& objName = "");
+    GridGenOpt(const std::string& objName = "");
+    GridGenOpt(coreObject* obj, const std::string& objName = "");
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // add components
@@ -102,8 +102,8 @@ class gridGenOpt: public gridOptObject {
     virtual void loadCostCoeff(std::vector<double> const& coeff, int mode);
     // find components
 
-    virtual gridOptObject* getBus(index_t index) const override;
-    virtual gridOptObject* getArea(index_t index) const override;
+    virtual GridOptObject* getBus(index_t index) const override;
+    virtual GridOptObject* getArea(index_t index) const override;
 
   protected:
 };

@@ -17,27 +17,27 @@
 #include <vector>
 
 namespace griddyn::helicsLib {
-helicsCollector::helicsCollector(coreTime time0, coreTime period): collector(time0, period) {}
+HelicsCollector::HelicsCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
-helicsCollector::helicsCollector(const std::string& collectorName): collector(collectorName) {}
+HelicsCollector::HelicsCollector(const std::string& collectorName): collector(collectorName) {}
 
-std::unique_ptr<collector> helicsCollector::clone() const
+std::unique_ptr<collector> HelicsCollector::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<helicsCollector>();
-    helicsCollector::cloneTo(col.get());
+    std::unique_ptr<collector> col = std::make_unique<HelicsCollector>();
+    HelicsCollector::cloneTo(col.get());
     return col;
 }
 
-void helicsCollector::cloneTo(collector* col) const
+void HelicsCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto hcol = dynamic_cast<helicsCollector*>(col);
+    auto hcol = dynamic_cast<HelicsCollector*>(col);
     if (hcol == nullptr) {
         return;
     }
 }
 
-void helicsCollector::dataPointAdded(const collectorPoint& cp)
+void HelicsCollector::dataPointAdded(const collectorPoint& cp)
 {
     if (coord == nullptr) {
         // find the coordinator first
@@ -46,8 +46,8 @@ void helicsCollector::dataPointAdded(const collectorPoint& cp)
             auto rto = gobj->getRoot();
             if (rto) {
                 auto hCoord = rto->find("helics");
-                if (dynamic_cast<helicsCoordinator*>(hCoord)) {
-                    coord = static_cast<helicsCoordinator*>(hCoord);
+                if (dynamic_cast<HelicsCoordinator*>(hCoord)) {
+                    coord = static_cast<HelicsCoordinator*>(hCoord);
 
                     coord->addCollector(this);
                     switch (pubType) {
@@ -86,7 +86,7 @@ void helicsCollector::dataPointAdded(const collectorPoint& cp)
     }
 }
 
-change_code helicsCollector::trigger(coreTime time)
+change_code HelicsCollector::trigger(coreTime time)
 {
     auto out = collector::trigger(time);
 
@@ -130,12 +130,12 @@ change_code helicsCollector::trigger(coreTime time)
     return out;
 }
 
-void helicsCollector::set(std::string_view param, double val)
+void HelicsCollector::set(std::string_view param, double val)
 {
     collector::set(param, val);
 }
 
-void helicsCollector::set(std::string_view param, std::string_view val)
+void HelicsCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "complex") {
         auto asLoc = val.find("as");
@@ -190,7 +190,7 @@ void helicsCollector::set(std::string_view param, std::string_view val)
     }
 }
 
-const std::string& helicsCollector::getSinkName() const
+const std::string& HelicsCollector::getSinkName() const
 {
     static const std::string helicsName("helics");
     return helicsName;

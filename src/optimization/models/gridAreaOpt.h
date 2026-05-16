@@ -15,44 +15,44 @@
 // forward classes
 
 namespace griddyn {
-class gridBusOpt;
-class gridLinkOpt;
-class gridRelayOpt;
+class GridBusOpt;
+class GridLinkOpt;
+class GridRelayOpt;
 
 class Area;
 
-class gridAreaOpt: public gridOptObject {
+class GridAreaOpt: public GridOptObject {
   public:
   protected:
-    std::vector<gridAreaOpt*> areaList;
-    std::vector<gridBusOpt*> busList;
-    std::vector<gridLinkOpt*> linkList;
-    std::vector<gridRelayOpt*> relayList;
+    std::vector<GridAreaOpt*> areaList;
+    std::vector<GridBusOpt*> busList;
+    std::vector<GridLinkOpt*> linkList;
+    std::vector<GridRelayOpt*> relayList;
 
-    std::vector<gridOptObject*> objectList;
+    std::vector<GridOptObject*> objectList;
     Area* area = nullptr;
 
     coreObjectList optObList;  // a search index for object names
   public:
-    gridAreaOpt(const std::string& objName = "");
-    gridAreaOpt(coreObject* obj, const std::string& objName = "");
-    ~gridAreaOpt();
+    GridAreaOpt(const std::string& objName = "");
+    GridAreaOpt(coreObject* obj, const std::string& objName = "");
+    ~GridAreaOpt();
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // add components
 
     void add(coreObject* obj) override;
-    void add(gridAreaOpt* areaObj);
-    void add(gridBusOpt* bus);
-    void add(gridLinkOpt* lnk);
-    void add(gridRelayOpt* relay);
+    void add(GridAreaOpt* areaObj);
+    void add(GridBusOpt* bus);
+    void add(GridLinkOpt* lnk);
+    void add(GridRelayOpt* relay);
 
     // remove components
     void remove(coreObject* obj) override;
-    void remove(gridAreaOpt* areaObj);
-    void remove(gridBusOpt* bus);
-    void remove(gridLinkOpt* lnk);
-    void remove(gridRelayOpt* relay);
+    void remove(GridAreaOpt* areaObj);
+    void remove(GridBusOpt* bus);
+    void remove(GridLinkOpt* lnk);
+    void remove(GridRelayOpt* relay);
 
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
     virtual void loadSizes(const OptimizationMode& oMode) override;
@@ -123,14 +123,14 @@ class gridAreaOpt: public gridOptObject {
     virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
-    virtual gridOptObject* getBus(index_t index) const override;
-    virtual gridOptObject* getArea(index_t index) const override;
-    virtual gridOptObject* getRelay(index_t index) const override;
-    virtual gridOptObject* getLink(index_t index) const override;
+    virtual GridOptObject* getBus(index_t index) const override;
+    virtual GridOptObject* getArea(index_t index) const override;
+    virtual GridOptObject* getRelay(index_t index) const override;
+    virtual GridOptObject* getLink(index_t index) const override;
 
   protected:
 };
 
-gridAreaOpt* getMatchingArea(gridAreaOpt* area, gridOptObject* src, gridOptObject* sec);
+GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec);
 
 }  // namespace griddyn

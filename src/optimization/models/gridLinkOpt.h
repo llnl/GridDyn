@@ -12,30 +12,30 @@
 // forward classes
 
 namespace griddyn {
-class gridLoadOpt;
-class gridGenOpt;
-class gridBusOpt;
+class GridLoadOpt;
+class GridGenOpt;
+class GridBusOpt;
 
 class Link;
 
-class gridLinkOpt: public gridOptObject {
+class GridLinkOpt: public GridOptObject {
   public:
     enum BusFlags {
 
     };
 
   protected:
-    gridBusOpt* B1;
-    gridBusOpt* B2;
+    GridBusOpt* B1;
+    GridBusOpt* B2;
 
     Link* link = nullptr;
     double rampUpLimit;
     double rampDownLimit;
 
   public:
-    gridLinkOpt(const std::string& objName = "");
-    gridLinkOpt(coreObject* obj, const std::string& objName = "");
-    ~gridLinkOpt();
+    GridLinkOpt(const std::string& objName = "");
+    GridLinkOpt(coreObject* obj, const std::string& objName = "");
+    ~GridLinkOpt();
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // add components
@@ -106,8 +106,8 @@ class gridLinkOpt: public gridOptObject {
     virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
-    virtual gridOptObject* getBus(index_t index) const override;
-    virtual gridOptObject* getArea(index_t index) const override;
+    virtual GridOptObject* getBus(index_t index) const override;
+    virtual GridOptObject* getArea(index_t index) const override;
 
   protected:
 };

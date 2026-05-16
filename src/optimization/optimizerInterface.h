@@ -15,9 +15,9 @@
 #include <vector>
 
 namespace griddyn {
-class gridDynOptimization;
+class GridDynOptimization;
 
-class optimizerInterface {
+class OptimizerInterface {
   public:
     vectData<double> v1;
     // solver outputs
@@ -33,14 +33,14 @@ class optimizerInterface {
     void* mSolverMem = nullptr;
     bool mAllocated = false;
     bool mInitialized = false;  //!< flag indicating if these vectors have been initialized
-    gridDynOptimization* mGridDynOptimization = nullptr;
+    GridDynOptimization* mGridDynOptimization = nullptr;
     count_t mStateVectorSize = 0;
 
   public:
-    optimizerInterface(std::string_view optName = "optim");
+    OptimizerInterface(std::string_view optName = "optim");
 
-    optimizerInterface(gridDynOptimization* gdo, const OptimizationMode& oMode);
-    virtual ~optimizerInterface() {}
+    OptimizerInterface(GridDynOptimization* gdo, const OptimizationMode& oMode);
+    virtual ~OptimizerInterface() {}
     virtual double* val_data() { return values.data(); }
 
     virtual int allocate(count_t size)
@@ -57,7 +57,7 @@ class optimizerInterface {
     virtual void logErrorWeights(int /*logLevel*/) {}
 
     count_t getSize() const { return mStateVectorSize; }
-    virtual void setOptimizationData(gridDynOptimization* gdo, const OptimizationMode& oMode);
+    virtual void setOptimizationData(GridDynOptimization* gdo, const OptimizationMode& oMode);
     virtual int
         check_flag(void* flagvalue, std::string_view funcname, int opt, bool printError = true);
     bool isInitialized() const { return mInitialized; }
@@ -65,20 +65,20 @@ class optimizerInterface {
     const std::string& getName() const { return mName; }
 };
 
-class basicOptimizer: public optimizerInterface {
+class BasicOptimizer: public OptimizerInterface {
   private:
   public:
-    explicit basicOptimizer(std::string_view optName = "basic");
+    explicit BasicOptimizer(std::string_view optName = "basic");
 
-    basicOptimizer(gridDynOptimization* gdo, const OptimizationMode& oMode);
+    BasicOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
 
     int allocate(count_t size) override;
     void dynObjectInitializeA(double t0) override;
 };
 
-std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
+std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
                                                   const OptimizationMode& oMode);
 
-std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type);
+std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type);
 
 }  // namespace griddyn

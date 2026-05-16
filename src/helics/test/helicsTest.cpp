@@ -40,10 +40,10 @@ using griddyn::gridDynSimulationTestFixture;
 using griddyn::Source;
 using griddyn::helicsLib::gd2helicsTime;
 using griddyn::helicsLib::helics2gdTime;
-using griddyn::helicsLib::helicsCoordinator;
-using griddyn::helicsLib::helicsLoad;
-using griddyn::helicsLib::helicsRunner;
-using griddyn::helicsLib::helicsSource;
+using griddyn::helicsLib::HelicsCoordinator;
+using griddyn::helicsLib::HelicsLoad;
+using griddyn::helicsLib::HelicsRunner;
+using griddyn::helicsLib::HelicsSource;
 using griddyn::helicsLib::runBroker;
 using griddyn::helicsLib::runPlayer;
 using griddyn::helicsLib::runRecorder;
@@ -135,7 +135,7 @@ TEST_F(HelicsTests, TestPubSubDouble)
 
 TEST_F(HelicsTests, HelicsCoordinatorTests1)
 {
-    helicsCoordinator coord;
+    HelicsCoordinator coord;
     auto ind1 = coord.addPublication("pub1", helics::data_type::helics_double);
     auto ind2 = coord.addSubscription("pub1");
     EXPECT_GE(ind1, 0);
@@ -168,15 +168,15 @@ TEST_F(HelicsTests, LoadHelicsXml)
     auto vFed = std::make_shared<helics::ValueFederate>("source_test", fi);
     auto pubid = vFed->registerGlobalPublication<double>("sourceValue");
 
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) +
                              "helics_test1.xml --core_type=inproc");
 
     coreObject* obj =
         coreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
 
-    ASSERT_NE(dynamic_cast<helicsSource*>(obj), nullptr);
-    auto src = static_cast<helicsSource*>(obj);
+    ASSERT_NE(dynamic_cast<HelicsSource*>(obj), nullptr);
+    auto src = static_cast<HelicsSource*>(obj);
     ASSERT_NE(src, nullptr);
     src->set("valkey", "sourceValue");
     src->set("period", 2);
@@ -226,14 +226,14 @@ TEST_F(HelicsTests, HelicsXmlWithLoad)
     auto& subid = vFed->registerSubscription("voltage3key");
     auto& pubid = vFed->registerGlobalPublication<std::complex<double>>("load3val");
 
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) +
                              "helics_test2.xml --core_type=inproc --core_name=test2");
 
     auto sim = hR->getSim();
 
     auto ldObj = sim->find("bus2::load#0");
-    auto ld = dynamic_cast<helicsLoad*>(ldObj);
+    auto ld = dynamic_cast<HelicsLoad*>(ldObj);
     ASSERT_NE(ld, nullptr);
 
     auto res = std::async(std::launch::async, [&]() { hR->simInitialize(); });
@@ -320,7 +320,7 @@ TEST_F(HelicsTests, TestRecorderPlayer)
 
 TEST_F(HelicsTests, TestZmqCore)
 {
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) + "helics_test3.xml");
 
     auto sim = hR->getSim();
@@ -357,7 +357,7 @@ TEST_F(HelicsTests, TestZmqCore)
 
 TEST_F(HelicsTests, TestCollector)
 {
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test1.xml");
 
     auto sim = hR->getSim();
@@ -384,7 +384,7 @@ TEST_F(HelicsTests, TestCollector)
 
 TEST_F(HelicsTests, TestCollectorVector)
 {
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) +
                              "simple_bus_test_collector_vec.xml");
 
@@ -416,7 +416,7 @@ TEST_F(HelicsTests, TestCollectorVector)
 
 TEST_F(HelicsTests, TestEvent)
 {
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test1_event.xml");
 
     auto sim = hR->getSim();
@@ -451,7 +451,7 @@ TEST_F(HelicsTests, TestEvent)
 
 TEST_F(HelicsTests, TestVectorEvent)
 {
-    auto hR = std::make_unique<helicsRunner>();
+    auto hR = std::make_unique<HelicsRunner>();
     hR->InitializeFromString(std::string(helics_test_directory) + "simple_bus_test2_event.xml");
 
     auto sim = hR->getSim();

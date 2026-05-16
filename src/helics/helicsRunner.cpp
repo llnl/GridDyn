@@ -28,27 +28,27 @@
 #include <memory>
 
 namespace griddyn::helicsLib {
-helicsRunner::helicsRunner()
+HelicsRunner::HelicsRunner()
 {
     griddyn::loadHELICSLibrary();
     m_gds = std::make_shared<gridDynSimulation>();
 
-    coord_ = make_owningPtr<helicsCoordinator>();
+    coord_ = make_owningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
 }
 
-helicsRunner::helicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(sim)
+HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(sim)
 {
     griddyn::loadHELICSLibrary();
-    coord_ = make_owningPtr<helicsCoordinator>();
+    coord_ = make_owningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
 }
 
-helicsRunner::~helicsRunner() = default;
+HelicsRunner::~HelicsRunner() = default;
 
-std::shared_ptr<CLI::App> helicsRunner::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App> HelicsRunner::generateLocalCommandLineParser(readerInfo& ri)
 {
     loadHelicsReaderInfoDefinitions(ri);
 
@@ -59,7 +59,7 @@ std::shared_ptr<CLI::App> helicsRunner::generateLocalCommandLineParser(readerInf
     return parser;
 }
 
-void helicsRunner::simInitialize()
+void HelicsRunner::simInitialize()
 {
     // add an initialization function after the first part of the power flow init
     m_gds->addInitOperation([this]() {
@@ -81,7 +81,7 @@ void helicsRunner::simInitialize()
     fed_->enterExecutingMode();
 }
 
-coreTime helicsRunner::Run()
+coreTime HelicsRunner::Run()
 {
     coreTime stop_time = m_gds->getStopTime();
     auto retTime = Step(stop_time);
@@ -89,7 +89,7 @@ coreTime helicsRunner::Run()
     return retTime;
 }
 
-coreTime helicsRunner::Step(coreTime time)
+coreTime HelicsRunner::Step(coreTime time)
 {
     helics::Time time_granted = 0.0; /* the time step HELICS has allowed us to process */
     helics::Time time_desired = 0.0; /* the time step we would like to go to next */
@@ -127,7 +127,7 @@ coreTime helicsRunner::Step(coreTime time)
     return m_gds->getSimulationTime();
 }
 
-void helicsRunner::Finalize()
+void HelicsRunner::Finalize()
 {
     fed_->finalize();
 }

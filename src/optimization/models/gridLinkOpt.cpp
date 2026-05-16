@@ -19,14 +19,14 @@
 #include <utility>
 
 namespace griddyn {
-static optObjectFactory<gridLinkOpt, Link> opLink("basic", "link");
+static OptObjectFactory<GridLinkOpt, Link> opLink("basic", "link");
 
 using units::unit;
 
-gridLinkOpt::gridLinkOpt(const std::string& objName): gridOptObject(objName) {}
+GridLinkOpt::GridLinkOpt(const std::string& objName): GridOptObject(objName) {}
 
-gridLinkOpt::gridLinkOpt(coreObject* obj, const std::string& objName):
-    gridOptObject(objName), link(dynamic_cast<Link*>(obj))
+GridLinkOpt::GridLinkOpt(coreObject* obj, const std::string& objName):
+    GridOptObject(objName), link(dynamic_cast<Link*>(obj))
 {
     if (link != nullptr) {
         if (getName().empty()) {
@@ -36,20 +36,20 @@ gridLinkOpt::gridLinkOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* gridLinkOpt::clone(coreObject* obj) const
+coreObject* GridLinkOpt::clone(coreObject* obj) const
 {
-    gridLinkOpt* nobj;
+    GridLinkOpt* nobj;
     if (obj == nullptr) {
-        nobj = new gridLinkOpt();
+        nobj = new GridLinkOpt();
     } else {
-        nobj = dynamic_cast<gridLinkOpt*>(obj);
+        nobj = dynamic_cast<GridLinkOpt*>(obj);
         if (nobj == nullptr) {
             // if we can't cast the pointer clone at the next lower level
-            gridOptObject::clone(obj);
+            GridOptObject::clone(obj);
             return obj;
         }
     }
-    gridOptObject::clone(nobj);
+    GridOptObject::clone(nobj);
 
     // now clone all the loads and generators
     // cloning the links from this component would be bad
@@ -58,9 +58,9 @@ coreObject* gridLinkOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void gridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
+void GridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
-void gridLinkOpt::loadSizes(const OptimizationMode& oMode)
+void GridLinkOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
@@ -83,7 +83,7 @@ void gridLinkOpt::loadSizes(const OptimizationMode& oMode)
     oo.localLoad(true);
 }
 
-void gridLinkOpt::add(coreObject* obj)
+void GridLinkOpt::add(coreObject* obj)
 {
     auto* tmpLink = dynamic_cast<Link*>(obj);
     if (tmpLink != nullptr) {
@@ -97,70 +97,70 @@ void gridLinkOpt::add(coreObject* obj)
     }
 }
 
-void gridLinkOpt::remove(coreObject* /*obj*/) {}
+void GridLinkOpt::remove(coreObject* /*obj*/) {}
 
-void gridLinkOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
+void GridLinkOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 
 // for saving the state
-void gridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+void GridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
+void GridLinkOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
-void gridLinkOpt::getTols(double /*tols*/[], const OptimizationMode& /*oMode*/) {}
-void gridLinkOpt::valueBounds(double /*time*/,
+void GridLinkOpt::getTols(double /*tols*/[], const OptimizationMode& /*oMode*/) {}
+void GridLinkOpt::valueBounds(double /*time*/,
                               double /*upperLimit*/[],
                               double /*lowerLimit*/[],
                               const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::linearObj(const OptimizationData& /*of*/,
+void GridLinkOpt::linearObj(const OptimizationData& /*of*/,
                             vectData<double>& /*linObj*/,
                             const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::quadraticObj(const OptimizationData& /*of*/,
+void GridLinkOpt::quadraticObj(const OptimizationData& /*of*/,
                                vectData<double>& /*linObj*/,
                                vectData<double>& /*quadObj*/,
                                const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::constraintValue(const OptimizationData& /*of*/,
+void GridLinkOpt::constraintValue(const OptimizationData& /*of*/,
                                   double /*cVals*/[],
                                   const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::constraintJacobianElements(const OptimizationData& /*of*/,
+void GridLinkOpt::constraintJacobianElements(const OptimizationData& /*of*/,
                                              matrixData<double>& /*md*/,
                                              const OptimizationMode& /*oMode*/)
 {
 }
 
-double gridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
+double GridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
 {
     double cost = 0;
 
     return cost;
 }
 
-void gridLinkOpt::gradient(const OptimizationData& /*of*/,
+void GridLinkOpt::gradient(const OptimizationData& /*of*/,
                            double[] /*deriv*/,
                            const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::jacobianElements(const OptimizationData& /*of*/,
+void GridLinkOpt::jacobianElements(const OptimizationData& /*of*/,
                                    matrixData<double>& /*md*/,
                                    const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::getConstraints(const OptimizationData& /*of*/,
+void GridLinkOpt::getConstraints(const OptimizationData& /*of*/,
                                  matrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],
@@ -168,47 +168,47 @@ void gridLinkOpt::getConstraints(const OptimizationData& /*of*/,
 {
 }
 
-void gridLinkOpt::getObjName(stringVec& /*objNames*/,
+void GridLinkOpt::getObjName(stringVec& /*objNames*/,
                              const OptimizationMode& /*oMode*/,
                              const std::string& /*prefix*/)
 {
 }
 
-void gridLinkOpt::disable()
+void GridLinkOpt::disable()
 {
     coreObject::disable();
 }
 
-void gridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
+void GridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
                              const OptimizationMode& /*oMode*/)
 {
 }
 
 // destructor
-gridLinkOpt::~gridLinkOpt() = default;
+GridLinkOpt::~GridLinkOpt() = default;
 
 // set properties
-void gridLinkOpt::set(std::string_view param, std::string_view val)
+void GridLinkOpt::set(std::string_view param, std::string_view val)
 {
     if (param == "#") {
     } else {
-        gridOptObject::set(param, val);
+        GridOptObject::set(param, val);
     }
 }
 
-void gridLinkOpt::set(std::string_view param, double val, unit unitType)
+void GridLinkOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angletolerance") || (param == "atol")) {
     } else {
-        gridOptObject::set(param, val, unitType);
+        GridOptObject::set(param, val, unitType);
     }
 }
 
-coreObject* gridLinkOpt::find(std::string_view objName) const
+coreObject* GridLinkOpt::find(std::string_view objName) const
 {
     if ((objName == getName()) || (objName == "link")) {
-        return const_cast<gridLinkOpt*>(this);
+        return const_cast<GridLinkOpt*>(this);
     }
     if ((objName == "b1") || (objName == "bus1") || (objName == "bus")) {
         return B1;
@@ -220,7 +220,7 @@ coreObject* gridLinkOpt::find(std::string_view objName) const
     return (coreObject::find(objName));
 }
 
-coreObject* gridLinkOpt::getSubObject(std::string_view typeName, index_t num) const
+coreObject* GridLinkOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         if (num == 1) {
@@ -233,7 +233,7 @@ coreObject* gridLinkOpt::getSubObject(std::string_view typeName, index_t num) co
     return nullptr;
 }
 
-coreObject* gridLinkOpt::findByUserID(std::string_view typeName, index_t searchID) const
+coreObject* GridLinkOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "bus") {
         if (B1->getUserID() == searchID) {
@@ -247,7 +247,7 @@ coreObject* gridLinkOpt::findByUserID(std::string_view typeName, index_t searchI
     return nullptr;
 }
 
-gridOptObject* gridLinkOpt::getBus(index_t index) const
+GridOptObject* GridLinkOpt::getBus(index_t index) const
 {
     if (index == 1) {
         return B1;
@@ -258,16 +258,16 @@ gridOptObject* gridLinkOpt::getBus(index_t index) const
     return nullptr;
 }
 
-gridOptObject* gridLinkOpt::getArea(index_t /*index*/) const
+GridOptObject* GridLinkOpt::getArea(index_t /*index*/) const
 {
-    return dynamic_cast<gridOptObject*>(getParent());
+    return dynamic_cast<GridOptObject*>(getParent());
 }
 
-double gridLinkOpt::get(std::string_view param, units::unit unitType) const
+double GridLinkOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param[0] != '#') {
-        val = gridOptObject::get(param, unitType);
+        val = GridOptObject::get(param, unitType);
     }
     return val;
 }

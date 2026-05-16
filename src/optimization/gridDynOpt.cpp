@@ -23,23 +23,23 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<gridDynOptimization>
+static typeFactory<GridDynOptimization>
     gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
-gridDynOptimization::gridDynOptimization(const std::string& simName): gridDynSimulation(simName)
+GridDynOptimization::GridDynOptimization(const std::string& simName): gridDynSimulation(simName)
 {
     // defaults
-    mAreaOpt = new gridAreaOpt(this);
+    mAreaOpt = new GridAreaOpt(this);
 }
 
-gridDynOptimization::~gridDynOptimization()
+GridDynOptimization::~GridDynOptimization()
 {
     delete mAreaOpt;
 }
 
-coreObject* gridDynOptimization::clone(coreObject* obj) const
+coreObject* GridDynOptimization::clone(coreObject* obj) const
 {
-    auto* sim = cloneBase<gridDynOptimization, gridDynSimulation>(this, obj);
+    auto* sim = cloneBase<GridDynOptimization, gridDynSimulation>(this, obj);
     if (sim == nullptr) {
         return obj;
     }
@@ -47,7 +47,7 @@ coreObject* gridDynOptimization::clone(coreObject* obj) const
     return sim;
 }
 
-void gridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
+void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
 {
     if (setupMode == 0) {  // no distinction between Voltage, angle, and others
         mAreaOpt->setOffset(1, 0, oMode);
@@ -68,7 +68,7 @@ void gridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int set
 }
 
 // --------------- set properties ---------------
-void gridDynOptimization::set(std::string_view param, std::string_view val)
+void GridDynOptimization::set(std::string_view param, std::string_view val)
 {
     if (param == "flags") {
         auto flagTokens = gmlc::utilities::stringOps::splitline(val);
@@ -77,7 +77,7 @@ void gridDynOptimization::set(std::string_view param, std::string_view val)
             setFlag(flagString, true);
         }
     } else if ((param == "defaultoptmode") || (param == "defaultopt")) {
-        auto optFactory = coreOptObjectFactory::instance();
+        auto optFactory = CoreOptObjectFactory::instance();
         if (optFactory->isValidType(val)) {
             mDefaultOptMode = val;
             optFactory->setDefaultType(val);
@@ -101,7 +101,7 @@ void gridDynOptimization::set(std::string_view param, std::string_view val)
     }
 }
 
-void gridDynOptimization::setFlag(std::string_view flag, bool val)
+void GridDynOptimization::setFlag(std::string_view flag, bool val)
 {
     // int nval = static_cast<int> (val);
     /*
@@ -116,7 +116,7 @@ void gridDynOptimization::setFlag(std::string_view flag, bool val)
     }
 }
 
-void gridDynOptimization::setFlags(size_t param, int val)
+void GridDynOptimization::setFlags(size_t param, int val)
 {
     if (param > 32) {
         throw(unrecognizedParameter("flag" + std::to_string(param)));
@@ -125,7 +125,7 @@ void gridDynOptimization::setFlags(size_t param, int val)
     controlFlags.set(param, (val > 0));
 }
 
-void gridDynOptimization::set(std::string_view param, double val, units::unit unitType)
+void GridDynOptimization::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "optimtol") {
         tols.rtol = val;
@@ -140,7 +140,7 @@ void gridDynOptimization::set(std::string_view param, double val, units::unit un
     }
 }
 
-double gridDynOptimization::get(std::string_view param, units::unit unitType) const
+double GridDynOptimization::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "voltagetolerance") {
@@ -154,7 +154,7 @@ double gridDynOptimization::get(std::string_view param, units::unit unitType) co
     return val;
 }
 
-coreObject* gridDynOptimization::find(std::string_view objName) const
+coreObject* GridDynOptimization::find(std::string_view objName) const
 {
     if (objName == "optroot") {
         return mAreaOpt;
@@ -165,14 +165,14 @@ coreObject* gridDynOptimization::find(std::string_view objName) const
     return gridDynSimulation::find(objName);
 }
 
-coreObject* gridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
+coreObject* GridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName.substr(0, 3) == "opt") {
         return mAreaOpt->getSubObject(typeName.substr(3), num);
     }
     return gridDynSimulation::getSubObject(typeName, num);
 }
-coreObject* gridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
+coreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName.substr(0, 3) == "opt") {
         return mAreaOpt->findByUserID(typeName.substr(3), searchID);
@@ -180,37 +180,37 @@ coreObject* gridDynOptimization::findByUserID(std::string_view typeName, index_t
     return gridDynSimulation::findByUserID(typeName, searchID);
 }
 
-gridOptObject* gridDynOptimization::getOptData(coreObject* obj)
+GridOptObject* GridDynOptimization::getOptData(coreObject* obj)
 {
     if (obj != nullptr) {
         coreObject* nextObject = mAreaOpt->find(obj->getName());
         if (nextObject != nullptr) {
-            return static_cast<gridOptObject*>(nextObject);
+            return static_cast<GridOptObject*>(nextObject);
         }
         return nullptr;
     }
     return mAreaOpt;
 }
 
-gridOptObject* gridDynOptimization::makeOptObjectPath(coreObject* obj)
+GridOptObject* GridDynOptimization::makeOptObjectPath(coreObject* obj)
 {
-    gridOptObject* optObject = getOptData(obj);
+    GridOptObject* optObject = getOptData(obj);
     if (optObject != nullptr) {
         return optObject;
     }
     if (!(obj->isRoot())) {
         auto parentOptObject = makeOptObjectPath(obj->getParent());
-        optObject = coreOptObjectFactory::instance()->createObject(obj);
+        optObject = CoreOptObjectFactory::instance()->createObject(obj);
         parentOptObject->add(optObject);
         return optObject;
     }
     return nullptr;
 }
 
-optimizerInterface* gridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
+OptimizerInterface* GridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
 {
     mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
-    optimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
+    OptimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
 
     return optimizer;
 }

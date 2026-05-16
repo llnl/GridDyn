@@ -20,18 +20,18 @@
 
 namespace griddyn {
 namespace helicsLib {
-    static childClassFactory<helicsCollector, collector> helicsCollFac(stringVec{"helics"});
+    static childClassFactory<HelicsCollector, collector> helicsCollFac(stringVec{"helics"});
 
-    static childClassFactory<helicsEvent, Event> helicsEventFac(stringVec{"helics"});
+    static childClassFactory<HelicsEvent, Event> helicsEventFac(stringVec{"helics"});
 
-    static childClassFactory<helicsCommunicator, Communicator> hcomms(stringVec{"helics"});
+    static childClassFactory<HelicsCommunicator, Communicator> hcomms(stringVec{"helics"});
 
-    static childTypeFactory<helicsSource, sources::rampSource>
+    static childTypeFactory<HelicsSource, sources::rampSource>
         fnsrc("source", std::to_array<std::string_view>({"helics"}));
-    static childTypeFactory<helicsLoad, loads::rampLoad> fnld("load", "helics");
+    static childTypeFactory<HelicsLoad, loads::rampLoad> fnld("load", "helics");
 
     // the factory for the coordinator
-    static typeFactory<helicsCoordinator> cbuild("extra", "helics");
+    static typeFactory<HelicsCoordinator> cbuild("extra", "helics");
 }  // namespace helicsLib
 
 void loadHELICSLibrary()

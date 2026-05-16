@@ -12,21 +12,21 @@
 // forward classes
 
 namespace griddyn {
-class gridLoadOpt;
-class gridGenOpt;
-class gridBusOpt;
+class GridLoadOpt;
+class GridGenOpt;
+class GridBusOpt;
 
 class Relay;
 
-class gridRelayOpt: public gridOptObject {
+class GridRelayOpt: public GridOptObject {
   public:
   protected:
     Relay* relay = nullptr;
 
   public:
-    gridRelayOpt(const std::string& objName = "");
-    gridRelayOpt(coreObject* obj, const std::string& objName = "");
-    ~gridRelayOpt();
+    GridRelayOpt(const std::string& objName = "");
+    GridRelayOpt(coreObject* obj, const std::string& objName = "");
+    ~GridRelayOpt();
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // add components

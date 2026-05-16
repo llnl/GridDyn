@@ -17,21 +17,21 @@ class Federate;
 namespace griddyn {
 class readerInfo;
 namespace helicsLib {
-    class helicsCoordinator;
+    class HelicsCoordinator;
 
     /** helicsRunner is the execution object for executing in coordination with the Helics
 co-simulation environment it inherits from gridDynRunner and adds some extra features necessary for
 executing with helics
 */
-    class helicsRunner: public GriddynRunner {
+    class HelicsRunner: public GriddynRunner {
       private:
-        coreOwningPtr<helicsCoordinator> coord_;  //!< the coordinator object for managing object
+        coreOwningPtr<HelicsCoordinator> coord_;  //!< the coordinator object for managing object
                                                   //!< that manage the HELICS coordination
         std::shared_ptr<helics::Federate> fed_;  //!< pointer to the helics federate object
       public:
-        helicsRunner();
-        explicit helicsRunner(std::shared_ptr<gridDynSimulation> sim);
-        ~helicsRunner();
+        HelicsRunner();
+        explicit HelicsRunner(std::shared_ptr<gridDynSimulation> sim);
+        ~HelicsRunner();
 
       public:
         virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& ri) override;

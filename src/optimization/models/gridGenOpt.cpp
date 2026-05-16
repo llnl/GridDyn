@@ -37,12 +37,12 @@ namespace {
     }
 }  // namespace
 
-static optObjectFactory<gridGenOpt, Generator> opgen("basic", "gen", 0, true);
+static OptObjectFactory<GridGenOpt, Generator> opgen("basic", "gen", 0, true);
 
-gridGenOpt::gridGenOpt(const std::string& objName): gridOptObject(objName) {}
+GridGenOpt::GridGenOpt(const std::string& objName): GridOptObject(objName) {}
 
-gridGenOpt::gridGenOpt(coreObject* obj, const std::string& objName):
-    gridOptObject(objName), gen(dynamic_cast<Generator*>(obj))
+GridGenOpt::GridGenOpt(coreObject* obj, const std::string& objName):
+    GridOptObject(objName), gen(dynamic_cast<Generator*>(obj))
 {
     if (gen != nullptr) {
         if (getName().empty()) {
@@ -52,9 +52,9 @@ gridGenOpt::gridGenOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* gridGenOpt::clone(coreObject* obj) const
+coreObject* GridGenOpt::clone(coreObject* obj) const
 {
-    auto* nobj = cloneBase<gridGenOpt, gridOptObject>(this, obj);
+    auto* nobj = cloneBase<GridGenOpt, GridOptObject>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -72,7 +72,7 @@ coreObject* gridGenOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void gridGenOpt::add(coreObject* obj)
+void GridGenOpt::add(coreObject* obj)
 {
     if (dynamic_cast<Generator*>(obj) != nullptr) {
         gen = static_cast<Generator*>(obj);
@@ -83,12 +83,12 @@ void gridGenOpt::add(coreObject* obj)
     }
 }
 
-void gridGenOpt::dynObjectInitializeA(std::uint32_t /*flags*/)
+void GridGenOpt::dynObjectInitializeA(std::uint32_t /*flags*/)
 {
-    bus = static_cast<gridBusOpt*>(getParent()->find("bus"));
+    bus = static_cast<GridBusOpt*>(getParent()->find("bus"));
 }
 
-void gridGenOpt::loadSizes(const OptimizationMode& oMode)
+void GridGenOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
@@ -106,19 +106,19 @@ void gridGenOpt::loadSizes(const OptimizationMode& oMode)
     oo.localLoad(true);
 }
 
-void gridGenOpt::setValues(const OptimizationData& /* of */, const OptimizationMode& /*oMode*/) {}
+void GridGenOpt::setValues(const OptimizationData& /* of */, const OptimizationMode& /*oMode*/) {}
 
 // for saving the state
-void gridGenOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+void GridGenOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
 {
     // OptimizationOffsets *oo = offsets.getOffsets (oMode);
 }
 
-void gridGenOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /* oMode */) {}
+void GridGenOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /* oMode */) {}
 
-void gridGenOpt::getTols(double /*tols*/[], const OptimizationMode& /* oMode */) {}
+void GridGenOpt::getTols(double /*tols*/[], const OptimizationMode& /* oMode */) {}
 
-void gridGenOpt::valueBounds(double time,
+void GridGenOpt::valueBounds(double time,
                              double upperLimit[],
                              double lowerLimit[],
                              const OptimizationMode& oMode)
@@ -150,7 +150,7 @@ void gridGenOpt::valueBounds(double time,
     }
 }
 
-void gridGenOpt::linearObj(const OptimizationData& /* of */,
+void GridGenOpt::linearObj(const OptimizationData& /* of */,
                            vectData<double>& linObj,
                            const OptimizationMode& oMode)
 {
@@ -165,7 +165,7 @@ void gridGenOpt::linearObj(const OptimizationData& /* of */,
         }
     }
 }
-void gridGenOpt::quadraticObj(const OptimizationData& /* of */,
+void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
                               vectData<double>& linObj,
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode)
@@ -188,7 +188,7 @@ void gridGenOpt::quadraticObj(const OptimizationData& /* of */,
     }
 }
 
-double gridGenOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
+double GridGenOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
 {
     double cost = 0;
     auto& oo = offsets.getOffsets(oMode);
@@ -229,7 +229,7 @@ double gridGenOpt::objValue(const OptimizationData& of, const OptimizationMode& 
     return cost;
 }
 
-void gridGenOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
+void GridGenOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
     double P = of.val[oo.gOffset];
@@ -266,7 +266,7 @@ void gridGenOpt::gradient(const OptimizationData& of, double deriv[], const Opti
         }
     }
 }
-void gridGenOpt::jacobianElements(const OptimizationData& of,
+void GridGenOpt::jacobianElements(const OptimizationData& of,
                                   matrixData<double>& md,
                                   const OptimizationMode& oMode)
 {
@@ -310,7 +310,7 @@ void gridGenOpt::jacobianElements(const OptimizationData& of,
     }
 }
 
-void gridGenOpt::getConstraints(const OptimizationData& /* of */,
+void GridGenOpt::getConstraints(const OptimizationData& /* of */,
                                 matrixData<double>& /*cons*/,
                                 double /*upperLimit*/[],
                                 double /*lowerLimit*/[],
@@ -318,19 +318,19 @@ void gridGenOpt::getConstraints(const OptimizationData& /* of */,
 {
 }
 
-void gridGenOpt::constraintValue(const OptimizationData& /* of */,
+void GridGenOpt::constraintValue(const OptimizationData& /* of */,
                                  double /*cVals*/[],
                                  const OptimizationMode& /* oMode */)
 {
 }
 
-void gridGenOpt::constraintJacobianElements(const OptimizationData& /* of */,
+void GridGenOpt::constraintJacobianElements(const OptimizationData& /* of */,
                                             matrixData<double>& /*md*/,
                                             const OptimizationMode& /* oMode */)
 {
 }
 
-void gridGenOpt::getObjName(stringVec& objNames,
+void GridGenOpt::getObjName(stringVec& objNames,
                             const OptimizationMode& oMode,
                             const std::string& prefix)
 {
@@ -342,15 +342,15 @@ void gridGenOpt::getObjName(stringVec& objNames,
 }
 
 // set properties
-void gridGenOpt::set(std::string_view param, std::string_view val)
+void GridGenOpt::set(std::string_view param, std::string_view val)
 {
     if (param == "#") {
     } else {
-        gridOptObject::set(param, val);
+        GridOptObject::set(param, val);
     }
 }
 
-void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
+void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
 {
     using units::convert;
     using units::currency;
@@ -425,21 +425,21 @@ void gridGenOpt::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "forecast") {
         m_forecast = convert(val, unitType, puMW, systemBasePower);
     } else {
-        gridOptObject::set(param, val, unitType);
+        GridOptObject::set(param, val, unitType);
     }
 }
 
-double gridGenOpt::get(std::string_view param, units::unit unitType) const
+double GridGenOpt::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "#") {
     } else {
-        val = gridOptObject::get(param, unitType);
+        val = GridOptObject::get(param, unitType);
     }
     return val;
 }
 
-void gridGenOpt::loadCostCoeff(std::vector<double> const& coeff, int mode)
+void GridGenOpt::loadCostCoeff(std::vector<double> const& coeff, int mode)
 {
     if (mode == 0) {
         Pcoeff = coeff;
@@ -448,12 +448,12 @@ void gridGenOpt::loadCostCoeff(std::vector<double> const& coeff, int mode)
     }
 }
 
-gridOptObject* gridGenOpt::getBus(index_t /*index*/) const
+GridOptObject* GridGenOpt::getBus(index_t /*index*/) const
 {
     return bus;
 }
 
-gridOptObject* gridGenOpt::getArea(index_t index) const
+GridOptObject* GridGenOpt::getArea(index_t index) const
 {
     return bus->getArea(index);
 }

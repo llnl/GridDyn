@@ -13,17 +13,17 @@
 #include <string_view>
 
 namespace griddyn {
-static childClassFactory<basicOptimizer, optimizerInterface>
+static childClassFactory<BasicOptimizer, OptimizerInterface>
     basicFac(stringVec{"basic", "pricestack"});
 
-optimizerInterface::optimizerInterface(std::string_view optName): mName(optName) {}
+OptimizerInterface::OptimizerInterface(std::string_view optName): mName(optName) {}
 
-optimizerInterface::optimizerInterface(gridDynOptimization* gdo, const OptimizationMode& oMode):
+OptimizerInterface::OptimizerInterface(GridDynOptimization* gdo, const OptimizationMode& oMode):
     mode(oMode), mGridDynOptimization(gdo)
 {
 }
 
-void optimizerInterface::setOptimizationData(gridDynOptimization* gdo,
+void OptimizerInterface::setOptimizationData(GridDynOptimization* gdo,
                                              const OptimizationMode& oMode)
 {
     mode = oMode;
@@ -32,14 +32,14 @@ void optimizerInterface::setOptimizationData(gridDynOptimization* gdo,
     }
 }
 
-void optimizerInterface::initializeJacArray(count_t /*size*/) {}
+void OptimizerInterface::initializeJacArray(count_t /*size*/) {}
 
-double optimizerInterface::get(std::string_view /*param*/) const
+double OptimizerInterface::get(std::string_view /*param*/) const
 {
     return kNullVal;
 }
 
-int optimizerInterface::check_flag(void* flagvalue,
+int OptimizerInterface::check_flag(void* flagvalue,
                                    std::string_view funcname,
                                    int opt,
                                    bool printError)
@@ -78,14 +78,14 @@ int optimizerInterface::check_flag(void* flagvalue,
     return 0;
 }
 
-basicOptimizer::basicOptimizer(std::string_view optName): optimizerInterface(optName) {}
+BasicOptimizer::BasicOptimizer(std::string_view optName): OptimizerInterface(optName) {}
 
-basicOptimizer::basicOptimizer(gridDynOptimization* gdo, const OptimizationMode& oMode):
-    optimizerInterface(gdo, oMode)
+BasicOptimizer::BasicOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode):
+    OptimizerInterface(gdo, oMode)
 {
 }
 
-int basicOptimizer::allocate(count_t size)
+int BasicOptimizer::allocate(count_t size)
 {
     // load the vectors
     if (size == mStateVectorSize) {
@@ -98,7 +98,7 @@ int basicOptimizer::allocate(count_t size)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void basicOptimizer::dynObjectInitializeA(double /*t0*/)
+void BasicOptimizer::dynObjectInitializeA(double /*t0*/)
 {
     if (!mAllocated) {
         //  return (-2);
@@ -107,14 +107,14 @@ void basicOptimizer::dynObjectInitializeA(double /*t0*/)
     // return FUNCTION_EXECUTION_SUCCESS;
 }
 
-std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
+std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
                                                   const OptimizationMode& oMode)
 {
-    std::shared_ptr<optimizerInterface> of;
+    std::shared_ptr<OptimizerInterface> of;
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         default:
-            of = std::make_shared<basicOptimizer>(gdo, oMode);
+            of = std::make_shared<BasicOptimizer>(gdo, oMode);
             break;
         case FlowModel::TRANSPORT:
         case FlowModel::DC:
@@ -124,9 +124,9 @@ std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
     return of;
 }
 
-std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type)
+std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type)
 {
-    return coreClassFactory<optimizerInterface>::instance()->createObject(type);
+    return coreClassFactory<OptimizerInterface>::instance()->createObject(type);
 }
 
 }  // namespace griddyn

@@ -19,14 +19,24 @@
 #include <utility>
 
 namespace griddyn {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridLinkOpt, Link> opLink("basic", "link");
+// NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
 
-GridLinkOpt::GridLinkOpt(const std::string& objName): GridOptObject(objName) {}
+GridLinkOpt::GridLinkOpt(const std::string& objName):
+    GridOptObject(objName), B1(nullptr), B2(nullptr), rampUpLimit(0.0), rampDownLimit(0.0)
+{
+}
 
 GridLinkOpt::GridLinkOpt(coreObject* obj, const std::string& objName):
-    GridOptObject(objName), link(dynamic_cast<Link*>(obj))
+    GridOptObject(objName),
+    B1(nullptr),
+    B2(nullptr),
+    link(dynamic_cast<Link*>(obj)),
+    rampUpLimit(0.0),
+    rampDownLimit(0.0)
 {
     if (link != nullptr) {
         if (getName().empty()) {
@@ -149,9 +159,10 @@ double GridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationM
 }
 
 void GridLinkOpt::gradient(const OptimizationData& /*of*/,
-                           double[] /*deriv*/,
+                           double grad[] /*grad*/,
                            const OptimizationMode& /*oMode*/)
 {
+    static_cast<void>(grad);
 }
 
 void GridLinkOpt::jacobianElements(const OptimizationData& /*of*/,
@@ -273,3 +284,4 @@ double GridLinkOpt::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn
+// NOLINTEND(bugprone-branch-clone)

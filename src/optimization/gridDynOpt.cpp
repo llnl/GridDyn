@@ -23,10 +23,12 @@
 #include <string>
 
 namespace griddyn {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static typeFactory<GridDynOptimization>
     gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
-GridDynOptimization::GridDynOptimization(const std::string& simName): gridDynSimulation(simName)
+GridDynOptimization::GridDynOptimization(const std::string& simName):
+    gridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
 {
     // defaults
     mAreaOpt = new GridAreaOpt(this);
@@ -142,16 +144,13 @@ void GridDynOptimization::set(std::string_view param, double val, units::unit un
 
 double GridDynOptimization::get(std::string_view param, units::unit unitType) const
 {
-    double val;
     if (param == "voltagetolerance") {
-        val = tols.voltageTolerance;
+        return tols.voltageTolerance;
     }
     if (param == "angletolerance") {
-        val = tols.angleTolerance;
-    } else {
-        val = gridDynSimulation::get(param, unitType);
+        return tols.angleTolerance;
     }
-    return val;
+    return gridDynSimulation::get(param, unitType);
 }
 
 coreObject* GridDynOptimization::find(std::string_view objName) const
@@ -159,7 +158,7 @@ coreObject* GridDynOptimization::find(std::string_view objName) const
     if (objName == "optroot") {
         return mAreaOpt;
     }
-    if (objName.substr(0, 3) == "opt") {
+    if (objName.starts_with("opt")) {
         return mAreaOpt->find(objName.substr(3));
     }
     return gridDynSimulation::find(objName);
@@ -167,14 +166,14 @@ coreObject* GridDynOptimization::find(std::string_view objName) const
 
 coreObject* GridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
-    if (typeName.substr(0, 3) == "opt") {
+    if (typeName.starts_with("opt")) {
         return mAreaOpt->getSubObject(typeName.substr(3), num);
     }
     return gridDynSimulation::getSubObject(typeName, num);
 }
 coreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
-    if (typeName.substr(0, 3) == "opt") {
+    if (typeName.starts_with("opt")) {
         return mAreaOpt->findByUserID(typeName.substr(3), searchID);
     }
     return gridDynSimulation::findByUserID(typeName, searchID);
@@ -192,6 +191,7 @@ GridOptObject* GridDynOptimization::getOptData(coreObject* obj)
     return mAreaOpt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 GridOptObject* GridDynOptimization::makeOptObjectPath(coreObject* obj)
 {
     GridOptObject* optObject = getOptData(obj);
@@ -199,7 +199,7 @@ GridOptObject* GridDynOptimization::makeOptObjectPath(coreObject* obj)
         return optObject;
     }
     if (!(obj->isRoot())) {
-        auto parentOptObject = makeOptObjectPath(obj->getParent());
+        auto* parentOptObject = makeOptObjectPath(obj->getParent());
         optObject = CoreOptObjectFactory::instance()->createObject(obj);
         parentOptObject->add(optObject);
         return optObject;

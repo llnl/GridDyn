@@ -46,14 +46,14 @@ class GridOptObject: public coreObject {
     @param oMode the optimization mode to use.
     */
     virtual void setOffsets(const OptimizationOffsets& newOffsets,
-                            const OptimizationMode& optimizationMode);
+                            const OptimizationMode& oMode);
     /** set the offsets of an object for a particular optimization mode using a single offset.
     @param offset the offset index all variables are sequential.
     @param oMode the optimization mode to use.
     */
     virtual void setOffset(index_t offset,
                            index_t constraintOffset,
-                           const OptimizationMode& optimizationMode);
+                           const OptimizationMode& oMode);
 
     // size getter functions
 

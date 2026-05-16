@@ -25,7 +25,9 @@
 namespace griddyn {
 using units::unit;
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridAreaOpt, Area> opa("basic", "area");
+// NOLINTBEGIN(readability-identifier-length,readability-qualified-auto,misc-no-recursion,readability-avoid-return-with-void-value,modernize-use-integer-sign-comparison,bugprone-branch-clone,readability-implicit-bool-conversion)
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -772,3 +774,4 @@ GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObjec
 }
 
 }  // namespace griddyn
+// NOLINTEND(readability-identifier-length,readability-qualified-auto,misc-no-recursion,readability-avoid-return-with-void-value,modernize-use-integer-sign-comparison,bugprone-branch-clone,readability-implicit-bool-conversion)

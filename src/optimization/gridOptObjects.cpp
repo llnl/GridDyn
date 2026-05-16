@@ -31,7 +31,7 @@ coreObject* GridOptObject::clone(coreObject* obj) const
 count_t GridOptObject::objSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.genSize + offsetData.total.vSize + offsetData.total.aSize +
             offsetData.total.qSize + offsetData.total.contSize + offsetData.total.intSize;
@@ -215,12 +215,12 @@ void GridOptObject::setOffset(index_t offset,
 void GridOptObject::set(std::string_view param, std::string_view val)
 {
     if (param == "status") {
-        auto v2 = gmlc::utilities::convertToLowerCase(val);
-        if (val == "out") {
+        const auto status = gmlc::utilities::convertToLowerCase(val);
+        if (status == "out") {
             if (isEnabled()) {
                 disable();
             }
-        } else if (val == "in") {
+        } else if (status == "in") {
             if (!isEnabled()) {
                 enable();
             }
@@ -257,7 +257,8 @@ void GridOptObject::getObjName(stringVec& objNames,
 {
     auto& offsetSet = offsets.getOffsets(oMode);
     auto ensureSize = [&objNames](count_t offset, count_t count) {
-        const auto requiredSize = static_cast<size_t>(offset + count);
+        const auto requiredSize =
+            static_cast<size_t>(offset) + static_cast<size_t>(count);
         if (objNames.size() < requiredSize) {
             objNames.resize(requiredSize);
         }

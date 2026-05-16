@@ -25,7 +25,9 @@
 #include <vector>
 
 namespace griddyn {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridBusOpt, gridBus> opbus("basic", "bus");
+// NOLINTBEGIN(readability-identifier-length,readability-qualified-auto,readability-avoid-return-with-void-value,misc-const-correctness,bugprone-branch-clone,misc-use-internal-linkage)
 
 using units::unit;
 
@@ -600,3 +602,4 @@ GridBusOpt* getMatchingBus(GridBusOpt* bus, GridOptObject* src, GridOptObject* s
 }
 
 }  // namespace griddyn
+// NOLINTEND(readability-identifier-length,readability-qualified-auto,readability-avoid-return-with-void-value,misc-const-correctness,bugprone-branch-clone,misc-use-internal-linkage)

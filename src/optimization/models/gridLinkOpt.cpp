@@ -68,25 +68,25 @@ void GridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
 void GridLinkOpt::loadSizes(const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    oo.reset();
+    auto& offsetData = offsets.getOffsets(oMode);
+    offsetData.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
-            oo.local.contSize = 0;
+            offsetData.local.contSize = 0;
             break;
         case FlowModel::TRANSPORT:
-            oo.local.contSize = 1;
+            offsetData.local.contSize = 1;
             break;
         case FlowModel::DC:
-            oo.local.contSize = 0;
-            oo.local.constraintsSize = 1;
+            offsetData.local.contSize = 0;
+            offsetData.local.constraintsSize = 1;
             break;
         case FlowModel::AC:
-            oo.local.contSize = 0;
-            oo.local.constraintsSize = 1;
+            offsetData.local.contSize = 0;
+            offsetData.local.constraintsSize = 1;
             break;
     }
-    oo.localLoad(true);
+    offsetData.localLoad(true);
 }
 
 void GridLinkOpt::add(coreObject* obj)
@@ -105,7 +105,10 @@ void GridLinkOpt::add(coreObject* obj)
 
 void GridLinkOpt::remove(coreObject* /*obj*/) {}
 
-void GridLinkOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
+void GridLinkOpt::setValues(const OptimizationData& /*optimizationData*/,
+                            const OptimizationMode& /*oMode*/)
+{
+}
 
 // for saving the state
 void GridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
@@ -122,52 +125,53 @@ void GridLinkOpt::valueBounds(double /*time*/,
 {
 }
 
-void GridLinkOpt::linearObj(const OptimizationData& /*of*/,
+void GridLinkOpt::linearObj(const OptimizationData& /*optimizationData*/,
                             vectData<double>& /*linObj*/,
                             const OptimizationMode& /*oMode*/)
 {
 }
 
-void GridLinkOpt::quadraticObj(const OptimizationData& /*of*/,
+void GridLinkOpt::quadraticObj(const OptimizationData& /*optimizationData*/,
                                vectData<double>& /*linObj*/,
                                vectData<double>& /*quadObj*/,
                                const OptimizationMode& /*oMode*/)
 {
 }
 
-void GridLinkOpt::constraintValue(const OptimizationData& /*of*/,
+void GridLinkOpt::constraintValue(const OptimizationData& /*optimizationData*/,
                                   double /*cVals*/[],
                                   const OptimizationMode& /*oMode*/)
 {
 }
 
-void GridLinkOpt::constraintJacobianElements(const OptimizationData& /*of*/,
-                                             matrixData<double>& /*md*/,
+void GridLinkOpt::constraintJacobianElements(const OptimizationData& /*optimizationData*/,
+                                             matrixData<double>& /*matrixDataRef*/,
                                              const OptimizationMode& /*oMode*/)
 {
 }
 
-double GridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
+double GridLinkOpt::objValue(const OptimizationData& /*optimizationData*/,
+                             const OptimizationMode& /*oMode*/)
 {
-    double cost = 0;
+    const double cost = 0;
 
     return cost;
 }
 
-void GridLinkOpt::gradient(const OptimizationData& /*of*/,
+void GridLinkOpt::gradient(const OptimizationData& /*optimizationData*/,
                            double grad[] /*grad*/,
                            const OptimizationMode& /*oMode*/)
 {
     static_cast<void>(grad);
 }
 
-void GridLinkOpt::jacobianElements(const OptimizationData& /*of*/,
-                                   matrixData<double>& /*md*/,
+void GridLinkOpt::jacobianElements(const OptimizationData& /*optimizationData*/,
+                                   matrixData<double>& /*matrixDataRef*/,
                                    const OptimizationMode& /*oMode*/)
 {
 }
 
-void GridLinkOpt::getConstraints(const OptimizationData& /*of*/,
+void GridLinkOpt::getConstraints(const OptimizationData& /*optimizationData*/,
                                  matrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],

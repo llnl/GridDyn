@@ -46,7 +46,7 @@ count_t GridOptObject::objSize(const OptimizationMode& oMode)
 count_t GridOptObject::contObjSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.genSize + offsetData.total.qSize + offsetData.total.vSize +
             offsetData.total.aSize + offsetData.total.contSize;
@@ -61,7 +61,7 @@ count_t GridOptObject::contObjSize(const OptimizationMode& oMode)
 count_t GridOptObject::intObjSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.intSize;
     } else {
@@ -73,7 +73,7 @@ count_t GridOptObject::intObjSize(const OptimizationMode& oMode)
 
 count_t GridOptObject::genSize(const OptimizationMode& oMode)
 {
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (!offsetData.loaded) {
         loadSizes(oMode);
     }
@@ -83,7 +83,7 @@ count_t GridOptObject::genSize(const OptimizationMode& oMode)
 count_t GridOptObject::qSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.qSize;
     } else {
@@ -96,7 +96,7 @@ count_t GridOptObject::qSize(const OptimizationMode& oMode)
 count_t GridOptObject::vSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.vSize;
     } else {
@@ -109,7 +109,7 @@ count_t GridOptObject::vSize(const OptimizationMode& oMode)
 count_t GridOptObject::aSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.aSize;
     } else {
@@ -122,7 +122,7 @@ count_t GridOptObject::aSize(const OptimizationMode& oMode)
 count_t GridOptObject::constraintSize(const OptimizationMode& oMode)
 {
     count_t size = 0;
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     if (offsetData.loaded) {
         size = offsetData.total.constraintsSize;
     } else {
@@ -135,7 +135,7 @@ count_t GridOptObject::constraintSize(const OptimizationMode& oMode)
 // size getter functions
 count_t GridOptObject::objSize(const OptimizationMode& oMode) const
 {
-    auto& offsetData = offsets.getOffsets(oMode);
+    const auto& offsetData = offsets.getOffsets(oMode);
     return (offsetData.total.genSize + offsetData.total.vSize + offsetData.total.aSize +
             offsetData.total.qSize + offsetData.total.contSize + offsetData.total.intSize);
 }

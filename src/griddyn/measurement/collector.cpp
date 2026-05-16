@@ -89,14 +89,14 @@ void collector::cloneTo(collector* col) const
 
 void collector::updateObject(coreObject* gco, object_update_mode mode)
 {
-    for (const auto& collectorPoint : mPoints) {
-        if (collectorPoint.mDataGrabber) {
-            collectorPoint.mDataGrabber->updateObject(gco, mode);
-            if (collectorPoint.mDataGrabber->vectorGrab) {
+    for (const auto& dataPoint : mPoints) {
+        if (dataPoint.mDataGrabber) {
+            dataPoint.mDataGrabber->updateObject(gco, mode);
+            if (dataPoint.mDataGrabber->vectorGrab) {
                 mRecheck = true;
             }
-        } else if (collectorPoint.mStateGrabber) {
-            collectorPoint.mStateGrabber->updateObject(gco, mode);
+        } else if (dataPoint.mStateGrabber) {
+            dataPoint.mStateGrabber->updateObject(gco, mode);
         }
     }
 }
@@ -116,11 +116,11 @@ coreObject* collector::getObject() const
 
 void collector::getObjects(std::vector<coreObject*>& objects) const
 {
-    for (const auto& collectorPoint : mPoints) {
-        if (collectorPoint.mDataGrabber) {
-            collectorPoint.mDataGrabber->getObjects(objects);
-        } else if (collectorPoint.mStateGrabber) {
-            collectorPoint.mStateGrabber->getObjects(objects);
+    for (const auto& dataPoint : mPoints) {
+        if (dataPoint.mDataGrabber) {
+            dataPoint.mDataGrabber->getObjects(objects);
+        } else if (dataPoint.mStateGrabber) {
+            dataPoint.mStateGrabber->getObjects(objects);
         }
     }
 }
@@ -206,13 +206,13 @@ void collector::recheckColumns()
     fsize_t columnTracker = 0;
     std::vector<double> vals;
     // for (size_t kk = 0; kk < mPoints.size(); ++kk)
-    for (auto& collectorPoint : mPoints) {
-        if (collectorPoint.mColumn == -1) {
-            collectorPoint.mColumn = columnTracker;
+    for (auto& dataPoint : mPoints) {
+        if (dataPoint.mColumn == -1) {
+            dataPoint.mColumn = columnTracker;
         }
 
-        if (collectorPoint.mDataGrabber->vectorGrab) {
-            collectorPoint.mDataGrabber->grabVectorData(vals);
+        if (dataPoint.mDataGrabber->vectorGrab) {
+            dataPoint.mDataGrabber->grabVectorData(vals);
             columnTracker += static_cast<fsize_t>(vals.size());
         } else {
             ++columnTracker;
@@ -234,25 +234,21 @@ count_t collector::grabData(double* outputData, index_t outputCount)
         recheckColumns();
     }
     for (auto& datapoint : mPoints) {
+        const auto column = datapoint.mColumn;
+        if (column < 0 || column >= outputCount) {
+            continue;
+        }
         if (datapoint.mDataGrabber->vectorGrab) {
             datapoint.mDataGrabber->grabVectorData(vals);
-            if (datapoint.mColumn < 0) {
-                continue;
-            }
-            const auto column = static_cast<count_t>(datapoint.mColumn);
-            if (column < outputLimit) {
-                const auto remaining = outputLimit - column;
-                const auto valueCount = static_cast<count_t>(vals.size());
-                const auto copyCount = std::min(remaining, valueCount);
-                std::copy_n(vals.begin(), copyCount, outputData + column);
-                const auto nextCount = column + copyCount;
-                currentCount = std::max(currentCount, nextCount);
-            }
-        } else if (datapoint.mColumn >= 0 &&
-                   static_cast<count_t>(datapoint.mColumn) < outputLimit) {
-            const auto column = static_cast<count_t>(datapoint.mColumn);
+            const auto remaining = outputCount - column;
+            const auto valueCount = static_cast<index_t>(vals.size());
+            const auto copyCount = std::min(remaining, valueCount);
+            std::copy_n(vals.begin(), copyCount, outputData + column);
+            const auto nextCount = static_cast<count_t>(column + copyCount);
+            currentCount = std::max(currentCount, nextCount);
+        } else {
             outputData[column] = datapoint.mDataGrabber->grabData();
-            const auto nextCount = column + count_t{1};
+            const auto nextCount = static_cast<count_t>(column + 1);
             currentCount = std::max(currentCount, nextCount);
         }
     }

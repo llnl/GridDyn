@@ -195,8 +195,7 @@ void gridOptObject::dynInitializeB(std::uint32_t flags)
     optFlags.set(OPT_INITIALIZED);
 }
 
-void gridOptObject::setOffsets(const OptimizationOffsets& newOffsets,
-                               const OptimizationMode& oMode)
+void gridOptObject::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     auto& offsetData = offsets.getOffsets(oMode);
     if (!offsetData.loaded) {

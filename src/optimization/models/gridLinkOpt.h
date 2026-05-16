@@ -58,18 +58,18 @@ class gridLinkOpt: public gridOptObject {
                              double lowerLimit[],
                              const OptimizationMode& oMode) override;
 
-    virtual void
-        linearObj(const OptimizationData& of,
-                  vectData<double>& linObj,
-                  const OptimizationMode& oMode) override;
+    virtual void linearObj(const OptimizationData& of,
+                           vectData<double>& linObj,
+                           const OptimizationMode& oMode) override;
     virtual void quadraticObj(const OptimizationData& of,
                               vectData<double>& linObj,
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode) override;
 
     virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode) override;
-    virtual void
-        gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode) override;
+    virtual void gradient(const OptimizationData& of,
+                          double deriv[],
+                          const OptimizationMode& oMode) override;
     virtual void jacobianElements(const OptimizationData& of,
                                   matrixData<double>& md,
                                   const OptimizationMode& oMode) override;
@@ -78,10 +78,9 @@ class gridLinkOpt: public gridOptObject {
                                 double upperLimit[],
                                 double lowerLimit[],
                                 const OptimizationMode& oMode) override;
-    virtual void
-        constraintValue(const OptimizationData& of,
-                        double cVals[],
-                        const OptimizationMode& oMode) override;
+    virtual void constraintValue(const OptimizationData& of,
+                                 double cVals[],
+                                 const OptimizationMode& oMode) override;
     virtual void constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
                                             const OptimizationMode& oMode) override;
@@ -92,8 +91,8 @@ class gridLinkOpt: public gridOptObject {
     virtual void disable() override;
     // parameter set functions
 
-    virtual void
-        setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode) override;
+    virtual void setOffsets(const OptimizationOffsets& newOffsets,
+                            const OptimizationMode& oMode) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

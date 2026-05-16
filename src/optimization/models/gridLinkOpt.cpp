@@ -102,7 +102,9 @@ void gridLinkOpt::remove(coreObject* /*obj*/) {}
 void gridLinkOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 
 // for saving the state
-void gridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/) {}
+void gridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+{
+}
 
 void gridLinkOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
@@ -146,7 +148,9 @@ double gridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationM
     return cost;
 }
 
-void gridLinkOpt::gradient(const OptimizationData& /*of*/, double[] /*deriv*/, const OptimizationMode& /*oMode*/)
+void gridLinkOpt::gradient(const OptimizationData& /*of*/,
+                           double[] /*deriv*/,
+                           const OptimizationMode& /*oMode*/)
 {
 }
 
@@ -175,7 +179,10 @@ void gridLinkOpt::disable()
     coreObject::disable();
 }
 
-void gridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/, const OptimizationMode& /*oMode*/) {}
+void gridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
+                             const OptimizationMode& /*oMode*/)
+{
+}
 
 // destructor
 gridLinkOpt::~gridLinkOpt() = default;

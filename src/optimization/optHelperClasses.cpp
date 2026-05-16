@@ -252,8 +252,8 @@ index_t OptimizationOffsetTable::getqOffset(const OptimizationMode& oMode) const
  *@param[in] oMode the OptimizationMode we are interested in
  *@return the angle offset
  */
-// void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc, gridComponent
-// *comp);
+// void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc,
+// gridComponent *comp);
 /** get the locations offsets for the data
  *@param[in] oMode the OptimizationMode we are interested in
  *@return the angle offset

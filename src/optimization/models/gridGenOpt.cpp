@@ -330,7 +330,9 @@ void gridGenOpt::constraintJacobianElements(const OptimizationData& /* of */,
 {
 }
 
-void gridGenOpt::getObjName(stringVec& objNames, const OptimizationMode& oMode, const std::string& prefix)
+void gridGenOpt::getObjName(stringVec& objNames,
+                            const OptimizationMode& oMode,
+                            const std::string& prefix)
 {
     auto& oo = offsets.getOffsets(oMode);
     objNames[oo.gOffset] = prefix + getName() + ":PGen";

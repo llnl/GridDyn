@@ -233,7 +233,9 @@ void gridAreaOpt::valueBounds(double time,
     }
 }
 
-void gridAreaOpt::linearObj(const OptimizationData& of, vectData<double>& linObj, const OptimizationMode& oMode)
+void gridAreaOpt::linearObj(const OptimizationData& of,
+                            vectData<double>& linObj,
+                            const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->linearObj(of, linObj, oMode);
@@ -259,7 +261,9 @@ double gridAreaOpt::objValue(const OptimizationData& of, const OptimizationMode&
     return cost;
 }
 
-void gridAreaOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
+void gridAreaOpt::gradient(const OptimizationData& of,
+                           double deriv[],
+                           const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->gradient(of, deriv, oMode);
@@ -284,7 +288,9 @@ void gridAreaOpt::getConstraints(const OptimizationData& of,
     }
 }
 
-void gridAreaOpt::constraintValue(const OptimizationData& of, double cVals[], const OptimizationMode& oMode)
+void gridAreaOpt::constraintValue(const OptimizationData& of,
+                                  double cVals[],
+                                  const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->constraintValue(of, cVals, oMode);
@@ -299,7 +305,9 @@ void gridAreaOpt::constraintJacobianElements(const OptimizationData& of,
         obj->constraintJacobianElements(of, md, oMode);
     }
 }
-void gridAreaOpt::getObjName(stringVec& objNames, const OptimizationMode& oMode, const std::string& prefix)
+void gridAreaOpt::getObjName(stringVec& objNames,
+                             const OptimizationMode& oMode,
+                             const std::string& prefix)
 {
     for (auto obj : objectList) {
         obj->getObjName(objNames, oMode, prefix);

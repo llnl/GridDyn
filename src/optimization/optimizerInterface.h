@@ -76,8 +76,8 @@ class basicOptimizer: public optimizerInterface {
     void dynObjectInitializeA(double t0) override;
 };
 
-std::shared_ptr<optimizerInterface>
-    makeOptimizer(gridDynOptimization* gdo, const OptimizationMode& oMode);
+std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
+                                                  const OptimizationMode& oMode);
 
 std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type);
 

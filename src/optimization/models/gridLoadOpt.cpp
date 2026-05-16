@@ -108,7 +108,9 @@ void gridLoadOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
 void gridLoadOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 // for saving the state
-void gridLoadOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/) {}
+void gridLoadOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+{
+}
 
 void gridLoadOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
@@ -150,7 +152,9 @@ double gridLoadOpt::objValue(const OptimizationData& /*of*/, const OptimizationM
     return cost;
 }
 
-void gridLoadOpt::gradient(const OptimizationData& /*of*/, double /*deriv*/[], const OptimizationMode& /*oMode*/)
+void gridLoadOpt::gradient(const OptimizationData& /*of*/,
+                           double /*deriv*/[],
+                           const OptimizationMode& /*oMode*/)
 {
 }
 void gridLoadOpt::jacobianElements(const OptimizationData& /*of*/,

@@ -174,7 +174,9 @@ void gridBusOpt::valueBounds(double time,
     }
 }
 
-void gridBusOpt::linearObj(const OptimizationData& of, vectData<double>& linObj, const OptimizationMode& oMode)
+void gridBusOpt::linearObj(const OptimizationData& of,
+                           vectData<double>& linObj,
+                           const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->linearObj(of, linObj, oMode);
@@ -242,7 +244,9 @@ void gridBusOpt::getConstraints(const OptimizationData& of,
     }
 }
 
-void gridBusOpt::constraintValue(const OptimizationData& of, double cVals[], const OptimizationMode& oMode)
+void gridBusOpt::constraintValue(const OptimizationData& of,
+                                 double cVals[],
+                                 const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->constraintValue(of, cVals, oMode);
@@ -264,7 +268,9 @@ void gridBusOpt::constraintJacobianElements(const OptimizationData& of,
     }
 }
 
-void gridBusOpt::getObjName(stringVec& objNames, const OptimizationMode& oMode, const std::string& prefix)
+void gridBusOpt::getObjName(stringVec& objNames,
+                            const OptimizationMode& oMode,
+                            const std::string& prefix)
 {
     for (auto ld : loadList) {
         ld->getObjName(objNames, oMode, prefix);

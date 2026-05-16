@@ -45,16 +45,15 @@ class gridOptObject: public coreObject {
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.
     */
-    virtual void
-        setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& optimizationMode);
+    virtual void setOffsets(const OptimizationOffsets& newOffsets,
+                            const OptimizationMode& optimizationMode);
     /** set the offsets of an object for a particular optimization mode using a single offset.
     @param offset the offset index all variables are sequential.
     @param oMode the optimization mode to use.
     */
-    virtual void
-        setOffset(index_t offset,
-                  index_t constraintOffset,
-                  const OptimizationMode& optimizationMode);
+    virtual void setOffset(index_t offset,
+                           index_t constraintOffset,
+                           const OptimizationMode& optimizationMode);
 
     // size getter functions
 
@@ -180,11 +179,10 @@ class gridOptObject: public coreObject {
     @param lowerLimit  the lower limit
     @param oMode the optimization mode to use.
     */
-    virtual void
-        valueBounds(double time,
-                    double upLimit[],
-                    double lowerLimit[],
-                    const OptimizationMode& oMode);
+    virtual void valueBounds(double time,
+                             double upLimit[],
+                             double lowerLimit[],
+                             const OptimizationMode& oMode);
 
     /** load the linear objective parameters
     @param of  the current objective variable values
@@ -217,19 +215,16 @@ class gridOptObject: public coreObject {
     @param grad the vector containing all \frac{dC}{dO_i}
     @param oMode the optimization mode to use.
     */
-    virtual void gradient(const OptimizationData& of,
-                          double grad[],
-                          const OptimizationMode& oMode);
+    virtual void gradient(const OptimizationData& of, double grad[], const OptimizationMode& oMode);
 
     /** compute the Jacobian entries for the objective value
     @param of  the current object variable values
     @param md the structure for storing \frac{dC_i}{dO_j}
     @param oMode the optimization mode to use.
     */
-    virtual void
-        jacobianElements(const OptimizationData& of,
-                         matrixData<double>& md,
-                         const OptimizationMode& oMode);
+    virtual void jacobianElements(const OptimizationData& of,
+                                  matrixData<double>& md,
+                                  const OptimizationMode& oMode);
 
     // constraint functions
     /** get the linear constraint operations
@@ -268,20 +263,18 @@ class gridOptObject: public coreObject {
     @param md the structure for the constraint Jacobian entries
     @param oMode the optimization mode to use.
     */
-    virtual void
-        hessianElements(const OptimizationData& of,
-                        matrixData<double>& md,
-                        const OptimizationMode& oMode);
+    virtual void hessianElements(const OptimizationData& of,
+                                 matrixData<double>& md,
+                                 const OptimizationMode& oMode);
 
     /** get the names of the objective variables
     @param objNames  the location to store the names
     @param oMode the optimization mode to use.
     @param prefix (optional) string to place before the objective name
     */
-    virtual void
-        getObjName(stringVec& objNames,
-                   const OptimizationMode& oMode,
-                   const std::string& prefix = "");
+    virtual void getObjName(stringVec& objNames,
+                            const OptimizationMode& oMode,
+                            const std::string& prefix = "");
 
     /** get a specific bus
     @param index  the index of the bus to return

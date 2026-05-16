@@ -119,8 +119,9 @@ class OptimizationOffsets {
  **/
 class OptimizationOffsetTable {
   private:
-    std::vector<OptimizationOffsets> offsetContainer;  //!< an array of 6 containers for offsets
-                                                //!< corresponding to the different solver modes
+    std::vector<OptimizationOffsets>
+        offsetContainer;  //!< an array of 6 containers for offsets
+                          //!< corresponding to the different solver modes
     index_t paramOffset = kNullLocation;  //!< offset for storing parameters in an array
 
   public:
@@ -224,8 +225,8 @@ class OptimizationOffsetTable {
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
-    // void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc, gridComponent
-    // *comp);
+    // void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc,
+    // gridComponent *comp);
     /** get the locations offsets for the data
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
@@ -242,7 +243,8 @@ class OptimizationData {
   public:
     double time = 0.0;  //!< time corresponding to the state data
     const double* val = nullptr;  //!< the current values
-    count_t seqID = 0;  //!< a sequence id to differentiate between subsequent OptimizationData object
+    count_t seqID =
+        0;  //!< a sequence id to differentiate between subsequent OptimizationData object
 };
 
 }  // namespace griddyn

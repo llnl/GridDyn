@@ -110,7 +110,9 @@ void gridRelayOpt::remove(coreObject* /*obj*/) {}
 
 void gridRelayOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 // for saving the state
-void gridRelayOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/) {}
+void gridRelayOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+{
+}
 
 void gridRelayOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
@@ -152,7 +154,9 @@ double gridRelayOpt::objValue(const OptimizationData& /*of*/, const Optimization
     return cost;
 }
 
-void gridRelayOpt::gradient(const OptimizationData& /*of*/, double /*deriv*/[], const OptimizationMode& /*oMode*/)
+void gridRelayOpt::gradient(const OptimizationData& /*of*/,
+                            double /*deriv*/[],
+                            const OptimizationMode& /*oMode*/)
 {
 }
 void gridRelayOpt::jacobianElements(const OptimizationData& /*of*/,
@@ -178,7 +182,10 @@ void gridRelayOpt::disable()
     gridOptObject::disable();
 }
 
-void gridRelayOpt::setOffsets(const OptimizationOffsets& /*newOffset*/, const OptimizationMode& /*oMode*/) {}
+void gridRelayOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
+                              const OptimizationMode& /*oMode*/)
+{
+}
 
 // destructor
 gridRelayOpt::~gridRelayOpt() = default;

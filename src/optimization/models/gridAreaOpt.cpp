@@ -27,7 +27,7 @@ using units::unit;
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridAreaOpt, Area> opa("basic", "area");
-// NOLINTBEGIN(readability-identifier-length,readability-qualified-auto,misc-no-recursion,readability-avoid-return-with-void-value,modernize-use-integer-sign-comparison,bugprone-branch-clone,readability-implicit-bool-conversion)
+// NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -95,90 +95,90 @@ coreObject* GridAreaOpt::clone(coreObject* obj) const
 void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
 {
     // first do a check to make sure all gridDyn areas are represented by gridDynOpt Area
-    Link* Lnk;
-    auto coof = CoreOptObjectFactory::instance();
+    Link* linkObject = nullptr;
+    auto* coreOptFactory = CoreOptObjectFactory::instance();
     bool found;
     std::vector<GridOptObject*> newObj;
-    GridOptObject* oo;
+    GridOptObject* optObject;
 
-    index_t kk = 0;
+    index_t areaIndex = 0;
 
     // make sure all areas have an opt object
-    auto areaObj = area->getArea(kk);
+    auto* areaObj = area->getArea(areaIndex);
 
     while (areaObj != nullptr) {
         found = false;
-        for (auto oa : areaList) {
-            if (areaObj->getID() == oa->getID()) {
+        for (auto* existingArea : areaList) {
+            if (areaObj->getID() == existingArea->getID()) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(areaObj);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(areaObj);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        areaObj = area->getArea(kk);
+        ++areaIndex;
+        areaObj = area->getArea(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
     // make sure all buses have an opt object
-    auto bus = area->getBus(kk);
+    auto* busObject = area->getBus(areaIndex);
 
-    while (bus != nullptr) {
+    while (busObject != nullptr) {
         found = false;
-        for (auto oa : busList) {
-            if (isSameObject(bus, oa)) {
+        for (auto* existingBus : busList) {
+            if (isSameObject(busObject, existingBus)) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(bus);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(busObject);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        bus = area->getBus(kk);
+        ++areaIndex;
+        busObject = area->getBus(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
     // make sure all links have an opt object
-    Lnk = area->getLink(kk);
+    linkObject = area->getLink(areaIndex);
 
-    while (Lnk != nullptr) {
+    while (linkObject != nullptr) {
         found = false;
-        for (auto oa : linkList) {
-            if (isSameObject(Lnk, oa)) {
+        for (auto* existingLink : linkList) {
+            if (isSameObject(linkObject, existingLink)) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(Lnk);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(linkObject);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        Lnk = area->getLink(kk);
+        ++areaIndex;
+        linkObject = area->getLink(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
 
-    for (auto obj : objectList) {
-        obj->dynInitializeA(flags);
+    for (auto* childObject : objectList) {
+        childObject->dynInitializeA(flags);
     }
 }
 
 void GridAreaOpt::loadSizes(const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    oo.reset();
+    auto& offsetData = offsets.getOffsets(oMode);
+    offsetData.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         default:
@@ -190,38 +190,38 @@ void GridAreaOpt::loadSizes(const OptimizationMode& oMode)
             break;
     }
 
-    for (auto obj : objectList) {
-        obj->loadSizes(oMode);
-        oo.addSizes(obj->offsets.getOffsets(oMode));
+    for (auto* childObject : objectList) {
+        childObject->loadSizes(oMode);
+        offsetData.addSizes(childObject->offsets.getOffsets(oMode));
     }
 }
 
 void GridAreaOpt::setValues(const OptimizationData& of, const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->setValues(of, oMode);
+    for (auto* childObject : objectList) {
+        childObject->setValues(of, oMode);
     }
 }
 // for saving the state
 void GridAreaOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->guessState(time, val, oMode);
+    for (auto* childObject : objectList) {
+        childObject->guessState(time, val, oMode);
     }
 }
 
 void GridAreaOpt::getTols(double tols[], const OptimizationMode& oMode)
 
 {
-    for (auto obj : objectList) {
-        obj->getTols(tols, oMode);
+    for (auto* childObject : objectList) {
+        childObject->getTols(tols, oMode);
     }
 }
 
 void GridAreaOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->getVariableType(sdata, oMode);
+    for (auto* childObject : objectList) {
+        childObject->getVariableType(sdata, oMode);
     }
 }
 
@@ -230,8 +230,8 @@ void GridAreaOpt::valueBounds(double time,
                               double lowerLimit[],
                               const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->valueBounds(time, upperLimit, lowerLimit, oMode);
+    for (auto* childObject : objectList) {
+        childObject->valueBounds(time, upperLimit, lowerLimit, oMode);
     }
 }
 
@@ -774,4 +774,4 @@ GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObjec
 }
 
 }  // namespace griddyn
-// NOLINTEND(readability-identifier-length,readability-qualified-auto,misc-no-recursion,readability-avoid-return-with-void-value,modernize-use-integer-sign-comparison,bugprone-branch-clone,readability-implicit-bool-conversion)
+// NOLINTEND(misc-no-recursion,bugprone-branch-clone)

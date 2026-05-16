@@ -27,11 +27,11 @@
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridBusOpt, gridBus> opbus("basic", "bus");
-// NOLINTBEGIN(readability-identifier-length,readability-qualified-auto,readability-avoid-return-with-void-value,misc-const-correctness,bugprone-branch-clone,misc-use-internal-linkage)
+// NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
 
-GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
+GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName), bus(nullptr) {}
 
 GridBusOpt::GridBusOpt(coreObject* obj, const std::string& objName):
     GridOptObject(objName), bus(dynamic_cast<gridBus*>(obj))
@@ -82,82 +82,82 @@ coreObject* GridBusOpt::clone(coreObject* obj) const
 
 void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
 {
-    for (auto ld : loadList) {
-        ld->dynObjectInitializeA(flags);
+    for (auto* loadObject : loadList) {
+        loadObject->dynObjectInitializeA(flags);
     }
-    for (auto gen : genList) {
-        gen->dynObjectInitializeA(flags);
+    for (auto* genObject : genList) {
+        genObject->dynObjectInitializeA(flags);
     }
 }
 
 void GridBusOpt::loadSizes(const OptimizationMode& oMode)
 {
-    OptimizationOffsets& oo = offsets.getOffsets(oMode);
-    oo.reset();
+    auto& offsetData = offsets.getOffsets(oMode);
+    offsetData.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         case FlowModel::TRANSPORT:
-            oo.local.constraintsSize = 1;
+            offsetData.local.constraintsSize = 1;
             break;
         case FlowModel::DC:
-            oo.local.aSize = 1;
-            oo.local.constraintsSize = 1;
+            offsetData.local.aSize = 1;
+            offsetData.local.constraintsSize = 1;
             break;
         case FlowModel::AC:
-            oo.local.aSize = 1;
-            oo.local.vSize = 1;
-            oo.local.constraintsSize = 2;
+            offsetData.local.aSize = 1;
+            offsetData.local.vSize = 1;
+            offsetData.local.constraintsSize = 2;
             break;
     }
-    oo.localLoad();
-    for (auto ld : loadList) {
-        ld->loadSizes(oMode);
-        oo.addSizes(ld->offsets.getOffsets(oMode));
+    offsetData.localLoad();
+    for (auto* loadObject : loadList) {
+        loadObject->loadSizes(oMode);
+        offsetData.addSizes(loadObject->offsets.getOffsets(oMode));
     }
-    for (auto gen : genList) {
-        gen->loadSizes(oMode);
-        oo.addSizes(gen->offsets.getOffsets(oMode));
+    for (auto* genObject : genList) {
+        genObject->loadSizes(oMode);
+        offsetData.addSizes(genObject->offsets.getOffsets(oMode));
     }
-    oo.loaded = true;
+    offsetData.loaded = true;
 }
 
 void GridBusOpt::setValues(const OptimizationData& of, const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->setValues(of, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->setValues(of, oMode);
     }
-    for (auto gen : genList) {
-        gen->setValues(of, oMode);
+    for (auto* genObject : genList) {
+        genObject->setValues(of, oMode);
     }
 }
 // for saving the state
 void GridBusOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->guessState(time, val, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->guessState(time, val, oMode);
     }
-    for (auto gen : genList) {
-        gen->guessState(time, val, oMode);
+    for (auto* genObject : genList) {
+        genObject->guessState(time, val, oMode);
     }
 }
 
 void GridBusOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->getVariableType(sdata, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->getVariableType(sdata, oMode);
     }
-    for (auto gen : genList) {
-        gen->getVariableType(sdata, oMode);
+    for (auto* genObject : genList) {
+        genObject->getVariableType(sdata, oMode);
     }
 }
 
 void GridBusOpt::getTols(double tols[], const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->getTols(tols, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->getTols(tols, oMode);
     }
-    for (auto gen : genList) {
-        gen->getTols(tols, oMode);
+    for (auto* genObject : genList) {
+        genObject->getTols(tols, oMode);
     }
 }
 
@@ -168,11 +168,11 @@ void GridBusOpt::valueBounds(double time,
                              double lowerLimit[],
                              const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->valueBounds(time, upperLimit, lowerLimit, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->valueBounds(time, upperLimit, lowerLimit, oMode);
     }
-    for (auto gen : genList) {
-        gen->valueBounds(time, upperLimit, lowerLimit, oMode);
+    for (auto* genObject : genList) {
+        genObject->valueBounds(time, upperLimit, lowerLimit, oMode);
     }
 }
 
@@ -180,11 +180,11 @@ void GridBusOpt::linearObj(const OptimizationData& of,
                            vectData<double>& linObj,
                            const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->linearObj(of, linObj, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->linearObj(of, linObj, oMode);
     }
-    for (auto gen : genList) {
-        gen->linearObj(of, linObj, oMode);
+    for (auto* genObject : genList) {
+        genObject->linearObj(of, linObj, oMode);
     }
 }
 void GridBusOpt::quadraticObj(const OptimizationData& of,
@@ -192,44 +192,44 @@ void GridBusOpt::quadraticObj(const OptimizationData& of,
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->quadraticObj(of, linObj, quadObj, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->quadraticObj(of, linObj, quadObj, oMode);
     }
-    for (auto gen : genList) {
-        gen->quadraticObj(of, linObj, quadObj, oMode);
+    for (auto* genObject : genList) {
+        genObject->quadraticObj(of, linObj, quadObj, oMode);
     }
 }
 
 double GridBusOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
 {
     double cost = 0;
-    for (auto ld : loadList) {
-        cost += ld->objValue(of, oMode);
+    for (auto* loadObject : loadList) {
+        cost += loadObject->objValue(of, oMode);
     }
-    for (auto gen : genList) {
-        cost += gen->objValue(of, oMode);
+    for (auto* genObject : genList) {
+        cost += genObject->objValue(of, oMode);
     }
     return cost;
 }
 
 void GridBusOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->gradient(of, deriv, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->gradient(of, deriv, oMode);
     }
-    for (auto gen : genList) {
-        gen->gradient(of, deriv, oMode);
+    for (auto* genObject : genList) {
+        genObject->gradient(of, deriv, oMode);
     }
 }
 void GridBusOpt::jacobianElements(const OptimizationData& of,
                                   matrixData<double>& md,
                                   const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->jacobianElements(of, md, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->jacobianElements(of, md, oMode);
     }
-    for (auto gen : genList) {
-        gen->jacobianElements(of, md, oMode);
+    for (auto* genObject : genList) {
+        genObject->jacobianElements(of, md, oMode);
     }
 }
 void GridBusOpt::getConstraints(const OptimizationData& of,
@@ -238,11 +238,11 @@ void GridBusOpt::getConstraints(const OptimizationData& of,
                                 double lowerLimit[],
                                 const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
     }
-    for (auto gen : genList) {
-        gen->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
+    for (auto* genObject : genList) {
+        genObject->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
     }
 }
 
@@ -250,11 +250,11 @@ void GridBusOpt::constraintValue(const OptimizationData& of,
                                  double cVals[],
                                  const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->constraintValue(of, cVals, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->constraintValue(of, cVals, oMode);
     }
-    for (auto gen : genList) {
-        gen->constraintValue(of, cVals, oMode);
+    for (auto* genObject : genList) {
+        genObject->constraintValue(of, cVals, oMode);
     }
 }
 
@@ -262,11 +262,11 @@ void GridBusOpt::constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
                                             const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->constraintJacobianElements(of, md, oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->constraintJacobianElements(of, md, oMode);
     }
-    for (auto gen : genList) {
-        gen->constraintJacobianElements(of, md, oMode);
+    for (auto* genObject : genList) {
+        genObject->constraintJacobianElements(of, md, oMode);
     }
 }
 
@@ -274,11 +274,11 @@ void GridBusOpt::getObjName(stringVec& objNames,
                             const OptimizationMode& oMode,
                             const std::string& prefix)
 {
-    for (auto ld : loadList) {
-        ld->getObjName(objNames, oMode, prefix);
+    for (auto* loadObject : loadList) {
+        loadObject->getObjName(objNames, oMode, prefix);
     }
-    for (auto gen : genList) {
-        gen->getObjName(objNames, oMode, prefix);
+    for (auto* genObject : genList) {
+        genObject->getObjName(objNames, oMode, prefix);
     }
 }
 
@@ -293,29 +293,29 @@ void GridBusOpt::disable()
 void GridBusOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     offsets.setOffsets(newOffsets, oMode);
-    OptimizationOffsets no(offsets.getOffsets(oMode));
-    no.localLoad();
-    for (auto ld : loadList) {
-        ld->setOffsets(no, oMode);
-        no.increment(ld->offsets.getOffsets(oMode));
+    OptimizationOffsets nextOffsets(offsets.getOffsets(oMode));
+    nextOffsets.localLoad();
+    for (auto* loadObject : loadList) {
+        loadObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(loadObject->offsets.getOffsets(oMode));
     }
-    for (auto gen : genList) {
-        gen->setOffsets(no, oMode);
-        no.increment(gen->offsets.getOffsets(oMode));
+    for (auto* genObject : genList) {
+        genObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(genObject->offsets.getOffsets(oMode));
     }
 }
 
 void GridBusOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
-    for (auto ld : loadList) {
-        ld->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += ld->constraintSize(oMode);
-        offset += ld->objSize(oMode);
+    for (auto* loadObject : loadList) {
+        loadObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += loadObject->constraintSize(oMode);
+        offset += loadObject->objSize(oMode);
     }
-    for (auto gen : genList) {
-        gen->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += gen->constraintSize(oMode);
-        offset += gen->objSize(oMode);
+    for (auto* genObject : genList) {
+        genObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += genObject->constraintSize(oMode);
+        offset += genObject->objSize(oMode);
     }
 
     offsets.setConstraintOffset(constraintOffset, oMode);
@@ -336,19 +336,22 @@ GridBusOpt::~GridBusOpt()
 
 void GridBusOpt::add(coreObject* obj)
 {
-    auto ld = dynamic_cast<GridLoadOpt*>(obj);
-    if (ld != nullptr) {
-        return add(ld);
+    auto* loadObject = dynamic_cast<GridLoadOpt*>(obj);
+    if (loadObject != nullptr) {
+        add(loadObject);
+        return;
     }
 
-    auto gen = dynamic_cast<GridGenOpt*>(obj);
-    if (gen != nullptr) {
-        return add(gen);
+    auto* genObject = dynamic_cast<GridGenOpt*>(obj);
+    if (genObject != nullptr) {
+        add(genObject);
+        return;
     }
 
-    auto lnk = dynamic_cast<GridLinkOpt*>(obj);
-    if (lnk != nullptr) {
-        return add(lnk);
+    auto* linkObject = dynamic_cast<GridLinkOpt*>(obj);
+    if (linkObject != nullptr) {
+        add(linkObject);
+        return;
     }
 
     if (dynamic_cast<gridBus*>(obj) != nullptr) {
@@ -365,7 +368,7 @@ void GridBusOpt::add(coreObject* obj)
 // add load
 void GridBusOpt::add(GridLoadOpt* ld)
 {
-    coreObject* obj = find(ld->getName());
+    const coreObject* obj = find(ld->getName());
     if (obj == nullptr) {
         ld->locIndex = static_cast<index_t>(loadList.size());
         loadList.push_back(ld);
@@ -378,7 +381,7 @@ void GridBusOpt::add(GridLoadOpt* ld)
 // add generator
 void GridBusOpt::add(GridGenOpt* gen)
 {
-    coreObject* obj = find(gen->getName());
+    const coreObject* obj = find(gen->getName());
     if (obj == nullptr) {
         gen->locIndex = static_cast<index_t>(genList.size());
         genList.push_back(gen);
@@ -401,19 +404,22 @@ void GridBusOpt::add(GridLinkOpt* lnk)
 
 void GridBusOpt::remove(coreObject* obj)
 {
-    auto* ld = dynamic_cast<GridLoadOpt*>(obj);
-    if (ld != nullptr) {
-        return (remove(ld));
+    auto* loadObject = dynamic_cast<GridLoadOpt*>(obj);
+    if (loadObject != nullptr) {
+        remove(loadObject);
+        return;
     }
 
-    auto* gen = dynamic_cast<GridGenOpt*>(obj);
-    if (gen != nullptr) {
-        return (remove(gen));
+    auto* genObject = dynamic_cast<GridGenOpt*>(obj);
+    if (genObject != nullptr) {
+        remove(genObject);
+        return;
     }
 
-    auto* lnk = dynamic_cast<GridLinkOpt*>(obj);
-    if (lnk != nullptr) {
-        return (remove(lnk));
+    auto* linkObject = dynamic_cast<GridLinkOpt*>(obj);
+    if (linkObject != nullptr) {
+        remove(linkObject);
+        return;
     }
 }
 
@@ -462,8 +468,8 @@ void GridBusOpt::setAll(const std::string& type,
             gen->set(param, val, unitType);
         }
     } else if (type == "load") {
-        for (auto& ld : loadList) {
-            ld->set(param, val, unitType);
+        for (auto* loadObject : loadList) {
+            loadObject->set(param, val, unitType);
         }
     }
 }
@@ -491,16 +497,16 @@ coreObject* GridBusOpt::find(std::string_view objName) const
     if ((objName == getName()) || (objName == "bus")) {
         return const_cast<GridBusOpt*>(this);
     }
-    for (auto ob : genList) {
-        if (objName == ob->getName()) {
-            obj = ob;
+    for (auto* genObject : genList) {
+        if (objName == genObject->getName()) {
+            obj = genObject;
             break;
         }
     }
     if (obj == nullptr) {
-        for (auto ob : loadList) {
-            if (objName == ob->getName()) {
-                obj = ob;
+        for (auto* loadObject : loadList) {
+            if (objName == loadObject->getName()) {
+                obj = loadObject;
                 break;
             }
         }
@@ -525,9 +531,9 @@ coreObject* GridBusOpt::getSubObject(std::string_view typeName, index_t num) con
 coreObject* GridBusOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
-        for (auto& LD : loadList) {
-            if (LD->getUserID() == searchID) {
-                return LD;
+        for (const auto* loadObject : loadList) {
+            if (loadObject->getUserID() == searchID) {
+                return const_cast<GridLoadOpt*>(loadObject);
             }
         }
     } else if ((typeName == "gen") || (typeName == "generator")) {
@@ -540,19 +546,19 @@ coreObject* GridBusOpt::findByUserID(std::string_view typeName, index_t searchID
     return nullptr;
 }
 
-GridOptObject* GridBusOpt::getLink(index_t x) const
+GridOptObject* GridBusOpt::getLink(index_t index) const
 {
-    return (isValidIndex(x, linkList)) ? linkList[x] : nullptr;
+    return (isValidIndex(index, linkList)) ? linkList[index] : nullptr;
 }
 
-GridOptObject* GridBusOpt::getLoad(index_t x) const
+GridOptObject* GridBusOpt::getLoad(index_t index) const
 {
-    return (isValidIndex(x, loadList)) ? loadList[x] : nullptr;
+    return (isValidIndex(index, loadList)) ? loadList[index] : nullptr;
 }
 
-GridOptObject* GridBusOpt::getGen(index_t x) const
+GridOptObject* GridBusOpt::getGen(index_t index) const
 {
-    return (isValidIndex(x, genList)) ? genList[x] : nullptr;
+    return (isValidIndex(index, genList)) ? genList[index] : nullptr;
 }
 
 double GridBusOpt::get(std::string_view param, units::unit unitType) const
@@ -571,7 +577,7 @@ double GridBusOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kInvalidCount) ? static_cast<double>(ival) : fval;
 }
 
-GridBusOpt* getMatchingBus(GridBusOpt* bus, GridOptObject* src, GridOptObject* sec)
+static GridBusOpt* getMatchingBus(GridBusOpt* bus, GridOptObject* src, GridOptObject* sec)
 {
     if (bus->isRoot()) {
         return nullptr;
@@ -602,4 +608,4 @@ GridBusOpt* getMatchingBus(GridBusOpt* bus, GridOptObject* src, GridOptObject* s
 }
 
 }  // namespace griddyn
-// NOLINTEND(readability-identifier-length,readability-qualified-auto,readability-avoid-return-with-void-value,misc-const-correctness,bugprone-branch-clone,misc-use-internal-linkage)
+// NOLINTEND(bugprone-branch-clone)

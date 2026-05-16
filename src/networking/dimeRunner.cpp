@@ -22,22 +22,22 @@
 
 namespace griddyn::dimeLib {
 
-dimeRunner::dimeRunner()
+DimeRunner::DimeRunner()
 {
     loadDimeLibrary();
     m_gds = std::make_shared<gridDynSimulation>();
 }
 
-dimeRunner::~dimeRunner() = default;
+DimeRunner::~DimeRunner() = default;
 
-dimeRunner::dimeRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(std::move(sim))
+DimeRunner::DimeRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(std::move(sim))
 {
     loadDimeLibrary();
 }
 
-std::shared_ptr<CLI::App> dimeRunner::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App> DimeRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
-    loadDimeReaderInfoDefinitions(ri);
+    loadDimeReaderInfoDefinitions(readerInformation);
 
     auto parser =
         std::make_shared<CLI::App>("options related to helics executable", "helics_options");
@@ -62,19 +62,19 @@ if (dimeOptions.count("test") != 0u)
 }
 
 */
-coreTime dimeRunner::Run()
+coreTime DimeRunner::Run()
 {
     return GriddynRunner::Run();
 }
 
-coreTime dimeRunner::Step(coreTime time)
+coreTime DimeRunner::Step(coreTime time)
 {
     auto retTime = GriddynRunner::Step(time);
     // coord->updateOutputs(retTime);
     return retTime;
 }
 
-void dimeRunner::Finalize()
+void DimeRunner::Finalize()
 {
     GriddynRunner::Finalize();
 }

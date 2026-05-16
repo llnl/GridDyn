@@ -18,31 +18,31 @@
 
 namespace griddyn::zmqInterface {
 
-zmqCommunicator::zmqCommunicator(const std::string& name):
+ZmqCommunicator::ZmqCommunicator(const std::string& name):
     Communicator(name), txDescriptor(name + "_tx"), rxDescriptor(name + "_rx")
 {
 }
 
-zmqCommunicator::zmqCommunicator(const std::string& name, std::uint64_t identifier):
+ZmqCommunicator::ZmqCommunicator(const std::string& name, std::uint64_t identifier):
     Communicator(name, identifier), txDescriptor(name + "_tx"), rxDescriptor(name + "_rx")
 {
 }
 
-zmqCommunicator::zmqCommunicator(std::uint64_t identifier): Communicator(identifier) {}
+ZmqCommunicator::ZmqCommunicator(std::uint64_t identifier): Communicator(identifier) {}
 
-zmqCommunicator::~zmqCommunicator() = default;
+ZmqCommunicator::~ZmqCommunicator() = default;
 
-std::unique_ptr<Communicator> zmqCommunicator::clone() const
+std::unique_ptr<Communicator> ZmqCommunicator::clone() const
 {
-    std::unique_ptr<Communicator> comm = std::make_unique<zmqCommunicator>();
-    zmqCommunicator::cloneTo(comm.get());
+    std::unique_ptr<Communicator> comm = std::make_unique<ZmqCommunicator>();
+    ZmqCommunicator::cloneTo(comm.get());
     return comm;
 }
 
-void zmqCommunicator::cloneTo(Communicator* comm) const
+void ZmqCommunicator::cloneTo(Communicator* comm) const
 {
     Communicator::cloneTo(comm);
-    auto* zmqComm = dynamic_cast<zmqCommunicator*>(comm);
+    auto* zmqComm = dynamic_cast<ZmqCommunicator*>(comm);
     if (zmqComm == nullptr) {
         return;
     }
@@ -53,7 +53,7 @@ void zmqCommunicator::cloneTo(Communicator* comm) const
     zmqComm->flags = flags;
 }
 
-void zmqCommunicator::transmit(std::string_view destName,
+void ZmqCommunicator::transmit(std::string_view destName,
                                const std::shared_ptr<commMessage>& message)
 {
     zmq::multipart_t txmsg;
@@ -65,7 +65,7 @@ void zmqCommunicator::transmit(std::string_view destName,
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message)
+void ZmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message)
 {
     zmq::multipart_t txmsg;
     if (!flags[no_transmit_dest]) {
@@ -76,7 +76,7 @@ void zmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<commM
     txmsg.send(*txSocket);
 }
 
-void zmqCommunicator::addHeader(zmq::multipart_t& msg,
+void ZmqCommunicator::addHeader(zmq::multipart_t& msg,
                                 const std::shared_ptr<commMessage>& /*message*/)
 {
     if (!flags[no_transmit_source]) {
@@ -84,13 +84,13 @@ void zmqCommunicator::addHeader(zmq::multipart_t& msg,
     }
 }
 
-void zmqCommunicator::addMessageBody(zmq::multipart_t& msg,
+void ZmqCommunicator::addMessageBody(zmq::multipart_t& msg,
                                      const std::shared_ptr<commMessage>& message)
 {
     msg.addstr(message->to_datastring());
 }
 
-void zmqCommunicator::initialize()
+void ZmqCommunicator::initialize()
 {
     // don't initialize twice if we already initialized
     if (txSocket) {
@@ -100,7 +100,7 @@ void zmqCommunicator::initialize()
     // set up transmission sockets and information
 
     if (flags[use_tx_proxy]) {
-        auto localProxy = zmqlib::zmqProxyHub::getProxy(proxyName);
+        auto localProxy = zmqlib::ZmqProxyHub::getProxy(proxyName);
         if (!localProxy->isRunning()) {
             localProxy->startProxy();
         }
@@ -109,7 +109,7 @@ void zmqCommunicator::initialize()
     }
 
     if (flags[use_rx_proxy]) {
-        auto localProxy = zmqlib::zmqProxyHub::getProxy(proxyName);
+        auto localProxy = zmqlib::ZmqProxyHub::getProxy(proxyName);
         if (!localProxy->isRunning()) {
             localProxy->startProxy();
         }
@@ -138,21 +138,21 @@ void zmqCommunicator::initialize()
     rxDescriptor.callback = [this](const zmq::multipart_t& msg) { messageHandler(msg); };
     // set up the rx socket reactor
     if (!flags[transmit_only]) {
-        zmqlib::zmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
+        zmqlib::ZmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
     }
 
-    txSocket = txDescriptor.makeSocketPtr(zmqlib::zmqContextManager::getContext(contextName));
+    txSocket = txDescriptor.makeSocketPtr(zmqlib::ZmqContextManager::getContext(contextName));
 }
 
-void zmqCommunicator::disconnect()
+void ZmqCommunicator::disconnect()
 {
     if (!flags[transmit_only]) {
-        zmqlib::zmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
+        zmqlib::ZmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
     }
     txSocket = nullptr;
 }
 
-void zmqCommunicator::set(std::string_view param, std::string_view val)
+void ZmqCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "txconnection") {
         txDescriptor.addOperation(zmqlib::SocketOperation::CONNECT, std::string{val});
@@ -174,12 +174,12 @@ void zmqCommunicator::set(std::string_view param, std::string_view val)
     }
 }
 
-void zmqCommunicator::set(std::string_view param, double val)
+void ZmqCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }
 
-void zmqCommunicator::setFlag(std::string_view flag, bool val)
+void ZmqCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
         flags.set(transmit_only, val);
@@ -203,7 +203,7 @@ void zmqCommunicator::setFlag(std::string_view flag, bool val)
     }
 }
 
-void zmqCommunicator::messageHandler(const zmq::multipart_t& msg)
+void ZmqCommunicator::messageHandler(const zmq::multipart_t& msg)
 {
     const auto messageSize = msg.size();
     // size should be either 2 or 3

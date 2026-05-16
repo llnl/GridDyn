@@ -24,39 +24,39 @@ Livermore National Security, LLC.
 #include <vector>
 
 namespace zmqlib {
-std::vector<std::shared_ptr<zmqReactor>> zmqReactor::reactors;
+std::vector<std::shared_ptr<ZmqReactor>> ZmqReactor::reactors;
 
 static std::mutex reactorCreationLock;
 
-zmqReactor::zmqReactor(const std::string& reactorName, const std::string& context):
+ZmqReactor::ZmqReactor(const std::string& reactorName, const std::string& context):
     name(reactorName)
 {
-    contextManager = zmqContextManager::getContextPointer(context);
+    contextManager = ZmqContextManager::getContextPointer(context);
     notifier =
-        std::make_unique<zmq::socket_t>(zmqContextManager::getContext(contextManager->getName()),
+        std::make_unique<zmq::socket_t>(ZmqContextManager::getContext(contextManager->getName()),
                                         zmq::socket_type::pair);
     const std::string constring = "inproc://reactor_" + name;
     notifier->bind(constring.c_str());
 
-    loopThread = std::thread(&zmqReactor::reactorLoop, this);
+    loopThread = std::thread(&ZmqReactor::reactorLoop, this);
 }
 
 static const int zero(0);
 
-zmqReactor::~zmqReactor()
+ZmqReactor::~ZmqReactor()
 {
     try {
         terminateReactor();
     }
     catch (const std::exception& ex) {
-        std::cerr << "zmqReactor destructor suppressed exception: " << ex.what() << '\n';
+        std::cerr << "ZmqReactor destructor suppressed exception: " << ex.what() << '\n';
     }
     catch (...) {
-        std::cerr << "zmqReactor destructor suppressed unknown exception\n";
+        std::cerr << "ZmqReactor destructor suppressed unknown exception\n";
     }
 }
 
-void zmqReactor::terminateReactor()
+void ZmqReactor::terminateReactor()
 {
     if (reactorLoopRunning) {
         updates.emplace(ReactorInstruction::TERMINATE, std::string());
@@ -72,7 +72,7 @@ void zmqReactor::terminateReactor()
     }
 }
 
-std::shared_ptr<zmqReactor> zmqReactor::getReactorInstance(const std::string& reactorName,
+std::shared_ptr<ZmqReactor> ZmqReactor::getReactorInstance(const std::string& reactorName,
                                                            const std::string& contextName)
 {
     const std::scoped_lock creationLock(reactorCreationLock);
@@ -83,30 +83,30 @@ std::shared_ptr<zmqReactor> zmqReactor::getReactorInstance(const std::string& re
     }
     // if it doesn't find a matching name make a new one with the appropriate name
     // can't use make_shared since constructor is private
-    auto newReactor = std::shared_ptr<zmqReactor>(new zmqReactor(reactorName, contextName));
+    auto newReactor = std::shared_ptr<ZmqReactor>(new ZmqReactor(reactorName, contextName));
     reactors.push_back(newReactor);
     return newReactor;
 }
 
-void zmqReactor::addSocket(const zmqSocketDescriptor& desc)
+void ZmqReactor::addSocket(const ZmqSocketDescriptor& desc)
 {
     updates.emplace(ReactorInstruction::NEW_SOCKET, desc);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
-void zmqReactor::modifySocket(const zmqSocketDescriptor& desc)
+void ZmqReactor::modifySocket(const ZmqSocketDescriptor& desc)
 {
     updates.emplace(ReactorInstruction::MODIFY, desc);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
-void zmqReactor::closeSocket(const std::string& socketName)
+void ZmqReactor::closeSocket(const std::string& socketName)
 {
     updates.emplace(ReactorInstruction::CLOSE, socketName);
     notifier->send(zmq::const_buffer(&zero, sizeof(int)));
 }
 
-void zmqReactor::addSocketBlocking(const zmqSocketDescriptor& desc)
+void ZmqReactor::addSocketBlocking(const ZmqSocketDescriptor& desc)
 {
     unsigned int one(1);
     updates.emplace(ReactorInstruction::NEW_SOCKET, desc);
@@ -114,7 +114,7 @@ void zmqReactor::addSocketBlocking(const zmqSocketDescriptor& desc)
     notifier->recv(zmq::mutable_buffer(&one, 4));
 }
 
-void zmqReactor::modifySocketBlocking(const zmqSocketDescriptor& desc)
+void ZmqReactor::modifySocketBlocking(const ZmqSocketDescriptor& desc)
 {
     unsigned int one(1);
 
@@ -124,7 +124,7 @@ void zmqReactor::modifySocketBlocking(const zmqSocketDescriptor& desc)
     notifier->recv(zmq::mutable_buffer(&one, 4));
 }
 
-void zmqReactor::closeSocketBlocking(const std::string& socketName)
+void ZmqReactor::closeSocketBlocking(const std::string& socketName)
 {
     unsigned int one(1);
     updates.emplace(ReactorInstruction::CLOSE, socketName);
@@ -146,14 +146,14 @@ static auto findSocketByName(const std::string& socketName,
     return index;
 }
 
-void zmqReactor::reactorLoop()
+void ZmqReactor::reactorLoop()
 {
     // make the signaling socket
     // use mostly local variables
     std::vector<zmq::socket_t> sockets;
     unsigned int messageCode = 0;
 
-    sockets.emplace_back(zmqContextManager::getContext(contextManager->getName()),
+    sockets.emplace_back(ZmqContextManager::getContext(contextManager->getName()),
                          zmq::socket_type::pair);
     sockets[0].connect(std::string("inproc://reactor_" + name).c_str());
 
@@ -203,7 +203,7 @@ void zmqReactor::reactorLoop()
                             break;
                         case ReactorInstruction::NEW_SOCKET:
                             sockets.push_back(descriptor.makeSocket(
-                                zmqContextManager::getContext(contextManager->getName())));
+                                ZmqContextManager::getContext(contextManager->getName())));
                             socketNames.push_back(descriptor.name);
                             socketCallbacks.emplace_back(descriptor.callback);
                             socketPolls.resize(socketPolls.size() + 1);

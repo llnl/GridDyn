@@ -11,21 +11,19 @@
 #include "tcpCollector.h"
 #include "tcpCommunicator.h"
 #include <string>
+#include <vector>
 
 namespace griddyn {
-
-static childClassFactory<tcpLib::tcpCollector, collector> tcpcol(std::vector<std::string>{"tcp"});
-
-static childClassFactory<tcpLib::tcpCommunicator, Communicator>
-    tcpComm(std::vector<std::string>{"tcp"});
-
 void loadTcpLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static const childClassFactory<tcpLib::TcpCollector, collector> tcpCollectorFactory(
+            std::vector<std::string>{"tcp"});
+        static const childClassFactory<tcpLib::TcpCommunicator, Communicator>
+            tcpCommunicatorFactory(std::vector<std::string>{"tcp"});
+        return true;
+    }();
+    (void)loaded;
 }
 
 }  // namespace griddyn

@@ -30,13 +30,13 @@ namespace zmqlib {
 /** class building and managing a zmq proxy
 @details the proxy runs in its own thread managed by the proxy class
 */
-class zmqProxyHub {
+class ZmqProxyHub {
   public:
-    static std::shared_ptr<zmqProxyHub> getProxy(const std::string& proxyName,
+    static std::shared_ptr<ZmqProxyHub> getProxy(const std::string& proxyName,
                                                  const std::string& pairType = "pubsub",
                                                  const std::string& contextName = "");
 
-    ~zmqProxyHub();
+    ~ZmqProxyHub();
 
     void startProxy();
     void stopProxy();
@@ -49,23 +49,23 @@ class zmqProxyHub {
     bool isRunning() const { return proxyRunning; }
 
   private:
-    static std::vector<std::shared_ptr<zmqProxyHub>>
+    static std::vector<std::shared_ptr<ZmqProxyHub>>
         proxies;  //!< container for pointers to all the available contexts
 
     std::string name;  //!< the name of the proxy
     std::string outgoingPrimaryConnection;  //!< the primary outgoing connection
     std::string incomingPrimaryConnection;  //!< the primary incoming connection
 
-    std::shared_ptr<zmqContextManager>
+    std::shared_ptr<ZmqContextManager>
         contextManager;  //!< pointer the context the reactor is using
     std::unique_ptr<zmq::socket_t> controllerSocket;  //!< socket used for control of the proxy
-    zmqSocketDescriptor incoming;  //!< socketDescriptor for the incoming connection
-    zmqSocketDescriptor outgoing;  //!< socketDescriptor for the outgoing connection
+    ZmqSocketDescriptor incoming;  //!< socketDescriptor for the incoming connection
+    ZmqSocketDescriptor outgoing;  //!< socketDescriptor for the outgoing connection
     std::thread proxyThread;  //!< the thread id for the proxy loop
     std::atomic<bool> proxyRunning{false};  //!< flag indicating the proxy has been started
     /** private constructor*/
-    zmqProxyHub(const std::string& proxyName,
-                const std::string& pairtype,
+    ZmqProxyHub(const std::string& proxyName,
+                const std::string& pairType,
                 const std::string& context);
     /** loop for the proxy thread*/
     void proxyLoop();

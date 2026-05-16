@@ -12,25 +12,23 @@
 #include "dimeCommunicator.h"
 #include "fileInput/readerInfo.h"
 #include <string>
+#include <vector>
 
 namespace griddyn {
-static childClassFactory<dimeLib::dimeCollector, collector>
-    dimeFac(std::vector<std::string>{"dime"});
-
-static childClassFactory<dimeLib::dimeCommunicator, Communicator>
-    dimeComm(std::vector<std::string>{"dime"});
-
 void loadDimeLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static const childClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
+            std::vector<std::string>{"dime"});
+        static const childClassFactory<dimeLib::DimeCommunicator, Communicator>
+            dimeCommunicatorFactory(std::vector<std::string>{"dime"});
+        return true;
+    }();
+    (void)loaded;
 }
 
-void loadDimeReaderInfoDefinitions(readerInfo& ri)
+void loadDimeReaderInfoDefinitions(readerInfo& readerInformation)
 {
-    ri.addTranslate("dime", "extra");
+    readerInformation.addTranslate("dime", "extra");
 }
 }  // namespace griddyn

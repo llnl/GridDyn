@@ -26,11 +26,11 @@ Livermore National Security, LLC.
 #include <vector>
 
 namespace zmqlib {
-class zmqContextManager;
+class ZmqContextManager;
 
 /** class that manages receive sockets and triggers callbacks
 @detail the class starts up a thread that listens for */
-class zmqReactor {
+class ZmqReactor {
   private:
     /** enumeration of possible reactor instructions*/
     enum class ReactorInstruction : int {
@@ -39,37 +39,37 @@ class zmqReactor {
         MODIFY,  //!< modify an existing socket
         TERMINATE,  //!< terminate the socket
     };
-    static std::vector<std::shared_ptr<zmqReactor>>
+    static std::vector<std::shared_ptr<ZmqReactor>>
         reactors;  //!< container for pointers to all the available contexts
 
     std::string name;
-    std::shared_ptr<zmqContextManager>
+    std::shared_ptr<ZmqContextManager>
         contextManager;  //!< pointer the context the reactor is using
 
-    gmlc::containers::SimpleQueue<std::pair<ReactorInstruction, zmqSocketDescriptor>>
+    gmlc::containers::SimpleQueue<std::pair<ReactorInstruction, ZmqSocketDescriptor>>
         updates;  //!< the modifications to make the reactor sockets
 
     std::unique_ptr<zmq::socket_t> notifier;
     std::thread loopThread;
     /** private constructor*/
-    zmqReactor(const std::string& reactorName, const std::string& context);
+    ZmqReactor(const std::string& reactorName, const std::string& context);
     std::atomic<bool> reactorLoopRunning{false};
 
   public:
-    static std::shared_ptr<zmqReactor> getReactorInstance(const std::string& reactorName,
+    static std::shared_ptr<ZmqReactor> getReactorInstance(const std::string& reactorName,
                                                           const std::string& contextName = "");
 
-    ~zmqReactor();
+    ~ZmqReactor();
 
-    void addSocket(const zmqSocketDescriptor& desc);
-    void modifySocket(const zmqSocketDescriptor& desc);
+    void addSocket(const ZmqSocketDescriptor& desc);
+    void modifySocket(const ZmqSocketDescriptor& desc);
     /** asyncrhonous call to close a specific socket
     @param socketName the name of the socket to close
     */
     void closeSocket(const std::string& socketName);
 
-    void addSocketBlocking(const zmqSocketDescriptor& desc);
-    void modifySocketBlocking(const zmqSocketDescriptor& desc);
+    void addSocketBlocking(const ZmqSocketDescriptor& desc);
+    void modifySocketBlocking(const ZmqSocketDescriptor& desc);
     void closeSocketBlocking(const std::string& socketName);
 
     const std::string& getName() const { return name; }

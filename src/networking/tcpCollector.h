@@ -12,16 +12,16 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-class tcpCollector: public collector {
+class TcpCollector: public collector {
   private:
     std::string server;
     std::string port;
     std::shared_ptr<gmlc::networking::TcpConnection> connection;
 
   public:
-    tcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-    explicit tcpCollector(const std::string& name);
-    ~tcpCollector();
+    TcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit TcpCollector(const std::string& name);
+    ~TcpCollector();
 
     virtual std::unique_ptr<collector> clone() const override;
 

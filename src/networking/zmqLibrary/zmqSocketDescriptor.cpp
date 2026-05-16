@@ -19,44 +19,44 @@ Livermore National Security, LLC.
 #include <memory>
 
 namespace zmqlib {
-zmq::socket_t zmqSocketDescriptor::makeSocket(zmq::context_t& ctx) const
+zmq::socket_t ZmqSocketDescriptor::makeSocket(zmq::context_t& ctx) const
 {
     zmq::socket_t sock(ctx, type);
     modifySocket(sock);
     return sock;
 }
 
-std::unique_ptr<zmq::socket_t> zmqSocketDescriptor::makeSocketPtr(zmq::context_t& ctx) const
+std::unique_ptr<zmq::socket_t> ZmqSocketDescriptor::makeSocketPtr(zmq::context_t& ctx) const
 {
     auto sock = std::make_unique<zmq::socket_t>(ctx, type);
     modifySocket(*sock);
     return sock;
 }
 
-void zmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
+void ZmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 {
-    for (const auto& socketOperation : ops) {
-        switch (socketOperation.first) {
+    for (const auto& operationEntry : ops) {
+        switch (operationEntry.first) {
             case SocketOperation::BIND:
-                sock.bind(socketOperation.second);
+                sock.bind(operationEntry.second);
                 break;
             case SocketOperation::UNBIND:
-                sock.unbind(socketOperation.second);
+                sock.unbind(operationEntry.second);
                 break;
             case SocketOperation::CONNECT:
-                sock.connect(socketOperation.second);
+                sock.connect(operationEntry.second);
                 break;
             case SocketOperation::DISCONNECT:
-                sock.disconnect(socketOperation.second);
+                sock.disconnect(operationEntry.second);
                 break;
             case SocketOperation::SUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_SUBSCRIBE, socketOperation.second);
+                    sock.setsockopt(ZMQ_SUBSCRIBE, operationEntry.second);
                 }
                 break;
             case SocketOperation::UNSUBSCRIBE:
                 if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
-                    sock.setsockopt(ZMQ_UNSUBSCRIBE, socketOperation.second);
+                    sock.setsockopt(ZMQ_UNSUBSCRIBE, operationEntry.second);
                 }
                 break;
             default:

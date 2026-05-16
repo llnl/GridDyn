@@ -12,63 +12,63 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-dimeCommunicator::dimeCommunicator() = default;
+DimeCommunicator::DimeCommunicator() = default;
 
-dimeCommunicator::dimeCommunicator(const std::string& name): zmqCommunicator(name) {}
+DimeCommunicator::DimeCommunicator(const std::string& name): ZmqCommunicator(name) {}
 
-dimeCommunicator::dimeCommunicator(const std::string& name, std::uint64_t id):
-    zmqCommunicator(name, id)
+DimeCommunicator::DimeCommunicator(const std::string& name, std::uint64_t identifier):
+    ZmqCommunicator(name, identifier)
 {
 }
 
-dimeCommunicator::dimeCommunicator(std::uint64_t id): zmqCommunicator(id) {}
+DimeCommunicator::DimeCommunicator(std::uint64_t identifier): ZmqCommunicator(identifier) {}
 
-std::unique_ptr<Communicator> dimeCommunicator::clone() const
+std::unique_ptr<Communicator> DimeCommunicator::clone() const
 {
-    std::unique_ptr<Communicator> col = std::make_unique<dimeCommunicator>();
-    dimeCommunicator::cloneTo(col.get());
+    std::unique_ptr<Communicator> col = std::make_unique<DimeCommunicator>();
+    DimeCommunicator::cloneTo(col.get());
     return col;
 }
 
-void dimeCommunicator::cloneTo(Communicator* comm) const
+void DimeCommunicator::cloneTo(Communicator* comm) const
 {
-    zmqCommunicator::cloneTo(comm);
-    auto dc = dynamic_cast<dimeCommunicator*>(comm);
-    if (dc == nullptr) {
+    ZmqCommunicator::cloneTo(comm);
+    auto* dimeCommunicator = dynamic_cast<DimeCommunicator*>(comm);
+    if (dimeCommunicator == nullptr) {
         return;
     }
 }
 
-void dimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
+void DimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
 
-void dimeCommunicator::addHeader(zmq::multipart_t& msg,
+void DimeCommunicator::addHeader(zmq::multipart_t& /*msg*/,
                                  const std::shared_ptr<commMessage>& /* message */)
 {
 }
 
-void dimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
+void DimeCommunicator::addMessageBody(zmq::multipart_t& /* msg */,
                                       const std::shared_ptr<commMessage>& /* message */)
 {
 }
 
-void dimeCommunicator::set(std::string_view param, std::string_view val)
+void DimeCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        zmqCommunicator::set(param, val);
+        ZmqCommunicator::set(param, val);
     }
 }
 
-void dimeCommunicator::set(std::string_view param, double val)
+void DimeCommunicator::set(std::string_view param, double val)
 {
-    zmqCommunicator::set(param, val);
+    ZmqCommunicator::set(param, val);
 }
 
-void dimeCommunicator::setFlag(std::string_view flag, bool val)
+void DimeCommunicator::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
-        zmqCommunicator::setFlag(flag, val);
+        ZmqCommunicator::setFlag(flag, val);
     }
 }
 

@@ -13,21 +13,22 @@
 namespace griddyn {
 class readerInfo;
 namespace dimeLib {
-    /** dimeRunner is the execution object for executing in coordination with the Dime co-simulation
+    /** DimeRunner is the execution object for executing in coordination with the Dime co-simulation
 environment it inherits from gridDynRunner and adds some extra features necessary for executing with
 dime
 */
-    class dimeRunner: public GriddynRunner {
+    class DimeRunner: public GriddynRunner {
       private:
         // coreOwningPtr<dimeCoordinator> coord_; //!< the coordinator object for managing object
         // that manage the HELICS coordination
       public:
-        dimeRunner();
-        dimeRunner(std::shared_ptr<gridDynSimulation> sim);
-        ~dimeRunner();
+        DimeRunner();
+        DimeRunner(std::shared_ptr<gridDynSimulation> sim);
+        ~DimeRunner();
 
       public:
-        virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& ri) override;
+        virtual std::shared_ptr<CLI::App>
+            generateLocalCommandLineParser(readerInfo& readerInformation) override;
 
         virtual coreTime Run(void) override;
 

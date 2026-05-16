@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
             } break;
             case exec_mode_t::dime: {
 #ifdef ENABLE_DIME
-                auto runner = std::make_unique<dimeLib::dimeRunner>(simulation);
+                auto runner = std::make_unique<dimeLib::DimeRunner>(simulation);
                 simulation->log(nullptr,
                                 griddyn::print_level::summary,
                                 std::string("Executing through DIME runner"));

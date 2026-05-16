@@ -27,17 +27,17 @@ class context_t;
 
 namespace zmqlib {
 /** class defining a singleton context manager for all zmq usage in gridDyn*/
-class zmqContextManager {
+class ZmqContextManager {
   private:
-    static std::map<std::string, std::shared_ptr<zmqContextManager>>
+    static std::map<std::string, std::shared_ptr<ZmqContextManager>>
         contexts;  //!< container for pointers to all the available contexts
     std::string name;  //!< context name
     std::unique_ptr<zmq::context_t> zcontext;  //!< pointer to the actual context
     bool leakOnDelete = false;  //!< this is done to prevent some warning messages for use in DLL's
-    zmqContextManager(const std::string& contextName);
+    ZmqContextManager(const std::string& contextName);
 
   public:
-    static std::shared_ptr<zmqContextManager>
+    static std::shared_ptr<ZmqContextManager>
         getContextPointer(const std::string& contextName = "");
 
     static zmq::context_t& getContext(const std::string& contextName = "");
@@ -51,7 +51,7 @@ class zmqContextManager {
     @return true if the context was found and the flag set, false otherwise
     */
     static bool setContextToLeakOnDelete(const std::string& contextName = "");
-    virtual ~zmqContextManager();
+    virtual ~ZmqContextManager();
 
     const std::string& getName() const { return name; }
 

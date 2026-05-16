@@ -12,12 +12,12 @@
 
 namespace griddyn::dimeLib {
 /** class implementing a communicator to interact with the DIME Communication methods*/
-class dimeCommunicator: public zmqInterface::zmqCommunicator {
+class DimeCommunicator: public zmqInterface::ZmqCommunicator {
   public:
-    dimeCommunicator();
-    explicit dimeCommunicator(const std::string& name);
-    dimeCommunicator(const std::string& name, std::uint64_t id);
-    explicit dimeCommunicator(std::uint64_t id);
+    DimeCommunicator();
+    explicit DimeCommunicator(const std::string& name);
+    DimeCommunicator(const std::string& name, std::uint64_t identifier);
+    explicit DimeCommunicator(std::uint64_t identifier);
 
     virtual std::unique_ptr<Communicator> clone() const override;
 

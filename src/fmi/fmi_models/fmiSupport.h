@@ -28,8 +28,7 @@ class ValueDependencyInfo {
     int varIndex = -1;  //!< the actual variable index in the fmi
     int index = -1;  //!< the local index into a matrix
     bool isState = false;  //!< defining if it is a state [for output only]
-    RefMode refMode =
-        RefMode::direct;  //!< the mode to use for computing the partial derivatives
+    RefMode refMode = RefMode::direct;  //!< the mode to use for computing the partial derivatives
     std::vector<int> inputDep;  //!< the inputs on which the calculation depends
     std::vector<int> stateDep;  //!< the states on which the calculation depends
 };

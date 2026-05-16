@@ -171,10 +171,8 @@ class Fmi2Object {
     std::vector<std::string> getOutputNames() const;
     std::vector<std::string> getInputNames() const;
 
-    bool isParameter(const std::string& param,
-                     FmiVariableType type = FmiVariableType::numeric);
-    bool isVariable(const std::string& var,
-                    FmiVariableType type = FmiVariableType::numeric);
+    bool isParameter(const std::string& param, FmiVariableType type = FmiVariableType::numeric);
+    bool isVariable(const std::string& var, FmiVariableType type = FmiVariableType::numeric);
     std::shared_ptr<const fmiCommonFunctions> getFmiCommonFunctions() const
     {
         return commonFunctions;

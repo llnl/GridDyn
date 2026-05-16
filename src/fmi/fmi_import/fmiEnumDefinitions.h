@@ -96,8 +96,7 @@ enum class FmiDependencyType {
 
 class FmiDependencyTypeInfo {
   public:
-    FmiDependencyType dependency =
-        FmiDependencyType::dependent;  //!< dependency data member
+    FmiDependencyType dependency = FmiDependencyType::dependent;  //!< dependency data member
     FmiDependencyTypeInfo() {}
     FmiDependencyTypeInfo(const std::string& vstring);
     FmiDependencyTypeInfo(FmiDependencyType type): dependency(type) {}

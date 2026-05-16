@@ -634,8 +634,7 @@ void fmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus)
 {
     if (!(info.causality == caus)) {
-        if ((info.causality != FmiCausalityType::input) ||
-            (caus != FmiCausalityType::parameter)) {
+        if ((info.causality != FmiCausalityType::input) || (caus != FmiCausalityType::parameter)) {
             return false;
         }
     }

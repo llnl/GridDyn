@@ -21,8 +21,7 @@ void loadDimeLibrary()
         static const childClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
             std::vector<std::string>{"dime"});
         static const childClassFactory<dimeLib::DimeCommunicator, Communicator>
-            dimeCommunicatorFactory(
-            std::vector<std::string>{"dime"});
+            dimeCommunicatorFactory(std::vector<std::string>{"dime"});
         return true;
     }();
     (void)loaded;

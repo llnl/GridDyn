@@ -20,8 +20,7 @@ void loadTcpLibrary()
         static const childClassFactory<tcpLib::TcpCollector, collector> tcpCollectorFactory(
             std::vector<std::string>{"tcp"});
         static const childClassFactory<tcpLib::TcpCommunicator, Communicator>
-            tcpCommunicatorFactory(
-            std::vector<std::string>{"tcp"});
+            tcpCommunicatorFactory(std::vector<std::string>{"tcp"});
         return true;
     }();
     (void)loaded;

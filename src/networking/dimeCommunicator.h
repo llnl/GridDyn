@@ -16,8 +16,8 @@ class DimeCommunicator: public zmqInterface::ZmqCommunicator {
   public:
     DimeCommunicator();
     explicit DimeCommunicator(const std::string& name);
-    DimeCommunicator(const std::string& name, std::uint64_t id);
-    explicit DimeCommunicator(std::uint64_t id);
+    DimeCommunicator(const std::string& name, std::uint64_t identifier);
+    explicit DimeCommunicator(std::uint64_t identifier);
 
     virtual std::unique_ptr<Communicator> clone() const override;
 

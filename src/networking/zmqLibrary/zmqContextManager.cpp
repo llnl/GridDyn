@@ -34,7 +34,7 @@ static std::mutex contextLock;
 std::shared_ptr<ZmqContextManager>
     ZmqContextManager::getContextPointer(const std::string& contextName)
 {
-    std::lock_guard<std::mutex> conlock(
+    const std::scoped_lock contextGuard(
         contextLock);  // just to ensure that nothing funny happens if you try to
     // get a context while it is being constructed
     auto fnd = contexts.find(contextName);
@@ -55,7 +55,7 @@ zmq::context_t& ZmqContextManager::getContext(const std::string& contextName)
 
 void ZmqContextManager::closeContext(const std::string& contextName)
 {
-    std::lock_guard<std::mutex> conlock(contextLock);
+    const std::scoped_lock contextGuard(contextLock);
     auto fnd = contexts.find(contextName);
     if (fnd != contexts.end()) {
         contexts.erase(fnd);
@@ -64,7 +64,7 @@ void ZmqContextManager::closeContext(const std::string& contextName)
 
 bool ZmqContextManager::setContextToLeakOnDelete(const std::string& contextName)
 {
-    std::lock_guard<std::mutex> conlock(contextLock);
+    const std::scoped_lock contextGuard(contextLock);
     auto fnd = contexts.find(contextName);
     if (fnd != contexts.end()) {
         fnd->second->leakOnDelete = true;
@@ -75,8 +75,8 @@ ZmqContextManager::~ZmqContextManager()
 {
     if (leakOnDelete) {
         // yes I am purposefully leaking this PHILIP TOP
-        auto val = zcontext.release();
-        (void)(val);
+        auto* leakedContext = zcontext.release();
+        (void)leakedContext;
     }
 }
 

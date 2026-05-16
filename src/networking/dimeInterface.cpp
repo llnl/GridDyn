@@ -14,23 +14,20 @@
 #include <string>
 
 namespace griddyn {
-static childClassFactory<dimeLib::DimeCollector, collector>
-    dimeFac(std::vector<std::string>{"dime"});
-
-static childClassFactory<dimeLib::DimeCommunicator, Communicator>
-    dimeComm(std::vector<std::string>{"dime"});
-
 void loadDimeLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static childClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
+            std::vector<std::string>{"dime"});
+        static childClassFactory<dimeLib::DimeCommunicator, Communicator> dimeCommunicatorFactory(
+            std::vector<std::string>{"dime"});
+        return true;
+    }();
+    (void)loaded;
 }
 
-void loadDimeReaderInfoDefinitions(readerInfo& ri)
+void loadDimeReaderInfoDefinitions(readerInfo& readerInformation)
 {
-    ri.addTranslate("dime", "extra");
+    readerInformation.addTranslate("dime", "extra");
 }
 }  // namespace griddyn

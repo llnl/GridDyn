@@ -19,6 +19,32 @@ std::string toJsonString(const JsonValue& value)
 {
     return value.dump();
 }
+
+bool receivedOkResponse(zmq::socket_t& socket)
+{
+    char buffer[3] = {};
+    const auto receivedSize =
+        socket.recv(zmq::mutable_buffer(buffer, 2), zmq::recv_flags::none);
+    return receivedSize && (*receivedSize == 2) && (std::strncmp(buffer, "OK", 2) == 0);
+}
+
+static void encodeVariableMessage(JsonValue& data, double val)
+{
+    JsonValue content;
+    content["stdout"] = "";
+    content["figures"] = "";
+    content["datadir"] = "/tmp MatlabData/";
+
+    JsonValue response;
+    response["content"] = content;
+    response["result"] = val;
+    response["success"] = true;
+    data["args"] = response;
+    // response = { 'content': {'stdout': '', 'figures' : [], 'datadir' : '/tmp MatlabData/'},
+    // 'result' : value, 'success' : True }     outgoing = { 'command': 'response', 'name' :
+    // self.name, 'meta' : {'var_name': var_name},
+    //'args' : self.matlab.json_encode(response) }
+}
 }  // namespace
 
 DimeClientInterface::DimeClientInterface(const std::string& dimeName,
@@ -50,9 +76,7 @@ void DimeClientInterface::init()
 
     mSocket->send(toJsonString(outgoing));
 
-    char buffer[3] = {};
-    auto sz = mSocket->recv(buffer, 3, 0);
-    if ((sz != 2) || (strncmp(buffer, "OK", 3) != 0)) {
+    if (!receivedOkResponse(*mSocket)) {
         throw InitFailure();
     }
 }
@@ -72,23 +96,6 @@ void DimeClientInterface::close()
 
 void DimeClientInterface::sync() {}
 
-void encodeVariableMessage(JsonValue& data, double val)
-{
-    JsonValue content;
-    content["stdout"] = "";
-    content["figures"] = "";
-    content["datadir"] = "/tmp MatlabData/";
-
-    JsonValue response;
-    response["content"] = content;
-    response["result"] = val;
-    response["success"] = true;
-    data["args"] = response;
-    // response = { 'content': {'stdout': '', 'figures' : [], 'datadir' : '/tmp MatlabData/'},
-    // 'result' : value, 'success' : True }     outgoing = { 'command': 'response', 'name' :
-    // self.name, 'meta' : {'var_name': var_name},
-    //'args' : self.matlab.json_encode(response) }
-}
 void DimeClientInterface::sendVar(const std::string& varName,
                                   double val,
                                   const std::string& recipient)
@@ -102,9 +109,9 @@ void DimeClientInterface::sendVar(const std::string& varName,
     outgoing["args"] = varName;
     mSocket->send(toJsonString(outgoing));
 
-    char buffer[3];
-    auto sz = mSocket->recv(buffer, 3, 0);
-    // TODO(phlpt): Check recv value.
+    if (!receivedOkResponse(*mSocket)) {
+        throw SendFailure();
+    }
 
     JsonValue outgoingData;
     outgoingData["command"] = "response";
@@ -117,9 +124,7 @@ void DimeClientInterface::sendVar(const std::string& varName,
     encodeVariableMessage(outgoingData, val);
     mSocket->send(toJsonString(outgoingData));
 
-    sz = mSocket->recv(buffer, 3, 0);
-    if (sz != 2)  // TODO(phlpt): Check for "OK".
-    {
+    if (!receivedOkResponse(*mSocket)) {
         throw SendFailure();
     }
 }

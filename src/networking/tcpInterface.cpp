@@ -13,19 +13,16 @@
 #include <string>
 
 namespace griddyn {
-
-static childClassFactory<tcpLib::TcpCollector, collector> tcpcol(std::vector<std::string>{"tcp"});
-
-static childClassFactory<tcpLib::TcpCommunicator, Communicator>
-    tcpComm(std::vector<std::string>{"tcp"});
-
 void loadTcpLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static childClassFactory<tcpLib::TcpCollector, collector> tcpCollectorFactory(
+            std::vector<std::string>{"tcp"});
+        static childClassFactory<tcpLib::TcpCommunicator, Communicator> tcpCommunicatorFactory(
+            std::vector<std::string>{"tcp"});
+        return true;
+    }();
+    (void)loaded;
 }
 
 }  // namespace griddyn

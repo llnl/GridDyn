@@ -35,9 +35,10 @@ DimeRunner::DimeRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(st
     loadDimeLibrary();
 }
 
-std::shared_ptr<CLI::App> DimeRunner::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App>
+    DimeRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
-    loadDimeReaderInfoDefinitions(ri);
+    loadDimeReaderInfoDefinitions(readerInformation);
 
     auto parser =
         std::make_shared<CLI::App>("options related to helics executable", "helics_options");

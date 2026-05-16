@@ -14,17 +14,14 @@
 #include <string>
 
 namespace griddyn {
-
-static childClassFactory<zmqInterface::ZmqCommunicator, Communicator>
-    zmqComm(std::vector<std::string>{"zmq"});
-
 void loadZMQLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static childClassFactory<zmqInterface::ZmqCommunicator, Communicator> zmqCommunicatorFactory(
+            std::vector<std::string>{"zmq"});
+        return true;
+    }();
+    (void)loaded;
 }
 
 }  // namespace griddyn

@@ -27,7 +27,8 @@ dime
         ~DimeRunner();
 
       public:
-        virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& ri) override;
+        virtual std::shared_ptr<CLI::App>
+            generateLocalCommandLineParser(readerInfo& readerInformation) override;
 
         virtual coreTime Run(void) override;
 

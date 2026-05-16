@@ -16,12 +16,12 @@ DimeCommunicator::DimeCommunicator() = default;
 
 DimeCommunicator::DimeCommunicator(const std::string& name): ZmqCommunicator(name) {}
 
-DimeCommunicator::DimeCommunicator(const std::string& name, std::uint64_t id):
-    ZmqCommunicator(name, id)
+DimeCommunicator::DimeCommunicator(const std::string& name, std::uint64_t identifier):
+    ZmqCommunicator(name, identifier)
 {
 }
 
-DimeCommunicator::DimeCommunicator(std::uint64_t id): ZmqCommunicator(id) {}
+DimeCommunicator::DimeCommunicator(std::uint64_t identifier): ZmqCommunicator(identifier) {}
 
 std::unique_ptr<Communicator> DimeCommunicator::clone() const
 {
@@ -33,15 +33,15 @@ std::unique_ptr<Communicator> DimeCommunicator::clone() const
 void DimeCommunicator::cloneTo(Communicator* comm) const
 {
     ZmqCommunicator::cloneTo(comm);
-    auto dc = dynamic_cast<DimeCommunicator*>(comm);
-    if (dc == nullptr) {
+    auto* dimeCommunicator = dynamic_cast<DimeCommunicator*>(comm);
+    if (dimeCommunicator == nullptr) {
         return;
     }
 }
 
 void DimeCommunicator::messageHandler(const zmq::multipart_t& /*msg */) {}
 
-void DimeCommunicator::addHeader(zmq::multipart_t& msg,
+void DimeCommunicator::addHeader(zmq::multipart_t& /*msg*/,
                                  const std::shared_ptr<commMessage>& /* message */)
 {
 }

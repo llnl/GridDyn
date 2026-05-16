@@ -24,7 +24,8 @@
 
 namespace griddyn {
 static typeFactory<GridDynOptimization> gfo(  // NOLINT(bugprone-throwing-static-initialization)
-    "simulation", std::to_array<std::string_view>({"optimization", "optim"}));
+    "simulation",
+    std::to_array<std::string_view>({"optimization", "optim"}));
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
     gridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)

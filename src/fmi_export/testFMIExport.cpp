@@ -41,7 +41,7 @@ void generateFMU(const std::string& target, const std::string& inputFile)
 
     builder->MakeFmu();
 
-    EXPECT_TRUE(exists(target));
+    EXPECT_TRUE(std::filesystem::exists(target));
 }
 
 }  // namespace

@@ -31,12 +31,8 @@ GridLinkOpt::GridLinkOpt(const std::string& objName):
 }
 
 GridLinkOpt::GridLinkOpt(coreObject* obj, const std::string& objName):
-    GridOptObject(objName),
-    B1(nullptr),
-    B2(nullptr),
-    link(dynamic_cast<Link*>(obj)),
-    rampUpLimit(0.0),
-    rampDownLimit(0.0)
+    GridOptObject(objName), B1(nullptr), B2(nullptr), link(dynamic_cast<Link*>(obj)),
+    rampUpLimit(0.0), rampDownLimit(0.0)
 {
     if (link != nullptr) {
         if (getName().empty()) {

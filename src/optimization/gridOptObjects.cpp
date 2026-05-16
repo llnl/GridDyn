@@ -257,8 +257,7 @@ void GridOptObject::getObjName(stringVec& objNames,
 {
     auto& offsetSet = offsets.getOffsets(oMode);
     auto ensureSize = [&objNames](count_t offset, count_t count) {
-        const auto requiredSize =
-            static_cast<size_t>(offset) + static_cast<size_t>(count);
+        const auto requiredSize = static_cast<size_t>(offset) + static_cast<size_t>(count);
         if (objNames.size() < requiredSize) {
             objNames.resize(requiredSize);
         }

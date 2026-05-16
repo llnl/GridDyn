@@ -60,7 +60,7 @@ coreObject* gridLinkOpt::clone(coreObject* obj) const
 
 void gridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
-void gridLinkOpt::loadSizes(const optimMode& oMode)
+void gridLinkOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
@@ -99,73 +99,73 @@ void gridLinkOpt::add(coreObject* obj)
 
 void gridLinkOpt::remove(coreObject* /*obj*/) {}
 
-void gridLinkOpt::setValues(const optimData& /*of*/, const optimMode& /*oMode*/) {}
+void gridLinkOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 
 // for saving the state
-void gridLinkOpt::guessState(double /*time*/, double /*val*/[], const optimMode& /*oMode*/) {}
+void gridLinkOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/) {}
 
-void gridLinkOpt::getVariableType(double /*sdata*/[], const optimMode& /*oMode*/) {}
+void gridLinkOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
-void gridLinkOpt::getTols(double /*tols*/[], const optimMode& /*oMode*/) {}
+void gridLinkOpt::getTols(double /*tols*/[], const OptimizationMode& /*oMode*/) {}
 void gridLinkOpt::valueBounds(double /*time*/,
                               double /*upperLimit*/[],
                               double /*lowerLimit*/[],
-                              const optimMode& /*oMode*/)
+                              const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::linearObj(const optimData& /*of*/,
+void gridLinkOpt::linearObj(const OptimizationData& /*of*/,
                             vectData<double>& /*linObj*/,
-                            const optimMode& /*oMode*/)
+                            const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::quadraticObj(const optimData& /*of*/,
+void gridLinkOpt::quadraticObj(const OptimizationData& /*of*/,
                                vectData<double>& /*linObj*/,
                                vectData<double>& /*quadObj*/,
-                               const optimMode& /*oMode*/)
+                               const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::constraintValue(const optimData& /*of*/,
+void gridLinkOpt::constraintValue(const OptimizationData& /*of*/,
                                   double /*cVals*/[],
-                                  const optimMode& /*oMode*/)
+                                  const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::constraintJacobianElements(const optimData& /*of*/,
+void gridLinkOpt::constraintJacobianElements(const OptimizationData& /*of*/,
                                              matrixData<double>& /*md*/,
-                                             const optimMode& /*oMode*/)
+                                             const OptimizationMode& /*oMode*/)
 {
 }
 
-double gridLinkOpt::objValue(const optimData& /*of*/, const optimMode& /*oMode*/)
+double gridLinkOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
 {
     double cost = 0;
 
     return cost;
 }
 
-void gridLinkOpt::gradient(const optimData& /*of*/, double[] /*deriv*/, const optimMode& /*oMode*/)
+void gridLinkOpt::gradient(const OptimizationData& /*of*/, double[] /*deriv*/, const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::jacobianElements(const optimData& /*of*/,
+void gridLinkOpt::jacobianElements(const OptimizationData& /*of*/,
                                    matrixData<double>& /*md*/,
-                                   const optimMode& /*oMode*/)
+                                   const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLinkOpt::getConstraints(const optimData& /*of*/,
+void gridLinkOpt::getConstraints(const OptimizationData& /*of*/,
                                  matrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],
-                                 const optimMode& /*oMode*/)
+                                 const OptimizationMode& /*oMode*/)
 {
 }
 
 void gridLinkOpt::getObjName(stringVec& /*objNames*/,
-                             const optimMode& /*oMode*/,
+                             const OptimizationMode& /*oMode*/,
                              const std::string& /*prefix*/)
 {
 }
@@ -175,7 +175,7 @@ void gridLinkOpt::disable()
     coreObject::disable();
 }
 
-void gridLinkOpt::setOffsets(const optimOffsets& /*newOffset*/, const optimMode& /*oMode*/) {}
+void gridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/, const OptimizationMode& /*oMode*/) {}
 
 // destructor
 gridLinkOpt::~gridLinkOpt() = default;

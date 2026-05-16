@@ -10,17 +10,17 @@
 #include <cstring>
 
 namespace griddyn {
-bool isAC(const optimMode& oMode)
+bool isAC(const OptimizationMode& oMode)
 {
     return (oMode.flowMode == FlowModel::AC);
 }
 
-void optimSizes::reset()
+void OptimizationSizes::reset()
 {
-    std::memset(this, 0, sizeof(optimSizes));
+    std::memset(this, 0, sizeof(OptimizationSizes));
 }
 
-void optimSizes::add(const optimSizes& arg)
+void OptimizationSizes::add(const OptimizationSizes& arg)
 {
     vSize += arg.vSize;
     aSize += arg.aSize;
@@ -31,7 +31,7 @@ void optimSizes::add(const optimSizes& arg)
     constraintsSize += arg.constraintsSize;
 }
 
-void optimOffsets::reset()
+void OptimizationOffsets::reset()
 {
     gOffset = qOffset = vOffset = aOffset = contOffset = intOffset = kNullLocation;
     constraintOffset = 0;
@@ -41,7 +41,7 @@ void optimOffsets::reset()
     loaded = false;
 }
 
-void optimOffsets::increment()
+void OptimizationOffsets::increment()
 {
     count_t contExtra = 0;
     if (aOffset != kNullLocation) {
@@ -77,7 +77,7 @@ void optimOffsets::increment()
     constraintOffset += total.constraintsSize;
 }
 
-void optimOffsets::increment(const optimOffsets& offsets)
+void OptimizationOffsets::increment(const OptimizationOffsets& offsets)
 {
     count_t continuousExtra = 0;
     if (aOffset != kNullLocation) {
@@ -113,18 +113,18 @@ void optimOffsets::increment(const optimOffsets& offsets)
     constraintOffset += offsets.total.constraintsSize;
 }
 
-void optimOffsets::addSizes(const optimOffsets& offsets)
+void OptimizationOffsets::addSizes(const OptimizationOffsets& offsets)
 {
     total.add(offsets.total);
 }
 
-void optimOffsets::localLoad(bool finishedLoading)
+void OptimizationOffsets::localLoad(bool finishedLoading)
 {
     total = local;
     loaded = finishedLoading;
 }
 
-void optimOffsets::setOffsets(const optimOffsets& newOffsets)
+void OptimizationOffsets::setOffsets(const OptimizationOffsets& newOffsets)
 {
     aOffset = newOffsets.aOffset;
     vOffset = newOffsets.vOffset;
@@ -156,7 +156,7 @@ void optimOffsets::setOffsets(const optimOffsets& newOffsets)
     }
 }
 
-void optimOffsets::setOffset(index_t newOffset)
+void OptimizationOffsets::setOffset(index_t newOffset)
 {
     aOffset = newOffset;
     vOffset = aOffset + total.aSize;
@@ -167,96 +167,97 @@ void optimOffsets::setOffset(index_t newOffset)
 }
 using gmlc::utilities::ensureSizeAtLeast;
 
-optimOffsets& optOffsetTable::getOffsets(const optimMode& oMode)
+OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     return offsetContainer[oMode.offsetIndex];
 }
 
-static const optimOffsets nullOffsets;
+static const OptimizationOffsets nullOffsets;
 
-const optimOffsets& optOffsetTable::getOffsets(const optimMode& oMode) const
+const OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode& oMode) const
 {
     return (oMode.offsetIndex < static_cast<count_t>(offsetContainer.size())) ?
         offsetContainer[oMode.offsetIndex] :
         nullOffsets;
 }
 
-void optOffsetTable::setOffsets(const optimOffsets& newOffsets, const optimMode& oMode)
+void OptimizationOffsetTable::setOffsets(const OptimizationOffsets& newOffsets,
+                                         const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     offsetContainer[oMode.offsetIndex].setOffsets(newOffsets);
 }
 
-void optOffsetTable::setOffset(index_t newOffset, const optimMode& oMode)
+void OptimizationOffsetTable::setOffset(index_t newOffset, const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     offsetContainer[oMode.offsetIndex].setOffset(newOffset);
 }
 
-void optOffsetTable::setContOffset(index_t newOffset, const optimMode& oMode)
+void OptimizationOffsetTable::setContOffset(index_t newOffset, const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     offsetContainer[oMode.offsetIndex].contOffset = newOffset;
 }
 
-void optOffsetTable::setIntOffset(index_t newOffset, const optimMode& oMode)
+void OptimizationOffsetTable::setIntOffset(index_t newOffset, const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     offsetContainer[oMode.offsetIndex].intOffset = newOffset;
 }
 
-void optOffsetTable::setConstraintOffset(index_t newOffset, const optimMode& oMode)
+void OptimizationOffsetTable::setConstraintOffset(index_t newOffset, const OptimizationMode& oMode)
 {
     ensureSizeAtLeast(offsetContainer, oMode.offsetIndex + 1);
     offsetContainer[oMode.offsetIndex].constraintOffset = newOffset;
 }
 
-index_t optOffsetTable::getaOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getaOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).aOffset;
 }
 
-index_t optOffsetTable::getvOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getvOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).vOffset;
 }
 
-index_t optOffsetTable::getContOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getContOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).contOffset;
 }
 
-index_t optOffsetTable::getIntOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getIntOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).intOffset;
 }
 
-index_t optOffsetTable::getgOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getgOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).gOffset;
 }
 
-index_t optOffsetTable::getqOffset(const optimMode& oMode) const
+index_t OptimizationOffsetTable::getqOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).qOffset;
 }
 
 /** get the locations for the data
- *@param[in] oMode the optimMode we are interested in
+ *@param[in] oMode the OptimizationMode we are interested in
  */
-// void getLocations (const stateData &sD, double d[], const optimMode &oMode, Lp *Loc,
+// void getLocations (const stateData &sD, double d[], const OptimizationMode &oMode, Lp *Loc,
 // gridComponent *comp);
 /** get the locations for the data from a stateData pointer
- *@param[in] oMode the optimMode we are interested in
+ *@param[in] oMode the OptimizationMode we are interested in
  *@return the angle offset
  */
-// void getLocations (stateData *sD, double d[], const optimMode &oMode, Lp *Loc, gridComponent
+// void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc, gridComponent
 // *comp);
 /** get the locations offsets for the data
- *@param[in] oMode the optimMode we are interested in
+ *@param[in] oMode the OptimizationMode we are interested in
  *@return the angle offset
  */
-// void getLocations (const optimMode &oMode, Lp *Loc);
+// void getLocations (const OptimizationMode &oMode, Lp *Loc);
 
 }  // namespace griddyn

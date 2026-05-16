@@ -37,7 +37,7 @@ enum GridDynOptExtraFlags {
 
 };
 
-class optimData;
+class OptimizationData;
 class gridAreaOpt;
 class gridOptObject;
 
@@ -88,30 +88,30 @@ class gridDynOptimization: public gridDynSimulation {
     virtual gridOptObject* makeOptObjectPath(coreObject* obj);
 
   protected:
-    optimizerInterface* updateOptimizer(const optimMode& oMode);
+    optimizerInterface* updateOptimizer(const OptimizationMode& oMode);
 
     // SGS this was unused?
-    // void updateOffsets (const optimMode &oMode);
+    // void updateOffsets (const OptimizationMode &oMode);
 
     // void pFlowJacobian(const double state[]);
-    optimizerInterface* getOptimizerData(const optimMode& oMode)
+    optimizerInterface* getOptimizerData(const OptimizationMode& oMode)
     {
         return (mOptimizerData[oMode.offsetIndex].get());
     }
 
-    const optimizerInterface* getOptimizerData(const optimMode& oMode) const
+    const optimizerInterface* getOptimizerData(const OptimizationMode& oMode) const
     {
         return (mOptimizerData[oMode.offsetIndex].get());
     }
 
-    void setMaxJacSize(const optimMode& oMode, count_t ssize)
+    void setMaxJacSize(const OptimizationMode& oMode, count_t ssize)
     {
         mOptimizerData[oMode.offsetIndex]->initializeJacArray(ssize);
     }
     // dynamics protected
     // void dynInitializeObjects(double initTime, double absInitTime);
 
-    void setupOptOffsets(const optimMode& oMode, int setupMode);
+    void setupOptOffsets(const OptimizationMode& oMode, int setupMode);
 };
 
 }  // namespace griddyn

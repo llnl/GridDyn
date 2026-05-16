@@ -32,7 +32,7 @@ class gridOptObject: public coreObject {
   public:
     std::bitset<32> optFlags;  //!< operational flags these flags are designed to be normal false
     count_t numParams = 0;  //!< the number of parameters to store in an archive
-    optOffsetTable offsets;  //!< a table of offsets for the different solver modes
+    OptimizationOffsetTable offsets;  //!< a table of offsets for the different solver modes
   protected:
   public:
     gridOptObject(const std::string& objName = "optObject_#");
@@ -45,81 +45,84 @@ class gridOptObject: public coreObject {
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.
     */
-    virtual void setOffsets(const optimOffsets& newOffsets, const optimMode& optimizationMode);
+    virtual void
+        setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& optimizationMode);
     /** set the offsets of an object for a particular optimization mode using a single offset.
     @param offset the offset index all variables are sequential.
     @param oMode the optimization mode to use.
     */
     virtual void
-        setOffset(index_t offset, index_t constraintOffset, const optimMode& optimizationMode);
+        setOffset(index_t offset,
+                  index_t constraintOffset,
+                  const OptimizationMode& optimizationMode);
 
     // size getter functions
 
     /** get the objective size.
     @param oMode the optimization mode to use.
     */
-    count_t objSize(const optimMode& oMode);
+    count_t objSize(const OptimizationMode& oMode);
     /** get the number of continuous objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t contObjSize(const optimMode& oMode);
+    count_t contObjSize(const OptimizationMode& oMode);
     /** get the number of integer objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t intObjSize(const optimMode& oMode);
+    count_t intObjSize(const OptimizationMode& oMode);
     /** get the number of real power generation objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t genSize(const optimMode& oMode);
+    count_t genSize(const OptimizationMode& oMode);
     /** get the number of reactive power generation objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t qSize(const optimMode& oMode);
+    count_t qSize(const OptimizationMode& oMode);
     /** get the number of voltage objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t vSize(const optimMode& oMode);
+    count_t vSize(const OptimizationMode& oMode);
     /** get the number of angle objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t aSize(const optimMode& oMode);
+    count_t aSize(const OptimizationMode& oMode);
     /** get the number of constraints.
     @param oMode the optimization mode to use.
     */
-    count_t constraintSize(const optimMode& oMode);
+    count_t constraintSize(const OptimizationMode& oMode);
 
     /** get the objective size.
     @param oMode the optimization mode to use.
     */
-    count_t objSize(const optimMode& oMode) const;
+    count_t objSize(const OptimizationMode& oMode) const;
     /** get the number of continuous objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t contObjSize(const optimMode& oMode) const;
+    count_t contObjSize(const OptimizationMode& oMode) const;
     /** get the number of integer objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t intObjSize(const optimMode& oMode) const;
+    count_t intObjSize(const OptimizationMode& oMode) const;
     /** get the number of real power generation objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t genSize(const optimMode& oMode) const;
+    count_t genSize(const OptimizationMode& oMode) const;
     /** get the number of reactive power generation objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t qSize(const optimMode& oMode) const;
+    count_t qSize(const OptimizationMode& oMode) const;
     /** get the number of voltage objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t vSize(const optimMode& oMode) const;
+    count_t vSize(const OptimizationMode& oMode) const;
     /** get the number of angle objective variables.
     @param oMode the optimization mode to use.
     */
-    count_t aSize(const optimMode& oMode) const;
+    count_t aSize(const OptimizationMode& oMode) const;
     /** get the number of constraints.
     @param oMode the optimization mode to use.
     */
-    count_t constraintSize(const optimMode& oMode) const;
+    count_t constraintSize(const OptimizationMode& oMode) const;
 
   protected:
     /** initialize the object.
@@ -147,30 +150,30 @@ class gridOptObject: public coreObject {
     /** compute the sizes and store them in the offsetTables.
     @param oMode the optimization mode to use.
     */
-    virtual void loadSizes(const optimMode& oMode);
+    virtual void loadSizes(const OptimizationMode& oMode);
 
     /** set the objective variable values to the objects.
     @param of  the output objective variable values
     @param oMode the optimization mode to use.
     */
-    virtual void setValues(const optimData& of, const optimMode& oMode);
+    virtual void setValues(const OptimizationData& of, const OptimizationMode& oMode);
 
     /** get a guessState from the object as to the value.
     @param val  the output objective variable values
     @param oMode the optimization mode to use.
     */
-    virtual void guessState(double time, double val[], const optimMode& oMode);
+    virtual void guessState(double time, double val[], const OptimizationMode& oMode);
 
     /** set the tolerances.
     @param oMode the optimization mode to use.
     */
-    virtual void getTols(double tols[], const optimMode& oMode);
+    virtual void getTols(double tols[], const OptimizationMode& oMode);
 
     /** indicate if a variable is continuous or integer.
     @param sdata  the vector of indices for integer value 0 continuous, 1 integer
     @param oMode the optimization mode to use.
     */
-    virtual void getVariableType(double sdata[], const optimMode& oMode);
+    virtual void getVariableType(double sdata[], const OptimizationMode& oMode);
 
     /**load the upper and lower limit for an objective variable
     @param upLimit  the upper limit
@@ -178,40 +181,45 @@ class gridOptObject: public coreObject {
     @param oMode the optimization mode to use.
     */
     virtual void
-        valueBounds(double time, double upLimit[], double lowerLimit[], const optimMode& oMode);
+        valueBounds(double time,
+                    double upLimit[],
+                    double lowerLimit[],
+                    const OptimizationMode& oMode);
 
     /** load the linear objective parameters
     @param of  the current objective variable values
     @param linObj the structure to store the objective parameters
     @param oMode the optimization mode to use.
     */
-    virtual void linearObj(const optimData& optimDataRef,
+    virtual void linearObj(const OptimizationData& optimizationDataRef,
                            vectData<double>& linearObjective,
-                           const optimMode& optimizationMode);
+                           const OptimizationMode& optimizationMode);
     /** load the quadratic objective parameters
     @param of  the current object variable values
     @param linObj the structure to store the linear objective parameters
     @param quadObj the structure to store the 2nd order objective parameters
     @param oMode the optimization mode to use.
     */
-    virtual void quadraticObj(const optimData& optimDataRef,
+    virtual void quadraticObj(const OptimizationData& optimizationDataRef,
                               vectData<double>& linearObjective,
                               vectData<double>& quadraticObjective,
-                              const optimMode& optimizationMode);
+                              const OptimizationMode& optimizationMode);
 
     /** compute the objective value
     @param of  the current object variable values
     @param oMode the optimization mode to use.
     @return the objective value
     */
-    virtual double objValue(const optimData& of, const optimMode& oMode);
+    virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode);
 
     /** compute the gradients of the objective function
     @param of  the current object variable values
     @param grad the vector containing all \frac{dC}{dO_i}
     @param oMode the optimization mode to use.
     */
-    virtual void gradient(const optimData& of, double grad[], const optimMode& oMode);
+    virtual void gradient(const OptimizationData& of,
+                          double grad[],
+                          const OptimizationMode& oMode);
 
     /** compute the Jacobian entries for the objective value
     @param of  the current object variable values
@@ -219,7 +227,9 @@ class gridOptObject: public coreObject {
     @param oMode the optimization mode to use.
     */
     virtual void
-        jacobianElements(const optimData& of, matrixData<double>& md, const optimMode& oMode);
+        jacobianElements(const OptimizationData& of,
+                         matrixData<double>& md,
+                         const OptimizationMode& oMode);
 
     // constraint functions
     /** get the linear constraint operations
@@ -231,26 +241,27 @@ class gridOptObject: public coreObject {
     @param[out] lowerLimit value for the lower bound on the constraint function
     @param[in] oMode the optimization mode to use.
     */
-    virtual void getConstraints(const optimData& of,
+    virtual void getConstraints(const OptimizationData& of,
                                 matrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
-                                const optimMode& oMode);
+                                const OptimizationMode& oMode);
 
     /** get the (non)linear constraint operations
     @param of  the current object variable values
     @param cVals the computed value of the constraint
     @param oMode the optimization mode to use.
     */
-    virtual void constraintValue(const optimData& of, double cVals[], const optimMode& oMode);
+    virtual void
+        constraintValue(const OptimizationData& of, double cVals[], const OptimizationMode& oMode);
     /** get the Jacobian array of the constraints \frac{dCV_i}{dO_j}
     @param of  the current object variable values
     @param md the structure for the constraint Jacobian entries
     @param oMode the optimization mode to use.
     */
-    virtual void constraintJacobianElements(const optimData& of,
+    virtual void constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
-                                            const optimMode& oMode);
+                                            const OptimizationMode& oMode);
 
     /** get the Hessian array for the objective function
     @param of  the current object variable values
@@ -258,7 +269,9 @@ class gridOptObject: public coreObject {
     @param oMode the optimization mode to use.
     */
     virtual void
-        hessianElements(const optimData& of, matrixData<double>& md, const optimMode& oMode);
+        hessianElements(const OptimizationData& of,
+                        matrixData<double>& md,
+                        const OptimizationMode& oMode);
 
     /** get the names of the objective variables
     @param objNames  the location to store the names
@@ -266,7 +279,9 @@ class gridOptObject: public coreObject {
     @param prefix (optional) string to place before the objective name
     */
     virtual void
-        getObjName(stringVec& objNames, const optimMode& oMode, const std::string& prefix = "");
+        getObjName(stringVec& objNames,
+                   const OptimizationMode& oMode,
+                   const std::string& prefix = "");
 
     /** get a specific bus
     @param index  the index of the bus to return
@@ -293,6 +308,6 @@ class gridOptObject: public coreObject {
     virtual gridOptObject* getRelay(index_t index) const;
 };
 
-void printObjStateNames(gridOptObject* obj, const optimMode& oMode);
+void printObjStateNames(gridOptObject* obj, const OptimizationMode& oMode);
 
 }  // namespace griddyn

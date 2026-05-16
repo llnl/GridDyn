@@ -70,27 +70,27 @@ void gridLoadOpt::add(coreObject* obj)
     }
 }
 
-count_t gridLoadOpt::objSize(const optimMode& /*oMode*/)
+count_t gridLoadOpt::objSize(const OptimizationMode& /*oMode*/)
 {
     count_t objs = 0;
 
     return objs;
 }
-count_t gridLoadOpt::contObjSize(const optimMode& /*oMode*/)
-{
-    count_t objs = 0;
-
-    return objs;
-}
-
-count_t gridLoadOpt::intObjSize(const optimMode& /*oMode*/)
+count_t gridLoadOpt::contObjSize(const OptimizationMode& /*oMode*/)
 {
     count_t objs = 0;
 
     return objs;
 }
 
-count_t gridLoadOpt::constraintSize(const optimMode& oMode)
+count_t gridLoadOpt::intObjSize(const OptimizationMode& /*oMode*/)
+{
+    count_t objs = 0;
+
+    return objs;
+}
+
+count_t gridLoadOpt::constraintSize(const OptimizationMode& oMode)
 {
     count_t objs = 0;
     switch (oMode.linMode) {
@@ -106,67 +106,71 @@ count_t gridLoadOpt::constraintSize(const optimMode& oMode)
 
 void gridLoadOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
-void gridLoadOpt::setValues(const optimData& /*of*/, const optimMode& /*oMode*/) {}
+void gridLoadOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 // for saving the state
-void gridLoadOpt::guessState(double /*time*/, double /*val*/[], const optimMode& /*oMode*/) {}
+void gridLoadOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+{
+}
 
-void gridLoadOpt::getVariableType(double /*sdata*/[], const optimMode& /*oMode*/) {}
+void gridLoadOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /*oMode*/) {}
 
-void gridLoadOpt::getTols(double /*tols*/[], const optimMode& /*oMode*/) {}
+void gridLoadOpt::getTols(double /*tols*/[], const OptimizationMode& /*oMode*/) {}
 void gridLoadOpt::valueBounds(double /*time*/,
                               double /*upperLimit*/[],
                               double /*lowerLimit*/[],
-                              const optimMode& /*oMode*/)
+                              const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLoadOpt::linearObj(const optimData& /*of*/,
+void gridLoadOpt::linearObj(const OptimizationData& /*of*/,
                             vectData<double>& /*linObj*/,
-                            const optimMode& /*oMode*/)
+                            const OptimizationMode& /*oMode*/)
 {
 }
-void gridLoadOpt::quadraticObj(const optimData& /*of*/,
+void gridLoadOpt::quadraticObj(const OptimizationData& /*of*/,
                                vectData<double>& /*linObj*/,
                                vectData<double>& /*quadObj*/,
-                               const optimMode& /*oMode*/)
+                               const OptimizationMode& /*oMode*/)
 {
 }
 
-void gridLoadOpt::constraintValue(const optimData& /*of*/,
+void gridLoadOpt::constraintValue(const OptimizationData& /*of*/,
                                   double /*cVals*/[],
-                                  const optimMode& /*oMode*/)
+                                  const OptimizationMode& /*oMode*/)
 {
 }
-void gridLoadOpt::constraintJacobianElements(const optimData& /*of*/,
+void gridLoadOpt::constraintJacobianElements(const OptimizationData& /*of*/,
                                              matrixData<double>& /*md*/,
-                                             const optimMode& /*oMode*/)
+                                             const OptimizationMode& /*oMode*/)
 {
 }
 
-double gridLoadOpt::objValue(const optimData& /*of*/, const optimMode& /*oMode*/)
+double gridLoadOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
 {
     double cost = 0;
 
     return cost;
 }
 
-void gridLoadOpt::gradient(const optimData& /*of*/, double /*deriv*/[], const optimMode& /*oMode*/)
+void gridLoadOpt::gradient(const OptimizationData& /*of*/,
+                           double /*deriv*/[],
+                           const OptimizationMode& /*oMode*/)
 {
 }
-void gridLoadOpt::jacobianElements(const optimData& /*of*/,
+void gridLoadOpt::jacobianElements(const OptimizationData& /*of*/,
                                    matrixData<double>& /*md*/,
-                                   const optimMode& /*oMode*/)
+                                   const OptimizationMode& /*oMode*/)
 {
 }
-void gridLoadOpt::getConstraints(const optimData& /*of*/,
+void gridLoadOpt::getConstraints(const OptimizationData& /*of*/,
                                  matrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],
-                                 const optimMode& /*oMode*/)
+                                 const OptimizationMode& /*oMode*/)
 {
 }
 void gridLoadOpt::getObjName(stringVec& /*objNames*/,
-                             const optimMode& /*oMode*/,
+                             const OptimizationMode& /*oMode*/,
                              const std::string& /*prefix*/)
 {
 }

@@ -18,12 +18,13 @@ static childClassFactory<basicOptimizer, optimizerInterface>
 
 optimizerInterface::optimizerInterface(std::string_view optName): mName(optName) {}
 
-optimizerInterface::optimizerInterface(gridDynOptimization* gdo, const optimMode& oMode):
+optimizerInterface::optimizerInterface(gridDynOptimization* gdo, const OptimizationMode& oMode):
     mode(oMode), mGridDynOptimization(gdo)
 {
 }
 
-void optimizerInterface::setOptimizationData(gridDynOptimization* gdo, const optimMode& oMode)
+void optimizerInterface::setOptimizationData(gridDynOptimization* gdo,
+                                             const OptimizationMode& oMode)
 {
     mode = oMode;
     if (gdo != nullptr) {
@@ -79,7 +80,7 @@ int optimizerInterface::check_flag(void* flagvalue,
 
 basicOptimizer::basicOptimizer(std::string_view optName): optimizerInterface(optName) {}
 
-basicOptimizer::basicOptimizer(gridDynOptimization* gdo, const optimMode& oMode):
+basicOptimizer::basicOptimizer(gridDynOptimization* gdo, const OptimizationMode& oMode):
     optimizerInterface(gdo, oMode)
 {
 }
@@ -106,7 +107,8 @@ void basicOptimizer::dynObjectInitializeA(double /*t0*/)
     // return FUNCTION_EXECUTION_SUCCESS;
 }
 
-std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, const optimMode& oMode)
+std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
+                                                  const OptimizationMode& oMode)
 {
     std::shared_ptr<optimizerInterface> of;
     switch (oMode.flowMode) {

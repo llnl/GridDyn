@@ -173,7 +173,7 @@ void gridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     }
 }
 
-void gridAreaOpt::loadSizes(const optimMode& oMode)
+void gridAreaOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
     oo.reset();
@@ -194,21 +194,21 @@ void gridAreaOpt::loadSizes(const optimMode& oMode)
     }
 }
 
-void gridAreaOpt::setValues(const optimData& of, const optimMode& oMode)
+void gridAreaOpt::setValues(const OptimizationData& of, const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->setValues(of, oMode);
     }
 }
 // for saving the state
-void gridAreaOpt::guessState(double time, double val[], const optimMode& oMode)
+void gridAreaOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->guessState(time, val, oMode);
     }
 }
 
-void gridAreaOpt::getTols(double tols[], const optimMode& oMode)
+void gridAreaOpt::getTols(double tols[], const OptimizationMode& oMode)
 
 {
     for (auto obj : objectList) {
@@ -216,7 +216,7 @@ void gridAreaOpt::getTols(double tols[], const optimMode& oMode)
     }
 }
 
-void gridAreaOpt::getVariableType(double sdata[], const optimMode& oMode)
+void gridAreaOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->getVariableType(sdata, oMode);
@@ -226,30 +226,32 @@ void gridAreaOpt::getVariableType(double sdata[], const optimMode& oMode)
 void gridAreaOpt::valueBounds(double time,
                               double upperLimit[],
                               double lowerLimit[],
-                              const optimMode& oMode)
+                              const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->valueBounds(time, upperLimit, lowerLimit, oMode);
     }
 }
 
-void gridAreaOpt::linearObj(const optimData& of, vectData<double>& linObj, const optimMode& oMode)
+void gridAreaOpt::linearObj(const OptimizationData& of,
+                            vectData<double>& linObj,
+                            const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->linearObj(of, linObj, oMode);
     }
 }
-void gridAreaOpt::quadraticObj(const optimData& of,
+void gridAreaOpt::quadraticObj(const OptimizationData& of,
                                vectData<double>& linObj,
                                vectData<double>& quadObj,
-                               const optimMode& oMode)
+                               const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->quadraticObj(of, linObj, quadObj, oMode);
     }
 }
 
-double gridAreaOpt::objValue(const optimData& of, const optimMode& oMode)
+double gridAreaOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
 {
     double cost = 0;
     for (auto obj : objectList) {
@@ -259,47 +261,53 @@ double gridAreaOpt::objValue(const optimData& of, const optimMode& oMode)
     return cost;
 }
 
-void gridAreaOpt::gradient(const optimData& of, double deriv[], const optimMode& oMode)
+void gridAreaOpt::gradient(const OptimizationData& of,
+                           double deriv[],
+                           const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->gradient(of, deriv, oMode);
     }
 }
-void gridAreaOpt::jacobianElements(const optimData& of,
+void gridAreaOpt::jacobianElements(const OptimizationData& of,
                                    matrixData<double>& md,
-                                   const optimMode& oMode)
+                                   const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->jacobianElements(of, md, oMode);
     }
 }
-void gridAreaOpt::getConstraints(const optimData& of,
+void gridAreaOpt::getConstraints(const OptimizationData& of,
                                  matrixData<double>& cons,
                                  double upperLimit[],
                                  double lowerLimit[],
-                                 const optimMode& oMode)
+                                 const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
     }
 }
 
-void gridAreaOpt::constraintValue(const optimData& of, double cVals[], const optimMode& oMode)
+void gridAreaOpt::constraintValue(const OptimizationData& of,
+                                  double cVals[],
+                                  const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->constraintValue(of, cVals, oMode);
     }
 }
 
-void gridAreaOpt::constraintJacobianElements(const optimData& of,
+void gridAreaOpt::constraintJacobianElements(const OptimizationData& of,
                                              matrixData<double>& md,
-                                             const optimMode& oMode)
+                                             const OptimizationMode& oMode)
 {
     for (auto obj : objectList) {
         obj->constraintJacobianElements(of, md, oMode);
     }
 }
-void gridAreaOpt::getObjName(stringVec& objNames, const optimMode& oMode, const std::string& prefix)
+void gridAreaOpt::getObjName(stringVec& objNames,
+                             const OptimizationMode& oMode,
+                             const std::string& prefix)
 {
     for (auto obj : objectList) {
         obj->getObjName(objNames, oMode, prefix);
@@ -314,10 +322,10 @@ void gridAreaOpt::disable()
     }
 }
 
-void gridAreaOpt::setOffsets(const optimOffsets& newOffsets, const optimMode& oMode)
+void gridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     offsets.setOffsets(newOffsets, oMode);
-    optimOffsets no(offsets.getOffsets(oMode));
+    OptimizationOffsets no(offsets.getOffsets(oMode));
     no.localLoad();
 
     for (auto sa : areaList) {
@@ -338,7 +346,7 @@ void gridAreaOpt::setOffsets(const optimOffsets& newOffsets, const optimMode& oM
     }
 }
 
-void gridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const optimMode& oMode)
+void gridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
     for (auto sa : areaList) {
         sa->setOffset(offset, constraintOffset, oMode);

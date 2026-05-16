@@ -47,13 +47,13 @@ coreObject* gridDynOptimization::clone(coreObject* obj) const
     return sim;
 }
 
-void gridDynOptimization::setupOptOffsets(const optimMode& oMode, int setupMode)
+void gridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
 {
     if (setupMode == 0) {  // no distinction between Voltage, angle, and others
         mAreaOpt->setOffset(1, 0, oMode);
         return;
     }
-    optimOffsets baseOffset;
+    OptimizationOffsets baseOffset;
     if (setupMode == 1) {  // use all the distinct categories
         baseOffset.setOffset(1);
         baseOffset.constraintOffset = 0;
@@ -207,7 +207,7 @@ gridOptObject* gridDynOptimization::makeOptObjectPath(coreObject* obj)
     return nullptr;
 }
 
-optimizerInterface* gridDynOptimization::updateOptimizer(const optimMode& oMode)
+optimizerInterface* gridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
 {
     mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
     optimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();

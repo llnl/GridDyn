@@ -18,7 +18,7 @@ enum class LinearityMode { LINEAR, QUADRATIC, NONLINEAR };
 /**
  *Helper class for containing the reference lookup
  **/
-class optimMode {
+class OptimizationMode {
   public:
     FlowModel flowMode;
     LinearityMode linMode;
@@ -32,7 +32,7 @@ class optimMode {
 /**
  * determine if the mode is an AC mode
  **/
-bool isAC(const optimMode& oMode);
+bool isAC(const OptimizationMode& oMode);
 
 #define CONTINUOUS_OBJECTIVE_VARIABLE (0)
 #define INTEGER_OBJECTIVE_VARIABLE (1)
@@ -51,7 +51,7 @@ enum OptimizationControlFlags {
 #define CHECK_OPTIMIATION_FLAG(flag, flagName) (flag & (1 << flagName))
 
 /** @brief helper struct for containing sizes to group the data*/
-class optimSizes {
+class OptimizationSizes {
   public:
     count_t genSize = 0;  //!< number of local generation variables
     count_t vSize = 0;  //!< number of local voltage variables
@@ -63,13 +63,13 @@ class optimSizes {
 
     void reset();
 
-    void add(const optimSizes& arg);
+    void add(const OptimizationSizes& arg);
 };
 
 /**
  *Helper struct encapsulating the offsets for the optimization evaluation functions
  **/
-class optimOffsets {
+class OptimizationOffsets {
   public:
     index_t gOffset = kNullLocation;  //!< Location for the genLevelOffsets
     index_t qOffset = kNullLocation;  //!< Location for the reactive power LevelOffsets
@@ -80,12 +80,12 @@ class optimOffsets {
 
     index_t constraintOffset = kNullLocation;  //!< location for the constraint index
     bool loaded = false;  // flag indicating if the sizes have been loaded
-    optimSizes local;
+    OptimizationSizes local;
 
-    optimSizes total;
+    OptimizationSizes total;
 
   public:
-    optimOffsets() = default;
+    OptimizationOffsets() = default;
 
     /** reset the optimOffset
      */
@@ -96,18 +96,18 @@ class optimOffsets {
     /** increment the offsets using the contained sizes in another optimOffset Object
     @param offsets the optimOffset object to use as the sizes
     */
-    void increment(const optimOffsets& offsets);
-    /** merge the sizes of two optimOffsets
+    void increment(const OptimizationOffsets& offsets);
+    /** merge the sizes of two OptimizationOffsets
     @param offsets the optimOffset object to use as the sizes
     */
-    void addSizes(const optimOffsets& offsets);
+    void addSizes(const OptimizationOffsets& offsets);
     /** load the local variables to the sizes
      */
     void localLoad(bool finishedLoading = false);
-    /** set the offsets from another optimOffset object
-    @param newOffsets the optimOffset object to use as the sizes
+    /** set the offsets from another OptimizationOffset object
+    @param newOffsets the OptimizationOffset object to use as the sizes
     */
-    void setOffsets(const optimOffsets& newOffsets);
+    void setOffsets(const OptimizationOffsets& newOffsets);
     /** set the offsets from a single index
     @param newOffset the index of the new offset
     */
@@ -115,122 +115,123 @@ class optimOffsets {
 };
 
 /**
- * Helper class encapsulating offsets for the various solution optimMode types
+ * Helper class encapsulating offsets for the various solution OptimizationMode types
  **/
-class optOffsetTable {
+class OptimizationOffsetTable {
   private:
-    std::vector<optimOffsets> offsetContainer;  //!< an array of 6 containers for offsets
-                                                //!< corresponding to the different solver modes
+    std::vector<OptimizationOffsets>
+        offsetContainer;  //!< an array of 6 containers for offsets
+                          //!< corresponding to the different solver modes
     index_t paramOffset = kNullLocation;  //!< offset for storing parameters in an array
 
   public:
     /**constructor
      */
-    optOffsetTable() = default;
+    OptimizationOffsetTable() = default;
     /** check whether an offset set has been loaded
      * return a pointer to the set of offsets for a particular solver mode
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return a flag (true) if loaded (false) if not
      */
-    bool isLoaded(const optimMode& oMode) const
+    bool isLoaded(const OptimizationMode& oMode) const
     {
         return offsetContainer[oMode.offsetIndex].loaded;
     }
 
-    /** get the offsets for a optimMode
+    /** get the offsets for an OptimizationMode
      * return a pointer to the set of offsets for a particular solver mode
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return a pointer to the
      */
-    optimOffsets& getOffsets(const optimMode& oMode);
+    OptimizationOffsets& getOffsets(const OptimizationMode& oMode);
 
-    /** get the offsets for a optimMode for const object
+    /** get the offsets for an OptimizationMode for const object
     *  return a pointer to the set of offsets for a particular solver mode
     returns a point to a nullOffset object if the index is out of range
-    *@param[in] oMode the optimMode we are interested in
+    *@param[in] oMode the OptimizationMode we are interested in
     *@return a pointer to the
     */
-    const optimOffsets& getOffsets(const optimMode& oMode) const;
+    const OptimizationOffsets& getOffsets(const OptimizationMode& oMode) const;
 
-    /** set the offsets for a optimMode
+    /** set the offsets for an OptimizationMode
      * return a pointer to the set of offsets for a particular solver mode
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return a pointer to the
      */
-    void setOffsets(const optimOffsets& newOffsets, const optimMode& oMode);
+    void setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode);
 
     /** set the base offset
      *@param[in] offset the location to set the offset to
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      */
-    void setOffset(index_t newOffset, const optimMode& oMode);
+    void setOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the continuous offset
      *@param[in] offset the location to set the offset to
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      */
-    void setContOffset(index_t newOffset, const optimMode& oMode);
+    void setContOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the voltage offset
      *@param[in] offset the location to set the offset to
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      */
-    void setIntOffset(index_t newOffset, const optimMode& oMode);
+    void setIntOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the constraints offset
      *@param[in] offset the location to set the offset to
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      */
-    void setConstraintOffset(index_t newOffset, const optimMode& oMode);
+    void setConstraintOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** get the angle offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
-    index_t getaOffset(const optimMode& oMode) const;
+    index_t getaOffset(const OptimizationMode& oMode) const;
     /** get the voltage offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getvOffset(const optimMode& oMode) const;
+    index_t getvOffset(const OptimizationMode& oMode) const;
     /** get the continuous offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the diffferential offset
      */
-    index_t getContOffset(const optimMode& oMode) const;
+    index_t getContOffset(const OptimizationMode& oMode) const;
     /** get the integer offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the root offset
      */
-    index_t getIntOffset(const optimMode& oMode) const;
+    index_t getIntOffset(const OptimizationMode& oMode) const;
 
     /** get the real generation offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getgOffset(const optimMode& oMode) const;
+    index_t getgOffset(const OptimizationMode& oMode) const;
 
     /** get the reactive generation offset
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getqOffset(const optimMode& oMode) const;
+    index_t getqOffset(const OptimizationMode& oMode) const;
     /** get the locations for the data
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      */
-    // void getLocations (const stateData &sD, double d[], const optimMode &oMode, Lp *Loc,
+    // void getLocations (const stateData &sD, double d[], const OptimizationMode &oMode, Lp *Loc,
     // gridComponent *comp);
     /** get the locations for the data from a stateData pointer
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
-    // void getLocations (stateData *sD, double d[], const optimMode &oMode, Lp *Loc, gridComponent
-    // *comp);
+    // void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc,
+    // gridComponent *comp);
     /** get the locations offsets for the data
-     *@param[in] oMode the optimMode we are interested in
+     *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
-    // void getLocations (const optimMode &oMode, Lp *Loc);
+    // void getLocations (const OptimizationMode &oMode, Lp *Loc);
 
     index_t getParamOffset() { return paramOffset; }
     void setParamOffset(index_t newParamOffset) { paramOffset = newParamOffset; }
@@ -238,11 +239,12 @@ class optOffsetTable {
 
 /**@brief class for containing state data information
  */
-class optimData {
+class OptimizationData {
   public:
     double time = 0.0;  //!< time corresponding to the state data
     const double* val = nullptr;  //!< the current values
-    count_t seqID = 0;  //!< a sequence id to differentiate between subsequent optimData object
+    count_t seqID =
+        0;  //!< a sequence id to differentiate between subsequent OptimizationData object
 };
 
 }  // namespace griddyn

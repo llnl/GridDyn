@@ -49,50 +49,55 @@ class gridBusOpt: public gridOptObject {
     void remove(gridLinkOpt* lnk);
 
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
-    virtual void loadSizes(const optimMode& oMode) override;
+    virtual void loadSizes(const OptimizationMode& oMode) override;
 
-    virtual void setValues(const optimData& of, const optimMode& oMode) override;
+    virtual void setValues(const OptimizationData& of, const OptimizationMode& oMode) override;
     // for saving the state
-    virtual void guessState(double time, double val[], const optimMode& oMode) override;
-    virtual void getTols(double tols[], const optimMode& oMode) override;
-    virtual void getVariableType(double sdata[], const optimMode& oMode) override;
+    virtual void guessState(double time, double val[], const OptimizationMode& oMode) override;
+    virtual void getTols(double tols[], const OptimizationMode& oMode) override;
+    virtual void getVariableType(double sdata[], const OptimizationMode& oMode) override;
 
     virtual void valueBounds(double time,
                              double upperLimit[],
                              double lowerLimit[],
-                             const optimMode& oMode) override;
+                             const OptimizationMode& oMode) override;
 
-    virtual void
-        linearObj(const optimData& of, vectData<double>& linObj, const optimMode& oMode) override;
-    virtual void quadraticObj(const optimData& of,
+    virtual void linearObj(const OptimizationData& of,
+                           vectData<double>& linObj,
+                           const OptimizationMode& oMode) override;
+    virtual void quadraticObj(const OptimizationData& of,
                               vectData<double>& linObj,
                               vectData<double>& quadObj,
-                              const optimMode& oMode) override;
+                              const OptimizationMode& oMode) override;
 
-    virtual double objValue(const optimData& of, const optimMode& oMode) override;
-    virtual void gradient(const optimData& of, double deriv[], const optimMode& oMode) override;
-    virtual void jacobianElements(const optimData& of,
+    virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode) override;
+    virtual void gradient(const OptimizationData& of,
+                          double deriv[],
+                          const OptimizationMode& oMode) override;
+    virtual void jacobianElements(const OptimizationData& of,
                                   matrixData<double>& md,
-                                  const optimMode& oMode) override;
-    virtual void getConstraints(const optimData& of,
+                                  const OptimizationMode& oMode) override;
+    virtual void getConstraints(const OptimizationData& of,
                                 matrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
-                                const optimMode& oMode) override;
-    virtual void
-        constraintValue(const optimData& of, double cVals[], const optimMode& oMode) override;
-    virtual void constraintJacobianElements(const optimData& of,
+                                const OptimizationMode& oMode) override;
+    virtual void constraintValue(const OptimizationData& of,
+                                 double cVals[],
+                                 const OptimizationMode& oMode) override;
+    virtual void constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
-                                            const optimMode& oMode) override;
+                                            const OptimizationMode& oMode) override;
     virtual void getObjName(stringVec& objNames,
-                            const optimMode& oMode,
+                            const OptimizationMode& oMode,
                             const std::string& prefix = "") override;
 
     void disable() override;
     // parameter set functions
-    virtual void setOffsets(const optimOffsets& newOffsets, const optimMode& oMode) override;
+    virtual void setOffsets(const OptimizationOffsets& newOffsets,
+                            const OptimizationMode& oMode) override;
     virtual void
-        setOffset(index_t offset, index_t constraintOffset, const optimMode& oMode) override;
+        setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode) override;
 
     void setAll(const std::string& type,
                 const std::string& param,

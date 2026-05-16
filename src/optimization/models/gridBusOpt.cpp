@@ -88,9 +88,9 @@ void gridBusOpt::dynObjectInitializeA(std::uint32_t flags)
     }
 }
 
-void gridBusOpt::loadSizes(const optimMode& oMode)
+void gridBusOpt::loadSizes(const OptimizationMode& oMode)
 {
-    optimOffsets& oo = offsets.getOffsets(oMode);
+    OptimizationOffsets& oo = offsets.getOffsets(oMode);
     oo.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
@@ -119,7 +119,7 @@ void gridBusOpt::loadSizes(const optimMode& oMode)
     oo.loaded = true;
 }
 
-void gridBusOpt::setValues(const optimData& of, const optimMode& oMode)
+void gridBusOpt::setValues(const OptimizationData& of, const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->setValues(of, oMode);
@@ -129,7 +129,7 @@ void gridBusOpt::setValues(const optimData& of, const optimMode& oMode)
     }
 }
 // for saving the state
-void gridBusOpt::guessState(double time, double val[], const optimMode& oMode)
+void gridBusOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->guessState(time, val, oMode);
@@ -139,7 +139,7 @@ void gridBusOpt::guessState(double time, double val[], const optimMode& oMode)
     }
 }
 
-void gridBusOpt::getVariableType(double sdata[], const optimMode& oMode)
+void gridBusOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->getVariableType(sdata, oMode);
@@ -149,7 +149,7 @@ void gridBusOpt::getVariableType(double sdata[], const optimMode& oMode)
     }
 }
 
-void gridBusOpt::getTols(double tols[], const optimMode& oMode)
+void gridBusOpt::getTols(double tols[], const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->getTols(tols, oMode);
@@ -164,7 +164,7 @@ void gridBusOpt::getTols(double tols[], const optimMode& oMode)
 void gridBusOpt::valueBounds(double time,
                              double upperLimit[],
                              double lowerLimit[],
-                             const optimMode& oMode)
+                             const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->valueBounds(time, upperLimit, lowerLimit, oMode);
@@ -174,7 +174,9 @@ void gridBusOpt::valueBounds(double time,
     }
 }
 
-void gridBusOpt::linearObj(const optimData& of, vectData<double>& linObj, const optimMode& oMode)
+void gridBusOpt::linearObj(const OptimizationData& of,
+                           vectData<double>& linObj,
+                           const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->linearObj(of, linObj, oMode);
@@ -183,10 +185,10 @@ void gridBusOpt::linearObj(const optimData& of, vectData<double>& linObj, const 
         gen->linearObj(of, linObj, oMode);
     }
 }
-void gridBusOpt::quadraticObj(const optimData& of,
+void gridBusOpt::quadraticObj(const OptimizationData& of,
                               vectData<double>& linObj,
                               vectData<double>& quadObj,
-                              const optimMode& oMode)
+                              const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->quadraticObj(of, linObj, quadObj, oMode);
@@ -196,7 +198,7 @@ void gridBusOpt::quadraticObj(const optimData& of,
     }
 }
 
-double gridBusOpt::objValue(const optimData& of, const optimMode& oMode)
+double gridBusOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
 {
     double cost = 0;
     for (auto ld : loadList) {
@@ -208,7 +210,7 @@ double gridBusOpt::objValue(const optimData& of, const optimMode& oMode)
     return cost;
 }
 
-void gridBusOpt::gradient(const optimData& of, double deriv[], const optimMode& oMode)
+void gridBusOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->gradient(of, deriv, oMode);
@@ -217,9 +219,9 @@ void gridBusOpt::gradient(const optimData& of, double deriv[], const optimMode& 
         gen->gradient(of, deriv, oMode);
     }
 }
-void gridBusOpt::jacobianElements(const optimData& of,
+void gridBusOpt::jacobianElements(const OptimizationData& of,
                                   matrixData<double>& md,
-                                  const optimMode& oMode)
+                                  const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->jacobianElements(of, md, oMode);
@@ -228,11 +230,11 @@ void gridBusOpt::jacobianElements(const optimData& of,
         gen->jacobianElements(of, md, oMode);
     }
 }
-void gridBusOpt::getConstraints(const optimData& of,
+void gridBusOpt::getConstraints(const OptimizationData& of,
                                 matrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
-                                const optimMode& oMode)
+                                const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
@@ -242,7 +244,9 @@ void gridBusOpt::getConstraints(const optimData& of,
     }
 }
 
-void gridBusOpt::constraintValue(const optimData& of, double cVals[], const optimMode& oMode)
+void gridBusOpt::constraintValue(const OptimizationData& of,
+                                 double cVals[],
+                                 const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->constraintValue(of, cVals, oMode);
@@ -252,9 +256,9 @@ void gridBusOpt::constraintValue(const optimData& of, double cVals[], const opti
     }
 }
 
-void gridBusOpt::constraintJacobianElements(const optimData& of,
+void gridBusOpt::constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
-                                            const optimMode& oMode)
+                                            const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->constraintJacobianElements(of, md, oMode);
@@ -264,7 +268,9 @@ void gridBusOpt::constraintJacobianElements(const optimData& of,
     }
 }
 
-void gridBusOpt::getObjName(stringVec& objNames, const optimMode& oMode, const std::string& prefix)
+void gridBusOpt::getObjName(stringVec& objNames,
+                            const OptimizationMode& oMode,
+                            const std::string& prefix)
 {
     for (auto ld : loadList) {
         ld->getObjName(objNames, oMode, prefix);
@@ -282,10 +288,10 @@ void gridBusOpt::disable()
     }
 }
 
-void gridBusOpt::setOffsets(const optimOffsets& newOffsets, const optimMode& oMode)
+void gridBusOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     offsets.setOffsets(newOffsets, oMode);
-    optimOffsets no(offsets.getOffsets(oMode));
+    OptimizationOffsets no(offsets.getOffsets(oMode));
     no.localLoad();
     for (auto ld : loadList) {
         ld->setOffsets(no, oMode);
@@ -297,7 +303,7 @@ void gridBusOpt::setOffsets(const optimOffsets& newOffsets, const optimMode& oMo
     }
 }
 
-void gridBusOpt::setOffset(index_t offset, index_t constraintOffset, const optimMode& oMode)
+void gridBusOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
     for (auto ld : loadList) {
         ld->setOffset(offset, constraintOffset, oMode);

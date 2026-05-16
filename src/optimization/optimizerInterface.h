@@ -23,7 +23,7 @@ class optimizerInterface {
     // solver outputs
     std::vector<double> values;  //!< mask vector for which roots were found
 
-    optimMode mode;
+    OptimizationMode mode;
     double rtol = 1e-6;  //!< solver relative solution tolerance
     bool sparse = false;
     bool constantJacobian = false;
@@ -39,7 +39,7 @@ class optimizerInterface {
   public:
     optimizerInterface(std::string_view optName = "optim");
 
-    optimizerInterface(gridDynOptimization* gdo, const optimMode& oMode);
+    optimizerInterface(gridDynOptimization* gdo, const OptimizationMode& oMode);
     virtual ~optimizerInterface() {}
     virtual double* val_data() { return values.data(); }
 
@@ -57,7 +57,7 @@ class optimizerInterface {
     virtual void logErrorWeights(int /*logLevel*/) {}
 
     count_t getSize() const { return mStateVectorSize; }
-    virtual void setOptimizationData(gridDynOptimization* gdo, const optimMode& oMode);
+    virtual void setOptimizationData(gridDynOptimization* gdo, const OptimizationMode& oMode);
     virtual int
         check_flag(void* flagvalue, std::string_view funcname, int opt, bool printError = true);
     bool isInitialized() const { return mInitialized; }
@@ -70,13 +70,14 @@ class basicOptimizer: public optimizerInterface {
   public:
     explicit basicOptimizer(std::string_view optName = "basic");
 
-    basicOptimizer(gridDynOptimization* gdo, const optimMode& oMode);
+    basicOptimizer(gridDynOptimization* gdo, const OptimizationMode& oMode);
 
     int allocate(count_t size) override;
     void dynObjectInitializeA(double t0) override;
 };
 
-std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo, const optimMode& oMode);
+std::shared_ptr<optimizerInterface> makeOptimizer(gridDynOptimization* gdo,
+                                                  const OptimizationMode& oMode);
 
 std::shared_ptr<optimizerInterface> makeOptimizer(std::string_view type);
 

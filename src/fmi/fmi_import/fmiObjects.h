@@ -156,7 +156,7 @@ class Fmi2Object {
                                   const fmi2Real dvKnown[],
                                   fmi2Real dvUnknown[]);
 
-    fmi2Real getPartialDerivative(int index_x, int index_y, double dx);
+    fmi2Real getPartialDerivative(int index_x, int index_y, double deltaX);
     void setOutputVariables(const std::vector<std::string>& outNames);
     void setOutputVariables(const std::vector<int>& outIndices);
     void setInputVariables(const std::vector<std::string>& inNames);

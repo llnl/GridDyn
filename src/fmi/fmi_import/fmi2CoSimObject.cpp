@@ -18,7 +18,7 @@ calls will be all identical, so there was no need to have to reconstruct this ev
 function just builds a common case to handle a large majority of cases without any additional
 copying or allocation
 */
-static constexpr auto makeDerivOrderBlocks()
+constexpr auto makeDerivOrderBlocks()
 {
     std::array<std::array<fmi2Integer, maxIo>, maxDerivOrder + 1> dblock{};
     for (int ii = 0; ii <= maxDerivOrder; ++ii) {

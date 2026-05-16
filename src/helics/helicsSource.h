@@ -10,10 +10,10 @@
 #include "helicsSupport.h"
 #include <string>
 namespace griddyn::helicsLib {
-class helicsCoordinator;
+class HelicsCoordinator;
 
 /** class defining an object that pulls in data from a helics co-simulation*/
-class helicsSource: public sources::rampSource {
+class HelicsSource: public sources::rampSource {
   public:
     enum HelicsSourceFlags {
         USE_RAMP = object_flag8,
@@ -28,13 +28,13 @@ class helicsSource: public sources::rampSource {
     units::unit outputUnits = units::defunit;  //!< units of the outgoing data
     helics::data_type valueType;  //!< the type of value that is used through helics
     int32_t valueIndex = -1;  //!< the index into the helics coordinator
-    helicsCoordinator* coord_ = nullptr;  //!< pointer to the helics coordinator
+    HelicsCoordinator* coord_ = nullptr;  //!< pointer to the helics coordinator
     int32_t elementIndex = 0;  //!< index into a vector from HELICS
   private:
     double prevVal = 0;
 
   public:
-    explicit helicsSource(const std::string& objName = "helicsSource_$");
+    explicit HelicsSource(const std::string& objName = "helicsSource_$");
 
     coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;

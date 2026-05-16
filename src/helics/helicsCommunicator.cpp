@@ -18,14 +18,14 @@
 
 namespace griddyn::helicsLib {
 
-helicsCommunicator::helicsCommunicator(const std::string& id): Communicator(id) {}
+HelicsCommunicator::HelicsCommunicator(const std::string& id): Communicator(id) {}
 
-helicsCommunicator::helicsCommunicator(const std::string& name, std::uint64_t id):
+HelicsCommunicator::HelicsCommunicator(const std::string& name, std::uint64_t id):
     Communicator(name, id)
 {
 }
 
-void helicsCommunicator::set(std::string_view param, std::string_view val)
+void HelicsCommunicator::set(std::string_view param, std::string_view val)
 {
     if (param == "federate") {
         coordName = val;
@@ -36,17 +36,17 @@ void helicsCommunicator::set(std::string_view param, std::string_view val)
     }
 }
 
-void helicsCommunicator::set(std::string_view param, double val)
+void HelicsCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }
 
-void helicsCommunicator::initialize()
+void HelicsCommunicator::initialize()
 {
-    coord = helicsCoordinator::findCoordinator(coordName);
+    coord = HelicsCoordinator::findCoordinator(coordName);
     if (coord == nullptr) {
         auto obj = gridDynSimulation::getInstance()->find("helics");
-        coord = dynamic_cast<helicsCoordinator*>(obj);
+        coord = dynamic_cast<HelicsCoordinator*>(obj);
     }
     if (coord == nullptr) {
         throw(griddyn::executionFailure(nullptr, "unable to connect with HELICS coordinator"));
@@ -54,9 +54,9 @@ void helicsCommunicator::initialize()
     index = coord->addEndpoint(getName(), std::string(), target);
 }
 
-void helicsCommunicator::disconnect() {}
+void HelicsCommunicator::disconnect() {}
 
-void helicsCommunicator::transmit(const std::string& destName,
+void HelicsCommunicator::transmit(const std::string& destName,
                                   std::shared_ptr<griddyn::commMessage> message)
 {
     auto mdata = message->to_string();
@@ -67,7 +67,7 @@ void helicsCommunicator::transmit(const std::string& destName,
     }
 }
 
-void helicsCommunicator::transmit(std::uint64_t /*destID*/,
+void HelicsCommunicator::transmit(std::uint64_t /*destID*/,
                                   std::shared_ptr<griddyn::commMessage> message)
 {
     auto mdata = message->to_string();

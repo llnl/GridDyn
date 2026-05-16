@@ -16,15 +16,15 @@
 #include <string>
 
 namespace griddyn::helicsLib {
-helicsSource::helicsSource(const std::string& objName):
+HelicsSource::HelicsSource(const std::string& objName):
     rampSource(objName), valueType(helics::data_type::helics_double)
 {
     opFlags.set(pflow_init_required);
 }
 
-coreObject* helicsSource::clone(coreObject* obj) const
+coreObject* HelicsSource::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<helicsSource, rampSource>(this, obj);
+    auto nobj = cloneBase<HelicsSource, rampSource>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -36,11 +36,11 @@ coreObject* helicsSource::clone(coreObject* obj) const
     return nobj;
 }
 
-void helicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void HelicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto obj = getRoot();
 
-    coord_ = dynamic_cast<helicsCoordinator*>(obj->find("helics"));
+    coord_ = dynamic_cast<HelicsCoordinator*>(obj->find("helics"));
     rampSource::pFlowObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
@@ -54,13 +54,13 @@ void helicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     updateSubscription();
 }
 
-void helicsSource::pFlowObjectInitializeB()
+void HelicsSource::pFlowObjectInitializeB()
 {
     updateA(prevTime);
     updateB();
 }
 
-void helicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void HelicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     rampSource::dynObjectInitializeA(time0, flags);
 
@@ -73,7 +73,7 @@ void helicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     updateB();
 }
 
-void helicsSource::updateA(coreTime time)
+void HelicsSource::updateA(coreTime time)
 {
     if (time < nextUpdateTime) {
         return;
@@ -123,7 +123,7 @@ void helicsSource::updateA(coreTime time)
     prevTime = time;
 }
 
-void helicsSource::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
+void HelicsSource::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
 {
     while (ttime >= nextUpdateTime) {
         updateA(nextUpdateTime);
@@ -133,7 +133,7 @@ void helicsSource::timestep(coreTime ttime, const IOdata& inputs, const solverMo
     rampSource::timestep(ttime, inputs, sMode);
 }
 
-void helicsSource::setFlag(const std::string& param, bool val)
+void HelicsSource::setFlag(const std::string& param, bool val)
 {
     if (param == "initial_queury") {
         opFlags.set(INITIAL_QUERY, val);
@@ -152,7 +152,7 @@ void helicsSource::setFlag(const std::string& param, bool val)
     }
 }
 
-void helicsSource::set(const std::string& param, const std::string& val)
+void HelicsSource::set(const std::string& param, const std::string& val)
 {
     if ((param == "valkey") || (param == "key")) {
         valKey = val;
@@ -185,7 +185,7 @@ void helicsSource::set(const std::string& param, const std::string& val)
     }
 }
 
-void helicsSource::set(const std::string& param, double val, units::unit unitType)
+void HelicsSource::set(const std::string& param, double val, units::unit unitType)
 {
     if ((param == "scalefactor") || (param == "scaling")) {
         scaleFactor = val;
@@ -197,7 +197,7 @@ void helicsSource::set(const std::string& param, double val, units::unit unitTyp
     }
 }
 
-void helicsSource::updateSubscription()
+void HelicsSource::updateSubscription()
 {
     if (coord_) {
         if (!valKey.empty()) {

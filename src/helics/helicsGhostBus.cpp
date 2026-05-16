@@ -16,11 +16,11 @@
 #include <string>
 
 namespace griddyn::helicsLib {
-helicsGhostBus::helicsGhostBus(const std::string& objName): gridBus(objName) {}
+HelicsGhostBus::HelicsGhostBus(const std::string& objName): gridBus(objName) {}
 
-coreObject* helicsGhostBus::clone(coreObject* obj) const
+coreObject* HelicsGhostBus::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<helicsGhostBus, gridBus>(this, obj);
+    auto nobj = cloneBase<HelicsGhostBus, gridBus>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -30,19 +30,19 @@ coreObject* helicsGhostBus::clone(coreObject* obj) const
     return nobj;
 }
 
-void helicsGhostBus::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
+void HelicsGhostBus::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
 {
     gridBus::pFlowObjectInitializeA(time0, flags);
 }
 
-void helicsGhostBus::pFlowObjectInitializeB()
+void HelicsGhostBus::pFlowObjectInitializeB()
 {
     gridBus::pFlowInitializeB();
     updateA(prevTime);
     updateB();
 }
 
-void helicsGhostBus::updateA(coreTime time)
+void HelicsGhostBus::updateA(coreTime time)
 {
     if (!loadKey.empty()) {
         double Pact = convert(S.sumP(), units::puMW, outUnits, systemBasePower);
@@ -54,7 +54,7 @@ void helicsGhostBus::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-coreTime helicsGhostBus::updateB()
+coreTime HelicsGhostBus::updateB()
 {
     nextUpdateTime += updatePeriod;
 
@@ -71,7 +71,7 @@ coreTime helicsGhostBus::updateB()
     return nextUpdateTime;
 }
 
-void helicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
+void HelicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
 {
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);
@@ -82,7 +82,7 @@ void helicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const solver
     gridBus::timestep(ttime, inputs, sMode);
 }
 
-void helicsGhostBus::setFlag(const std::string& flag, bool val)
+void HelicsGhostBus::setFlag(const std::string& flag, bool val)
 {
     if (flag.front() == '#') {
     } else {
@@ -90,7 +90,7 @@ void helicsGhostBus::setFlag(const std::string& flag, bool val)
     }
 }
 
-void helicsGhostBus::set(const std::string& param, const std::string& val)
+void HelicsGhostBus::set(const std::string& param, const std::string& val)
 {
     if (param == "voltagekey") {
         voltageKey = val;
@@ -107,7 +107,7 @@ void helicsGhostBus::set(const std::string& param, const std::string& val)
     }
 }
 
-void helicsGhostBus::set(const std::string& param, double val, units::unit unitType)
+void HelicsGhostBus::set(const std::string& param, double val, units::unit unitType)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -115,7 +115,7 @@ void helicsGhostBus::set(const std::string& param, double val, units::unit unitT
     }
 }
 
-void helicsGhostBus::updateSubscription()
+void HelicsGhostBus::updateSubscription()
 {
     std::complex<double> cv = std::polar(voltage, angle);
     std::string def = std::to_string(cv.real()) + "+" + std::to_string(cv.imag()) + "j";

@@ -14,19 +14,19 @@
 
 namespace griddyn::helicsLib {
 
-class helicsCoordinator;
+class HelicsCoordinator;
 
 /** class defining a Griddyn coordinator to communicate through HELICS*/
-class helicsCommunicator:
+class HelicsCommunicator:
     public griddyn::Communicator
 
 {
   public:
-    helicsCommunicator() = default;
-    explicit helicsCommunicator(const std::string& name);
-    helicsCommunicator(const std::string& m_name, std::uint64_t id);
+    HelicsCommunicator() = default;
+    explicit HelicsCommunicator(const std::string& name);
+    HelicsCommunicator(const std::string& m_name, std::uint64_t id);
 
-    virtual ~helicsCommunicator() = default;
+    virtual ~HelicsCommunicator() = default;
 
     virtual void transmit(const std::string& destName,
                           std::shared_ptr<griddyn::commMessage> message) override;
@@ -43,7 +43,7 @@ class helicsCommunicator:
   private:
     std::string target;
     std::string coordName;
-    helicsCoordinator* coord = nullptr;
+    HelicsCoordinator* coord = nullptr;
     int32_t index = 0;
 };
 

@@ -12,30 +12,30 @@
 // forward classes
 
 namespace griddyn {
-class gridLoadOpt;
-class gridGenOpt;
-class gridBusOpt;
+class GridLoadOpt;
+class GridGenOpt;
+class GridBusOpt;
 
 class Link;
 
-class gridLinkOpt: public gridOptObject {
+class GridLinkOpt: public GridOptObject {
   public:
     enum BusFlags {
 
     };
 
   protected:
-    gridBusOpt* B1;
-    gridBusOpt* B2;
+    GridBusOpt* B1;
+    GridBusOpt* B2;
 
     Link* link = nullptr;
     double rampUpLimit;
     double rampDownLimit;
 
   public:
-    gridLinkOpt(const std::string& objName = "");
-    gridLinkOpt(coreObject* obj, const std::string& objName = "");
-    ~gridLinkOpt();
+    GridLinkOpt(const std::string& objName = "");
+    GridLinkOpt(coreObject* obj, const std::string& objName = "");
+    ~GridLinkOpt();
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     // add components
@@ -47,7 +47,8 @@ class gridLinkOpt: public gridOptObject {
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
     virtual void loadSizes(const OptimizationMode& oMode) override;
 
-    virtual void setValues(const OptimizationData& of, const OptimizationMode& oMode) override;
+    virtual void setValues(const OptimizationData& optimizationData,
+                           const OptimizationMode& oMode) override;
     // for saving the state
     virtual void guessState(double time, double val[], const OptimizationMode& oMode) override;
     virtual void getTols(double tols[], const OptimizationMode& oMode) override;
@@ -58,31 +59,32 @@ class gridLinkOpt: public gridOptObject {
                              double lowerLimit[],
                              const OptimizationMode& oMode) override;
 
-    virtual void linearObj(const OptimizationData& of,
+    virtual void linearObj(const OptimizationData& optimizationData,
                            vectData<double>& linObj,
                            const OptimizationMode& oMode) override;
-    virtual void quadraticObj(const OptimizationData& of,
+    virtual void quadraticObj(const OptimizationData& optimizationData,
                               vectData<double>& linObj,
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode) override;
 
-    virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode) override;
-    virtual void gradient(const OptimizationData& of,
-                          double deriv[],
+    virtual double objValue(const OptimizationData& optimizationData,
+                            const OptimizationMode& oMode) override;
+    virtual void gradient(const OptimizationData& optimizationData,
+                          double grad[],
                           const OptimizationMode& oMode) override;
-    virtual void jacobianElements(const OptimizationData& of,
-                                  matrixData<double>& md,
+    virtual void jacobianElements(const OptimizationData& optimizationData,
+                                  matrixData<double>& matrixDataRef,
                                   const OptimizationMode& oMode) override;
-    virtual void getConstraints(const OptimizationData& of,
+    virtual void getConstraints(const OptimizationData& optimizationData,
                                 matrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
                                 const OptimizationMode& oMode) override;
-    virtual void constraintValue(const OptimizationData& of,
+    virtual void constraintValue(const OptimizationData& optimizationData,
                                  double cVals[],
                                  const OptimizationMode& oMode) override;
-    virtual void constraintJacobianElements(const OptimizationData& of,
-                                            matrixData<double>& md,
+    virtual void constraintJacobianElements(const OptimizationData& optimizationData,
+                                            matrixData<double>& matrixDataRef,
                                             const OptimizationMode& oMode) override;
     virtual void getObjName(stringVec& objNames,
                             const OptimizationMode& oMode,
@@ -106,8 +108,8 @@ class gridLinkOpt: public gridOptObject {
     virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
-    virtual gridOptObject* getBus(index_t index) const override;
-    virtual gridOptObject* getArea(index_t index) const override;
+    virtual GridOptObject* getBus(index_t index) const override;
+    virtual GridOptObject* getArea(index_t index) const override;
 
   protected:
 };

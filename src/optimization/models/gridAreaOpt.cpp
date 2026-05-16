@@ -20,17 +20,20 @@
 #include "griddyn/gridBus.h"
 #include "utilities/vectData.hpp"
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
 using units::unit;
 
-static optObjectFactory<gridAreaOpt, Area> opa("basic", "area");
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static OptObjectFactory<GridAreaOpt, Area> opa("basic", "area");
+// NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 
-gridAreaOpt::gridAreaOpt(const std::string& objName): gridOptObject(objName) {}
+GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
 
-gridAreaOpt::gridAreaOpt(coreObject* obj, const std::string& objName):
-    gridOptObject(objName), area(dynamic_cast<Area*>(obj))
+GridAreaOpt::GridAreaOpt(coreObject* obj, const std::string& objName):
+    GridOptObject(objName), area(dynamic_cast<Area*>(obj))
 {
     if (area != nullptr) {
         if (getName().empty()) {
@@ -41,16 +44,16 @@ gridAreaOpt::gridAreaOpt(coreObject* obj, const std::string& objName):
 }
 
 // destructor
-gridAreaOpt::~gridAreaOpt()
+GridAreaOpt::~GridAreaOpt()
 {
     for (auto& obj : objectList) {
         removeReference(obj, this);
     }
 }
 
-coreObject* gridAreaOpt::clone(coreObject* obj) const
+coreObject* GridAreaOpt::clone(coreObject* obj) const
 {
-    auto nobj = cloneBase<gridAreaOpt, gridOptObject>(this, obj);
+    auto* nobj = cloneBase<GridAreaOpt, GridOptObject>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -61,28 +64,28 @@ coreObject* gridAreaOpt::clone(coreObject* obj) const
 
     for (size_t kk = 0; kk < busList.size(); ++kk) {
         if (kk >= nobj->busList.size()) {
-            nobj->add(static_cast<gridBusOpt*>(busList[kk]->clone(nullptr)));
+            nobj->add(static_cast<GridBusOpt*>(busList[kk]->clone(nullptr)));
         } else {
             busList[kk]->clone(nobj->busList[kk]);
         }
     }
     for (size_t kk = 0; kk < areaList.size(); ++kk) {
         if (kk >= nobj->areaList.size()) {
-            nobj->add(static_cast<gridAreaOpt*>(areaList[kk]->clone(nullptr)));
+            nobj->add(static_cast<GridAreaOpt*>(areaList[kk]->clone(nullptr)));
         } else {
             areaList[kk]->clone(nobj->areaList[kk]);
         }
     }
     for (size_t kk = 0; kk < linkList.size(); ++kk) {
         if (kk >= nobj->linkList.size()) {
-            nobj->add(static_cast<gridLinkOpt*>(linkList[kk]->clone(nullptr)));
+            nobj->add(static_cast<GridLinkOpt*>(linkList[kk]->clone(nullptr)));
         } else {
             linkList[kk]->clone(nobj->linkList[kk]);
         }
     }
     for (size_t kk = 0; kk < relayList.size(); ++kk) {
         if (kk >= nobj->relayList.size()) {
-            nobj->add(static_cast<gridRelayOpt*>(relayList[kk]->clone(nullptr)));
+            nobj->add(static_cast<GridRelayOpt*>(relayList[kk]->clone(nullptr)));
         } else {
             relayList[kk]->clone(nobj->relayList[kk]);
         }
@@ -90,93 +93,93 @@ coreObject* gridAreaOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void gridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
+void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
 {
     // first do a check to make sure all gridDyn areas are represented by gridDynOpt Area
-    Link* Lnk;
-    auto coof = coreOptObjectFactory::instance();
+    Link* linkObject = nullptr;
+    auto coreOptFactory = CoreOptObjectFactory::instance();
     bool found;
-    std::vector<gridOptObject*> newObj;
-    gridOptObject* oo;
+    std::vector<GridOptObject*> newObj;
+    GridOptObject* optObject;
 
-    index_t kk = 0;
+    index_t areaIndex = 0;
 
     // make sure all areas have an opt object
-    auto areaObj = area->getArea(kk);
+    auto* areaObj = area->getArea(areaIndex);
 
     while (areaObj != nullptr) {
         found = false;
-        for (auto oa : areaList) {
-            if (areaObj->getID() == oa->getID()) {
+        for (auto* existingArea : areaList) {
+            if (areaObj->getID() == existingArea->getID()) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(areaObj);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(areaObj);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        areaObj = area->getArea(kk);
+        ++areaIndex;
+        areaObj = area->getArea(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
     // make sure all buses have an opt object
-    auto bus = area->getBus(kk);
+    auto* busObject = area->getBus(areaIndex);
 
-    while (bus != nullptr) {
+    while (busObject != nullptr) {
         found = false;
-        for (auto oa : busList) {
-            if (isSameObject(bus, oa)) {
+        for (auto* existingBus : busList) {
+            if (isSameObject(busObject, existingBus)) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(bus);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(busObject);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        bus = area->getBus(kk);
+        ++areaIndex;
+        busObject = area->getBus(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
     // make sure all links have an opt object
-    Lnk = area->getLink(kk);
+    linkObject = area->getLink(areaIndex);
 
-    while (Lnk != nullptr) {
+    while (linkObject != nullptr) {
         found = false;
-        for (auto oa : linkList) {
-            if (isSameObject(Lnk, oa)) {
+        for (auto* existingLink : linkList) {
+            if (isSameObject(linkObject, existingLink)) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oo = coof->createObject(Lnk);
-            newObj.push_back(oo);
+            optObject = coreOptFactory->createObject(linkObject);
+            newObj.push_back(optObject);
         }
-        ++kk;
-        Lnk = area->getLink(kk);
+        ++areaIndex;
+        linkObject = area->getLink(areaIndex);
     }
-    for (auto no : newObj) {
-        add(no);
+    for (auto* newObject : newObj) {
+        add(newObject);
     }
     newObj.clear();
 
-    for (auto obj : objectList) {
-        obj->dynInitializeA(flags);
+    for (auto* childObject : objectList) {
+        childObject->dynInitializeA(flags);
     }
 }
 
-void gridAreaOpt::loadSizes(const OptimizationMode& oMode)
+void GridAreaOpt::loadSizes(const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    oo.reset();
+    auto& offsetData = offsets.getOffsets(oMode);
+    offsetData.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         default:
@@ -188,191 +191,192 @@ void gridAreaOpt::loadSizes(const OptimizationMode& oMode)
             break;
     }
 
-    for (auto obj : objectList) {
-        obj->loadSizes(oMode);
-        oo.addSizes(obj->offsets.getOffsets(oMode));
+    for (auto* childObject : objectList) {
+        childObject->loadSizes(oMode);
+        offsetData.addSizes(childObject->offsets.getOffsets(oMode));
     }
 }
 
-void gridAreaOpt::setValues(const OptimizationData& of, const OptimizationMode& oMode)
+void GridAreaOpt::setValues(const OptimizationData& optimizationData, const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->setValues(of, oMode);
+    for (auto* childObject : objectList) {
+        childObject->setValues(optimizationData, oMode);
     }
 }
 // for saving the state
-void gridAreaOpt::guessState(double time, double val[], const OptimizationMode& oMode)
+void GridAreaOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->guessState(time, val, oMode);
+    for (auto* childObject : objectList) {
+        childObject->guessState(time, val, oMode);
     }
 }
 
-void gridAreaOpt::getTols(double tols[], const OptimizationMode& oMode)
+void GridAreaOpt::getTols(double tols[], const OptimizationMode& oMode)
 
 {
-    for (auto obj : objectList) {
-        obj->getTols(tols, oMode);
+    for (auto* childObject : objectList) {
+        childObject->getTols(tols, oMode);
     }
 }
 
-void gridAreaOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
+void GridAreaOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->getVariableType(sdata, oMode);
+    for (auto* childObject : objectList) {
+        childObject->getVariableType(sdata, oMode);
     }
 }
 
-void gridAreaOpt::valueBounds(double time,
+void GridAreaOpt::valueBounds(double time,
                               double upperLimit[],
                               double lowerLimit[],
                               const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->valueBounds(time, upperLimit, lowerLimit, oMode);
+    for (auto* childObject : objectList) {
+        childObject->valueBounds(time, upperLimit, lowerLimit, oMode);
     }
 }
 
-void gridAreaOpt::linearObj(const OptimizationData& of,
+void GridAreaOpt::linearObj(const OptimizationData& optimizationData,
                             vectData<double>& linObj,
                             const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->linearObj(of, linObj, oMode);
+    for (auto* childObject : objectList) {
+        childObject->linearObj(optimizationData, linObj, oMode);
     }
 }
-void gridAreaOpt::quadraticObj(const OptimizationData& of,
+void GridAreaOpt::quadraticObj(const OptimizationData& optimizationData,
                                vectData<double>& linObj,
                                vectData<double>& quadObj,
                                const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->quadraticObj(of, linObj, quadObj, oMode);
+    for (auto* childObject : objectList) {
+        childObject->quadraticObj(optimizationData, linObj, quadObj, oMode);
     }
 }
 
-double gridAreaOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
+double GridAreaOpt::objValue(const OptimizationData& optimizationData,
+                             const OptimizationMode& oMode)
 {
     double cost = 0;
-    for (auto obj : objectList) {
-        cost += obj->objValue(of, oMode);
+    for (auto* childObject : objectList) {
+        cost += childObject->objValue(optimizationData, oMode);
     }
 
     return cost;
 }
 
-void gridAreaOpt::gradient(const OptimizationData& of,
+void GridAreaOpt::gradient(const OptimizationData& optimizationData,
                            double deriv[],
                            const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->gradient(of, deriv, oMode);
+    for (auto* childObject : objectList) {
+        childObject->gradient(optimizationData, deriv, oMode);
     }
 }
-void gridAreaOpt::jacobianElements(const OptimizationData& of,
-                                   matrixData<double>& md,
+void GridAreaOpt::jacobianElements(const OptimizationData& optimizationData,
+                                   matrixData<double>& matrixDataRef,
                                    const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->jacobianElements(of, md, oMode);
+    for (auto* childObject : objectList) {
+        childObject->jacobianElements(optimizationData, matrixDataRef, oMode);
     }
 }
-void gridAreaOpt::getConstraints(const OptimizationData& of,
+void GridAreaOpt::getConstraints(const OptimizationData& optimizationData,
                                  matrixData<double>& cons,
                                  double upperLimit[],
                                  double lowerLimit[],
                                  const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->getConstraints(of, cons, upperLimit, lowerLimit, oMode);
+    for (auto* childObject : objectList) {
+        childObject->getConstraints(optimizationData, cons, upperLimit, lowerLimit, oMode);
     }
 }
 
-void gridAreaOpt::constraintValue(const OptimizationData& of,
+void GridAreaOpt::constraintValue(const OptimizationData& optimizationData,
                                   double cVals[],
                                   const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->constraintValue(of, cVals, oMode);
+    for (auto* childObject : objectList) {
+        childObject->constraintValue(optimizationData, cVals, oMode);
     }
 }
 
-void gridAreaOpt::constraintJacobianElements(const OptimizationData& of,
-                                             matrixData<double>& md,
+void GridAreaOpt::constraintJacobianElements(const OptimizationData& optimizationData,
+                                             matrixData<double>& matrixDataRef,
                                              const OptimizationMode& oMode)
 {
-    for (auto obj : objectList) {
-        obj->constraintJacobianElements(of, md, oMode);
+    for (auto* childObject : objectList) {
+        childObject->constraintJacobianElements(optimizationData, matrixDataRef, oMode);
     }
 }
-void gridAreaOpt::getObjName(stringVec& objNames,
+void GridAreaOpt::getObjName(stringVec& objNames,
                              const OptimizationMode& oMode,
                              const std::string& prefix)
 {
-    for (auto obj : objectList) {
-        obj->getObjName(objNames, oMode, prefix);
+    for (auto* childObject : objectList) {
+        childObject->getObjName(objNames, oMode, prefix);
     }
 }
 
-void gridAreaOpt::disable()
+void GridAreaOpt::disable()
 {
-    gridOptObject::disable();
+    GridOptObject::disable();
     for (auto& link : linkList) {
         link->disable();
     }
 }
 
-void gridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
+void GridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     offsets.setOffsets(newOffsets, oMode);
-    OptimizationOffsets no(offsets.getOffsets(oMode));
-    no.localLoad();
+    OptimizationOffsets nextOffsets(offsets.getOffsets(oMode));
+    nextOffsets.localLoad();
 
-    for (auto sa : areaList) {
-        sa->setOffsets(no, oMode);
-        no.increment(sa->offsets.getOffsets(oMode));
+    for (auto* subareaObject : areaList) {
+        subareaObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(subareaObject->offsets.getOffsets(oMode));
     }
-    for (auto bus : busList) {
-        bus->setOffsets(no, oMode);
-        no.increment(bus->offsets.getOffsets(oMode));
+    for (auto* busObject : busList) {
+        busObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(busObject->offsets.getOffsets(oMode));
     }
-    for (auto link : linkList) {
-        link->setOffsets(no, oMode);
-        no.increment(link->offsets.getOffsets(oMode));
+    for (auto* linkObject : linkList) {
+        linkObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(linkObject->offsets.getOffsets(oMode));
     }
-    for (auto relay : relayList) {
-        relay->setOffsets(no, oMode);
-        no.increment(relay->offsets.getOffsets(oMode));
+    for (auto* relayObject : relayList) {
+        relayObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(relayObject->offsets.getOffsets(oMode));
     }
 }
 
-void gridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
+void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
-    for (auto sa : areaList) {
-        sa->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += sa->constraintSize(oMode);
-        offset += sa->objSize(oMode);
+    for (auto* subareaObject : areaList) {
+        subareaObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += subareaObject->constraintSize(oMode);
+        offset += subareaObject->objSize(oMode);
     }
-    for (auto bus : busList) {
-        bus->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += bus->constraintSize(oMode);
-        offset += bus->objSize(oMode);
+    for (auto* busObject : busList) {
+        busObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += busObject->constraintSize(oMode);
+        offset += busObject->objSize(oMode);
     }
-    for (auto link : linkList) {
-        link->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += link->constraintSize(oMode);
-        offset += link->objSize(oMode);
+    for (auto* linkObject : linkList) {
+        linkObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += linkObject->constraintSize(oMode);
+        offset += linkObject->objSize(oMode);
     }
-    for (auto relay : relayList) {
-        relay->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += relay->constraintSize(oMode);
-        offset += relay->objSize(oMode);
+    for (auto* relayObject : relayList) {
+        relayObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += relayObject->constraintSize(oMode);
+        offset += relayObject->objSize(oMode);
     }
     offsets.setConstraintOffset(constraintOffset, oMode);
     offsets.setOffset(offset, oMode);
 }
 
-void gridAreaOpt::add(coreObject* obj)
+void GridAreaOpt::add(coreObject* obj)
 {
     if (dynamic_cast<Area*>(obj) != nullptr) {
         area = static_cast<Area*>(obj);
@@ -382,52 +386,60 @@ void gridAreaOpt::add(coreObject* obj)
         setUserID(area->getUserID());
         return;
     }
-    auto* sa = dynamic_cast<gridAreaOpt*>(obj);
-    if (sa != nullptr) {
-        return add(sa);
+    auto* subareaObject = dynamic_cast<GridAreaOpt*>(obj);
+    if (subareaObject != nullptr) {
+        add(subareaObject);
+        return;
     }
 
-    auto* bus = dynamic_cast<gridBusOpt*>(obj);
+    auto* bus = dynamic_cast<GridBusOpt*>(obj);
     if (bus != nullptr) {
-        return add(bus);
+        add(bus);
+        return;
     }
 
-    auto* lnk = dynamic_cast<gridLinkOpt*>(obj);
+    auto* lnk = dynamic_cast<GridLinkOpt*>(obj);
     if (lnk != nullptr) {
-        return add(lnk);
+        add(lnk);
+        return;
     }
-    auto* relay = dynamic_cast<gridRelayOpt*>(obj);
+    auto* relay = dynamic_cast<GridRelayOpt*>(obj);
     if (relay != nullptr) {
-        return add(relay);
+        add(relay);
+        return;
     }
     throw(unrecognizedObjectException(this));
 }
 
-void gridAreaOpt::remove(coreObject* obj)
+void GridAreaOpt::remove(coreObject* obj)
 {
-    auto* sa = dynamic_cast<gridAreaOpt*>(obj);
-    if (sa != nullptr) {
-        return remove(sa);
+    auto* subareaObject = dynamic_cast<GridAreaOpt*>(obj);
+    if (subareaObject != nullptr) {
+        remove(subareaObject);
+        return;
     }
 
-    auto* bus = dynamic_cast<gridBusOpt*>(obj);
+    auto* bus = dynamic_cast<GridBusOpt*>(obj);
     if (bus != nullptr) {
-        return remove(bus);
+        remove(bus);
+        return;
     }
 
-    auto* lnk = dynamic_cast<gridLinkOpt*>(obj);
+    auto* lnk = dynamic_cast<GridLinkOpt*>(obj);
     if (lnk != nullptr) {
-        return remove(lnk);
+        remove(lnk);
+        return;
     }
-    auto* relay = dynamic_cast<gridRelayOpt*>(obj);
+    auto* relay = dynamic_cast<GridRelayOpt*>(obj);
     if (relay != nullptr) {
-        return remove(relay);
+        remove(relay);
+        return;
     }
     throw(unrecognizedObjectException(this));
 }
 
 // TODO(phlpt): Make this work like Area.
-void gridAreaOpt::add(gridBusOpt* bus)
+void GridAreaOpt::add(GridBusOpt* bus)
 {
     if (!isMember(bus)) {
         busList.push_back(bus);
@@ -438,7 +450,7 @@ void gridAreaOpt::add(gridBusOpt* bus)
     }
 }
 
-void gridAreaOpt::add(gridAreaOpt* areaObj)
+void GridAreaOpt::add(GridAreaOpt* areaObj)
 {
     if (!isMember(areaObj)) {
         areaList.push_back(areaObj);
@@ -450,7 +462,7 @@ void gridAreaOpt::add(gridAreaOpt* areaObj)
 }
 
 // add link
-void gridAreaOpt::add(gridLinkOpt* lnk)
+void GridAreaOpt::add(GridLinkOpt* lnk)
 {
     if (!isMember(lnk)) {
         linkList.push_back(lnk);
@@ -462,7 +474,7 @@ void gridAreaOpt::add(gridLinkOpt* lnk)
 }
 
 // add link
-void gridAreaOpt::add(gridRelayOpt* relay)
+void GridAreaOpt::add(GridRelayOpt* relay)
 {
     if (!isMember(relay)) {
         relayList.push_back(relay);
@@ -475,12 +487,12 @@ void gridAreaOpt::add(gridRelayOpt* relay)
 
 // --------------- remove components ---------------
 // remove bus
-void gridAreaOpt::remove(gridBusOpt* bus)
+void GridAreaOpt::remove(GridBusOpt* bus)
 {
     if (busList[bus->locIndex]->getID() == bus->getID()) {
         busList[bus->locIndex]->setParent(nullptr);
         busList.erase(busList.begin() + bus->locIndex);
-        for (auto kk = bus->locIndex; kk < static_cast<index_t>(busList.size()); ++kk) {
+        for (auto kk = bus->locIndex; std::cmp_less(kk, busList.size()); ++kk) {
             busList[kk]->locIndex = kk;
         }
         auto oLb = objectList.begin();
@@ -496,13 +508,13 @@ void gridAreaOpt::remove(gridBusOpt* bus)
 }
 
 // remove link
-void gridAreaOpt::remove(gridLinkOpt* lnk)
+void GridAreaOpt::remove(GridLinkOpt* lnk)
 {
     if (linkList[lnk->locIndex]->getID() == lnk->getID()) {
         linkList[lnk->locIndex]->setParent(nullptr);
         linkList.erase(linkList.begin() + lnk->locIndex);
 
-        for (auto kk = lnk->locIndex; kk < static_cast<index_t>(linkList.size()); ++kk) {
+        for (auto kk = lnk->locIndex; std::cmp_less(kk, linkList.size()); ++kk) {
             linkList[kk]->locIndex = kk;
         }
         auto oLb = objectList.begin();
@@ -518,12 +530,12 @@ void gridAreaOpt::remove(gridLinkOpt* lnk)
 }
 
 // remove area
-void gridAreaOpt::remove(gridAreaOpt* areaObj)
+void GridAreaOpt::remove(GridAreaOpt* areaObj)
 {
     if (areaList[areaObj->locIndex]->getID() == areaObj->getID()) {
         areaList[areaObj->locIndex]->setParent(nullptr);
         areaList.erase(areaList.begin() + areaObj->locIndex);
-        for (auto kk = areaObj->locIndex; kk < static_cast<index_t>(areaList.size()); ++kk) {
+        for (auto kk = areaObj->locIndex; std::cmp_less(kk, areaList.size()); ++kk) {
             areaList[kk]->locIndex = kk;
         }
         auto oLb = objectList.begin();
@@ -539,12 +551,12 @@ void gridAreaOpt::remove(gridAreaOpt* areaObj)
 }
 
 // remove area
-void gridAreaOpt::remove(gridRelayOpt* relay)
+void GridAreaOpt::remove(GridRelayOpt* relay)
 {
     if (relayList[relay->locIndex]->getID() == relay->getID()) {
         relayList[relay->locIndex]->setParent(nullptr);
         relayList.erase(relayList.begin() + relay->locIndex);
-        for (auto kk = relay->locIndex; kk < static_cast<index_t>(relayList.size()); ++kk) {
+        for (auto kk = relay->locIndex; std::cmp_less(kk, relayList.size()); ++kk) {
             relayList[kk]->locIndex = kk;
         }
         auto oLb = objectList.begin();
@@ -559,7 +571,7 @@ void gridAreaOpt::remove(gridRelayOpt* relay)
     }
 }
 
-void gridAreaOpt::setAll(const std::string& type,
+void GridAreaOpt::setAll(const std::string& type,
                          const std::string& param,
                          double val,
                          units::unit unitType)
@@ -592,39 +604,39 @@ void gridAreaOpt::setAll(const std::string& type,
 }
 
 // set properties
-void gridAreaOpt::set(std::string_view param, std::string_view val)
+void GridAreaOpt::set(std::string_view param, std::string_view val)
 {
     if (param[0] == '#') {
     } else {
-        gridOptObject::set(param, val);
+        GridOptObject::set(param, val);
     }
 }
 
-void gridAreaOpt::set(std::string_view param, double val, unit unitType)
+void GridAreaOpt::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltagetolerance") || (param == "vtol")) {
     } else if ((param == "angletolerance") || (param == "atol")) {
     } else {
-        gridOptObject::set(param, val, unitType);
+        GridOptObject::set(param, val, unitType);
     }
 }
 
-coreObject* gridAreaOpt::find(std::string_view objName) const
+coreObject* GridAreaOpt::find(std::string_view objName) const
 {
     coreObject* obj = nullptr;
     if (objName == getName()) {
-        return const_cast<gridAreaOpt*>(this);
+        return const_cast<GridAreaOpt*>(this);
     }
-    for (auto ob : busList) {
-        if (objName == ob->getName()) {
-            obj = ob;
+    for (auto* busObject : busList) {
+        if (objName == busObject->getName()) {
+            obj = busObject;
             break;
         }
     }
     if (obj == nullptr) {
-        for (auto ob : areaList) {
-            if (objName == ob->getName()) {
-                obj = ob;
+        for (auto* areaObject : areaList) {
+            if (objName == areaObject->getName()) {
+                obj = areaObject;
                 break;
             }
         }
@@ -632,7 +644,7 @@ coreObject* gridAreaOpt::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* gridAreaOpt::getSubObject(std::string_view typeName, index_t num) const
+coreObject* GridAreaOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num - 1);
@@ -649,9 +661,9 @@ coreObject* gridAreaOpt::getSubObject(std::string_view typeName, index_t num) co
     return nullptr;
 }
 
-coreObject* gridAreaOpt::findByUserID(std::string_view typeName, index_t searchID) const
+coreObject* GridAreaOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
-    coreObject* A1;
+    coreObject* foundObject = nullptr;
     if (typeName == "area") {
         for (auto* subarea : areaList) {
             if (subarea->getUserID() == searchID) {
@@ -678,50 +690,50 @@ coreObject* gridAreaOpt::findByUserID(std::string_view typeName, index_t searchI
             }
         }
     } else if (typeName == "gen" || typeName == "load" || typeName == "generator") {
-        for (auto& bus : busList) {
-            A1 = bus->findByUserID(typeName, searchID);
-            if (A1) {
-                return A1;
+        for (const auto& busObject : busList) {
+            foundObject = busObject->findByUserID(typeName, searchID);
+            if (foundObject != nullptr) {
+                return foundObject;
             }
         }
     }
     // if we haven't found it yet search the subareas
     for (auto* subarea : areaList) {
-        A1 = subarea->findByUserID(typeName, searchID);
-        if (A1) {
-            return A1;
+        foundObject = subarea->findByUserID(typeName, searchID);
+        if (foundObject != nullptr) {
+            return foundObject;
         }
     }
     return nullptr;
 }
 
 // check bus members
-bool gridAreaOpt::isMember(coreObject* obj) const
+bool GridAreaOpt::isMember(coreObject* obj) const
 {
     return optObList.isMember(obj);
 }
 
-gridOptObject* gridAreaOpt::getBus(index_t index) const
+GridOptObject* GridAreaOpt::getBus(index_t index) const
 {
     return (isValidIndex(index, busList)) ? busList[index] : nullptr;
 }
 
-gridOptObject* gridAreaOpt::getLink(index_t index) const
+GridOptObject* GridAreaOpt::getLink(index_t index) const
 {
     return (isValidIndex(index, linkList)) ? linkList[index] : nullptr;
 }
 
-gridOptObject* gridAreaOpt::getArea(index_t index) const
+GridOptObject* GridAreaOpt::getArea(index_t index) const
 {
     return (isValidIndex(index, areaList)) ? areaList[index] : nullptr;
 }
 
-gridOptObject* gridAreaOpt::getRelay(index_t index) const
+GridOptObject* GridAreaOpt::getRelay(index_t index) const
 {
     return (isValidIndex(index, relayList)) ? relayList[index] : nullptr;
 }
 
-double gridAreaOpt::get(std::string_view param, units::unit unitType) const
+double GridAreaOpt::get(std::string_view param, units::unit unitType) const
 {
     double fval = kNullVal;
     size_t ival = kNullLocation;
@@ -739,7 +751,7 @@ double gridAreaOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }
 
-gridAreaOpt* getMatchingArea(gridAreaOpt* area, gridOptObject* src, gridOptObject* sec)
+GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec)
 {
     if (area->isRoot()) {
         return nullptr;
@@ -747,18 +759,18 @@ gridAreaOpt* getMatchingArea(gridAreaOpt* area, gridOptObject* src, gridOptObjec
 
     if (isSameObject(area->getParent(), src))  // if this is true then things are easy
     {
-        return static_cast<gridAreaOpt*>(sec->getArea(area->locIndex));
+        return static_cast<GridAreaOpt*>(sec->getArea(area->locIndex));
     }
 
     std::vector<int> lkind;
-    auto* par = dynamic_cast<gridOptObject*>(area->getParent());
+    auto* par = dynamic_cast<GridOptObject*>(area->getParent());
     if (par == nullptr) {
         return nullptr;
     }
     lkind.push_back(area->locIndex);
     while (par->getID() != src->getID()) {
         lkind.push_back(par->locIndex);
-        par = dynamic_cast<gridOptObject*>(par->getParent());
+        par = dynamic_cast<GridOptObject*>(par->getParent());
         if (par == nullptr) {
             return nullptr;
         }
@@ -766,9 +778,10 @@ gridAreaOpt* getMatchingArea(gridAreaOpt* area, gridOptObject* src, gridOptObjec
     // now work our way backwards through the secondary
     par = sec;
     for (auto kk = lkind.size() - 1; kk > 0; --kk) {
-        par = static_cast<gridOptObject*>(par->getArea(lkind[kk]));
+        par = static_cast<GridOptObject*>(par->getArea(lkind[kk]));
     }
-    return static_cast<gridAreaOpt*>(par->getArea(lkind[0]));
+    return static_cast<GridAreaOpt*>(par->getArea(lkind[0]));
 }
 
 }  // namespace griddyn
+// NOLINTEND(misc-no-recursion,bugprone-branch-clone)

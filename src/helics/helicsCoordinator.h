@@ -46,22 +46,22 @@ class EptInfo {
     std::string target;
 };
 
-class helicsCollector;
-class helicsEvent;
+class HelicsCollector;
+class HelicsEvent;
 
 /** class to manage the linkages from HELICS to the GridDyn objects*/
-class helicsCoordinator: public coreObject {
+class HelicsCoordinator: public coreObject {
   private:
-    static std::unordered_map<std::string, helicsCoordinator*> registry;
+    static std::unordered_map<std::string, HelicsCoordinator*> registry;
     static std::mutex registry_protection;
 
   public:
     /** register a coordinator in the registry*/
-    static void registerCoordinator(const std::string& coordinatorName, helicsCoordinator* ptr);
+    static void registerCoordinator(const std::string& coordinatorName, HelicsCoordinator* ptr);
     /** remove a coordinator from the registry*/
     static void unregisterCoordinator(const std::string& coordinatorName);
     /** find a coordinator in the registry*/
-    static helicsCoordinator* findCoordinator(const std::string& coordinatorName);
+    static HelicsCoordinator* findCoordinator(const std::string& coordinatorName);
 
   private:
     std::deque<helics::Publication> pubs_;  //!< list of all the publication
@@ -73,8 +73,8 @@ class helicsCoordinator: public coreObject {
     helics::FederateInfo info_;  //!< container with the federate information
     std::string connectionInfo;  //!< string with the connection info
     std::shared_ptr<helics::Federate> fed;
-    std::vector<helicsCollector*> collectors;  //!< storage for the collectors
-    std::vector<helicsEvent*> events;  //!< storage for the events
+    std::vector<HelicsCollector*> collectors;  //!< storage for the collectors
+    std::vector<HelicsEvent*> events;  //!< storage for the events
     helics::ValueFederate* vFed_;  //!< pointer to the federate
     helics::MessageFederate* mFed_;  //!< pointer to a message Federate
     std::mutex helperProtector;  //!< mutex lock to accept incoming helpers in a parallel system
@@ -83,7 +83,7 @@ class helicsCoordinator: public coreObject {
     std::unordered_map<std::string, int32_t> pubMap_;  //!< map of all the publication names
     std::unordered_map<std::string, int32_t> eptMap_;  //!< map of all the endpoints
   public:
-    explicit helicsCoordinator(const std::string& fedName = std::string{});
+    explicit HelicsCoordinator(const std::string& fedName = std::string{});
 
     /** load the info structure from command line arguments*/
     void loadCommandLine(int argc, char* argv[]);
@@ -121,8 +121,8 @@ class helicsCoordinator: public coreObject {
     void sendMessage(int32_t index, const char* data, count_t size);
     void sendMessage(int32_t index, const std::string& dest, const char* data, count_t size);
     void addHelper(std::shared_ptr<helperObject> ho) override;
-    void addEvent(helicsEvent* evnt);
-    void addCollector(helicsCollector* col);
+    void addEvent(HelicsEvent* evnt);
+    void addCollector(HelicsCollector* col);
     void set(const std::string& param, const std::string& val) override;
     void set(const std::string& param, double val, units::unit unitType = units::defunit) override;
     void setFlag(const std::string& flag, bool val) override;

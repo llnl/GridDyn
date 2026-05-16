@@ -12,9 +12,9 @@
 #include <utility>
 
 namespace griddyn::helicsLib {
-class helicsCoordinator;
+class HelicsCoordinator;
 
-class helicsEvent: public events::reversibleEvent {
+class HelicsEvent: public events::reversibleEvent {
   public:
     /** enumeration of the event types*/
     enum class HelicsEventType {
@@ -23,16 +23,16 @@ class helicsEvent: public events::reversibleEvent {
     };
 
   private:
-    helicsCoordinator* coord = nullptr;  //!< pointer the coordinator
+    HelicsCoordinator* coord = nullptr;  //!< pointer the coordinator
     HelicsEventType eventType = HelicsEventType::PARAMETER;  //!< the type of the event
     std::string key;  //!< helics subscription key
     int32_t subid = -1;  //!< index of the subscription
     int32_t vectorElement = -1;  // element of a vector to use as the event parameter
     double minDelta = 0.0;  //!< set the minimum delta for the event to trigger
   public:
-    helicsEvent(const EventInfo& gdEI, coreObject* rootObject);
-    explicit helicsEvent(const std::string& name);
-    explicit helicsEvent(HelicsEventType type = HelicsEventType::PARAMETER);
+    HelicsEvent(const EventInfo& gdEI, coreObject* rootObject);
+    explicit HelicsEvent(const std::string& name);
+    explicit HelicsEvent(HelicsEventType type = HelicsEventType::PARAMETER);
 
     virtual std::unique_ptr<Event> clone() const override;
     virtual void cloneTo(Event* col) const override;

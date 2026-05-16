@@ -12,20 +12,20 @@
 // forward classes
 
 namespace griddyn {
-class gridBusOpt;
+class GridBusOpt;
 class zipLoad;
 
-class gridLoadOpt: public gridOptObject {
+class GridLoadOpt: public GridOptObject {
   public:
   protected:
-    gridBusOpt* bus = nullptr;
+    GridBusOpt* bus = nullptr;
     zipLoad* load = nullptr;
 
   public:
-    gridLoadOpt(const std::string& objName = "");
-    gridLoadOpt(coreObject* obj, const std::string& objName = "");
+    GridLoadOpt(const std::string& objName = "");
+    GridLoadOpt(coreObject* obj, const std::string& objName = "");
 
-    ~gridLoadOpt();
+    ~GridLoadOpt();
 
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
 
@@ -85,8 +85,8 @@ class gridLoadOpt: public gridOptObject {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual gridOptObject* getBus(index_t index) const override;
-    virtual gridOptObject* getArea(index_t index) const override;
+    virtual GridOptObject* getBus(index_t index) const override;
+    virtual GridOptObject* getArea(index_t index) const override;
 
   protected:
 };

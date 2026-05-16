@@ -13,20 +13,20 @@
 #include <vector>
 
 namespace griddyn {
-optComponentFactory::optComponentFactory(std::string_view typeName): name(typeName) {}
+OptComponentFactory::OptComponentFactory(std::string_view typeName): name(typeName) {}
 
-optComponentFactory::~optComponentFactory() = default;
+OptComponentFactory::~OptComponentFactory() = default;
 
-void optComponentFactory::registerFactory(optFactory* optFac)
+void OptComponentFactory::registerFactory(OptFactory* optFac)
 {
-    auto ret = mFactoryMap.insert(std::pair<std::string, optFactory*>(optFac->name, optFac));
+    auto ret = mFactoryMap.insert(std::pair<std::string, OptFactory*>(optFac->name, optFac));
     if (!ret.second) {
         ret.first->second = optFac;
     }
     mFactoryList.push_back(optFac);
 }
 
-stringVec optComponentFactory::getObjNames()
+stringVec OptComponentFactory::getObjNames()
 {
     stringVec tnames;
     tnames.reserve(mFactoryMap.size());
@@ -36,18 +36,18 @@ stringVec optComponentFactory::getObjNames()
     return tnames;
 }
 
-gridOptObject* optComponentFactory::makeObject()
+GridOptObject* OptComponentFactory::makeObject()
 {
     return nullptr;
 }
 
-bool optComponentFactory::isValidObject(std::string_view objName)
+bool OptComponentFactory::isValidObject(std::string_view objName)
 {
     auto mfind = mFactoryMap.find(objName);
     return (mfind != mFactoryMap.end());
 }
 
-optFactory* optComponentFactory::getFactory(std::string_view typeName)
+OptFactory* OptComponentFactory::getFactory(std::string_view typeName)
 {
     auto mfind = mFactoryMap.find(typeName);
     if (mfind != mFactoryMap.end()) {
@@ -56,7 +56,7 @@ optFactory* optComponentFactory::getFactory(std::string_view typeName)
     return nullptr;
 }
 
-gridOptObject* optComponentFactory::makeObject(std::string_view objType)
+GridOptObject* OptComponentFactory::makeObject(std::string_view objType)
 {
     auto mfind = mFactoryMap.find(objType);
     if (mfind != mFactoryMap.end()) {
@@ -65,9 +65,9 @@ gridOptObject* optComponentFactory::makeObject(std::string_view objType)
     return nullptr;
 }
 
-gridOptObject* optComponentFactory::makeObject(coreObject* obj)
+GridOptObject* OptComponentFactory::makeObject(coreObject* obj)
 {
-    gridOptObject* optObject = nullptr;
+    GridOptObject* optObject = nullptr;
 
     int mxLevel = -1;
     auto ofm = mFactoryList[0];
@@ -88,20 +88,20 @@ gridOptObject* optComponentFactory::makeObject(coreObject* obj)
 }
 
 // create a high level object factory for the coreObject class
-std::shared_ptr<coreOptObjectFactory> coreOptObjectFactory::instance()
+std::shared_ptr<CoreOptObjectFactory> CoreOptObjectFactory::instance()
 {
-    static const std::shared_ptr<coreOptObjectFactory> factory =
-        std::shared_ptr<coreOptObjectFactory>(new coreOptObjectFactory());
+    static const std::shared_ptr<CoreOptObjectFactory> factory =
+        std::shared_ptr<CoreOptObjectFactory>(new CoreOptObjectFactory());
     return factory;
 }
 
-void coreOptObjectFactory::registerFactory(std::string_view name,
-                                           std::shared_ptr<optComponentFactory> componentFac)
+void CoreOptObjectFactory::registerFactory(std::string_view name,
+                                           std::shared_ptr<OptComponentFactory> componentFac)
 {
     mFactoryMap[std::string{name}] = std::move(componentFac);
 }
 
-void coreOptObjectFactory::registerFactory(std::shared_ptr<optComponentFactory> componentFac)
+void CoreOptObjectFactory::registerFactory(std::shared_ptr<OptComponentFactory> componentFac)
 {
     if (componentFac != nullptr) {
         const std::string componentName = componentFac->name;
@@ -109,7 +109,7 @@ void coreOptObjectFactory::registerFactory(std::shared_ptr<optComponentFactory> 
     }
 }
 
-stringVec coreOptObjectFactory::getFactoryNames()
+stringVec CoreOptObjectFactory::getFactoryNames()
 {
     stringVec factoryNames;
     factoryNames.reserve(mFactoryMap.size());
@@ -119,7 +119,7 @@ stringVec coreOptObjectFactory::getFactoryNames()
     return factoryNames;
 }
 
-std::vector<std::string> coreOptObjectFactory::getObjNames(std::string_view factoryName)
+std::vector<std::string> CoreOptObjectFactory::getObjNames(std::string_view factoryName)
 {
     auto mfind = mFactoryMap.find(factoryName);
     if (mfind != mFactoryMap.end()) {
@@ -128,7 +128,7 @@ std::vector<std::string> coreOptObjectFactory::getObjNames(std::string_view fact
     return {};
 }
 
-gridOptObject* coreOptObjectFactory::createObject(std::string_view optType,
+GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType,
                                                   std::string_view typeName)
 {
     auto mfind = mFactoryMap.find(optType);
@@ -138,7 +138,7 @@ gridOptObject* coreOptObjectFactory::createObject(std::string_view optType,
     return nullptr;
 }
 
-gridOptObject* coreOptObjectFactory::createObject(std::string_view optType, coreObject* obj)
+GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType, coreObject* obj)
 {
     auto mfind = mFactoryMap.find(optType);
     if (mfind != mFactoryMap.end()) {
@@ -147,7 +147,7 @@ gridOptObject* coreOptObjectFactory::createObject(std::string_view optType, core
     return nullptr;
 }
 
-gridOptObject* coreOptObjectFactory::createObject(coreObject* obj)
+GridOptObject* CoreOptObjectFactory::createObject(coreObject* obj)
 {
     if (mDefaultType.empty()) {
         return nullptr;
@@ -159,7 +159,7 @@ gridOptObject* coreOptObjectFactory::createObject(coreObject* obj)
     return nullptr;
 }
 
-gridOptObject* coreOptObjectFactory::createObject(std::string_view typeName)
+GridOptObject* CoreOptObjectFactory::createObject(std::string_view typeName)
 {
     if (mDefaultType.empty()) {
         return nullptr;
@@ -171,28 +171,28 @@ gridOptObject* coreOptObjectFactory::createObject(std::string_view typeName)
     return nullptr;
 }
 
-std::shared_ptr<optComponentFactory> coreOptObjectFactory::getFactory(std::string_view factoryName)
+std::shared_ptr<OptComponentFactory> CoreOptObjectFactory::getFactory(std::string_view factoryName)
 {
     auto mfind = mFactoryMap.find(factoryName);
     if (mfind != mFactoryMap.end()) {
         return mfind->second;
     }
     // make a new factory
-    auto componentFac = std::make_shared<optComponentFactory>();
+    auto componentFac = std::make_shared<OptComponentFactory>();
     componentFac->name = std::string{factoryName};
     mFactoryMap.insert(
-        std::pair<std::string, std::shared_ptr<optComponentFactory>>(std::string{factoryName},
+        std::pair<std::string, std::shared_ptr<OptComponentFactory>>(std::string{factoryName},
                                                                      componentFac));
     return componentFac;
 }
 
-bool coreOptObjectFactory::isValidType(std::string_view optType)
+bool CoreOptObjectFactory::isValidType(std::string_view optType)
 {
     auto mfind = mFactoryMap.find(optType);
     return (mfind != mFactoryMap.end());
 }
 
-bool coreOptObjectFactory::isValidObject(std::string_view optType, std::string_view objName)
+bool CoreOptObjectFactory::isValidObject(std::string_view optType, std::string_view objName)
 {
     auto mfind = mFactoryMap.find(optType);
     if (mfind != mFactoryMap.end()) {
@@ -201,7 +201,7 @@ bool coreOptObjectFactory::isValidObject(std::string_view optType, std::string_v
     return false;
 }
 
-void coreOptObjectFactory::setDefaultType(std::string_view defType)
+void CoreOptObjectFactory::setDefaultType(std::string_view defType)
 {
     auto mfind = mFactoryMap.find(defType);
     if (mfind != mFactoryMap.end()) {
@@ -209,7 +209,7 @@ void coreOptObjectFactory::setDefaultType(std::string_view defType)
     }
 }
 
-void coreOptObjectFactory::prepObjects(std::string_view optType,
+void CoreOptObjectFactory::prepObjects(std::string_view optType,
                                        std::string_view typeName,
                                        count_t numObjects,
                                        coreObject* baseObj)
@@ -223,7 +223,7 @@ void coreOptObjectFactory::prepObjects(std::string_view optType,
     }
 }
 
-void coreOptObjectFactory::prepObjects(std::string_view typeName,
+void CoreOptObjectFactory::prepObjects(std::string_view typeName,
                                        count_t numObjects,
                                        coreObject* baseObj)
 {

@@ -28,14 +28,14 @@ class consData;
  *inheriting objects gridPrimary, gridSecondary, and gridSubModel as it encapsulated common
  *functionality between those objects
  **/
-class gridOptObject: public coreObject {
+class GridOptObject: public coreObject {
   public:
     std::bitset<32> optFlags;  //!< operational flags these flags are designed to be normal false
     count_t numParams = 0;  //!< the number of parameters to store in an archive
     OptimizationOffsetTable offsets;  //!< a table of offsets for the different solver modes
   protected:
   public:
-    gridOptObject(const std::string& objName = "optObject_#");
+    GridOptObject(const std::string& objName = "optObject_#");
     virtual coreObject* clone(coreObject* obj = nullptr) const override;
     virtual void set(std::string_view param, std::string_view val) override;
 
@@ -45,15 +45,12 @@ class gridOptObject: public coreObject {
     @param newOffsets the offset set to use.
     @param oMode the optimization mode to use.
     */
-    virtual void setOffsets(const OptimizationOffsets& newOffsets,
-                            const OptimizationMode& optimizationMode);
+    virtual void setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode);
     /** set the offsets of an object for a particular optimization mode using a single offset.
     @param offset the offset index all variables are sequential.
     @param oMode the optimization mode to use.
     */
-    virtual void setOffset(index_t offset,
-                           index_t constraintOffset,
-                           const OptimizationMode& optimizationMode);
+    virtual void setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode);
 
     // size getter functions
 
@@ -280,27 +277,27 @@ class gridOptObject: public coreObject {
     @param index  the index of the bus to return
     @return the gridOptObject represented by the bus index
     */
-    virtual gridOptObject* getBus(index_t index) const;
+    virtual GridOptObject* getBus(index_t index) const;
 
     /** get a specific area
     @param index  the index of the area to return
     @return the gridOptObject represented by the area index
     */
-    virtual gridOptObject* getArea(index_t index) const;
+    virtual GridOptObject* getArea(index_t index) const;
 
     /** get a specific Link
     @param index  the index of the area to return
     @return the gridOptObject represented by the link  index
     */
-    virtual gridOptObject* getLink(index_t index) const;
+    virtual GridOptObject* getLink(index_t index) const;
 
     /** get a specific relay
     @param index  the index of the area to return
     @return the gridOptObject represented by the link  index
     */
-    virtual gridOptObject* getRelay(index_t index) const;
+    virtual GridOptObject* getRelay(index_t index) const;
 };
 
-void printObjStateNames(gridOptObject* obj, const OptimizationMode& oMode);
+void printObjStateNames(GridOptObject* obj, const OptimizationMode& oMode);
 
 }  // namespace griddyn

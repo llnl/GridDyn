@@ -13,17 +13,17 @@
 #include <vector>
 
 namespace griddyn::helicsLib {
-class helicsCoordinator;
+class HelicsCoordinator;
 
-class helicsCollector: public collector {
+class HelicsCollector: public collector {
   private:
-    class pubInformation {
+    class PublicationInfo {
       public:
         std::string colname;
         int32_t pubIndex = -1;
         bool vectorPub = false;
-        pubInformation() = default;
-        pubInformation(const std::string& cname, int32_t index, bool vectorPublish = false):
+        PublicationInfo() = default;
+        PublicationInfo(const std::string& cname, int32_t index, bool vectorPublish = false):
             colname(cname), pubIndex(index), vectorPub(vectorPublish)
         {
         }
@@ -36,14 +36,14 @@ class helicsCollector: public collector {
     CollectorPubType pubType = CollectorPubType::AS_INDIVIDUAL;
     std::vector<std::pair<std::string, std::string>> complexPairs;
     std::vector<std::string> cnames;
-    std::vector<pubInformation> pubs;
+    std::vector<PublicationInfo> pubs;
     std::string pubName;
     int32_t mpubIndex = -1;
-    helicsCoordinator* coord =
+    HelicsCoordinator* coord =
         nullptr;  //!< the coordinator for interaction with the helics interface
   public:
-    helicsCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-    explicit helicsCollector(const std::string& name);
+    HelicsCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit HelicsCollector(const std::string& name);
 
     virtual std::unique_ptr<collector> clone() const override;
     virtual void cloneTo(collector* col) const override;

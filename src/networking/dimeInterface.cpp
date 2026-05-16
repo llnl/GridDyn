@@ -14,10 +14,10 @@
 #include <string>
 
 namespace griddyn {
-static childClassFactory<dimeLib::dimeCollector, collector>
+static childClassFactory<dimeLib::DimeCollector, collector>
     dimeFac(std::vector<std::string>{"dime"});
 
-static childClassFactory<dimeLib::dimeCommunicator, Communicator>
+static childClassFactory<dimeLib::DimeCommunicator, Communicator>
     dimeComm(std::vector<std::string>{"dime"});
 
 void loadDimeLibrary()

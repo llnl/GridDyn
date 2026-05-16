@@ -13,16 +13,16 @@
 class DimeClientInterface;
 
 namespace griddyn::dimeLib {
-class dimeCollector: public collector {
+class DimeCollector: public collector {
   private:
     std::string server;
     std::string processName;
     std::unique_ptr<DimeClientInterface> dime;
 
   public:
-    dimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-    explicit dimeCollector(const std::string& name);
-    ~dimeCollector();
+    DimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit DimeCollector(const std::string& name);
+    ~DimeCollector();
 
     virtual std::unique_ptr<collector> clone() const override;
 

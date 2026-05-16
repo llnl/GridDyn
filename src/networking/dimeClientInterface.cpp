@@ -38,7 +38,7 @@ DimeClientInterface::~DimeClientInterface() = default;
 
 void DimeClientInterface::init()
 {
-    auto context = zmqlib::zmqContextManager::getContextPointer();
+    auto context = zmqlib::ZmqContextManager::getContextPointer();
 
     mSocket = std::make_unique<zmq::socket_t>(context->getBaseContext(), zmq::socket_type::req);
     mSocket->connect(mAddress);

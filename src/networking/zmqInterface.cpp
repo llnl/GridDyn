@@ -15,7 +15,7 @@
 
 namespace griddyn {
 
-static childClassFactory<zmqInterface::zmqCommunicator, Communicator>
+static childClassFactory<zmqInterface::ZmqCommunicator, Communicator>
     zmqComm(std::vector<std::string>{"zmq"});
 
 void loadZMQLibrary()

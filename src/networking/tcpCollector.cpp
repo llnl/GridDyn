@@ -11,27 +11,27 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-tcpCollector::tcpCollector(coreTime time0, coreTime period): collector(time0, period) {}
+TcpCollector::TcpCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
-tcpCollector::tcpCollector(const std::string& collectorName): collector(collectorName) {}
+TcpCollector::TcpCollector(const std::string& collectorName): collector(collectorName) {}
 
-tcpCollector::~tcpCollector()
+TcpCollector::~TcpCollector()
 {
     if (connection) {
         connection->close();
     }
 }
-std::unique_ptr<collector> tcpCollector::clone() const
+std::unique_ptr<collector> TcpCollector::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<tcpCollector>();
-    tcpCollector::cloneTo(col.get());
+    std::unique_ptr<collector> col = std::make_unique<TcpCollector>();
+    TcpCollector::cloneTo(col.get());
     return col;
 }
 
-void tcpCollector::cloneTo(collector* col) const
+void TcpCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto* tcpCollectorClone = dynamic_cast<tcpCollector*>(col);
+    auto* tcpCollectorClone = dynamic_cast<TcpCollector*>(col);
     if (tcpCollectorClone == nullptr) {
         return;
     }
@@ -39,7 +39,7 @@ void tcpCollector::cloneTo(collector* col) const
     tcpCollectorClone->port = port;
 }
 
-change_code tcpCollector::trigger(coreTime time)
+change_code TcpCollector::trigger(coreTime time)
 {
     if (!connection) {
         connection = gmlc::networking::TcpConnection::create(
@@ -54,7 +54,7 @@ change_code tcpCollector::trigger(coreTime time)
     return out;
 }
 
-void tcpCollector::set(std::string_view param, double val)
+void TcpCollector::set(std::string_view param, double val)
 {
     if (param == "port") {
         port = std::to_string(val);
@@ -63,7 +63,7 @@ void tcpCollector::set(std::string_view param, double val)
     }
 }
 
-void tcpCollector::set(std::string_view param, std::string_view val)
+void TcpCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "server") {
         server = val;
@@ -74,7 +74,7 @@ void tcpCollector::set(std::string_view param, std::string_view val)
     }
 }
 
-const std::string& tcpCollector::getSinkName() const
+const std::string& TcpCollector::getSinkName() const
 {
     return server;
 }

@@ -26,35 +26,35 @@ using zmq::message_t;
 using zmq::socket_type;
 using zmqlib::SocketOperation;
 using zmqlib::socketTypeFromString;
-using zmqlib::zmqContextManager;
-using zmqlib::zmqReactor;
-using zmqlib::zmqSocketDescriptor;
+using zmqlib::ZmqContextManager;
+using zmqlib::ZmqReactor;
+using zmqlib::ZmqSocketDescriptor;
 
 TEST_F(ZmqTests, LoadZmqContextManager)
 {
-    auto testContextManager = zmqContextManager::getContextPointer("context1");
+    auto testContextManager = ZmqContextManager::getContextPointer("context1");
     EXPECT_EQ(testContextManager->getName(), "context1");
-    auto defaultContext = zmqContextManager::getContextPointer();
+    auto defaultContext = ZmqContextManager::getContextPointer();
     EXPECT_TRUE(defaultContext->getName().empty());
 
-    auto& alternativeContext = zmqContextManager::getContext("context1");
+    auto& alternativeContext = ZmqContextManager::getContext("context1");
     EXPECT_EQ(&alternativeContext, &(testContextManager->getBaseContext()));
 }
 
 TEST_F(ZmqTests, TestSocketDescriptor)
 {
     static constexpr const char* endpoint = "inproc://TestSocketDescriptor";
-    zmqSocketDescriptor zDescriptor("test_socket");
+    ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
     zDescriptor.type = socket_type::pub;
 
-    zmqSocketDescriptor zDescriptor2("test_socketr");
+    ZmqSocketDescriptor zDescriptor2("test_socketr");
     zDescriptor2.addOperation(SocketOperation::CONNECT, endpoint);
     zDescriptor2.addOperation(SocketOperation::SUBSCRIBE, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
 
-    auto& defContext = zmqContextManager::getContext();
+    auto& defContext = ZmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
     auto sock2 = zDescriptor2.makeSocket(defContext);
@@ -78,16 +78,16 @@ TEST_F(ZmqTests, TestReactorA)
     int count = 0;
     static constexpr const char* endpoint = "inproc://TestReactorA";
 
-    auto reactor = zmqReactor::getReactorInstance("reactor1");
+    auto reactor = ZmqReactor::getReactorInstance("reactor1");
 
-    zmqSocketDescriptor zDescriptor("test_socket");
+    ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
     zDescriptor.type = socket_type::pub;
-    auto& defContext = zmqContextManager::getContext();
+    auto& defContext = ZmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
-    zmqSocketDescriptor zDescriptor2("test_socketr");
+    ZmqSocketDescriptor zDescriptor2("test_socketr");
     zDescriptor2.addOperation(SocketOperation::CONNECT, endpoint);
     zDescriptor2.addOperation(SocketOperation::SUBSCRIBE, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
@@ -104,7 +104,7 @@ TEST_F(ZmqTests, TestReactorA)
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     EXPECT_EQ(count, 1);
 
-    zmqSocketDescriptor zDescriptorMod("test_socketr");
+    ZmqSocketDescriptor zDescriptorMod("test_socketr");
     zDescriptorMod.addOperation(SocketOperation::SUBSCRIBE, "test2");
 
     reactor->modifySocketBlocking(zDescriptorMod);
@@ -124,22 +124,22 @@ TEST_F(ZmqTests, TestReactorB)
     int count1 = 0;
     int count2 = 0;
     static constexpr const char* endpoint = "inproc://TestReactorB";
-    auto reactor = zmqReactor::getReactorInstance("reactor1");
+    auto reactor = ZmqReactor::getReactorInstance("reactor1");
 
-    zmqSocketDescriptor zDescriptor("test_socket");
+    ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
     zDescriptor.type = socket_type::pub;
-    auto& defContext = zmqContextManager::getContext();
+    auto& defContext = ZmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
-    zmqSocketDescriptor zDescriptor2("test_socketr1");
+    ZmqSocketDescriptor zDescriptor2("test_socketr1");
     zDescriptor2.addOperation(SocketOperation::CONNECT, endpoint);
     zDescriptor2.addOperation(SocketOperation::SUBSCRIBE, "test1");
     zDescriptor2.type = socketTypeFromString("sub");
     zDescriptor2.callback = [&count1](const zmq::multipart_t&) { ++count1; };
     reactor->addSocket(zDescriptor2);
-    zmqSocketDescriptor zDescriptor3("test_socketr2");
+    ZmqSocketDescriptor zDescriptor3("test_socketr2");
     zDescriptor3.addOperation(SocketOperation::CONNECT, endpoint);
     zDescriptor3.addOperation(SocketOperation::SUBSCRIBE, "test2");
     zDescriptor3.type = socketTypeFromString("sub");
@@ -154,7 +154,7 @@ TEST_F(ZmqTests, TestReactorB)
     EXPECT_EQ(count1, 1);
     EXPECT_EQ(count2, 1);
 
-    zmqSocketDescriptor zDescriptorMod("test_socketr1");
+    ZmqSocketDescriptor zDescriptorMod("test_socketr1");
     zDescriptorMod.addOperation(SocketOperation::SUBSCRIBE, "test3");
 
     reactor->modifySocket(zDescriptorMod);

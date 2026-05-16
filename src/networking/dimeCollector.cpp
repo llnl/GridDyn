@@ -11,27 +11,27 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-dimeCollector::dimeCollector(coreTime time0, coreTime period): collector(time0, period) {}
+DimeCollector::DimeCollector(coreTime time0, coreTime period): collector(time0, period) {}
 
-dimeCollector::dimeCollector(const std::string& collectorName): collector(collectorName) {}
+DimeCollector::DimeCollector(const std::string& collectorName): collector(collectorName) {}
 
-dimeCollector::~dimeCollector()
+DimeCollector::~DimeCollector()
 {
     if (dime) {
         dime->close();
     }
 }
-std::unique_ptr<collector> dimeCollector::clone() const
+std::unique_ptr<collector> DimeCollector::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<dimeCollector>();
-    dimeCollector::cloneTo(col.get());
+    std::unique_ptr<collector> col = std::make_unique<DimeCollector>();
+    DimeCollector::cloneTo(col.get());
     return col;
 }
 
-void dimeCollector::cloneTo(collector* col) const
+void DimeCollector::cloneTo(collector* col) const
 {
     collector::cloneTo(col);
-    auto* dimeCollectorClone = dynamic_cast<dimeCollector*>(col);
+    auto* dimeCollectorClone = dynamic_cast<DimeCollector*>(col);
     if (dimeCollectorClone == nullptr) {
         return;
     }
@@ -39,7 +39,7 @@ void dimeCollector::cloneTo(collector* col) const
     dimeCollectorClone->processName = processName;
 }
 
-change_code dimeCollector::trigger(coreTime time)
+change_code DimeCollector::trigger(coreTime time)
 {
     if (!dime) {
         dime = std::make_unique<DimeClientInterface>(processName, server);
@@ -54,12 +54,12 @@ change_code dimeCollector::trigger(coreTime time)
     return out;
 }
 
-void dimeCollector::set(std::string_view param, double val)
+void DimeCollector::set(std::string_view param, double val)
 {
     collector::set(param, val);
 }
 
-void dimeCollector::set(std::string_view param, std::string_view val)
+void DimeCollector::set(std::string_view param, std::string_view val)
 {
     if (param == "server") {
         server = val;
@@ -70,7 +70,7 @@ void dimeCollector::set(std::string_view param, std::string_view val)
     }
 }
 
-const std::string& dimeCollector::getSinkName() const
+const std::string& DimeCollector::getSinkName() const
 {
     return server;
 }

@@ -15,18 +15,18 @@ namespace griddyn {
 /** namespace containing zmq specific interface objects*/
 namespace tcpLib {
     /** class implementing a general communicator to work across zmq channels*/
-    class tcpCommunicator: public Communicator {
+    class TcpCommunicator: public Communicator {
       public:
         /** default constructor*/
-        tcpCommunicator() = default;
+        TcpCommunicator() = default;
         /** construct with object name*/
-        explicit tcpCommunicator(const std::string& name);
+        explicit TcpCommunicator(const std::string& name);
         /** construct with object name and id*/
-        tcpCommunicator(const std::string& name, std::uint64_t identifier);
+        TcpCommunicator(const std::string& name, std::uint64_t identifier);
         /** construct with id*/
-        explicit tcpCommunicator(std::uint64_t identifier);
+        explicit TcpCommunicator(std::uint64_t identifier);
         /** destructor*/
-        virtual ~tcpCommunicator();
+        virtual ~TcpCommunicator();
 
         virtual std::unique_ptr<Communicator> clone() const override;
 
@@ -66,8 +66,8 @@ namespace tcpLib {
         std::bitset<32> flags;  //!< storage for the flags
         // std::unique_ptr<zmq::socket_t> txSocket;  //!< the transmission socket
       private:
-        // zmqlib::zmqSocketDescriptor txDescriptor;  //!< socket description for transmit socket
-        // zmqlib::zmqSocketDescriptor rxDescriptor;  //!< socket description for the receive socket
+        // zmqlib::ZmqSocketDescriptor txDescriptor;  //!< socket description for transmit socket
+        // zmqlib::ZmqSocketDescriptor rxDescriptor;  //!< socket description for the receive socket
 
         std::string proxyName;  //!< the address of the local proxy to use
         std::string contextName;  //!< the context to use

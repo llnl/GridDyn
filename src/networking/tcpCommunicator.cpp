@@ -12,28 +12,28 @@
 
 namespace griddyn::tcpLib {
 
-tcpCommunicator::tcpCommunicator(const std::string& name): Communicator(name) {}
+TcpCommunicator::TcpCommunicator(const std::string& name): Communicator(name) {}
 
-tcpCommunicator::tcpCommunicator(const std::string& name, std::uint64_t identifier):
+TcpCommunicator::TcpCommunicator(const std::string& name, std::uint64_t identifier):
     Communicator(name, identifier)
 {
 }
 
-tcpCommunicator::tcpCommunicator(std::uint64_t identifier): Communicator(identifier) {}
+TcpCommunicator::TcpCommunicator(std::uint64_t identifier): Communicator(identifier) {}
 
-tcpCommunicator::~tcpCommunicator() = default;
+TcpCommunicator::~TcpCommunicator() = default;
 
-std::unique_ptr<Communicator> tcpCommunicator::clone() const
+std::unique_ptr<Communicator> TcpCommunicator::clone() const
 {
-    std::unique_ptr<Communicator> comm = std::make_unique<tcpCommunicator>();
-    tcpCommunicator::cloneTo(comm.get());
+    std::unique_ptr<Communicator> comm = std::make_unique<TcpCommunicator>();
+    TcpCommunicator::cloneTo(comm.get());
     return comm;
 }
 
-void tcpCommunicator::cloneTo(Communicator* comm) const
+void TcpCommunicator::cloneTo(Communicator* comm) const
 {
     Communicator::cloneTo(comm);
-    // auto zmqComm = dynamic_cast<tcpCommunicator*>(comm);
+    // auto tcpComm = dynamic_cast<TcpCommunicator*>(comm);
     //  if (zmqComm == nullptr) {
     //      return;
     //  }
@@ -42,7 +42,7 @@ void tcpCommunicator::cloneTo(Communicator* comm) const
     //   zmqComm->flags = flags;
 }
 
-void tcpCommunicator::transmit(std::string_view /*destName*/,
+void TcpCommunicator::transmit(std::string_view /*destName*/,
                                const std::shared_ptr<commMessage>& /* message */)
 {
     //  zmq::multipart_t txmsg;
@@ -54,7 +54,7 @@ void tcpCommunicator::transmit(std::string_view /*destName*/,
     // txmsg.send(*txSocket);
 }
 
-void tcpCommunicator::transmit(std::uint64_t /*destID*/,
+void TcpCommunicator::transmit(std::uint64_t /*destID*/,
                                const std::shared_ptr<commMessage>& /* message */)
 {
     //  zmq::multipart_t txmsg;
@@ -66,7 +66,7 @@ void tcpCommunicator::transmit(std::uint64_t /*destID*/,
     // txmsg.send(*txSocket);
 }
 
-// void tcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<commMessage> &
+// void TcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<commMessage> &
 // /*message*/)
 //{
 //    if (!flags[no_transmit_source])
@@ -75,26 +75,26 @@ void tcpCommunicator::transmit(std::uint64_t /*destID*/,
 //    }
 //}
 
-// void tcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
+// void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
 // &message)
 //{
 //    msg.addstr(message->to_datastring());
 //}
 
-void tcpCommunicator::initialize()
+void TcpCommunicator::initialize()
 {
-    // tcpCommunicator transport setup is currently disabled.
+    // TcpCommunicator transport setup is currently disabled.
 }
 
-void tcpCommunicator::disconnect()
+void TcpCommunicator::disconnect()
 {
     if (!flags[transmit_only]) {
-        //    zmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
+        //    ZmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
     }
     // txSocket = nullptr;
 }
 
-void tcpCommunicator::set(std::string_view param, std::string_view val)
+void TcpCommunicator::set(std::string_view param, std::string_view val)
 {
     if ((param == "txconnection") || (param == "rxconnection") || (param == "rxsubscription") ||
         (param == "txsubscription") || (param == "txtype") || (param == "sockettype") ||
@@ -111,12 +111,12 @@ void tcpCommunicator::set(std::string_view param, std::string_view val)
     Communicator::set(param, val);
 }
 
-void tcpCommunicator::set(std::string_view param, double val)
+void TcpCommunicator::set(std::string_view param, double val)
 {
     Communicator::set(param, val);
 }
 
-void tcpCommunicator::setFlag(std::string_view flag, bool val)
+void TcpCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
         flags.set(transmit_only, val);
@@ -140,7 +140,7 @@ void tcpCommunicator::setFlag(std::string_view flag, bool val)
     }
 }
 
-/* void tcpCommunicator::messageHandler(const multipart_t& msg)
+/* void TcpCommunicator::messageHandler(const multipart_t& msg)
  {
      auto sz = msg.size();
      // size should be either 2 or 3

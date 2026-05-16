@@ -14,9 +14,9 @@
 
 namespace griddyn {
 
-static childClassFactory<tcpLib::tcpCollector, collector> tcpcol(std::vector<std::string>{"tcp"});
+static childClassFactory<tcpLib::TcpCollector, collector> tcpcol(std::vector<std::string>{"tcp"});
 
-static childClassFactory<tcpLib::tcpCommunicator, Communicator>
+static childClassFactory<tcpLib::TcpCommunicator, Communicator>
     tcpComm(std::vector<std::string>{"tcp"});
 
 void loadTcpLibrary()

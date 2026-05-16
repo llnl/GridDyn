@@ -34,18 +34,18 @@ enum class SocketOperation {
 };
 
 typedef std::pair<SocketOperation, std::string>
-    socketOperation;  //!< easy definition for operation instruction
+    SocketOperationEntry;  //!< easy definition for operation instruction
 
 /** data class describing a socket and some operations on it*/
-class zmqSocketDescriptor {
+class ZmqSocketDescriptor {
   public:
     std::string name;  //!< name of the socket for later reference
     zmq::socket_type type = zmq::socket_type::sub;  //!< the socket type
-    std::vector<socketOperation> ops;  //!< a list of connections of make through bind
+    std::vector<SocketOperationEntry> ops;  //!< a list of connections of make through bind
     std::function<void(const zmq::multipart_t& res)> callback;  //!< the message handler
-    zmqSocketDescriptor(const std::string& socketName = ""):
+    ZmqSocketDescriptor(const std::string& socketName = ""):
         name(socketName) {}  // purposefully implicit
-    zmqSocketDescriptor(const std::string& socketName, zmq::socket_type stype):
+    ZmqSocketDescriptor(const std::string& socketName, zmq::socket_type stype):
         name(socketName), type(stype)
     {
     }

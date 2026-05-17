@@ -66,7 +66,7 @@ bool coreObjectList::insert(CoreObject* obj, bool replace)
         }
     }
 
-    objectRecord record{obj, objectName, obj->getUserID()};
+    objectRecord record{.object = obj, .name = objectName, .userID = obj->getUserID()};
     m_objectsById.emplace(objectID, record);
     addIndexes(objectID, record);
     return true;
@@ -133,7 +133,7 @@ bool coreObjectList::remove(std::string_view objName)
 
 bool coreObjectList::isMember(const CoreObject* obj) const
 {
-    return (obj != nullptr) && (m_objectsById.find(obj->getID()) != m_objectsById.end());
+    return (obj != nullptr) && m_objectsById.contains(obj->getID());
 }
 
 void coreObjectList::deleteAll(CoreObject* parent)

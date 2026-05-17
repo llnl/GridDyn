@@ -29,7 +29,7 @@ void objInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
 
     rlc = m_field.find_first_of('(');
     if (rlc != std::string::npos) {
-        size_t rlc2 = m_field.find_last_of(')');
+        const size_t rlc2 = m_field.find_last_of(')');
         m_unitType =
             units::unit_cast(units::unit_from_string(m_field.substr(rlc + 1, rlc2 - rlc - 1)));
         m_field = gmlc::utilities::convertToLowerCase(m_field.substr(0, rlc));
@@ -43,7 +43,7 @@ void objInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
 CoreObject* locateObject(std::string_view Istring,
                          const CoreObject* rootObj,
                          bool rootSearch,
-                         bool directFind)
+                         bool directFind)  // NOLINT(misc-no-recursion)
 {
     CoreObject* obj = nullptr;
     std::string_view mname = Istring;
@@ -67,7 +67,7 @@ CoreObject* locateObject(std::string_view Istring,
             obj = rootObj->getParent()->find(mname);
         }
     } else {
-        if ((mname != Istring) || (directFind)) {
+        if ((mname != Istring) || directFind) {
             obj = rootObj->find(mname);
         }
         if (obj == nullptr) {
@@ -112,7 +112,7 @@ CoreObject* locateObject(std::string_view Istring,
 
 CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root)
 {
-    CoreObject* par = obj;
+    const CoreObject* par = obj;
 
     stringVec stackNames;
     while (par->getName() != root->getName()) {

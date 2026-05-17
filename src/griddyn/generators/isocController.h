@@ -57,4 +57,3 @@ class isocController: public GridSubModel {
 };
 
 }  // namespace griddyn
-

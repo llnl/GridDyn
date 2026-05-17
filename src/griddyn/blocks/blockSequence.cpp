@@ -336,4 +336,3 @@ CoreObject* blockSequence::findByUserID(std::string_view typeName, index_t searc
 }
 
 }  // namespace griddyn::blocks
-

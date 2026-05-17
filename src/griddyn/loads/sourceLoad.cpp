@@ -372,4 +372,3 @@ CoreObject* sourceLoad::find(std::string_view obj) const
     return src;
 }
 }  // namespace griddyn::loads
-

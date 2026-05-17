@@ -1630,4 +1630,3 @@ void acLine::loadApproxFunctions()
 }
 
 }  // namespace griddyn
-

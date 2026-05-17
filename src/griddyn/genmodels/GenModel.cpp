@@ -259,4 +259,3 @@ const std::vector<stringVec>& GenModel::outputNames() const
 }
 
 }  // namespace griddyn
-

@@ -678,4 +678,3 @@ descVecFunc getObjectVectorDescFunction(const Area* /*area*/, const std::string&
 }
 
 }  // namespace griddyn
-

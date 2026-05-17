@@ -91,4 +91,3 @@ class Exciter: public GridSubModel {
 };
 
 }  // namespace griddyn
-

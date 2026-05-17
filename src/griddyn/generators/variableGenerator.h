@@ -78,4 +78,3 @@ class variableGenerator: public DynamicGenerator {
 };
 
 }  // namespace griddyn
-

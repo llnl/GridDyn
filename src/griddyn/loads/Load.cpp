@@ -273,4 +273,3 @@ count_t Load::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/
     return 0;
 }
 }  // namespace griddyn
-

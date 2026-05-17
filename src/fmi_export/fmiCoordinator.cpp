@@ -206,4 +206,3 @@ bool FmiCoordinator::isStringParameter(const VrInputPair& param)
 }
 
 }  // namespace griddyn::fmi
-

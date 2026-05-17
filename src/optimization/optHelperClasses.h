@@ -248,4 +248,3 @@ class OptimizationData {
 };
 
 }  // namespace griddyn
-

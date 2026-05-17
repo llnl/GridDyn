@@ -52,4 +52,3 @@ class Stabilizer: public GridSubModel {
 };
 
 }  // namespace griddyn
-

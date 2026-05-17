@@ -265,4 +265,3 @@ void DcBusControls::checkMerge()
 }
 
 }  // namespace griddyn
-

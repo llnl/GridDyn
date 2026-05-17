@@ -2000,4 +2000,3 @@ void printStateNames(const GridComponent* comp, const solverMode& sMode)
 }
 
 }  // namespace griddyn
-

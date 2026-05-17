@@ -77,4 +77,3 @@ std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const
 }
 
 }  // namespace griddyn
-

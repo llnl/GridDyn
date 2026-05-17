@@ -831,4 +831,3 @@ see GridComponent::dynInitializeA for more details
 void printStateNames(const GridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
-

@@ -57,4 +57,3 @@ void copyObjectLocalState(const GridComponent* comp,
 std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
-

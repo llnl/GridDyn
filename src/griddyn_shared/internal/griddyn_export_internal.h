@@ -101,4 +101,3 @@ class MasterObjectHolder {
 
 std::shared_ptr<MasterObjectHolder> getMasterHolder();
 #endif  // ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
-

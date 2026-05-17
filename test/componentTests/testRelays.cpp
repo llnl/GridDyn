@@ -215,4 +215,3 @@ TEST_F(RelayTests, PmuTest1)
     EXPECT_GT(rocof2, 0.0);
     EXPECT_GT(rocof3, 0.0);
 }
-

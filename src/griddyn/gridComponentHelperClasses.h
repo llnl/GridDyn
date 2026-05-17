@@ -482,4 +482,3 @@ class GridComponent;
 #define NEGATIVITY_CONSTRAINT (-1.0)
 #define NONNEGATIVE_CONSTRAINT (2.0)
 #define NONPOSITIVE_CONSTRAINT (-2.0)
-

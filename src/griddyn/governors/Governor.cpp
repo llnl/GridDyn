@@ -382,4 +382,3 @@ const std::vector<stringVec>& Governor::outputNames() const
 }
 
 }  // namespace griddyn
-

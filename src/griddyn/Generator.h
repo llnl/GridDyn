@@ -232,4 +232,3 @@ class Generator: public gridSecondary {
 };
 
 }  // namespace griddyn
-

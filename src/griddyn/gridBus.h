@@ -499,4 +499,3 @@ bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues = false, bool print
 gridBus* getMatchingBus(gridBus* bus, const gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
-

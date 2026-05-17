@@ -493,4 +493,3 @@ std::unique_ptr<collector> makeCollector(std::string_view type, const std::strin
 }
 
 }  // namespace griddyn
-

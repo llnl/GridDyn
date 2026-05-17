@@ -850,4 +850,3 @@ void stateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
-

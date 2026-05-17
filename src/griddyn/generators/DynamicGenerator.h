@@ -217,4 +217,3 @@ class DynamicGenerator: public Generator {
 };
 
 }  // namespace griddyn
-

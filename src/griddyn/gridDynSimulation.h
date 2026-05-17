@@ -736,4 +736,3 @@ class gridDynSimulation: public gridSimulation {
 };
 
 }  // namespace griddyn
-

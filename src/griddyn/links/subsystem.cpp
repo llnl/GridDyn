@@ -615,4 +615,3 @@ IOdata subsystem::getOutputs(id_type_t busId,
 }
 
 }  // namespace griddyn
-

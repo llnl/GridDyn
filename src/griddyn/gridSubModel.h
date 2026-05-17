@@ -41,4 +41,3 @@ class GridSubModel: public GridComponent {
 };
 
 }  // namespace griddyn
-

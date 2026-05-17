@@ -67,4 +67,3 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "Block size=" << sizeof(Block) << " adds " << sizeof(Block) - sizeof(GridSubModel)
               << '\n';
 }
-

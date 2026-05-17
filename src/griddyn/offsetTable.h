@@ -218,4 +218,3 @@ class offsetTable {
     }
 };
 }  // namespace griddyn
-

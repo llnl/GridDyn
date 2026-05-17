@@ -181,4 +181,3 @@ std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
     return ret;
 }
 }  // namespace griddyn
-

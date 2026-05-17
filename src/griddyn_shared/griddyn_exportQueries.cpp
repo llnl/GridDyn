@@ -156,4 +156,3 @@ void gridDynVectorQueryUpdate(GridDynVectorQuery query,
     queryCollector->reset();
     queryCollector->add(queryString, component);
 }
-

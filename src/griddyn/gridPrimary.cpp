@@ -142,4 +142,3 @@ Relay* gridPrimary::getRelay(index_t /*num*/) const
     return nullptr;
 }
 }  // namespace griddyn
-

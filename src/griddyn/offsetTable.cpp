@@ -393,4 +393,3 @@ Lp offsetTable::getLocations(const stateData& sD,
 }
 
 }  // namespace griddyn
-

@@ -111,4 +111,3 @@ parameterOperator* parameterSet::operator[](index_t index)
 }
 
 }  // namespace griddyn
-

@@ -262,4 +262,3 @@ index_t OptimizationOffsetTable::getReactiveGenerationOffset(const OptimizationM
 // void getLocations (const OptimizationMode &oMode, Lp *Loc);
 
 }  // namespace griddyn
-

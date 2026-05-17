@@ -191,4 +191,3 @@ inline const std::string& parentSearchComponent(gridSecondary*)
     return busTypeStringRef;
 }
 }  // namespace griddyn
-

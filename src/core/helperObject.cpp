@@ -94,4 +94,3 @@ void setMultipleFlags(HelperObject* obj, std::string_view flags)
 }
 
 }  // namespace griddyn
-

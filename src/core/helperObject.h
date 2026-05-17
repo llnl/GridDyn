@@ -111,4 +111,3 @@ a negative sign in front of the flag indicates the flag should be turned off
 */
 void setMultipleFlags(HelperObject* obj, std::string_view flags);
 }  // namespace griddyn
-

@@ -63,4 +63,3 @@ class fDepLoad: public exponentialLoad {
     virtual double getReactivePower(double V, double f) const;
 };
 }  // namespace griddyn::loads
-

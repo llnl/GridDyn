@@ -104,4 +104,3 @@ void getParamString(const A* cobj,
 }
 
 }  // namespace griddyn
-

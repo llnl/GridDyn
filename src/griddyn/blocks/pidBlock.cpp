@@ -248,4 +248,3 @@ stringVec pidBlock::localStateNames() const
     return out;
 }
 }  // namespace griddyn::blocks
-

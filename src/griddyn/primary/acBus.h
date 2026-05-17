@@ -383,4 +383,3 @@ class acBus: public gridBus {
 };
 
 }  // namespace griddyn
-

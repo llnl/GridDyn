@@ -359,4 +359,3 @@ void schedulerReg::receiveMessage(std::uint64_t sourceID,
 }
 
 }  // namespace griddyn
-

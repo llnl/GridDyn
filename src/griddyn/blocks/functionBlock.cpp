@@ -193,4 +193,3 @@ return m_state[0];
 }
 */
 }  // namespace griddyn::blocks
-

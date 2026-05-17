@@ -187,4 +187,3 @@ TEST(JsonElementReaderTests, JsonElementReaderTest4)
     EXPECT_EQ(main->getName(), "main_element");
     */
 }
-

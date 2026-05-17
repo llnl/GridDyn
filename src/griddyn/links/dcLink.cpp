@@ -466,4 +466,3 @@ int dcLink::fixPower(double power,
 }
 
 }  // namespace griddyn::links
-

@@ -497,4 +497,3 @@ void pspReadBranch(CoreObject* parentObject,
 
 // NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn
-

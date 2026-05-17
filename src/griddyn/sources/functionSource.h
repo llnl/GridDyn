@@ -46,4 +46,3 @@ output which is used as the output of the source
     void setFunction(std::function<double(double)> calcFunc);
 };
 }  // namespace griddyn::sources
-

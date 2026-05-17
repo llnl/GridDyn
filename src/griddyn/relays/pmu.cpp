@@ -310,4 +310,3 @@ void pmu::generateAndTransmitMessage() const
 }
 
 }  // namespace griddyn::relays
-

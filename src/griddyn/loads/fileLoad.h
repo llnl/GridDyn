@@ -50,4 +50,3 @@ class fileLoad: public rampLoad {
     count_t loadFile();
 };
 }  // namespace griddyn::loads
-

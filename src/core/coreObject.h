@@ -514,4 +514,3 @@ namespace logging {
 }  // namespace logging
 
 }  // namespace griddyn
-

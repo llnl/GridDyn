@@ -99,4 +99,3 @@ class GenModelClassical: public GenModel {
 };
 
 }  // namespace griddyn::genmodels
-

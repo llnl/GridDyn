@@ -104,4 +104,3 @@ conversions to positive sequence values.
     };
 }  // namespace loads
 }  // namespace griddyn
-

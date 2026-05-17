@@ -568,4 +568,3 @@ change_code motorLoad5::rootCheck(const IOdata& /*inputs*/,
     return change_code::no_change;
 }
 }  // namespace griddyn::loads
-

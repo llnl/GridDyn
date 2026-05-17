@@ -71,4 +71,3 @@ class ExciterSEXS: public Exciter {
 };
 
 }  // namespace griddyn::exciters
-

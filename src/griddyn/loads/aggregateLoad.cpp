@@ -400,4 +400,3 @@ double aggregateLoad::getReactivePower() const
     return rp;
 }
 }  // namespace griddyn::loads
-

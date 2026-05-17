@@ -58,4 +58,3 @@ class infiniteBus: public gridBus {
 };
 
 }  // namespace griddyn
-

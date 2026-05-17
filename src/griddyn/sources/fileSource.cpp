@@ -150,4 +150,3 @@ int fileSource::loadFile()
     return schedLoad.size();
 }
 }  // namespace griddyn::sources
-

@@ -581,4 +581,3 @@ double GridBusOpt::get(std::string_view param, units::unit unitType) const
 
 }  // namespace griddyn
 // NOLINTEND(bugprone-branch-clone)
-

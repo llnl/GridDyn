@@ -28,4 +28,3 @@ class CymeDistLoadME: public FmiMELoad3phase {
 };
 
 }  // namespace griddyn::fmi
-

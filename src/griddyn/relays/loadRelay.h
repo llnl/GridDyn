@@ -47,4 +47,3 @@ class loadRelay: public Relay {
     virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
 };
 }  // namespace griddyn::relays
-

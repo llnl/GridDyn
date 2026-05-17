@@ -54,4 +54,3 @@ class differentialRelay: public Relay {
 };
 
 }  // namespace griddyn::relays
-

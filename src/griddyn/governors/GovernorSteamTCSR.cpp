@@ -148,4 +148,3 @@ void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unit
 }
 
 }  // namespace griddyn::governors
-

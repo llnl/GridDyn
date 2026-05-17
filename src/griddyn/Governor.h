@@ -90,4 +90,3 @@ class Governor: public gridSubModel {
 };
 
 }  // namespace griddyn
-

@@ -115,4 +115,3 @@ class GridDynOptimization: public gridDynSimulation {
 };
 
 }  // namespace griddyn
-

@@ -140,4 +140,3 @@ CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root)
 }
 
 }  // namespace griddyn
-

@@ -53,4 +53,3 @@ void functionSource::setFunction(std::function<double(double)> calcFunc)
     sourceFunc = std::move(calcFunc);
 }
 }  // namespace griddyn::sources
-

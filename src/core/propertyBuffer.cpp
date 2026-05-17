@@ -75,4 +75,3 @@ void propertyBuffer::apply(CoreObject* obj) const
 }
 
 }  // namespace griddyn
-

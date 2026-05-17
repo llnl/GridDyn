@@ -42,4 +42,3 @@ class FmiCollector: public collector {
 };
 
 }  // namespace griddyn::fmi
-

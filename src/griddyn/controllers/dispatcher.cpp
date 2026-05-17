@@ -58,4 +58,3 @@ void dispatcher::checkGen() {}
 void dispatcher::dispatch(double /*level*/) {}
 
 }  // namespace griddyn
-

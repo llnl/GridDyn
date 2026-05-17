@@ -301,4 +301,3 @@ class GridOptObject: public CoreObject {
 void printObjectiveStateNames(GridOptObject* obj, const OptimizationMode& oMode);
 
 }  // namespace griddyn
-

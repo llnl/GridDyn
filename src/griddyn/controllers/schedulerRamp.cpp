@@ -524,4 +524,3 @@ void schedulerRamp::reserveDispatcherLink(reserveDispatcher *rD)
 }
 */
 }  // namespace griddyn
-

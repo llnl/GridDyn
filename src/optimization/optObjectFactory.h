@@ -244,4 +244,3 @@ class OptObjectFactory: public OptFactory {
 };
 
 }  // namespace griddyn
-

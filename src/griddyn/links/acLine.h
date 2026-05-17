@@ -290,4 +290,3 @@ class acLine: public Link {
 };
 
 }  // namespace griddyn
-

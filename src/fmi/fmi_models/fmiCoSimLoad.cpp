@@ -67,4 +67,3 @@ void FmiCoSimLoad::setState(coreTime time,
 }
 
 }  // namespace griddyn::fmi
-

@@ -38,4 +38,3 @@ class sineSource: public pulseSource {
     virtual double computeOutput(coreTime time) const override;
 };
 }  // namespace griddyn::sources
-

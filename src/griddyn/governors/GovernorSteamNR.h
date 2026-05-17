@@ -40,4 +40,3 @@ class GovernorSteamNR: public GovernorIeeeSimple {
 };
 
 }  // namespace griddyn::governors
-

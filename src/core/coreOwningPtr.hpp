@@ -139,4 +139,3 @@ base of CoreObject"); if (ptr != nullptr)
 */
 
 }  // namespace griddyn
-

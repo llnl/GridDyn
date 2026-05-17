@@ -832,4 +832,3 @@ void printStateSizes(const gridComponent* comp, const solverMode& sMode)
 }
 }  // namespace griddyn
 // NOLINTEND
-

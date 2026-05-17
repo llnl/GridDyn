@@ -59,4 +59,3 @@ class GovernorIeeeSimple: public Governor {
 };
 
 }  // namespace griddyn::governors
-

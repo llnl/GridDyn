@@ -64,4 +64,3 @@ meant to target cloning operations where pointers need to be mapped to a new hie
 CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root);
 
 }  // namespace griddyn
-

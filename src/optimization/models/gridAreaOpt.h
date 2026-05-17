@@ -136,4 +136,3 @@ class GridAreaOpt: public GridOptObject {
 GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec);
 
 }  // namespace griddyn
-

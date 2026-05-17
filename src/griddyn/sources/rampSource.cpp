@@ -51,4 +51,3 @@ double rampSource::getDoutdt(const IOdata& /*inputs*/,
     return (num == 0) ? mp_dOdt : 0.0;
 }
 }  // namespace griddyn::sources
-

@@ -109,4 +109,3 @@ class deadbandBlock: public Block {
 };
 
 }  // namespace griddyn::blocks
-

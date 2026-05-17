@@ -284,4 +284,3 @@ stringVec GenModel8::localStateNames() const
     return genModel8Names;
 }
 }  // namespace griddyn::genmodels
-

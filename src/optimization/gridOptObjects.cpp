@@ -444,4 +444,3 @@ void printObjectiveStateNames(GridOptObject* obj, const OptimizationMode& oMode)
 }
 
 }  // namespace griddyn
-

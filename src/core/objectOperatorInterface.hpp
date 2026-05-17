@@ -66,4 +66,3 @@ class objectOperatorInterface {
 };
 
 }  // namespace griddyn
-

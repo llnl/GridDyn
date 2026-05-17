@@ -41,4 +41,3 @@ class hvdc: public subsystem {
     void setFlow(int direction);
 };
 }  // namespace griddyn::links
-

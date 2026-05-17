@@ -145,4 +145,3 @@ void GovernorHydro::set(std::string_view param, double val, units::unit unitType
 }
 
 }  // namespace griddyn::governors
-

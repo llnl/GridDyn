@@ -221,4 +221,3 @@ class schedulerReg: public schedulerRamp {
 };
 
 }  // namespace griddyn
-

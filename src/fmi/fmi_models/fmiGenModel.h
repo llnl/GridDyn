@@ -27,4 +27,3 @@ class FmiGenModel: public FmiMEWrapper<GenModel> {
 };
 
 }  // namespace griddyn::fmi
-

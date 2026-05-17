@@ -335,4 +335,3 @@ void scheduler::dispatcherLink()
 }
 
 }  // namespace griddyn
-

@@ -289,4 +289,3 @@ stringVec transferFunctionBlock::localStateNames() const
     return stNames;
 }
 }  // namespace griddyn::blocks
-

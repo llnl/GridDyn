@@ -223,4 +223,3 @@ TEST(MatrixDataTests, SparseMatrixMultiply)
     }
     EXPECT_EQ(ecount, 0);
 }
-

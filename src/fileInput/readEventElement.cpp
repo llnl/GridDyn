@@ -167,4 +167,3 @@ int loadEventElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
-

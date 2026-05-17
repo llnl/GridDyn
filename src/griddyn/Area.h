@@ -498,4 +498,3 @@ class Area: public gridPrimary {
 Area* getMatchingArea(Area* area, gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
-

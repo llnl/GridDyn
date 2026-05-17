@@ -42,4 +42,3 @@ class GovernorHydro: public GovernorIeeeSimple {
 };
 
 }  // namespace griddyn::governors
-

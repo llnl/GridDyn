@@ -40,4 +40,3 @@ class ExciterDC2A: public ExciterDC1A {
 };
 
 }  // namespace griddyn::exciters
-

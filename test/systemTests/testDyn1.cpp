@@ -170,4 +170,3 @@ TEST_F(DynamicSystemTests, DynTestGriddyn39)
     detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 */
-

@@ -43,4 +43,3 @@ class FmiMELoad: public FmiMEWrapper<Load> {
 };
 
 }  // namespace griddyn::fmi
-

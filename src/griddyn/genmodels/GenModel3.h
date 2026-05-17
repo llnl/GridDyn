@@ -54,4 +54,3 @@ class GenModel3: public GenModelClassical {
 };
 
 }  // namespace griddyn::genmodels
-

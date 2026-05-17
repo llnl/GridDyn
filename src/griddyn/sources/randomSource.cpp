@@ -285,4 +285,3 @@ double randomSource::computeBiasAdjust()
     return bias;
 }
 }  // namespace griddyn::sources
-

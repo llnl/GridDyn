@@ -53,4 +53,3 @@ class dispatcher: public CoreObject {
 };
 
 }  // namespace griddyn
-

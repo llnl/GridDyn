@@ -114,4 +114,3 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
-

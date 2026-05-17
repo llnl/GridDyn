@@ -170,4 +170,3 @@ class motorLoad: public Load {
 };
 
 }  // namespace griddyn::loads
-

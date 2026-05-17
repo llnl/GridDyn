@@ -76,4 +76,3 @@ double gridSubModel::get(std::string_view param, units::unit unitType) const
     return gridComponent::get(param, unitType);
 }
 }  // namespace griddyn
-

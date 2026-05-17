@@ -38,4 +38,3 @@ void loadGdz(CoreObject* parentObject, const std::string& fileName, readerInfo& 
 }
 
 }  // namespace griddyn
-

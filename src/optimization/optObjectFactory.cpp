@@ -238,4 +238,3 @@ void CoreOptObjectFactory::prepObjects(std::string_view typeName,
 }
 
 }  // namespace griddyn
-

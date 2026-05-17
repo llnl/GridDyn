@@ -47,4 +47,3 @@ class nullObject final: public CoreObject {
     virtual void setParent(CoreObject* parentObj) override;
 };
 }  // namespace griddyn
-

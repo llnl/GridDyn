@@ -70,4 +70,3 @@ class controlSystem: public gridSubModel {
 };
 
 }  // namespace griddyn
-

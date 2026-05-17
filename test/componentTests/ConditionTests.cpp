@@ -160,4 +160,3 @@ TEST(ConditionTests, LinkTestsQueries3)
                 std::abs(std::hypot(std::abs(R1 - R2), std::abs(I1 - I2))) * 1e-6 + 1e-12);
     EXPECT_NEAR(cond->getVal(2), 0.01, 1e-7);
 }
-

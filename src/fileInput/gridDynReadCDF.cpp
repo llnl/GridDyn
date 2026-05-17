@@ -585,4 +585,3 @@ double convertBV(std::string& baseVoltageCode)
 }
 
 }  // namespace griddyn
-

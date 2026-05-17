@@ -79,4 +79,3 @@ class aggregateLoad: public zipLoad {
     virtual double getReactivePower() const override;
 };
 }  // namespace griddyn::loads
-

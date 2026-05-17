@@ -1591,4 +1591,3 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
 }
 
 }  // namespace griddyn
-

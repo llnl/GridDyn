@@ -397,4 +397,3 @@ void loadMatDynEvent(CoreObject* parentObject,
 }
 
 }  // namespace griddyn
-

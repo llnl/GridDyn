@@ -70,4 +70,3 @@ class functionBlock: public Block {
     void setFunction(const std::string& functionName);
 };
 }  // namespace griddyn::blocks
-

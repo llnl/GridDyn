@@ -316,4 +316,3 @@ class grabberInterpreter {
 };
 
 }  // namespace griddyn
-

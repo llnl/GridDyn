@@ -95,4 +95,3 @@ class breaker: public Relay {
 };
 
 }  // namespace griddyn::relays
-

@@ -36,4 +36,3 @@ class FmiCoSimLoad: public FmiCoSimWrapper<Load> {
 };
 
 }  // namespace griddyn::fmi
-

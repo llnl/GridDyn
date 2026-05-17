@@ -151,4 +151,3 @@ void hvdc::setFlow(int direction)
     }
 }
 }  // namespace griddyn::links
-

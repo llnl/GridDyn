@@ -214,4 +214,3 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
 }
 #endif
 }  // namespace griddyn
-

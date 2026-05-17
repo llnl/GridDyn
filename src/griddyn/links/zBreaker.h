@@ -59,4 +59,3 @@ class zBreaker: public Link {
 };
 
 }  // namespace griddyn::links
-

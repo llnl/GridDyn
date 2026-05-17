@@ -147,4 +147,3 @@ void isocController::activate(coreTime time)
     nextUpdateTime = time + upPeriod;
 }
 }  // namespace griddyn
-

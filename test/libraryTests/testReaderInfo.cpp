@@ -127,4 +127,3 @@ TEST(ReaderInfoTests, Directories)
     EXPECT_TRUE((testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "\\location_testFile.txt")) ||
                 (testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "/location_testFile.txt")));
 }
-

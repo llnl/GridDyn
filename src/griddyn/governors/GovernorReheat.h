@@ -45,4 +45,3 @@ class GovernorReheat: public Governor {
 };
 
 }  // namespace griddyn::governors
-

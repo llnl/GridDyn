@@ -158,4 +158,3 @@ int zBreaker::fixPower(double /*rPower*/,
 }
 
 }  // namespace griddyn::links
-

@@ -46,4 +46,3 @@ class FmiMELoad3phase: public FmiMEWrapper<loads::ThreePhaseLoad> {
 };
 
 }  // namespace griddyn::fmi
-

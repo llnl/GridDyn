@@ -203,4 +203,3 @@ void compoundEventPlayer::loadEventFile(const std::string& fileName)
     }
 }
 }  // namespace griddyn::events
-

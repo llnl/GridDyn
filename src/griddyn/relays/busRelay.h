@@ -43,4 +43,3 @@ class busRelay: public Relay {
                              coreTime actionTime) override;
 };
 }  // namespace griddyn::relays
-

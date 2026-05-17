@@ -285,4 +285,3 @@ count_t fileLoad::loadFile()
 }
 
 }  // namespace griddyn::loads
-

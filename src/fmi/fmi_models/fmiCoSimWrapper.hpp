@@ -118,4 +118,3 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
 };
 }  // namespace griddyn::fmi
-

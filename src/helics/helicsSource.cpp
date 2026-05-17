@@ -217,4 +217,3 @@ void HelicsSource::updateSubscription()
 }
 
 }  // namespace griddyn::helicsLib
-

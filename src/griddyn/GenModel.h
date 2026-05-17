@@ -83,4 +83,3 @@ class GenModel: public gridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
 };
 }  // namespace griddyn
-

@@ -95,4 +95,3 @@ class FmiCoSimSubModel: public gridSubModel {
 };
 
 }  // namespace griddyn::fmi
-

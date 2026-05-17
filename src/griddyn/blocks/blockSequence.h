@@ -109,4 +109,3 @@ class blockSequence: public Block {
     virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 };
 }  // namespace griddyn::blocks
-

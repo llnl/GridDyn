@@ -602,4 +602,3 @@ change_code approximatingLoad::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::loads
-

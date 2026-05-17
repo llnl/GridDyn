@@ -556,4 +556,3 @@ void setParams(helperObject* obj,
 }
 
 }  // namespace griddyn
-

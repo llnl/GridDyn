@@ -944,4 +944,3 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     return ret;
 }
 }  // namespace griddyn
-

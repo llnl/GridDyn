@@ -420,4 +420,3 @@ void loadLinkArray(CoreObject* parentObject,
 // NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
 
 }  // namespace griddyn
-

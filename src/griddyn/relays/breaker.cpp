@@ -450,4 +450,3 @@ void breaker::resetBreaker(coreTime time)
 }
 
 }  // namespace griddyn::relays
-

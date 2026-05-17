@@ -181,4 +181,3 @@ stringVec derivativeBlock::localStateNames() const
     return bbstates;
 }
 }  // namespace griddyn::blocks
-

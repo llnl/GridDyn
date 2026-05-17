@@ -58,4 +58,3 @@ void loadMatDynEvent(CoreObject* parentObject,
                      const basicReaderInfo& bri);
 
 }  // namespace griddyn
-

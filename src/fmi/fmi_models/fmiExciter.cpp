@@ -43,4 +43,3 @@ void FmiExciter::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::fmi
-

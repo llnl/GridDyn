@@ -109,4 +109,3 @@ namespace sources {
     };
 }  // namespace sources
 }  // namespace griddyn
-

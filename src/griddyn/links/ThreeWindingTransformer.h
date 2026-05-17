@@ -43,4 +43,3 @@ class ThreeWindingTransformer: public subsystem {
 };
 
 }  // namespace griddyn::links
-

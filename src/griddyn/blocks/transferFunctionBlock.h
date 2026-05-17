@@ -80,4 +80,3 @@ are 0
     virtual stringVec localStateNames() const override;
 };
 }  // namespace griddyn::blocks
-

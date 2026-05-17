@@ -117,4 +117,3 @@ class GenModelInverter: public GenModel {
 };
 
 }  // namespace griddyn::genmodels
-

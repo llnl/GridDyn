@@ -30,7 +30,7 @@
 namespace griddyn::helicsLib {
 HelicsRunner::HelicsRunner()
 {
-    griddyn::loadHELICSLibrary();
+    griddyn::loadHelicsLibrary();
     m_gds = std::make_shared<gridDynSimulation>();
 
     coord_ = make_owningPtr<HelicsCoordinator>();
@@ -40,7 +40,7 @@ HelicsRunner::HelicsRunner()
 
 HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(sim)
 {
-    griddyn::loadHELICSLibrary();
+    griddyn::loadHelicsLibrary();
     coord_ = make_owningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
@@ -48,9 +48,10 @@ HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunne
 
 HelicsRunner::~HelicsRunner() = default;
 
-std::shared_ptr<CLI::App> HelicsRunner::generateLocalCommandLineParser(readerInfo& ri)
+std::shared_ptr<CLI::App>
+    HelicsRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
 {
-    loadHelicsReaderInfoDefinitions(ri);
+    loadHelicsReaderInfoDefinitions(readerInformation);
 
     auto parser =
         std::make_shared<CLI::App>("options related to helics executable", "helics_options");
@@ -63,7 +64,7 @@ void HelicsRunner::simInitialize()
 {
     // add an initialization function after the first part of the power flow init
     m_gds->addInitOperation([this]() {
-        fed_ = coord_->RegisterAsFederate();
+        fed_ = coord_->registerAsFederate();
         return ((fed_) ? 0 : -45);
     });
     int ret = 0;
@@ -97,7 +98,7 @@ coreTime HelicsRunner::Step(coreTime time)
     while (m_gds->getSimulationTime() < time) {
         auto evntTime = m_gds->getEventTime();
         auto nextTime = std::min(evntTime, time);
-        time_desired = gd2helicsTime(nextTime);
+        time_desired = gdToHelicsTime(nextTime);
         // printf("nextTime=%f\n", static_cast<double>(nextTime));
 
         try {
@@ -109,13 +110,13 @@ coreTime HelicsRunner::Step(coreTime time)
         // printf("grantTime=%llu\n", static_cast<unsigned long long>(time_granted));
         // check if the granted time is too small to do anything about
         if (time_granted < time_desired) {
-            if (helics2gdTime(time_granted) - m_gds->getSimulationTime() < 0.00001) {
+            if (helicsToGdTime(time_granted) - m_gds->getSimulationTime() < 0.00001) {
                 continue;
             }
         }
 
         try {
-            m_gds->run(helics2gdTime(time_granted));
+            m_gds->run(helicsToGdTime(time_granted));
         }
         catch (const std::runtime_error& re) {
             std::cerr << "execution error in GridDyn" << re.what() << '\n';

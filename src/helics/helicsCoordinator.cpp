@@ -23,18 +23,18 @@
 
 namespace griddyn::helicsLib {
 std::unordered_map<std::string, HelicsCoordinator*> HelicsCoordinator::registry;
-std::mutex HelicsCoordinator::registry_protection;
+std::mutex HelicsCoordinator::registryProtection;
 
 void HelicsCoordinator::registerCoordinator(const std::string& coordinatorName,
                                             HelicsCoordinator* ptr)
 {
-    std::lock_guard<std::mutex> lock(registry_protection);
+    std::lock_guard<std::mutex> lock(registryProtection);
     registry[coordinatorName] = ptr;
 }
 
 void HelicsCoordinator::unregisterCoordinator(const std::string& coordinatorName)
 {
-    std::lock_guard<std::mutex> lock(registry_protection);
+    std::lock_guard<std::mutex> lock(registryProtection);
     auto fnd = registry.find(coordinatorName);
     if (fnd != registry.end()) {
         registry.erase(fnd);
@@ -43,7 +43,7 @@ void HelicsCoordinator::unregisterCoordinator(const std::string& coordinatorName
 
 HelicsCoordinator* HelicsCoordinator::findCoordinator(const std::string& coordinatorName)
 {
-    std::lock_guard<std::mutex> lock(registry_protection);
+    std::lock_guard<std::mutex> lock(registryProtection);
     auto fnd = registry.find(coordinatorName);
     if (fnd != registry.end()) {
         return fnd->second;
@@ -61,7 +61,7 @@ HelicsCoordinator::HelicsCoordinator(const std::string& fedName): coreObject("he
     registerCoordinator(fedName, this);
 }
 
-std::shared_ptr<helics::Federate> HelicsCoordinator::RegisterAsFederate()
+std::shared_ptr<helics::Federate> HelicsCoordinator::registerAsFederate()
 {
     if (info_.defName.empty()) {
         info_.defName = getParent()->getName();
@@ -79,40 +79,48 @@ std::shared_ptr<helics::Federate> HelicsCoordinator::RegisterAsFederate()
     fed = std::move(cfed);
 
     int ii = 0;
-    pubs_.resize(pubI.size());
-    for (auto& p : pubI) {
-        if (p.unitType != units::defunit) {
+    pubs_.resize(publicationInfo_.size());
+    for (auto& publicationInfo : publicationInfo_) {
+        if (publicationInfo.unitType != units::defunit) {
             pubs_[ii] =
-                helics::Publication(helics::GLOBAL, vFed_, p.name, p.type, to_string(p.unitType));
+                helics::Publication(helics::GLOBAL,
+                                    vFed_,
+                                    publicationInfo.name,
+                                    publicationInfo.type,
+                                    to_string(publicationInfo.unitType));
         } else {
-            pubs_[ii] = helics::Publication(helics::GLOBAL, vFed_, p.name, p.type);
+            pubs_[ii] = helics::Publication(
+                helics::GLOBAL, vFed_, publicationInfo.name, publicationInfo.type);
         }
         ++ii;
     }
     ii = 0;
-    subs_.resize(subI.size());
-    for (auto& s : subI) {
-        if (s.unitType != units::defunit) {
-            subs_[ii] = vFed_->registerSubscription(s.name, to_string(s.unitType));
+    subs_.resize(subscriptionInfo_.size());
+    for (auto& subscriptionInfo : subscriptionInfo_) {
+        if (subscriptionInfo.unitType != units::defunit) {
+            subs_[ii] = vFed_->registerSubscription(
+                subscriptionInfo.name, to_string(subscriptionInfo.unitType));
         } else {
-            subs_[ii] = vFed_->registerSubscription(s.name);
+            subs_[ii] = vFed_->registerSubscription(subscriptionInfo.name);
         }
         subs_[ii].setOption(helics::defs::options::connection_optional);
         ++ii;
     }
 
     ii = 0;
-    epts_.resize(eptI.size());
-    for (auto& e : eptI) {
-        epts_[ii] = helics::Endpoint(mFed_, e.name, e.type);
-        if (!e.target.empty()) {
-            epts_[ii].setDefaultDestination(e.target);
+    epts_.resize(endpointInfo_.size());
+    for (auto& endpointInfo : endpointInfo_) {
+        epts_[ii] = helics::Endpoint(mFed_, endpointInfo.name, endpointInfo.type);
+        if (!endpointInfo.target.empty()) {
+            epts_[ii].setDefaultDestination(endpointInfo.target);
         }
         ++ii;
     }
     // register a callback for handling messages from endpoints
     mFed_->setMessageNotificationCallback(
-        [this](helics::Endpoint& ep, helics::Time t) { this->receiveMessage(ep, t); });
+        [this](helics::Endpoint& endpoint, helics::Time messageTime) {
+            this->receiveMessage(endpoint, messageTime);
+        });
 
     fed->enterInitializingMode();
     logging::summary(this, "entered HELICS initializing Mode");
@@ -170,19 +178,19 @@ void HelicsCoordinator::set(const std::string& param, double val, units::unit un
     }
 }
 
-void HelicsCoordinator::receiveMessage(helics::Endpoint& ep, helics::Time t)
+void HelicsCoordinator::receiveMessage(helics::Endpoint& endpoint, helics::Time messageTime)
 {
-    auto payload = ep.getMessage()->to_string();
+    auto payload = endpoint.getMessage()->to_string();
     std::shared_ptr<griddyn::commMessage> msg;
     msg->from_string(payload);
 
-    auto event = std::make_unique<griddyn::functionEventAdapter>([this, msg, &ep]() {
-        communicationsCore::instance()->send(0, ep.getName(), std::move(msg));
+    auto event = std::make_unique<griddyn::functionEventAdapter>([this, msg, &endpoint]() {
+        communicationsCore::instance()->send(0, endpoint.getName(), std::move(msg));
         return griddyn::change_code::no_change;
     });
 
     // convert helics::Time to griddynTime
-    event->m_nextTime = t;
+    event->m_nextTime = messageTime;
     gridDynSimulation::getInstance()->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
 }
 
@@ -246,23 +254,23 @@ int32_t HelicsCoordinator::addPublication(const std::string& pubName,
                                           helics::data_type type,
                                           units::unit unitType)
 {
-    PubInfo p;
-    p.name = pubName;
-    p.type = type;
-    p.unitType = unitType;
-    pubI.push_back(p);
-    auto ind = static_cast<int32_t>(pubI.size()) - 1;
+    PublicationInfo publicationInfo;
+    publicationInfo.name = pubName;
+    publicationInfo.type = type;
+    publicationInfo.unitType = unitType;
+    publicationInfo_.push_back(publicationInfo);
+    auto ind = static_cast<int32_t>(publicationInfo_.size()) - 1;
     pubMap_.emplace(pubName, ind);
     return ind;
 }
 
 int32_t HelicsCoordinator::addSubscription(const std::string& subName, units::unit unitType)
 {
-    SubInfo s;
-    s.name = subName;
-    s.unitType = unitType;
-    subI.push_back(s);
-    auto ind = static_cast<int32_t>(subI.size()) - 1;
+    SubscriptionInfo subscriptionInfo;
+    subscriptionInfo.name = subName;
+    subscriptionInfo.unitType = unitType;
+    subscriptionInfo_.push_back(subscriptionInfo);
+    auto ind = static_cast<int32_t>(subscriptionInfo_.size()) - 1;
     subMap_.emplace(subName, ind);
     return ind;
 }
@@ -272,16 +280,16 @@ void HelicsCoordinator::updatePublication(int32_t index,
                                           helics::data_type type,
                                           units::unit unitType)
 {
-    if (isValidIndex(index, pubI)) {
+    if (isValidIndex(index, publicationInfo_)) {
         if (!pubName.empty()) {
-            pubI[index].name = pubName;
+            publicationInfo_[index].name = pubName;
             pubMap_[pubName] = index;
         }
         if (type != helics::data_type::helics_any) {
-            pubI[index].type = type;
+            publicationInfo_[index].type = type;
         }
         if (unitType != units::defunit) {
-            pubI[index].unitType = unitType;
+            publicationInfo_[index].unitType = unitType;
         }
     }
 }
@@ -290,13 +298,13 @@ void HelicsCoordinator::updateSubscription(int32_t index,
                                            const std::string& subName,
                                            units::unit unitType)
 {
-    if (isValidIndex(index, subI)) {
+    if (isValidIndex(index, subscriptionInfo_)) {
         if (!subName.empty()) {
-            subI[index].name = subName;
+            subscriptionInfo_[index].name = subName;
             subMap_[subName] = index;
         }
         if (unitType != units::defunit) {
-            subI[index].unitType = unitType;
+            subscriptionInfo_[index].unitType = unitType;
         }
     }
 }
@@ -305,12 +313,12 @@ int32_t HelicsCoordinator::addEndpoint(const std::string& eptName,
                                        const std::string& type,
                                        const std::string& target)
 {
-    EptInfo e;
-    e.name = eptName;
-    e.type = type;
-    e.target = target;
-    eptI.push_back(e);
-    auto ind = static_cast<int32_t>(eptI.size()) - 1;
+    EndpointInfo endpointInfo;
+    endpointInfo.name = eptName;
+    endpointInfo.type = type;
+    endpointInfo.target = target;
+    endpointInfo_.push_back(endpointInfo);
+    auto ind = static_cast<int32_t>(endpointInfo_.size()) - 1;
     eptMap_.emplace(eptName, ind);
     return ind;
 }
@@ -319,12 +327,12 @@ void HelicsCoordinator::updateEndpoint(int32_t index,
                                        const std::string& eptName,
                                        const std::string& type)
 {
-    if (isValidIndex(index, eptI)) {
+    if (isValidIndex(index, endpointInfo_)) {
         if (!eptName.empty()) {
-            eptI[index].name = eptName;
+            endpointInfo_[index].name = eptName;
             eptMap_[eptName] = index;
         }
-        eptI[index].type = type;
+        endpointInfo_[index].type = type;
     }
 }
 
@@ -332,27 +340,27 @@ void HelicsCoordinator::updateEndpoint(int32_t index,
  */
 void HelicsCoordinator::setEndpointTarget(int32_t index, const std::string& target)
 {
-    if (isValidIndex(index, eptI)) {
-        eptI[index].target = target;
+    if (isValidIndex(index, endpointInfo_)) {
+        endpointInfo_[index].target = target;
     }
     if (isValidIndex(index, epts_)) {
         epts_[index].setDefaultDestination(target);
     }
 }
 
-void HelicsCoordinator::addHelper(std::shared_ptr<helperObject> ho)
+void HelicsCoordinator::addHelper(std::shared_ptr<helperObject> helper)
 {
     std::lock_guard<std::mutex> hLock(helperProtector);
-    helpers.push_back(std::move(ho));
+    helpers.push_back(std::move(helper));
 }
 
-void HelicsCoordinator::addEvent(HelicsEvent* evnt)
+void HelicsCoordinator::addEvent(HelicsEvent* eventObject)
 {
-    events.push_back(evnt);
+    events.push_back(eventObject);
 }
-void HelicsCoordinator::addCollector(HelicsCollector* col)
+void HelicsCoordinator::addCollector(HelicsCollector* collectorObject)
 {
-    collectors.push_back(col);
+    collectors.push_back(collectorObject);
 }
 
 int32_t HelicsCoordinator::getSubscriptionIndex(const std::string& subName) const

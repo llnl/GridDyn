@@ -18,10 +18,10 @@
 
 namespace griddyn::helicsLib {
 
-HelicsCommunicator::HelicsCommunicator(const std::string& id): Communicator(id) {}
+HelicsCommunicator::HelicsCommunicator(const std::string& name): Communicator(name) {}
 
-HelicsCommunicator::HelicsCommunicator(const std::string& name, std::uint64_t id):
-    Communicator(name, id)
+HelicsCommunicator::HelicsCommunicator(const std::string& name, std::uint64_t identifier):
+    Communicator(name, identifier)
 {
 }
 

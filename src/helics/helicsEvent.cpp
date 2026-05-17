@@ -44,17 +44,17 @@ void HelicsEvent::cloneTo(Event* evnt) const
     if (fe == nullptr) {
         return;
     }
-    fe->minDelta = minDelta;
-    fe->vectorElement = vectorElement;
-    fe->key = key;
+    fe->minimumDelta = minimumDelta;
+    fe->vectorElementIndex = vectorElementIndex;
+    fe->subscriptionKey = subscriptionKey;
 }
 
 void HelicsEvent::set(std::string_view param, double val)
 {
     if ((param == "element") || (param == "vectorelement")) {
-        vectorElement = static_cast<int32_t>(val);
+        vectorElementIndex = static_cast<int32_t>(val);
     } else if (param == "delta") {
-        minDelta = std::abs(val);
+        minimumDelta = std::abs(val);
     } else {
         reversibleEvent::set(param, val);
     }
@@ -72,22 +72,22 @@ void HelicsEvent::set(std::string_view param, std::string_view val)
         } else if (val == "vector") {
             eventType = HelicsEventType::PARAMETER;
             stringEvent = false;
-            vectorElement = 0;
+            vectorElementIndex = 0;
         }
     } else if (param == "key") {
-        key = val;
-        if (subid >= 0) {
-            coord->updateSubscription(subid, key, unitType);
-        } else if (coord != nullptr) {
-            subid = coord->addSubscription(key, unitType);
+        subscriptionKey = val;
+        if (subscriptionId >= 0) {
+            coordinator_->updateSubscription(subscriptionId, subscriptionKey, unitType);
+        } else if (coordinator_ != nullptr) {
+            subscriptionId = coordinator_->addSubscription(subscriptionKey, unitType);
         } else {
             findCoordinator();
         }
     } else if (param == "units") {
         reversibleEvent::set(param, val);
-        if (subid >= 0) {
-            coord->updateSubscription(subid, key, unitType);
-        } else if (coord == nullptr) {
+        if (subscriptionId >= 0) {
+            coordinator_->updateSubscription(subscriptionId, subscriptionKey, unitType);
+        } else if (coordinator_ == nullptr) {
             findCoordinator();
         }
     } else {
@@ -112,18 +112,18 @@ bool HelicsEvent::setTarget(coreObject* gdo, std::string_view var)
 
 coreObject* HelicsEvent::getOwner() const
 {
-    return coord;
+    return coordinator_;
 }
 
 void HelicsEvent::initialize()
 {
-    if (coord == nullptr) {
+    if (coordinator_ == nullptr) {
         findCoordinator();
-        if (coord == nullptr) {
+        if (coordinator_ == nullptr) {
             return;
         }
     }
-    auto sub = coord->getInputPointer(subid);
+    auto sub = coordinator_->getInputPointer(subscriptionId);
     if (sub == nullptr) {
         return;
     }
@@ -134,11 +134,11 @@ void HelicsEvent::initialize()
                 trigger();
             });
     } else {
-        if (vectorElement >= 0) {
+        if (vectorElementIndex >= 0) {
             sub->setInputNotificationCallback<std::vector<double>>(
                 [this](const std::vector<double>& update, helics::Time /*tval*/) {
-                    if (vectorElement < static_cast<int32_t>(update.size())) {
-                        setValue(update[vectorElement]);
+                    if (vectorElementIndex < static_cast<int32_t>(update.size())) {
+                        setValue(update[vectorElementIndex]);
                         trigger();
                     }
                 });
@@ -165,12 +165,13 @@ void HelicsEvent::findCoordinator()
         if (rto) {
             auto helicsCont = rto->find("helics");
             if (dynamic_cast<HelicsCoordinator*>(helicsCont)) {
-                if (!isSameObject(helicsCont, coord)) {
-                    coord = static_cast<HelicsCoordinator*>(helicsCont);
-                    if (!key.empty()) {
-                        subid = coord->addSubscription(key, unitType);
+                if (!isSameObject(helicsCont, coordinator_)) {
+                    coordinator_ = static_cast<HelicsCoordinator*>(helicsCont);
+                    if (!subscriptionKey.empty()) {
+                        subscriptionId =
+                            coordinator_->addSubscription(subscriptionKey, unitType);
                     }
-                    coord->addEvent(this);
+                    coordinator_->addEvent(this);
                 }
             }
         }

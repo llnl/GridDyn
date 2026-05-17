@@ -22,7 +22,7 @@
 
 namespace griddyn::helicsLib {
 /** simple structure containing the publication information*/
-class PubInfo {
+class PublicationInfo {
   public:
     helics::data_type type;
     units::unit unitType = units::defunit;
@@ -30,7 +30,7 @@ class PubInfo {
 };
 
 /** simple structure containing the subscription information*/
-class SubInfo {
+class SubscriptionInfo {
   public:
     bool isValid = false;
     units::unit unitType = units::defunit;
@@ -39,7 +39,7 @@ class SubInfo {
 };
 
 /** simple structure containing the subscription information*/
-class EptInfo {
+class EndpointInfo {
   public:
     std::string name;
     std::string type;
@@ -53,7 +53,7 @@ class HelicsEvent;
 class HelicsCoordinator: public coreObject {
   private:
     static std::unordered_map<std::string, HelicsCoordinator*> registry;
-    static std::mutex registry_protection;
+    static std::mutex registryProtection;
 
   public:
     /** register a coordinator in the registry*/
@@ -67,9 +67,9 @@ class HelicsCoordinator: public coreObject {
     std::deque<helics::Publication> pubs_;  //!< list of all the publication
     std::deque<helics::Input> subs_;  //!< container for all the subscription information
     std::deque<helics::Endpoint> epts_;  //!< container for all the endpoints
-    std::vector<SubInfo> subI;
-    std::vector<PubInfo> pubI;
-    std::vector<EptInfo> eptI;
+    std::vector<SubscriptionInfo> subscriptionInfo_;
+    std::vector<PublicationInfo> publicationInfo_;
+    std::vector<EndpointInfo> endpointInfo_;
     helics::FederateInfo info_;  //!< container with the federate information
     std::string connectionInfo;  //!< string with the connection info
     std::shared_ptr<helics::Federate> fed;
@@ -90,9 +90,9 @@ class HelicsCoordinator: public coreObject {
     /** register the information as part of a federate in HELICS
 @return a shared pointer to the federate object itself
 */
-    std::shared_ptr<helics::Federate> RegisterAsFederate();
+    std::shared_ptr<helics::Federate> registerAsFederate();
     /** get a pointer to the federate
-@details will return an empty point if RegisterAsFederate hasn't been called yet*/
+@details will return an empty point if registerAsFederate hasn't been called yet*/
     std::shared_ptr<helics::Federate> getFederate() { return fed; }
     /** set the value of a publication*/
     template<class ValueType>
@@ -116,13 +116,13 @@ class HelicsCoordinator: public coreObject {
         throw(invalidParameterValue());
     }
 
-    void receiveMessage(helics::Endpoint& ep,
-                        helics::Time t); /* catch-all callback for HELICS messages */
+    void receiveMessage(helics::Endpoint& endpoint,
+                        helics::Time messageTime); /* catch-all callback for HELICS messages */
     void sendMessage(int32_t index, const char* data, count_t size);
     void sendMessage(int32_t index, const std::string& dest, const char* data, count_t size);
-    void addHelper(std::shared_ptr<helperObject> ho) override;
-    void addEvent(HelicsEvent* evnt);
-    void addCollector(HelicsCollector* col);
+    void addHelper(std::shared_ptr<helperObject> helper) override;
+    void addEvent(HelicsEvent* eventObject);
+    void addCollector(HelicsCollector* collectorObject);
     void set(const std::string& param, const std::string& val) override;
     void set(const std::string& param, double val, units::unit unitType = units::defunit) override;
     void setFlag(const std::string& flag, bool val) override;
@@ -187,8 +187,8 @@ class HelicsCoordinator: public coreObject {
         if (isValidIndex(index, subs_)) {
             auto& sub = subs_[index];
             sub.setDefault(val);
-        } else if (isValidIndex(index, subI)) {
-            auto& sub = subI[index];
+        } else if (isValidIndex(index, subscriptionInfo_)) {
+            auto& sub = subscriptionInfo_[index];
             sub.defaults = val;
         } else {
             throw(invalidParameterValue());

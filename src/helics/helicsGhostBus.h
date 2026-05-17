@@ -20,7 +20,7 @@ class HelicsGhostBus: public gridBus {
     int32_t voltageIndex;  //!< reference indices for the voltage
     int32_t loadIndex;  //!< reference indices for the load
     units::unit outUnits = units::defunit;
-    HelicsCoordinator* coord_ = nullptr;
+    HelicsCoordinator* coordinator_ = nullptr;
 
   public:
     explicit HelicsGhostBus(const std::string& objName = "helicsGhostbus_$");

@@ -38,8 +38,8 @@ using griddyn::coreTime;
 using griddyn::Generator;
 using griddyn::gridDynSimulationTestFixture;
 using griddyn::Source;
-using griddyn::helicsLib::gd2helicsTime;
-using griddyn::helicsLib::helics2gdTime;
+using griddyn::helicsLib::gdToHelicsTime;
+using griddyn::helicsLib::helicsToGdTime;
 using griddyn::helicsLib::HelicsCoordinator;
 using griddyn::helicsLib::HelicsLoad;
 using griddyn::helicsLib::HelicsRunner;
@@ -53,20 +53,20 @@ static const char helics_test_directory[] = GRIDDYN_TEST_DIRECTORY "/helics_test
 TEST_F(HelicsTests, TimeConversionTest)
 {
     coreTime val = 4.5234235;
-    auto helicsTime = gd2helicsTime(val);
-    coreTime ret = helics2gdTime(helicsTime);
+    auto helicsTime = gdToHelicsTime(val);
+    coreTime ret = helicsToGdTime(helicsTime);
 
     EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.0000001);
 
     val = 9.0;
-    helicsTime = gd2helicsTime(val);
-    ret = helics2gdTime(helicsTime);
+    helicsTime = gdToHelicsTime(val);
+    ret = helicsToGdTime(helicsTime);
 
     EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.000000001);
 
     val = -2.0;
-    helicsTime = gd2helicsTime(val);
-    ret = helics2gdTime(helicsTime);
+    helicsTime = gdToHelicsTime(val);
+    ret = helicsToGdTime(helicsTime);
 
     EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.000000001);
 }
@@ -144,7 +144,7 @@ TEST_F(HelicsTests, HelicsCoordinatorTests1)
     coord.set("init", "-f 1 --autobroker");
     coord.set("name", "coordtest");
 
-    auto fed = coord.RegisterAsFederate();
+    auto fed = coord.registerAsFederate();
 
     EXPECT_EQ(fed->getCurrentMode(), helics::Federate::modes::initializing);
     fed->enterExecutingMode();

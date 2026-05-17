@@ -19,34 +19,30 @@
 // #include "helics.hpp"
 
 namespace griddyn {
-namespace helicsLib {
-    static childClassFactory<HelicsCollector, collector> helicsCollFac(stringVec{"helics"});
-
-    static childClassFactory<HelicsEvent, Event> helicsEventFac(stringVec{"helics"});
-
-    static childClassFactory<HelicsCommunicator, Communicator> hcomms(stringVec{"helics"});
-
-    static childTypeFactory<HelicsSource, sources::rampSource>
-        fnsrc("source", std::to_array<std::string_view>({"helics"}));
-    static childTypeFactory<HelicsLoad, loads::rampLoad> fnld("load", "helics");
-
-    // the factory for the coordinator
-    static typeFactory<HelicsCoordinator> cbuild("extra", "helics");
-}  // namespace helicsLib
-
-void loadHELICSLibrary()
+void loadHelicsLibrary()
 {
-    static int loaded = 0;
-
-    if (loaded == 0) {
-        loaded = 1;
-    }
+    static const bool loaded = []() {
+        static const childClassFactory<helicsLib::HelicsCollector, collector> helicsCollectorFactory(
+            stringVec{"helics"});
+        static const childClassFactory<helicsLib::HelicsEvent, Event> helicsEventFactory(
+            stringVec{"helics"});
+        static const childClassFactory<helicsLib::HelicsCommunicator, Communicator>
+            helicsCommunicatorFactory(stringVec{"helics"});
+        static const childTypeFactory<helicsLib::HelicsSource, sources::rampSource>
+            helicsSourceFactory("source", std::to_array<std::string_view>({"helics"}));
+        static const childTypeFactory<helicsLib::HelicsLoad, loads::rampLoad> helicsLoadFactory(
+            "load", "helics");
+        static const typeFactory<helicsLib::HelicsCoordinator> helicsCoordinatorFactory(
+            "extra", "helics");
+        return true;
+    }();
+    (void)loaded;
 }
 
-void loadHelicsReaderInfoDefinitions(readerInfo& ri)
+void loadHelicsReaderInfoDefinitions(readerInfo& readerInformation)
 {
-    ri.addTranslate("helics", "extra");
-    // ri.addTranslate("cosim", "helics");
+    readerInformation.addTranslate("helics", "extra");
+    // readerInformation.addTranslate("cosim", "helics");
 }
 
 }  // namespace griddyn

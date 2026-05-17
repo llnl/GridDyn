@@ -23,12 +23,12 @@ class HelicsEvent: public events::reversibleEvent {
     };
 
   private:
-    HelicsCoordinator* coord = nullptr;  //!< pointer the coordinator
+    HelicsCoordinator* coordinator_ = nullptr;  //!< pointer the coordinator
     HelicsEventType eventType = HelicsEventType::PARAMETER;  //!< the type of the event
-    std::string key;  //!< helics subscription key
-    int32_t subid = -1;  //!< index of the subscription
-    int32_t vectorElement = -1;  // element of a vector to use as the event parameter
-    double minDelta = 0.0;  //!< set the minimum delta for the event to trigger
+    std::string subscriptionKey;  //!< helics subscription key
+    int32_t subscriptionId = -1;  //!< index of the subscription
+    int32_t vectorElementIndex = -1;  // element of a vector to use as the event parameter
+    double minimumDelta = 0.0;  //!< set the minimum delta for the event to trigger
   public:
     HelicsEvent(const EventInfo& gdEI, coreObject* rootObject);
     explicit HelicsEvent(const std::string& name);

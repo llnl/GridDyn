@@ -38,9 +38,9 @@ coreObject* HelicsLoad::clone(coreObject* obj) const
 
 void HelicsLoad::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
 {
-    if (coord == nullptr) {
+    if (coordinator_ == nullptr) {
         auto rt = getRoot();
-        coord = static_cast<HelicsCoordinator*>(rt->find("helics"));
+        coordinator_ = static_cast<HelicsCoordinator*>(rt->find("helics"));
     }
     setSubscription();
     loads::rampLoad::pFlowObjectInitializeA(time0, flags);
@@ -65,7 +65,7 @@ void HelicsLoad::updateA(coreTime time)
     if (!voltageKey.empty()) {
         std::complex<double> Vc = std::polar(V, A);
         Vc *= localBaseVoltage;
-        coord->publish(voltageIndex, Vc);
+        coordinator_->publish(voltageIndex, Vc);
     }
     lastUpdateTime = time;
 }
@@ -75,14 +75,14 @@ coreTime HelicsLoad::updateB()
     nextUpdateTime += updatePeriod;
 
     // now get the updates
-    if (!coord->isUpdated(loadIndex)) {
+    if (!coordinator_->isUpdated(loadIndex)) {
         dPdt = 0.0;
         dQdt = 0.0;
         prevP = getP();
         prevQ = getQ();
         return nextUpdateTime;
     }
-    auto res = coord->getValueAs<std::complex<double>>(loadIndex);
+    auto res = coordinator_->getValueAs<std::complex<double>>(loadIndex);
     if (res.real() == kNullVal) {
         dPdt = 0.0;
         dQdt = 0.0;
@@ -200,24 +200,24 @@ void HelicsLoad::set(const std::string& param, double val, units::unit unitType)
 
 void HelicsLoad::setSubscription()
 {
-    if (coord != nullptr) {
+    if (coordinator_ != nullptr) {
         if (!loadKey.empty()) {
             auto Punit = convert(getP(), units::puMW, inputUnits, systemBasePower);
             auto Qunit = convert(getQ(), units::puMW, inputUnits, systemBasePower);
             std::string def = std::to_string(Punit / scaleFactor) + "+" +
                 std::to_string(Qunit / scaleFactor) + "j";
             if (loadIndex < 0) {
-                loadIndex = coord->addSubscription(loadKey, inputUnits);
+                loadIndex = coordinator_->addSubscription(loadKey, inputUnits);
             } else {
-                coord->updateSubscription(loadIndex, loadKey, inputUnits);
+                coordinator_->updateSubscription(loadIndex, loadKey, inputUnits);
             }
-            coord->setDefault(loadIndex, std::complex<double>(Punit, Qunit));
+            coordinator_->setDefault(loadIndex, std::complex<double>(Punit, Qunit));
         }
         if (!voltageKey.empty()) {
             if (voltageIndex < 0) {
-                voltageIndex = coord->addPublication(voltageKey, voltageType);
+                voltageIndex = coordinator_->addPublication(voltageKey, voltageType);
             } else {
-                coord->updatePublication(voltageIndex, voltageKey, voltageType);
+                coordinator_->updatePublication(voltageIndex, voltageKey, voltageType);
             }
         }
     }

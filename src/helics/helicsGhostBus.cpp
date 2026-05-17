@@ -49,7 +49,7 @@ void HelicsGhostBus::updateA(coreTime time)
         double Qact = convert(S.sumQ(), units::puMW, outUnits, systemBasePower);
         std::complex<double> ld(Pact, Qact);
 
-        coord_->publish(loadIndex, ld);
+        coordinator_->publish(loadIndex, ld);
     }
     lastUpdateTime = time;
 }

@@ -11,19 +11,20 @@
 #include "griddyn/simulation/gridDynSimulationFileOps.h"
 #include "griddyn/solvers/solverInterface.h"
 #include <chrono>
-#include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 class LargeValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
+constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
 using namespace griddyn;
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES
@@ -32,17 +33,18 @@ TEST_F(LargeValidationTests, TestPjmPflow)
 {
     std::string fileName = std::string(OTHER_TEST_DIRECTORY "pf.output.raw");
     gds = std::make_unique<gridDynSimulation>();
-    readerInfo ri;
-    addFlags(ri, "ignore_step_up_transformers");
-    loadFile(gds, fileName, &ri);
+    readerInfo readerInformation;
+    addFlags(readerInformation, "ignore_step_up_transformers");
+    loadFile(gds, fileName, &readerInformation);
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
-    std::vector<double> gv1, gv2;
+    std::vector<double> gv1;
+    std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::INITIALIZED);
     int mmatch = residualCheck(gds, cPflowSolverMode, 0.2, true);
     if (mmatch > 0) {
-        printf("Mmatch failures=%d\n", mmatch);
+        std::println("Mmatch failures={}", mmatch);
     }
 
     gds->powerflow();
@@ -63,11 +65,11 @@ TEST_F(LargeValidationTests, TestPjmPflow)
     }
     EXPECT_EQ(diffc, 0);
     if (diffc > 0) {
-        printf("%d diffs, difference bus %d orig=%f, result=%f\n",
-               diffc,
-               static_cast<int>(bdiffi),
-               gv1[bdiffi],
-               gv2[bdiffi]);
+        std::println("{} diffs, difference bus {} orig={:f}, result={:f}",
+                     diffc,
+                     static_cast<int>(bdiffi),
+                     gv1[bdiffi],
+                     gv2[bdiffi]);
     }
 }
 #    endif
@@ -76,12 +78,13 @@ TEST_F(LargeValidationTests, TestPjmPflow)
 TEST_F(LargeValidationTests, TestPgePflow)
 {
     std::string fileName =
-        std::string("C:\\Users\\top1\\Documents\\PG&E Basecases (epc)\\a16_2018LSP.epc");
+        std::string(R"(C:\Users\top1\Documents\PG&E Basecases (epc)\a16_2018LSP.epc)");
     gds = std::make_unique<gridDynSimulation>();
-    readerInfo ri;
-    loadFile(gds, fileName, &ri);
+    readerInfo readerInformation;
+    loadFile(gds, fileName, &readerInformation);
     requireState(gridDynSimulation::gridState_t::STARTUP);
-    std::vector<double> gv1, gv2;
+    std::vector<double> gv1;
+    std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
     requireState(gridDynSimulation::gridState_t::INITIALIZED);
@@ -105,10 +108,10 @@ TEST_F(LargeValidationTests, TestPgePflow)
     }
     EXPECT_EQ(diffc, 0);
     if (diffc > 0) {
-        printf("%d diffs, difference bus %d orig=%f, result=%f\n",
-               diffc,
-               static_cast<int>(bdiffi),
-               gv1[bdiffi],
-               gv2[bdiffi]);
+        std::println("{} diffs, difference bus {} orig={:f}, result={:f}",
+                     diffc,
+                     static_cast<int>(bdiffi),
+                     gv1[bdiffi],
+                     gv2[bdiffi]);
     }
 }

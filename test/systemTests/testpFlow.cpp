@@ -8,11 +8,12 @@
 #include "core/coreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/solvers/solverInterface.h"
-#include <cstdio>
+#include <array>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -115,6 +116,7 @@ TEST_F(PowerflowSystemTests, PFlowTest3)
 }
 
 /** test the ieee 30 bus case with no shunts*/
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
 {
     gds = std::make_unique<gridDynSimulation>();
@@ -151,14 +153,14 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     if ((vdiff > 0) || (adiff > 0)) {
         printBusResultDeviations(volts1, volts2, ang1, ang2);
     }
-    EXPECT_EQ(vdiff, 0u);
-    EXPECT_EQ(adiff, 0u);
+    EXPECT_EQ(vdiff, 0U);
+    EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
     gds->reset(reset_levels::voltage_angle);
     gds->getAngle(ang1);
-    for (size_t kk = 0; kk < ang1.size(); ++kk) {
-        EXPECT_NEAR(ang1[kk], 0.0, 1e-6);
+    for (double angleValue : ang1) {
+        EXPECT_NEAR(angleValue, 0.0, 1e-6);
     }
 
     gds->pFlowInitialize();
@@ -170,11 +172,12 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     auto vdiff2 = countDiffs(volts1, volts2, 0.0005);
     auto adiff2 = countDiffs(volts1, volts2, 0.0009);
 
-    EXPECT_EQ(vdiff2, 0u);
-    EXPECT_EQ(adiff2, 0u);
+    EXPECT_EQ(vdiff2, 0U);
+    EXPECT_EQ(adiff2, 0U);
 }
 
 /** test the IEEE 30 bus case with no reactive limits*/
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
 {
     gds = std::make_unique<gridDynSimulation>();
@@ -210,14 +213,14 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     if ((vdiff > 0) || (adiff > 0)) {
         printBusResultDeviations(volts1, volts2, ang1, ang2);
     }
-    EXPECT_EQ(vdiff, 0u);
-    EXPECT_EQ(adiff, 0u);
+    EXPECT_EQ(vdiff, 0U);
+    EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
     gds->reset(reset_levels::voltage_angle);
     gds->getAngle(ang1);
-    for (size_t kk = 0; kk < ang1.size(); ++kk) {
-        EXPECT_NEAR(ang1[kk], 0.0, 1e-6);
+    for (double angleValue : ang1) {
+        EXPECT_NEAR(angleValue, 0.0, 1e-6);
     }
     gds->pFlowInitialize();
     gds->powerflow();
@@ -229,8 +232,8 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     auto vdiff2 = countDiffs(volts1, volts2, 0.0005);
     auto adiff2 = countDiffs(volts1, volts2, 0.0009);
 
-    EXPECT_EQ(vdiff2, 0u);
-    EXPECT_EQ(adiff2, 0u);
+    EXPECT_EQ(vdiff2, 0U);
+    EXPECT_EQ(adiff2, 0U);
 }
 
 // test case for power flow automatic adjustment
@@ -241,21 +244,21 @@ TEST_F(PowerflowSystemTests, TestPFlowPadjust)
     ASSERT_NE(gds, nullptr);
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
-    std::vector<double> P1;
-    std::vector<double> P2;
+    std::vector<double> generation1;
+    std::vector<double> generation2;
 
     gds->pFlowInitialize();
     gds->updateLocalCache();
-    gds->getBusGenerationReal(P1);
+    gds->getBusGenerationReal(generation1);
     gds->powerflow();
-    auto wc = gds->getInt("warncount");
-    EXPECT_EQ(wc, 0);
+    auto warnCount = gds->getInt("warncount");
+    EXPECT_EQ(warnCount, 0);
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    gds->getBusGenerationReal(P2);
+    gds->getBusGenerationReal(generation2);
     // there should be 2 generators+ the swing bus that had their real power levels adjusted instead
     // of just the swing bus
-    auto cnt = countDiffs(P2, P1, 0.0002);
-    EXPECT_EQ(cnt, 3u);
+    auto cnt = countDiffs(generation2, generation1, 0.0002);
+    EXPECT_EQ(cnt, 3U);
 }
 
 /** test case for dc power flow*/
@@ -280,10 +283,10 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
     gds->getVoltage(volts1);
     gds->getAngle(ang1);
 
-    auto ns = makeSolver("kinsol");
-    ns->setName("dcflow");
-    ns->set("mode", "dc, algebraic");
-    gds->add(std::shared_ptr<SolverInterface>(std::move(ns)));
+    auto newSolver = makeSolver("kinsol");
+    newSolver->setName("dcflow");
+    newSolver->set("mode", "dc, algebraic");
+    gds->add(std::shared_ptr<SolverInterface>(std::move(newSolver)));
 
     auto smode = gds->getSolverMode("dcflow");
     gds->set("defpowerflow", "dcflow");
@@ -336,7 +339,7 @@ TEST_F(PowerflowSystemTests, PflowTestSingleBreaker)
     // runJacobianCheck(gds, cPflowSolverMode);
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 }
-static stringVec approx_modes{
+static constexpr std::array<std::string_view, 9> approxModes{
     "normal",
     "simple",
     "decoupled",
@@ -350,7 +353,7 @@ static stringVec approx_modes{
 
 TEST_F(PowerflowSystemTests, PflowTestLineModes)
 {
-    for (const auto& approx : approx_modes) {
+    for (const auto& approx : approxModes) {
         SCOPED_TRACE(approx);
         gds = std::make_unique<gridDynSimulation>();
         std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
@@ -371,19 +374,19 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         gds->getVoltage(volts1);
         gds->getAngle(ang1);
 
-        auto ns = makeSolver("kinsol");
-        ns->setName(approx);
+        auto newSolver = makeSolver("kinsol");
+        newSolver->setName(std::string{approx});
         try {
-            ns->set("approx", approx);
+            newSolver->set("approx", std::string{approx});
         }
         catch (const invalidParameterValue&) {
             ADD_FAILURE() << "unrecognized approx mode " << approx;
             continue;
         }
 
-        gds->add(std::shared_ptr<SolverInterface>(std::move(ns)));
-        auto smode = gds->getSolverMode(approx);
-        gds->set("defpowerflow", approx);
+        gds->add(std::shared_ptr<SolverInterface>(std::move(newSolver)));
+        auto smode = gds->getSolverMode(std::string{approx});
+        gds->set("defpowerflow", std::string{approx});
         gds->pFlowInitialize(0.0);
         requireState(gridDynSimulation::gridState_t::INITIALIZED);
         int errors;

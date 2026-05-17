@@ -222,9 +222,9 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
-    auto* bus = dynamic_cast<gridBus*>(obj);
+    auto* bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
-        ggb = std::make_unique<objectGrabber<gridBus>>(fld, bus);
+        ggb = std::make_unique<objectGrabber<GridBus>>(fld, bus);
         return ggb;
     }
 

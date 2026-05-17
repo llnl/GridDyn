@@ -21,7 +21,7 @@ class LoggerNoThread;
 
 namespace griddyn {
 class Link;
-class gridBus;
+class GridBus;
 
 #define SINGLE (1)
 #define MULTICORE (2)

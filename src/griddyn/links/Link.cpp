@@ -39,7 +39,7 @@ using units::unit;
 static typeFactory<Link> blf("link",
                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static childTypeFactory<acLine, Link> glf(
+static childTypeFactory<AcLine, Link> glf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
     "ac");  // NOLINT(bugprone-throwing-static-initialization)
@@ -105,7 +105,7 @@ CoreObject* Link::clone(CoreObject* obj) const
 Link::~Link() = default;
 
 // timestepP link's buses
-void Link::updateBus(gridBus* bus, index_t busNumber)
+void Link::updateBus(GridBus* bus, index_t busNumber)
 {
     if (busNumber == 1) {
         if (B1 != nullptr) {
@@ -129,7 +129,7 @@ void Link::updateBus(gridBus* bus, index_t busNumber)
     }
 }
 
-void Link::followNetwork(int network, std::queue<gridBus*>& stk)
+void Link::followNetwork(int network, std::queue<GridBus*>& stk)
 {
     if (isConnected() && opFlags[network_connected]) {
         if (B1->Network != network) {
@@ -201,7 +201,7 @@ void Link::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 void Link::set(std::string_view param, std::string_view val)
 {
     if ((param == "bus1") || (param == "from")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
 
         if (bus != nullptr) {
             updateBus(bus, 1);
@@ -209,7 +209,7 @@ void Link::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(param));
         }
     } else if ((param == "bus2") || (param == "to")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
@@ -511,7 +511,7 @@ IOdata Link::getOutputs(const IOdata& /*inputs*/,
     return getOutputs(1, stateData, sMode);
 }
 
-static bool isBus2(id_type_t busId, gridBus* bus)
+static bool isBus2(id_type_t busId, GridBus* bus)
 {
     return ((busId == 2) || (isSameObject(busId, bus)));
 }
@@ -666,7 +666,7 @@ void Link::updateLocalCache()
     linkInfo.theta2 = angle2 - angle1;
 }
 
-gridBus* Link::getBus(index_t busInd) const
+GridBus* Link::getBus(index_t busInd) const
 {
     // for Links it is customary to refer to the buses as 1 and 2, but for indexing schemes they
     // sometimes atart at
@@ -857,7 +857,7 @@ bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus, bool printDiff)
         }
         return false;
     }
-    if ((dynamic_cast<acLine*>(lnk1) != nullptr) && (dynamic_cast<acLine*>(lnk2) != nullptr)) {
+    if ((dynamic_cast<AcLine*>(lnk1) != nullptr) && (dynamic_cast<AcLine*>(lnk2) != nullptr)) {
         if (std::abs(lnk1->get("r") - lnk2->get("r")) > 0.0001) {
             if (printDiff) {
                 std::println("Links have different r");

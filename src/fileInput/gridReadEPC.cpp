@@ -47,8 +47,8 @@ using units::MW;
 using units::pu;
 using units::puMW;
 
-void epcReadBus(gridBus* bus, string_view line, double base, const basicReaderInfo& bri);
-void epcReadDCBus(dcBus* bus, string_view line, double base, const basicReaderInfo& bri);
+void epcReadBus(GridBus* bus, string_view line, double base, const basicReaderInfo& bri);
+void epcReadDCBus(DcBus* bus, string_view line, double base, const basicReaderInfo& bri);
 void epcReadLoad(zipLoad* ld, string_view line, double base);
 void epcReadFixedShunt(zipLoad* ld, string_view line, double base);
 void epcReadSwitchShunt(loads::svd* ld, string_view line, double /* base */);
@@ -56,17 +56,17 @@ void epcReadGen(Generator* gen, string_view line, double base);
 void epcReadBranch(CoreObject* parentObject,
                    string_view line,
                    double base,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    const basicReaderInfo& bri);
 void epcReadDCBranch(CoreObject* parentObject,
                      string_view line,
                      double base,
-                     std::vector<dcBus*>& dcbusList,
+                     std::vector<DcBus*>& dcbusList,
                      const basicReaderInfo& bri);
 void epcReadTX(CoreObject* parentObject,
                string_view line,
                double base,
-               std::vector<gridBus*>& busList,
+               std::vector<GridBus*>& busList,
                const basicReaderInfo& bri);
 
 double epcReadSolutionParamters(CoreObject* parentObject, string_view line);
@@ -162,7 +162,7 @@ template<class X>
 void ProcessSectionObject(std::string line,
                           std::ifstream& file,
                           const std::string& oname,
-                          std::vector<gridBus*>& busList,
+                          std::vector<GridBus*>& busList,
                           const std::function<void(X*, string_view)>& Func)
 {
     int cnt = getSectionCount(line);
@@ -199,8 +199,8 @@ void loadEpc(CoreObject* parentObject,
     std::ifstream file(fileName.c_str(), std::ios::in);
 
     std::string temp1;  // temporary storage for substrings
-    std::vector<gridBus*> busList;
-    std::vector<dcBus*> dcbusList;
+    std::vector<GridBus*> busList;
+    std::vector<DcBus*> dcbusList;
     int index;
     double base = 100;
     int cnt, bcount;
@@ -262,7 +262,7 @@ void loadEpc(CoreObject* parentObject,
                     }
                 }
                 if (busList[index - 1] == nullptr) {
-                    busList[index - 1] = new acBus();
+                    busList[index - 1] = new AcBus();
                     busList[index - 1]->set("basepower", base);
                     epcReadBus(busList[index - 1], line, base, bri);
                     try {
@@ -345,7 +345,7 @@ void loadEpc(CoreObject* parentObject,
                         }
                     }
                     if (dcbusList[index - 1] == nullptr) {
-                        dcbusList[index - 1] = new dcBus();
+                        dcbusList[index - 1] = new DcBus();
                         dcbusList[index - 1]->set("basepower", base);
                         epcReadDCBus(dcbusList[index - 1], line, base, bri);
                         try {
@@ -433,7 +433,7 @@ double epcReadSolutionParamters(CoreObject* parentObject, string_view line)
     return val;
 }
 
-void epcReadBus(gridBus* bus, string_view line, double /*base*/, const basicReaderInfo& bri)
+void epcReadBus(GridBus* bus, string_view line, double /*base*/, const basicReaderInfo& bri)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
     // get the bus name
@@ -510,7 +510,7 @@ void epcReadBus(gridBus* bus, string_view line, double /*base*/, const basicRead
     }
 }
 
-void epcReadDCBus(dcBus* bus, string_view line, double /*base*/, const basicReaderInfo& bri)
+void epcReadDCBus(DcBus* bus, string_view line, double /*base*/, const basicReaderInfo& bri)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
     // get the bus name
@@ -694,11 +694,11 @@ void epcReadSwitchShunt(loads::svd* ld, string_view line, double /*base*/)
     // skip the area and zone information for now
 
     auto cbus = numeric_conversion<int>(strvec[offset + 3], -1);
-    gridBus* rbus = nullptr;
+    GridBus* rbus = nullptr;
     if (cbus <= 0) {
-        rbus = static_cast<gridBus*>(ld->getParent());
+        rbus = static_cast<GridBus*>(ld->getParent());
     } else {
-        rbus = static_cast<gridBus*>(ld->getRoot()->find(std::string("#") + std::to_string(cbus)));
+        rbus = static_cast<GridBus*>(ld->getRoot()->find(std::string("#") + std::to_string(cbus)));
     }
     int mode = toIntSimple(strvec[offset + 2]);
     double high;
@@ -898,7 +898,7 @@ std::string generateLineName(const string_viewVector& svec, const std::string& p
 void epcReadBranch(CoreObject* parentObject,
                    string_view line,
                    double base,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    const basicReaderInfo& bri)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
@@ -909,12 +909,12 @@ void epcReadBranch(CoreObject* parentObject,
 
     auto ind2 = numeric_conversion<int>(strvec[3], 0);
 
-    gridBus* bus1 = busList[ind1 - 1];
-    gridBus* bus2 = busList[ind2 - 1];
+    GridBus* bus1 = busList[ind1 - 1];
+    GridBus* bus2 = busList[ind2 - 1];
 
     // check the circuit identifier
     auto name = generateLineName(strvec, bri.prefix);
-    auto lnk = new acLine(name);
+    auto lnk = new AcLine(name);
     auto long_id = trim(removeQuotes(strvec[8]));
     if (!long_id.empty()) {
         lnk->setDescription(std::string{long_id});
@@ -975,7 +975,7 @@ void epcReadBranch(CoreObject* parentObject,
 void epcReadDCBranch(CoreObject* parentObject,
                      string_view line,
                      double base,
-                     std::vector<dcBus*>& dcbusList,
+                     std::vector<DcBus*>& dcbusList,
                      const basicReaderInfo& bri)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
@@ -986,8 +986,8 @@ void epcReadDCBranch(CoreObject* parentObject,
 
     auto ind2 = numeric_conversion<int>(strvec[3], 0);
 
-    dcBus* bus1 = dcbusList[ind1 - 1];
-    dcBus* bus2 = dcbusList[ind2 - 1];
+    DcBus* bus1 = dcbusList[ind1 - 1];
+    DcBus* bus2 = dcbusList[ind2 - 1];
 
     // check the circuit identifier
     auto name = generateLineName(strvec, bri.prefix);
@@ -1047,7 +1047,7 @@ void epcReadDCBranch(CoreObject* parentObject,
 void epcReadTX(CoreObject* parentObject,
                string_view line,
                double base,
-               std::vector<gridBus*>& busList,
+               std::vector<GridBus*>& busList,
                const basicReaderInfo& bri)
 {
     Link* lnk;
@@ -1063,8 +1063,8 @@ void epcReadTX(CoreObject* parentObject,
 
     auto ind2 = numeric_conversion<int>(strvec[3], 0);
 
-    gridBus* bus1 = busList[ind1 - 1];
-    gridBus* bus2 = busList[ind2 - 1];
+    GridBus* bus1 = busList[ind1 - 1];
+    GridBus* bus2 = busList[ind2 - 1];
 
     // check the circuit identifier
 
@@ -1074,7 +1074,7 @@ void epcReadTX(CoreObject* parentObject,
         case 1:
         case 11:
             code = 1;
-            lnk = new acLine(name);
+            lnk = new AcLine(name);
             // lnk->set ("type", "transformer");
             break;
         case 2:

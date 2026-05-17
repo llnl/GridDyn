@@ -434,7 +434,7 @@ void gridSimulation::resetObjectCounters()
 {
     zipLoad::loadCount = 0;
     // Area::areaCount = 0;
-    gridBus::busCount = 0;
+    GridBus::busCount = 0;
     Link::linkCount = 0;
     Relay::relayCount = 0;
     Generator::genCount = 0;
@@ -462,7 +462,7 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
     if (dynamic_cast<gridSecondary*>(obj1) !=
         nullptr)  // we know it is a gen or load so it parent should be a bus
     {
-        auto* bus = dynamic_cast<gridBus*>(obj1->getParent());
+        auto* bus = dynamic_cast<GridBus*>(obj1->getParent());
         auto* bus2 = getMatchingBus(bus, src, sec);
         if (bus2 != nullptr) {
             if (dynamic_cast<Generator*>(obj1) != nullptr) {
@@ -471,8 +471,8 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
                 obj2 = bus2->getLoad(obj1->locIndex);
             }
         }
-    } else if (dynamic_cast<gridBus*>(obj1) != nullptr) {
-        obj2 = getMatchingBus(dynamic_cast<gridBus*>(obj1), src, sec);
+    } else if (dynamic_cast<GridBus*>(obj1) != nullptr) {
+        obj2 = getMatchingBus(dynamic_cast<GridBus*>(obj1), src, sec);
     } else if (dynamic_cast<Area*>(obj1) != nullptr) {
         obj2 = getMatchingArea(dynamic_cast<Area*>(obj1), src, sec);
     } else if (dynamic_cast<Link*>(obj1) != nullptr) {

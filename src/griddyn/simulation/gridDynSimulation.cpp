@@ -147,7 +147,7 @@ int gridDynSimulation::tripSlippedLines()
 
 int gridDynSimulation::rebalanceLoadGen()
 {
-    std::vector<gridBus*> bnetwork;
+    std::vector<GridBus*> bnetwork;
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
     double totalLoad{0.0};
@@ -174,7 +174,7 @@ int gridDynSimulation::rebalanceLoadGen()
 
 bool gridDynSimulation::doAutomaticLoadLoss()
 {
-    std::vector<gridBus*> bnetwork;
+    std::vector<GridBus*> bnetwork;
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
     bool modified{false};
@@ -200,7 +200,7 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     }
 
     if (!modified) {
-        const gridBus* maxDiffBus{nullptr};
+        const GridBus* maxDiffBus{nullptr};
         double maxDiff{0.0};
         for (auto& bus : bnetwork) {
             auto ldp = bus->getLoadReal();
@@ -238,7 +238,7 @@ bool gridDynSimulation::doAutomaticLoadLoss()
 int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
 {
     // make a full list of all buses
-    std::vector<gridBus*> bnetwork;
+    std::vector<GridBus*> bnetwork;
     bnetwork.reserve(busCount);
     getBusVector(bnetwork);
     if (checkType == NetworkCheckType::FULL) {
@@ -250,7 +250,7 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 if (bus->checkCapable()) {
                     bus->Network = 0;
                     const auto busType = bus->getType();
-                    if ((busType == gridBus::busType::SLK) || (busType == gridBus::busType::afix)) {
+                    if ((busType == GridBus::busType::SLK) || (busType == GridBus::busType::afix)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -267,7 +267,7 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
         }
     }
     int32_t networkNum = 0;
-    std::queue<gridBus*> bstk;
+    std::queue<GridBus*> bstk;
     for (auto& networkBus : bnetwork) {
         if ((networkBus->Network == 0) && (networkBus->isConnected())) {
             networkNum++;
@@ -288,7 +288,7 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
         bool afixFound = false;
         for (auto& slackBus : slkBusses) {
             if (slackBus->Network == nn) {
-                if (slackBus->getType() == gridBus::busType::SLK) {
+                if (slackBus->getType() == GridBus::busType::SLK) {
                     slackFound = true;
                     break;
                 }
@@ -298,13 +298,13 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
         if (!slackFound) {
             for (auto& networkBus : bnetwork) {
                 if (networkBus->Network == nn) {
-                    if (networkBus->getType() == gridBus::busType::SLK) {
+                    if (networkBus->getType() == GridBus::busType::SLK) {
                         slackFound = true;
                         break;
                     }
-                    if (networkBus->getType() == gridBus::busType::PV) {
+                    if (networkBus->getType() == GridBus::busType::PV) {
                         pvFound = true;
-                    } else if (networkBus->getType() == gridBus::busType::afix) {
+                    } else if (networkBus->getType() == GridBus::busType::afix) {
                         afixFound = true;
                     }
                     if (afixFound && pvFound) {
@@ -339,11 +339,11 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
                     }
                 }
             } else {
-                gridBus* maxCapBus = nullptr;
+                GridBus* maxCapBus = nullptr;
                 double maxcap = 0.0;
                 for (auto& networkBus : bnetwork) {
                     if (networkBus->Network == nn) {
-                        if (networkBus->getType() == gridBus::busType::PV) {
+                        if (networkBus->getType() == GridBus::busType::PV) {
                             const double cap = networkBus->getAdjustableCapacityUp();
                             if (cap > maxcap) {
                                 maxcap = cap;
@@ -1672,7 +1672,7 @@ bool gridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverM
 static count_t searchForGridlabDobject(const CoreObject* obj)
 {
     count_t cnt = 0;
-    const auto* bus = dynamic_cast<const gridBus*>(obj);
+    const auto* bus = dynamic_cast<const GridBus*>(obj);
     if (bus != nullptr) {
         index_t loadIndex = 0;
         const CoreObject* loadObject = bus->getLoad(loadIndex);

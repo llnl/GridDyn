@@ -66,7 +66,7 @@ void GenModelInverter::dynObjectInitializeB(const IOdata& inputs,
 
     fieldSet[genModelPmechInLocation] = desiredOutput[PoutLocation] + loss;  // Pmt
 
-    bus = static_cast<gridBus*>(find("bus"));
+    bus = static_cast<GridBus*>(find("bus"));
 }
 
 void GenModelInverter::algebraicUpdate(const IOdata& inputs,

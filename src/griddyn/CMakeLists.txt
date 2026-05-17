@@ -221,8 +221,8 @@ set(link_sources
     links/subsystem.cpp
     links/hvdc.cpp
     links/zBreaker.cpp
-    links/longLine.cpp
-    links/acLine.cpp
+    links/LongLine.cpp
+    links/AcLine.cpp
     links/ThreeWindingTransformer.cpp
 )
 
@@ -331,13 +331,13 @@ set(primary_headers
 
 set(primary_sources
     ${primary_headers}
-    primary/gridBus.cpp
+    primary/GridBus.cpp
     primary/Area.cpp
-    primary/dcBus.cpp
+    primary/DcBus.cpp
     primary/infiniteBus.cpp
     primary/BusControls.cpp
     primary/DcBusControls.cpp
-    primary/acBus.cpp
+    primary/AcBus.cpp
     primary/listMaintainer.cpp
 )
 

@@ -96,7 +96,7 @@ void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (isConnected() && isEnabled()) {
         if (opFlags[local_voltage_control]) {
-            if (bus->getType() != gridBus::busType::PQ) {
+            if (bus->getType() != GridBus::busType::PQ) {
                 bus->registerVoltageControl(this);
                 opFlags.reset(indirect_voltage_control);
             } else if (opFlags[indirect_voltage_control]) {
@@ -111,13 +111,13 @@ void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
                 m_Vtarget = remoteBus->get("vtarget");
             }
             remoteBus->registerVoltageControl(this);
-            if (remoteBus->getType() == gridBus::busType::PQ) {
+            if (remoteBus->getType() == GridBus::busType::PQ) {
                 opFlags.set(indirect_voltage_control);
             }
         }
         // load up power control
         if (opFlags[local_power_control]) {
-            if (bus->getType() != gridBus::busType::PQ) {
+            if (bus->getType() != GridBus::busType::PQ) {
                 bus->registerPowerControl(this);
                 opFlags.reset(indirect_voltage_control);
             }
@@ -236,7 +236,7 @@ void Generator::add(CoreObject* obj)
     if (dynamic_cast<GridSubModel*>(obj) != nullptr) {
         return add(static_cast<GridSubModel*>(obj));
     }
-    if (dynamic_cast<gridBus*>(obj) != nullptr) {
+    if (dynamic_cast<GridBus*>(obj) != nullptr) {
         setRemoteBus(obj);
     } else {
         throw(unrecognizedObjectException(this));
@@ -254,7 +254,7 @@ void Generator::add(GridSubModel* obj)
 
 void Generator::setRemoteBus(CoreObject* newRemoteBus)
 {
-    auto* newRbus = dynamic_cast<gridBus*>(newRemoteBus);
+    auto* newRbus = dynamic_cast<GridBus*>(newRemoteBus);
     if (newRbus == nullptr) {
         return;
     }

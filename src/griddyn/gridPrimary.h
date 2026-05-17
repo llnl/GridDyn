@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn {
-class gridBus;
+class GridBus;
 class Area;
 class Link;
 class Relay;
@@ -30,7 +30,7 @@ enum secondary_output_locations {
     QoutLocation = 1,
 };
 
-/** @brief base class for top level simulation objects including gridBus, Link, gridRelays, and Area
+/** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and Area
   gridPrimary class defines the interface for gridPrimary objects which are nominally objects that
 can be contained by a root object which is an area usually,  though there is no restriction in other
 classes also containing primary objects.
@@ -153,7 +153,7 @@ class gridPrimary: public GridComponent {
     @param[in] num the index of the bus being requested
     @return a pointer to the requested bus or nullptr
     **/
-    virtual gridBus* getBus(index_t num) const;
+    virtual GridBus* getBus(index_t num) const;
 
     /**
     *@brief get a pointer for a particular Link

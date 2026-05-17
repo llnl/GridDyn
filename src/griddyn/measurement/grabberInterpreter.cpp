@@ -107,18 +107,18 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command,
 
 void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
 {
-    auto bus = dynamic_cast<gridBus*>(obj);
+    auto bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
         v.reserve(v.size() + 5);
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("voltage", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("voltage", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("angle", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("angle", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("gen", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("gen", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("load", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("load", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("freq", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("freq", bus));
         return;
     }
 
@@ -221,19 +221,19 @@ void allGrabbers(std::string_view mode,
                  CoreObject* obj,
                  std::vector<std::unique_ptr<gridGrabber>>& v)
 {
-    auto bus = dynamic_cast<gridBus*>(obj);
+    auto bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
         v.reserve(v.size() + 5);
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("voltage", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("voltage", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("angle", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("angle", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("gen", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("gen", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("load", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("load", bus));
 
-        v.push_back(std::make_unique<objectGrabber<gridBus>>("freq", bus));
+        v.push_back(std::make_unique<objectGrabber<GridBus>>("freq", bus));
         return;
     }
 

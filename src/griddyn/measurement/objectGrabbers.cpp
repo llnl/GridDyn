@@ -172,21 +172,21 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> busFunctions{
-    {"voltage", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getVoltage(); }, puV}},
-    {"angle", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
-    {"busangle", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
-    {"freq", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
-    {"busfreq", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
+    {"voltage", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getVoltage(); }, puV}},
+    {"angle", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getAngle(); }, rad}},
+    {"busangle", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getAngle(); }, rad}},
+    {"freq", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getFreq(); }, puHz}},
+    {"busfreq", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getFreq(); }, puHz}},
     {"general",
-     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
-     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReactive(); }, puMW}},
-    {"loadreal", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getGenerationReactive(); }, puMW}},
+    {"loadreal", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getLoadReal(); }, puMW}},
     {"loadreactive",
-     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReactive(); }, puMW}},
-    {"linkreal", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getLoadReactive(); }, puMW}},
+    {"linkreal", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getLinkReal(); }, puMW}},
     {"linkreactive",
-     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReactive(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getLinkReactive(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
@@ -496,7 +496,7 @@ fobjectPair getObjectFunction(const GridComponent* comp, const std::string& fiel
     return kNullObjectPair;
 }
 
-fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
+fobjectPair getObjectFunction(const GridBus* bus, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
 

@@ -79,7 +79,7 @@ class Generator: public gridSecondary {
     model_parameter m_Vtarget = -1;  //!< voltage target for the generator at the control bus
     model_parameter m_Rs = 0.0;  //!< the real part of the generator impedance
     model_parameter m_Xs = 1.0;  //!< generator impedance defined on Mbase;
-    gridBus* remoteBus = nullptr;  //!< the bus for remote control
+    GridBus* remoteBus = nullptr;  //!< the bus for remote control
     std::unique_ptr<utilities::OperatingBoundary> bounds;
 
   public:

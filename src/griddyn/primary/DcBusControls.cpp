@@ -11,7 +11,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 
 namespace griddyn {
-DcBusControls::DcBusControls(dcBus* busToControl): controlledBus(busToControl) {}
+DcBusControls::DcBusControls(DcBus* busToControl): controlledBus(busToControl) {}
 
 bool DcBusControls::hasAdjustments() const
 {
@@ -137,9 +137,9 @@ void DcBusControls::updateControls()
         Pmax += pco->get("pmax");
         Pmin += pco->get("pmin");
         if (pco->checkFlag(remote_power_control)) {
-            if (static_cast<dcBus*>(pco->find("bus"))->directPath(controlledBus, pco)) {
+            if (static_cast<DcBus*>(pco->find("bus"))->directPath(controlledBus, pco)) {
                 auto opath =
-                    static_cast<dcBus*>(pco->find("bus"))->getDirectPath(controlledBus, pco);
+                    static_cast<DcBus*>(pco->find("bus"))->getDirectPath(controlledBus, pco);
                 opath.pop_back();
                 if (dynamic_cast<Link*>(opath.back()) != nullptr) {
                     proxyControlObject.push_back(static_cast<Link*>(opath.back()));
@@ -171,24 +171,24 @@ void DcBusControls::updateControls()
     }
 }
 
-void DcBusControls::mergeBus(dcBus* mbus)
+void DcBusControls::mergeBus(DcBus* mbus)
 {
     // bus with the lowest ID is the master
     if (controlledBus->getID() < mbus->getID()) {
         if (controlledBus->checkFlag(
-                dcBus::bus_flags::slave_bus))  // if we are already a slave forward the merge to the
+                DcBus::bus_flags::slave_bus))  // if we are already a slave forward the merge to the
                                                // master
         {
             masterBus->mergeBus(mbus);
         } else {
-            if (mbus->checkFlag(dcBus::bus_flags::slave_bus)) {
+            if (mbus->checkFlag(DcBus::bus_flags::slave_bus)) {
                 if (controlledBus->getID() != mbus->busController.masterBus->getID()) {
-                    mergeBus(static_cast<dcBus*>(mbus->busController.masterBus));
+                    mergeBus(static_cast<DcBus*>(mbus->busController.masterBus));
                 }
             } else {
                 // This bus becomes the master of mbus
                 mbus->busController.masterBus = controlledBus;
-                mbus->opFlags.set(dcBus::bus_flags::slave_bus);
+                mbus->opFlags.set(DcBus::bus_flags::slave_bus);
                 slaveBusses.push_back(mbus);
                 for (auto sb : mbus->busController.slaveBusses) {
                     slaveBusses.push_back(sb);
@@ -199,7 +199,7 @@ void DcBusControls::mergeBus(dcBus* mbus)
         }
     } else if (controlledBus->getID() > mbus->getID()) {
         // mbus is now this buses master
-        if (controlledBus->checkFlag(dcBus::bus_flags::slave_bus)) {
+        if (controlledBus->checkFlag(DcBus::bus_flags::slave_bus)) {
             // if we are already a slave forward the merge to the
             // master
             if (masterBus->getID() != mbus->getID()) {
@@ -212,7 +212,7 @@ void DcBusControls::mergeBus(dcBus* mbus)
                 masterBus = mbus;
                 mbus->busController.slaveBusses.push_back(controlledBus);
             } else {
-                if (mbus->checkFlag(dcBus::bus_flags::slave_bus)) {
+                if (mbus->checkFlag(DcBus::bus_flags::slave_bus)) {
                     mbus->busController.masterBus->mergeBus(controlledBus);
                 } else {
                     masterBus = mbus;
@@ -228,10 +228,10 @@ void DcBusControls::mergeBus(dcBus* mbus)
     }
 }
 
-void DcBusControls::unmergeBus(dcBus* mbus)
+void DcBusControls::unmergeBus(DcBus* mbus)
 {
-    if (controlledBus->checkFlag(dcBus::bus_flags::slave_bus)) {
-        if (mbus->checkFlag(dcBus::bus_flags::slave_bus)) {
+    if (controlledBus->checkFlag(DcBus::bus_flags::slave_bus)) {
+        if (mbus->checkFlag(DcBus::bus_flags::slave_bus)) {
             if (isSameObject(mbus->busController.masterBus, masterBus)) {
                 masterBus->unmergeBus(mbus);
             }
@@ -240,10 +240,10 @@ void DcBusControls::unmergeBus(dcBus* mbus)
         }
     } else {
         // in the masterbus
-        if ((mbus->checkFlag(dcBus::bus_flags::slave_bus)) &&
+        if ((mbus->checkFlag(DcBus::bus_flags::slave_bus)) &&
             (isSameObject(controlledBus, mbus->busController.masterBus))) {
             for (auto& eb : slaveBusses) {
-                eb->opFlags.reset(dcBus::bus_flags::slave_bus);
+                eb->opFlags.reset(DcBus::bus_flags::slave_bus);
             }
             checkMerge();
             mbus->checkMerge();
@@ -256,7 +256,7 @@ void DcBusControls::checkMerge()
     if (!controlledBus->isEnabled()) {
         return;
     }
-    if (controlledBus->checkFlag(dcBus::bus_flags::directconnect)) {
+    if (controlledBus->checkFlag(DcBus::bus_flags::directconnect)) {
         directBus->mergeBus(controlledBus);
     }
     for (auto& lnk : controlledBus->attachedLinks) {

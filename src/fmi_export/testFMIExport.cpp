@@ -47,7 +47,7 @@ void generateFmu(const std::string& target, const std::string& inputFile)
 }  // namespace
 
 using griddyn::coreTime;
-using griddyn::gridBus;
+using griddyn::GridBus;
 using griddyn::gridDynSimulation;
 using griddyn::loadFile;
 using griddyn::make_owningPtr;
@@ -254,7 +254,7 @@ TEST_F(FmiExportTests, TestFmiRunner2)
     runner->simInitialize();
     runner->updateOutputs();
 
-    auto* bus = static_cast<gridBus*>(runner->getSim()->getSubObject("bus", 11));
+    auto* bus = static_cast<GridBus*>(runner->getSim()->getSubObject("bus", 11));
 
     auto* loadObject = dynamic_cast<griddyn::loads::ThreePhaseLoad*>(bus->getLoad(0));
     ASSERT_NE(loadObject, nullptr);

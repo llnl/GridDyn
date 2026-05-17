@@ -357,21 +357,21 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 - [x] Audit all references to `gridComponent`
 - [x] Audit all references to `gridSubModel`
 - [x] Audit all references to `helperObject`
-- [~] Rename type families to compliant names
-- [~] Update dependents
-- [~] Update tests
-- [ ] Remove temporary compatibility shims when safe
+- [x] Rename type families to compliant names
+- [x] Update dependents
+- [x] Update tests
+- [x] Remove temporary compatibility shims when safe
 
 ### Epic C: Topology And Network Model Types
 
-- [ ] Audit all references to `gridBus`
-- [ ] Audit all references to `acBus`
-- [ ] Audit all references to `dcBus`
+- [x] Audit all references to `gridBus`
+- [x] Audit all references to `acBus`
+- [x] Audit all references to `dcBus`
 - [ ] Audit all references to `Area`
 - [ ] Audit all references to `Link`
-- [ ] Rename type families to compliant names
-- [ ] Update dependents
-- [ ] Update tests
+- [~] Rename type families to compliant names
+- [~] Update dependents
+- [~] Update tests
 - [ ] Remove temporary compatibility shims when safe
 
 ### Epic D: Simulation Types
@@ -503,6 +503,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/fileInput`                                                                                                         | Phase 5 | Subsystem public API cleanup covering top-level reader/helper renames, format-loader normalization, dependent runner/test call-site updates, and the associated `clang-tidy` fallout cleanup                                   | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/fmi`                                                                                                               | Phase 5 | Subsystem public API cleanup covering FMI import/runtime wrapper API normalization, FMI submodel and wrapper call-site cleanup, expanded instance/helper renames across the model layer, and dependent test fallout            | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/core`                                                                                                              | Phase 6 | Foundational type-family cleanup covering the `coreObject` to `CoreObject` base rename, immediate core infrastructure fallout, dependent repository-wide pointer/signature updates, and associated `clang-tidy` follow-through | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/core` + `src/griddyn`                                                                                              | Phase 6 | Foundational hierarchy cleanup covering the `gridComponent`, `gridSubModel`, and `helperObject` base-family renames, repository-wide dependent type updates, and associated `clang-tidy` follow-through                       | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/optimization`                                                                                                      | Phase 5 | Subsystem public API cleanup covering optimization-object lookup renames, objective-name API cleanup, offset-accessor normalization, dependent file-input call-site updates, and associated `clang-tidy` fixes                 | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                                           | No                   | CI workflow run                  | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                                           | No                   | No `clang-tidy` issues to report | Complete |

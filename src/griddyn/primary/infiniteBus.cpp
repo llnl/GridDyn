@@ -18,7 +18,7 @@ using units::puHz;
 using units::puV;
 using units::unit;
 
-infiniteBus::infiniteBus(const std::string& objName): gridBus(objName)
+infiniteBus::infiniteBus(const std::string& objName): GridBus(objName)
 {
     // default values
     type = busType::SLK;
@@ -26,7 +26,7 @@ infiniteBus::infiniteBus(const std::string& objName): gridBus(objName)
 }
 
 infiniteBus::infiniteBus(double startVoltage, double startAngle, const std::string& objName):
-    gridBus(startVoltage, startAngle, objName)
+    GridBus(startVoltage, startAngle, objName)
 {
     type = busType::SLK;
     dynType = dynBusType::dynSLK;
@@ -34,7 +34,7 @@ infiniteBus::infiniteBus(double startVoltage, double startAngle, const std::stri
 
 CoreObject* infiniteBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<infiniteBus, gridBus>(this, obj);
+    auto nobj = cloneBase<infiniteBus, GridBus>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -55,7 +55,7 @@ void infiniteBus::updateVoltageAngle(coreTime time)
 void infiniteBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     updateVoltageAngle(time);
-    gridBus::timestep(time, inputs, sMode);
+    GridBus::timestep(time, inputs, sMode);
 }
 
 void infiniteBus::setState(coreTime time,
@@ -64,7 +64,7 @@ void infiniteBus::setState(coreTime time,
                            const solverMode& sMode)
 {
     updateVoltageAngle(time);
-    gridBus::setState(time, state, dstate_dt, sMode);
+    GridBus::setState(time, state, dstate_dt, sMode);
 }
 
 // set properties
@@ -75,7 +75,7 @@ void infiniteBus::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(std::string{param} + ':' + std::string{val}));
         }
     } else {
-        gridBus::set(param, val);
+        GridBus::set(param, val);
     }
 }
 
@@ -86,7 +86,7 @@ void infiniteBus::set(std::string_view param, double val, unit unitType)
     } else if (param == "dfdt") {
         dfdt = convert(val, unitType, puHz, systemBaseFrequency);
     } else {
-        gridBus::set(param, val, unitType);
+        GridBus::set(param, val, unitType);
     }
 }
 

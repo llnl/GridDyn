@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace griddyn {
-static gridBus defBus(1.0, 0);
+static GridBus defBus(1.0, 0);
 
 gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName), bus(&defBus)
 {
@@ -38,8 +38,8 @@ void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
 {
     if (opFlags[pFlow_initialized]) {
         auto nobj = findMatchingObject(bus, newRoot);
-        if (dynamic_cast<gridBus*>(nobj) != nullptr) {
-            bus = static_cast<gridBus*>(nobj);
+        if (dynamic_cast<GridBus*>(nobj) != nullptr) {
+            bus = static_cast<GridBus*>(nobj);
         }
     }
     GridComponent::updateObjectLinkages(newRoot);
@@ -47,7 +47,7 @@ void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
 
 void gridSecondary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
-    bus = static_cast<gridBus*>(getParent()->find("bus"));
+    bus = static_cast<GridBus*>(getParent()->find("bus"));
     if (bus == nullptr) {
         bus = &defBus;
     }

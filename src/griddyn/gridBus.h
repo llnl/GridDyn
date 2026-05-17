@@ -23,7 +23,7 @@ class Generator;
 #define VLIMIT_VIOLATION (2)
 #define PLIMIT_VIOLATION (3)
 
-/** @brief helper class for gridBus to store the power information
+/** @brief helper class for GridBus to store the power information
  */
 class busPowers {
   public:
@@ -52,7 +52,7 @@ provides the basic management of subObjects and defines the interface.  It has n
 the voltage and angle at whatever it gets set to
 
 */
-class gridBus: public gridPrimary {
+class GridBus: public gridPrimary {
   public:
     /** @brief flags for the buses*/
 
@@ -104,12 +104,12 @@ class gridBus: public gridPrimary {
 
   public:
     /** @brief default constructor*/
-    explicit gridBus(const std::string& objName = "bus_$");
+    explicit GridBus(const std::string& objName = "bus_$");
     /** @brief alternate constructor to specify voltage and angle
     @param[in] voltageStart  the initial voltage
     @param[in] angleStart the initial angle
     */
-    gridBus(double voltageStart, double angleStart, const std::string& objName = "bus_$");
+    GridBus(double voltageStart, double angleStart, const std::string& objName = "bus_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
@@ -158,7 +158,7 @@ class gridBus: public gridPrimary {
     virtual void disconnect() override;
     /** @brief  reconnect the bus
     @param[in] mapBus  a bus to pick of startup parameters from can be nullptr*/
-    virtual void reconnect(gridBus* mapBus);
+    virtual void reconnect(GridBus* mapBus);
     virtual void reconnect() override;
     // parameter set functions
     virtual void setAll(std::string_view objtype,
@@ -233,7 +233,7 @@ class gridBus: public gridPrimary {
     @param[in] networkID the new network number
     @param[in,out] bstk  a queue containing the stack of buses that have yet to be checked
     */
-    virtual void followNetwork(int networkID, std::queue<gridBus*>& bstk);
+    virtual void followNetwork(int networkID, std::queue<GridBus*>& bstk);
     /** @brief check if the bus is capable of operating
      */
     virtual bool checkCapable();
@@ -243,7 +243,7 @@ class gridBus: public gridPrimary {
     @return  a pointer to a Link that connects the current bus to the bus specified by bs or nullptr
     if none exists
     */
-    Link* findLink(gridBus* bs) const;
+    Link* findLink(GridBus* bs) const;
     CoreObject* find(std::string_view objName) const override;
     CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
@@ -441,15 +441,15 @@ class gridBus: public gridPrimary {
                                   const solverMode& sMode,
                                   check_level_t level) override;
 
-    friend bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues, bool printDiff);
+    friend bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues, bool printDiff);
     virtual void updateFlags(bool dynOnly = false) override;
     // for registering and removing power control objects
 
     // for dealing with buses merged with zero impedance link
     /** @brief  merge a bus with the calling bus*/
-    virtual void mergeBus(gridBus* mbus);
+    virtual void mergeBus(GridBus* mbus);
     /** @brief  unmerge a bus with the calling bus*/
-    virtual void unmergeBus(gridBus* mbus);
+    virtual void unmergeBus(GridBus* mbus);
     /** @brief  check if all the buses that are merged should be*/
     virtual void checkMerge();
 
@@ -475,7 +475,7 @@ class gridBus: public gridPrimary {
 
   private:
     template<class X>
-    friend void addObject(gridBus* bus, X* obj, objVector<X*>& OVector);
+    friend void addObject(GridBus* bus, X* obj, objVector<X*>& OVector);
 };
 
 /** @brief compare 2 buses
@@ -487,7 +487,7 @@ more ,but it was useful during development
 @param[in] printDiff  true if the diffs are to be printed
 @return true if match
 */
-bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues = false, bool printDiff = false);
+bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues = false, bool printDiff = false);
 
 /** @brief find the matching bus in a different tree
   searches a cloned object tree to find the corresponding bus
@@ -496,6 +496,6 @@ bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues = false, bool print
 @param[in] sec  the desired parent object tree
 @return a pointer to a bus on the sec tree that matches bus based on name and location
 */
-gridBus* getMatchingBus(gridBus* bus, const gridPrimary* src, gridPrimary* sec);
+GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn

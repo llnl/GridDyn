@@ -371,7 +371,7 @@ TEST_F(LoadTests, MotorTest1)
 
     auto gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(1);
+    GridBus* bus = gds->getBus(1);
     auto mtld = dynamic_cast<motorLoad*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
@@ -390,7 +390,7 @@ TEST_F(LoadTests, MotorTest3)
 
     auto gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(1);
+    GridBus* bus = gds->getBus(1);
     auto mtld = dynamic_cast<motorLoad3*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
@@ -410,7 +410,7 @@ TEST_F(LoadTests, MotorTest3Stall)
 
     auto gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(1);
+    GridBus* bus = gds->getBus(1);
     auto mtld = dynamic_cast<motorLoad3*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
@@ -435,7 +435,7 @@ TEST_F(LoadTests, MotorTest5)
     readerConfig::setPrintMode(0);
     auto gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(1);
+    GridBus* bus = gds->getBus(1);
     auto mtld = dynamic_cast<motorLoad5*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
@@ -457,7 +457,7 @@ TEST_F(LoadTests, FdepTest)
     readerConfig::setPrintMode(0);
     auto gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(2);
+    GridBus* bus = gds->getBus(2);
     auto mtld = dynamic_cast<fDepLoad*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);

@@ -345,7 +345,7 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
 {
     double availPower{0.0};
     std::vector<double> avail;
-    std::vector<gridBus*> gbusses;
+    std::vector<GridBus*> gbusses;
     getBusVector(gbusses);
     avail.reserve(gbusses.size());
 

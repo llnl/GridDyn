@@ -30,7 +30,7 @@ class hvdc: public subsystem {
 
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual void updateBus(gridBus* bus, index_t busnumber) override;
+    virtual void updateBus(GridBus* bus, index_t busnumber) override;
 
   protected:
     static constexpr int forward = 0;  //!< constant defining forward

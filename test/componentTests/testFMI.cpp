@@ -410,7 +410,7 @@ TEST_F(FmiTests, FmiArray)
     std::vector<double> v;
     gds->getVoltage(v);
 
-    auto bus = static_cast<gridBus*>(gds->find("bus_1_1"));
+    auto bus = static_cast<GridBus*>(gds->find("bus_1_1"));
     printf("slk bus p=%f min v= %f\n",
            bus->getGenerationReal(),
            *std::min_element(v.begin(), v.end()));

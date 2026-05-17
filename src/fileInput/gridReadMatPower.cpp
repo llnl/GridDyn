@@ -40,16 +40,16 @@ using mArray = std::vector<std::vector<double>>;
 void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
-                  std::vector<gridBus*>& busList,
+                  std::vector<GridBus*>& busList,
                   const basicReaderInfo& readerOptions);
 int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
-                 std::vector<gridBus*>& busList,
+                 std::vector<GridBus*>& busList,
                  const basicReaderInfo& readerOptions);
 void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount);
 void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    const basicReaderInfo& readerOptions);
 // wrapper function to detect m file format for matpower or PSAT
 
@@ -62,7 +62,7 @@ void loadMatPower(CoreObject* parentObject,
     gridSimulation::resetObjectCounters();  // reset all the object counters to 0
     mArray M1;
     int gencount = 0;
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     size_t baseMVALoc = filetext.find(basename + ".baseMVA");
     if (baseMVALoc != std::string::npos) {
         size_t B = filetext.find_first_of('=', baseMVALoc);
@@ -89,11 +89,11 @@ void loadMatPower(CoreObject* parentObject,
 void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
-                  std::vector<gridBus*>& busList,
+                  std::vector<GridBus*>& busList,
                   const basicReaderInfo& /*readerOptions*/)
 {
     Load* ld = nullptr;
-    auto busFactory = dynamic_cast<typeFactory<gridBus>*>(
+    auto busFactory = dynamic_cast<typeFactory<GridBus>*>(
         coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
     busFactory->prepObjects(static_cast<count_t>(buses.size()), parentObject);
 
@@ -112,7 +112,7 @@ void loadBusArray(CoreObject* parentObject,
             busList[ind1]->setUserID(ind1);
             parentObject->add(busList[ind1]);
         }
-        gridBus* bus = busList[ind1];
+        GridBus* bus = busList[ind1];
         ind1 = static_cast<int>(busData[1]);
         if (ind1 == 2) {
             bus->set("type", "PV");
@@ -186,7 +186,7 @@ MU QMIN† 25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
 
 int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
-                 std::vector<gridBus*>& busList,
+                 std::vector<GridBus*>& busList,
                  const basicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
@@ -366,7 +366,7 @@ MU ANGMAX‡ 21 Kuhn-Tucker multiplier upper angle difference limit (u/degree)
 
 void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    const basicReaderInfo& /*readerOptions*/)
 {
     auto linkFactory = dynamic_cast<typeFactory<Link>*>(
@@ -375,10 +375,10 @@ void loadLinkArray(CoreObject* parentObject,
     index_t kk = 0;
     for (const auto& linkData : lnks) {
         auto ind1 = static_cast<index_t>(linkData[0]);
-        gridBus* bus1 = busList[ind1];
+        GridBus* bus1 = busList[ind1];
 
         auto ind2 = static_cast<index_t>(linkData[1]);
-        gridBus* bus2 = busList[ind2];
+        GridBus* bus2 = busList[ind2];
         Link* lnk = linkFactory->makeTypeObject();
         ++kk;
         lnk->setUserID(kk);

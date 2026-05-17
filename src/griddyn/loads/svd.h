@@ -25,7 +25,7 @@ class svd: public rampLoad {
     };
 
   protected:
-    gridBus* controlBus = nullptr;  //!< pointer to the control bus
+    GridBus* controlBus = nullptr;  //!< pointer to the control bus
     model_parameter Qmin = -kBigNum;  //!<[puMVA] the minimum reactive power
     model_parameter Qmax = kBigNum;  //!<[puMVA] the maximum reactive power output
     model_parameter Vmin = 0.8;  //!<[puV] the low voltage threshold
@@ -73,7 +73,7 @@ class svd: public rampLoad {
     /** define which bus the svd is controlling voltage on if it is not otherwise specified it
      * is assumed to be the parent bus
      */
-    virtual void setControlBus(gridBus* cBus);
+    virtual void setControlBus(GridBus* cBus);
 
     /** add a reactive block to the controller
 @param[in] steps the number of steps in the block

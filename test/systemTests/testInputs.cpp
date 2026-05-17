@@ -127,8 +127,8 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
             gds->reset(reset_levels::voltage_angle);
 
             for (int ii = 0; ii < 300; ++ii) {
-                gridBus* bus = gds->getBus(ii);
-                if (bus->getType() == gridBus::busType::PQ) {
+                GridBus* bus = gds->getBus(ii);
+                if (bus->getType() == GridBus::busType::PQ) {
                     bus->set("voltage", 1.0);
                 }
             }

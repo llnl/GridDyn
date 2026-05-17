@@ -116,7 +116,7 @@ void stateGrabber::updateField(std::string_view fld)
     field = fld;
     auto fieldDescription = gmlc::utilities::convertToLowerCase(std::string{fld});
     loaded = true;
-    if (dynamic_cast<gridBus*>(cobj) != nullptr) {
+    if (dynamic_cast<GridBus*>(cobj) != nullptr) {
         busLoadInfo(fieldDescription);
     } else if (dynamic_cast<Link*>(cobj) != nullptr) {
         linkLoadInfo(fieldDescription);
@@ -247,31 +247,31 @@ static const std::map<std::string, fstateobjectPair> objectFunctions{
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> busFunctions{
-  {"voltage", {FUNCTION_SIGNATURE{return static_cast<gridBus *> (obj)->getVoltage (stateDataValue, sMode);}, puV}},
-{"angle", {FUNCTION_SIGNATURE{return static_cast<gridBus *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
-{"busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridBus *> (obj)->getAngle(stateDataValue, sMode); }, rad } },
-{"freq", {FUNCTION_SIGNATURE{return static_cast<gridBus *> (obj)->getFreq (stateDataValue, sMode);}, puHz}},
-{ "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridBus *> (obj)->getFreq(stateDataValue, sMode); }, puHz } },
-{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getGenerationReal ();}, puMW}},
-{"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getGenerationReactive ();}, puMW}},
-{"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLoadReal ();}, puMW}},
-{"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLoadReactive ();}, puMW}},
-{"linkreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLinkReal ();}, puMW}},
-{"linkreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<gridBus *> (obj)->getLinkReactive ();}, puMW}},
+  {"voltage", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getVoltage (stateDataValue, sMode);}, puV}},
+{"angle", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
+{"busangle",{ FUNCTION_SIGNATURE{ return static_cast<GridBus *> (obj)->getAngle(stateDataValue, sMode); }, rad } },
+{"freq", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getFreq (stateDataValue, sMode);}, puHz}},
+{ "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<GridBus *> (obj)->getFreq(stateDataValue, sMode); }, puHz } },
+{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getGenerationReal ();}, puMW}},
+{"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getGenerationReactive ();}, puMW}},
+{"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLoadReal ();}, puMW}},
+{"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLoadReactive ();}, puMW}},
+{"linkreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLinkReal ();}, puMW}},
+{"linkreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLinkReactive ();}, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, objJacFunction> busJacFunctions{
   {"voltage", JAC_FUNCTION_SIGNATURE_NO_STATE{
-          matrixDataValue.assignCheckCol (0, static_cast<gridBus *> (obj)->getOutputLoc (sMode, voltageInLocation), 1.0);}},
+          matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, voltageInLocation), 1.0);}},
   {"angle", JAC_FUNCTION_SIGNATURE_NO_STATE{
-              matrixDataValue.assignCheckCol (0, static_cast<gridBus *> (obj)->getOutputLoc (sMode, angleInLocation), 1.0);}},
+              matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, angleInLocation), 1.0);}},
  { "busangle", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<gridBus *> (obj)->getOutputLoc(sMode, angleInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, angleInLocation), 1.0); } },
     { "freq", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<gridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
     { "busfreq", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<gridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)

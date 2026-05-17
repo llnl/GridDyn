@@ -95,7 +95,7 @@ void GenModel::dynObjectInitializeB(const IOdata& inputs,
             desiredOutput[QoutLocation] / Xd / inputs[voltageInLocation] * 0.85;
     }
 
-    bus = static_cast<gridBus*>(find("bus"));
+    bus = static_cast<GridBus*>(find("bus"));
 }
 
 // residual

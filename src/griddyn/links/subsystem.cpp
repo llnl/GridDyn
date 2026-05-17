@@ -80,7 +80,7 @@ void subsystem::remove(CoreObject* obj)
 {
     subarea.remove(obj);
 }
-gridBus* subsystem::getBus(index_t num) const
+GridBus* subsystem::getBus(index_t num) const
 {
     return subarea.getBus(num);
 }
@@ -192,7 +192,7 @@ void subsystem::set(std::string_view param, std::string_view val)
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
     if (iparam == "bus") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             if (num > static_cast<int>(m_terminals)) {
                 resize(num);
@@ -212,14 +212,14 @@ void subsystem::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(param));
         }
     } else if (param == "from") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
             throw(invalidParameterValue(param));
         }
     } else if (param == "to") {
-        auto bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
@@ -303,7 +303,7 @@ void subsystem::timestep(const coreTime time, const IOdata& inputs, const solver
     prevTime = time;
 }
 
-count_t subsystem::getBusVector(std::vector<gridBus*>& busVector, index_t start)
+count_t subsystem::getBusVector(std::vector<GridBus*>& busVector, index_t start)
 {
     return subarea.getBusVector(busVector, start);
 }
@@ -395,12 +395,12 @@ int subsystem::fixPower(double rPower,
     return 0;
 }
 
-void subsystem::followNetwork(int network, std::queue<gridBus*>& stk)
+void subsystem::followNetwork(int network, std::queue<GridBus*>& stk)
 {
     terminalLink[0]->followNetwork(network, stk);
 }
 
-void subsystem::updateBus(gridBus* bus, index_t busnumber)
+void subsystem::updateBus(GridBus* bus, index_t busnumber)
 {
     if (busnumber <= m_terminals) {
         terminalLink[busnumber - 1]->updateBus(bus, cterm[busnumber - 1]);

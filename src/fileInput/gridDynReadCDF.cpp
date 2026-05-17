@@ -27,14 +27,14 @@ using gmlc::utilities::stringOps::trim;
 using units::deg;
 using units::MW;
 
-static void cdfReadBusLine(gridBus* bus,
+static void cdfReadBusLine(GridBus* bus,
                            const std::string& line,
                            double base,
                            const basicReaderInfo& readerOptions);
 static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
-                          std::vector<gridBus*> busList,
+                          std::vector<GridBus*> busList,
                           const basicReaderInfo& readerOptions);
 
 void loadCdf(CoreObject* parentObject,
@@ -49,7 +49,7 @@ void loadCdf(CoreObject* parentObject,
         std::cerr << "Unable to open file " << fileName << '\n';
         //    return;
     }
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     index_t index;
     double base = 100;
 
@@ -106,7 +106,7 @@ void loadCdf(CoreObject* parentObject,
                         }
                     }
                     if (busList[index] == nullptr) {
-                        busList[index] = new acBus();
+                        busList[index] = new AcBus();
                         busList[index]->set("basepower", base);  // set the basepower for the bus
                         busList[index]->setUserID(index);
                         cdfReadBusLine(busList[index], line, base, readerOptions);
@@ -176,7 +176,7 @@ Columns 115-122 Shunt susceptance B (per unit) (F) *
 Columns 124-127 Remote controlled bus number
 */
 
-static void cdfReadBusLine(gridBus* bus,
+static void cdfReadBusLine(GridBus* bus,
                            const std::string& line,
                            double base,
                            const basicReaderInfo& readerOptions)
@@ -347,7 +347,7 @@ static void cdfReadBusLine(gridBus* bus,
         if (reactivePower != 0) {
             gen->set("qmin", reactivePower / base);
         }
-    } else if (bus->getType() != gridBus::busType::PQ) {
+    } else if (bus->getType() != GridBus::busType::PQ) {
         temp = line.substr(90, 7);
         realPower = gmlc::utilities::numConv<double>(
             gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));
@@ -405,7 +405,7 @@ Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
-                          std::vector<gridBus*> busList,
+                          std::vector<GridBus*> busList,
                           const basicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
@@ -442,7 +442,7 @@ static void cdfReadBranch(CoreObject* parentObject,
     switch (code) {
         case 0:  // ac line
         case 1:  // transformer
-            lnk = new acLine();
+            lnk = new AcLine();
             lnk->set("basepower", base);
             break;
         case 2:

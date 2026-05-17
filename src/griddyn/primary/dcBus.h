@@ -18,7 +18,7 @@ namespace griddyn {
 /** @brief class implements a DC powered bus
  the DC has only one state (voltage) and can only attach to links that are DC capable
 */
-class dcBus: public gridBus {
+class DcBus: public GridBus {
     friend class DcBusControls;
 
   public:
@@ -40,11 +40,11 @@ class dcBus: public gridBus {
     matrixDataTranslate<1> of;
 
   public:
-    explicit dcBus(const std::string& objName = "dcBus_$");
+    explicit DcBus(const std::string& objName = "dcBus_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    using gridBus::add;
+    using GridBus::add;
     virtual void add(Link* lnk) override;  // this add function checks for DC capable links
 
     // dynInitializeB

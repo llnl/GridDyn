@@ -15,12 +15,12 @@
 namespace griddyn::links {
 ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): subsystem(objName)
 {
-    gridBus* bus = new acBus("ibus_mid");
+    GridBus* bus = new AcBus("ibus_mid");
     subsystem::add(bus);
 
-    acLine* t1 = new acLine("primary");
-    acLine* t2 = new acLine("secondary");
-    acLine* t3 = new acLine("tertiary");
+    AcLine* t1 = new AcLine("primary");
+    AcLine* t2 = new AcLine("secondary");
+    AcLine* t3 = new AcLine("tertiary");
     subsystem::add(t1);
     subsystem::add(t2);
     subsystem::add(t3);

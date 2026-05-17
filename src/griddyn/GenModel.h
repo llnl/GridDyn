@@ -13,7 +13,7 @@ namespace griddyn {
 constexpr index_t genModelEftInLocation = 2;
 constexpr index_t genModelPmechInLocation = 3;
 
-class gridBus;
+class GridBus;
 
 /** @brief model simulation implementing a generator model into GridDyn
  the GenModel implements a very basic generator model with 4 states the real and reactive
@@ -41,7 +41,7 @@ class GenModel: public GridSubModel {
     double machineBasePower = 100;  //!< [pu]  the operating base of the generator
     double Xd = 1.05;  //!< [pu] d-axis reactance
     double Rs = 0.0;  //!< [pu] generator resistance
-    gridBus* bus = nullptr;  //!< reference to the connected bus;
+    GridBus* bus = nullptr;  //!< reference to the connected bus;
   public:
     //!< @brief default constructor
     explicit GenModel(const std::string& objName = "genModel_#");

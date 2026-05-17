@@ -34,12 +34,12 @@ class EventInfo;
 class gridSimulation;
 class gridDynSimulation;
 class Relay;
-class gridBus;
+class GridBus;
 class gridPrimary;
 class gridSecondary;
 class GridSubModel;
 
-gridBus* readBusElement(std::shared_ptr<readerElement>& element,
+GridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
                         CoreObject* searchObject = nullptr);
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,

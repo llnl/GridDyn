@@ -32,7 +32,7 @@ class fuse: public Relay {
   private:
     double cI2T = 0.0;  //!< calculated I2t value for fuse
     double Vbase = 120;  //!<[kV] Voltage base for bus
-    gridBus* bus = nullptr;  //!< storage for a bus which the line terminal or other object
+    GridBus* bus = nullptr;  //!< storage for a bus which the line terminal or other object
     bool& useI2T;  //!< internal flag for using the i^2t functionality
   public:
     explicit fuse(const std::string& objName = "fuse_$");

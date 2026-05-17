@@ -20,16 +20,16 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<dcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
+static typeFactory<DcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
 
 using units::convert;
 using units::unit;
 
-dcBus::dcBus(const std::string& objName): gridBus(objName), busController(this) {}
+DcBus::DcBus(const std::string& objName): GridBus(objName), busController(this) {}
 
-CoreObject* dcBus::clone(CoreObject* obj) const
+CoreObject* DcBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<dcBus, gridBus>(this, obj);
+    auto nobj = cloneBase<DcBus, GridBus>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -39,29 +39,29 @@ CoreObject* dcBus::clone(CoreObject* obj) const
 }
 
 // add link
-void dcBus::add(Link* lnk)
+void DcBus::add(Link* lnk)
 {
     if ((lnk->checkFlag(dc_only)) || (lnk->checkFlag(dc_capable))) {
-        return gridBus::add(lnk);
+        return GridBus::add(lnk);
     }
 
     throw(unrecognizedObjectException(this));
 }
 
 // dynInitializeB states
-void dcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    gridBus::pFlowObjectInitializeA(time0, flags);
+    GridBus::pFlowObjectInitializeA(time0, flags);
 }
 
-void dcBus::pFlowObjectInitializeB()
+void DcBus::pFlowObjectInitializeB()
 {
-    gridBus::pFlowObjectInitializeB();
+    GridBus::pFlowObjectInitializeB();
 
     propogatePower();
 }
 
-stateSizes dcBus::LocalStateSizes(const solverMode& sMode) const
+stateSizes DcBus::LocalStateSizes(const solverMode& sMode) const
 {
     stateSizes busSS;
     if (hasAlgebraic(sMode)) {
@@ -84,7 +84,7 @@ stateSizes dcBus::LocalStateSizes(const solverMode& sMode) const
     return busSS;
 }
 
-count_t dcBus::LocalJacobianCount(const solverMode& sMode) const
+count_t DcBus::LocalJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (hasAlgebraic(sMode)) {
@@ -98,7 +98,7 @@ count_t dcBus::LocalJacobianCount(const solverMode& sMode) const
 }
 
 change_code
-    dcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, check_level_t level)
+    DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, check_level_t level)
 {
     auto out = change_code::no_change;
     // genP and genQ are defined negative for producing power so we flip the signs here
@@ -170,34 +170,34 @@ change_code
     return out;
 }
 /*function to check the current status for any limit violations*/
-void dcBus::pFlowCheck(std::vector<Violation>& Violation_vector)
+void DcBus::pFlowCheck(std::vector<Violation>& Violation_vector)
 {
-    gridBus::pFlowCheck(Violation_vector);
+    GridBus::pFlowCheck(Violation_vector);
 }
 
 // dynInitializeB states for dynamic solution
-void dcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    return gridBus::dynObjectInitializeA(time0, flags);
+    return GridBus::dynObjectInitializeA(time0, flags);
 }
 
 // dynInitializeB states for dynamic solution part 2  //final clean up
-void dcBus::dynObjectInitializeB(const IOdata& inputs,
+void DcBus::dynObjectInitializeB(const IOdata& inputs,
                                  const IOdata& desiredOutput,
                                  IOdata& fieldSet)
 {
-    gridBus::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    GridBus::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     S.genQ = 0;
     angle = 0;
 }
 
-void dcBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void DcBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
-    gridBus::timestep(time, inputs, sMode);
+    GridBus::timestep(time, inputs, sMode);
 }
 
 // set properties
-void dcBus::set(std::string_view param, std::string_view val)
+void DcBus::set(std::string_view param, std::string_view val)
 {
     auto val_lowerCase = gmlc::utilities::convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
@@ -243,19 +243,19 @@ void dcBus::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(val));
         }
     } else {
-        gridBus::set(param, val);
+        GridBus::set(param, val);
     }
 }
 
-void dcBus::set(std::string_view param, double val, unit unitType)
+void DcBus::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
     } else {
-        gridBus::set(param, val, unitType);
+        GridBus::set(param, val, unitType);
     }
 }
 
-void dcBus::getStateName(stringVec& stNames,
+void DcBus::getStateName(stringVec& stNames,
                          const solverMode& sMode,
                          const std::string& prefix) const
 {
@@ -275,11 +275,11 @@ void dcBus::getStateName(stringVec& stNames,
             return;
         }
     }
-    gridBus::getStateName(stNames, sMode, prefix);
+    GridBus::getStateName(stNames, sMode, prefix);
 }
 
 // pass the solution
-void dcBus::setState(coreTime time,
+void DcBus::setState(coreTime time,
                      const double state[],
                      const double dstate_dt[],
                      const solverMode& sMode)
@@ -300,10 +300,10 @@ void dcBus::setState(coreTime time,
             voltage = state[Voffset];
         }
     }
-    gridBus::setState(time, state, dstate_dt, sMode);
+    GridBus::setState(time, state, dstate_dt, sMode);
 }
 
-void dcBus::guessState(coreTime time, double state[], double dstate_dt[], const solverMode& sMode)
+void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const solverMode& sMode)
 {
     auto Voffset = offsets.getVOffset(sMode);
 
@@ -316,16 +316,16 @@ void dcBus::guessState(coreTime time, double state[], double dstate_dt[], const 
             }
         }
     }
-    gridBus::guessState(time, state, dstate_dt, sMode);
+    GridBus::guessState(time, state, dstate_dt, sMode);
 }
 
 // residual
-void dcBus::residual(const IOdata& inputs,
+void DcBus::residual(const IOdata& inputs,
                      const stateData& sD,
                      double resid[],
                      const solverMode& sMode)
 {
-    gridBus::residual(inputs, sD, resid, sMode);
+    GridBus::residual(inputs, sD, resid, sMode);
     auto Voffset = offsets.getVOffset(sMode);
     // output
 
@@ -342,7 +342,7 @@ void dcBus::residual(const IOdata& inputs,
 
 static const IOlocs inLoc{0, 1, 2};
 
-void dcBus::computeDerivatives(const stateData& sD, const solverMode& sMode)
+void DcBus::computeDerivatives(const stateData& sD, const solverMode& sMode)
 {
     matrixDataCompact<2, 3> partDeriv;
     if (!isConnected()) {
@@ -373,7 +373,7 @@ void dcBus::computeDerivatives(const stateData& sD, const solverMode& sMode)
     dVdP = partDeriv.at(PoutLocation, voltageInLocation);
 }
 // Jacobian
-void dcBus::jacobianElements(const IOdata& /*inputs*/,
+void DcBus::jacobianElements(const IOdata& /*inputs*/,
                              const stateData& sD,
                              matrixData<double>& md,
                              const IOlocs& /*inputLocs*/,
@@ -434,14 +434,14 @@ void dcBus::jacobianElements(const IOdata& /*inputs*/,
           */
 }
 
-IOlocs dcBus::getOutputLocs(const solverMode& sMode) const
+IOlocs DcBus::getOutputLocs(const solverMode& sMode) const
 {
     return {useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation,
             kNullLocation,
             kNullLocation};
 }
 
-index_t dcBus::getOutputLoc(const solverMode& sMode, index_t num) const
+index_t DcBus::getOutputLoc(const solverMode& sMode, index_t num) const
 {
     if (num == voltageInLocation) {
         return useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation;
@@ -450,18 +450,18 @@ index_t dcBus::getOutputLoc(const solverMode& sMode, index_t num) const
 }
 
 // TODO(phlpt): Write this function.
-void dcBus::converge(coreTime /*time*/,
+void DcBus::converge(coreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
                      const solverMode& /*sMode*/,
                      converge_mode /*mode*/,
                      double /*tol*/)
-// void dcBus::converge (const coreTime time, double state[], double dstate_dt[], const solverMode
+// void DcBus::converge (const coreTime time, double state[], double dstate_dt[], const solverMode
 // &sMode, double tol, int mode)
 {
 }
 
-int dcBus::getMode(const solverMode& sMode) const
+int DcBus::getMode(const solverMode& sMode) const
 {
     if (isDynamic(sMode)) {
         if (isDifferentialOnly(sMode)) {
@@ -472,7 +472,7 @@ int dcBus::getMode(const solverMode& sMode) const
     return (static_cast<int>(type) | 1);
 }
 
-double dcBus::getVoltage(const double state[], const solverMode& sMode) const
+double DcBus::getVoltage(const double state[], const solverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
@@ -484,7 +484,7 @@ double dcBus::getVoltage(const double state[], const solverMode& sMode) const
     return voltage;
 }
 
-double dcBus::getVoltage(const stateData& sD, const solverMode& sMode) const
+double DcBus::getVoltage(const stateData& sD, const solverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
@@ -496,7 +496,7 @@ double dcBus::getVoltage(const stateData& sD, const solverMode& sMode) const
     return voltage;
 }
 
-bool dcBus::useVoltage(const solverMode& sMode) const
+bool DcBus::useVoltage(const solverMode& sMode) const
 {
     bool ret = true;
     if (isDifferentialOnly(sMode)) {
@@ -514,7 +514,7 @@ bool dcBus::useVoltage(const solverMode& sMode) const
     return ret;
 }
 
-int dcBus::propogatePower(bool makeSlack)
+int DcBus::propogatePower(bool makeSlack)
 {
     int ret = 0;
     if (makeSlack) {
@@ -537,7 +537,7 @@ int dcBus::propogatePower(bool makeSlack)
     return ret;
 }
 
-void dcBus::computePowerAdjustments()
+void DcBus::computePowerAdjustments()
 {
     // declaring an embedded function
     auto cid = getID();

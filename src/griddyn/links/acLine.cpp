@@ -38,7 +38,7 @@ using units::unit;
 #define DEFAULTDERIVCOMP (this->*(derivCalc[0]))
 
 // NOLINTNEXTLINE
-acLine::acLine(const std::string& objName): Link(objName)
+AcLine::AcLine(const std::string& objName): Link(objName)
 {
     // default values
     loadApproxFunctions();
@@ -46,7 +46,7 @@ acLine::acLine(const std::string& objName): Link(objName)
 }
 
 // NOLINTNEXTLINE
-acLine::acLine(double rP, double xP, const std::string& objName): Link(objName), r(rP), x(xP)
+AcLine::AcLine(double rP, double xP, const std::string& objName): Link(objName), r(rP), x(xP)
 {
     // default values
     setAdmit();
@@ -55,11 +55,11 @@ acLine::acLine(double rP, double xP, const std::string& objName): Link(objName),
     // load up the member function pointer array to point to the correct function
 }
 
-static typeFactory<acLine> glf("link", "tie");
+static typeFactory<AcLine> glf("link", "tie");
 
-CoreObject* acLine::clone(CoreObject* obj) const
+CoreObject* AcLine::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBaseFactory<acLine, Link>(this, obj, &glf);
+    auto* lnk = cloneBaseFactory<AcLine, Link>(this, obj, &glf);
     if (lnk == nullptr) {
         return obj;
     }
@@ -78,11 +78,11 @@ CoreObject* acLine::clone(CoreObject* obj) const
     return lnk;
 }
 
-void acLine::pFlowObjectInitializeB()
+void AcLine::pFlowObjectInitializeB()
 {
     updateLocalCache();
 }
-void acLine::pFlowCheck(std::vector<Violation>& Violation_vector)
+void AcLine::pFlowCheck(std::vector<Violation>& Violation_vector)
 {
     Link::pFlowCheck(Violation_vector);
     double angle = linkInfo.theta1;
@@ -115,7 +115,7 @@ void acLine::pFlowCheck(std::vector<Violation>& Violation_vector)
     }
 }
 
-void acLine::switchChange(int switchNum)
+void AcLine::switchChange(int switchNum)
 {
     if (switchNum == 1) {
         if ((linkInfo.v1 < 0.3) || (fault > 0.0)) {
@@ -128,7 +128,7 @@ void acLine::switchChange(int switchNum)
     }
 }
 
-double acLine::quickupdateP()
+double AcLine::quickupdateP()
 {
     linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;
     linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 * linkInfo.v1 -
@@ -138,7 +138,7 @@ double acLine::quickupdateP()
     return linkFlows.P1;
 }
 
-void acLine::timestep(const coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void AcLine::timestep(const coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -152,7 +152,7 @@ void acLine::timestep(const coreTime time, const IOdata& /*inputs*/, const solve
     }*/
 }
 
-void acLine::checkMerge() {}
+void AcLine::checkMerge() {}
 
 static const stringVec locNumStrings{"r",
                                      "x",
@@ -167,62 +167,62 @@ static const stringVec locNumStrings{"r",
                                      "p"};
 static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
-void acLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void AcLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<acLine, GridComponent>(
+    getParamString<AcLine, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 // set properties
-void acLine::set(std::string_view param, std::string_view val)
+void AcLine::set(std::string_view param, std::string_view val)
 {
     if (param == "approximation") {
         if (val == "auto") {
             loadApproxFunctions();
         } else if (val == "none") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::fullCalc;
-                derivCalc[kk] = &acLine::fullDeriv;
+                flowCalc[kk] = &AcLine::fullCalc;
+                derivCalc[kk] = &AcLine::fullDeriv;
             }
         } else if (val == "simplified") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::simplifiedCalc;
-                derivCalc[kk] = &acLine::simplifiedDeriv;
+                flowCalc[kk] = &AcLine::simplifiedCalc;
+                derivCalc[kk] = &AcLine::simplifiedDeriv;
             }
         } else if (val == "decoupled") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::decoupledCalc;
-                derivCalc[kk] = &acLine::decoupledDeriv;
+                flowCalc[kk] = &AcLine::decoupledCalc;
+                derivCalc[kk] = &AcLine::decoupledDeriv;
             }
         } else if (val == "simplified_decoupled") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::simplifiedDecoupledCalc;
-                derivCalc[kk] = &acLine::simplifiedDecoupledDeriv;
+                flowCalc[kk] = &AcLine::simplifiedDecoupledCalc;
+                derivCalc[kk] = &AcLine::simplifiedDecoupledDeriv;
             }
         } else if (val == "small_angle_decoupled") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::smallAngleDecoupledCalc;
-                derivCalc[kk] = &acLine::smallAngleDecoupledDeriv;
+                flowCalc[kk] = &AcLine::smallAngleDecoupledCalc;
+                derivCalc[kk] = &AcLine::smallAngleDecoupledDeriv;
             }
         } else if (val == "simplified_small_angle") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::smallAngleSimplifiedCalc;
-                derivCalc[kk] = &acLine::smallAngleSimplifiedDeriv;
+                flowCalc[kk] = &AcLine::smallAngleSimplifiedCalc;
+                derivCalc[kk] = &AcLine::smallAngleSimplifiedDeriv;
             }
         } else if (val == "small_angle") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::smallAngleCalc;
-                derivCalc[kk] = &acLine::smallAngleDeriv;
+                flowCalc[kk] = &AcLine::smallAngleCalc;
+                derivCalc[kk] = &AcLine::smallAngleDeriv;
             }
         } else if (val == "linear") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::linearCalc;
-                derivCalc[kk] = &acLine::linearDeriv;
+                flowCalc[kk] = &AcLine::linearCalc;
+                derivCalc[kk] = &AcLine::linearDeriv;
             }
         } else if (val == "fastdecoupled") {
             for (int kk = 0; kk < APPROXIMATION_LEVELS; ++kk) {
-                flowCalc[kk] = &acLine::fastDecoupledCalc;
-                derivCalc[kk] = &acLine::fastDecoupledDeriv;
+                flowCalc[kk] = &AcLine::fastDecoupledCalc;
+                derivCalc[kk] = &AcLine::fastDecoupledDeriv;
             }
         }
     } else {
@@ -230,7 +230,7 @@ void acLine::set(std::string_view param, std::string_view val)
     }
 }
 
-void acLine::set(std::string_view param, double val, unit unitType)
+void AcLine::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -298,7 +298,7 @@ void acLine::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double acLine::get(std::string_view param, unit unitType) const
+double AcLine::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {
@@ -340,7 +340,7 @@ double acLine::get(std::string_view param, unit unitType) const
     return val;
 }
 
-int acLine::fixRealPower(double power,
+int AcLine::fixRealPower(double power,
                          id_type_t measureTerminal,
                          id_type_t fixedTerminal,
                          unit unitType)
@@ -372,7 +372,7 @@ int acLine::fixRealPower(double power,
 
 static IOlocs aLoc{0, 1};
 
-int acLine::fixPower(double rPower,
+int AcLine::fixPower(double rPower,
                      double qPower,
                      id_type_t measureTerminal,
                      id_type_t fixedTerminal,
@@ -572,7 +572,7 @@ int acLine::fixPower(double rPower,
     return ret;
 }
 
-void acLine::ioPartialDerivatives(id_type_t busId,
+void AcLine::ioPartialDerivatives(id_type_t busId,
                                   const stateData& /*sD*/,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
@@ -621,7 +621,7 @@ void acLine::ioPartialDerivatives(id_type_t busId,
     }
 }
 
-void acLine::outputPartialDerivatives(const IOdata& /*inputs*/,
+void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const stateData& /*sD*/,
                                       matrixData<double>& /*md*/,
                                       const solverMode& /*sMode*/)
@@ -630,7 +630,7 @@ void acLine::outputPartialDerivatives(const IOdata& /*inputs*/,
     // if this function is called from an external entity there are no output partial derivatives
 }
 
-void acLine::outputPartialDerivatives(id_type_t busId,
+void AcLine::outputPartialDerivatives(id_type_t busId,
                                       const stateData& /*sD*/,
                                       matrixData<double>& md,
                                       const solverMode& sMode)
@@ -686,19 +686,19 @@ void acLine::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t acLine::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t AcLine::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
 {
     return 2;
 }
 // set admittance values y := g + jb
-void acLine::setAdmit()
+void AcLine::setAdmit()
 {
     auto y2 = 1.0 / (r * r + x * x);
     g = r * y2;
     b = -x * y2;
 }
 
-void acLine::disable()
+void AcLine::disable()
 {
     if (!isEnabled()) {
         return;
@@ -708,7 +708,7 @@ void acLine::disable()
     LinkDeriv = {};
 }
 
-double acLine::getMaxTransfer() const
+double AcLine::getMaxTransfer() const
 {
     if (!isConnected()) {
         return 0;
@@ -726,7 +726,7 @@ double acLine::getMaxTransfer() const
     return (std::abs(b / tap));
 }
 
-void acLine::setState(coreTime time,
+void AcLine::setState(coreTime time,
                       const double state[],
                       const double dstate_dt[],
                       const solverMode& sMode)
@@ -768,7 +768,7 @@ void acLine::setState(coreTime time,
     constLinkFlows = linkFlows;  // update the constant linkFlows
 }
 
-double acLine::getAngle(const double state[], const solverMode& sMode) const
+double AcLine::getAngle(const double state[], const solverMode& sMode) const
 {
     double t1 = B1->getAngle(state, sMode);
     double t2 = B2->getAngle(state, sMode);
@@ -776,7 +776,7 @@ double acLine::getAngle(const double state[], const solverMode& sMode) const
 }
 
 change_code
-    acLine::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, check_level_t level)
+    AcLine::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, check_level_t level)
 {
     if ((level == check_level_t::high_angle_trip) && (isConnected())) {
         if (std::abs(linkInfo.theta1) > kPI / 2.0 + 0.01) {
@@ -787,7 +787,7 @@ change_code
     return change_code::no_change;
 }
 
-change_code acLine::rootCheck(const IOdata& /*inputs*/,
+change_code AcLine::rootCheck(const IOdata& /*inputs*/,
                               const stateData& sD,
                               const solverMode& sMode,
                               check_level_t level)
@@ -803,7 +803,7 @@ change_code acLine::rootCheck(const IOdata& /*inputs*/,
     }
     return ret;
 }
-void acLine::updateLocalCache(const IOdata& /*inputs*/,
+void AcLine::updateLocalCache(const IOdata& /*inputs*/,
                               const stateData& sD,
                               const solverMode& sMode)
 {
@@ -827,7 +827,7 @@ void acLine::updateLocalCache(const IOdata& /*inputs*/,
     }
 }
 
-bool acLine::testAndTrip(int tripLevel)
+bool AcLine::testAndTrip(int tripLevel)
 {
     if (!isConnected()) {
         return false;
@@ -849,7 +849,7 @@ bool acLine::testAndTrip(int tripLevel)
     }
     return false;
 }
-void acLine::updateLocalCache()
+void AcLine::updateLocalCache()
 {
     // set everything to 0
     if (!isEnabled()) {
@@ -868,7 +868,7 @@ void acLine::updateLocalCache()
     }
 }
 
-void acLine::faultCalc()
+void AcLine::faultCalc()
 {
     if (opFlags[switch1_open_flag]) {
         linkFlows.P1 = 0;
@@ -888,7 +888,7 @@ void acLine::faultCalc()
     }
 }
 
-void acLine::loadLinkInfo()
+void AcLine::loadLinkInfo()
 {
     if (isConnected()) {
         linkInfo.v1 = B1->getVoltage();
@@ -923,7 +923,7 @@ void acLine::loadLinkInfo()
     constLinkComp = linkComp;
 }
 
-void acLine::loadLinkInfo(const stateData& sD, const solverMode& sMode)
+void AcLine::loadLinkInfo(const stateData& sD, const solverMode& sMode)
 {
     if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -945,7 +945,7 @@ void acLine::loadLinkInfo(const stateData& sD, const solverMode& sMode)
     // don't compute the trig functions yet as that may not be necessary
 }
 
-void acLine::fullCalc()
+void AcLine::fullCalc()
 {
     // compute the trig functions
     linkComp.sinTheta1 = sin(linkInfo.theta1);
@@ -972,7 +972,7 @@ void acLine::fullCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::simplifiedCalc()
+void AcLine::simplifiedCalc()
 {
     // compute the trig functions
     linkComp.sinTheta1 = sin(linkInfo.theta1);
@@ -992,7 +992,7 @@ void acLine::simplifiedCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::decoupledCalc()
+void AcLine::decoupledCalc()
 {
     linkComp.sinTheta1 = sin(linkInfo.theta1);
     linkComp.cosTheta1 = cos(linkInfo.theta1);
@@ -1017,7 +1017,7 @@ void acLine::decoupledCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleCalc()
+void AcLine::smallAngleCalc()
 {
     // compute the trig functions
     linkComp.sinTheta1 = linkInfo.theta1;
@@ -1045,7 +1045,7 @@ void acLine::smallAngleCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleSimplifiedCalc()
+void AcLine::smallAngleSimplifiedCalc()
 {
     // compute the trig functions
     linkComp.sinTheta1 = linkInfo.theta1;
@@ -1065,7 +1065,7 @@ void acLine::smallAngleSimplifiedCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::simplifiedDecoupledCalc()
+void AcLine::simplifiedDecoupledCalc()
 {
     linkComp.sinTheta1 = sin(linkInfo.theta1);
     linkComp.cosTheta1 = cos(linkInfo.theta1);
@@ -1084,7 +1084,7 @@ void acLine::simplifiedDecoupledCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleDecoupledCalc()
+void AcLine::smallAngleDecoupledCalc()
 {
     linkComp.sinTheta1 = linkInfo.theta1;
     linkComp.cosTheta1 = 1;
@@ -1109,7 +1109,7 @@ void acLine::smallAngleDecoupledCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::linearCalc()
+void AcLine::linearCalc()
 {
     double dT1 = (linkInfo.theta1 - constLinkInfo.theta1) /
         2.0;  // divide by 2 so the angle change is attributed to both sides evenly
@@ -1140,7 +1140,7 @@ void acLine::linearCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::fastDecoupledCalc()
+void AcLine::fastDecoupledCalc()
 {
     linkComp.sinTheta1 = linkInfo.theta1;
     linkComp.cosTheta1 = 1.0;
@@ -1159,7 +1159,7 @@ void acLine::fastDecoupledCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::swOpenCalc()
+void AcLine::swOpenCalc()
 {
     if (opFlags[switch1_open_flag]) {
         linkFlows.P1 = 0;
@@ -1191,7 +1191,7 @@ void acLine::swOpenCalc()
     linkFlows.seqID = linkInfo.seqID;
 }
 
-void acLine::faultDeriv()
+void AcLine::faultDeriv()
 {
     LinkDeriv = {};
     if (!opFlags[switch1_open_flag]) {
@@ -1205,7 +1205,7 @@ void acLine::faultDeriv()
     }
     LinkDeriv.seqID = linkInfo.seqID;
 }
-void acLine::fullDeriv()
+void AcLine::fullDeriv()
 {
     // real power vs local states
     LinkDeriv.dP1dt1 =
@@ -1242,7 +1242,7 @@ void acLine::fullDeriv()
     LinkDeriv.dQ2dt1 = linkComp.Vmx * (g * linkComp.cosTheta2 + b * linkComp.sinTheta2);
     LinkDeriv.seqID = linkInfo.seqID;
 }
-void acLine::simplifiedDeriv()
+void AcLine::simplifiedDeriv()
 {
     /*
     linkFlows.P1 = -b * linkComp.Vmx * linkComp.sinTheta1;
@@ -1287,7 +1287,7 @@ void acLine::simplifiedDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::decoupledDeriv()
+void AcLine::decoupledDeriv()
 {
     /*
     linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * constLinkInfo.v1 * constLinkInfo.v1;
@@ -1342,14 +1342,14 @@ void acLine::decoupledDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::linearDeriv()
+void AcLine::linearDeriv()
 {
     // there is no update since the derivatives are constant
 
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleDeriv()
+void AcLine::smallAngleDeriv()
 {
     /*
     linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
@@ -1401,7 +1401,7 @@ void acLine::smallAngleDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::simplifiedDecoupledDeriv()
+void AcLine::simplifiedDecoupledDeriv()
 {
     /*
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
@@ -1444,7 +1444,7 @@ void acLine::simplifiedDecoupledDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleDecoupledDeriv()
+void AcLine::smallAngleDecoupledDeriv()
 {
     // real power vs local states
     LinkDeriv.dP1dt1 = -b * constLinkComp.Vmx;
@@ -1476,7 +1476,7 @@ void acLine::smallAngleDecoupledDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::smallAngleSimplifiedDeriv()
+void AcLine::smallAngleSimplifiedDeriv()
 {
     /*
     //flows from bus 1 to bus 2
@@ -1521,7 +1521,7 @@ void acLine::smallAngleSimplifiedDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::fastDecoupledDeriv()
+void AcLine::fastDecoupledDeriv()
 {
     /*
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
@@ -1560,7 +1560,7 @@ void acLine::fastDecoupledDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::swOpenDeriv()
+void AcLine::swOpenDeriv()
 {
     LinkDeriv = {};
 
@@ -1605,28 +1605,28 @@ void acLine::swOpenDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 }
 
-void acLine::loadApproxFunctions()
+void AcLine::loadApproxFunctions()
 {
     // load up the member function pointer array to point to the correct function
-    flowCalc[indexVal(approxKeyMask::none)] = &acLine::fullCalc;
-    flowCalc[indexVal(approxKeyMask::decoupled)] = &acLine::decoupledCalc;
-    flowCalc[indexVal(approxKeyMask::sm_angle)] = &acLine::smallAngleCalc;
-    flowCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &acLine::smallAngleDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::simplified)] = &acLine::simplifiedCalc;
-    flowCalc[indexVal(approxKeyMask::simplified_decoupled)] = &acLine::simplifiedDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &acLine::smallAngleSimplifiedCalc;
-    flowCalc[indexVal(approxKeyMask::fast_decoupled)] = &acLine::fastDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::linear)] = &acLine::linearCalc;
+    flowCalc[indexVal(approxKeyMask::none)] = &AcLine::fullCalc;
+    flowCalc[indexVal(approxKeyMask::decoupled)] = &AcLine::decoupledCalc;
+    flowCalc[indexVal(approxKeyMask::sm_angle)] = &AcLine::smallAngleCalc;
+    flowCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledCalc;
+    flowCalc[indexVal(approxKeyMask::simplified)] = &AcLine::simplifiedCalc;
+    flowCalc[indexVal(approxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledCalc;
+    flowCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedCalc;
+    flowCalc[indexVal(approxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledCalc;
+    flowCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearCalc;
 
-    derivCalc[indexVal(approxKeyMask::none)] = &acLine::fullDeriv;
-    derivCalc[indexVal(approxKeyMask::decoupled)] = &acLine::decoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::sm_angle)] = &acLine::smallAngleDeriv;
-    derivCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &acLine::smallAngleDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified)] = &acLine::simplifiedDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified_decoupled)] = &acLine::simplifiedDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &acLine::smallAngleSimplifiedDeriv;
-    derivCalc[indexVal(approxKeyMask::fast_decoupled)] = &acLine::fastDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::linear)] = &acLine::linearDeriv;
+    derivCalc[indexVal(approxKeyMask::none)] = &AcLine::fullDeriv;
+    derivCalc[indexVal(approxKeyMask::decoupled)] = &AcLine::decoupledDeriv;
+    derivCalc[indexVal(approxKeyMask::sm_angle)] = &AcLine::smallAngleDeriv;
+    derivCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledDeriv;
+    derivCalc[indexVal(approxKeyMask::simplified)] = &AcLine::simplifiedDeriv;
+    derivCalc[indexVal(approxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledDeriv;
+    derivCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedDeriv;
+    derivCalc[indexVal(approxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledDeriv;
+    derivCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearDeriv;
 }
 
 }  // namespace griddyn

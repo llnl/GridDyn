@@ -11,7 +11,7 @@
 #include <string>
 
 namespace griddyn {
-class gridBus;  // forward class definition
+class GridBus;  // forward class definition
 
 /** @brief structure containing information on the states of the joining buses
  included the voltages, angles and some common calculations used in calculating the flows
@@ -61,8 +61,8 @@ class Link: public gridPrimary {
     };
 
   protected:
-    gridBus* B1 = nullptr;  //!< the bus on the from side
-    gridBus* B2 = nullptr;  //!< the bus on the to side
+    GridBus* B1 = nullptr;  //!< the bus on the from side
+    GridBus* B2 = nullptr;  //!< the bus on the to side
 
     index_t circuitNum = 1;  //!< helper field for multicircuit links
     linkI linkInfo;  //!< holder for the latest bus information
@@ -155,12 +155,12 @@ class Link: public gridPrimary {
     @param[in] network  the new network number
     @param[in] stk a FIFO queue of buses to add to the network
     */
-    virtual void followNetwork(int network, std::queue<gridBus*>& stk);
+    virtual void followNetwork(int network, std::queue<GridBus*>& stk);
     /** @brief update one of the link terminals with a new bus
     @param[in] bus  the new bus to connect to
     @param[in] busNumber  1 for from,  2 for "to"
     */
-    virtual void updateBus(gridBus* bus, index_t busNumber);
+    virtual void updateBus(GridBus* bus, index_t busNumber);
     /** @brief check for any violations of link limits or other factors based on power flow results
      checks things like the maximum angle,  power flow /current limits based on ratings and a few
     other things
@@ -281,7 +281,7 @@ class Link: public gridPrimary {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    gridBus* getBus(index_t busInd) const override;
+    GridBus* getBus(index_t busInd) const override;
 
     CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
 

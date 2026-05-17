@@ -19,7 +19,7 @@ local or remote buses,  local reactive power flow, and local real power flow the
 the only one that adjusts the angle.  available control include stepped and continuous
 
 */
-class adjustableTransformer: public acLine {
+class adjustableTransformer: public AcLine {
   public:
     /** @brief  enumeration of the available control types
      */
@@ -65,7 +65,7 @@ class adjustableTransformer: public acLine {
     //!< to voltage or power is positive or negative
     model_parameter tapMaxChangeRate = kBigNum;  //!< maximum rate at which the tap can change
     model_parameter sample_rate = 4.0;  //!< [s]the rate at which the measurements are sampled
-    gridBus* controlBus = nullptr;  //!< the control bus to monitor voltage
+    GridBus* controlBus = nullptr;  //!< the control bus to monitor voltage
 
     double tap0 = 0.0;  //!< baseline tap position used for continuous tap settings
     double tapAngle0 = 0.0;  //!< baseline tapAngle position used for continuous tap settings
@@ -105,7 +105,7 @@ class adjustableTransformer: public acLine {
     // adjuster specific functions
     /**@ brief set the control bus to a specified bus pointer
 @param[in] cBus  the specified control Bus*/
-    void setControlBus(gridBus* cBus);
+    void setControlBus(GridBus* cBus);
     /**@ brief set the control bus to a specified bus number
 @param[in] busNumber this can be 1 or 2 for already attached buses or the user id of a bus in
 which cases the parent of the link is searched for the bus*/
@@ -127,7 +127,7 @@ which cases the parent of the link is searched for the bus*/
                           const solverMode& sMode) override;
     // for computing all the Jacobian elements at once
 
-    using acLine::ioPartialDerivatives;
+    using AcLine::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const stateData& stateData,
                                       matrixData<double>& matrixDataRef,
@@ -171,7 +171,7 @@ which cases the parent of the link is searched for the bus*/
                      const IOdata& inputs,
                      const std::vector<int>& rootMask,
                      const solverMode& sMode) override;
-    virtual void followNetwork(int network, std::queue<gridBus*>& stk) override;
+    virtual void followNetwork(int network, std::queue<GridBus*>& stk) override;
     virtual void getStateName(stringVec& stNames,
                               const solverMode& sMode,
                               const std::string& prefix = "") const override;

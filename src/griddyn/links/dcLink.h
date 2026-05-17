@@ -25,11 +25,11 @@ class dcLink: public Link {
   public:
     dcLink(const std::string& objName = "dclink_$");
     dcLink(double rP, double Lp, const std::string& objName = "dclink_$");
-    // Link(double max_power,gridBus *bus1, gridBus *bus2);
+    // Link(double max_power,GridBus *bus1, GridBus *bus2);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void updateBus(gridBus* bus, index_t busnumber) override;
+    virtual void updateBus(GridBus* bus, index_t busnumber) override;
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,

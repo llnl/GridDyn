@@ -127,9 +127,9 @@ Psched=sched->timestepP(time);
 
 // it may make more sense to have the dc bus as bus 1 but then the equations wouldn't be
 // symmetric with the the rectifier
-void acdcConverter::updateBus(gridBus* bus, index_t /*busnumber*/)
+void acdcConverter::updateBus(GridBus* bus, index_t /*busnumber*/)
 {
-    if (dynamic_cast<dcBus*>(bus) != nullptr) {
+    if (dynamic_cast<DcBus*>(bus) != nullptr) {
         Link::updateBus(bus, 2);  // bus 2 must be the dc bus
     } else {
         Link::updateBus(bus, 1);

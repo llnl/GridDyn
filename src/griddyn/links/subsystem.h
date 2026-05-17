@@ -30,7 +30,7 @@ class subsystem: public Link {
         terminalLink;  //!< list of internal links which make the external connections
     std::vector<index_t>
         cterm;  //!< the index of the terminal on the terminalLinks which make the connection
-    std::vector<gridBus*>
+    std::vector<GridBus*>
         terminalBus;  //!< list of buses which attach to the external terminal points
 
     Area subarea;  //!<  a container area
@@ -50,7 +50,7 @@ class subsystem: public Link {
     virtual void remove(CoreObject* obj) override;
 
     // get component models
-    virtual gridBus* getBus(index_t num) const override;
+    virtual GridBus* getBus(index_t num) const override;
     virtual Link* getLink(index_t num) const override;
     virtual Relay* getRelay(index_t num) const override;
     virtual Area* getArea(index_t num) const override;
@@ -140,8 +140,8 @@ class subsystem: public Link {
                          id_type_t fixedterminal = 0,
                          units::unit unitType = units::defunit) override;
 
-    virtual void followNetwork(int network, std::queue<gridBus*>& stk) override;
-    virtual void updateBus(gridBus* bus, index_t busnumber) override;
+    virtual void followNetwork(int network, std::queue<GridBus*>& stk) override;
+    virtual void updateBus(GridBus* bus, index_t busnumber) override;
 
     virtual double quickupdateP() override;
 
@@ -193,7 +193,7 @@ class subsystem: public Link {
   @param[out] busVector a vector of all the buses
   @param[in] start the index where to start placing the buses
   */
-    count_t getBusVector(std::vector<gridBus*>& busVector, index_t start = 0);
+    count_t getBusVector(std::vector<GridBus*>& busVector, index_t start = 0);
     /** @brief change the number of terminals
   @param[in] count  the desired number of terminals
   */

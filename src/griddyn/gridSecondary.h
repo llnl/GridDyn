@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace griddyn {
-class gridBus;
+class GridBus;
 
 /** @brief base class for objects that can attach to a bus like Load and Generator
  *  gridSecondary class defines the interface for secondary objects which are nominally objects that
@@ -19,7 +19,7 @@ class gridBus;
  **/
 class gridSecondary: public GridComponent {
   protected:
-    gridBus* bus = nullptr;  //!< reference to the bus connecting the object;
+    GridBus* bus = nullptr;  //!< reference to the bus connecting the object;
   public:
     /** @brief default constructor*/
     explicit gridSecondary(const std::string& objName = "");
@@ -93,7 +93,7 @@ class gridSecondary: public GridComponent {
                               const stateData& sD,
                               const solverMode& sMode) const override;
 
-    const gridBus* getBus() const { return bus; }
+    const GridBus* getBus() const { return bus; }
 
     /**
     *@brief get the time derivative of a single state

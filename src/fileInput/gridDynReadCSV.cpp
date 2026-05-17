@@ -196,12 +196,12 @@ void loadCsv(CoreObject* parentObject,
 
                     str = readerInformation.checkDefines(str);
                     auto val = numeric_conversion<double>(str, kBigNum);
-                    gridBus* bus = nullptr;
+                    GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
-                        bus = static_cast<gridBus*>(
+                        bus = static_cast<GridBus*>(
                             parentObject->findByUserID("bus", static_cast<int>(val)));
                     } else {
-                        bus = static_cast<gridBus*>(locateObject(str, parentObject));
+                        bus = static_cast<GridBus*>(locateObject(str, parentObject));
                     }
                     if (bus != nullptr) {
                         static_cast<Link*>(obj)->updateBus(bus, 2);
@@ -209,12 +209,12 @@ void loadCsv(CoreObject* parentObject,
                 } else if ((field.compare(0, 4, "from") == 0) && (objectMode == "link")) {
                     auto str = readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
-                    gridBus* bus = nullptr;
+                    GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
-                        bus = static_cast<gridBus*>(
+                        bus = static_cast<GridBus*>(
                             parentObject->findByUserID("bus", static_cast<int>(val)));
                     } else {
-                        bus = static_cast<gridBus*>(locateObject(str, parentObject));
+                        bus = static_cast<GridBus*>(locateObject(str, parentObject));
                     }
                     if (bus != nullptr) {
                         static_cast<Link*>(obj)->updateBus(bus, 1);
@@ -226,12 +226,12 @@ void loadCsv(CoreObject* parentObject,
                 } else if ((field == "bus") && ((objectMode == "load") || (objectMode == "gen"))) {
                     auto str = readerInformation.checkDefines(std::string{lineTokens[kk]});
                     auto val = numeric_conversion<double>(str, kBigNum);
-                    gridBus* bus = nullptr;
+                    GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
-                        bus = static_cast<gridBus*>(
+                        bus = static_cast<GridBus*>(
                             parentObject->findByUserID("bus", static_cast<int>(val)));
                     } else {
-                        bus = static_cast<gridBus*>(locateObject(str, parentObject));
+                        bus = static_cast<GridBus*>(locateObject(str, parentObject));
                     }
                     if (bus != nullptr) {
                         bus->add(obj);

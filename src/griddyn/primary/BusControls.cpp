@@ -12,7 +12,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 
 namespace griddyn {
-BusControls::BusControls(acBus* busToControl): controlledBus(busToControl) {}
+BusControls::BusControls(AcBus* busToControl): controlledBus(busToControl) {}
 
 bool BusControls::hasVoltageAdjustments(id_type_t sid) const
 {
@@ -200,9 +200,9 @@ void BusControls::updateVoltageControls()
         Qmax += vco->get("qmax");
         Qmin += vco->get("qmin");
         if (vco->checkFlag(remote_voltage_control)) {
-            if (static_cast<acBus*>(vco->find("bus"))->directPath(controlledBus, vco)) {
+            if (static_cast<AcBus*>(vco->find("bus"))->directPath(controlledBus, vco)) {
                 auto opath =
-                    static_cast<acBus*>(vco->find("bus"))->getDirectPath(controlledBus, vco);
+                    static_cast<AcBus*>(vco->find("bus"))->getDirectPath(controlledBus, vco);
                 opath.pop_back();
                 if (dynamic_cast<Link*>(opath.back()) != nullptr) {
                     proxyVControlObject.push_back(static_cast<Link*>(opath.back()));
@@ -237,7 +237,7 @@ void BusControls::updateVoltageControls()
         controlledBus->opFlags.set(indirect_voltage_control);
     }
     // check if the v and p controls are identical
-    controlledBus->opFlags.set(acBus::bus_flags::identical_PQ_control_objects,
+    controlledBus->opFlags.set(AcBus::bus_flags::identical_PQ_control_objects,
                                checkIdenticalControls());
 }
 
@@ -258,9 +258,9 @@ void BusControls::updatePowerControls()
         Pmax += pco->get("pmax");
         Pmin += pco->get("pmin");
         if (pco->checkFlag(remote_power_control)) {
-            if (static_cast<acBus*>(pco->find("bus"))->directPath(controlledBus, pco)) {
+            if (static_cast<AcBus*>(pco->find("bus"))->directPath(controlledBus, pco)) {
                 auto opath =
-                    static_cast<acBus*>(pco->find("bus"))->getDirectPath(controlledBus, pco);
+                    static_cast<AcBus*>(pco->find("bus"))->getDirectPath(controlledBus, pco);
                 opath.pop_back();
                 if (dynamic_cast<Link*>(opath.back()) != nullptr) {
                     proxyPControlObject.push_back(static_cast<Link*>(opath.back()));
@@ -291,7 +291,7 @@ void BusControls::updatePowerControls()
         controlledBus->set("participation", pfsum);
     }
     // check if the v and p controls are identical
-    controlledBus->opFlags.set(acBus::bus_flags::identical_PQ_control_objects,
+    controlledBus->opFlags.set(AcBus::bus_flags::identical_PQ_control_objects,
                                checkIdenticalControls());
 }
 
@@ -315,24 +315,24 @@ bool BusControls::checkIdenticalControls()
     return true;
 }
 
-void BusControls::mergeBus(acBus* mbus)
+void BusControls::mergeBus(AcBus* mbus)
 {
     // bus with the lowest ID is the master
     if (controlledBus->getID() < mbus->getID()) {
         if (controlledBus->checkFlag(
-                acBus::bus_flags::slave_bus))  // if we are already a slave forward the merge to the
+                AcBus::bus_flags::slave_bus))  // if we are already a slave forward the merge to the
                                                // master
         {
             masterBus->mergeBus(mbus);
         } else {
-            if (mbus->checkFlag(acBus::bus_flags::slave_bus)) {
+            if (mbus->checkFlag(AcBus::bus_flags::slave_bus)) {
                 if (controlledBus->getID() != mbus->busController.masterBus->getID()) {
-                    mergeBus(static_cast<acBus*>(mbus->busController.masterBus));
+                    mergeBus(static_cast<AcBus*>(mbus->busController.masterBus));
                 }
             } else {
                 // This bus becomes the master of mbus
                 mbus->busController.masterBus = controlledBus;
-                mbus->opFlags.set(acBus::bus_flags::slave_bus);
+                mbus->opFlags.set(AcBus::bus_flags::slave_bus);
                 slaveBusses.push_back(mbus);
                 for (auto sb : mbus->busController.slaveBusses) {
                     slaveBusses.push_back(sb);
@@ -342,7 +342,7 @@ void BusControls::mergeBus(acBus* mbus)
             }
         }
     } else if (controlledBus->getID() > mbus->getID()) {  // mbus is now this buses master
-        if (controlledBus->checkFlag(acBus::bus_flags::slave_bus)) {
+        if (controlledBus->checkFlag(AcBus::bus_flags::slave_bus)) {
             // if we are already a slave forward the merge to the master
             if (masterBus->getID() != mbus->getID()) {
                 masterBus->mergeBus(mbus);
@@ -353,7 +353,7 @@ void BusControls::mergeBus(acBus* mbus)
                 masterBus = mbus;
                 mbus->busController.slaveBusses.push_back(controlledBus);
             } else {
-                if (mbus->checkFlag(acBus::bus_flags::slave_bus)) {
+                if (mbus->checkFlag(AcBus::bus_flags::slave_bus)) {
                     mbus->busController.masterBus->mergeBus(controlledBus);
                 } else {
                     masterBus = mbus;
@@ -369,10 +369,10 @@ void BusControls::mergeBus(acBus* mbus)
     }
 }
 
-void BusControls::unmergeBus(acBus* mbus)
+void BusControls::unmergeBus(AcBus* mbus)
 {
-    if (controlledBus->checkFlag(acBus::bus_flags::slave_bus)) {
-        if (mbus->checkFlag(acBus::bus_flags::slave_bus)) {
+    if (controlledBus->checkFlag(AcBus::bus_flags::slave_bus)) {
+        if (mbus->checkFlag(AcBus::bus_flags::slave_bus)) {
             if (isSameObject(mbus->busController.masterBus, masterBus)) {
                 masterBus->unmergeBus(mbus);
             }
@@ -380,10 +380,10 @@ void BusControls::unmergeBus(acBus* mbus)
             mbus->unmergeBus(controlledBus);  // flip it around so this bus is unmerged from mbus
         }
     } else {  // in the masterbus
-        if ((mbus->checkFlag(acBus::bus_flags::slave_bus)) &&
+        if ((mbus->checkFlag(AcBus::bus_flags::slave_bus)) &&
             (isSameObject(controlledBus, mbus->busController.masterBus))) {
             for (auto& eb : slaveBusses) {
-                eb->opFlags.reset(acBus::bus_flags::slave_bus);
+                eb->opFlags.reset(AcBus::bus_flags::slave_bus);
             }
             checkMerge();
             mbus->checkMerge();
@@ -396,7 +396,7 @@ void BusControls::checkMerge()
     if (!controlledBus->isEnabled()) {
         return;
     }
-    if (controlledBus->checkFlag(acBus::bus_flags::directconnect)) {
+    if (controlledBus->checkFlag(AcBus::bus_flags::directconnect)) {
         directBus->mergeBus(controlledBus);
     }
     for (auto& lnk : controlledBus->attachedLinks) {

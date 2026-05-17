@@ -47,55 +47,55 @@ void loadPSATBusArray(CoreObject* parentObject,
                       const mArray& PV,
                       const mArray& PQ,
                       const stringVec& busnames,
-                      std::vector<gridBus*>& busList);
+                      std::vector<GridBus*>& busList);
 void loadPSATGenArray(CoreObject* parentObject,
                       const mArray& gens,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& lnks,
-                       const std::vector<gridBus*>& busList);
+                       const std::vector<GridBus*>& busList);
 void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& lnks,
-                        const std::vector<gridBus*>& busList);
+                        const std::vector<GridBus*>& busList);
 void loadPSATShuntArray(CoreObject* parentObject,
                         const mArray& shunts,
-                        const std::vector<gridBus*>& busList);
+                        const std::vector<GridBus*>& busList);
 void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltc,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadPSATSynArray(CoreObject* parentObject,
                       const mArray& syn,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tg,
-                     const std::vector<gridBus*>& busList);
+                     const std::vector<GridBus*>& busList);
 void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
-                        const std::vector<gridBus*>& busList);
+                        const std::vector<GridBus*>& busList);
 void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& brkr,
-                          const std::vector<gridBus*>& busList);
+                          const std::vector<GridBus*>& busList);
 void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
-                         const std::vector<gridBus*>& busList);
+                         const std::vector<GridBus*>& busList);
 void loadPsatMotorArray(CoreObject* parentObject,
                         const mArray& mtr,
-                        const std::vector<gridBus*>& busList);
+                        const std::vector<GridBus*>& busList);
 /** load a PSAT PMU data*/
 void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
-                      const std::vector<gridBus*>& busList);
+                      const std::vector<GridBus*>& busList);
 void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
-                         const std::vector<gridBus*>& busList);
+                         const std::vector<GridBus*>& busList);
 static const std::vector<
-    std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<gridBus*>&)>>
+    std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<GridBus*>&)>>
     arrayIdentifiers{
         {"Shunt.con", loadPSATShuntArray},
         {"Line.con", loadPSATLinkArray},
@@ -120,7 +120,7 @@ void loadPSAT(CoreObject* parentObject,
     double basepower = readerOptions.base;
     // std::string tstr;
     mArray M1, SW, PQ, PV;
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     /*
     A = filetext.find(basename + ".baseMVA") const;
     if (A != std::string::npos)
@@ -191,7 +191,7 @@ void loadPSAT(CoreObject* parentObject,
 
 void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
-                         const std::vector<gridBus*>& busList)
+                         const std::vector<GridBus*>& busList)
 {
     mArray M1;
     for (auto& namepair : arrayIdentifiers) {
@@ -211,7 +211,7 @@ void loadPSATBusArray(CoreObject* parentObject,
                       const mArray& PV,
                       const mArray& PQ,
                       const stringVec& busnames,
-                      std::vector<gridBus*>& busList)
+                      std::vector<GridBus*>& busList)
 {
     for (size_t kk = 0; kk < buses.size(); ++kk) {
         auto ind1 = static_cast<index_t>(buses[kk][0]);
@@ -220,7 +220,7 @@ void loadPSATBusArray(CoreObject* parentObject,
         }
         auto bus = busList[ind1];
         if (bus == nullptr) {
-            busList[ind1] = new acBus(busnames[kk]);
+            busList[ind1] = new AcBus(busnames[kk]);
             bus = busList[ind1];
             bus->set("basepower", basepower);
             bus->setUserID(static_cast<int>(ind1));
@@ -297,14 +297,14 @@ void loadPSATBusArray(CoreObject* parentObject,
 
 void loadPSATGenArray(CoreObject* /*parentObject*/,
                       const mArray& gens,
-                      const std::vector<gridBus*>& busList)
+                      const std::vector<GridBus*>& busList)
 {
     using units::MVAR;
     using units::MW;
 
     for (auto& genInfo : gens) {
         auto ind1 = static_cast<size_t>(genInfo[0]);
-        gridBus* bus = busList[ind1];
+        GridBus* bus = busList[ind1];
         auto gen = new Generator();
         bus->add(gen);
         if (genInfo[1] != 0) {
@@ -352,13 +352,13 @@ Column Variable Description Unit
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
 void loadPsatSupplyArray(CoreObject* /*parentObject*/,
                          const mArray& /*genCost*/,
-                         const std::vector<gridBus*>& /*busList*/)
+                         const std::vector<GridBus*>& /*busList*/)
 {
 }
 #else
 void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
-                         const std::vector<gridBus*>& busList)
+                         const std::vector<GridBus*>& busList)
 {
     auto gdo = dynamic_cast<gridDynOptimization*>(parentObject->getRoot());
     if (gdo == nullptr) {
@@ -430,7 +430,7 @@ y 15 Smax Apparent power limit pu
 
 void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& lnks,
-                       const std::vector<gridBus*>& busList)
+                       const std::vector<GridBus*>& busList)
 {
     ;
 
@@ -440,7 +440,7 @@ void loadPSATLinkArray(CoreObject* parentObject,
 
         auto ind2 = static_cast<index_t>(lnkInfo[1]);
         auto bus2 = busList[ind2];
-        auto lnk = new acLine();
+        auto lnk = new AcLine();
 
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
@@ -483,14 +483,14 @@ void loadPSATLinkArray(CoreObject* parentObject,
 
 void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& lnks,
-                        const std::vector<gridBus*>& busList)
+                        const std::vector<GridBus*>& busList)
 {
     for (auto& lnkInfo : lnks) {
         auto ind1 = static_cast<index_t>(lnkInfo[0]);
         auto bus1 = busList[ind1];
         auto ind2 = static_cast<index_t>(lnkInfo[1]);
         auto bus2 = busList[ind2];
-        auto lnk = new acLine();
+        auto lnk = new AcLine();
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
         parentObject->add(lnk);
@@ -526,7 +526,7 @@ void loadPSATLinkArrayB(CoreObject* parentObject,
 
 void loadPSATShuntArray(CoreObject* /*parentObject*/,
                         const mArray& shunts,
-                        const std::vector<gridBus*>& busList)
+                        const std::vector<GridBus*>& busList)
 {
     for (auto& shuntInfo : shunts) {
         auto ind1 = static_cast<size_t>(shuntInfo[0]);
@@ -579,13 +579,13 @@ int
 */
 void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltc,
-                      const std::vector<gridBus*>& busList)
+                      const std::vector<GridBus*>& busList)
 {
     for (auto& ltcInfo : ltc) {
         auto ind1 = static_cast<index_t>(ltcInfo[0]);
-        gridBus* bus1 = busList[ind1];
+        GridBus* bus1 = busList[ind1];
         auto ind2 = static_cast<index_t>(ltcInfo[1]);
-        gridBus* bus2 = busList[ind2];
+        GridBus* bus2 = busList[ind2];
         auto lnk = new links::adjustableTransformer();
 
         lnk->updateBus(bus1, 1);
@@ -646,7 +646,7 @@ void loadPSATLTCArray(CoreObject* parentObject,
 */
 void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
-                      const std::vector<gridBus*>& busList)
+                      const std::vector<GridBus*>& busList)
 {
     for (auto& phsInfo : phs) {
         auto ind1 = static_cast<index_t>(phsInfo[0]);
@@ -715,7 +715,7 @@ q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
 
 void loadPSATSynArray(CoreObject* /*parentObject*/,
                       const mArray& syn,
-                      const std::vector<gridBus*>& busList)
+                      const std::vector<GridBus*>& busList)
 {
     using genmodels::GenModel3;
     using genmodels::GenModel4;
@@ -821,10 +821,10 @@ Column Variable Description Unit
 
 void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tg,
-                     const std::vector<gridBus*>& /*busList*/)
+                     const std::vector<GridBus*>& /*busList*/)
 {
     Governor* gm = nullptr;
-    // gridBus *bus1;
+    // GridBus *bus1;
     index_t ind1;
     double mode;
     double temp;
@@ -862,7 +862,7 @@ void loadPSATTgArray(CoreObject* parentObject,
 
 void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
-                      const std::vector<gridBus*>& /*busList*/)
+                      const std::vector<GridBus*>& /*busList*/)
 {
     Generator* gen;
     Exciter* gm = nullptr;
@@ -900,7 +900,7 @@ void loadPSATExcArray(CoreObject* parentObject,
 
 void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
-                        const std::vector<gridBus*>& busList)
+                        const std::vector<GridBus*>& busList)
 {
     auto gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
@@ -940,7 +940,7 @@ void loadPsatFaultArray(CoreObject* parentObject,
 
 void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
-                      const std::vector<gridBus*>& busList)
+                      const std::vector<GridBus*>& busList)
 {
     auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't add the sensors if there is no simulation
@@ -966,7 +966,7 @@ void loadPsatPmuArray(CoreObject* parentObject,
 
 void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& brkr,
-                          const std::vector<gridBus*>& /*busList*/)
+                          const std::vector<GridBus*>& /*busList*/)
 {
     auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
@@ -993,11 +993,11 @@ void loadPsatBreakerArray(CoreObject* parentObject,
 
 void loadPsatMotorArray(CoreObject* /*parentObject*/,
                         const mArray& mtr,
-                        const std::vector<gridBus*>& busList)
+                        const std::vector<GridBus*>& busList)
 {
     for (auto& mtrline : mtr) {
         auto ind1 = static_cast<index_t>(mtrline[0]);
-        gridBus* bus1 = busList[ind1];
+        GridBus* bus1 = busList[ind1];
 
         auto motor = new loads::motorLoad();
         bus1->add(motor);

@@ -31,17 +31,17 @@ using units::convert;
 using units::puMW;
 using units::rad;
 using units::unit;
-adjustableTransformer::adjustableTransformer(const std::string& objName): acLine(objName) {}
+adjustableTransformer::adjustableTransformer(const std::string& objName): AcLine(objName) {}
 adjustableTransformer::adjustableTransformer(double resistance,
                                              double reactance,
                                              const std::string& objName):
-    acLine(resistance, reactance, objName)
+    AcLine(resistance, reactance, objName)
 {
 }
 
 CoreObject* adjustableTransformer::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBase<adjustableTransformer, acLine>(this, obj);
+    auto* lnk = cloneBase<adjustableTransformer, AcLine>(this, obj);
     if (lnk == nullptr) {
         return obj;
     }
@@ -97,7 +97,7 @@ static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};
 static const stringVec flagStrings{"no_pflow_adjustments"};
 void adjustableTransformer::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<adjustableTransformer, acLine>(
+    getParamString<adjustableTransformer, AcLine>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -139,14 +139,14 @@ void adjustableTransformer::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(cmstr));
         }
     } else if ((param == "bus") || (param == "controlbus")) {
-        auto* bus = dynamic_cast<gridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             controlBus = bus;
         } else {
             controlName = val;
         }
     } else {
-        acLine::set(param, val);
+        AcLine::set(param, val);
     }
 }
 
@@ -171,7 +171,7 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
                 controlBus = B2;
             } else {
                 controlNum = cbnum;
-                controlBus = static_cast<gridBus*>(getParent()->findByUserID("bus", cbnum));
+                controlBus = static_cast<GridBus*>(getParent()->findByUserID("bus", cbnum));
             }
         } else if (val > 1.5) {
             if (B2 == nullptr) {
@@ -285,7 +285,7 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
     } else if (param == "dtapadt") {
         dTapAdt = val;
     } else {
-        acLine::set(param, val, unitType);
+        AcLine::set(param, val, unitType);
     }
 }
 
@@ -364,12 +364,12 @@ double adjustableTransformer::get(std::string_view param, units::unit unitType) 
     } else if (param == "dtapadt") {
         val = dTapAdt;
     } else {
-        val = acLine::get(param, unitType);
+        val = AcLine::get(param, unitType);
     }
     return val;
 }
 
-void adjustableTransformer::setControlBus(gridBus* cBus)
+void adjustableTransformer::setControlBus(GridBus* cBus)
 {
     controlBus = cBus;
 }
@@ -386,13 +386,13 @@ void adjustableTransformer::setControlBus(index_t busNumber)
     } else {
         auto* controlBusCandidate = getParent()->findByUserID("bus", busNumber);
         if (controlBusCandidate != nullptr) {
-            controlBus = static_cast<gridBus*>(controlBusCandidate);
+            controlBus = static_cast<GridBus*>(controlBusCandidate);
             controlNum = 0;
         }
     }
 }
 
-void adjustableTransformer::followNetwork(int network, std::queue<gridBus*>& stk)
+void adjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk)
 {
     if (isConnected()) {
         if (cMode == ControlMode::MW_CONTROL) {
@@ -425,7 +425,7 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
                 } else if (!controlName.empty()) {
                     CoreObject* obj = locateObject(controlName, getParent());
                     if (obj != nullptr) {
-                        controlBus = dynamic_cast<gridBus*>(obj);
+                        controlBus = dynamic_cast<GridBus*>(obj);
                     }
                 }
             } else {
@@ -466,7 +466,7 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
     tap = getValidTapRatio(tap);
     tap0 = tap;
     tapAngle0 = tapAngle;
-    acLine::pFlowObjectInitializeA(time0, flags);
+    AcLine::pFlowObjectInitializeA(time0, flags);
 }
 
 stateSizes adjustableTransformer::LocalStateSizes(const solverMode& sMode) const
@@ -806,7 +806,7 @@ void adjustableTransformer::ioPartialDerivatives(id_type_t busId,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     }
-    acLine::ioPartialDerivatives(busId, stateData, matrixDataRef, inputLocs, sMode);
+    AcLine::ioPartialDerivatives(busId, stateData, matrixDataRef, inputLocs, sMode);
 }
 
 void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
@@ -831,7 +831,7 @@ void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     }
-    acLine::outputPartialDerivatives(inputs, stateData, matrixDataRef, sMode);
+    AcLine::outputPartialDerivatives(inputs, stateData, matrixDataRef, sMode);
 }
 
 void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
@@ -850,7 +850,7 @@ void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     }
-    acLine::outputPartialDerivatives(busId, stateData, matrixDataRef, sMode);
+    AcLine::outputPartialDerivatives(busId, stateData, matrixDataRef, sMode);
 }
 
 void adjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
@@ -959,17 +959,17 @@ void adjustableTransformer::setState(coreTime time,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     }
-    acLine::setState(time, state, dstate_dt, sMode);
+    AcLine::setState(time, state, dstate_dt, sMode);
 }
 
 void adjustableTransformer::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    acLine::dynObjectInitializeA(time0, flags);
+    AcLine::dynObjectInitializeA(time0, flags);
 }
 
 void adjustableTransformer::updateLocalCache()
 {
-    acLine::updateLocalCache();
+    AcLine::updateLocalCache();
 }
 void adjustableTransformer::updateLocalCache(const IOdata& inputs,
                                              const stateData& stateData,
@@ -982,10 +982,10 @@ void adjustableTransformer::updateLocalCache(const IOdata& inputs,
         } else {
             tap = stateData.state[offset];
         }
-        acLine::updateLocalCache(inputs, stateData, sMode);
+        AcLine::updateLocalCache(inputs, stateData, sMode);
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     } else {
-        acLine::updateLocalCache(inputs, stateData, sMode);
+        AcLine::updateLocalCache(inputs, stateData, sMode);
     }
 }
 

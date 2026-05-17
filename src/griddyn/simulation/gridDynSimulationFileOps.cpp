@@ -49,7 +49,7 @@ namespace {
     }
 
     std::string
-        formatCsvBusRecord(int areaNumber, int busNumber, const gridBus& bus, double basePower)
+        formatCsvBusRecord(int areaNumber, int busNumber, const GridBus& bus, double basePower)
     {
         std::ostringstream output;
         output << areaNumber << ", " << busNumber << ", " << bus.getUserID() << ", "
@@ -71,7 +71,7 @@ namespace {
         return output.str();
     }
 
-    std::string formatTxtBusRecord(int areaNumber, const gridBus& bus, double basePower)
+    std::string formatTxtBusRecord(int areaNumber, const GridBus& bus, double basePower)
     {
         std::ostringstream output;
         output << areaNumber << "\t\t " << bus.getUserID() << "\t\t" << std::quoted(bus.getName())
@@ -301,7 +301,7 @@ Columns 107-114 Shunt conductance G (per unit) (F) *
 Columns 115-122 Shunt susceptance B (per unit) (F) *
 Columns 124-127 Remote controlled bus number
 */
-static void cdfBusPrint(std::ostream& output, int areaNumber, const gridBus& bus)
+static void cdfBusPrint(std::ostream& output, int areaNumber, const GridBus& bus)
 {
     const auto type = static_cast<int>(bus.getType());
     output << std::setw(4) << bus.getUserID() << ' ' << std::left << std::setw(12) << bus.getName()
@@ -384,7 +384,7 @@ Columns 113-119 Minimum voltage, MVAR or MW limit (F)
 Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 */
 
-static void cdfLinkPrint(std::ostream& output, int areaNumber, acLine* link)
+static void cdfLinkPrint(std::ostream& output, int areaNumber, AcLine* link)
 {
     if (link == nullptr) {
         return;
@@ -533,7 +533,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
     index_t linkIndex = 0;
     auto* link = gds->getLink(linkIndex);
     while (link != nullptr) {
-        cdfLinkPrint(output, 1, static_cast<acLine*>(link));
+        cdfLinkPrint(output, 1, static_cast<AcLine*>(link));
         ++linkIndex;
         link = gds->getLink(linkIndex);
     }
@@ -543,7 +543,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
         linkIndex = 0;
         link = area->getLink(linkIndex);
         while (link != nullptr) {
-            cdfLinkPrint(output, area->getUserID(), static_cast<acLine*>(link));
+            cdfLinkPrint(output, area->getUserID(), static_cast<AcLine*>(link));
             ++linkIndex;
             link = area->getLink(linkIndex);
         }

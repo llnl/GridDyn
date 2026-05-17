@@ -56,10 +56,7 @@ could be distinct from the general object input and output strings so a separate
 provided with the default to the regular call
 @return a reference to a vector of string vectors containing the potential names of the inputs
 */
-    virtual const std::vector<stringVec>& getFmiInputNames() const
-    {
-        return BaseObj::inputNames();
-    }
+    virtual const std::vector<stringVec>& getFmiInputNames() const { return BaseObj::inputNames(); }
 
     /** function call to get a set of output strings to use for the FMI outputs
 @details this defaults to the regular output strings call but there are a few reasons that this

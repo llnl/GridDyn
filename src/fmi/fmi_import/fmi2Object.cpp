@@ -134,8 +134,10 @@ void Fmi2Object::get(const FmiVariableSet& vrset, fmi2Real value[]) const
 }
 void Fmi2Object::get(const FmiVariableSet& vrset, fmi2Integer value[]) const
 {
-    auto ret =
-        commonFunctions->fmi2GetInteger(comp, vrset.getValueReferences(), vrset.getVrCount(), value);
+    auto ret = commonFunctions->fmi2GetInteger(comp,
+                                               vrset.getValueReferences(),
+                                               vrset.getVrCount(),
+                                               value);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
@@ -143,8 +145,8 @@ void Fmi2Object::get(const FmiVariableSet& vrset, fmi2Integer value[]) const
 
 void Fmi2Object::get(const FmiVariableSet& vrset, fmi2String value[]) const
 {
-    auto ret = commonFunctions->fmi2GetString(
-        comp, vrset.getValueReferences(), vrset.getVrCount(), value);
+    auto ret =
+        commonFunctions->fmi2GetString(comp, vrset.getValueReferences(), vrset.getVrCount(), value);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
@@ -152,8 +154,10 @@ void Fmi2Object::get(const FmiVariableSet& vrset, fmi2String value[]) const
 
 void Fmi2Object::set(const FmiVariableSet& vrset, fmi2Integer value[])
 {
-    auto ret =
-        commonFunctions->fmi2GetInteger(comp, vrset.getValueReferences(), vrset.getVrCount(), value);
+    auto ret = commonFunctions->fmi2GetInteger(comp,
+                                               vrset.getValueReferences(),
+                                               vrset.getVrCount(),
+                                               value);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }

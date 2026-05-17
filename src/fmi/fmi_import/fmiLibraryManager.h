@@ -25,9 +25,9 @@ class FmiLibraryManager {
   public:
     ~FmiLibraryManager();
     std::shared_ptr<FmiLibrary> getLibrary(const std::string& libFile);
-    std::unique_ptr<Fmi2ModelExchangeObject> createModelExchangeInstance(
-        const std::string& fmuIdentifier,
-        const std::string& objectName);
+    std::unique_ptr<Fmi2ModelExchangeObject>
+        createModelExchangeInstance(const std::string& fmuIdentifier,
+                                    const std::string& objectName);
     std::unique_ptr<Fmi2CoSimObject> createCoSimulationInstance(const std::string& fmuIdentifier,
                                                                 const std::string& objectName);
     void loadBookmarkFile(const std::string& bookmarksFile);

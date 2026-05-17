@@ -168,8 +168,7 @@ void HelicsEvent::findCoordinator()
                 if (!isSameObject(helicsCont, coordinator_)) {
                     coordinator_ = static_cast<HelicsCoordinator*>(helicsCont);
                     if (!subscriptionKey.empty()) {
-                        subscriptionId =
-                            coordinator_->addSubscription(subscriptionKey, unitType);
+                        subscriptionId = coordinator_->addSubscription(subscriptionKey, unitType);
                     }
                     coordinator_->addEvent(this);
                 }

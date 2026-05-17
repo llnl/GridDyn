@@ -53,14 +53,16 @@ void HelicsCollector::dataPointAdded(const collectorPoint& cp)
                     switch (publicationType) {
                         case CollectorPubType::AS_VECTOR:
                             if (!publicationName.empty()) {
-                                multiPublicationIndex = coordinator_->addPublication(
-                                    publicationName, helics::data_type::helics_vector);
+                                multiPublicationIndex =
+                                    coordinator_->addPublication(publicationName,
+                                                                 helics::data_type::helics_vector);
                             }
                             break;
                         case CollectorPubType::AS_STRING:
                             if (!publicationName.empty()) {
-                                multiPublicationIndex = coordinator_->addPublication(
-                                    publicationName, helics::data_type::helics_vector);
+                                multiPublicationIndex =
+                                    coordinator_->addPublication(publicationName,
+                                                                 helics::data_type::helics_vector);
                             }
                             break;
                         default:
@@ -150,14 +152,16 @@ void HelicsCollector::set(std::string_view param, std::string_view val)
         if (val == "vector") {
             publicationType = CollectorPubType::AS_VECTOR;
             if (multiPublicationIndex >= 0) {
-                coordinator_->updatePublication(
-                    multiPublicationIndex, publicationName, helics::data_type::helics_vector);
+                coordinator_->updatePublication(multiPublicationIndex,
+                                                publicationName,
+                                                helics::data_type::helics_vector);
             }
         } else if (val == "string") {
             publicationType = CollectorPubType::AS_STRING;
             if (multiPublicationIndex >= 0) {
-                coordinator_->updatePublication(
-                    multiPublicationIndex, publicationName, helics::data_type::helics_string);
+                coordinator_->updatePublication(multiPublicationIndex,
+                                                publicationName,
+                                                helics::data_type::helics_string);
             }
         } else if (val == "individual") {
             publicationType = CollectorPubType::AS_INDIVIDUAL;
@@ -168,20 +172,23 @@ void HelicsCollector::set(std::string_view param, std::string_view val)
     } else if (param == "pubname") {
         publicationName = val;
         if (multiPublicationIndex >= 0) {
-            coordinator_->updatePublication(
-                multiPublicationIndex, publicationName, helics::data_type::helics_any);
+            coordinator_->updatePublication(multiPublicationIndex,
+                                            publicationName,
+                                            helics::data_type::helics_any);
         } else if (coordinator_) {
             switch (publicationType) {
                 case CollectorPubType::AS_VECTOR:
                     if (!publicationName.empty()) {
-                        multiPublicationIndex = coordinator_->addPublication(
-                            publicationName, helics::data_type::helics_vector);
+                        multiPublicationIndex =
+                            coordinator_->addPublication(publicationName,
+                                                         helics::data_type::helics_vector);
                     }
                     break;
                 case CollectorPubType::AS_STRING:
                     if (!publicationName.empty()) {
-                        multiPublicationIndex = coordinator_->addPublication(
-                            publicationName, helics::data_type::helics_string);
+                        multiPublicationIndex =
+                            coordinator_->addPublication(publicationName,
+                                                         helics::data_type::helics_string);
                     }
                     break;
                 default:

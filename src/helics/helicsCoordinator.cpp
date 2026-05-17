@@ -82,15 +82,16 @@ std::shared_ptr<helics::Federate> HelicsCoordinator::registerAsFederate()
     pubs_.resize(publicationInfo_.size());
     for (auto& publicationInfo : publicationInfo_) {
         if (publicationInfo.unitType != units::defunit) {
-            pubs_[ii] =
-                helics::Publication(helics::GLOBAL,
-                                    vFed_,
-                                    publicationInfo.name,
-                                    publicationInfo.type,
-                                    to_string(publicationInfo.unitType));
+            pubs_[ii] = helics::Publication(helics::GLOBAL,
+                                            vFed_,
+                                            publicationInfo.name,
+                                            publicationInfo.type,
+                                            to_string(publicationInfo.unitType));
         } else {
-            pubs_[ii] = helics::Publication(
-                helics::GLOBAL, vFed_, publicationInfo.name, publicationInfo.type);
+            pubs_[ii] = helics::Publication(helics::GLOBAL,
+                                            vFed_,
+                                            publicationInfo.name,
+                                            publicationInfo.type);
         }
         ++ii;
     }
@@ -98,8 +99,8 @@ std::shared_ptr<helics::Federate> HelicsCoordinator::registerAsFederate()
     subs_.resize(subscriptionInfo_.size());
     for (auto& subscriptionInfo : subscriptionInfo_) {
         if (subscriptionInfo.unitType != units::defunit) {
-            subs_[ii] = vFed_->registerSubscription(
-                subscriptionInfo.name, to_string(subscriptionInfo.unitType));
+            subs_[ii] = vFed_->registerSubscription(subscriptionInfo.name,
+                                                    to_string(subscriptionInfo.unitType));
         } else {
             subs_[ii] = vFed_->registerSubscription(subscriptionInfo.name);
         }

@@ -253,6 +253,7 @@ void AGControl::regChange()
     }
 }
 
+/*
 static AGControl* newAGC(const std::string& type)
 {
     AGControl* agc = nullptr;
@@ -263,5 +264,6 @@ static AGControl* newAGC(const std::string& type)
     }
     return agc;
 }
+*/
 
 }  // namespace griddyn

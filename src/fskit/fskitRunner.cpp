@@ -28,7 +28,7 @@ int FskitRunner::Initialize(
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
 {
     if (grantedTimeWindowScheduler) {
-        GridDynFederatedScheduler::Initialize(grantedTimeWindowScheduler);
+        GridDynFederatedScheduler::initialize(grantedTimeWindowScheduler);
     }
     return Initialize(argc, argv);
 }

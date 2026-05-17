@@ -26,12 +26,12 @@ class FskitRunner;
  */
 class GridDynFederatedScheduler {
   public:
-    static bool IsFederated() { return gScheduler != nullptr; }
+    static bool isFederated() { return gScheduler != nullptr; }
 
     /**
      * Return singleton federated scheduler.
      */
-    static std::shared_ptr<fskit::GrantedTimeWindowScheduler> GetScheduler()
+    static std::shared_ptr<fskit::GrantedTimeWindowScheduler> getScheduler()
     {
         assert(gScheduler);
         return gScheduler;
@@ -54,7 +54,7 @@ class GridDynFederatedScheduler {
      * Initialize singleton.
      */
     static void
-        Initialize(std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
+        initialize(std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
     {
         // TODO(pt): make this thread safe probably with a mutex lock
         gScheduler = grantedTimeWindowScheduler;

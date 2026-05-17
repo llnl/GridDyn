@@ -114,7 +114,7 @@ int GhostSwingBusManager::createGridlabDInstance(std::string_view arguments)
               static_cast<int>(m_modelSpecificationMessages[taskId].size()),
               MPI_CHAR,
               taskId,
-              MODELSPECTAG,
+              static_cast<int>(MessageTags::MODEL_SPEC),
               MPI_COMM_WORLD,
               &requests->m_mpiSendRequests[taskId]);
 
@@ -178,7 +178,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
               sizeof(VoltageMessage),
               MPI_BYTE,
               taskId,
-              VOLTAGESTEPTAG,
+              static_cast<int>(MessageTags::VOLTAGE_STEP),
               MPI_COMM_WORLD,
               &requests->m_mpiSendRequests[taskId]);
 
@@ -186,7 +186,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
               sizeof(CurrentMessage),
               MPI_BYTE,
               taskId,
-              CURRENTTAG,
+              static_cast<int>(MessageTags::CURRENT),
               MPI_COMM_WORLD,
               &requests->m_mpiRecvRequests[taskId]);
 
@@ -207,7 +207,12 @@ void GhostSwingBusManager::sendStopMessage(int taskId)
 #ifdef GRIDDYN_ENABLE_MPI
     // Blocking send to gridlabd task
     auto token = servicer->getToken();
-    MPI_Send(&m_voltSendMessage[taskId], 1, MPI_BYTE, taskId, STOPTAG, MPI_COMM_WORLD);
+    MPI_Send(&m_voltSendMessage[taskId],
+             1,
+             MPI_BYTE,
+             taskId,
+             static_cast<int>(MessageTags::STOP),
+             MPI_COMM_WORLD);
 #endif
 }
 

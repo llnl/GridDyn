@@ -16,7 +16,7 @@
 
 class ProtectionMessage: public fskit::EventMessage {
   public:
-    enum MESSAGE_TYPE {
+    enum MessageType {
         NO_EVENT,
         LOCAL_FAULT_EVENT,
         REMOTE_FAULT_EVENT,
@@ -28,10 +28,10 @@ class ProtectionMessage: public fskit::EventMessage {
     };
 
     ProtectionMessage();
-    ProtectionMessage(MESSAGE_TYPE messageType);
+    ProtectionMessage(MessageType messageType);
     virtual ~ProtectionMessage();
 
-    MESSAGE_TYPE GetMessageType(void);
+    MessageType GetMessageType(void);
 
   private:
     friend class boost::serialization::access;
@@ -41,5 +41,5 @@ class ProtectionMessage: public fskit::EventMessage {
         ar & mMessageType;
     }
 
-    MESSAGE_TYPE mMessageType;
+    MessageType mMessageType;
 };

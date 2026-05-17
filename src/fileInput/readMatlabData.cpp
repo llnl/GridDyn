@@ -19,8 +19,8 @@ namespace griddyn {
 using gmlc::utilities::numeric_conversion;
 
 void loadMatlabFile(coreObject* parentObject,
-               const std::string& fileName,
-               const basicReaderInfo& readerOptions)
+                    const std::string& fileName,
+                    const basicReaderInfo& readerOptions)
 {
     std::ifstream infile(fileName.c_str(), std::ios::in);
     std::stringstream stringStream;

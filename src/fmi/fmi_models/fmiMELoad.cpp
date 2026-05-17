@@ -44,7 +44,7 @@ void FmiMELoad::updateLocalCache(const IOdata& inputs,
     // printf("V[%f,%f,%f,%f,%f,%f], I[%f,%f,%f,%f,%f,%f]\n", V[0], V[1], V[2], V[3], V[4],
     // V[5], I[0], I[1], I[2], I[3], I[4], I[5]);
 
-    auto translatedOutput = outputTranslation(res, inputs);
+    auto translatedOutput = translateOutput(res, inputs);
     setP(translatedOutput[PoutLocation]);
     setQ(translatedOutput[QoutLocation]);
 }
@@ -73,12 +73,12 @@ void FmiMELoad::setState(coreTime time,
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
     const IOdata voltageState = {bus->getVoltage(state, sMode), bus->getAngle(state, sMode)};
-    auto translatedOutput = outputTranslation(out, voltageState);
+    auto translatedOutput = translateOutput(out, voltageState);
     setP(translatedOutput[PoutLocation]);
     setQ(translatedOutput[QoutLocation]);
 }
 
-IOdata FmiMELoad::outputTranslation(const IOdata& fmiOutput, const IOdata& busV)
+IOdata FmiMELoad::translateOutput(const IOdata& fmiOutput, const IOdata& busV)
 {
     auto busVoltage = std::complex<double>(busV[voltageInLocation], busV[angleInLocation]);
     IOdata powers(2);

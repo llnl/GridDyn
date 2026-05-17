@@ -18,12 +18,12 @@ FmiVariableSet& FmiVariableSet::operator=(const FmiVariableSet& other) = default
 
 FmiVariableSet& FmiVariableSet::operator=(FmiVariableSet&& other) = default;
 
-const fmi2ValueReference* FmiVariableSet::getValueRef() const
+const fmi2ValueReference* FmiVariableSet::getValueReferences() const
 {
     return vrset.data();
 }
 
-size_t FmiVariableSet::getVRcount() const
+size_t FmiVariableSet::getVrCount() const
 {
     return vrset.size();
 }

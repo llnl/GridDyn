@@ -31,7 +31,7 @@ FmiLibrary::FmiLibrary()
 
 FmiLibrary::FmiLibrary(const std::string& fmupath): FmiLibrary()
 {
-    loadFMU(fmupath);
+    loadFmu(fmupath);
 }
 
 FmiLibrary::FmiLibrary(const std::string& fmupath, const std::string& extractPath):
@@ -70,7 +70,7 @@ bool FmiLibrary::isSoLoaded(FmuType type) const
     }
 }
 
-void FmiLibrary::loadFMU(const std::string& fmupath)
+void FmiLibrary::loadFmu(const std::string& fmupath)
 {
     path ipath(fmupath);
     if (is_directory(ipath)) {
@@ -82,7 +82,7 @@ void FmiLibrary::loadFMU(const std::string& fmupath)
     loadInformation();
 }
 
-void FmiLibrary::loadFMU(const std::string& fmupath, const std::string& extractPath)
+void FmiLibrary::loadFmu(const std::string& fmupath, const std::string& extractPath)
 {
     extractDirectory = extractPath;
     fmuName = fmupath;
@@ -156,7 +156,7 @@ int FmiLibrary::extract()
 }
 
 std::unique_ptr<Fmi2ModelExchangeObject>
-    FmiLibrary::createModelExchangeObject(const std::string& name)
+    FmiLibrary::createModelExchangeInstance(const std::string& name)
 {
     if (!isSoLoaded()) {
         loadSharedLibrary(FmuType::MODEL_EXCHANGE);
@@ -184,7 +184,7 @@ std::unique_ptr<Fmi2ModelExchangeObject>
     return nullptr;
 }
 
-std::unique_ptr<Fmi2CoSimObject> FmiLibrary::createCoSimulationObject(const std::string& name)
+std::unique_ptr<Fmi2CoSimObject> FmiLibrary::createCoSimulationInstance(const std::string& name)
 {
     if (!isSoLoaded()) {
         loadSharedLibrary(FmuType::COSIMULATION);

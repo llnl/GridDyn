@@ -56,7 +56,10 @@ could be distinct from the general object input and output strings so a separate
 provided with the default to the regular call
 @return a reference to a vector of string vectors containing the potential names of the inputs
 */
-    virtual const std::vector<stringVec>& fmiInputNames() const { return BaseObj::inputNames(); }
+    virtual const std::vector<stringVec>& getFmiInputNames() const
+    {
+        return BaseObj::inputNames();
+    }
 
     /** function call to get a set of output strings to use for the FMI outputs
 @details this defaults to the regular output strings call but there are a few reasons that this
@@ -64,9 +67,12 @@ could be distinct from the general object input and output strings so a separate
 provided with the default to the regular call
 @return a reference to a vector of string vectors containing the potential names of the inputs
 */
-    virtual const std::vector<stringVec>& fmiOutputNames() const { return BaseObj::outputNames(); }
+    virtual const std::vector<stringVec>& getFmiOutputNames() const
+    {
+        return BaseObj::outputNames();
+    }
     /** function to help match the IO of the fmi to the IO of the component*/
-    void setupFmiIo()
+    void configureFmiIo()
     {
         using gmlc::utilities::ensureSizeAtLeast;
         using gmlc::utilities::stringOps::findCloseStringMatch;
@@ -75,8 +81,8 @@ provided with the default to the regular call
         auto ostrings = fmisub->getOutputNames();
         auto istrings = fmisub->getInputNames();
 
-        auto& iNames = fmiInputNames();
-        auto& oNames = fmiOutputNames();
+        auto& iNames = getFmiInputNames();
+        auto& oNames = getFmiOutputNames();
 
         stringVec inputNames_actual(BaseObj::m_inputSize);
         stringVec outputNames_actual(BaseObj::m_outputSize);
@@ -205,7 +211,7 @@ provided with the default to the regular call
     void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
     {
         if (fmisub->isLoaded()) {
-            setupFmiIo();
+            configureFmiIo();
             SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
             fmisub->pFlowInitializeA(time0, flags);
             BaseObj::pFlowObjectInitializeA(time0, flags);

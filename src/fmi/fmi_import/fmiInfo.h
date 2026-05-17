@@ -106,8 +106,8 @@ class FmiVariableSet {
     FmiVariableSet& operator=(const FmiVariableSet& other);
     FmiVariableSet& operator=(FmiVariableSet&& other);
 
-    const fmi2ValueReference* getValueRef() const;
-    size_t getVRcount() const;
+    const fmi2ValueReference* getValueReferences() const;
+    size_t getVrCount() const;
     FmiVariableType getType() const;
     /** add a new reference
     @param[in] newvr the value reference to add
@@ -171,8 +171,8 @@ class FmiInfo {
     const std::string& getString(const std::string& field) const;
     /** get a Real variable by name*/
     double getReal(const std::string& field) const;
-    const VariableInformation& getVariableInfo(const std::string& variableName) const;
-    const VariableInformation& getVariableInfo(unsigned int index) const;
+    const VariableInformation& getVariableInformation(const std::string& variableName) const;
+    const VariableInformation& getVariableInformation(unsigned int index) const;
     /** get a set of variables for the specified parameters*/
     FmiVariableSet getReferenceSet(const std::vector<std::string>& variableList) const;
     /** get a variable set with a single member*/
@@ -180,9 +180,9 @@ class FmiInfo {
     /** get a variable set with a single member based on index*/
     FmiVariableSet getVariableSet(unsigned int index) const;
     /** get a set of the current outputs*/
-    FmiVariableSet getOutputReference() const;
+    FmiVariableSet getOutputReferences() const;
     /** get a set of the current inputs*/
-    FmiVariableSet getInputReference() const;
+    FmiVariableSet getInputReferences() const;
     /** get a list of variable names by type
     @param[in] type the type of variable
     @return a vector of strings with the names of the variables

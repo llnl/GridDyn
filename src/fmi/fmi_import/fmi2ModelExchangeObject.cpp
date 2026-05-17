@@ -82,7 +82,7 @@ void Fmi2ModelExchangeObject::setMode(FmuMode mode)
     }
 }
 
-void Fmi2ModelExchangeObject::newDiscreteStates(fmi2EventInfo* fmi2eventInfo)
+void Fmi2ModelExchangeObject::updateDiscreteStates(fmi2EventInfo* fmi2eventInfo)
 {
     auto ret = ModelExchangeFunctions->fmi2NewDiscreteStates(comp, fmi2eventInfo);
     if (ret != fmi2Status::fmi2OK) {
@@ -138,7 +138,7 @@ void Fmi2ModelExchangeObject::getStates(fmi2Real states[]) const
         handleNonOKReturnValues(ret);
     }
 }
-void Fmi2ModelExchangeObject::getNominalsOfContinuousStates(fmi2Real nominalValues[]) const
+void Fmi2ModelExchangeObject::getStateNominals(fmi2Real nominalValues[]) const
 {
     auto ret =
         ModelExchangeFunctions->fmi2GetNominalsOfContinuousStates(comp, nominalValues, numStates);

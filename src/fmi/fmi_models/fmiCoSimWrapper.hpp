@@ -28,7 +28,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
     {
         if (FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->isLoaded()) {
-            FmiWrapper<FmiCoSimSubModel, BaseObj>::setupFmiIo();
+            FmiWrapper<FmiCoSimSubModel, BaseObj>::configureFmiIo();
             SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
 
             BaseObj::pFlowObjectInitializeA(time0, flags);

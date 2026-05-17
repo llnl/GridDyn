@@ -39,7 +39,7 @@ class FmiMELoad: public FmiMEWrapper<Load> {
                           const solverMode& sMode) override;
 
   protected:
-    IOdata outputTranslation(const IOdata& fmiOutput, const IOdata& busV);
+    IOdata translateOutput(const IOdata& fmiOutput, const IOdata& busV);
 };
 
 }  // namespace griddyn::fmi

@@ -309,7 +309,7 @@ Types of work in this phase:
 - [ ] `src/fmi`
 - [ ] `src/fmi_export`
 - [ ] `src/optimization`
-- [ ] `src/helics`
+- [x] `src/helics`
 - [ ] `src/fileInput`
 - [ ] `src/coupling`
 - [ ] `src/fskit`
@@ -482,6 +482,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/simulation` + `src/griddyn/solvers` + `src/extraSolvers/braid`                                             | Phase 4 | Internal enum/type cleanup covering solver print, step, sparse-reinit, contingency, network-check, and recovery enums, plus the associated simulation-side `clang-tidy` cleanup                                 | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/griddyn/comms`                                                                                                     | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                                  | No                   | Not yet run                      | Complete |
 | merged      | `src/griddyn/measurement`                                                                                               | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                                     | No                   | CI `clang-tidy` run              | Complete |
+| merged      | `src/helics`                                                                                                            | Phase 5 | Subsystem public API cleanup covering HELICS loader and time helpers, coordinator-facing API renames, object-layer naming normalization, and the dependent grid-main/test/file-entry fallout                    | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                            | No                   | CI workflow run                  | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                            | No                   | No `clang-tidy` issues to report | Complete |
 | merged      | `src/griddyn/relays`                                                                                                    | Phase 3 | First low-risk relay cleanup batch covering member naming across `breaker`, `busRelay`, `differentialRelay`, `loadRelay`, `pmu`, and `zonalRelay`                                                               | No                   | CI `clang-tidy` run              | Complete |

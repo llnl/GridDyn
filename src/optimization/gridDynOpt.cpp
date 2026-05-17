@@ -179,7 +179,7 @@ coreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t
     return gridDynSimulation::findByUserID(typeName, searchID);
 }
 
-GridOptObject* GridDynOptimization::getOptData(coreObject* obj)
+GridOptObject* GridDynOptimization::getOptimizationObject(coreObject* obj)
 {
     if (obj != nullptr) {
         coreObject* nextObject = mAreaOpt->find(obj->getName());
@@ -192,14 +192,14 @@ GridOptObject* GridDynOptimization::getOptData(coreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-GridOptObject* GridDynOptimization::makeOptObjectPath(coreObject* obj)
+GridOptObject* GridDynOptimization::makeOptimizationObjectPath(coreObject* obj)
 {
-    GridOptObject* optObject = getOptData(obj);
+    GridOptObject* optObject = getOptimizationObject(obj);
     if (optObject != nullptr) {
         return optObject;
     }
     if (!(obj->isRoot())) {
-        auto* parentOptObject = makeOptObjectPath(obj->getParent());
+        auto* parentOptObject = makeOptimizationObjectPath(obj->getParent());
         optObject = CoreOptObjectFactory::instance()->createObject(obj);
         parentOptObject->add(optObject);
         return optObject;

@@ -18,6 +18,7 @@
 #include <utility>
 
 namespace griddyn {
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridRelayOpt, Relay> opRelay("basic", "relay");
 
 using units::unit;
@@ -72,20 +73,20 @@ void GridRelayOpt::add(coreObject* obj)
 
 count_t GridRelayOpt::objSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
 count_t GridRelayOpt::contObjSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
 
 count_t GridRelayOpt::intObjSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
@@ -149,7 +150,7 @@ void GridRelayOpt::constraintJacobianElements(const OptimizationData& /*of*/,
 
 double GridRelayOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
 {
-    double cost = 0;
+    const double cost = 0;
 
     return cost;
 }
@@ -171,9 +172,9 @@ void GridRelayOpt::getConstraints(const OptimizationData& /*of*/,
                                   const OptimizationMode& /*oMode*/)
 {
 }
-void GridRelayOpt::getObjName(stringVec& /*objNames*/,
-                              const OptimizationMode& /*oMode*/,
-                              const std::string& /*prefix*/)
+void GridRelayOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
+                                     const OptimizationMode& /*oMode*/,
+                                     const std::string& /*prefix*/)
 {
 }
 
@@ -201,9 +202,8 @@ void GridRelayOpt::set(std::string_view param, std::string_view val)
 
 void GridRelayOpt::set(std::string_view param, double val, unit unitType)
 {
-    if ((param == "voltagetolerance") || (param == "vtol")) {
-    } else if ((param == "angleetolerance") || (param == "atol")) {
-    } else {
+    if (!((param == "voltagetolerance") || (param == "vtol") || (param == "angleetolerance") ||
+          (param == "atol"))) {
         GridOptObject::set(param, val, unitType);
     }
 }

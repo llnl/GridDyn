@@ -316,7 +316,7 @@ void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount)
             go = genOptFactory->makeTypeObject(obj);
             genOptList[kk - 1] = go;
             q = 0;
-            oo = gdo->makeOptObjectPath(obj->getParent());
+            oo = gdo->makeOptimizationObjectPath(obj->getParent());
             oo->add(go);
         }
 

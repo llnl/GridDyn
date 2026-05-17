@@ -79,9 +79,9 @@ class GridRelayOpt: public GridOptObject {
     virtual void constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
                                             const OptimizationMode& oMode) override;
-    virtual void getObjName(stringVec& objNames,
-                            const OptimizationMode& oMode,
-                            const std::string& prefix = "") override;
+    virtual void getObjectiveNames(stringVec& objectiveNames,
+                                   const OptimizationMode& oMode,
+                                   const std::string& prefix = "") override;
 
     virtual void disable() override;
     // parameter set functions

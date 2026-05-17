@@ -269,9 +269,9 @@ class GridOptObject: public coreObject {
     @param oMode the optimization mode to use.
     @param prefix (optional) string to place before the objective name
     */
-    virtual void getObjName(stringVec& objNames,
-                            const OptimizationMode& oMode,
-                            const std::string& prefix = "");
+    virtual void getObjectiveNames(stringVec& objectiveNames,
+                                   const OptimizationMode& oMode,
+                                   const std::string& prefix = "");
 
     /** get a specific bus
     @param index  the index of the bus to return
@@ -298,6 +298,6 @@ class GridOptObject: public coreObject {
     virtual GridOptObject* getRelay(index_t index) const;
 };
 
-void printObjStateNames(GridOptObject* obj, const OptimizationMode& oMode);
+void printObjectiveStateNames(GridOptObject* obj, const OptimizationMode& oMode);
 
 }  // namespace griddyn

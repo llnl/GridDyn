@@ -84,8 +84,8 @@ class GridDynOptimization: public gridDynSimulation {
     /** find the economic data for a corresponding grid core object
     @input coreObject the object for which to find the corresponding econ Data
     */
-    virtual GridOptObject* getOptData(coreObject* obj = nullptr);
-    virtual GridOptObject* makeOptObjectPath(coreObject* obj);
+    virtual GridOptObject* getOptimizationObject(coreObject* obj = nullptr);
+    virtual GridOptObject* makeOptimizationObjectPath(coreObject* obj);
 
   protected:
     OptimizerInterface* updateOptimizer(const OptimizationMode& oMode);

@@ -371,7 +371,7 @@ void loadPsatSupplyArray(coreObject* parentObject,
             continue;
         }
         auto go = new gridGenOpt(gen);
-        auto oo = gdo->makeOptObjectPath(bus);
+        auto oo = gdo->makeOptimizationObjectPath(bus);
         oo->add(go);
 
         if (genLine[2] != 0.0) {

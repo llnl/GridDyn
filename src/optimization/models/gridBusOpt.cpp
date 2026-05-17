@@ -272,15 +272,15 @@ void GridBusOpt::constraintJacobianElements(const OptimizationData& optimization
     }
 }
 
-void GridBusOpt::getObjName(stringVec& objNames,
-                            const OptimizationMode& oMode,
-                            const std::string& prefix)
+void GridBusOpt::getObjectiveNames(stringVec& objectiveNames,
+                                   const OptimizationMode& oMode,
+                                   const std::string& prefix)
 {
     for (auto* loadObject : loadList) {
-        loadObject->getObjName(objNames, oMode, prefix);
+        loadObject->getObjectiveNames(objectiveNames, oMode, prefix);
     }
     for (auto* genObject : genList) {
-        genObject->getObjName(objNames, oMode, prefix);
+        genObject->getObjectiveNames(objectiveNames, oMode, prefix);
     }
 }
 

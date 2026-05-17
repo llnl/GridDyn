@@ -179,9 +179,9 @@ void GridLinkOpt::getConstraints(const OptimizationData& /*optimizationData*/,
 {
 }
 
-void GridLinkOpt::getObjName(stringVec& /*objNames*/,
-                             const OptimizationMode& /*oMode*/,
-                             const std::string& /*prefix*/)
+void GridLinkOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
+                                    const OptimizationMode& /*oMode*/,
+                                    const std::string& /*prefix*/)
 {
 }
 

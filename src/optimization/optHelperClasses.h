@@ -188,12 +188,12 @@ class OptimizationOffsetTable {
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
-    index_t getaOffset(const OptimizationMode& oMode) const;
+    index_t getAngleOffset(const OptimizationMode& oMode) const;
     /** get the voltage offset
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getvOffset(const OptimizationMode& oMode) const;
+    index_t getVoltageOffset(const OptimizationMode& oMode) const;
     /** get the continuous offset
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the diffferential offset
@@ -209,13 +209,13 @@ class OptimizationOffsetTable {
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getgOffset(const OptimizationMode& oMode) const;
+    index_t getGenerationOffset(const OptimizationMode& oMode) const;
 
     /** get the reactive generation offset
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the voltage offset
      */
-    index_t getqOffset(const OptimizationMode& oMode) const;
+    index_t getReactiveGenerationOffset(const OptimizationMode& oMode) const;
     /** get the locations for the data
      *@param[in] oMode the OptimizationMode we are interested in
      */

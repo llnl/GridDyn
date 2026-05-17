@@ -309,12 +309,12 @@ void GridAreaOpt::constraintJacobianElements(const OptimizationData& optimizatio
         childObject->constraintJacobianElements(optimizationData, matrixDataRef, oMode);
     }
 }
-void GridAreaOpt::getObjName(stringVec& objNames,
-                             const OptimizationMode& oMode,
-                             const std::string& prefix)
+void GridAreaOpt::getObjectiveNames(stringVec& objectiveNames,
+                                    const OptimizationMode& oMode,
+                                    const std::string& prefix)
 {
     for (auto* childObject : objectList) {
-        childObject->getObjName(objNames, oMode, prefix);
+        childObject->getObjectiveNames(objectiveNames, oMode, prefix);
     }
 }
 

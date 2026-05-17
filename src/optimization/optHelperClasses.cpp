@@ -8,6 +8,7 @@
 
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstring>
+#include <utility>
 
 namespace griddyn {
 bool isAC(const OptimizationMode& oMode)
@@ -177,7 +178,7 @@ static const OptimizationOffsets nullOffsets;
 
 const OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode& oMode) const
 {
-    return (oMode.offsetIndex < static_cast<count_t>(offsetContainer.size())) ?
+    return std::cmp_less(oMode.offsetIndex, offsetContainer.size()) ?
         offsetContainer[oMode.offsetIndex] :
         nullOffsets;
 }
@@ -213,12 +214,12 @@ void OptimizationOffsetTable::setConstraintOffset(index_t newOffset, const Optim
     offsetContainer[oMode.offsetIndex].constraintOffset = newOffset;
 }
 
-index_t OptimizationOffsetTable::getaOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getAngleOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).aOffset;
 }
 
-index_t OptimizationOffsetTable::getvOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getVoltageOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).vOffset;
 }
@@ -233,12 +234,12 @@ index_t OptimizationOffsetTable::getIntOffset(const OptimizationMode& oMode) con
     return getOffsets(oMode).intOffset;
 }
 
-index_t OptimizationOffsetTable::getgOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getGenerationOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).gOffset;
 }
 
-index_t OptimizationOffsetTable::getqOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getReactiveGenerationOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).qOffset;
 }

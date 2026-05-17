@@ -150,8 +150,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
     for (int ii = 0; ii < numThreePhaseVoltage; ++ii) {
         for (int jj = 0; jj < 3; ++jj) {
             if (g_printStuff) {
-                std::cout << "\tvoltage[" << ii << "][" << jj << "] = "
-                          << voltage[(ii * 3) + jj]
+                std::cout << "\tvoltage[" << ii << "][" << jj << "] = " << voltage[(ii * 3) + jj]
                           << " abs = " << std::abs(voltage[(ii * 3) + jj])
                           << " arg = " << std::arg(voltage[(ii * 3) + jj]) << '\n';
             }

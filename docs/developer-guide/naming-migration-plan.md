@@ -307,12 +307,12 @@ Types of work in this phase:
 
 - [x] `src/networking`
 - [ ] `src/fmi`
-- [ ] `src/fmi_export`
+- [x] `src/fmi_export`
 - [x] `src/optimization`
 - [x] `src/helics`
 - [ ] `src/fileInput`
-- [ ] `src/coupling`
-- [ ] `src/fskit`
+- [x] `src/coupling`
+- [x] `src/fskit`
 
 ### Phase 5 Exit Criteria
 
@@ -483,6 +483,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/griddyn/comms`                                                                                                     | Phase 3 | Low-risk comms cleanup in `Communicator`, `communicationsCore`, and related communicator fixes                                                                                                                  | No                   | Not yet run                      | Complete |
 | merged      | `src/griddyn/measurement`                                                                                               | Phase 3 | Low-risk measurement member and parameter cleanup, plus collector and grabber warning fixes                                                                                                                     | No                   | CI `clang-tidy` run              | Complete |
 | merged      | `src/helics`                                                                                                            | Phase 5 | Subsystem public API cleanup covering HELICS loader and time helpers, coordinator-facing API renames, object-layer naming normalization, and the dependent grid-main/test/file-entry fallout                    | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/fskit` + `src/coupling` + `src/fmi_export` + `src/gridDynMain` + `src/griddyn/loads`                               | Phase 5 | Subsystem public API cleanup covering FSKIT public type-family renames, coupling message and MPI helper API normalization, FMI export wrapper API cleanup, and the dependent main/load/test fallout             | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/optimization`                                                                                                      | Phase 5 | Subsystem public API cleanup covering optimization-object lookup renames, objective-name API cleanup, offset-accessor normalization, dependent file-input call-site updates, and associated `clang-tidy` fixes  | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                            | No                   | CI workflow run                  | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                            | No                   | No `clang-tidy` issues to report | Complete |

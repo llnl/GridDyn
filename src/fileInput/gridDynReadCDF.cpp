@@ -37,7 +37,7 @@ static void cdfReadBranch(coreObject* parentObject,
                           std::vector<gridBus*> busList,
                           const basicReaderInfo& readerOptions);
 
-void loadCDF(coreObject* parentObject,
+void loadCdf(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -114,7 +114,7 @@ void loadCDF(coreObject* parentObject,
                             parentObject->add(busList[index]);
                         }
                         catch (const objectAddFailure&) {
-                            addToParentRename(busList[index], parentObject);
+                            addToParentWithRename(busList[index], parentObject);
                         }
                     } else {
                         std::cerr << "Invalid bus code " << index << '\n';
@@ -513,7 +513,7 @@ static void cdfReadBranch(coreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
     lnk->setName(temp2);
-    addToParentRename(lnk, parentObject);
+    addToParentWithRename(lnk, parentObject);
 
     // skip the load flow area and loss zone and circuit for now TODO:: PT Fix this when area
     // controls are put in place

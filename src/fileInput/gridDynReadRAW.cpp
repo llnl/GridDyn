@@ -128,7 +128,7 @@ static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
     return busList[index];
 }
 
-void loadRAW(coreObject* parentObject,
+void loadRaw(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -248,7 +248,7 @@ void loadRAW(coreObject* parentObject,
                     }
                     catch (const objectAddFailure&) {
                         busList[index]->setName(prevName);
-                        addToParentRename(busList[index], parentObject);
+                        addToParentWithRename(busList[index], parentObject);
                     }
                 }
             } else {

@@ -59,7 +59,7 @@ a 9999 card.
 The 15 card indicates that area interchange data follows. The data ends with
 a 9999 card.
 */
-void loadPSP(coreObject* parentObject,
+void loadPsp(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -122,7 +122,7 @@ void loadPSP(coreObject* parentObject,
                                 parentObject->add(busList[index]);
                             }
                             catch (const objectAddFailure&) {
-                                addToParentRename(busList[index], parentObject);
+                                addToParentWithRename(busList[index], parentObject);
                             }
                         } else {
                             std::cerr << "Invalid bus code " << index << '\n';
@@ -460,7 +460,7 @@ void pspReadBranch(coreObject* parentObject,
         }
     }
     lnk->setName(temp2);
-    addToParentRename(lnk, parentObject);
+    addToParentWithRename(lnk, parentObject);
 
     // skip the load flow area and loss zone and circuit for now
 

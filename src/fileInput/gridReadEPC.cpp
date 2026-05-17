@@ -191,7 +191,7 @@ void ProcessSectionObject(std::string line,
     }
 }
 
-void loadEPC(coreObject* parentObject,
+void loadEpc(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -269,7 +269,7 @@ void loadEPC(coreObject* parentObject,
                         parentObject->add(busList[index - 1]);
                     }
                     catch (const objectAddFailure&) {
-                        addToParentRename(busList[index - 1], parentObject);
+                        addToParentWithRename(busList[index - 1], parentObject);
                     }
                 } else {
                     std::cerr << "Invalid bus code " << index << '\n';
@@ -352,7 +352,7 @@ void loadEPC(coreObject* parentObject,
                             parentObject->add(dcbusList[index - 1]);
                         }
                         catch (const objectAddFailure&) {
-                            addToParentRename(dcbusList[index - 1], parentObject);
+                            addToParentWithRename(dcbusList[index - 1], parentObject);
                         }
                     } else {
                         std::cerr << "Invalid bus code " << index << '\n';
@@ -925,7 +925,7 @@ void epcReadBranch(coreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
-    addToParentRename(lnk, parentObject);
+    addToParentWithRename(lnk, parentObject);
     // get the branch parameters
     int status = toIntSimple(strvec[9]);
     if (status == 0) {
@@ -1002,7 +1002,7 @@ void epcReadDCBranch(coreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
-    addToParentRename(lnk, parentObject);
+    addToParentWithRename(lnk, parentObject);
     // get the branch parameters
     int status = toIntSimple(strvec[8]);
     if (status == 0) {
@@ -1109,7 +1109,7 @@ void epcReadTX(coreObject* parentObject,
         lnk->setDescription(std::string{long_id});
     }
 
-    addToParentRename(lnk, parentObject);
+    addToParentWithRename(lnk, parentObject);
     // get the branch parameters
     status = toIntSimple(strvec[9]);
     if (status == 0) {

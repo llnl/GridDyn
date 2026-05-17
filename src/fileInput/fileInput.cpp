@@ -86,7 +86,7 @@ namespace readerConfig {
 
 }  // namespace readerConfig
 
-int objectParameterSet(const std::string& label, coreObject* obj, gridParameter& param) noexcept
+int setObjectParameter(const std::string& label, coreObject* obj, gridParameter& param) noexcept
 {
     try {
         if (param.stringType) {
@@ -129,7 +129,7 @@ static constexpr std::array<std::pair<std::string_view, int>, 4> flagStringMap{{
     {"no_generator_bus_voltage_reset", NO_GENERATOR_BUS_VOLTAGE_RESET},
 }};
 
-void addflags(basicReaderInfo& bri, const std::string& flags)
+void addFlags(basicReaderInfo& bri, const std::string& flags)
 {
     auto flagStrings = gmlc::utilities::stringOps::splitline(flags);
     gmlc::utilities::stringOps::trim(flagStrings);
@@ -186,26 +186,26 @@ void loadFile(coreObject* parentObject,
     if (ext == "xml") {
         loadElementFile<XmlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "csv") {
-        loadCSV(parentObject, fileName, *readerInf);
+        loadCsv(parentObject, fileName, *readerInf);
     } else if (ext == "raw" || ext == "psse" || ext == "pss/e" || ext == "pti") {
-        loadRAW(parentObject, fileName, *readerInf);
+        loadRaw(parentObject, fileName, *readerInf);
     } else if (ext == "dyr") {
-        loadDYR(parentObject, fileName, *readerInf);
+        loadDyr(parentObject, fileName, *readerInf);
     } else if ((ext == "cdf") || (ext == "txt")) {
-        loadCDF(parentObject, fileName, *readerInf);
+        loadCdf(parentObject, fileName, *readerInf);
     } else if (ext == "uct") {
     } else if (ext == "m" || ext == "matlab") {
-        loadMFile(parentObject, fileName, *readerInf);
+        loadMatlabFile(parentObject, fileName, *readerInf);
     } else if (ext == "psp") {
-        loadPSP(parentObject, fileName, *readerInf);
+        loadPsp(parentObject, fileName, *readerInf);
     } else if (ext == "epc") {
-        loadEPC(parentObject, fileName, *readerInf);
+        loadEpc(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
         loadElementFile<jsonReaderElement>(parentObject, fileName, readerInf);
     } else if ((ext == "yaml") || (ext == "yml")) {
         loadElementFile<yamlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "gdz") {  // gridDyn Zipped file
-        loadGDZ(parentObject, fileName, *readerInf);
+        loadGdz(parentObject, fileName, *readerInf);
     }
 }
 
@@ -228,7 +228,7 @@ void addToParent(coreObject* objectToAdd, coreObject* parentObject)
 // if multiple object with the same name may have been added (parallel transmission lines,
 // generators, etc) sequence through the count to find one that hasn't been used then rename the
 // object and add it.
-void addToParentRename(coreObject* objectToAdd, coreObject* parentObject)
+void addToParentWithRename(coreObject* objectToAdd, coreObject* parentObject)
 {
     const std::string bname = objectToAdd->getName();
     int cnt = 2;

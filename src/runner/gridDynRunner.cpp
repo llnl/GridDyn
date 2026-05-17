@@ -464,7 +464,7 @@ std::shared_ptr<CLI::App>
         ->delimiter(',')
         ->type_size(-1)
         ->each(
-            [&readerInformation](const std::string& flag) { addflags(readerInformation, flag); });
+            [&readerInformation](const std::string& flag) { addFlags(readerInformation, flag); });
     readerGroup->add_option("--define,-D", "definition strings for the element file readers")
         ->type_size(-1)
         ->each([&readerInformation](const std::string& defstr) {

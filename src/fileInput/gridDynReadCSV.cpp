@@ -30,7 +30,7 @@ using gmlc::utilities::string_viewOps::trim;
 // NOLINTBEGIN(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 enum class ModeState { READ_HEADER, READ_DATA };
 
-void loadCSV(coreObject* parentObject,
+void loadCsv(coreObject* parentObject,
              const std::string& fileName,
              readerInfo& readerInformation,
              const std::string& objectName)
@@ -260,13 +260,13 @@ void loadCSV(coreObject* parentObject,
                     readerInformation.checkFileParam(str);
                     gridParameter parameterObject(field, str);
 
-                    objectParameterSet(std::to_string(lineNumber), obj, parameterObject);
+                    setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                 } else if (field == "workdir") {
                     auto str = std::string{lineTokens[kk]};
                     readerInformation.checkDirectoryParam(str);
                     gridParameter parameterObject(field, str);
 
-                    objectParameterSet(std::to_string(lineNumber), obj, parameterObject);
+                    setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                 } else {
                     auto str = readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
@@ -274,7 +274,7 @@ void loadCSV(coreObject* parentObject,
                     if (val < kHalfBigNum) {
                         gridParameter parameterObject(field, val);
                         parameterObject.paramUnits = units[kk];
-                        objectParameterSet(std::to_string(lineNumber), obj, parameterObject);
+                        setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                     } else {
                         if (str.empty()) {
                             continue;
@@ -282,7 +282,7 @@ void loadCSV(coreObject* parentObject,
                         gridParameter parameterObject(field, str);
                         paramStringProcess(parameterObject, readerInformation);
                         auto result =
-                            objectParameterSet(std::to_string(lineNumber), obj, parameterObject);
+                            setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
 
                         if (result != 0) {
                             skipToken[kk] += 1;

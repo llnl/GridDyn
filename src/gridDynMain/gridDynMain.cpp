@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
                 return 0;
             case exec_mode_t::helics: {
 #ifdef ENABLE_HELICS_EXECUTABLE
-                auto runner = std::make_unique<helicsLib::helicsRunner>(simulation);
+                auto runner = std::make_unique<helicsLib::HelicsRunner>(simulation);
                 simulation->log(nullptr,
                                 griddyn::print_level::summary,
                                 std::string("Executing through HELICS runner"));

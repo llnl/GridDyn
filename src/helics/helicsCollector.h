@@ -19,12 +19,12 @@ class HelicsCollector: public collector {
   private:
     class PublicationInfo {
       public:
-        std::string colname;
-        int32_t pubIndex = -1;
-        bool vectorPub = false;
+        std::string columnName;
+        int32_t publicationIndex = -1;
+        bool vectorPublication = false;
         PublicationInfo() = default;
-        PublicationInfo(const std::string& cname, int32_t index, bool vectorPublish = false):
-            colname(cname), pubIndex(index), vectorPub(vectorPublish)
+        PublicationInfo(const std::string& name, int32_t index, bool isVectorPublication = false):
+            columnName(name), publicationIndex(index), vectorPublication(isVectorPublication)
         {
         }
     };
@@ -33,13 +33,13 @@ class HelicsCollector: public collector {
         AS_VECTOR = 1,
         AS_STRING = 2,
     };
-    CollectorPubType pubType = CollectorPubType::AS_INDIVIDUAL;
+    CollectorPubType publicationType = CollectorPubType::AS_INDIVIDUAL;
     std::vector<std::pair<std::string, std::string>> complexPairs;
-    std::vector<std::string> cnames;
-    std::vector<PublicationInfo> pubs;
-    std::string pubName;
-    int32_t mpubIndex = -1;
-    HelicsCoordinator* coord =
+    std::vector<std::string> complexNames;
+    std::vector<PublicationInfo> publications;
+    std::string publicationName;
+    int32_t multiPublicationIndex = -1;
+    HelicsCoordinator* coordinator_ =
         nullptr;  //!< the coordinator for interaction with the helics interface
   public:
     HelicsCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);

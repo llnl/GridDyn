@@ -24,7 +24,7 @@ class HelicsCommunicator:
   public:
     HelicsCommunicator() = default;
     explicit HelicsCommunicator(const std::string& name);
-    HelicsCommunicator(const std::string& m_name, std::uint64_t id);
+    HelicsCommunicator(const std::string& name, std::uint64_t identifier);
 
     virtual ~HelicsCommunicator() = default;
 

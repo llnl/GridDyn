@@ -305,7 +305,7 @@ Types of work in this phase:
 
 ### Phase 5 Checklist By Subsystem
 
-- [ ] `src/networking`
+- [x] `src/networking`
 - [ ] `src/fmi`
 - [ ] `src/fmi_export`
 - [ ] `src/optimization`

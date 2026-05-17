@@ -31,7 +31,7 @@ class HelicsLoad: public loads::rampLoad {
     helics::data_type loadType;
     helics::data_type voltageType;
     double scaleFactor = 1.0;  //!< scaling factor on the load
-    HelicsCoordinator* coord =
+    HelicsCoordinator* coordinator_ =
         nullptr;  //!< the coordinator for interaction with the helics interface
   private:
     double prevP = 0;

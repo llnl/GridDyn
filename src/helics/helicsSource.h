@@ -22,13 +22,13 @@ class HelicsSource: public sources::rampSource {
     };
 
   protected:
-    std::string valKey;  //!< time series containing the load information
+    std::string valueKey;  //!< time series containing the load information
     model_parameter scaleFactor = 1.0;  //!< scaling factor on the load
     units::unit inputUnits = units::defunit;  //!< units of the incoming data
     units::unit outputUnits = units::defunit;  //!< units of the outgoing data
     helics::data_type valueType;  //!< the type of value that is used through helics
     int32_t valueIndex = -1;  //!< the index into the helics coordinator
-    HelicsCoordinator* coord_ = nullptr;  //!< pointer to the helics coordinator
+    HelicsCoordinator* coordinator_ = nullptr;  //!< pointer to the helics coordinator
     int32_t elementIndex = 0;  //!< index into a vector from HELICS
   private:
     double prevVal = 0;

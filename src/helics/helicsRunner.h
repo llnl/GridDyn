@@ -19,7 +19,7 @@ class readerInfo;
 namespace helicsLib {
     class HelicsCoordinator;
 
-    /** helicsRunner is the execution object for executing in coordination with the Helics
+    /** HelicsRunner is the execution object for executing in coordination with the Helics
 co-simulation environment it inherits from gridDynRunner and adds some extra features necessary for
 executing with helics
 */
@@ -34,7 +34,8 @@ executing with helics
         ~HelicsRunner();
 
       public:
-        virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& ri) override;
+        virtual std::shared_ptr<CLI::App>
+            generateLocalCommandLineParser(readerInfo& readerInformation) override;
 
         virtual void simInitialize() override;
         virtual coreTime Run() override;

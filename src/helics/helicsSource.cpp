@@ -31,7 +31,7 @@ coreObject* HelicsSource::clone(coreObject* obj) const
     nobj->inputUnits = inputUnits;
     nobj->outputUnits = outputUnits;
     nobj->scaleFactor = scaleFactor;
-    nobj->valKey = valKey;
+    nobj->valueKey = valueKey;
 
     return nobj;
 }
@@ -40,7 +40,7 @@ void HelicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto obj = getRoot();
 
-    coord_ = dynamic_cast<HelicsCoordinator*>(obj->find("helics"));
+    coordinator_ = dynamic_cast<HelicsCoordinator*>(obj->find("helics"));
     rampSource::pFlowObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
@@ -48,8 +48,8 @@ void HelicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         updatePeriod = 10.0;
     }
     nextUpdateTime = time0;
-    if (valKey.empty()) {
-        valKey = fullObjectName(this) + "value";
+    if (valueKey.empty()) {
+        valueKey = fullObjectName(this) + "value";
     }
     updateSubscription();
 }
@@ -79,16 +79,16 @@ void HelicsSource::updateA(coreTime time)
         return;
     }
     lastUpdateTime = time;
-    if (!coord_->isUpdated(valueIndex)) {
+    if (!coordinator_->isUpdated(valueIndex)) {
         prevTime = time;
         return;
     }
     double cval;
     if (valueType == helics::data_type::helics_vector) {
-        auto vals = coord_->getValueAs<std::vector<double>>(valueIndex);
+        auto vals = coordinator_->getValueAs<std::vector<double>>(valueIndex);
         cval = vals[elementIndex];
     } else {
-        cval = coord_->getValueAs<double>(valueIndex);
+        cval = coordinator_->getValueAs<double>(valueIndex);
         if (cval == kNullVal) {
             mp_dOdt = 0.0;
             prevVal = m_output;
@@ -155,7 +155,7 @@ void HelicsSource::setFlag(const std::string& param, bool val)
 void HelicsSource::set(const std::string& param, const std::string& val)
 {
     if ((param == "valkey") || (param == "key")) {
-        valKey = val;
+        valueKey = val;
         updateSubscription();
     } else if (param == "valuetype") {
         auto vType = helics::getTypeFromString(val);
@@ -199,17 +199,17 @@ void HelicsSource::set(const std::string& param, double val, units::unit unitTyp
 
 void HelicsSource::updateSubscription()
 {
-    if (coord_) {
-        if (!valKey.empty()) {
-            // coord_->registerSubscription(valKey, helicsRegister::dataType::helicsDouble,
+    if (coordinator_) {
+        if (!valueKey.empty()) {
+            // coordinator_->registerSubscription(valueKey, helicsRegister::dataType::helicsDouble,
             // def);
 
             if (valueIndex < 0) {
-                valueIndex = coord_->addSubscription(valKey, inputUnits);
+                valueIndex = coordinator_->addSubscription(valueKey, inputUnits);
             } else {
-                coord_->updateSubscription(valueIndex, valKey, inputUnits);
+                coordinator_->updateSubscription(valueIndex, valueKey, inputUnits);
             }
-            coord_->setDefault(
+            coordinator_->setDefault(
                 valueIndex,
                 convert(m_output / scaleFactor, outputUnits, inputUnits, systemBasePower));
         }

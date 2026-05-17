@@ -19,38 +19,40 @@
 
 namespace griddyn {
 namespace {
-void registerBlockFactoryTypes()
-{
-    static const typeFactory<Block> blockFactory(
-        "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
-    static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block", "control");
-    static const childTypeFactory<blocks::deadbandBlock, Block> deadbandBlockFactory(
-        "block", std::to_array<std::string_view>({"deadband", "db"}));
-    static const childTypeFactory<blocks::delayBlock, Block> delayBlockFactory(
-        "block", std::to_array<std::string_view>({"delay", "filter"}));
-    static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
-    static const childTypeFactory<blocks::integralBlock, Block> integralBlockFactory(
-        "block", std::to_array<std::string_view>({"integrator", "integral"}));
-    static const childTypeFactory<blocks::functionBlock, Block> functionBlockFactory(
-        "block", std::to_array<std::string_view>({"function", "func"}));
-    static const childTypeFactory<blocks::lutBlock, Block> lookupTableBlockFactory(
-        "block", std::to_array<std::string_view>({"lut", "lookuptable"}));
-    static const childTypeFactory<blocks::derivativeBlock, Block> derivativeBlockFactory(
-        "block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
-    static const childTypeFactory<blocks::filteredDerivativeBlock, Block> filteredDerivativeBlockFactory(
-        "block",
-        std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
-    static_cast<void>(blockFactory);
-    static_cast<void>(controlBlockFactory);
-    static_cast<void>(deadbandBlockFactory);
-    static_cast<void>(delayBlockFactory);
-    static_cast<void>(pidBlockFactory);
-    static_cast<void>(integralBlockFactory);
-    static_cast<void>(functionBlockFactory);
-    static_cast<void>(lookupTableBlockFactory);
-    static_cast<void>(derivativeBlockFactory);
-    static_cast<void>(filteredDerivativeBlockFactory);
-}
+    void registerBlockFactoryTypes()
+    {
+        static const typeFactory<Block> blockFactory(
+            "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
+        static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block",
+                                                                                       "control");
+        static const childTypeFactory<blocks::deadbandBlock, Block> deadbandBlockFactory(
+            "block", std::to_array<std::string_view>({"deadband", "db"}));
+        static const childTypeFactory<blocks::delayBlock, Block> delayBlockFactory(
+            "block", std::to_array<std::string_view>({"delay", "filter"}));
+        static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
+        static const childTypeFactory<blocks::integralBlock, Block> integralBlockFactory(
+            "block", std::to_array<std::string_view>({"integrator", "integral"}));
+        static const childTypeFactory<blocks::functionBlock, Block> functionBlockFactory(
+            "block", std::to_array<std::string_view>({"function", "func"}));
+        static const childTypeFactory<blocks::lutBlock, Block> lookupTableBlockFactory(
+            "block", std::to_array<std::string_view>({"lut", "lookuptable"}));
+        static const childTypeFactory<blocks::derivativeBlock, Block> derivativeBlockFactory(
+            "block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
+        static const childTypeFactory<blocks::filteredDerivativeBlock, Block>
+            filteredDerivativeBlockFactory("block",
+                                           std::to_array<std::string_view>(
+                                               {"fder", "filtered_deriv", "filtered_derivative"}));
+        static_cast<void>(blockFactory);
+        static_cast<void>(controlBlockFactory);
+        static_cast<void>(deadbandBlockFactory);
+        static_cast<void>(delayBlockFactory);
+        static_cast<void>(pidBlockFactory);
+        static_cast<void>(integralBlockFactory);
+        static_cast<void>(functionBlockFactory);
+        static_cast<void>(lookupTableBlockFactory);
+        static_cast<void>(derivativeBlockFactory);
+        static_cast<void>(filteredDerivativeBlockFactory);
+    }
 }  // namespace
 
 Block::Block(const std::string& objName): GridSubModel(objName)
@@ -571,11 +573,13 @@ void Block::blockJacobianElements(double /*input*/,
                 --offset;
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
                 if (opFlags[use_direct]) {
-                    matrixDataValue.assignCheckCol(
-                        offset, argLoc, K * stateDataValue.cj * rLimiter->DoutDin());
+                    matrixDataValue.assignCheckCol(offset,
+                                                   argLoc,
+                                                   K * stateDataValue.cj * rLimiter->DoutDin());
                 } else {
-                    matrixDataValue.assign(
-                        offset, offset + 1, stateDataValue.cj * rLimiter->DoutDin());
+                    matrixDataValue.assign(offset,
+                                           offset + 1,
+                                           stateDataValue.cj * rLimiter->DoutDin());
                 }
             }
             if (opFlags[use_block_limits]) {
@@ -583,11 +587,13 @@ void Block::blockJacobianElements(double /*input*/,
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
 
                 if ((opFlags[use_direct]) && (!opFlags[use_ramp_limits])) {
-                    matrixDataValue.assignCheckCol(
-                        offset, argLoc, K * stateDataValue.cj * vLimiter->DoutDin());
+                    matrixDataValue.assignCheckCol(offset,
+                                                   argLoc,
+                                                   K * stateDataValue.cj * vLimiter->DoutDin());
                 } else {
-                    matrixDataValue.assign(
-                        offset, offset + 1, stateDataValue.cj * vLimiter->DoutDin());
+                    matrixDataValue.assign(offset,
+                                           offset + 1,
+                                           stateDataValue.cj * vLimiter->DoutDin());
                 }
             }
         }
@@ -671,16 +677,14 @@ change_code Block::rootCheck(const IOdata& inputs,
     if (!opFlags[has_limits]) {
         return ret;
     }
-    const double* stateValues =
-        ((!stateDataValue.empty()) ? stateDataValue.state : m_state.data());
+    const double* stateValues = ((!stateDataValue.empty()) ? stateDataValue.state : m_state.data());
     const double* stateDerivatives =
         ((!stateDataValue.empty()) ? stateDataValue.dstate_dt : m_dstate_dt.data());
     if (opFlags[use_ramp_limits]) {
         auto doffset = offsets.getDiffOffset(solverModeValue);
         const double testRate = getTestRate(getRateInput(inputs), stateDerivatives[doffset]);
         const double testValue = getTestValue(inputs[0], stateValues[doffset]);
-        const double limitValue =
-            rLimiter->limitCheck(stateValues[doffset], testValue, testRate);
+        const double limitValue = rLimiter->limitCheck(stateValues[doffset], testValue, testRate);
         if (limitValue < 0.0) {
             rLimiter->changeLimitActivation(testRate);
             ret = change_code::non_state_change;
@@ -721,8 +725,9 @@ void Block::rootTrigger(coreTime /*time*/,
         if (rootMask[roffset] == 0) {
             return;
         }
-        const double value = getLimiterTestValue(
-            inputs.empty() ? m_state[0] : inputs[0], emptyStateData, solverModeValue);
+        const double value = getLimiterTestValue(inputs.empty() ? m_state[0] : inputs[0],
+                                                 emptyStateData,
+                                                 solverModeValue);
 
         vLimiter->changeLimitActivation(value);
         m_state[0] = vLimiter->output(value);
@@ -950,8 +955,7 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
             derivativeGain = inputs[2];
         }
 
-        ret = std::make_unique<blocks::pidBlock>(
-            proportionalGain, integralGain, derivativeGain);
+        ret = std::make_unique<blocks::pidBlock>(proportionalGain, integralGain, derivativeGain);
         if (gain != 1.0) {
             ret->set("gain", gain);
         }

@@ -17,12 +17,12 @@
 
 namespace griddyn {
 namespace {
-void registerAgcFactoryTypes()
-{
-    static const typeFactory<Block> agcFactory(
-        "agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
-    static_cast<void>(agcFactory);
-}
+    void registerAgcFactoryTypes()
+    {
+        static const typeFactory<Block> agcFactory(
+            "agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+        static_cast<void>(agcFactory);
+    }
 }  // namespace
 /*
 class AGControl

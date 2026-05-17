@@ -11,7 +11,7 @@
 namespace griddyn {
 class Generator;
 
-class isocController: public gridSubModel {
+class isocController: public GridSubModel {
   protected:
     model_parameter db = 0.005;
     model_parameter upStep = -0.01;

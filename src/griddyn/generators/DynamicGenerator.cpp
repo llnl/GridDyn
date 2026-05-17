@@ -391,7 +391,7 @@ void DynamicGenerator::add(CoreObject* obj)
     Generator::add(obj);
 }
 
-void DynamicGenerator::add(gridSubModel* obj)
+void DynamicGenerator::add(GridSubModel* obj)
 {
     if (dynamic_cast<Exciter*>(obj) != nullptr) {
         ext = static_cast<Exciter*>(replaceModel(obj, ext, exciter_loc));
@@ -440,8 +440,8 @@ void DynamicGenerator::add(gridSubModel* obj)
     }
 }
 
-gridSubModel* DynamicGenerator::replaceModel(gridSubModel* newObject,
-                                             gridSubModel* oldObject,
+GridSubModel* DynamicGenerator::replaceModel(GridSubModel* newObject,
+                                             GridSubModel* oldObject,
                                              index_t newIndex)
 {
     replaceSubObject(newObject, oldObject);
@@ -836,7 +836,7 @@ void DynamicGenerator::derivative(const IOdata& inputs,
     // compute the residuals
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            static_cast<gridSubModel*>(sub)->derivative(subInputs.inputs[sub->locIndex],
+            static_cast<GridSubModel*>(sub)->derivative(subInputs.inputs[sub->locIndex],
                                                         stateDataValue,
                                                         deriv,
                                                         sMode);
@@ -879,7 +879,7 @@ void DynamicGenerator::getStateName(stringVec& stNames,
     if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
         Generator::getStateName(stNames, sMode, prefix);
     }
-    gridComponent::getStateName(stNames, sMode, prefix);  // NOLINT
+    GridComponent::getStateName(stNames, sMode, prefix);  // NOLINT
 }
 
 void DynamicGenerator::rootTest(const IOdata& inputs,
@@ -975,7 +975,7 @@ CoreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t nu
         }
         return nullptr;
     }
-    return gridComponent::getSubObject(typeName, num);
+    return GridComponent::getSubObject(typeName, num);
 }
 
 double DynamicGenerator::getFreq(const stateData& stateDataValue,

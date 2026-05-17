@@ -15,13 +15,13 @@
 
 namespace griddyn {
 parameterOperator::parameterOperator() = default;
-parameterOperator::parameterOperator(gridComponent* target, const std::string& field):
+parameterOperator::parameterOperator(GridComponent* target, const std::string& field):
     m_field(field), comp(target)
 {
     checkField();
 }
 
-void parameterOperator::setTarget(gridComponent* target, const std::string& field)
+void parameterOperator::setTarget(GridComponent* target, const std::string& field)
 {
     if (!field.empty()) {
         m_field = field;
@@ -35,12 +35,12 @@ void parameterOperator::setTarget(gridComponent* target, const std::string& fiel
 void parameterOperator::updateObject(CoreObject* target, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
-        auto* nobj = dynamic_cast<gridComponent*>(target);
+        auto* nobj = dynamic_cast<GridComponent*>(target);
         if (nobj != nullptr) {
             comp = nobj;
         }
     } else {
-        auto* newTarget = dynamic_cast<gridComponent*>(findMatchingObject(comp, target));
+        auto* newTarget = dynamic_cast<GridComponent*>(findMatchingObject(comp, target));
         if (newTarget != nullptr) {
             setTarget(newTarget);
         } else {
@@ -78,7 +78,7 @@ void parameterOperator::getObjects(std::vector<CoreObject*>& objects) const
 void parameterOperator::checkField() {}
 
 std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param,
-                                                          gridComponent* rootObject)
+                                                          GridComponent* rootObject)
 {
     using gmlc::utilities::string_viewOps::trim;
 
@@ -93,14 +93,14 @@ std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param
     const objInfo objI(std::string{paramS}, rootObject);
 
     auto pop =
-        std::make_unique<parameterOperator>(dynamic_cast<gridComponent*>(objI.m_obj), objI.m_field);
+        std::make_unique<parameterOperator>(dynamic_cast<GridComponent*>(objI.m_obj), objI.m_field);
     if (!rname.empty()) {
         pop->setName(rname);
     }
     return pop;
 }
 
-index_t parameterSet::add(const std::string& paramString, gridComponent* rootObject)
+index_t parameterSet::add(const std::string& paramString, GridComponent* rootObject)
 {
     params.push_back(make_parameterOperator(paramString, rootObject));
     return static_cast<index_t>(params.size()) - 1;

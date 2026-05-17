@@ -349,7 +349,7 @@ void HelicsCoordinator::setEndpointTarget(int32_t index, const std::string& targ
     }
 }
 
-void HelicsCoordinator::addHelper(std::shared_ptr<helperObject> helper)
+void HelicsCoordinator::addHelper(std::shared_ptr<HelperObject> helper)
 {
     std::lock_guard<std::mutex> hLock(helperProtector);
     helpers.push_back(std::move(helper));

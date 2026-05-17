@@ -20,7 +20,7 @@ nullBlock::nullBlock(const std::string& objName): Block(objName)
 
 CoreObject* nullBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<nullBlock, gridSubModel>(this, obj);
+    auto* nobj = cloneBase<nullBlock, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -70,10 +70,11 @@ double nullBlock::step(coreTime time, double input)
     return input;
 }
 
-double nullBlock::getBlockOutput(const stateData& sD, const solverMode& sMode) const
+double nullBlock::getBlockOutput(const stateData& stateDataValue,
+                                 const solverMode& solverModeValue) const
 {
-    auto Loc = offsets.getLocations(sD, sMode, this);
-    return opFlags[differential_output] ? *Loc.diffStateLoc : *Loc.algStateLoc;
+    auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+    return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
 }
 
 double nullBlock::getBlockOutput() const
@@ -82,11 +83,12 @@ double nullBlock::getBlockOutput() const
     return m_state[offset];
 }
 
-double nullBlock::getBlockDoutDt(const stateData& sD, const solverMode& sMode) const
+double nullBlock::getBlockDoutDt(const stateData& stateDataValue,
+                                 const solverMode& solverModeValue) const
 {
     if (opFlags[differential_output]) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
-        return *Loc.dstateLoc;
+        auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+        return *locations.dstateLoc;
     }
     return 0.0;
 }
@@ -156,23 +158,23 @@ void nullBlock::setFlag(std::string_view flag, bool val)
         opFlags[differential_input] = val;
         opFlags[differential_output] = val;
     } else {
-        gridSubModel::setFlag(flag, val);
+        GridSubModel::setFlag(flag, val);
     }
 }
 
 // set parameters
 void nullBlock::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void nullBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    gridSubModel::set(param, val, unitType);
+    GridSubModel::set(param, val, unitType);
 }
 
 double nullBlock::get(std::string_view param, units::unit unitType) const
 {
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 }  // namespace griddyn::blocks

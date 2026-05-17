@@ -13,7 +13,7 @@ template<class X>
 class matrixData;
 
 namespace griddyn {
-class gridComponent;
+class GridComponent;
 class stateData;
 class solverMode;
 
@@ -30,7 +30,7 @@ given object
 * @param[in] sMode the operations mode
 **/
 
-void numericJacobianCalculation(gridComponent* comp,
+void numericJacobianCalculation(GridComponent* comp,
                                 const IOdata& inputs,
                                 const stateData& sD,
                                 matrixData<double>& md,
@@ -44,7 +44,7 @@ void numericJacobianCalculation(gridComponent* comp,
 @param[out] newstate the location to copy the state information
 @param[in] sMode the solver mode corresponding to the state
 */
-void copyObjectLocalState(const gridComponent* comp,
+void copyObjectLocalState(const GridComponent* comp,
                           const double state[],
                           double newstate[],
                           const solverMode& sMode);
@@ -54,6 +54,6 @@ void copyObjectLocalState(const gridComponent* comp,
 @param[in] sMode the solver mode to get the locations for
 @return a vector containing the indices of the states
 */
-std::vector<index_t> getObjectLocalStateIndices(const gridComponent* comp, const solverMode& sMode);
+std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn

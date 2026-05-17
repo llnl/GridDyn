@@ -61,14 +61,14 @@ static typeFactory<GenModelGENROU> gfgm6p3("genmodel", stringVec{"6.3",
 
 }  // namespace genmodels
 
-GenModel::GenModel(const std::string& objName): gridSubModel(objName)
+GenModel::GenModel(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = 4;
     m_outputSize = 2;
 }
 CoreObject* GenModel::clone(CoreObject* obj) const
 {
-    auto* gd = cloneBase<GenModel, gridSubModel>(this, obj);
+    auto* gd = cloneBase<GenModel, GridSubModel>(this, obj);
     if (gd == nullptr) {
         return obj;
     }
@@ -208,7 +208,7 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
 // set parameters
 void GenModel::set(std::string_view param, std::string_view val)
 {
-    return gridSubModel::set(param, val);
+    return GridSubModel::set(param, val);
 }
 void GenModel::set(std::string_view param, double val, units::unit unitType)
 {
@@ -233,7 +233,7 @@ void GenModel::set(std::string_view param, double val, units::unit unitType)
     } else if ((param == "base") || (param == "mbase")) {
         machineBasePower = val;
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 

@@ -13,17 +13,17 @@
 #include <vector>
 
 namespace griddyn {
-controlSystem::controlSystem(const std::string& objName): gridSubModel(objName) {}
+controlSystem::controlSystem(const std::string& objName): GridSubModel(objName) {}
 
 controlSystem::~controlSystem() = default;
 
 CoreObject* controlSystem::clone(CoreObject* obj) const
 {
-    auto* cs = cloneBase<controlSystem, gridSubModel>(this, obj);
-    if (cs == nullptr) {
+    auto* controlSystemClone = cloneBase<controlSystem, GridSubModel>(this, obj);
+    if (controlSystemClone == nullptr) {
         return obj;
     }
-    return cs;
+    return controlSystemClone;
 }
 
 void controlSystem::add(CoreObject* obj)
@@ -44,8 +44,8 @@ void controlSystem::add(Block* blk)
 
 void controlSystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    for (auto& bb : blocks) {
-        bb->dynInitializeA(time0, flags);
+    for (auto& blockObject : blocks) {
+        blockObject->dynInitializeA(time0, flags);
     }
 }
 void controlSystem::dynObjectInitializeB(const IOdata& /*inputs*/,
@@ -58,7 +58,7 @@ void controlSystem::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridSubModel::set(param, val);
+        GridSubModel::set(param, val);
     }
 }
 
@@ -66,7 +66,7 @@ void controlSystem::set(std::string_view param, double val, units::unit unitType
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 

@@ -301,14 +301,14 @@ class Link: public gridPrimary {
 
   public:
     // for computing all the Jacobian elements at once
-    using gridComponent::ioPartialDerivatives;
+    using GridComponent::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode);
 
-    using gridComponent::outputPartialDerivatives;
+    using GridComponent::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const stateData& sD,
                                           matrixData<double>& md,

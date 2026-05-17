@@ -760,7 +760,7 @@ const std::vector<stringVec>& sensor::outputNames() const
 {
     if (static_cast<count_t>(outputStrings.size()) < m_outputSize) {
         // TODO(phlpt): Correct this before outputNames is reached.
-        return gridComponent::outputNames();
+        return GridComponent::outputNames();
     }
     return outputStrings;
 }

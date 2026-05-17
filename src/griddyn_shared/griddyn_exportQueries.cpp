@@ -13,7 +13,7 @@
 
 using griddyn::collector;
 using griddyn::createGrabber;
-using griddyn::gridComponent;
+using griddyn::GridComponent;
 using griddyn::gridGrabber;
 using griddyn::kNullVal;
 
@@ -23,7 +23,7 @@ static constexpr char invalidComponent[] = "the Griddyn object is not valid";
 GridDynSingleQuery
     gridDynSingleQueryCreate(GridDynObject obj, const char* queryString, GridDynError* err)
 {
-    gridComponent* component = getComponentPointer(obj);
+    GridComponent* component = getComponentPointer(obj);
 
     if (component == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -43,7 +43,7 @@ GridDynSingleQuery
 GridDynVectorQuery
     gridDynVectorQueryCreate(GridDynObject obj, const char* queryString, GridDynError* err)
 {
-    gridComponent* component = getComponentPointer(obj);
+    GridComponent* component = getComponentPointer(obj);
 
     if (component == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -102,7 +102,7 @@ void gridDynVectorQueryAppend(GridDynVectorQuery query,
         assignError(err, griddyn_error_invalid_object, invalidQuery);
         return;
     }
-    gridComponent* component = getComponentPointer(obj);
+    GridComponent* component = getComponentPointer(obj);
 
     if (component == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -122,7 +122,7 @@ void gridDynSingleQueryUpdate(GridDynSingleQuery query,
         assignError(err, griddyn_error_invalid_object, invalidQuery);
         return;
     }
-    gridComponent* component = getComponentPointer(obj);
+    GridComponent* component = getComponentPointer(obj);
 
     if (component == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -146,7 +146,7 @@ void gridDynVectorQueryUpdate(GridDynVectorQuery query,
         assignError(err, griddyn_error_invalid_object, invalidQuery);
         return;
     }
-    gridComponent* component = getComponentPointer(obj);
+    GridComponent* component = getComponentPointer(obj);
 
     if (component == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);

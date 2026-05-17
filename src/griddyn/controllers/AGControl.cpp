@@ -16,6 +16,14 @@
 #include <string>
 
 namespace griddyn {
+namespace {
+    void registerAgcFactoryTypes()
+    {
+        static const typeFactory<Block> agcFactory(
+            "agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+        static_cast<void>(agcFactory);
+    }
+}  // namespace
 /*
 class AGControl
 {
@@ -65,12 +73,11 @@ protected:
 };
 */
 
-static typeFactory<Block> bbof("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
-
 AGControl::~AGControl() = default;
 
-AGControl::AGControl(const std::string& objName): gridSubModel(objName)
+AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
+    registerAgcFactoryTypes();
     pid = make_owningPtr<blocks::pidBlock>(KP, KI, 0, "pid");
     pid->setParent(this);
     filt1 = make_owningPtr<blocks::delayBlock>(Tf, "delay1");
@@ -84,7 +91,7 @@ AGControl::AGControl(const std::string& objName): gridSubModel(objName)
 
 CoreObject* AGControl::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<AGControl, gridSubModel>(this, obj);
+    auto* nobj = cloneBase<AGControl, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -122,7 +129,7 @@ void AGControl::dynObjectInitializeB(const IOdata& inputs,
 {
     IOdata iSet(1);
     if (desiredOutput.empty()) {
-        ACE = (inputs[1]) - 10.0 * beta * inputs[0];
+        ACE = (inputs[1]) - (10.0 * beta * inputs[0]);
     } else {
         ACE = desiredOutput[0];
     }
@@ -140,7 +147,7 @@ void AGControl::timestep(coreTime time, const IOdata& inputs, const solverMode& 
 {
     prevTime = time;
 
-    ACE = (inputs[1]) - 10.0 * beta * inputs[0];
+    ACE = (inputs[1]) - (10.0 * beta * inputs[0]);
     fACE = filt1->step(time, ACE);
 
     reg += pid->step(time, fACE - reg);
@@ -246,17 +253,17 @@ void AGControl::regChange()
     }
 }
 
-AGControl* newAGC(const std::string& type)
+/*
+static AGControl* newAGC(const std::string& type)
 {
     AGControl* agc = nullptr;
     if ((type.empty()) || (type == "basic")) {
         agc = new AGControl();
-    } else if (type == "battery") {
-        // agc = new AGControlBattery();
-    } else if (type == "battDR") {
+    } else if ((type == "battery") || (type == "battDR")) {
         // agc= new AGCControlBattDR();
     }
     return agc;
 }
+*/
 
 }  // namespace griddyn

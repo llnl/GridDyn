@@ -23,9 +23,9 @@ Communicator::Communicator(): mId(getID())
 {
     setName("comm_" + std::to_string(mId));
 }
-Communicator::Communicator(const std::string& name): helperObject(name), mId(getID()) {}
+Communicator::Communicator(const std::string& name): HelperObject(name), mId(getID()) {}
 Communicator::Communicator(const std::string& name, std::uint64_t commId):
-    helperObject(name), mId(commId)
+    HelperObject(name), mId(commId)
 {
 }
 Communicator::Communicator(std::uint64_t commId): mId(commId)
@@ -139,7 +139,7 @@ void Communicator::set(std::string_view param, std::string_view val)
     if ((param == "id") || (param == "name")) {
         setName(val);
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 void Communicator::set(std::string_view param, double val)
@@ -147,7 +147,7 @@ void Communicator::set(std::string_view param, double val)
     if ((param == "id") || (param == "name")) {
         setCommID(static_cast<uint64_t>(val));
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -156,7 +156,7 @@ void Communicator::setFlag(std::string_view flag, bool val)
     if (flag == "autopingenabled") {
         autoPingEnabled = val;
     } else {
-        helperObject::setFlag(flag, val);
+        HelperObject::setFlag(flag, val);
     }
 }
 

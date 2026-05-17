@@ -111,7 +111,7 @@ CoreObject* Relay::clone(CoreObject* obj) const
 void Relay::updateObjectLinkages(CoreObject* newRoot)
 {
     updateObject(newRoot, object_update_mode::match);
-    gridComponent::updateObjectLinkages(newRoot);
+    GridComponent::updateObjectLinkages(newRoot);
 }
 
 void Relay::add(CoreObject* obj)
@@ -543,7 +543,7 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             }
         }
     }
-    gridComponent::dynObjectInitializeA(time0, flags);
+    GridComponent::dynObjectInitializeA(time0, flags);
 }
 
 CoreObject* Relay::find(std::string_view objName) const

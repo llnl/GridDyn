@@ -26,7 +26,7 @@ cannot be changed unless the object is reinitialized directly
 the blocks take 1 or 2 inputs the first being the single input,  if the differential input is set
 then the second argument is the time derivative of the input
 */
-class Block: public gridSubModel {
+class Block: public GridSubModel {
   public:
     /** @brief flags common for all control blocks
      */
@@ -114,14 +114,14 @@ class Block: public gridSubModel {
     */
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double resid[],
-                               const solverMode& sMode);
+                               const solverMode& solverModeValue);
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const solverMode& solverModeValue) override;
 
     /** @brief simplifying function in place of derivative call since block have only one
     input/output
@@ -134,13 +134,13 @@ class Block: public gridSubModel {
     */
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double deriv[],
-                                 const solverMode& sMode);
+                                 const solverMode& solverModeValue);
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const solverMode& solverModeValue) override;
 
     /** @brief simplifying function in place of algebraicUpdate call since block have only one
     input/output
@@ -150,13 +150,13 @@ class Block: public gridSubModel {
     @param[in] sMode the solverMode that corresponds to the state data
     */
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       double update[],
-                                      const solverMode& sMode);
+                                      const solverMode& solverModeValue);
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const solverMode& solverModeValue,
                                  double alpha) override;
 
     /** @brief simplifying function in place of Jacobian elements since block have only one
@@ -171,16 +171,16 @@ class Block: public gridSubModel {
     */
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode);
+                                       const solverMode& solverModeValue);
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const solverMode& solverModeValue) override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     /** @brief simplifying function in place of timestep since block have only one input/output
@@ -190,16 +190,16 @@ class Block: public gridSubModel {
     */
     virtual double step(coreTime time, double input);
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const solverMode& solverModeValue) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const solverMode& solverModeValue) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
+                                  const stateData& stateDataValue,
+                                  const solverMode& solverModeValue,
                                   check_level_t level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
@@ -207,7 +207,8 @@ class Block: public gridSubModel {
     @param[in] sD the state data to use in computing the output
     @param[in] sMode the solverMode associated with the stateData
     */
-    virtual double getBlockOutput(const stateData& sD, const solverMode& sMode) const;
+    virtual double getBlockOutput(const stateData& stateDataValue,
+                                  const solverMode& solverModeValue) const;
     /** get the single output for the block based on local information
      */
     virtual double getBlockOutput() const;
@@ -216,7 +217,8 @@ class Block: public gridSubModel {
     @param[in] sD the state data to use in computing the output
     @param[in] sMode the solverMode associated with the stateData
     */
-    virtual double getBlockDoutDt(const stateData& sD, const solverMode& sMode) const;
+    virtual double getBlockDoutDt(const stateData& stateDataValue,
+                                  const solverMode& solverModeValue) const;
     /**get the time derivative of the block output -should only be used for block with a
      * differential output based on local information
      */
@@ -234,11 +236,11 @@ class Block: public gridSubModel {
     */
     void limiterResidElements(double input,
                               double didt,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               double resid[],
-                              const solverMode& sMode);
+                              const solverMode& solverModeValue);
     /** get the input that goes into the rate limiter*/
-    double getRateInput(const IOdata& inputs) const;
+    static double getRateInput(const IOdata& inputs);
 
   private:
     /** get the value to test on a value limiter*/
@@ -252,9 +254,11 @@ class Block: public gridSubModel {
     /** update the internal information associated with the ramp limiter*/
     void rampLimiterUpdate();
     /** generate a default reset level for the limiters*/
-    double computeDefaultResetLevel();
+    double computeDefaultResetLevel() const;
     /** generate the value to test based incoming information for the limiter*/
-    double getLimiterTestValue(double input, const stateData& sD, const solverMode& sMode);
+    double getLimiterTestValue(double input,
+                               const stateData& stateDataValue,
+                               const solverMode& solverModeValue);
 };
 
 /** @brief generate a shared pointer to a block based on a string input

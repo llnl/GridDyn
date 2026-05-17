@@ -17,7 +17,7 @@
 namespace griddyn {
 static gridBus defBus(1.0, 0);
 
-gridSecondary::gridSecondary(const std::string& objName): gridComponent(objName), bus(&defBus)
+gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName), bus(&defBus)
 {
     m_outputSize = 2;
     m_inputSize = 3;
@@ -25,7 +25,7 @@ gridSecondary::gridSecondary(const std::string& objName): gridComponent(objName)
 
 CoreObject* gridSecondary::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<gridSecondary, gridComponent>(this, obj);
+    auto nobj = cloneBase<gridSecondary, GridComponent>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -42,7 +42,7 @@ void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
             bus = static_cast<gridBus*>(nobj);
         }
     }
-    gridComponent::updateObjectLinkages(newRoot);
+    GridComponent::updateObjectLinkages(newRoot);
 }
 
 void gridSecondary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
@@ -51,16 +51,16 @@ void gridSecondary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
     if (bus == nullptr) {
         bus = &defBus;
     }
-    gridComponent::pFlowInitializeA(time0, flags);
+    GridComponent::pFlowInitializeA(time0, flags);
 }
 
 void gridSecondary::pFlowInitializeB()
 {
-    gridComponent::pFlowInitializeB();
+    GridComponent::pFlowInitializeB();
 }
 void gridSecondary::dynInitializeA(coreTime time0, std::uint32_t flags)
 {
-    gridComponent::dynInitializeA(time0, flags);
+    GridComponent::dynInitializeA(time0, flags);
 }
 
 void gridSecondary::dynInitializeB(const IOdata& inputs,
@@ -86,7 +86,7 @@ void gridSecondary::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (!getSubObjects().empty()) {
         for (auto& subobj : getSubObjects()) {
-            if (dynamic_cast<gridSubModel*>(subobj) != nullptr) {
+            if (dynamic_cast<GridSubModel*>(subobj) != nullptr) {
                 if ((subobj->checkFlag(pflow_init_required)) ||
                     (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization))) {
                     subobj->pFlowInitializeA(time0, flags);
@@ -101,12 +101,12 @@ void gridSecondary::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void gridSecondary::set(std::string_view param, std::string_view val)
 {
-    gridComponent::set(param, val);
+    GridComponent::set(param, val);
 }
 void gridSecondary::set(std::string_view param, double val, units::unit unitType)
 {
     if (!param.empty()) {
-        gridComponent::set(param, val, unitType);
+        GridComponent::set(param, val, unitType);
     }
 }
 

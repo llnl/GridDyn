@@ -20,16 +20,16 @@ namespace {
 
 // start at 100 since there are some objects that use low numbers as a check for interface number
 // and the id as secondary
-std::atomic<std::uint64_t> helperObject::s_obcnt(101);
+std::atomic<std::uint64_t> HelperObject::s_obcnt(101);
 
-helperObject::helperObject() noexcept: m_oid(s_obcnt++) {}
-helperObject::~helperObject() = default;
+HelperObject::HelperObject() noexcept: m_oid(s_obcnt++) {}
+HelperObject::~HelperObject() = default;
 
-helperObject::helperObject(std::string objectName): m_oid(s_obcnt++), um_name(std::move(objectName))
+HelperObject::HelperObject(std::string objectName): m_oid(s_obcnt++), um_name(std::move(objectName))
 {
 }
 
-void helperObject::set(std::string_view param, std::string_view val)
+void HelperObject::set(std::string_view param, std::string_view val)
 {
     if ((param == "name") || (param == "id")) {
         setName(val);
@@ -42,41 +42,41 @@ void helperObject::set(std::string_view param, std::string_view val)
     }
 }
 
-void helperObject::set(std::string_view param, double val)
+void HelperObject::set(std::string_view param, double val)
 {
     setFlag(param, (val > 0.1));
 }
-void helperObject::setDescription(std::string_view description)  // NOLINT
+void HelperObject::setDescription(std::string_view description)  // NOLINT
 {
     descriptionDictionary.update(m_oid, std::string{description});
 }
 
-std::string helperObject::getDescription() const
+std::string HelperObject::getDescription() const
 {
     return descriptionDictionary.query(m_oid);
 }
-void helperObject::setFlag(std::string_view flag, bool /*val*/)
+void HelperObject::setFlag(std::string_view flag, bool /*val*/)
 {
     throw(unrecognizedParameter(flag));
 }
-bool helperObject::getFlag(std::string_view flag) const
+bool HelperObject::getFlag(std::string_view flag) const
 {
     throw(unrecognizedParameter(flag));
 }
-double helperObject::get(std::string_view param) const
+double HelperObject::get(std::string_view param) const
 {
     return getFlag(param) ? 1.0 : 0.0;
 }
-void helperObject::nameUpdate() {}
-void helperObject::makeNewOID()
+void HelperObject::nameUpdate() {}
+void HelperObject::makeNewOID()
 {
     m_oid = ++s_obcnt;
 }
-CoreObject* helperObject::getOwner() const
+CoreObject* HelperObject::getOwner() const
 {
     return nullptr;
 }
-void setMultipleFlags(helperObject* obj, std::string_view flags)
+void setMultipleFlags(HelperObject* obj, std::string_view flags)
 {
     auto lcflags = gmlc::utilities::convertToLowerCase(flags);
     auto flgs = gmlc::utilities::string_viewOps::split(lcflags);

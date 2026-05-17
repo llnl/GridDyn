@@ -17,19 +17,19 @@
 #include <vector>
 
 namespace griddyn {
-class gridComponent;
+class GridComponent;
 /** a class defining a parameter to change as part of a sequence or other operation
  */
-class parameterOperator: public helperObject, public objectOperatorInterface {
+class parameterOperator: public HelperObject, public objectOperatorInterface {
   protected:
     std::string m_field;  //!< field to trigger
-    gridComponent* comp = nullptr;  //!< the object to operator on
+    GridComponent* comp = nullptr;  //!< the object to operator on
     index_t parameterIndex = kNullLocation;  //!< the parameter index to use if so inclined
   public:
     parameterOperator();
-    parameterOperator(gridComponent* target, const std::string& field);
+    parameterOperator(GridComponent* target, const std::string& field);
 
-    virtual void setTarget(gridComponent* target, const std::string& field = "");
+    virtual void setTarget(GridComponent* target, const std::string& field = "");
 
     virtual void updateObject(CoreObject* target,
                               object_update_mode mode = object_update_mode::direct) override;
@@ -45,7 +45,7 @@ class parameterOperator: public helperObject, public objectOperatorInterface {
 
 /** construct a parameter operator object from a field and root object*/
 std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param,
-                                                          gridComponent* rootObject);
+                                                          GridComponent* rootObject);
 
 /** helper class defining a set of parameters for various operations*/
 class parameterSet {
@@ -54,7 +54,7 @@ class parameterSet {
 
   public:
     parameterSet() = default;
-    index_t add(const std::string& paramString, gridComponent* rootObject);
+    index_t add(const std::string& paramString, GridComponent* rootObject);
     parameterOperator* operator[](index_t index);
 };
 

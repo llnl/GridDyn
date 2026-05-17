@@ -239,7 +239,7 @@ bool removeObject(X* obj, objVector<X*>& OVector)
 void gridBus::remove(Load* ld)
 {
     if (removeObject(ld, attachedLoads)) {
-        gridComponent::remove(ld);
+        GridComponent::remove(ld);
     }
 }
 
@@ -247,7 +247,7 @@ void gridBus::remove(Load* ld)
 void gridBus::remove(Generator* gen)
 {
     if (removeObject(gen, attachedGens)) {
-        gridComponent::remove(gen);
+        GridComponent::remove(gen);
     }
 }
 
@@ -323,7 +323,7 @@ void gridBus::pFlowObjectInitializeB()
 void gridBus::preEx(const IOdata& /*inputs*/, const stateData& sD, const solverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
-    gridComponent::preEx(inputs, sD, sMode);
+    GridComponent::preEx(inputs, sD, sMode);
 }
 // function to reset the bus type and voltage
 
@@ -434,7 +434,7 @@ void gridBus::generationAdjust(double /*adjustment*/)
 void gridBus::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, emptyStateData, sMode);
-    gridComponent::timestep(time, inputs, sMode);
+    GridComponent::timestep(time, inputs, sMode);
 }
 
 void gridBus::setAll(std::string_view objtype,
@@ -487,7 +487,7 @@ static const stringVec flagStrings{"connected"};
 
 void gridBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<gridBus, gridComponent>(
+    getParamString<gridBus, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -684,7 +684,7 @@ double gridBus::getFreq(const stateData& /*sD*/, const solverMode& /*sMode*/) co
     return freq;
 }
 
-bool gridBus::directPath(gridComponent* target, gridComponent* source)
+bool gridBus::directPath(GridComponent* target, GridComponent* source)
 {
     auto tid = target->getID();
     if (isSameObject(tid, this)) {
@@ -729,9 +729,9 @@ bool gridBus::directPath(gridComponent* target, gridComponent* source)
     return false;
 }
 
-std::vector<gridComponent*> gridBus::getDirectPath(gridComponent* target, gridComponent* source)
+std::vector<GridComponent*> gridBus::getDirectPath(GridComponent* target, GridComponent* source)
 {
-    std::vector<gridComponent*> opath{source};
+    std::vector<GridComponent*> opath{source};
 
     auto tid = target->getID();
     if (isSameObject(tid, this)) {
@@ -901,7 +901,7 @@ void gridBus::residual(const IOdata& inputs,
         lowVtime = (!sD.empty()) ? sD.time : prevTime;
         return;
     }
-    gridComponent::residual(outputs, sD, resid, sMode);
+    GridComponent::residual(outputs, sD, resid, sMode);
 }
 
 void gridBus::derivative(const IOdata& inputs,
@@ -910,7 +910,7 @@ void gridBus::derivative(const IOdata& inputs,
                          const solverMode& sMode)
 {
     updateLocalCache(inputs, sD, sMode);
-    gridComponent::derivative(outputs, sD, deriv, sMode);
+    GridComponent::derivative(outputs, sD, deriv, sMode);
 }
 
 static const IOlocs kNullLocations{kNullLocation, kNullLocation, kNullLocation};
@@ -928,7 +928,7 @@ void gridBus::jacobianElements(const IOdata& inputs,
     // printf("t=%f,id=%d, dpdt=%f, dpdv=%f, dqdt=%f, dqdv=%f\n", time, id, Ptii, Pvii, Qvii, Qtii);
 
     const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : kNullLocations;
-    gridComponent::jacobianElements(outputs, sD, md, coutLocs, sMode);
+    GridComponent::jacobianElements(outputs, sD, md, coutLocs, sMode);
 }
 
 double gridBus::lastError() const
@@ -976,7 +976,7 @@ void gridBus::algebraicUpdate(const IOdata& inputs,
         return;
     }
     updateLocalCache(inputs, sD, sMode);
-    gridComponent::algebraicUpdate(outputs, sD, update, sMode, alpha);
+    GridComponent::algebraicUpdate(outputs, sD, update, sMode, alpha);
 }
 
 void gridBus::converge(coreTime /*time*/,
@@ -1042,7 +1042,7 @@ void gridBus::updateFlags(bool dynOnly)
 {
     opFlags.reset(preEx_requested);
     opFlags.reset(has_powerflow_adjustments);
-    gridComponent::updateFlags(dynOnly);
+    GridComponent::updateFlags(dynOnly);
 }
 
 static const IOlocs inLoc{0, 1, 2};
@@ -1272,7 +1272,7 @@ CoreObject* gridBus::find(std::string_view objName) const
             }
         }
     }
-    return gridComponent::find(objName);
+    return GridComponent::find(objName);
 }
 
 CoreObject* gridBus::getSubObject(std::string_view typeName, index_t num) const
@@ -1287,7 +1287,7 @@ CoreObject* gridBus::getSubObject(std::string_view typeName, index_t num) const
         return getGen(num);
     }
 
-    return gridComponent::getSubObject(typeName, num);
+    return GridComponent::getSubObject(typeName, num);
 }
 
 CoreObject* gridBus::findByUserID(std::string_view typeName, index_t searchID) const
@@ -1311,7 +1311,7 @@ CoreObject* gridBus::findByUserID(std::string_view typeName, index_t searchID) c
             }
         }
     }
-    return gridComponent::findByUserID(typeName, searchID);
+    return GridComponent::findByUserID(typeName, searchID);
 }
 
 Link* gridBus::getLink(index_t x) const
@@ -1335,13 +1335,13 @@ void gridBus::unmergeBus(gridBus* /*bus*/) {}
 
 void gridBus::checkMerge() {}
 
-void gridBus::registerVoltageControl(gridComponent* /*obj*/) {}
+void gridBus::registerVoltageControl(GridComponent* /*obj*/) {}
 /** @brief  remove an object from voltage control on a bus*/
-void gridBus::removeVoltageControl(gridComponent* /*obj*/) {}
+void gridBus::removeVoltageControl(GridComponent* /*obj*/) {}
 
-void gridBus::registerPowerControl(gridComponent* /*obj*/) {}
+void gridBus::registerPowerControl(GridComponent* /*obj*/) {}
 
-void gridBus::removePowerControl(gridComponent* /*obj*/) {}
+void gridBus::removePowerControl(GridComponent* /*obj*/) {}
 
 double gridBus::get(std::string_view param, unit unitType) const
 {
@@ -1399,7 +1399,7 @@ change_code gridBus::rootCheck(const IOdata& /*inputs*/,
                                check_level_t level)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
-    return gridComponent::rootCheck(inputs, sD, sMode, level);
+    return GridComponent::rootCheck(inputs, sD, sMode, level);
 }
 
 void gridBus::rootTest(const IOdata& /*inputs*/,
@@ -1408,7 +1408,7 @@ void gridBus::rootTest(const IOdata& /*inputs*/,
                        const solverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
-    gridComponent::rootTest(inputs, sD, roots, sMode);
+    GridComponent::rootTest(inputs, sD, roots, sMode);
 }
 
 void gridBus::rootTrigger(coreTime time,

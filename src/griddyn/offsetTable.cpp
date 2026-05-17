@@ -282,7 +282,7 @@ const solverMode& offsetTable::find(const solverMode& tMode) const
 Lp offsetTable::getLocations(const stateData& sD,
                              double dest[],
                              const solverMode& sMode,
-                             const gridComponent* comp) const
+                             const GridComponent* comp) const
 {
     Lp Loc = getLocations(sD, sMode, comp);
     if ((sMode.local) || (sD.empty())) {
@@ -310,7 +310,7 @@ Lp offsetTable::getLocations(const stateData& sD,
 
 Lp offsetTable::getLocations(const stateData& sD,
                              const solverMode& sMode,
-                             const gridComponent* comp) const
+                             const GridComponent* comp) const
 {
     Lp Loc;
     Loc.algOffset = offsetContainer[sMode.offsetIndex].algOffset;

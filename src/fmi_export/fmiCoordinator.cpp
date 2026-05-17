@@ -194,7 +194,7 @@ const std::string& FmiCoordinator::getFmiName() const
     return getParent()->getName();
 }
 
-void FmiCoordinator::addHelper(std::shared_ptr<helperObject> helperObjectPtr)
+void FmiCoordinator::addHelper(std::shared_ptr<HelperObject> helperObjectPtr)
 {
     const std::scoped_lock helperLock(mHelperProtector);
     mHelpers.push_back(std::move(helperObjectPtr));

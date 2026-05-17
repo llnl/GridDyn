@@ -425,7 +425,7 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& /*
     }
 }
 
-void setAttributes(helperObject* obj,
+void setAttributes(HelperObject* obj,
                    std::shared_ptr<readerElement>& element,
                    const std::string& component,
                    readerInfo& readerInfoRef,
@@ -489,7 +489,7 @@ void setAttributes(helperObject* obj,
     }
 }
 
-void setParams(helperObject* obj,
+void setParams(HelperObject* obj,
                std::shared_ptr<readerElement>& element,
                const std::string& component,
                readerInfo& readerInfoRef,

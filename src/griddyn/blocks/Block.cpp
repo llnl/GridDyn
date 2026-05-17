@@ -18,42 +18,58 @@
 #include <vector>
 
 namespace griddyn {
-// object factory statements
-static typeFactory<Block>
-    bbof("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
-namespace blocks {
-    static childTypeFactory<controlBlock, Block> cbof("block", "control");
-    static childTypeFactory<deadbandBlock, Block>
-        dbbof("block", std::to_array<std::string_view>({"deadband", "db"}));
-    static childTypeFactory<delayBlock, Block>
-        dbof("block", std::to_array<std::string_view>({"delay", "filter"}));
-    static childTypeFactory<pidBlock, Block> pidbof("block", "pid");
-    static childTypeFactory<integralBlock, Block>
-        ibof("block", std::to_array<std::string_view>({"integrator", "integral"}));
-    static childTypeFactory<functionBlock, Block>
-        fbof("block", std::to_array<std::string_view>({"function", "func"}));
-    static childTypeFactory<lutBlock, Block>
-        lutbof("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
-    static childTypeFactory<derivativeBlock, Block>
-        derbof("block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
-    static childTypeFactory<filteredDerivativeBlock, Block>
-        fderbof("block",
-                std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
-}  // namespace blocks
+namespace {
+    void registerBlockFactoryTypes()
+    {
+        static const typeFactory<Block> blockFactory(
+            "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
+        static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block",
+                                                                                       "control");
+        static const childTypeFactory<blocks::deadbandBlock, Block> deadbandBlockFactory(
+            "block", std::to_array<std::string_view>({"deadband", "db"}));
+        static const childTypeFactory<blocks::delayBlock, Block> delayBlockFactory(
+            "block", std::to_array<std::string_view>({"delay", "filter"}));
+        static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
+        static const childTypeFactory<blocks::integralBlock, Block> integralBlockFactory(
+            "block", std::to_array<std::string_view>({"integrator", "integral"}));
+        static const childTypeFactory<blocks::functionBlock, Block> functionBlockFactory(
+            "block", std::to_array<std::string_view>({"function", "func"}));
+        static const childTypeFactory<blocks::lutBlock, Block> lookupTableBlockFactory(
+            "block", std::to_array<std::string_view>({"lut", "lookuptable"}));
+        static const childTypeFactory<blocks::derivativeBlock, Block> derivativeBlockFactory(
+            "block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
+        static const childTypeFactory<blocks::filteredDerivativeBlock, Block>
+            filteredDerivativeBlockFactory("block",
+                                           std::to_array<std::string_view>(
+                                               {"fder", "filtered_deriv", "filtered_derivative"}));
+        static_cast<void>(blockFactory);
+        static_cast<void>(controlBlockFactory);
+        static_cast<void>(deadbandBlockFactory);
+        static_cast<void>(delayBlockFactory);
+        static_cast<void>(pidBlockFactory);
+        static_cast<void>(integralBlockFactory);
+        static_cast<void>(functionBlockFactory);
+        static_cast<void>(lookupTableBlockFactory);
+        static_cast<void>(derivativeBlockFactory);
+        static_cast<void>(filteredDerivativeBlockFactory);
+    }
+}  // namespace
 
-Block::Block(const std::string& objName): gridSubModel(objName)
+Block::Block(const std::string& objName): GridSubModel(objName)
 {
+    registerBlockFactoryTypes();
     m_inputSize = 1;
 }
-Block::Block(double gain, const std::string& objName): gridSubModel(objName), K(gain)
+Block::Block(double gain, const std::string& objName): GridSubModel(objName), K(gain)
 {
+    registerBlockFactoryTypes();
     m_inputSize = 1;
 }
 Block::~Block() = default;
 
 CoreObject* Block::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<Block, gridSubModel>(this, obj);
+    auto* nobj = cloneBase<Block, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -137,11 +153,11 @@ void Block::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     }
 }
 
-double Block::getRateInput(const IOdata& inputs) const
+double Block::getRateInput(const IOdata& inputs)
 {
     return (inputs.size() > 1) ? inputs[1] : 0.0;
 }
-double Block::computeDefaultResetLevel()
+double Block::computeDefaultResetLevel() const
 {
     double rlevel = 0.001;
     if (Omax < kHalfBigNum) {
@@ -194,7 +210,7 @@ void Block::dynObjectInitializeB(const IOdata& inputs,
             }
         } else {
             if (opFlags[use_ramp_limits]) {
-                index_t diffOffset = offsets.local().local.algSize + limiter_diff;
+                const index_t diffOffset = offsets.local().local.algSize + limiter_diff;
                 m_state[diffOffset - 1] = m_state[diffOffset];
                 if (opFlags[use_block_limits]) {
                     Block::rootCheck(inputs,
@@ -206,7 +222,7 @@ void Block::dynObjectInitializeB(const IOdata& inputs,
             } else {
                 if (opFlags[use_block_limits]) {
                     if (opFlags[differential_output]) {
-                        index_t diffOffset = offsets.local().local.algSize;
+                        const index_t diffOffset = offsets.local().local.algSize;
                         Block::rootCheck(inputs,
                                          emptyStateData,
                                          cLocalSolverMode,
@@ -239,7 +255,7 @@ void Block::dynObjectInitializeB(const IOdata& inputs,
             }
         } else {
             if (opFlags[use_ramp_limits]) {
-                index_t diffOffset = offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
+                const index_t diffOffset = offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
 
                 if (opFlags[use_block_limits]) {
                     m_state[limiter_diff - 1] = m_state[0];
@@ -249,7 +265,8 @@ void Block::dynObjectInitializeB(const IOdata& inputs,
             } else {
                 if (opFlags[use_block_limits]) {
                     if (opFlags[differential_output]) {
-                        index_t diffOffset = offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
+                        const index_t diffOffset =
+                            offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
                         Block::rootCheck(inputs,
                                          emptyStateData,
                                          cLocalSolverMode,
@@ -261,7 +278,7 @@ void Block::dynObjectInitializeB(const IOdata& inputs,
                 }
             }
         }
-        fieldSet[0] = m_state[0] / K - bias;
+        fieldSet[0] = (m_state[0] / K) - bias;
         prevInput = fieldSet[0] + bias;
     }
 }
@@ -280,9 +297,9 @@ double Block::step(coreTime time, double input)
 
         if (opFlags[has_limits]) {
             if (opFlags[use_ramp_limits]) {
-                int offset = offsets.getDiffOffset(cLocalSolverMode);
-                double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
-                double cramp = rLimiter->clampOutputRamp(ramp);
+                const int offset = offsets.getDiffOffset(cLocalSolverMode);
+                const double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
+                const double cramp = rLimiter->clampOutputRamp(ramp);
                 if (cramp == ramp) {
                     m_state[offset] = m_state[offset + 1];
                 } else {
@@ -298,9 +315,9 @@ double Block::step(coreTime time, double input)
         }
     } else {
         if (opFlags[use_ramp_limits]) {
-            int offset = offsets.getDiffOffset(cLocalSolverMode);
-            double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
-            double cramp = rLimiter->clampOutputRamp(ramp);
+            const int offset = offsets.getDiffOffset(cLocalSolverMode);
+            const double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
+            const double cramp = rLimiter->clampOutputRamp(ramp);
             if (cramp == ramp) {
                 m_state[offset] = m_state[offset + 1];
             } else {
@@ -308,7 +325,7 @@ double Block::step(coreTime time, double input)
             }
         } else {
             if (opFlags[use_block_limits]) {
-                auto offset = opFlags[differential_output] ?
+                const auto offset = opFlags[differential_output] ?
                     (offsets.getDiffOffset(cLocalSolverMode)) + 1 :
                     1;
                 rootCheck(kNullVec,
@@ -320,27 +337,31 @@ double Block::step(coreTime time, double input)
         }
     }
     prevTime = time;
-    auto offset = opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
+    const auto offset =
+        opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
     return m_state[offset];
 }
 
-double Block::getBlockOutput(const stateData& sD, const solverMode& sMode) const
+double Block::getBlockOutput(const stateData& stateDataValue,
+                             const solverMode& solverModeValue) const
 {
-    auto Loc = offsets.getLocations(sD, sMode, this);
-    return opFlags[differential_output] ? *Loc.diffStateLoc : *Loc.algStateLoc;
+    auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+    return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
 }
 
 double Block::getBlockOutput() const
 {
-    auto offset = opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
+    const auto offset =
+        opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
     return m_state[offset];
 }
 
-double Block::getBlockDoutDt(const stateData& sD, const solverMode& sMode) const
+double Block::getBlockDoutDt(const stateData& stateDataValue,
+                             const solverMode& solverModeValue) const
 {
     if (opFlags[differential_output]) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
-        return *Loc.dstateLoc;
+        auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+        return *locations.dstateLoc;
     }
     return 0.0;
 }
@@ -348,7 +369,8 @@ double Block::getBlockDoutDt(const stateData& sD, const solverMode& sMode) const
 double Block::getBlockDoutDt() const
 {
     if (opFlags[differential_output]) {
-        auto offset = opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
+        const auto offset =
+            opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
         return m_dstate_dt[offset];
     }
     return 0.0;
@@ -356,22 +378,24 @@ double Block::getBlockDoutDt() const
 
 void Block::blockResidual(double input,
                           double didt,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode)
+                          const solverMode& solverModeValue)
 {
-    auto& so = offsets.getOffsets(sMode);
-    if (so.total.diffSize > 0) {
-        blockDerivative(input, didt, sD, resid, sMode);
-        for (index_t ii = 0; ii < so.total.diffSize; ++ii) {
-            resid[so.diffOffset + ii] -= sD.dstate_dt[so.diffOffset + ii];
+    auto& solverOffsetsValue = offsets.getOffsets(solverModeValue);
+    if (solverOffsetsValue.total.diffSize > 0) {
+        blockDerivative(input, didt, stateDataValue, resid, solverModeValue);
+        for (index_t ii = 0; ii < solverOffsetsValue.total.diffSize; ++ii) {
+            resid[solverOffsetsValue.diffOffset + ii] -=
+                stateDataValue.dstate_dt[solverOffsetsValue.diffOffset + ii];
         }
     }
 
-    if (so.total.algSize > 0) {
-        blockAlgebraicUpdate(input, sD, resid, sMode);
-        for (index_t ii = 0; ii < so.total.algSize; ++ii) {
-            resid[so.algOffset + ii] -= sD.state[so.algOffset + ii];
+    if (solverOffsetsValue.total.algSize > 0) {
+        blockAlgebraicUpdate(input, stateDataValue, resid, solverModeValue);
+        for (index_t ii = 0; ii < solverOffsetsValue.total.algSize; ++ii) {
+            resid[solverOffsetsValue.algOffset + ii] -=
+                stateDataValue.state[solverOffsetsValue.algOffset + ii];
             /*if ((vLimiter) && (vLimiter->isActive()))
             {
                     printf("%d:%d:%f input=%f , state=%f resid=%f\n", sD.seqID,
@@ -385,55 +409,58 @@ void Block::blockResidual(double input,
 
 void Block::limiterResidElements(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double resid[],
-                                 const solverMode& sMode)
+                                 const solverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
-        auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
-        double testVal = getTestRate(didt, sD.dstate_dt[offset]);
+        auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
+        double testValue = getTestRate(didt, stateDataValue.dstate_dt[offset]);
 
         if (limiter_diff > 0) {
             if (opFlags[use_ramp_limits]) {
                 --offset;
-                resid[offset] = rLimiter->deriv(testVal);
-                testVal = resid[offset];
-                resid[offset] -= sD.dstate_dt[offset];
+                resid[offset] = rLimiter->deriv(testValue);
+                testValue = resid[offset];
+                resid[offset] -= stateDataValue.dstate_dt[offset];
             }
             if (opFlags[use_block_limits]) {
-                resid[offset - 1] = vLimiter->deriv(testVal) - sD.dstate_dt[offset - 1];
+                resid[offset - 1] =
+                    vLimiter->deriv(testValue) - stateDataValue.dstate_dt[offset - 1];
             }
         }
     } else {
-        auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
-        double testVal = getTestValue(input, sD.state[offset]);
+        auto offset = offsets.getAlgOffset(solverModeValue) + limiter_alg;
+        const double testValue = getTestValue(input, stateDataValue.state[offset]);
         if (opFlags[has_limits]) {
-            resid[offset - 1] = vLimiter->output(testVal) - sD.state[offset - 1];
+            resid[offset - 1] = vLimiter->output(testValue) - stateDataValue.state[offset - 1];
         }
     }
 
-    auto& so = offsets.getOffsets(sMode);
-    if (so.total.diffSize > 0) {
-        blockDerivative(input, didt, sD, resid, sMode);
-        for (index_t ii = 0; ii < so.total.diffSize; ++ii) {
-            resid[so.diffOffset + ii] -= sD.dstate_dt[so.diffOffset + ii];
+    auto& solverOffsetsValue = offsets.getOffsets(solverModeValue);
+    if (solverOffsetsValue.total.diffSize > 0) {
+        blockDerivative(input, didt, stateDataValue, resid, solverModeValue);
+        for (index_t ii = 0; ii < solverOffsetsValue.total.diffSize; ++ii) {
+            resid[solverOffsetsValue.diffOffset + ii] -=
+                stateDataValue.dstate_dt[solverOffsetsValue.diffOffset + ii];
         }
     }
 
-    if (so.total.algSize > 0) {
-        blockAlgebraicUpdate(input, sD, resid, sMode);
-        for (index_t ii = 0; ii < so.total.algSize; ++ii) {
-            resid[so.algOffset + ii] -= sD.state[so.algOffset + ii];
+    if (solverOffsetsValue.total.algSize > 0) {
+        blockAlgebraicUpdate(input, stateDataValue, resid, solverModeValue);
+        for (index_t ii = 0; ii < solverOffsetsValue.total.algSize; ++ii) {
+            resid[solverOffsetsValue.algOffset + ii] -=
+                stateDataValue.state[solverOffsetsValue.algOffset + ii];
         }
     }
 }
 // residual
 void Block::residual(const IOdata& inputs,
-                     const stateData& sD,
+                     const stateData& stateDataValue,
                      double resid[],
-                     const solverMode& sMode)
+                     const solverMode& solverModeValue)
 {
-    blockResidual(inputs[0], getRateInput(inputs), sD, resid, sMode);
+    blockResidual(inputs[0], getRateInput(inputs), stateDataValue, resid, solverModeValue);
 }
 
 bool Block::hasValueState() const
@@ -465,137 +492,152 @@ double Block::getTestRate(double didt, double currentStateRate) const
 }
 
 void Block::blockAlgebraicUpdate(double input,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
-                                 const solverMode& sMode)
+                                 const solverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
         return;
     }
 
-    auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
-    double testVal = getTestValue(input, sD.state[offset]);
+    auto offset = offsets.getAlgOffset(solverModeValue) + limiter_alg;
+    double testValue = getTestValue(input, stateDataValue.state[offset]);
     if (hasValueState()) {
-        update[offset] = testVal;
-        testVal = sD.state[offset];  // need to alter the testVal for the next check
+        update[offset] = testValue;
+        testValue = stateDataValue.state[offset];  // need to alter the testVal for the next check
         // otherwise the residual fails to check
         // properly
     }
     if (opFlags[has_limits]) {
-        update[offset - 1] = vLimiter->output(testVal);
+        update[offset - 1] = vLimiter->output(testValue);
     }
 }
 
 void Block::algebraicUpdate(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double update[],
-                            const solverMode& sMode,
+                            const solverMode& solverModeValue,
                             double /*alpha*/)
 {
-    blockAlgebraicUpdate(inputs[0], sD, update, sMode);
+    blockAlgebraicUpdate(inputs[0], stateDataValue, update, solverModeValue);
 }
 
 void Block::blockDerivative(double /*input*/,
                             double didt,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
-                            const solverMode& sMode)
+                            const solverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
-        auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
-        double testVal = getTestRate(didt, sD.dstate_dt[offset]);
+        auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
+        double testValue = getTestRate(didt, stateDataValue.dstate_dt[offset]);
         if (hasValueState()) {
-            deriv[offset] = testVal;
+            deriv[offset] = testValue;
         }
         if (limiter_diff > 0) {
             if (opFlags[use_ramp_limits]) {
                 --offset;
-                deriv[offset] = rLimiter->output(testVal);
-                testVal = deriv[offset];
+                deriv[offset] = rLimiter->output(testValue);
+                testValue = deriv[offset];
             }
             if (opFlags[use_block_limits]) {
-                deriv[offset - 1] = vLimiter->deriv(testVal);
+                deriv[offset - 1] = vLimiter->deriv(testValue);
             }
         }
     }
 }
 // residual
 void Block::derivative(const IOdata& inputs,
-                       const stateData& sD,
+                       const stateData& stateDataValue,
                        double deriv[],
-                       const solverMode& sMode)
+                       const solverMode& solverModeValue)
 {
-    blockDerivative(inputs[0], getRateInput(inputs), sD, deriv, sMode);
+    blockDerivative(inputs[0], getRateInput(inputs), stateDataValue, deriv, solverModeValue);
 }
 
 void Block::blockJacobianElements(double /*input*/,
                                   double /*didt*/,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   index_t argLoc,
-                                  const solverMode& sMode)
+                                  const solverMode& solverModeValue)
 {
-    if ((opFlags[differential_output]) && (hasDifferential(sMode))) {
-        auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
+    if ((opFlags[differential_output]) && (hasDifferential(solverModeValue))) {
+        auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
         if (hasValueState()) {
-            md.assignCheckCol(offset, argLoc, K * sD.cj);
-            md.assign(offset, offset, -sD.cj);
+            matrixDataValue.assignCheckCol(offset, argLoc, K * stateDataValue.cj);
+            matrixDataValue.assign(offset, offset, -stateDataValue.cj);
         }
         if (limiter_diff > 0) {
             if (opFlags[use_ramp_limits]) {
                 --offset;
-                md.assign(offset, offset, -sD.cj);
+                matrixDataValue.assign(offset, offset, -stateDataValue.cj);
                 if (opFlags[use_direct]) {
-                    md.assignCheckCol(offset, argLoc, K * sD.cj * rLimiter->DoutDin());
+                    matrixDataValue.assignCheckCol(offset,
+                                                   argLoc,
+                                                   K * stateDataValue.cj * rLimiter->DoutDin());
                 } else {
-                    md.assign(offset, offset + 1, sD.cj * rLimiter->DoutDin());
+                    matrixDataValue.assign(offset,
+                                           offset + 1,
+                                           stateDataValue.cj * rLimiter->DoutDin());
                 }
             }
             if (opFlags[use_block_limits]) {
                 --offset;
-                md.assign(offset, offset, -sD.cj);
+                matrixDataValue.assign(offset, offset, -stateDataValue.cj);
 
                 if ((opFlags[use_direct]) && (!opFlags[use_ramp_limits])) {
-                    md.assignCheckCol(offset, argLoc, K * sD.cj * vLimiter->DoutDin());
+                    matrixDataValue.assignCheckCol(offset,
+                                                   argLoc,
+                                                   K * stateDataValue.cj * vLimiter->DoutDin());
                 } else {
-                    md.assign(offset, offset + 1, sD.cj * vLimiter->DoutDin());
+                    matrixDataValue.assign(offset,
+                                           offset + 1,
+                                           stateDataValue.cj * vLimiter->DoutDin());
                 }
             }
         }
     }
     // Now do the algebraic states if needed
-    if ((!opFlags[differential_output]) && (hasAlgebraic(sMode))) {
-        auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
+    if ((!opFlags[differential_output]) && (hasAlgebraic(solverModeValue))) {
+        auto offset = offsets.getAlgOffset(solverModeValue) + limiter_alg;
         if (hasValueState()) {
-            md.assignCheckCol(offset, argLoc, K);
-            md.assign(offset, offset, -1.0);
+            matrixDataValue.assignCheckCol(offset, argLoc, K);
+            matrixDataValue.assign(offset, offset, -1.0);
         }
         if (limiter_alg > 0) {
             --offset;
-            md.assign(offset, offset, -1.0);
+            matrixDataValue.assign(offset, offset, -1.0);
             if (opFlags[use_direct]) {
-                md.assign(offset, argLoc, K * vLimiter->DoutDin());
+                matrixDataValue.assign(offset, argLoc, K * vLimiter->DoutDin());
             } else {
-                md.assign(offset, offset + 1, vLimiter->DoutDin());
+                matrixDataValue.assign(offset, offset + 1, vLimiter->DoutDin());
             }
         }
     }
 }
 
 void Block::jacobianElements(const IOdata& inputs,
-                             const stateData& sD,
-                             matrixData<double>& md,
+                             const stateData& stateDataValue,
+                             matrixData<double>& matrixDataValue,
                              const IOlocs& inputLocs,
-                             const solverMode& sMode)
+                             const solverMode& solverModeValue)
 {
-    blockJacobianElements(inputs[0], getRateInput(inputs), sD, md, inputLocs[0], sMode);
+    blockJacobianElements(inputs[0],
+                          getRateInput(inputs),
+                          stateDataValue,
+                          matrixDataValue,
+                          inputLocs[0],
+                          solverModeValue);
 }
 
-double Block::getLimiterTestValue(double input, const stateData& sD, const solverMode& sMode)
+double Block::getLimiterTestValue(double input,
+                                  const stateData& stateDataValue,
+                                  const solverMode& solverModeValue)
 {
-    auto offset =
-        (opFlags[differential_output]) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-    auto stateVal = (sD.empty()) ? m_state[1] : sD.state[offset + 1];
+    auto offset = (opFlags[differential_output]) ? offsets.getDiffOffset(solverModeValue) :
+                                                   offsets.getAlgOffset(solverModeValue);
+    auto stateVal = (stateDataValue.empty()) ? m_state[1] : stateDataValue.state[offset + 1];
     if (hasValueState() || opFlags[use_ramp_limits]) {
         return stateVal;
     }
@@ -603,54 +645,56 @@ double Block::getLimiterTestValue(double input, const stateData& sD, const solve
 }
 
 void Block::rootTest(const IOdata& inputs,
-                     const stateData& sD,
+                     const stateData& stateDataValue,
                      double roots[],
-                     const solverMode& sMode)
+                     const solverMode& solverModeValue)
 {
     if (!opFlags[has_limits]) {
         return;
     }
-    int rootOffset = offsets.getRootOffset(sMode);
+    int rootOffset = offsets.getRootOffset(solverModeValue);
     if (opFlags[use_ramp_limits]) {
-        auto doffset = offsets.getDiffOffset(sMode) + limiter_diff;
-        double testRate = getTestRate(inputs[1], sD.dstate_dt[doffset]);
-        double testVal = getTestValue(inputs[0], sD.state[doffset]);
-        roots[rootOffset] = rLimiter->limitCheck(sD.state[doffset], testVal, testRate);
+        auto doffset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
+        const double testRate = getTestRate(inputs[1], stateDataValue.dstate_dt[doffset]);
+        const double testValue = getTestValue(inputs[0], stateDataValue.state[doffset]);
+        roots[rootOffset] =
+            rLimiter->limitCheck(stateDataValue.state[doffset], testValue, testRate);
         ++rootOffset;
     }
 
     if (opFlags[use_block_limits]) {
-        double val = getLimiterTestValue(inputs[0], sD, sMode);
-        roots[rootOffset] = vLimiter->limitCheck(val);
+        const double value = getLimiterTestValue(inputs[0], stateDataValue, solverModeValue);
+        roots[rootOffset] = vLimiter->limitCheck(value);
     }
 }
 
 change_code Block::rootCheck(const IOdata& inputs,
-                             const stateData& sD,
-                             const solverMode& sMode,
+                             const stateData& stateDataValue,
+                             const solverMode& solverModeValue,
                              check_level_t /*level*/)
 {
     change_code ret = change_code::no_change;
     if (!opFlags[has_limits]) {
         return ret;
     }
-    const double* st = ((!sD.empty()) ? sD.state : m_state.data());
-    const double* dst = ((!sD.empty()) ? sD.dstate_dt : m_dstate_dt.data());
+    const double* stateValues = ((!stateDataValue.empty()) ? stateDataValue.state : m_state.data());
+    const double* stateDerivatives =
+        ((!stateDataValue.empty()) ? stateDataValue.dstate_dt : m_dstate_dt.data());
     if (opFlags[use_ramp_limits]) {
-        auto doffset = offsets.getDiffOffset(sMode);
-        double testRate = getTestRate(getRateInput(inputs), dst[doffset]);
-        double testVal = getTestValue(inputs[0], st[doffset]);
-        double vval = rLimiter->limitCheck(st[doffset], testVal, testRate);
-        if (vval < 0.0) {
+        auto doffset = offsets.getDiffOffset(solverModeValue);
+        const double testRate = getTestRate(getRateInput(inputs), stateDerivatives[doffset]);
+        const double testValue = getTestValue(inputs[0], stateValues[doffset]);
+        const double limitValue = rLimiter->limitCheck(stateValues[doffset], testValue, testRate);
+        if (limitValue < 0.0) {
             rLimiter->changeLimitActivation(testRate);
             ret = change_code::non_state_change;
         }
     }
     if (opFlags[use_block_limits]) {
-        double val = getLimiterTestValue(inputs[0], sD, sMode);
-        double vval = vLimiter->limitCheck(val);
-        if (vval < 0.0) {
-            vLimiter->changeLimitActivation(val);
+        const double value = getLimiterTestValue(inputs[0], stateDataValue, solverModeValue);
+        const double limitValue = vLimiter->limitCheck(value);
+        if (limitValue < 0.0) {
+            vLimiter->changeLimitActivation(value);
             ret = change_code::non_state_change;
         }
     }
@@ -661,17 +705,17 @@ change_code Block::rootCheck(const IOdata& inputs,
 void Block::rootTrigger(coreTime /*time*/,
                         const IOdata& inputs,
                         const std::vector<int>& rootMask,
-                        const solverMode& sMode)
+                        const solverMode& solverModeValue)
 {
     if (!opFlags[has_limits]) {
         return;
     }
-    auto roffset = offsets.getRootOffset(sMode);
+    auto roffset = offsets.getRootOffset(solverModeValue);
 
     if (opFlags[use_ramp_limits]) {
         if (rootMask[roffset] != 0) {
             auto doffset = offsets.getDiffOffset(cLocalSolverMode);
-            double testRate = getTestRate(getRateInput(inputs), m_dstate_dt[doffset]);
+            const double testRate = getTestRate(getRateInput(inputs), m_dstate_dt[doffset]);
             rLimiter->changeLimitActivation(testRate);
             // ret = change_code::non_state_change;
         }
@@ -681,11 +725,12 @@ void Block::rootTrigger(coreTime /*time*/,
         if (rootMask[roffset] == 0) {
             return;
         }
-        double val =
-            getLimiterTestValue(inputs.empty() ? m_state[0] : inputs[0], emptyStateData, sMode);
+        const double value = getLimiterTestValue(inputs.empty() ? m_state[0] : inputs[0],
+                                                 emptyStateData,
+                                                 solverModeValue);
 
-        vLimiter->changeLimitActivation(val);
-        m_state[0] = vLimiter->output(val);
+        vLimiter->changeLimitActivation(value);
+        m_state[0] = vLimiter->output(value);
     }
 }
 
@@ -725,14 +770,14 @@ void Block::setFlag(std::string_view flag, bool val)
             opFlags[use_ramp_limits] = val;
         }
     } else {
-        gridSubModel::setFlag(flag, val);
+        GridSubModel::setFlag(flag, val);
     }
 }
 
 // set parameters
 void Block::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void Block::set(std::string_view param, double val, units::unit unitType)
 {
@@ -771,7 +816,7 @@ void Block::set(std::string_view param, double val, units::unit unitType)
             rLimiter->setResetLevel(val);
         }
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -780,7 +825,7 @@ double Block::get(std::string_view param, units::unit unitType) const
     if (param == "maxstepsize") {
         return kBigNum;
     }
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 void Block::valLimiterUpdate()
@@ -832,7 +877,7 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     using gmlc::utilities::string_viewOps::split;
     using gmlc::utilities::string_viewOps::trim;
 
-    std::string_view blockstrv(blockstr);
+    const std::string_view blockstrv(blockstr);
     auto posp1 = blockstrv.find_first_of('(');
     auto posp2 = blockstrv.find_last_of(')');
     auto blockNameStr = blockstrv.substr(0, posp1 - 1);
@@ -897,18 +942,20 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
             ret->set("gain", gain);
         }
     } else if (fstr == "pid") {
-        double p = 1.0, i = 0.0, d = 0.0;
+        double proportionalGain = 1.0;
+        double integralGain = 0.0;
+        double derivativeGain = 0.0;
         if (!inputs.empty()) {
-            p = inputs[0];
+            proportionalGain = inputs[0];
         }
-        if (tailArgs.size() > 1) {
-            i = inputs[1];
+        if (inputs.size() > 1) {
+            integralGain = inputs[1];
         }
         if (inputs.size() > 2) {
-            d = inputs[2];
+            derivativeGain = inputs[2];
         }
 
-        ret = std::make_unique<blocks::pidBlock>(p, i, d);
+        ret = std::make_unique<blocks::pidBlock>(proportionalGain, integralGain, derivativeGain);
         if (gain != 1.0) {
             ret->set("gain", gain);
         }
@@ -926,17 +973,18 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     }
     // process any additional parameters
     if (!tailArgs.empty()) {
-        for (auto& ta : tailArgs) {
-            auto eloc = ta.find_first_of('=');
+        for (auto& tailArg : tailArgs) {
+            auto eloc = tailArg.find_first_of('=');
             if (eloc == std::string::npos) {
-                ret->setFlag(std::string{ta}, true);
+                ret->setFlag(std::string{tailArg}, true);
             } else {
-                auto param = ta.substr(0, eloc);
-                double val = numeric_conversionComplete(ta.substr(eloc + 1), kNullVal);
-                if (val == kNullVal) {
-                    ret->set(std::string{param}, std::string{ta.substr(eloc + 1)});
+                auto param = tailArg.substr(0, eloc);
+                const double numericValue =
+                    numeric_conversionComplete(tailArg.substr(eloc + 1), kNullVal);
+                if (numericValue == kNullVal) {
+                    ret->set(std::string{param}, std::string{tailArg.substr(eloc + 1)});
                 } else {
-                    ret->set(std::string{param}, val);
+                    ret->set(std::string{param}, numericValue);
                 }
             }
         }

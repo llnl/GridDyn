@@ -14,10 +14,10 @@
 #include <string>
 
 namespace griddyn {
-isocController::isocController(const std::string& objName): gridSubModel(objName) {}
+isocController::isocController(const std::string& objName): GridSubModel(objName) {}
 CoreObject* isocController::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<isocController, gridSubModel>(this, obj);
+    auto* nobj = cloneBase<isocController, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -103,7 +103,7 @@ void isocController::timestep(coreTime time, const IOdata& inputs, const solverM
 
 void isocController::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void isocController::set(std::string_view param, double val, units::unit unitType)
 {
@@ -124,7 +124,7 @@ void isocController::set(std::string_view param, double val, units::unit unitTyp
     } else if (param == "m_output") {
         m_output = val;
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 

@@ -91,7 +91,7 @@ enum solver_flags : int {
 a particular SolverInterface class will contain the interface and calls necessary to implement a
 particular solver methodology
 */
-class SolverInterface: public helperObject {
+class SolverInterface: public HelperObject {
   public:
     /** @brief enumeration of solver call modes*/
     enum class StepMode {

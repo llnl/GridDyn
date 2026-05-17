@@ -16,7 +16,7 @@ class matrixData;
 
 namespace griddyn {
 class gridDynSimulation;
-class gridComponent;
+class GridComponent;
 class solverMode;
 class SolverInterface;
 class CoreObject;
@@ -124,5 +124,5 @@ object in a hierarchy
 @param[in] comp the component to print the state sizes for
 @param[in] sMode the solver mode of the states to print
 */
-void printStateSizes(const gridComponent* comp, const solverMode& sMode);
+void printStateSizes(const GridComponent* comp, const solverMode& sMode);
 }  // namespace griddyn

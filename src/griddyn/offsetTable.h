@@ -163,7 +163,7 @@ class offsetTable {
     Lp getLocations(const stateData& sD,
                     double dest[],
                     const solverMode& sMode,
-                    const gridComponent* comp) const;
+                    const GridComponent* comp) const;
 
     /** @brief get the locations for the data from a stateData pointer
     *@param[in] sMode the solverMode we are interested in
@@ -171,7 +171,7 @@ class offsetTable {
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
-    Lp getLocations(const stateData& sD, const solverMode& sMode, const gridComponent* comp) const;
+    Lp getLocations(const stateData& sD, const solverMode& sMode, const GridComponent* comp) const;
 
     /** @brief get the locations offsets for the data
     *@param[in] sMode the solverMode we are interested in

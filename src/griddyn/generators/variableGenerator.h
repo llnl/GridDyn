@@ -45,7 +45,7 @@ class variableGenerator: public DynamicGenerator {
 
     virtual void add(CoreObject* obj) override;
 
-    virtual void add(gridSubModel* obj) override;
+    virtual void add(GridSubModel* obj) override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,

@@ -36,7 +36,7 @@ can be contained by a root object which is an area usually,  though there is no 
 classes also containing primary objects.
 
 **/
-class gridPrimary: public gridComponent {
+class gridPrimary: public GridComponent {
   public:
     int zone = 1;  //!< publicly accessible loss zone indicator not used internally
     index_t locIndex2 = kNullLocation;  //!< a second lookup index for the object to reference
@@ -144,7 +144,7 @@ class gridPrimary: public gridComponent {
      */
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector);
 
-    using gridComponent::updateLocalCache;
+    using GridComponent::updateLocalCache;
     /** @brief do any local computation to get ready for measurements*/
     virtual void updateLocalCache();
 

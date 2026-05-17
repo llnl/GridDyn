@@ -19,7 +19,7 @@ class readerElement;
 
 namespace griddyn {
 class gridParameter;
-class helperObject;
+class HelperObject;
 
 // struct for holding and passing the information in Element reader files
 class readerInfo;
@@ -37,7 +37,7 @@ class Relay;
 class gridBus;
 class gridPrimary;
 class gridSecondary;
-class gridSubModel;
+class GridSubModel;
 
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
@@ -114,12 +114,12 @@ void paramLoopElement(CoreObject* obj,
                       readerInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
-void setParams(helperObject* obj,
+void setParams(HelperObject* obj,
                std::shared_ptr<readerElement>& element,
                const std::string& component,
                readerInfo& readerInfoRef,
                const IgnoreListType& ignoreList);
-void setAttributes(helperObject* obj,
+void setAttributes(HelperObject* obj,
                    std::shared_ptr<readerElement>& element,
                    const std::string& component,
                    readerInfo& readerInfoRef,

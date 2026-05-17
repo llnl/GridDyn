@@ -24,7 +24,7 @@ namespace blocks {
 }  // namespace blocks
 
 class Communicator;
-class AGControl: public gridSubModel {
+class AGControl: public GridSubModel {
   public:
     enum agcType {
         basicAGC,

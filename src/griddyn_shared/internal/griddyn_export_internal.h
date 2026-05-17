@@ -19,11 +19,11 @@
 
 typedef void* GridDynObject;
 /** make a GridDynObject wrapper out of an actual component pointer*/
-GridDynObject createGridDynObject(griddyn::gridComponent* comp);
+GridDynObject createGridDynObject(griddyn::GridComponent* comp);
 /** get the component pointer from a GridDynObject*/
-griddyn::gridComponent* getComponentPointer(GridDynObject obj);
+griddyn::GridComponent* getComponentPointer(GridDynObject obj);
 /** get the const component pointer from a const GridDynObject*/
-const griddyn::gridComponent* getConstComponentPointer(GridDynObject obj);
+const griddyn::GridComponent* getConstComponentPointer(GridDynObject obj);
 
 /** data class for storing some solver information and data buffers*/
 class solverKeyInfo {
@@ -38,17 +38,17 @@ class solverKeyInfo {
     solverKeyInfo(const griddyn::solverMode& sMode): sMode_(sMode) {}
 };
 
-/** allocate buffers for using a solverKeyInfo object with a gridComponent*/
-void setUpSolverKeyInfo(solverKeyInfo* key, griddyn::gridComponent* comp);
+/** allocate buffers for using a solverKeyInfo object with a GridComponent*/
+void setUpSolverKeyInfo(solverKeyInfo* key, griddyn::GridComponent* comp);
 /** translate a system state vector to a local state vector*/
 void TranslateToLocal(const std::vector<double>& orig,
                       double* newData,
-                      const griddyn::gridComponent* comp,
+                      const griddyn::GridComponent* comp,
                       const griddyn::solverMode& sMode);
 /** translate a local state vector into the appropriate elements of a system state vector*/
 void CopyFromLocal(std::vector<double>& dest,
                    const double* localData,
-                   const griddyn::gridComponent* comp,
+                   const griddyn::GridComponent* comp,
                    const griddyn::solverMode& sMode);
 
 /** definitions to simplify error returns if an error already exists*/

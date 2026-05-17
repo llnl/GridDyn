@@ -167,7 +167,7 @@ class gridDynSimulation: public gridSimulation {
         extraStateInformation;  //!< a vector of additional state information for solveMode pairings
     std::vector<const double*> extraDerivInformation;  //!< a vector of additional derivative
                                                        //!< Information for solverMode pairings
-    std::vector<gridComponent*>
+    std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<gridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
     std::queue<gridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute

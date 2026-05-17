@@ -15,7 +15,7 @@ class gridSecondary;
 class dcBus;
 class gridBus;
 class Link;
-class gridComponent;
+class GridComponent;
 
 /** @brief a set of  controls for a bus that manages controllable generators and loads for a dc bus
 provides autogen functionality and manages controlled generators to help with the transition from
@@ -57,7 +57,7 @@ class DcBusControls {
     double getAdjustableCapacityUp(coreTime time) const;
     double getAdjustableCapacityDown(coreTime time) const;
 
-    void addControlObject(gridComponent* comp, bool update);
+    void addControlObject(GridComponent* comp, bool update);
 
     void removeControlObject(id_type_t oid, bool update);
 

@@ -144,8 +144,8 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         return;
     }
     // check for 3 phase sensors
-    if (dynamic_cast<gridComponent*>(m_sourceObject) != nullptr) {
-        if (static_cast<gridComponent*>(m_sourceObject)->checkFlag(three_phase_capable)) {
+    if (dynamic_cast<GridComponent*>(m_sourceObject) != nullptr) {
+        if (static_cast<GridComponent*>(m_sourceObject)->checkFlag(three_phase_capable)) {
             if (!opFlags[THREE_PHASE_SET]) {
                 opFlags[THREE_PHASE_ACTIVE] = true;
             }

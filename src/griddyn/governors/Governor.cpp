@@ -45,7 +45,7 @@ using units::second;
 using units::unit;
 
 Governor::Governor(const std::string& objName):
-    gridSubModel(objName), dbb("deadband"), cb(T1, "filter"), delay(T3, "outFilter")
+    GridSubModel(objName), dbb("deadband"), cb(T1, "filter"), delay(T3, "outFilter")
 {
     // default values
     cb.set("bias", -1.0);
@@ -61,7 +61,7 @@ Governor::Governor(const std::string& objName):
 
 CoreObject* Governor::clone(CoreObject* obj) const
 {
-    auto* gov = cloneBase<Governor, gridSubModel>(this, obj);
+    auto* gov = cloneBase<Governor, GridSubModel>(this, obj);
     if (gov == nullptr) {
         return obj;
     }
@@ -101,7 +101,7 @@ void Governor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (!opFlags[ignore_deadband]) {
         addSubObject(&dbb);
     }
-    gridSubModel::dynObjectInitializeA(time0, flags);
+    GridSubModel::dynObjectInitializeA(time0, flags);
 }
 // initial conditions
 static IOdata kNullVec;
@@ -261,7 +261,7 @@ index_t Governor::findIndex(std::string_view field, const solverMode& sMode) con
 void Governor::setFlag(std::string_view flag, bool val)
 {
     try {
-        gridSubModel::setFlag(flag, val);
+        GridSubModel::setFlag(flag, val);
     }
     catch (const unrecognizedParameter&) {
         dbb.setFlag(flag, val);
@@ -271,7 +271,7 @@ void Governor::setFlag(std::string_view flag, bool val)
 void Governor::set(std::string_view param, std::string_view val)
 {
     try {
-        gridSubModel::set(param, val);
+        GridSubModel::set(param, val);
     }
     catch (const unrecognizedParameter&) {
         dbb.set(param, val);
@@ -327,7 +327,7 @@ void Governor::set(std::string_view param, double val, unit unitType)
         }
         dbb.set("deadbandhigh", deadbandLow);
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -357,7 +357,7 @@ double Governor::get(std::string_view param, units::unit unitType) const
     } else if (param == "deadbandlow") {
         out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
     } else {
-        out = gridSubModel::get(param, unitType);
+        out = GridSubModel::get(param, unitType);
     }
     return out;
 }

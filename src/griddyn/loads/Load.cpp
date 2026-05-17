@@ -72,7 +72,7 @@ static const stringVec flagStrings{"usepowerfactor"};
 
 void Load::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<Load, gridComponent>(
+    getParamString<Load, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 

@@ -25,7 +25,7 @@ class consData;
  * the basic object for creating a power system encapsulating some common functions and data that is
  *needed by all objects in the simulation and defining some common methods for use by all objects.
  *This object is not really intended to be instantiated directly and is mostly a common interface to
- *inheriting objects gridPrimary, gridSecondary, and gridSubModel as it encapsulated common
+ *inheriting objects gridPrimary, gridSecondary, and GridSubModel as it encapsulated common
  *functionality between those objects
  **/
 class GridOptObject: public CoreObject {

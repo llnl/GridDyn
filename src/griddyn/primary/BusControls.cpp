@@ -79,7 +79,7 @@ double BusControls::getAdjustableCapacityDown(coreTime time) const
     return cap;
 }
 
-void BusControls::addPowerControlObject(gridComponent* comp, bool update)
+void BusControls::addPowerControlObject(GridComponent* comp, bool update)
 {
     if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
@@ -107,7 +107,7 @@ void BusControls::addPowerControlObject(gridComponent* comp, bool update)
     }
 }
 
-void BusControls::addVoltageControlObject(gridComponent* comp, bool update)
+void BusControls::addVoltageControlObject(GridComponent* comp, bool update)
 {
     if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
@@ -188,7 +188,7 @@ void BusControls::updateVoltageControls()
     double vfsum = sum(vcfrac) + sum(vclinkFrac);
     proxyVControlObject.clear();
     bool non_direct_remote = false;
-    gridComponent* vco;
+    GridComponent* vco;
     Qmax = 0;
     Qmin = 0;
     for (size_t kk = 0; kk < vcfrac.size(); ++kk) {
@@ -245,7 +245,7 @@ void BusControls::updatePowerControls()
 {
     double pfsum = sum(pcfrac) + sum(pclinkFrac);
     proxyPControlObject.clear();
-    gridComponent* pco;
+    GridComponent* pco;
     auto pcount = pcfrac.size() + pclinkFrac.size();
     Pmax = 0;
     Pmin = 0;

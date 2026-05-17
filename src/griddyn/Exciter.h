@@ -23,7 +23,7 @@ inline constexpr int exciterOmegaInLocation = 3;
 
 /** class defining the interface for an exciter as well a trivial implementation of such
  */
-class Exciter: public gridSubModel {
+class Exciter: public GridSubModel {
   public:
     enum exciter_flags {
         outside_vlim = object_flag3,

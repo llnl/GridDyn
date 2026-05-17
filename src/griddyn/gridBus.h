@@ -266,15 +266,15 @@ class gridBus: public gridPrimary {
      * @param source the object from back up the path
      * @return whether there is a singular path to the object or not
      **/
-    bool directPath(gridComponent* target, gridComponent* source = nullptr);
+    bool directPath(GridComponent* target, GridComponent* source = nullptr);
     /** @brief for obtaining the complete path to another object
      * @param target the object to search for
      * @param source the object from back up the path
      * @return a vector of objects with the path information  (NOTE: not necessarily the shortest
      *path)
      **/
-    std::vector<gridComponent*> getDirectPath(gridComponent* target,
-                                              gridComponent* source = nullptr);
+    std::vector<GridComponent*> getDirectPath(GridComponent* target,
+                                              GridComponent* source = nullptr);
     /** @brief propagate and fix a power level for a bus
      * @param[in] makeSlack boolean indicating if the bus should be made into a slack bus or not
      * @return value indicating success 0 on success -1 on failure
@@ -454,13 +454,13 @@ class gridBus: public gridPrimary {
     virtual void checkMerge();
 
     /** @brief  register an object for voltage control on a bus*/
-    virtual void registerVoltageControl(gridComponent* comp);
+    virtual void registerVoltageControl(GridComponent* comp);
     /** @brief  remove an object from voltage control on a bus*/
-    virtual void removeVoltageControl(gridComponent* comp);
+    virtual void removeVoltageControl(GridComponent* comp);
     /** @brief  register an object for power control on a bus*/
-    virtual void registerPowerControl(gridComponent* comp);
+    virtual void registerPowerControl(GridComponent* comp);
     /** @brief  remove an object from power control on a bus*/
-    virtual void removePowerControl(gridComponent* comp);
+    virtual void removePowerControl(GridComponent* comp);
 
     virtual const std::vector<stringVec>& outputNames() const override;
     units::unit outputUnits(index_t outputNum) const override;

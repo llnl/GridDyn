@@ -18,7 +18,7 @@ class OutputEstimator;
 
 namespace griddyn::fmi {
 /** class defining a subModel interacting with an FMU v2.0 object using cosimulation*/
-class FmiCoSimSubModel: public gridSubModel {
+class FmiCoSimSubModel: public GridSubModel {
   public:
     enum fmiSubModelFlags {
         use_output_estimator = object_flag2,

@@ -26,7 +26,7 @@ namespace griddyn::fmi {
 
 FmiCoSimSubModel::FmiCoSimSubModel(const std::string& newName,
                                    std::shared_ptr<Fmi2CoSimObject> fmi):
-    gridSubModel(newName), cs(std::move(fmi))
+    GridSubModel(newName), cs(std::move(fmi))
 {
 }
 
@@ -36,7 +36,7 @@ FmiCoSimSubModel::~FmiCoSimSubModel() = default;
 
 CoreObject* FmiCoSimSubModel::clone(CoreObject* obj) const
 {
-    auto* gco = cloneBase<FmiCoSimSubModel, gridSubModel>(this, obj);
+    auto* gco = cloneBase<FmiCoSimSubModel, GridSubModel>(this, obj);
     if (gco == nullptr) {
         return obj;
     }
@@ -143,7 +143,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                 }
             }
 
-            gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             pstr.reserve(pstr.size() + strpcnt + 1);
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -153,7 +153,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, paramStringType::str);
             break;
         case paramStringType::localnum:
             pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
@@ -198,7 +198,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             break;
         case paramStringType::str:
             pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
@@ -210,7 +210,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, paramStringType::str);
             break;
         case paramStringType::flags:
             pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
@@ -222,7 +222,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, paramStringType psty
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::flags);
+            GridSubModel::getParameterStrings(pstr, paramStringType::flags);
             break;
     }
 }
@@ -268,7 +268,7 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
             cs->set(std::string{param}, std::string{val});
             resetState();
         } else {
-            gridSubModel::set(param, val);
+            GridSubModel::set(param, val);
         }
     }
 }
@@ -284,7 +284,7 @@ void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
             cs->set(std::string{param}, val);
             resetState();
         } else {
-            gridSubModel::set(param, val, unitType);
+            GridSubModel::set(param, val, unitType);
         }
     }
 }
@@ -297,7 +297,7 @@ double FmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
     if (cs->isVariable(std::string{param}, FmiVariableType::numeric)) {
         return cs->get<double>(std::string{param});
     }
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 double FmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/)

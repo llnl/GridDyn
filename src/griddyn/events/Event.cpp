@@ -45,7 +45,7 @@ namespace events {
 }  // namespace events
 
 Event::Event(const std::string& eventName):
-    helperObject(eventName), triggerTime(negTime), eventId(static_cast<count_t>(getID()))
+    HelperObject(eventName), triggerTime(negTime), eventId(static_cast<count_t>(getID()))
 {
 }
 
@@ -148,7 +148,7 @@ void Event::setFlag(std::string_view flag, bool val)
     if (flag == "armed") {
         armed = val;
     } else {
-        helperObject::setFlag(flag, val);
+        HelperObject::setFlag(flag, val);
     }
 }
 void Event::set(std::string_view param, double val)
@@ -160,7 +160,7 @@ void Event::set(std::string_view param, double val)
     } else if (param == "armed") {
         armed = (val > 0.1);
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -175,7 +175,7 @@ void Event::set(std::string_view param, std::string_view val)
         }
         unitType = newUnits;
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 

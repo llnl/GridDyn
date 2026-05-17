@@ -637,7 +637,7 @@ std::vector<int> getRowCounts(matrixData<double>& md)
     return rowcnt;
 }
 
-std::vector<index_t> getLocalStates(const gridComponent* comp, const solverMode& sMode)
+std::vector<index_t> getLocalStates(const GridComponent* comp, const solverMode& sMode)
 {
     std::vector<index_t> st;
     auto& off = comp->getOffsets(sMode);
@@ -671,7 +671,7 @@ class objectCountInfo {
     std::vector<objectCountInfo> subObjectInfo;
 };
 /** function to get the actual Jacobian information about an object*/
-objectCountInfo getObjectInformation(const gridComponent* comp,
+objectCountInfo getObjectInformation(const GridComponent* comp,
                                      const solverMode& sMode,
                                      const std::vector<int>& rowCount)
 {
@@ -690,7 +690,7 @@ objectCountInfo getObjectInformation(const gridComponent* comp,
     int ii = 0;
     while (subobj != nullptr) {
         objI.subObjectInfo.push_back(
-            getObjectInformation(static_cast<gridComponent*>(subobj), sMode, rowCount));
+            getObjectInformation(static_cast<GridComponent*>(subobj), sMode, rowCount));
         ++ii;
         subobj = comp->getSubObject("subobject", ii);
     }
@@ -805,7 +805,7 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
     return result;
 }
 
-void printStateSizesPretty(const gridComponent* obj,
+void printStateSizesPretty(const GridComponent* obj,
                            const solverMode& sMode,
                            const std::string& inset)
 {
@@ -817,16 +817,16 @@ void printStateSizesPretty(const gridComponent* obj,
                  obj->algSize(sMode),
                  obj->diffSize(sMode),
                  off.local.totalSize());
-    auto subObj = dynamic_cast<gridComponent*>(obj->getSubObject("subobject", 0));
+    auto subObj = dynamic_cast<GridComponent*>(obj->getSubObject("subobject", 0));
     int ii = 1;
     while (subObj != nullptr) {
         printStateSizesPretty(subObj, sMode, inset + "   ");
-        subObj = dynamic_cast<gridComponent*>(obj->getSubObject("subobject", ii));
+        subObj = dynamic_cast<GridComponent*>(obj->getSubObject("subobject", ii));
         ++ii;
     }
 }
 
-void printStateSizes(const gridComponent* comp, const solverMode& sMode)
+void printStateSizes(const GridComponent* comp, const solverMode& sMode)
 {
     printStateSizesPretty(comp, sMode, "");
 }

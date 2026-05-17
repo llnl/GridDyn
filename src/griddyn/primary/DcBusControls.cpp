@@ -68,7 +68,7 @@ double DcBusControls::getAdjustableCapacityDown(coreTime time) const
     return cap;
 }
 
-void DcBusControls::addControlObject(gridComponent* comp, bool update)
+void DcBusControls::addControlObject(GridComponent* comp, bool update)
 {
     if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
@@ -124,7 +124,7 @@ void DcBusControls::updateControls()
 {
     double pfsum = sum(cfrac) + sum(clinkFrac);
     proxyControlObject.clear();
-    gridComponent* pco;
+    GridComponent* pco;
     auto pcount = cfrac.size() + clinkFrac.size();
     Pmax = 0;
     Pmin = 0;

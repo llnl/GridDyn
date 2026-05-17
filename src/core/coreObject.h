@@ -32,7 +32,7 @@ enum class paramStringType { all, localstr, localnum, str, numeric, localflags, 
 
 typedef void gridPositionInfo;
 
-class helperObject;
+class HelperObject;
 
 /** @brief      base class for a building simulation objects
  Base class for all main simulation objects class includes common properties for all objects such as
@@ -150,11 +150,11 @@ class CoreObject {
      */
     virtual void add(CoreObject* obj);
 
-    /** @brief add a helperObject to the object
+    /** @brief add a HelperObject to the object
     @param[in] obj shared_ptr to a helper object
     *throws an exception if the object is invalid or cannot be added
     */
-    virtual void addHelper(std::shared_ptr<helperObject> obj);
+    virtual void addHelper(std::shared_ptr<HelperObject> obj);
     /**
      * @brief remove an object from the calling object
      * @param[in] obj the object to remove

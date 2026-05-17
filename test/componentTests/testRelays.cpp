@@ -107,7 +107,7 @@ TEST_F(RelayTests, TestDifferentialRelay)
     gds->run();
     auto obj = gds->find("bus1_to_bus3");
     ASSERT_NE(obj, nullptr);
-    EXPECT_FALSE(static_cast<gridComponent*>(obj)->isConnected());
+    EXPECT_FALSE(static_cast<GridComponent*>(obj)->isConnected());
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 

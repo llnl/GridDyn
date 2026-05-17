@@ -220,13 +220,13 @@ class OptimizationOffsetTable {
      *@param[in] oMode the OptimizationMode we are interested in
      */
     // void getLocations (const stateData &sD, double d[], const OptimizationMode &oMode, Lp *Loc,
-    // gridComponent *comp);
+    // GridComponent *comp);
     /** get the locations for the data from a stateData pointer
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset
      */
     // void getLocations (stateData *sD, double d[], const OptimizationMode &oMode, Lp *Loc,
-    // gridComponent *comp);
+    // GridComponent *comp);
     /** get the locations offsets for the data
      *@param[in] oMode the OptimizationMode we are interested in
      *@return the angle offset

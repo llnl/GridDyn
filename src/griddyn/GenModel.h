@@ -20,7 +20,7 @@ class gridBus;
 currents as algebraic states and the generator rotational speed and angle otherwise known as the
 second order model
 */
-class GenModel: public gridSubModel {
+class GenModel: public GridSubModel {
   public:
     /** @brief set of flags used by genModels for variations in computation
      */

@@ -45,7 +45,7 @@ namespace fmi {
 
         /** build the FMU at the given location
     @param[in] fmuLocation optional argument to specify the location to build the FMU*/
-        void MakeFmu(const std::string& fmuLocation = "");
+        void makeFmu(const std::string& fmuLocation = "");
         const std::string& getOutputFile() const { return mFmuLocation; }
 
       private:

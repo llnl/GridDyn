@@ -101,7 +101,7 @@ static bool testCopyFile(path const& source, path const& dest, bool overwrite = 
     }
 }
 
-void FmuBuilder::MakeFmu(const std::string& fmuLocation)
+void FmuBuilder::makeFmu(const std::string& fmuLocation)
 {
     auto bpath = temp_directory_path();
 

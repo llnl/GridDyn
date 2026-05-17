@@ -59,7 +59,7 @@ int FmiRunner::Reset()
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void FmiRunner::UpdateOutputs()
+void FmiRunner::updateOutputs()
 {
     mCoordinator->updateOutputs(m_gds->getSimulationTime());
 }
@@ -149,22 +149,22 @@ void FmiRunner::logger(int level, const std::string& logMessage)
     }
 }
 
-id_type_t FmiRunner::GetID() const
+id_type_t FmiRunner::getId() const
 {
     return m_gds->getID();
 }
 
-bool FmiRunner::Set(index_t valueReference, double inputValue)
+bool FmiRunner::setValue(index_t valueReference, double inputValue)
 {
     return mCoordinator->sendInput(valueReference, inputValue);
 }
 
-bool FmiRunner::SetString(index_t valueReference, const char* stringValue)
+bool FmiRunner::setStringValue(index_t valueReference, const char* stringValue)
 {
     return mCoordinator->sendInput(valueReference, stringValue);
 }
 
-double FmiRunner::Get(index_t valueReference)
+double FmiRunner::getValue(index_t valueReference)
 {
     return mCoordinator->getOutput(valueReference);
 }

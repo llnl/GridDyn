@@ -46,7 +46,7 @@ static runner_t getFmiRunner(fmi2Component comp)
         return nullptr;
     }
     auto& runner = fmiRunnerInstances[componentId->first];
-    if ((!runner) || (runner->GetID() != componentId->second)) {
+    if ((!runner) || (runner->getId() != componentId->second)) {
         return nullptr;
     }
     return runner.get();
@@ -115,7 +115,7 @@ fmi2Component fmi2Instantiate(fmi2String instanceName,
                                                     functions,
                                                     (fmuType == fmi2Type::fmi2ModelExchange));
             auto* componentId = new CompId;
-            componentId->second = fmiM->GetID();
+            componentId->second = fmiM->getId();
             fmiM->fmiComp = static_cast<fmi2Component>(componentId);
             const std::scoped_lock arrayLock(fmiLock);
             if (loggingOn == fmi2False) {
@@ -188,7 +188,7 @@ fmi2Status fmi2ExitInitializationMode(fmi2Component comp)
         runner->logger(0, std::string("Simulation Initialization failed:") + e.what());
         return fmi2Error;
     }
-    runner->UpdateOutputs();
+    runner->updateOutputs();
     return fmi2OK;
 }
 fmi2Status fmi2Terminate(fmi2Component comp)
@@ -224,7 +224,7 @@ fmi2Status fmi2GetReal(fmi2Component comp,
     }
     auto ret = fmi2OK;
     for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
-        value[ii] = runner->Get(valueReferences[ii]);
+        value[ii] = runner->getValue(valueReferences[ii]);
         if (value[ii] < -1e45) {
             // send a log message
             ret = fmi2Warning;
@@ -246,7 +246,7 @@ fmi2Status fmi2GetInteger(fmi2Component comp,
         if (valueReferences[ii] == 0) {
             value[ii] = runner->runAsynchronously() ? 1 : 0;
         } else {
-            auto res = runner->Get(valueReferences[ii]);
+            auto res = runner->getValue(valueReferences[ii]);
             if (res < -1e45) {
                 ret = fmi2Warning;
             }
@@ -269,7 +269,7 @@ fmi2Status fmi2GetBoolean(fmi2Component comp,
         if (valueReferences[ii] == 0) {
             value[ii] = runner->runAsynchronously() ? fmi2True : fmi2False;
         } else {
-            auto res = runner->Get(valueReferences[ii]);
+            auto res = runner->getValue(valueReferences[ii]);
             if (res < -1e45) {
                 ret = fmi2Warning;
             }
@@ -310,7 +310,7 @@ fmi2Status fmi2SetReal(fmi2Component comp,
     }
     auto ret = fmi2OK;
     for (size_t ii = 0; ii < valueReferenceCount; ++ii) {
-        auto res = runner->Set(valueReferences[ii], value[ii]);
+        auto res = runner->setValue(valueReferences[ii], value[ii]);
         if (!res) {
             // printf("set of value reference %d failed\n", valueReferences[ii]);
             ret = fmi2Warning;
@@ -332,7 +332,7 @@ fmi2Status fmi2SetInteger(fmi2Component comp,
         if (valueReferences[ii] == 0) {
             runner->setAsynchronousMode(value[ii] > 0);
         } else {
-            auto res = runner->Set(valueReferences[ii], static_cast<double>(value[ii]));
+            auto res = runner->setValue(valueReferences[ii], static_cast<double>(value[ii]));
             if (!res) {
                 ret = fmi2Warning;
             }
@@ -356,7 +356,7 @@ fmi2Status fmi2SetBoolean(fmi2Component comp,
         if (valueReferences[ii] == 0) {
             runner->setAsynchronousMode(value[ii] == fmi2True);
         } else {
-            auto res = runner->Set(valueReferences[ii], static_cast<double>(value[ii]));
+            auto res = runner->setValue(valueReferences[ii], static_cast<double>(value[ii]));
             if (!res) {
                 ret = fmi2Warning;
             }
@@ -381,7 +381,7 @@ fmi2Status fmi2SetString(fmi2Component comp,
             runner->getSim()->set("recorddirectory", runner->recordDirectory);
         } else {
             std::println(" setting string {} to {}", valueReferences[ii], value[ii]);
-            auto res = runner->SetString(valueReferences[ii], value[ii]);
+            auto res = runner->setStringValue(valueReferences[ii], value[ii]);
             if (!res) {
                 ret = fmi2Warning;
             }

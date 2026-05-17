@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
                 if (returnCode < 0) {
                     return returnCode;
                 }
-                builder->MakeFmu();
+                builder->makeFmu();
             }
 #endif
                 return 0;

@@ -20,6 +20,7 @@
 namespace griddyn {
 using units::unit;
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridLoadOpt, zipLoad> opLoad("basic", "load");
 
 GridLoadOpt::GridLoadOpt(const std::string& objName): GridOptObject(objName) {}
@@ -72,20 +73,20 @@ void GridLoadOpt::add(coreObject* obj)
 
 count_t GridLoadOpt::objSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
 count_t GridLoadOpt::contObjSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
 
 count_t GridLoadOpt::intObjSize(const OptimizationMode& /*oMode*/)
 {
-    count_t objs = 0;
+    const count_t objs = 0;
 
     return objs;
 }
@@ -147,7 +148,7 @@ void GridLoadOpt::constraintJacobianElements(const OptimizationData& /*of*/,
 
 double GridLoadOpt::objValue(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/)
 {
-    double cost = 0;
+    const double cost = 0;
 
     return cost;
 }

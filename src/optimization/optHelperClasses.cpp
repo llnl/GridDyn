@@ -8,6 +8,7 @@
 
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cstring>
+#include <utility>
 
 namespace griddyn {
 bool isAC(const OptimizationMode& oMode)
@@ -177,7 +178,7 @@ static const OptimizationOffsets nullOffsets;
 
 const OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode& oMode) const
 {
-    return (oMode.offsetIndex < static_cast<count_t>(offsetContainer.size())) ?
+    return std::cmp_less(oMode.offsetIndex, offsetContainer.size()) ?
         offsetContainer[oMode.offsetIndex] :
         nullOffsets;
 }

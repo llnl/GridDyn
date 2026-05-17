@@ -40,10 +40,11 @@ void objInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
     gmlc::utilities::stringOps::trimString(m_field);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 CoreObject* locateObject(std::string_view Istring,
                          const CoreObject* rootObj,
                          bool rootSearch,
-                         bool directFind)  // NOLINT(misc-no-recursion)
+                         bool directFind)
 {
     CoreObject* obj = nullptr;
     std::string_view mname = Istring;

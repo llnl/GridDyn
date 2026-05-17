@@ -16,11 +16,11 @@
 #define STOPTAG 4
 
 namespace griddyn {
-enum class messageTags {
-    model_spec = 1,
-    voltage_step = 2,
-    current = 3,
-    stop = 4,
+enum class MessageTags {
+    MODEL_SPEC = 1,
+    VOLTAGE_STEP = 2,
+    CURRENT = 3,
+    STOP = 4,
 };
 /**
  * Voltage message sent from transmission to distribution.

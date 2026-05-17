@@ -38,7 +38,7 @@ int griddyn_runner_main(int argc, char* argv[])
 
 #endif
 
-    auto gridDynRunner = std::make_shared<griddyn::fskitRunner>();
+    auto gridDynRunner = std::make_shared<griddyn::FskitRunner>();
 
     // Not running with FSKIT.
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(nullptr);

@@ -16,7 +16,7 @@ class GrantedTimeWindowScheduler;
 }
 
 namespace griddyn {
-class fskitRunner;
+class FskitRunner;
 }  // namespace griddyn
 
 /**
@@ -24,7 +24,7 @@ class fskitRunner;
  *
  * Singleton is initialized in GriddynRunner.
  */
-class GriddynFederatedScheduler {
+class GridDynFederatedScheduler {
   public:
     static bool IsFederated() { return gScheduler != nullptr; }
 
@@ -40,14 +40,14 @@ class GriddynFederatedScheduler {
     /* Make non-copyable since it is this class is used to access a singleton
      * via static methods.
      */
-    GriddynFederatedScheduler() = default;
-    GriddynFederatedScheduler(const GriddynFederatedScheduler&) = delete;
-    GriddynFederatedScheduler& operator=(const GriddynFederatedScheduler&) = delete;
+    GridDynFederatedScheduler() = default;
+    GridDynFederatedScheduler(const GridDynFederatedScheduler&) = delete;
+    GridDynFederatedScheduler& operator=(const GridDynFederatedScheduler&) = delete;
 
     /*
      * GriddynRunner initializes the federated scheduler.
      */
-    friend class griddyn::fskitRunner;
+    friend class griddyn::FskitRunner;
 
   private:
     /**

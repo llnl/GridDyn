@@ -20,7 +20,7 @@
 namespace griddyn {
 
 #ifdef GRIDDYN_ENABLE_MPI
-class MPIRequests {
+class MpiRequests {
   public:
     std::vector<MPI_Request> m_mpiSendRequests;
     std::vector<MPI_Request> m_mpiRecvRequests;
@@ -72,7 +72,7 @@ GhostSwingBusManager::GhostSwingBusManager(int* argc, char** argv[])
 
     m_initializeCompleted.resize(m_numTasks);
     m_modelSpecificationMessages.resize(m_numTasks);
-    requests = new MPIRequests;
+    requests = new MpiRequests;
     requests->m_mpiSendRequests.resize(m_numTasks);
     requests->m_mpiRecvRequests.resize(m_numTasks);
 #else

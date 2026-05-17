@@ -80,23 +80,23 @@ MpiService::~MpiService()
     }
 }
 
-MpiService::token MpiService::getToken()
+MpiService::Token MpiService::getToken()
 {
     switch (mpiThreadingLevel) {
         case MPI_THREAD_MULTIPLE: {
             std::unique_lock<std::mutex> lock(tokenLock, std::defer_lock);
-            return std::make_unique<tokenholder>(std::move(lock), false);
+            return std::make_unique<TokenHolder>(std::move(lock), false);
         } break;
         case MPI_THREAD_SERIALIZED:
         default: {
             std::unique_lock<std::mutex> lock(tokenLock);
-            return std::make_unique<tokenholder>(std::move(lock));
+            return std::make_unique<TokenHolder>(std::move(lock));
         } break;
         case MPI_THREAD_FUNNELED:
         case MPI_THREAD_SINGLE:
             if (std::this_thread::get_id() == tid) {
                 std::unique_lock<std::mutex> lock(tokenLock);
-                return std::make_unique<tokenholder>(std::move(lock));
+                return std::make_unique<TokenHolder>(std::move(lock));
             } else {
                 throw(std::runtime_error("invalid thread for MPI calls"));
             }

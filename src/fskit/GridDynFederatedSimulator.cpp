@@ -11,7 +11,7 @@
 #include <string>
 #include <tuple>
 
-GriddynFederatedSimulator::GriddynFederatedSimulator(
+GridDynFederatedSimulator::GridDynFederatedSimulator(
     std::string name,
     int argc,
     char* argv[],
@@ -21,25 +21,25 @@ GriddynFederatedSimulator::GriddynFederatedSimulator(
     FederatedSimulator(fskit::FederatedSimulatorId(name)), mName(name), mCurrentFskitTime(0),
     mCurrentGriddynTime(0)
 {
-    mGridDyn = std::make_shared<griddyn::fskitRunner>();
+    mGridDyn = std::make_shared<griddyn::FskitRunner>();
 
     mGridDyn->Initialize(argc, argv, scheduler);
 }
 
-bool GriddynFederatedSimulator::Initialize(void)
+bool GridDynFederatedSimulator::Initialize(void)
 {
     mGridDyn->simInitialize();
     return true;
 }
 
-void GriddynFederatedSimulator::StartCommunication(void) {}
+void GridDynFederatedSimulator::StartCommunication(void) {}
 
-bool GriddynFederatedSimulator::TestCommunication(void)
+bool GridDynFederatedSimulator::TestCommunication(void)
 {
     return true;
 }
 
-fskit::Time GriddynFederatedSimulator::CalculateLocalGrantedTime(void)
+fskit::Time GridDynFederatedSimulator::CalculateLocalGrantedTime(void)
 {
     const double kBigNum(1e49);
 
@@ -56,7 +56,7 @@ fskit::Time GriddynFederatedSimulator::CalculateLocalGrantedTime(void)
     return fskit::Time(griddynNextEventTime.getBaseTimeCode());
 }
 
-bool GriddynFederatedSimulator::Finalize(void)
+bool GridDynFederatedSimulator::Finalize(void)
 {
     mGridDyn->Finalize();
 
@@ -64,7 +64,7 @@ bool GriddynFederatedSimulator::Finalize(void)
 }
 
 // Method used by Variable Step Size simulator
-std::tuple<fskit::Time, bool> GriddynFederatedSimulator::TimeAdvancement(const fskit::Time& time)
+std::tuple<fskit::Time, bool> GridDynFederatedSimulator::TimeAdvancement(const fskit::Time& time)
 {
     griddyn::coreTime gdTime;
 
@@ -100,13 +100,13 @@ std::tuple<fskit::Time, bool> GriddynFederatedSimulator::TimeAdvancement(const f
 }
 
 // Method used by Discrete Event simulator
-void GriddynFederatedSimulator::StartTimeAdvancement(const fskit::Time& time)
+void GridDynFederatedSimulator::StartTimeAdvancement(const fskit::Time& time)
 {
     mGrantedTime = time;
 }
 
 // Method used by Discrete Event simulator
-std::tuple<bool, bool> GriddynFederatedSimulator::TestTimeAdvancement(void)
+std::tuple<bool, bool> GridDynFederatedSimulator::TestTimeAdvancement(void)
 {
     // SGS fixme, should this be a while loop to ensure granted time is reached?
     std::tuple<fskit::Time, bool> result = TimeAdvancement(mGrantedTime);

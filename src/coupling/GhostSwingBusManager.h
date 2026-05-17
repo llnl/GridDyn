@@ -24,7 +24,7 @@ namespace mpi {
     class MpiService;
 }
 
-class MPIRequests;
+class MpiRequests;
 
 class GhostSwingBusManager {
   public:
@@ -98,7 +98,7 @@ class GhostSwingBusManager {
      */
     int getNumTasks() const { return m_numTasks; }
 
-    static void SetDebug(bool debug) { g_printStuff = debug; }
+    static void setDebug(bool debug) { g_printStuff = debug; }
 
 #ifndef GRIDDYN_ENABLE_MPI
     /**
@@ -147,7 +147,7 @@ class GhostSwingBusManager {
      would have preferred unique ptr but compilers complain about not knowing the definition in the
      destructor
      */
-    MPIRequests* requests{nullptr};
+    MpiRequests* requests{nullptr};
 
     /*
      * True if initialization send has completed.

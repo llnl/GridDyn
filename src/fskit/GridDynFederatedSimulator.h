@@ -20,17 +20,17 @@
 #include <tuple>
 
 namespace griddyn {
-class fskitRunner;
+class FskitRunner;
 }  // namespace griddyn
 
 /**
  * Example variable step size simulator implementation.
  */
-class GriddynFederatedSimulator:
+class GridDynFederatedSimulator:
     public fskit::VariableStepSizeFederatedSimulator,
     public fskit::DiscreteEventFederatedSimulator {
   public:
-    GriddynFederatedSimulator(std::string name,
+    GridDynFederatedSimulator(std::string name,
                               int argc,
                               char* argv[],
                               std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler);
@@ -60,5 +60,5 @@ class GriddynFederatedSimulator:
     fskit::Time mGrantedTime;
     griddyn::coreTime mCurrentGriddynTime;
 
-    std::shared_ptr<griddyn::fskitRunner> mGridDyn;
+    std::shared_ptr<griddyn::FskitRunner> mGridDyn;
 };

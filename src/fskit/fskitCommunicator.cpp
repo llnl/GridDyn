@@ -38,7 +38,7 @@ FskitCommunicator::FskitCommunicator(std::string communicatorId):
                                                  GRIDDYN_RANK,
                                                  fskit::LocalLogicalProcessId(communicatorId)))
 {
-    assert(GriddynFederatedScheduler::IsFederated());
+    assert(GridDynFederatedScheduler::IsFederated());
 }
 
 FskitCommunicator::FskitCommunicator(std::string communicatorName, std::uint64_t id):
@@ -47,15 +47,15 @@ FskitCommunicator::FskitCommunicator(std::string communicatorName, std::uint64_t
                                                  GRIDDYN_RANK,
                                                  fskit::LocalLogicalProcessId(communicatorName)))
 {
-    assert(GriddynFederatedScheduler::IsFederated());
+    assert(GridDynFederatedScheduler::IsFederated());
 }
 
 void FskitCommunicator::initialize()
 {
-    assert(GriddynFederatedScheduler::GetScheduler() != 0);
+    assert(GridDynFederatedScheduler::GetScheduler() != 0);
     // XXX: This assumes that clients are using this class instance
     // as a shared_ptr.
-    GriddynFederatedScheduler::GetScheduler()->RegisterLogicalProcess(
+    GridDynFederatedScheduler::GetScheduler()->RegisterLogicalProcess(
         std::static_pointer_cast<FskitCommunicator>(Communicator::shared_from_this()));
 }
 
@@ -100,7 +100,7 @@ void FskitCommunicator::transmit(std::uint64_t /*destID*/,
 void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message)
 {
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(
-        GriddynFederatedScheduler::GetScheduler());
+        GridDynFederatedScheduler::GetScheduler());
 
     griddyn::gridDynSimulation* simulation = griddyn::gridDynSimulation::getInstance();
     fskit::Time currentTime;

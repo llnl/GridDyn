@@ -190,7 +190,8 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
     } else if (optObject->isRoot()) {
         if ((targetObject != nullptr) && (targetObject->getParent() != nullptr)) {
-            parentOptObject = optimizationRoot->makeOptimizationObjectPath(targetObject->getParent());
+            parentOptObject =
+                optimizationRoot->makeOptimizationObjectPath(targetObject->getParent());
             addToParent(optObject, parentOptObject);
         } else {
             // set the base power to the system default (usually used for library objects

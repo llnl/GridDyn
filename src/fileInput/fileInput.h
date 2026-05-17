@@ -18,7 +18,7 @@ namespace griddyn {
 class Event;
 class Recorder;
 
-class coreObject;
+class CoreObject;
 
 class gridDynSimulation;
 
@@ -86,41 +86,41 @@ void loadFile(std::unique_ptr<gridDynSimulation>& gds,
               readerInfo* readerInf = nullptr,
               const std::string& ext = "");
 
-void loadFile(coreObject* parentObject,
+void loadFile(CoreObject* parentObject,
               const std::string& fileName,
               readerInfo* readerInf = nullptr,
               std::string ext = "");
 
-void loadGdz(coreObject* parentObject, const std::string& fileName, readerInfo& readerInformation);
+void loadGdz(CoreObject* parentObject, const std::string& fileName, readerInfo& readerInformation);
 
-void loadCdf(coreObject* parentObject,
-             const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
-
-void loadPsp(coreObject* parentObject,
-             const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
-void loadPti(coreObject* parentObject,
+void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions = defInfo);
 
-void loadRaw(coreObject* parentObject,
+void loadPsp(CoreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions = defInfo);
+void loadPti(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions = defInfo);
 
-void loadDyr(coreObject* parentObject,
+void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions = defInfo);
-void loadEpc(coreObject* parentObject,
+
+void loadDyr(CoreObject* parentObject,
+             const std::string& fileName,
+             const basicReaderInfo& readerOptions = defInfo);
+void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions = defInfo);
 
 // wrapper function to detect m file format for matpower or PSAT
-void loadMatlabFile(coreObject* parentObject,
+void loadMatlabFile(CoreObject* parentObject,
                     const std::string& fileName,
                     const basicReaderInfo& readerOptions = defInfo);
 
-void loadCsv(coreObject* parentObject,
+void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
              readerInfo& readerInformation,
              const std::string& objectName = "");
@@ -131,10 +131,11 @@ void loadCsv(coreObject* parentObject,
 @param[in] param a gridParameter definition
 @return 0 if successful (-1) if the setting failed
 */
-int setObjectParameter(const std::string& label, coreObject* obj, gridParameter& param) noexcept;
+int setObjectParameter(const std::string& label, CoreObject* obj, gridParameter& param) noexcept;
 
-void addToParent(coreObject* objectToAdd, coreObject* parentObject);
+void addToParent(CoreObject* objectToAdd, CoreObject* parentObject);
 /** @brief attempt to add to a parent object with renaming sequence*/
-void addToParentWithRename(coreObject* objectToAdd, coreObject* parentObject);
+void addToParentWithRename(CoreObject* objectToAdd, CoreObject* parentObject);
 
 }  // namespace griddyn
+

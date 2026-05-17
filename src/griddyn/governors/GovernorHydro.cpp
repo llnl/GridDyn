@@ -29,7 +29,7 @@ GovernorHydro::GovernorHydro(const std::string& objName): GovernorIeeeSimple(obj
     offsets.local().local.jacSize = 5;
 }
 
-coreObject* GovernorHydro::clone(coreObject* obj) const
+CoreObject* GovernorHydro::clone(CoreObject* obj) const
 {
     auto* gov = cloneBase<GovernorHydro, GovernorIeeeSimple>(this, obj);
     if (gov == nullptr) {
@@ -118,7 +118,7 @@ index_t GovernorHydro::findIndex(std::string_view field, const solverMode& /*sMo
 // set parameters
 void GovernorHydro::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 void GovernorHydro::set(std::string_view param, double val, units::unit unitType)
 {
@@ -140,8 +140,9 @@ void GovernorHydro::set(std::string_view param, double val, units::unit unitType
     } else if (param == "pmin") {
         Pmin = val;
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
 }  // namespace griddyn::governors
+

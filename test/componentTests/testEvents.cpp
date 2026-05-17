@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <string>
 
-// test case for coreObject object
+// test case for CoreObject object
 
 static const char event_test_directory[] = GRIDDYN_TEST_DIRECTORY "/event_tests/";
 
@@ -38,3 +38,4 @@ TEST_F(EventTests, EventTest1) {}
 TEST_F(EventTests, EventTest2) {}
 TEST_F(EventTests, EventTest3) {}
 TEST_F(EventTests, EventTest4) {}
+

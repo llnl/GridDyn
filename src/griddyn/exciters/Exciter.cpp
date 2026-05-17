@@ -49,7 +49,7 @@ Exciter::Exciter(const std::string& objName): gridSubModel(objName)
     m_outputSize = 1;
 }
 
-coreObject* Exciter::clone(coreObject* obj) const
+CoreObject* Exciter::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<Exciter, gridSubModel>(this, obj);
     if (gdE == nullptr) {
@@ -291,3 +291,4 @@ const std::vector<stringVec>& Exciter::outputNames() const
 }
 
 }  // namespace griddyn
+

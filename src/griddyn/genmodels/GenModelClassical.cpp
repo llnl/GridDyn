@@ -25,7 +25,7 @@ GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objNa
     Xd = 0.85;
 }
 
-coreObject* GenModelClassical::clone(coreObject* obj) const
+CoreObject* GenModelClassical::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModelClassical, GenModel>(this, obj);
     if (gd == nullptr) {
@@ -440,7 +440,7 @@ stringVec GenModelClassical::localStateNames() const
 // set parameters
 void GenModelClassical::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 void GenModelClassical::set(std::string_view param, double val, units::unit unitType)
 {
@@ -476,3 +476,4 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
 }
 
 }  // namespace griddyn::genmodels
+

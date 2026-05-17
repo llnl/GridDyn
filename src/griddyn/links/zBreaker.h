@@ -17,10 +17,10 @@ few other types of linkages
 class zBreaker: public Link {
   protected:
     bool& merged;  //!< flag indicating that the buses have been merged using the extra bool in
-                   //!< coreObject
+                   //!< CoreObject
   public:
     zBreaker(const std::string& objName = "zbreaker_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions
 
     virtual void set(std::string_view param, std::string_view val) override;
@@ -59,3 +59,4 @@ class zBreaker: public Link {
 };
 
 }  // namespace griddyn::links
+

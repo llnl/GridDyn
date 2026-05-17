@@ -24,7 +24,7 @@ class integralBlock: public Block {
 @param[in] gain  the multiplication factor of the block
 */
     integralBlock(double gain, const std::string& objName = "integralBlock_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -57,3 +57,4 @@ class integralBlock: public Block {
     // virtual void setTime(coreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks
+

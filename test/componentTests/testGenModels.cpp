@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 #define GENMODEL_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/genmodel_tests/"
 
@@ -159,3 +159,4 @@ TEST_F(GenModelTests, ModelTest3)
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
+

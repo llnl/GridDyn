@@ -23,9 +23,9 @@
 namespace griddyn {
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
-coreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
+CoreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
                             readerInfo& /*ri*/,
-                            coreObject* searchObject)
+                            CoreObject* searchObject)
 {
     return searchObject;
 }
@@ -39,9 +39,9 @@ namespace {
         return *ignoreElements;
     }
 }  // namespace
-coreObject* readEconElement(std::shared_ptr<readerElement>& element,
+CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             readerInfo& readerInformation,
-                            coreObject* searchObject)
+                            CoreObject* searchObject)
 {
     // get the optimization root
     auto optimizationRoot = dynamic_cast<gridDynOptimization*>(searchObject->getRoot());
@@ -58,8 +58,8 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
     std::string objectType;
     std::string ename;
     auto optObjectFactory = coreOptObjectFactory::instance();
-    coreObject* obj;
-    coreObject* targetObject = nullptr;
+    CoreObject* obj;
+    CoreObject* targetObject = nullptr;
     gridOptObject* parentOptObject = nullptr;
 
     loadDefines(element, readerInformation);
@@ -214,3 +214,4 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
 }
 #endif
 }  // namespace griddyn
+

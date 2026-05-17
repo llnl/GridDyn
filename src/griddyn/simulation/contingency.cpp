@@ -338,12 +338,12 @@ std::string Contingency::generateViolationsOutputLine() const
     return stream.str();
 }
 
-coreObject* Contingency::getObject() const
+CoreObject* Contingency::getObject() const
 {
     return gds;
 }
 
-void Contingency::getObjects(std::vector<coreObject*>& objects) const
+void Contingency::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (const auto& stageEvents : eventList) {
         for (const auto& eventPtr : stageEvents) {
@@ -354,7 +354,7 @@ void Contingency::getObjects(std::vector<coreObject*>& objects) const
     }
 }
 
-void Contingency::updateObject(coreObject* newObj, object_update_mode mode)
+void Contingency::updateObject(CoreObject* newObj, object_update_mode mode)
 {
     // update all the events
     for (auto& stageEvents : eventList) {
@@ -392,3 +392,4 @@ std::shared_ptr<Contingency>
 }
 
 }  // namespace griddyn
+

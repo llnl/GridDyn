@@ -26,7 +26,7 @@ objectFactory::objectFactory(std::string_view /*component*/, const stringVec& ty
 {
 }
 
-void objectFactory::prepObjects(count_t /*count*/, coreObject* /*obj*/) {}
+void objectFactory::prepObjects(count_t /*count*/, CoreObject* /*obj*/) {}
 count_t objectFactory::remainingPrepped() const
 {
     return 0;
@@ -60,10 +60,10 @@ stringVec componentFactory::getTypeNames()
     return tnames;
 }
 
-coreObject* componentFactory::makeObject()
+CoreObject* componentFactory::makeObject()
 {
     if (!m_defaultType.empty()) {
-        coreObject* obj = m_factoryMap[m_defaultType]->makeObject();
+        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject();
         return obj;
     }
     return nullptr;
@@ -75,32 +75,32 @@ bool componentFactory::isValidType(std::string_view typeName) const
     return (mfind != m_factoryMap.end());
 }
 
-coreObject* componentFactory::makeObject(std::string_view type)
+CoreObject* componentFactory::makeObject(std::string_view type)
 {
     auto mfind = m_factoryMap.find(type);
     if (mfind != m_factoryMap.end()) {
-        coreObject* obj = mfind->second->makeObject();
+        CoreObject* obj = mfind->second->makeObject();
         return obj;
     }
 
     if (!m_defaultType.empty()) {
-        coreObject* obj = m_factoryMap[m_defaultType]->makeObject();
+        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject();
         return obj;
     }
 
     return nullptr;
 }
 
-coreObject* componentFactory::makeObject(std::string_view type, std::string_view objectName)
+CoreObject* componentFactory::makeObject(std::string_view type, std::string_view objectName)
 {
     auto mfind = m_factoryMap.find(type);
     if (mfind != m_factoryMap.end()) {
-        coreObject* obj = mfind->second->makeObject(objectName);
+        CoreObject* obj = mfind->second->makeObject(objectName);
         return obj;
     }
 
     if (!m_defaultType.empty()) {
-        coreObject* obj = m_factoryMap[m_defaultType]->makeObject(objectName);
+        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject(objectName);
         return obj;
     }
 
@@ -132,7 +132,7 @@ objectFactory* componentFactory::getFactory(std::string_view typeName)
     return nullptr;
 }
 
-// create a high level object factory for the coreObject class
+// create a high level object factory for the CoreObject class
 
 std::shared_ptr<coreObjectFactory> coreObjectFactory::instance()
 {
@@ -178,33 +178,33 @@ stringVec coreObjectFactory::getTypeNames(std::string_view component)
     return {};
 }
 
-coreObject* coreObjectFactory::createObject(std::string_view component)
+CoreObject* coreObjectFactory::createObject(std::string_view component)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {
-        coreObject* obj = mfind->second->makeObject();
+        CoreObject* obj = mfind->second->makeObject();
         return obj;
     }
     return nullptr;
 }
 
-coreObject* coreObjectFactory::createObject(std::string_view component, std::string_view typeName)
+CoreObject* coreObjectFactory::createObject(std::string_view component, std::string_view typeName)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {
-        coreObject* obj = mfind->second->makeObject(typeName);
+        CoreObject* obj = mfind->second->makeObject(typeName);
         return obj;
     }
     return nullptr;
 }
 
-coreObject* coreObjectFactory::createObject(std::string_view component,
+CoreObject* coreObjectFactory::createObject(std::string_view component,
                                             std::string_view typeName,
                                             std::string_view objName)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {
-        coreObject* obj = mfind->second->makeObject(typeName, objName);
+        CoreObject* obj = mfind->second->makeObject(typeName, objName);
         return obj;
     }
     return nullptr;
@@ -240,7 +240,7 @@ bool coreObjectFactory::isValidType(std::string_view component, std::string_view
 void coreObjectFactory::prepObjects(std::string_view component,
                                     std::string_view typeName,
                                     count_t numObjects,
-                                    coreObject* obj)
+                                    CoreObject* obj)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {
@@ -251,7 +251,7 @@ void coreObjectFactory::prepObjects(std::string_view component,
     }
 }
 
-void coreObjectFactory::prepObjects(std::string_view component, count_t numObjects, coreObject* obj)
+void coreObjectFactory::prepObjects(std::string_view component, count_t numObjects, CoreObject* obj)
 {
     auto mfind = m_factoryMap.find(component);
     if (mfind != m_factoryMap.end()) {
@@ -264,3 +264,4 @@ coreObjectFactory::coreObjectFactory() = default;
 coreObjectFactory::~coreObjectFactory() = default;
 
 }  // namespace griddyn
+

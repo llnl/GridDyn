@@ -25,7 +25,7 @@ class frequencySensitiveLoad: public Load {
   public:
     explicit frequencySensitiveLoad(const std::string& objName = "load_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -75,3 +75,4 @@ class frequencySensitiveLoad: public Load {
 };
 
 }  // namespace griddyn::loads
+

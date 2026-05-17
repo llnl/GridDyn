@@ -14,7 +14,7 @@ namespace griddyn {
 class Area;
 class scheduler;
 
-class dispatcher: public coreObject {
+class dispatcher: public CoreObject {
   public:
   protected:
     double totalDispatch;
@@ -29,7 +29,7 @@ class dispatcher: public coreObject {
     dispatcher(const std::string& objName = "dispatcher_#");
 
     virtual ~dispatcher();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     void moveSchedulers(dispatcher* dis);
     virtual double initialize(coreTime time0, double dispatch);
 
@@ -37,9 +37,9 @@ class dispatcher: public coreObject {
     virtual double testP(coreTime time, double required, double targetTime);
     double currentValue() { return totalDispatch; }
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual void add(scheduler* sched);
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
     virtual void remove(scheduler* sched);
 
     virtual void set(std::string_view param, std::string_view val) override;
@@ -53,3 +53,4 @@ class dispatcher: public coreObject {
 };
 
 }  // namespace griddyn
+

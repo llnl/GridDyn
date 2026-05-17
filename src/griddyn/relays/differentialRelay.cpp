@@ -24,7 +24,7 @@ differentialRelay::differentialRelay(const std::string& objName): Relay(objName)
     opFlags.set(continuous_flag);
 }
 
-coreObject* differentialRelay::clone(coreObject* obj) const
+CoreObject* differentialRelay::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<differentialRelay, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -218,3 +218,4 @@ void differentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
 }
 
 }  // namespace griddyn::relays
+

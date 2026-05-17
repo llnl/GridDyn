@@ -26,25 +26,26 @@ namespace events {
       public:
         explicit reversibleEvent(const std::string& eventName);
         explicit reversibleEvent(coreTime time0 = 0.0);
-        reversibleEvent(const EventInfo& gdEI, coreObject* rootObject);
-        virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject) override;
+        reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject);
+        virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
         virtual ~reversibleEvent();
         virtual std::unique_ptr<Event> clone() const override;
 
         virtual void cloneTo(Event* evnt) const override;
 
-        // virtual void updateEvent(EventInfo &gdEI, coreObject *rootObject) override;
+        // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
         virtual change_code trigger() override;
         virtual change_code trigger(coreTime time) override;
 
-        virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
+        virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
         virtual void updateStringValue(const std::string& newStr);
 
-        virtual void updateObject(coreObject* gco,
+        virtual void updateObject(CoreObject* gco,
                                   object_update_mode mode = object_update_mode::direct) override;
         virtual change_code undo();
         virtual double query();
     };
 }  // namespace events
 }  // namespace griddyn
+

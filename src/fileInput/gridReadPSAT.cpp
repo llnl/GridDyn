@@ -40,7 +40,7 @@ namespace griddyn {
 // using namespace units;
 
 // NOLINTBEGIN(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
-void loadPSATBusArray(coreObject* parentObject,
+void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
                       const mArray& SW,
@@ -48,54 +48,54 @@ void loadPSATBusArray(coreObject* parentObject,
                       const mArray& PQ,
                       const stringVec& busnames,
                       std::vector<gridBus*>& busList);
-void loadPSATGenArray(coreObject* parentObject,
+void loadPSATGenArray(CoreObject* parentObject,
                       const mArray& gens,
                       const std::vector<gridBus*>& busList);
-void loadPSATLinkArray(coreObject* parentObject,
+void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& lnks,
                        const std::vector<gridBus*>& busList);
-void loadPSATLinkArrayB(coreObject* parentObject,
+void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& lnks,
                         const std::vector<gridBus*>& busList);
-void loadPSATShuntArray(coreObject* parentObject,
+void loadPSATShuntArray(CoreObject* parentObject,
                         const mArray& shunts,
                         const std::vector<gridBus*>& busList);
-void loadPSATLTCArray(coreObject* parentObject,
+void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltc,
                       const std::vector<gridBus*>& busList);
-void loadPSATPHSArray(coreObject* parentObject,
+void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
                       const std::vector<gridBus*>& busList);
-void loadPSATSynArray(coreObject* parentObject,
+void loadPSATSynArray(CoreObject* parentObject,
                       const mArray& syn,
                       const std::vector<gridBus*>& busList);
-void loadPSATExcArray(coreObject* parentObject,
+void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
                       const std::vector<gridBus*>& busList);
-void loadPSATTgArray(coreObject* parentObject,
+void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tg,
                      const std::vector<gridBus*>& busList);
-void loadPsatFaultArray(coreObject* parentObject,
+void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
                         const std::vector<gridBus*>& busList);
-void loadPsatBreakerArray(coreObject* parentObject,
+void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& brkr,
                           const std::vector<gridBus*>& busList);
-void loadPsatSupplyArray(coreObject* parentObject,
+void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
                          const std::vector<gridBus*>& busList);
-void loadPsatMotorArray(coreObject* parentObject,
+void loadPsatMotorArray(CoreObject* parentObject,
                         const mArray& mtr,
                         const std::vector<gridBus*>& busList);
 /** load a PSAT PMU data*/
-void loadPsatPmuArray(coreObject* parentObject,
+void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<gridBus*>& busList);
-void loadOtherObjectData(coreObject* parentObject,
+void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<gridBus*>& busList);
 static const std::vector<
-    std::pair<std::string, void (*)(coreObject*, const mArray&, const std::vector<gridBus*>&)>>
+    std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<gridBus*>&)>>
     arrayIdentifiers{
         {"Shunt.con", loadPSATShuntArray},
         {"Line.con", loadPSATLinkArray},
@@ -113,7 +113,7 @@ static const std::vector<
         {"Pmu.con", loadPsatPmuArray},
     };
 
-void loadPSAT(coreObject* parentObject,
+void loadPSAT(CoreObject* parentObject,
               const std::string& filetext,
               const basicReaderInfo& readerOptions)
 {
@@ -189,7 +189,7 @@ void loadPSAT(coreObject* parentObject,
     loadOtherObjectData(parentObject, filetext, busList);
 }
 
-void loadOtherObjectData(coreObject* parentObject,
+void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<gridBus*>& busList)
 {
@@ -204,7 +204,7 @@ void loadOtherObjectData(coreObject* parentObject,
     }
 }
 
-void loadPSATBusArray(coreObject* parentObject,
+void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
                       const mArray& SW,
@@ -295,7 +295,7 @@ void loadPSATBusArray(coreObject* parentObject,
     }
 }
 
-void loadPSATGenArray(coreObject* /*parentObject*/,
+void loadPSATGenArray(CoreObject* /*parentObject*/,
                       const mArray& gens,
                       const std::vector<gridBus*>& busList)
 {
@@ -350,13 +350,13 @@ Column Variable Description Unit
 14 kTB Tie breaking cost $ / MWh
 */
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
-void loadPsatSupplyArray(coreObject* /*parentObject*/,
+void loadPsatSupplyArray(CoreObject* /*parentObject*/,
                          const mArray& /*genCost*/,
                          const std::vector<gridBus*>& /*busList*/)
 {
 }
 #else
-void loadPsatSupplyArray(coreObject* parentObject,
+void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
                          const std::vector<gridBus*>& busList)
 {
@@ -428,7 +428,7 @@ y 14 Pmax Active power limit pu
 y 15 Smax Apparent power limit pu
 */
 
-void loadPSATLinkArray(coreObject* parentObject,
+void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& lnks,
                        const std::vector<gridBus*>& busList)
 {
@@ -481,7 +481,7 @@ void loadPSATLinkArray(coreObject* parentObject,
     }
 }
 
-void loadPSATLinkArrayB(coreObject* parentObject,
+void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& lnks,
                         const std::vector<gridBus*>& busList)
 {
@@ -524,7 +524,7 @@ void loadPSATLinkArrayB(coreObject* parentObject,
     }
 }
 
-void loadPSATShuntArray(coreObject* /*parentObject*/,
+void loadPSATShuntArray(CoreObject* /*parentObject*/,
                         const mArray& shunts,
                         const std::vector<gridBus*>& busList)
 {
@@ -577,7 +577,7 @@ Column Variable Description Unit
 int
 17 u Connection status{ 0, 1 }
 */
-void loadPSATLTCArray(coreObject* parentObject,
+void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltc,
                       const std::vector<gridBus*>& busList)
 {
@@ -644,7 +644,7 @@ void loadPSATLTCArray(coreObject* parentObject,
 15 m Transformer fixed tap ratio pu / pu
 16 u Connection status{ 0, 1 }
 */
-void loadPSATPHSArray(coreObject* parentObject,
+void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
                       const std::vector<gridBus*>& busList)
 {
@@ -713,7 +713,7 @@ q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
 † 28 u Connection status {0, 1} all
 */
 
-void loadPSATSynArray(coreObject* /*parentObject*/,
+void loadPSATSynArray(CoreObject* /*parentObject*/,
                       const mArray& syn,
                       const std::vector<gridBus*>& busList)
 {
@@ -819,7 +819,7 @@ Column Variable Description Unit
 11 T5 PSfrag replacements Reheat time constant s
 */
 
-void loadPSATTgArray(coreObject* parentObject,
+void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tg,
                      const std::vector<gridBus*>& /*busList*/)
 {
@@ -860,7 +860,7 @@ void loadPSATTgArray(coreObject* parentObject,
     }
 }
 
-void loadPSATExcArray(coreObject* parentObject,
+void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
                       const std::vector<gridBus*>& /*busList*/)
 {
@@ -898,7 +898,7 @@ void loadPSATExcArray(coreObject* parentObject,
     }
 }
 
-void loadPsatFaultArray(coreObject* parentObject,
+void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
                         const std::vector<gridBus*>& busList)
 {
@@ -938,7 +938,7 @@ void loadPsatFaultArray(coreObject* parentObject,
     }
 }
 
-void loadPsatPmuArray(coreObject* parentObject,
+void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<gridBus*>& busList)
 {
@@ -964,7 +964,7 @@ void loadPsatPmuArray(coreObject* parentObject,
     }
 }
 
-void loadPsatBreakerArray(coreObject* parentObject,
+void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& brkr,
                           const std::vector<gridBus*>& /*busList*/)
 {
@@ -991,7 +991,7 @@ void loadPsatBreakerArray(coreObject* parentObject,
     }
 }
 
-void loadPsatMotorArray(coreObject* /*parentObject*/,
+void loadPsatMotorArray(CoreObject* /*parentObject*/,
                         const mArray& mtr,
                         const std::vector<gridBus*>& busList)
 {
@@ -1008,3 +1008,4 @@ void loadPsatMotorArray(coreObject* /*parentObject*/,
 // NOLINTEND(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 
 }  // namespace griddyn
+

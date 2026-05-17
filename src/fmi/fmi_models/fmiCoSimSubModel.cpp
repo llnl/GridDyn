@@ -34,7 +34,7 @@ FmiCoSimSubModel::FmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi): cs(std
 
 FmiCoSimSubModel::~FmiCoSimSubModel() = default;
 
-coreObject* FmiCoSimSubModel::clone(coreObject* obj) const
+CoreObject* FmiCoSimSubModel::clone(CoreObject* obj) const
 {
     auto* gco = cloneBase<FmiCoSimSubModel, gridSubModel>(this, obj);
     if (gco == nullptr) {
@@ -707,3 +707,4 @@ void FmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
 
 // NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi
+

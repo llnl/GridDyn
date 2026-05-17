@@ -21,7 +21,7 @@ using units::unit;
 
 frequencySensitiveLoad::frequencySensitiveLoad(const std::string& objName): Load(objName) {}
 
-coreObject* frequencySensitiveLoad::clone(coreObject* obj) const
+CoreObject* frequencySensitiveLoad::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<frequencySensitiveLoad, Load>(this, obj);
     if (nobj == nullptr) {
@@ -208,3 +208,4 @@ void frequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 }  // namespace griddyn::loads
+

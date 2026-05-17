@@ -38,7 +38,7 @@ void Load::constructionHelper()
     updateName();
 }
 
-coreObject* Load::clone(coreObject* obj) const
+CoreObject* Load::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<Load, gridSecondary>(this, obj);
     if (nobj == nullptr) {
@@ -122,7 +122,7 @@ double Load::get(std::string_view param, unit unitType) const
         val = pfq;
     } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
         auto unit = getObjectFunction(this, std::string{param}).second;
-        coreObject* tobj = const_cast<Load*>(this);
+        CoreObject* tobj = const_cast<Load*>(this);
         val = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
         val = gridSecondary::get(param, unitType);
@@ -273,3 +273,4 @@ count_t Load::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/
     return 0;
 }
 }  // namespace griddyn
+

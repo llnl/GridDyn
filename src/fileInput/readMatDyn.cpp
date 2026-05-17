@@ -34,13 +34,13 @@ using units::MVAR;
 using units::MW;
 
 static void
-    loadGenExcArray(coreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
+    loadGenExcArray(CoreObject* parentObject, mArray& excData, std::vector<Generator*>& genList);
 static void
-    loadGenDynArray(coreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);
+    loadGenDynArray(CoreObject* parentObject, mArray& genData, std::vector<Generator*>& genList);
 static void
-    loadGenGovArray(coreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
+    loadGenGovArray(CoreObject* parentObject, mArray& govData, std::vector<Generator*>& genList);
 
-void loadMatDyn(coreObject* parentObject,
+void loadMatDyn(CoreObject* parentObject,
                 const std::string& fileText,
                 const basicReaderInfo& /*bri*/)
 {
@@ -114,7 +114,7 @@ void loadMatDyn(coreObject* parentObject,
             return;
         }
         // now we load the existing components of our generator onto the existing one
-        coreObject* subObject = nextGenerator->getSubObject("exciter", 0);
+        CoreObject* subObject = nextGenerator->getSubObject("exciter", 0);
         if (subObject != nullptr) {
             gen->add(subObject);
         }
@@ -142,7 +142,7 @@ void loadMatDyn(coreObject* parentObject,
 }
 
 static void
-    loadGenDynArray(coreObject* /*parentObject*/, mArray& genData, std::vector<Generator*>& genList)
+    loadGenDynArray(CoreObject* /*parentObject*/, mArray& genData, std::vector<Generator*>& genList)
 {
     Exciter* exc;
     Governor* gov;
@@ -221,7 +221,7 @@ static void
 11 Urmax, upper voltage limit
 */
 static void
-    loadGenExcArray(coreObject* /*parentObject*/, mArray& excData, std::vector<Generator*>& genList)
+    loadGenExcArray(CoreObject* /*parentObject*/, mArray& excData, std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& excLine : excData) {
@@ -260,7 +260,7 @@ static void
 9 Pmin, minimal turbine output
 */
 static void
-    loadGenGovArray(coreObject* /*parentObject*/, mArray& govData, std::vector<Generator*>& genList)
+    loadGenGovArray(CoreObject* /*parentObject*/, mArray& govData, std::vector<Generator*>& genList)
 {
     /*[genmodel excmodel govmodel H D xd xq xd_tr xq_tr Td_tr Tq_tr]*/
     for (const auto& govLine : govData) {
@@ -292,7 +292,7 @@ static void
 }
 
 // read matdyn Event files
-void loadMatDynEvent(coreObject* parentObject,
+void loadMatDynEvent(CoreObject* parentObject,
                      const std::string& fileText,
                      const basicReaderInfo& /*bri*/)
 {
@@ -397,3 +397,4 @@ void loadMatDynEvent(coreObject* parentObject,
 }
 
 }  // namespace griddyn
+

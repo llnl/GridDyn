@@ -30,7 +30,7 @@ class HelicsEvent: public events::reversibleEvent {
     int32_t vectorElementIndex = -1;  // element of a vector to use as the event parameter
     double minimumDelta = 0.0;  //!< set the minimum delta for the event to trigger
   public:
-    HelicsEvent(const EventInfo& gdEI, coreObject* rootObject);
+    HelicsEvent(const EventInfo& gdEI, CoreObject* rootObject);
     explicit HelicsEvent(const std::string& name);
     explicit HelicsEvent(HelicsEventType type = HelicsEventType::PARAMETER);
 
@@ -39,13 +39,13 @@ class HelicsEvent: public events::reversibleEvent {
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
-    virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject) override;
+    virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
 
-    virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
+    virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
-    virtual void updateObject(coreObject* gco,
+    virtual void updateObject(CoreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getOwner() const override;
+    virtual CoreObject* getOwner() const override;
 
     virtual void initialize() override;
     friend class fmiCoordinator;
@@ -56,3 +56,4 @@ class HelicsEvent: public events::reversibleEvent {
 };
 
 }  // namespace griddyn::helicsLib
+

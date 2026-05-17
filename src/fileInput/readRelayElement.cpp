@@ -27,7 +27,7 @@ static const char relayComponentName[] = "relay";
 // "aP" is the XML element passed from the reader
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
-                        coreObject* searchObject)
+                        CoreObject* searchObject)
 {
     auto riScope = readerInformation.newScope();
 
@@ -35,7 +35,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
 
     // boiler plate code to setup the object from references or new object
     // check for the area field
-    coreObject* defaultTargetObject = searchObject;
+    CoreObject* defaultTargetObject = searchObject;
     Relay* relay = nullptr;
     searchObject = updateSearchObject<gridPrimary>(element, readerInformation, searchObject);
     if (dynamic_cast<Area*>(searchObject) == nullptr) {
@@ -67,7 +67,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     }
     relay = ElementReaderSetup(element, relay, relayComponentName, readerInformation, searchObject);
 
-    coreObject* targetObj = nullptr;
+    CoreObject* targetObj = nullptr;
     std::string objectName = getElementField(element, "target", defMatchType);
     if (!objectName.empty()) {
         objectName = readerInformation.checkDefines(objectName);
@@ -114,3 +114,4 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

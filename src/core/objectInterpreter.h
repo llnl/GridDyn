@@ -17,7 +17,7 @@ namespace griddyn {
 */
 class objInfo {
   public:
-    coreObject* m_obj = nullptr;  //!< pointer to the object being referenced
+    CoreObject* m_obj = nullptr;  //!< pointer to the object being referenced
     std::string m_field;  //!< the field referenced
     units::unit m_unitType = units::defunit;  //!< the units corresponding to the reference
 
@@ -28,14 +28,14 @@ class objInfo {
     @param[in] Istring the input string containing the object and field reference
     @param[in] obj the object used as the basis for the search if needed
     */
-    objInfo(std::string_view Istring, const coreObject* obj);
+    objInfo(std::string_view Istring, const CoreObject* obj);
 
     /** @brief load a string similar to the constructor except with an existing object
      the string should be of the form objA::subObject:field(units) const
     @param[in] Istring the input string containing the object and field reference
             @param[in] obj the object used as the basis for the search if needed
             */
-    void LoadInfo(std::string_view Istring, const coreObject* obj);
+    void LoadInfo(std::string_view Istring, const CoreObject* obj);
 };
 
 /** @brief locate a specific object by name
@@ -51,8 +51,8 @@ will attempt to locate a root object and start the search over from there.
 @param[in] directFind if direct find is set to false then the find function is not called unless the
 search string was modified to prevent recursion in some find calls
 */
-coreObject* locateObject(std::string_view Istring,
-                         const coreObject* rootObj,
+CoreObject* locateObject(std::string_view Istring,
+                         const CoreObject* rootObj,
                          bool rootSearch = true,
                          bool directFind = true);
 
@@ -61,6 +61,7 @@ meant to target cloning operations where pointers need to be mapped to a new hie
 @param[in] obj the existing object
 @param[in] root the root of the new tree to locate a corresponding object
 */
-coreObject* findMatchingObject(coreObject* obj, coreObject* root);
+CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root);
 
 }  // namespace griddyn
+

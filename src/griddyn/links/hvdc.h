@@ -22,7 +22,7 @@ class hvdc: public subsystem {
   public:
     /** @brief constructor*/
     hvdc(const std::string& objName = "hvdc_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -41,3 +41,4 @@ class hvdc: public subsystem {
     void setFlow(int direction);
 };
 }  // namespace griddyn::links
+

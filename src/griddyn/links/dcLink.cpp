@@ -32,7 +32,7 @@ dcLink::dcLink(double rP, double Lp, const std::string& objName): Link(objName),
     opFlags.set(network_connected);
 }
 
-coreObject* dcLink::clone(coreObject* obj) const
+CoreObject* dcLink::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<dcLink, Link>(this, obj);
     if (nobj == nullptr) {
@@ -466,3 +466,4 @@ int dcLink::fixPower(double power,
 }
 
 }  // namespace griddyn::links
+

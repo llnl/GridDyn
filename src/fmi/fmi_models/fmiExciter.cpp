@@ -16,7 +16,7 @@
 namespace griddyn::fmi {
 FmiExciter::FmiExciter(const std::string& objName): FmiMEWrapper<Exciter>(objName) {}
 
-coreObject* FmiExciter::clone(coreObject* obj) const
+CoreObject* FmiExciter::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiExciter, FmiMEWrapper<Exciter>>(this, obj);
     if (nobj == nullptr) {
@@ -43,3 +43,4 @@ void FmiExciter::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::fmi
+

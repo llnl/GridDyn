@@ -33,7 +33,7 @@ class fileSource: public rampSource {
   public:
     fileSource(const std::string& fileName = "", int column = 0);
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -52,3 +52,4 @@ class fileSource: public rampSource {
     int loadFile();
 };
 }  // namespace griddyn::sources
+

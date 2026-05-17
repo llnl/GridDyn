@@ -13,9 +13,9 @@
 
 namespace griddyn {
 /** define the function type for the deleter*/
-using removeFunction_t = void (*)(coreObject* obj);
+using removeFunction_t = void (*)(CoreObject* obj);
 
-/** template class for defining a (potentially shared) owning ptr for the coreObject
+/** template class for defining a (potentially shared) owning ptr for the CoreObject
 @details uses a custom deleter to operate on the reference counter inside of the core object
 intended to be used when there are multiple owners with independent lives and for direct
 instantiated objects where the delete function should not be called shared pointers of coreObjects
@@ -29,8 +29,8 @@ class coreOwningPtr {
     constexpr coreOwningPtr() noexcept: ptr(nullptr, removeReference) {}
     /*IMPLICIT*/ coreOwningPtr(X* obj): ptr(obj, removeReference)
     {
-        static_assert(std::is_base_of<coreObject, X>::value,
-                      "owning ptr type must have a base of coreObject");
+        static_assert(std::is_base_of<CoreObject, X>::value,
+                      "owning ptr type must have a base of CoreObject");
         if (obj != nullptr) {
             obj->addOwningReference();
         }
@@ -82,13 +82,13 @@ class childObject
 {
 private:
     X* ptr = nullptr;
-    coreObject *parent = nullptr;
+    CoreObject *parent = nullptr;
 public:
     childObject() noexcept{};
-    childObject(X* obj,coreObject* parentObj):ptr(obj),parent(parentObj)
+    childObject(X* obj,CoreObject* parentObj):ptr(obj),parent(parentObj)
     {
-        static_assert (std::is_base_of<coreObject, X>::value, "child Object ptr type must have a
-base of coreObject"); if (ptr != nullptr)
+        static_assert (std::is_base_of<CoreObject, X>::value, "child Object ptr type must have a
+base of CoreObject"); if (ptr != nullptr)
         {
             ptr->setParent(parent);
             ptr->addOwningReference();
@@ -139,3 +139,4 @@ base of coreObject"); if (ptr != nullptr)
 */
 
 }  // namespace griddyn
+

@@ -306,7 +306,7 @@ Types of work in this phase:
 ### Phase 5 Checklist By Subsystem
 
 - [x] `src/networking`
-- [ ] `src/fmi`
+- [x] `src/fmi`
 - [x] `src/fmi_export`
 - [x] `src/optimization`
 - [x] `src/helics`
@@ -319,6 +319,22 @@ Types of work in this phase:
 - The majority of contained subsystem APIs are compliant
 - Compatibility wrappers exist only where they are intentionally preserving
   staged migration
+
+### Phase 5 Closeout
+
+Phase 5 is complete for the planned contained-subsystem public API cleanup
+scope.
+
+Completed Phase 5 work covered:
+
+- contained subsystem public type and method cleanup across networking, HELICS,
+  optimization, file input, FMI export, FSKIT, coupling, and FMI
+- dependent runner, test, and entry-point fallout needed to keep public API
+  renames coherent at call sites
+- removal of short-lived compatibility shims before phase close where staged
+  aliases were no longer needed
+- associated `clang-tidy` and build-fix follow-through required to land the
+  API cleanup safely
 
 ## Phase 6: Foundational Type Families
 
@@ -485,6 +501,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/helics`                                                                                                            | Phase 5 | Subsystem public API cleanup covering HELICS loader and time helpers, coordinator-facing API renames, object-layer naming normalization, and the dependent grid-main/test/file-entry fallout                    | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/fskit` + `src/coupling` + `src/fmi_export` + `src/gridDynMain` + `src/griddyn/loads`                               | Phase 5 | Subsystem public API cleanup covering FSKIT public type-family renames, coupling message and MPI helper API normalization, FMI export wrapper API cleanup, and the dependent main/load/test fallout             | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/fileInput`                                                                                                         | Phase 5 | Subsystem public API cleanup covering top-level reader/helper renames, format-loader normalization, dependent runner/test call-site updates, and the associated `clang-tidy` fallout cleanup                    | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/fmi`                                                                                                               | Phase 5 | Subsystem public API cleanup covering FMI import/runtime wrapper API normalization, FMI submodel and wrapper call-site cleanup, expanded instance/helper renames across the model layer, and dependent test fallout | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/optimization`                                                                                                      | Phase 5 | Subsystem public API cleanup covering optimization-object lookup renames, objective-name API cleanup, offset-accessor normalization, dependent file-input call-site updates, and associated `clang-tidy` fixes  | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                            | No                   | CI workflow run                  | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                            | No                   | No `clang-tidy` issues to report | Complete |

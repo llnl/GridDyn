@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 using namespace griddyn;
 using namespace gmlc::utilities;
@@ -170,3 +170,4 @@ TEST_F(DynamicSystemTests, DynTestGriddyn39)
     detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 */
+

@@ -50,7 +50,7 @@ class Governor: public gridSubModel {
   public:
     /** @brief constructor*/
     explicit Governor(const std::string& objName = "gov_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     /** @brief destructor*/
     virtual ~Governor();
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -90,3 +90,4 @@ class Governor: public gridSubModel {
 };
 
 }  // namespace griddyn
+

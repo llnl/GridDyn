@@ -51,7 +51,7 @@ acBus::acBus(double vStart, double angleStart, const std::string& objName):
 
 acBus::~acBus() = default;
 
-coreObject* acBus::clone(coreObject* obj) const
+CoreObject* acBus::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBaseFactory<acBus, gridBus>(this, obj, &gbfac);
     if (nobj == nullptr) {
@@ -83,14 +83,14 @@ coreObject* acBus::clone(coreObject* obj) const
 
 void acBus::disable()
 {
-    coreObject::disable();  // NOLINT
+    CoreObject::disable();  // NOLINT
     alert(this, STATE_COUNT_CHANGE);
     for (auto& link : attachedLinks) {
         link->disable();
     }
 }
 
-void acBus::add(coreObject* obj)
+void acBus::add(CoreObject* obj)
 {
     auto* bus = dynamic_cast<acBus*>(obj);
     if (bus != nullptr) {
@@ -115,7 +115,7 @@ void acBus::add(acBus* bus)
     // buses
 }
 
-void acBus::remove(coreObject* obj)
+void acBus::remove(CoreObject* obj)
 {
     auto* bus = dynamic_cast<acBus*>(obj);
     if (bus != nullptr) {
@@ -138,7 +138,7 @@ void acBus::remove(acBus* bus)
     }
 }
 
-void acBus::alert(coreObject* obj, int code)
+void acBus::alert(CoreObject* obj, int code)
 {
     switch (code) {
         case VOLTAGE_CONTROL_UPDATE:
@@ -2670,3 +2670,4 @@ change_code acBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
+

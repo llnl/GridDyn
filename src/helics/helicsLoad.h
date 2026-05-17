@@ -40,7 +40,7 @@ class HelicsLoad: public loads::rampLoad {
   public:
     explicit HelicsLoad(const std::string& objName = "helicsLoad_$");
 
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
@@ -57,3 +57,4 @@ class HelicsLoad: public loads::rampLoad {
 };
 
 }  // namespace griddyn::helicsLib
+

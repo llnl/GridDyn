@@ -73,7 +73,7 @@ class DynamicGenerator: public Generator {
     @param[in] dynModel  a string with the dynmodel description*/
     DynamicGenerator(dynModel_t dynModel, const std::string& objName = "gen_$");
     explicit DynamicGenerator(const std::string& objName = "gen_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
@@ -98,7 +98,7 @@ class DynamicGenerator: public Generator {
     // override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief additional add function specific to subModels
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
@@ -167,8 +167,8 @@ class DynamicGenerator: public Generator {
                                     const solverMode& sMode) const override;
 
     virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
-    virtual coreObject* find(std::string_view object) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* find(std::string_view object) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual double getFreq(const stateData& stateDataValue,
                            const solverMode& sMode,
                            index_t* freqOffset = nullptr) const override;
@@ -217,3 +217,4 @@ class DynamicGenerator: public Generator {
 };
 
 }  // namespace griddyn
+

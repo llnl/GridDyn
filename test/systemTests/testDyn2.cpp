@@ -11,7 +11,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 #define DYN2_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests2/"
 
@@ -126,3 +126,4 @@ TEST_F(DynamicSystemTests2, DynTestPulseLoadChangePart)
     simpleRunTestXML(fileName);
 }
 #endif
+

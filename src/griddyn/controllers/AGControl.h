@@ -61,7 +61,7 @@ class AGControl: public gridSubModel {
 
   public:
     AGControl(const std::string& objName = "AGC_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~AGControl();
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -78,9 +78,9 @@ class AGControl: public gridSubModel {
                              index_t num = 0) const override;
 
     virtual double getOutput(index_t /*num*/ = 0) const override;
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual void add(schedulerReg* sched);
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
@@ -111,7 +111,7 @@ protected:
         double batReg;
 public:
         AGControlBattery();
-        virtual coreObject *clone(coreObject *obj = nullptr, bool copyName = false) const;
+        virtual CoreObject *clone(CoreObject *obj = nullptr, bool copyName = false) const;
         virtual ~AGControlBattery();
 
         virtual double dynObjectInitializeA (coreTime time0,double freq0,double tiedev0);
@@ -130,3 +130,4 @@ protected:
 
 */
 }  // namespace griddyn
+

@@ -15,7 +15,7 @@
 #include <utility>
 
 namespace griddyn {
-grabberSet::grabberSet(std::string_view fld, coreObject* obj, bool step_only)
+grabberSet::grabberSet(std::string_view fld, CoreObject* obj, bool step_only)
 {
     auto ggb = makeGrabbers(fld, obj);
     if (!ggb.empty()) {
@@ -31,7 +31,7 @@ grabberSet::grabberSet(std::string_view fld, coreObject* obj, bool step_only)
     }
 }
 
-grabberSet::grabberSet(index_t noffset, coreObject* obj)
+grabberSet::grabberSet(index_t noffset, CoreObject* obj)
 {
     mGrabber = createGrabber(noffset, obj);
 
@@ -142,7 +142,7 @@ void grabberSet::setDescription(const std::string& newDesc)
 {
     mGrabber->setDescription(newDesc);
 }
-void grabberSet::updateObject(coreObject* obj, object_update_mode mode)
+void grabberSet::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (mGrabber) {
         mGrabber->updateObject(obj, mode);
@@ -162,11 +162,11 @@ void grabberSet::setGain(double newGain)
     }
 }
 
-coreObject* grabberSet::getObject() const
+CoreObject* grabberSet::getObject() const
 {
     return mGrabber->getObject();
 }
-void grabberSet::getObjects(std::vector<coreObject*>& objects) const
+void grabberSet::getObjects(std::vector<CoreObject*>& objects) const
 {
     if (mGrabber) {
         mGrabber->getObjects(objects);
@@ -195,3 +195,4 @@ bool grabberSet::hasJacobian() const
 }
 
 }  // namespace griddyn
+

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "fileInput/gridParameter.h"
 #include "griddyn/gridDynDefinitions.hpp"
@@ -14,3 +14,4 @@
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
 
 TEST(GridModelParameterTests, BasicSmokeTest) {}
+

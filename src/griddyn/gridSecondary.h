@@ -24,9 +24,9 @@ class gridSecondary: public gridComponent {
     /** @brief default constructor*/
     explicit gridSecondary(const std::string& objName = "");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void updateObjectLinkages(coreObject* newRoot) override;
+    virtual void updateObjectLinkages(CoreObject* newRoot) override;
 
     virtual void pFlowInitializeA(coreTime time0, std::uint32_t flags) override final;
 
@@ -164,3 +164,4 @@ class gridSecondary: public gridComponent {
 };
 
 }  // namespace griddyn
+

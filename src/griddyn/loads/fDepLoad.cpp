@@ -26,7 +26,7 @@ void fDepLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     return exponentialLoad::dynObjectInitializeA(time0, flags);
 }
 
-coreObject* fDepLoad::clone(coreObject* obj) const
+CoreObject* fDepLoad::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<fDepLoad, exponentialLoad>(this, obj);
     if (ld == nullptr) {
@@ -179,3 +179,4 @@ double fDepLoad::getReactivePower(double V, double f) const
     return 0.0;
 }
 }  // namespace griddyn::loads
+

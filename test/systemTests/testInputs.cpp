@@ -20,7 +20,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 #define INPUT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/input_tests/"
 
@@ -309,3 +309,4 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         }
     }
 }
+

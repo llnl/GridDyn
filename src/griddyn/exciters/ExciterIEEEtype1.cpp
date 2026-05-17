@@ -25,7 +25,7 @@ ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
 }
 
 // cloning function
-coreObject* ExciterIEEEtype1::clone(coreObject* obj) const
+CoreObject* ExciterIEEEtype1::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<ExciterIEEEtype1, Exciter>(this, obj);
     if (gdE == nullptr) {
@@ -278,3 +278,4 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
 }
 
 }  // namespace griddyn::exciters
+

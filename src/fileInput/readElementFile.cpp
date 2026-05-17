@@ -22,7 +22,7 @@ namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::numeric_conversion;
 
-void loadElementInformation(coreObject* obj,
+void loadElementInformation(CoreObject* obj,
                             std::shared_ptr<readerElement>& element,
                             const std::string& objectName,
                             readerInfo& readerInfoRef,
@@ -43,7 +43,7 @@ static void checkForEndUnits(gridParameter& param, const std::string& parameterS
 static const char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
                  readerInfo& readerInformation,
-                 coreObject* parentObject,
+                 CoreObject* parentObject,
                  bool finalFlag)
 {
     if (!element->hasElement(importString)) {
@@ -249,7 +249,7 @@ static bool isXmlNamespaceAttribute(const std::string& fieldName)
     return (fieldName == "xmlns") || ((fieldName.size() > 6) && fieldName.starts_with("xmlns:"));
 }
 
-void objSetAttributes(coreObject* obj,
+void objSetAttributes(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
                       readerInfo& readerInfoRef,
@@ -320,7 +320,7 @@ void objSetAttributes(coreObject* obj,
     }
 }
 
-void paramLoopElement(coreObject* obj,
+void paramLoopElement(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
                       readerInfo& readerInfoRef,
@@ -556,3 +556,4 @@ void setParams(helperObject* obj,
 }
 
 }  // namespace griddyn
+

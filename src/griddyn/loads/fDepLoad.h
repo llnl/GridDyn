@@ -26,7 +26,7 @@ class fDepLoad: public exponentialLoad {
 */
     fDepLoad(double rP, double qP, const std::string& objName = "fdepLoad_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
@@ -63,3 +63,4 @@ class fDepLoad: public exponentialLoad {
     virtual double getReactivePower(double V, double f) const;
 };
 }  // namespace griddyn::loads
+

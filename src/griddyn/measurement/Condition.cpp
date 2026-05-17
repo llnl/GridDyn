@@ -31,7 +31,7 @@ namespace {
     }
 }  // namespace
 
-std::unique_ptr<Condition> make_condition(std::string_view condString, coreObject* rootObject)
+std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObject* rootObject)
 {
     auto cString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(std::string{condString});
     // size_t posA = condString.find_first_of("&|");
@@ -119,7 +119,7 @@ std::string to_string(ComparisonType comp)
 std::unique_ptr<Condition> make_condition(std::string_view field,
                                           std::string_view compare,
                                           double level,
-                                          coreObject* rootObject)
+                                          CoreObject* rootObject)
 {
     return make_condition(field, comparisonFromString(compare), level, rootObject);
     // get the state grabbers part
@@ -128,7 +128,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 std::unique_ptr<Condition> make_condition(std::string_view field,
                                           ComparisonType comp,
                                           double level,
-                                          coreObject* rootObject)
+                                          CoreObject* rootObject)
 {
     try {
         auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);
@@ -197,12 +197,12 @@ void Condition::setConditionRHS(std::shared_ptr<grabberSet> valGrabber)
     }
 }
 
-void Condition::updateObject(coreObject* obj, object_update_mode mode)
+void Condition::updateObject(CoreObject* obj, object_update_mode mode)
 {
     // Update object may throw an error if it does everything is fine
     // if it doesn't then B update may throw an error in which case we need to rollback A for
     // exception safety this would be very unusual to occur.
-    const coreObject* keyObject = nullptr;
+    const CoreObject* keyObject = nullptr;
     if (mConditionLHS) {
         keyObject = mConditionLHS->getObject();
         mConditionLHS->updateObject(obj, mode);
@@ -316,7 +316,7 @@ void Condition::setMargin(double val)
     }
 }
 
-coreObject* Condition::getObject() const
+CoreObject* Condition::getObject() const
 {
     if (mConditionLHS) {
         return mConditionLHS->getObject();
@@ -325,7 +325,7 @@ coreObject* Condition::getObject() const
     return nullptr;
 }
 
-void Condition::getObjects(std::vector<coreObject*>& objects) const
+void Condition::getObjects(std::vector<CoreObject*>& objects) const
 {
     if (mConditionLHS) {
         mConditionLHS->getObjects(objects);
@@ -339,3 +339,4 @@ void Condition::getObjects(std::vector<coreObject*>& objects) const
 }
 
 }  // namespace griddyn
+

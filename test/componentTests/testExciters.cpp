@@ -28,7 +28,7 @@ using exciter_parameter_map = std::map<std::string, std::vector<std::pair<std::s
 // NOLINTNEXTLINE(misc-multiple-inheritance)
 class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-void applyExciterParameters(coreObject* object,
+void applyExciterParameters(CoreObject* object,
                             const exciter_parameter_map& parameters,
                             const std::string& exciterName)
 {
@@ -281,3 +281,4 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     }
 }
 #endif
+

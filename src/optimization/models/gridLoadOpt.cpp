@@ -25,7 +25,7 @@ static OptObjectFactory<GridLoadOpt, zipLoad> opLoad("basic", "load");
 
 GridLoadOpt::GridLoadOpt(const std::string& objName): GridOptObject(objName) {}
 
-GridLoadOpt::GridLoadOpt(coreObject* obj, const std::string& objName):
+GridLoadOpt::GridLoadOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), load(dynamic_cast<zipLoad*>(obj))
 {
     if (load != nullptr) {
@@ -36,7 +36,7 @@ GridLoadOpt::GridLoadOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* GridLoadOpt::clone(coreObject* obj) const
+CoreObject* GridLoadOpt::clone(CoreObject* obj) const
 {
     GridLoadOpt* nobj;
     if (obj == nullptr) {
@@ -58,7 +58,7 @@ coreObject* GridLoadOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void GridLoadOpt::add(coreObject* obj)
+void GridLoadOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<zipLoad*>(obj) != nullptr) {
         load = static_cast<zipLoad*>(obj);
@@ -217,3 +217,4 @@ GridOptObject* GridLoadOpt::getArea(index_t index) const
 }
 
 }  // namespace griddyn
+

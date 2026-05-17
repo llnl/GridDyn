@@ -36,7 +36,7 @@ class HelicsSource: public sources::rampSource {
   public:
     explicit HelicsSource(const std::string& objName = "helicsSource_$");
 
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
     virtual void dynObjectInitializeA(coreTime time0, uint32_t flags) override;
@@ -54,3 +54,4 @@ class HelicsSource: public sources::rampSource {
 };
 
 }  // namespace griddyn::helicsLib
+

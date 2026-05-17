@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 #define GOVERNOR_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/governor_tests/"
 
@@ -31,7 +31,7 @@ TEST_F(GovernorTests, GovStabilityTest)
     ASSERT_NE(gen, nullptr);
 
     auto cof = coreObjectFactory::instance();
-    coreObject* obj = cof->createObject("governor", "basic");
+    CoreObject* obj = cof->createObject("governor", "basic");
     ASSERT_NE(obj, nullptr);
 
     gen->add(obj);
@@ -65,3 +65,4 @@ TEST_F(GovernorTests, GovStabilityTest)
     }
     EXPECT_EQ(ncnt, 0);
 }
+

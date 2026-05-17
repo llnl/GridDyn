@@ -35,7 +35,7 @@ FmiMESubModel::FmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi): me(s
 
 FmiMESubModel::~FmiMESubModel() = default;
 
-coreObject* FmiMESubModel::clone(coreObject* obj) const
+CoreObject* FmiMESubModel::clone(CoreObject* obj) const
 {
     auto* gco = cloneBase<FmiMESubModel, gridSubModel>(this, obj);
     if (gco == nullptr) {
@@ -1080,3 +1080,4 @@ void FmiMESubModel::loadOutputJac(int index)
 
 // NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi
+

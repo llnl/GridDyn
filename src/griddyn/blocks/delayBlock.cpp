@@ -39,7 +39,7 @@ delayBlock::delayBlock(double timeConstant, double gainValue, const std::string&
     }
 }
 
-coreObject* delayBlock::clone(coreObject* obj) const
+CoreObject* delayBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<delayBlock, Block>(this, obj);
     if (nobj == nullptr) {
@@ -172,3 +172,4 @@ void delayBlock::set(std::string_view param, double val, units::unit unitType)
     }
 }
 }  // namespace griddyn::blocks
+

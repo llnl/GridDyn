@@ -63,7 +63,7 @@ namespace loads {
 
 zipLoad::zipLoad(const std::string& objName): Load(objName) {}
 zipLoad::zipLoad(double rP, double rQ, const std::string& objName): Load(rP, rQ, objName) {}
-coreObject* zipLoad::clone(coreObject* obj) const
+CoreObject* zipLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBaseFactory<zipLoad, Load>(this, obj, &zlf);
     if (nobj == nullptr) {
@@ -627,3 +627,4 @@ bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool /*printDiff*/)
 }
 
 }  // namespace griddyn
+

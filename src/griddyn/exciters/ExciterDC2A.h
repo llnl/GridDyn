@@ -15,7 +15,7 @@ class ExciterDC2A: public ExciterDC1A {
   protected:
   public:
     explicit ExciterDC2A(const std::string& objName = "exciterDC2A_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
@@ -40,3 +40,4 @@ class ExciterDC2A: public ExciterDC1A {
 };
 
 }  // namespace griddyn::exciters
+

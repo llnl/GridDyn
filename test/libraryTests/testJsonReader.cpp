@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "../gtestHelper.h"
 #include "formatInterpreters/jsonReaderElement.h"
@@ -187,3 +187,4 @@ TEST(JsonElementReaderTests, JsonElementReaderTest4)
     EXPECT_EQ(main->getName(), "main_element");
     */
 }
+

@@ -24,7 +24,7 @@ CymeDistLoadME::CymeDistLoadME(const std::string& objName): FmiMELoad3phase(objN
     configIndex = indexCounter++;
 }
 
-coreObject* CymeDistLoadME::clone(coreObject* /* obj */) const
+CoreObject* CymeDistLoadME::clone(CoreObject* /* obj */) const
 {
     return nullptr;
 }
@@ -97,3 +97,4 @@ void CymeDistLoadME::loadConfigFile(const std::string& configFileName)
     }
 }
 }  // namespace griddyn::fmi
+

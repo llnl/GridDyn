@@ -79,7 +79,7 @@ class Link: public gridPrimary {
 
     /** @brief virtual destructor*/
     virtual ~Link();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void disable() override;
     /** @brief reconnect the link*/
@@ -283,7 +283,7 @@ class Link: public gridPrimary {
 
     gridBus* getBus(index_t busInd) const override;
 
-    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
     // test for various conditions of overload and automatically trip the line if needed
     virtual bool testAndTrip(int tripLevel);
@@ -355,3 +355,4 @@ more ,but it was useful during development
 bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus = false, bool printDiff = false);
 
 }  // namespace griddyn
+

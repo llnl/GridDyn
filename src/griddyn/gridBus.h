@@ -111,9 +111,9 @@ class gridBus: public gridPrimary {
     */
     gridBus(double voltageStart, double angleStart, const std::string& objName = "bus_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief  add a Load object*/
     virtual void add(Load* ld);
     /** @brief  add a gridGenerator object*/
@@ -122,7 +122,7 @@ class gridBus: public gridPrimary {
     virtual void add(Link* lnk);
 
     // remove components
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
     /** @brief  remove a Load object*/
     virtual void remove(Load* ld);
     /** @brief  remove a Generator object*/
@@ -130,7 +130,7 @@ class gridBus: public gridPrimary {
     /** @brief  remove a Link object*/
     virtual void remove(Link* lnk);
     // deal with control alerts
-    virtual void alert(coreObject* obj, int code) override;
+    virtual void alert(CoreObject* obj, int code) override;
 
     // dynInitializeB
   protected:
@@ -244,9 +244,9 @@ class gridBus: public gridPrimary {
     if none exists
     */
     Link* findLink(gridBus* bs) const;
-    coreObject* find(std::string_view objName) const override;
-    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    CoreObject* find(std::string_view objName) const override;
+    CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     Link* getLink(index_t x) const override;
     /**
@@ -499,3 +499,4 @@ bool compareBus(gridBus* bus1, gridBus* bus2, bool cmpValues = false, bool print
 gridBus* getMatchingBus(gridBus* bus, const gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
+

@@ -27,13 +27,13 @@ class controlSystem: public gridSubModel {
     explicit controlSystem(const std::string& objName = "control_system_#");
     virtual ~controlSystem();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual void add(Block* blk);
 
     virtual void set(std::string_view param, std::string_view val) override;
@@ -70,3 +70,4 @@ class controlSystem: public gridSubModel {
 };
 
 }  // namespace griddyn
+

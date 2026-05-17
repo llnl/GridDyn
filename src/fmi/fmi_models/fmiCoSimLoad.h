@@ -22,7 +22,7 @@ class FmiCoSimLoad: public FmiCoSimWrapper<Load> {
 
   public:
     FmiCoSimLoad(const std::string& objName = "fmiLoad_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -36,3 +36,4 @@ class FmiCoSimLoad: public FmiCoSimWrapper<Load> {
 };
 
 }  // namespace griddyn::fmi
+

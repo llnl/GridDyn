@@ -182,7 +182,7 @@ class gridDynSimulation: public gridSimulation {
     @param[in] objName the name of the simulation*/
     explicit gridDynSimulation(const std::string& objName = "gridDynSim_#");
     ~gridDynSimulation();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     /** @brief set a particular instantiation of the simulation object to be the master for various
     purposes this function along with getInstance is used by external libraries to get particular
@@ -329,7 +329,7 @@ class gridDynSimulation: public gridSimulation {
     @return int indicating success (0) or failure (non-zero)*/
     int dynInitialize(coreTime tStart = negTime);  // code can detect this default param and use a
                                                    // previously specified start time
-    void alert(coreObject* object, int code) override;
+    void alert(CoreObject* object, int code) override;
 
     /** @brief function to count the number of MPI objects required for this simulation
     @param[in] printInfo if set to true the information is printed to the console
@@ -736,3 +736,4 @@ class gridDynSimulation: public gridSimulation {
 };
 
 }  // namespace griddyn
+

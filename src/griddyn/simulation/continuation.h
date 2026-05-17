@@ -16,7 +16,7 @@ class gridDynSimulation;
 
 class parameterSequence {
   public:
-    coreObject* m_target;
+    CoreObject* m_target;
     std::string m_field;
     double m_startValue;
     double m_stepSize;
@@ -24,11 +24,11 @@ class parameterSequence {
 
   protected:
     int m_currentStep = 0;
-    coreObject* m_obj = nullptr;
+    CoreObject* m_obj = nullptr;
 
   public:
     parameterSequence();
-    bool setTarget(coreObject* gdo, const std::string var = "");
+    bool setTarget(CoreObject* gdo, const std::string var = "");
     void setValue(double start, double step) const;
     void step();
     void step(int stepNumber);
@@ -52,3 +52,4 @@ class continuationSequence {
 };
 
 }  // namespace griddyn
+

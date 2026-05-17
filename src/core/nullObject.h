@@ -13,7 +13,7 @@ namespace griddyn {
 /** @brief      a nullObject class
 pretty much does nothing it absorbs logs and alerts (its parent is itself)
 **/
-class nullObject final: public coreObject {
+class nullObject final: public CoreObject {
   public:
     /** @brief default constructor
     takes a code used as the oid for special id codes below 100
@@ -22,28 +22,29 @@ class nullObject final: public coreObject {
     /** @brief nullObject constructor which takes a string*/
     explicit nullObject(std::string_view objName);
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     /**
      * alert just sinks all alerts and does nothing
      */
-    virtual void alert(coreObject* object, int code) override;
+    virtual void alert(CoreObject* object, int code) override;
 
     /**
      * log just absorbs all log messages and does nothing
      */
-    virtual void log(coreObject* object, print_level level, const std::string& message) override;
+    virtual void log(CoreObject* object, print_level level, const std::string& message) override;
     virtual bool shouldLog(print_level level) const override;
 
     /** return a nullptr*/
-    virtual coreObject* find(std::string_view object) const override;
+    virtual CoreObject* find(std::string_view object) const override;
 
     /**
     returns a nullptr
     */
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     /** @brief set the parent
     @details nullObjects do not allow the parents to be set*/
-    virtual void setParent(coreObject* parentObj) override;
+    virtual void setParent(CoreObject* parentObj) override;
 };
 }  // namespace griddyn
+

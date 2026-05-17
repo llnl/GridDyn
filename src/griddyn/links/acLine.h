@@ -94,7 +94,7 @@ class acLine: public Link {
     acLine(double rP, double xP, const std::string& objName = "acline_$");
     /** @brief virtual destructor*/
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     /** @brief get the current tap value
      * @return the tap value
@@ -290,3 +290,4 @@ class acLine: public Link {
 };
 
 }  // namespace griddyn
+

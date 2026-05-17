@@ -20,11 +20,11 @@ using units::unit;
 static typeFactory<zBreaker>
     glf("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
 
-zBreaker::zBreaker(const std::string& objName): Link(objName), merged(coreObject::extra_bool)
+zBreaker::zBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
 {
     opFlags.set(network_connected);
 }
-coreObject* zBreaker::clone(coreObject* obj) const
+CoreObject* zBreaker::clone(CoreObject* obj) const
 {
     auto lnk = cloneBase<zBreaker, Link>(this, obj);
     if (lnk == nullptr) {
@@ -158,3 +158,4 @@ int zBreaker::fixPower(double /*rPower*/,
 }
 
 }  // namespace griddyn::links
+

@@ -25,7 +25,7 @@
 namespace griddyn::relays {
 controlRelay::controlRelay(const std::string& objName): Relay(objName) {}
 
-coreObject* controlRelay::clone(coreObject* obj) const
+CoreObject* controlRelay::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<controlRelay, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -319,7 +319,7 @@ change_code controlRelay::executeAction(index_t actionNum)
     return change_code::not_triggered;
 }
 
-void controlRelay::updateObject(coreObject* obj, object_update_mode mode)
+void controlRelay::updateObject(CoreObject* obj, object_update_mode mode)
 {
     Relay::updateObject(obj, mode);
     if (opFlags[dyn_initialized]) {
@@ -400,3 +400,4 @@ index_t controlRelay::getFreeAction()
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

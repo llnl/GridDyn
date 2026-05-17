@@ -21,7 +21,7 @@ commSource::commSource(const std::string& objName): rampSource(objName)
 {
     enable_updates();
 }
-coreObject* commSource::clone(coreObject* obj) const
+CoreObject* commSource::clone(CoreObject* obj) const
 {
     auto cs = cloneBase<commSource, rampSource>(this, obj);
     if (cs == nullptr) {
@@ -192,3 +192,4 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
 }
 }  // namespace griddyn::sources
 // NOLINTEND
+

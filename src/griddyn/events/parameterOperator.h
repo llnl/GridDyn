@@ -31,12 +31,12 @@ class parameterOperator: public helperObject, public objectOperatorInterface {
 
     virtual void setTarget(gridComponent* target, const std::string& field = "");
 
-    virtual void updateObject(coreObject* target,
+    virtual void updateObject(CoreObject* target,
                               object_update_mode mode = object_update_mode::direct) override;
     virtual void setParameter(double val);
     virtual double getParameter() const;
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     bool isDirect() const { return (parameterIndex != kNullLocation); }
 
   protected:
@@ -59,3 +59,4 @@ class parameterSet {
 };
 
 }  // namespace griddyn
+

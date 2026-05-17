@@ -29,7 +29,7 @@ class variableGenerator: public DynamicGenerator {
     /** @brief default constructor*/
     explicit variableGenerator(const std::string& objName = "varGen_$");
     variableGenerator(dynModel_t dynModel, const std::string& objName = "varGen_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     // virtual void pFlowObjectInitializeA (coreTime time0, std::uint32_t flags) override;
@@ -43,7 +43,7 @@ class variableGenerator: public DynamicGenerator {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     virtual void add(gridSubModel* obj) override;
 
@@ -67,8 +67,8 @@ class variableGenerator: public DynamicGenerator {
         return 0.0;
     }  // get the available adjustment Up within the specified timeframe
     virtual void generationAdjust(double /*adjustment*/) override {}
-    virtual coreObject* find(std::string_view object) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* find(std::string_view object) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,
@@ -78,3 +78,4 @@ class variableGenerator: public DynamicGenerator {
 };
 
 }  // namespace griddyn
+

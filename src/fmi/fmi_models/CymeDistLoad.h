@@ -17,7 +17,7 @@ class CymeDistLoadME: public FmiMELoad3phase {
 
   public:
     CymeDistLoadME(const std::string& objName = "cymedist_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -28,3 +28,4 @@ class CymeDistLoadME: public FmiMELoad3phase {
 };
 
 }  // namespace griddyn::fmi
+

@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "../gtestHelper.h"
 #include "fmi/fmi_models/fmiMELoad3phase.h"
@@ -417,3 +417,4 @@ TEST_F(FmiTests, FmiArray)
 }
 
 #endif
+

@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace griddyn {
-class coreObject;
+class CoreObject;
 
 /**enumeration of the update mode*/
 enum class object_update_mode {
@@ -45,7 +45,7 @@ class objectOperatorInterface {
     existing object should be matched to something in the container object and updated
     @throw objectUpdateFailException on update failure
     */
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) = 0;
 
     /** function to check whether the object can be updated
@@ -54,15 +54,16 @@ class objectOperatorInterface {
     @param[in] obj the new object
     @return true if the object update will succeed false otherwise
     */
-    virtual bool checkValidUpdate(coreObject* obj) const { return (obj != nullptr); }
+    virtual bool checkValidUpdate(CoreObject* obj) const { return (obj != nullptr); }
     /** get an object that is used by the interface
     @return a pointer to the object
     */
-    virtual coreObject* getObject() const = 0;
+    virtual CoreObject* getObject() const = 0;
     /** add the object contained in the operator to a vector of objects
     @param[out] objects the vector of objects to add any used objects to
     */
-    virtual void getObjects(std::vector<coreObject*>& objects) const = 0;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const = 0;
 };
 
 }  // namespace griddyn
+

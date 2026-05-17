@@ -93,7 +93,7 @@ class Condition: public objectOperatorInterface {
      **/
     double getVal(int side) const;
 
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
 
     /** evaluation the condition based on object data
@@ -135,9 +135,9 @@ class Condition: public objectOperatorInterface {
         mUseMargin = margin_on;
     }
 
-    virtual coreObject* getObject() const override;
+    virtual CoreObject* getObject() const override;
 
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
   private:
     std::function<double(double A, double B, double margin)>
@@ -150,7 +150,7 @@ class Condition: public objectOperatorInterface {
  * @param[in] condString a condition string  like bus1:Voltage>bus2::voltage
  * @param[in] rootObject the root object to find the other objects
  */
-std::unique_ptr<Condition> make_condition(std::string_view condString, coreObject* rootObject);
+std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObject* rootObject);
 /** make a condition object
 * function to create a condition object from a field a comparison type and threshold
 * @param field the field to get from the rootObject
@@ -161,7 +161,7 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, coreObjec
 std::unique_ptr<Condition> make_condition(std::string_view field,
                                           std::string_view compare,
                                           double level,
-                                          coreObject* rootObject);
+                                          CoreObject* rootObject);
 /** make a condition object
 * function to create a condition object from a field a comparison type and threshold
 * @param field the field to get from the rootObject
@@ -172,7 +172,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 std::unique_ptr<Condition> make_condition(std::string_view field,
                                           ComparisonType comp,
                                           double level,
-                                          coreObject* rootObject);
+                                          CoreObject* rootObject);
 
 /** evaluate a compound condition consisting of multiple individual conditions
  */
@@ -221,3 +221,4 @@ class compoundCondition: public Condition {
 };
 
 }  // namespace griddyn
+

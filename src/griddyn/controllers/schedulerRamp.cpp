@@ -22,7 +22,7 @@ schedulerRamp::schedulerRamp(double initialValue, const std::string& objName):
 {
 }
 
-coreObject* schedulerRamp::clone(coreObject* obj) const
+CoreObject* schedulerRamp::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<schedulerRamp, scheduler>(this, obj);
     if (nobj == nullptr) {
@@ -524,3 +524,4 @@ void schedulerRamp::reserveDispatcherLink(reserveDispatcher *rD)
 }
 */
 }  // namespace griddyn
+

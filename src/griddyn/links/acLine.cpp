@@ -57,7 +57,7 @@ acLine::acLine(double rP, double xP, const std::string& objName): Link(objName),
 
 static typeFactory<acLine> glf("link", "tie");
 
-coreObject* acLine::clone(coreObject* obj) const
+CoreObject* acLine::clone(CoreObject* obj) const
 {
     auto* lnk = cloneBaseFactory<acLine, Link>(this, obj, &glf);
     if (lnk == nullptr) {
@@ -1630,3 +1630,4 @@ void acLine::loadApproxFunctions()
 }
 
 }  // namespace griddyn
+

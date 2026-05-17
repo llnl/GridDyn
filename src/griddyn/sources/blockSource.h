@@ -24,10 +24,10 @@ namespace sources {
       public:
         blockSource(const std::string& objName = "blocksource_#");
 
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+        virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-        virtual void add(coreObject* obj) override;
-        virtual void remove(coreObject* obj) override;
+        virtual void add(CoreObject* obj) override;
+        virtual void remove(CoreObject* obj) override;
 
       protected:
         virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -104,8 +104,9 @@ namespace sources {
 
         virtual void setLevel(double newLevel) override;
 
-        virtual coreObject* find(std::string_view object) const override;
-        virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+        virtual CoreObject* find(std::string_view object) const override;
+        virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     };
 }  // namespace sources
 }  // namespace griddyn
+

@@ -45,7 +45,7 @@ static typeFactory<gridDynSimulation>
 std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
 
 // local search functions for MPI based objects
-static count_t searchForGridlabDobject(const coreObject* obj);
+static count_t searchForGridlabDobject(const CoreObject* obj);
 
 gridDynSimulation::gridDynSimulation(const std::string& objName):
     gridSimulation(objName), controlFlags(0LL)
@@ -73,7 +73,7 @@ gridDynSimulation* gridDynSimulation::getInstance()
     return s_instance;
 }
 
-coreObject* gridDynSimulation::clone(coreObject* obj) const
+CoreObject* gridDynSimulation::clone(CoreObject* obj) const
 {
     auto* sim = cloneBase<gridDynSimulation, gridSimulation>(this, obj);
     if (sim == nullptr) {
@@ -1168,7 +1168,7 @@ static const std::map<int, size_t>& getAlertFlags()
     return alertFlags;
 }
 
-void gridDynSimulation::alert(coreObject* object, int code)
+void gridDynSimulation::alert(CoreObject* object, int code)
 {
     if ((code >= MIN_CHANGE_ALERT) && (code < MAX_CHANGE_ALERT)) {
         const auto& alertFlags = getAlertFlags();
@@ -1669,13 +1669,13 @@ bool gridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverM
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static count_t searchForGridlabDobject(const coreObject* obj)
+static count_t searchForGridlabDobject(const CoreObject* obj)
 {
     count_t cnt = 0;
     const auto* bus = dynamic_cast<const gridBus*>(obj);
     if (bus != nullptr) {
         index_t loadIndex = 0;
-        const coreObject* loadObject = bus->getLoad(loadIndex);
+        const CoreObject* loadObject = bus->getLoad(loadIndex);
         while (loadObject != nullptr) {
             const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(loadObject);
             if (gridLabdLoad != nullptr) {
@@ -1712,3 +1712,4 @@ static count_t searchForGridlabDobject(const coreObject* obj)
 }
 
 }  // namespace griddyn
+

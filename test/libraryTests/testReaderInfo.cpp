@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "../gtestHelper.h"
 #include "fileInput/readerInfo.h"
@@ -127,3 +127,4 @@ TEST(ReaderInfoTests, Directories)
     EXPECT_TRUE((testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "\\location_testFile.txt")) ||
                 (testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "/location_testFile.txt")));
 }
+

@@ -17,7 +17,7 @@ controlSystem::controlSystem(const std::string& objName): gridSubModel(objName) 
 
 controlSystem::~controlSystem() = default;
 
-coreObject* controlSystem::clone(coreObject* obj) const
+CoreObject* controlSystem::clone(CoreObject* obj) const
 {
     auto* cs = cloneBase<controlSystem, gridSubModel>(this, obj);
     if (cs == nullptr) {
@@ -26,7 +26,7 @@ coreObject* controlSystem::clone(coreObject* obj) const
     return cs;
 }
 
-void controlSystem::add(coreObject* obj)
+void controlSystem::add(CoreObject* obj)
 {
     if (dynamic_cast<Block*>(obj) != nullptr) {
         add(static_cast<Block*>(obj));
@@ -119,3 +119,4 @@ change_code controlSystem::rootCheck(const IOdata& /*inputs*/,
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
+

@@ -16,14 +16,14 @@ namespace griddyn {
 /** exception class for use in griddyn*/
 class coreObjectException: public std::exception {
   protected:
-    const coreObject* throwingObject;  ///< the object that threw the exception
+    const CoreObject* throwingObject;  ///< the object that threw the exception
   public:
-    explicit coreObjectException(const coreObject* obj) noexcept;
+    explicit coreObjectException(const CoreObject* obj) noexcept;
     virtual const char* what() const noexcept override { return "core object exception"; }
     /** return the full name of the object that threw the exception*/
     std::string who() const noexcept;
     /** change the object for use with a cascading object*/
-    void updateObject(const coreObject* newobj) { throwingObject = newobj; }
+    void updateObject(const CoreObject* newobj) { throwingObject = newobj; }
 };
 
 /** exception for use when an object is added to another object but the object
@@ -31,19 +31,19 @@ is not of a type that can be added
 */
 class unrecognizedObjectException: public coreObjectException {
   public:
-    explicit unrecognizedObjectException(coreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit unrecognizedObjectException(CoreObject* obj) noexcept: coreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "unrecognized object"; }
 };
 
 class objectAddFailure: public coreObjectException {
   public:
-    explicit objectAddFailure(coreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit objectAddFailure(CoreObject* obj) noexcept: coreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to add object"; }
 };
 
 class objectRemoveFailure: public coreObjectException {
   public:
-    explicit objectRemoveFailure(coreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit objectRemoveFailure(CoreObject* obj) noexcept: coreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to remove object"; }
 };
 
@@ -70,7 +70,7 @@ class executionFailure: public coreObjectException {
     std::string message;
 
   public:
-    explicit executionFailure(const coreObject* obj, std::string_view error_message):
+    explicit executionFailure(const CoreObject* obj, std::string_view error_message):
         coreObjectException(obj), message(error_message)
     {
     }
@@ -78,7 +78,7 @@ class executionFailure: public coreObjectException {
 };
 class cloneFailure: public coreObjectException {
   public:
-    explicit cloneFailure(const coreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit cloneFailure(const CoreObject* obj) noexcept: coreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "clone failure"; }
 };
 
@@ -102,3 +102,4 @@ class invalidFileName: public fileOperationError {
 };
 
 }  // namespace griddyn
+

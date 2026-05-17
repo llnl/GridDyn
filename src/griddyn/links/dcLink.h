@@ -27,7 +27,7 @@ class dcLink: public Link {
     dcLink(double rP, double Lp, const std::string& objName = "dclink_$");
     // Link(double max_power,gridBus *bus1, gridBus *bus2);
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void updateBus(gridBus* bus, index_t busnumber) override;
 
@@ -101,3 +101,4 @@ class dcLink: public Link {
 };
 
 }  // namespace griddyn::links
+

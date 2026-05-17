@@ -24,7 +24,7 @@ class aggregateLoad: public zipLoad {
     //!< default constructor
     aggregateLoad(const std::string& objName = "compositeLoad_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -37,7 +37,7 @@ class aggregateLoad: public zipLoad {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void add(zipLoad* ld);
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
@@ -79,3 +79,4 @@ class aggregateLoad: public zipLoad {
     virtual double getReactivePower() const override;
 };
 }  // namespace griddyn::loads
+

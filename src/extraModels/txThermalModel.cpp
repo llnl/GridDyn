@@ -30,7 +30,7 @@ txThermalModel::txThermalModel(const std::string& objName): sensor(objName)
     m_outputSize = 3;
 }
 
-coreObject* txThermalModel::clone(coreObject* obj) const
+CoreObject* txThermalModel::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<txThermalModel, sensor>(this, obj);
     if (nobj == nullptr) {
@@ -184,7 +184,7 @@ double txThermalModel::get(std::string_view param, units::unit unitType) const
     return sensor::get(param, unitType);
 }
 
-void txThermalModel::add(coreObject* /*obj*/)
+void txThermalModel::add(CoreObject* /*obj*/)
 {
     throw(unrecognizedObjectException(this));
 }
@@ -249,7 +249,7 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         topOilDelayBlock->parentSetFlag(separate_processing, true, this);
         windingDelayBlock->parentSetFlag(separate_processing, true, this);
         auto ambientGrabber = std::make_shared<customGrabber>();
-        ambientGrabber->setGrabberFunction("ambient", [this](coreObject* /*unused*/) -> double {
+        ambientGrabber->setGrabberFunction("ambient", [this](CoreObject* /*unused*/) -> double {
             return mAmbientTemp;
         });
         sensor::add(ambientGrabber);
@@ -392,3 +392,4 @@ void txThermalModel::timestep(coreTime time, const IOdata& /*inputs*/, const sol
 }
 
 }  // namespace griddyn::extra
+

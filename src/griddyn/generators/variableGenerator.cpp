@@ -32,7 +32,7 @@ variableGenerator::variableGenerator(dynModel_t dynModel, const std::string& obj
     opFlags.reset(local_power_control);
 }
 
-coreObject* variableGenerator::clone(coreObject* obj) const
+CoreObject* variableGenerator::clone(CoreObject* obj) const
 {
     auto* gen = cloneBase<variableGenerator, DynamicGenerator>(this, obj);
     if (gen == nullptr) {
@@ -62,7 +62,7 @@ void variableGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void variableGenerator::add(coreObject* obj)
+void variableGenerator::add(CoreObject* obj)
 {
     if (dynamic_cast<gridSubModel*>(obj) != nullptr) {
         add(static_cast<gridSubModel*>(obj));
@@ -149,7 +149,7 @@ void variableGenerator::jacobianElements(const IOdata& inputs,
     }
 }
 
-coreObject* variableGenerator::find(std::string_view object) const
+CoreObject* variableGenerator::find(std::string_view object) const
 {
     if (object == "source") {
         return m_source;
@@ -160,7 +160,7 @@ coreObject* variableGenerator::find(std::string_view object) const
     return DynamicGenerator::find(object);
 }
 
-coreObject* variableGenerator::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* variableGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     auto* out = DynamicGenerator::getSubObject(typeName, num);
     if (out == nullptr) {
@@ -188,3 +188,4 @@ index_t variableGenerator::pSetLocation(const solverMode& sMode)
 }
 
 }  // namespace griddyn
+

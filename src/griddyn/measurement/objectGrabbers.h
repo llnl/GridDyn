@@ -27,7 +27,7 @@ class Area;
 class Relay;
 class gridSubModel;
 
-using fobjectPair = std::pair<std::function<double(coreObject*)>, units::unit>;
+using fobjectPair = std::pair<std::function<double(CoreObject*)>, units::unit>;
 
 fobjectPair getObjectFunction(const gridComponent* comp, const std::string& field);
 fobjectPair getObjectFunction(const gridBus* bus, const std::string& field);
@@ -38,13 +38,13 @@ fobjectPair getObjectFunction(const Area* area, const std::string& field);
 fobjectPair getObjectFunction(const Relay* rel, const std::string& field);
 fobjectPair getObjectFunction(const gridSubModel* sub, const std::string& field);
 
-using fvecPair = std::pair<std::function<void(coreObject*, std::vector<double>&)>, units::unit>;
+using fvecPair = std::pair<std::function<void(CoreObject*, std::vector<double>&)>, units::unit>;
 
 fvecPair getObjectVectorFunction(const gridComponent* comp, const std::string& field);
 
 fvecPair getObjectVectorFunction(const Area* area, const std::string& field);
 
-using descVecFunc = std::function<void(coreObject*, stringVec&)>;
+using descVecFunc = std::function<void(CoreObject*, stringVec&)>;
 
 descVecFunc getObjectVectorDescFunction(const gridComponent* comp, const std::string& field);
 descVecFunc getObjectVectorDescFunction(const Area* area, const std::string& field);
@@ -106,10 +106,10 @@ class objectGrabber: public gridGrabber {
         gridGrabber::updateField(fld);
     }
 
-    void updateObject(coreObject* obj,
+    void updateObject(CoreObject* obj,
                       object_update_mode mode = object_update_mode::direct) override
     {
-        coreObject* newObject =
+        CoreObject* newObject =
             (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
             mTypedObject = static_cast<X*>(newObject);
@@ -194,10 +194,10 @@ class objectOffsetGrabber: public gridGrabber {
         }
     }
 
-    void updateObject(coreObject* obj,
+    void updateObject(CoreObject* obj,
                       object_update_mode mode = object_update_mode::direct) override
     {
-        coreObject* newObject =
+        CoreObject* newObject =
             (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
             mTypedObject = static_cast<X*>(newObject);
@@ -278,3 +278,4 @@ class objectOffsetGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
+

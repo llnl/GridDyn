@@ -67,7 +67,7 @@ Generator::Generator(const std::string& objName): gridSecondary(objName)
 
 Generator::~Generator() = default;
 
-coreObject* Generator::clone(coreObject* obj) const
+CoreObject* Generator::clone(CoreObject* obj) const
 {
     auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &gf);
     if (gen == nullptr) {
@@ -231,7 +231,7 @@ void Generator::guessState(coreTime /*time*/,
     }
 }
 
-void Generator::add(coreObject* obj)
+void Generator::add(CoreObject* obj)
 {
     if (dynamic_cast<gridSubModel*>(obj) != nullptr) {
         return add(static_cast<gridSubModel*>(obj));
@@ -252,7 +252,7 @@ void Generator::add(gridSubModel* obj)
     }
 }
 
-void Generator::setRemoteBus(coreObject* newRemoteBus)
+void Generator::setRemoteBus(CoreObject* newRemoteBus)
 {
     auto* newRbus = dynamic_cast<gridBus*>(newRemoteBus);
     if (newRbus == nullptr) {
@@ -339,7 +339,7 @@ double Generator::get(std::string_view param, unit unitType) const
         ret = convert(getQmin(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
         auto unit = getObjectFunction(this, std::string{param}).second;
-        coreObject* tobj = const_cast<Generator*>(this);
+        CoreObject* tobj = const_cast<Generator*>(this);
         ret = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
         ret = gridSecondary::get(param, unitType);
@@ -509,7 +509,7 @@ void Generator::set(std::string_view param, double val, unit unitType)
             bounds->setValidRange(Pmin, Pmax);
         }
     } else if (param == "remote") {
-        coreObject* root = getRoot();
+        CoreObject* root = getRoot();
         setRemoteBus(root->findByUserID("bus", static_cast<index_t>(val)));
     } else {
         gridSecondary::set(param, val, unitType);
@@ -718,7 +718,7 @@ void Generator::getStateName(stringVec& stNames,
     }
 }
 
-coreObject* Generator::find(std::string_view object) const
+CoreObject* Generator::find(std::string_view object) const
 {
     if (object == "bus") {
         return bus;
@@ -811,3 +811,4 @@ double Generator::getAngle(const stateData& sD, const solverMode& sMode, index_t
 }
 
 }  // namespace griddyn
+

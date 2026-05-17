@@ -23,7 +23,7 @@ namespace {
 static const char areaComponentName[] = "area";
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* searchObject)
+                      CoreObject* searchObject)
 {
     auto riScope = readerInformation.newScope();
 
@@ -41,3 +41,4 @@ Area* readAreaElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

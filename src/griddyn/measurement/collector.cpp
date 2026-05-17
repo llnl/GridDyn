@@ -87,7 +87,7 @@ void collector::cloneTo(collector* col) const
     col->mData.resize(mData.size());
 }
 
-void collector::updateObject(coreObject* gco, object_update_mode mode)
+void collector::updateObject(CoreObject* gco, object_update_mode mode)
 {
     for (const auto& dataPoint : mPoints) {
         if (dataPoint.mDataGrabber) {
@@ -101,7 +101,7 @@ void collector::updateObject(coreObject* gco, object_update_mode mode)
     }
 }
 
-coreObject* collector::getObject() const
+CoreObject* collector::getObject() const
 {
     if (!mPoints.empty()) {
         if (mPoints[0].mDataGrabber) {
@@ -114,7 +114,7 @@ coreObject* collector::getObject() const
     return nullptr;
 }
 
-void collector::getObjects(std::vector<coreObject*>& objects) const
+void collector::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (const auto& dataPoint : mPoints) {
         if (dataPoint.mDataGrabber) {
@@ -372,7 +372,7 @@ void collector::add(std::shared_ptr<gridGrabber> ggb,
 // a notification that something was added much more useful in derived classes
 void collector::dataPointAdded(const collectorPoint& /*cp*/) {}
 // NOLINTNEXTLINE(misc-no-recursion)
-void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
+void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
 {
     if (gdRI.field.empty())  // any field specification overrides the offset
     {
@@ -445,7 +445,7 @@ void collector::add(const gridGrabberInfo& gdRI, coreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void collector::add(std::string_view field, coreObject* obj)
+void collector::add(std::string_view field, CoreObject* obj)
 {
     if (field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
@@ -493,3 +493,4 @@ std::unique_ptr<collector> makeCollector(std::string_view type, const std::strin
 }
 
 }  // namespace griddyn
+

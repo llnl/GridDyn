@@ -24,7 +24,7 @@ class lutBlock: public Block {
     // NOTE: extra 4 bytes here
   public:
     explicit lutBlock(const std::string& objName = "lutBlock_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags);
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -51,3 +51,4 @@ class lutBlock: public Block {
     double computeValue(double input);
 };
 }  // namespace griddyn::blocks
+

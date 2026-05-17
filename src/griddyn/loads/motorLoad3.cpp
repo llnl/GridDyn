@@ -18,7 +18,7 @@ namespace griddyn::loads {
 // setup the load object factories
 
 motorLoad3::motorLoad3(const std::string& objName): motorLoad(objName) {}
-coreObject* motorLoad3::clone(coreObject* obj) const
+CoreObject* motorLoad3::clone(CoreObject* obj) const
 {
     auto* ld = cloneBase<motorLoad3, motorLoad>(this, obj);
     if (ld == nullptr) {
@@ -681,3 +681,4 @@ double motorLoad3::getReactivePower(double voltage) const
     return Qtemp * scale;
 }
 }  // namespace griddyn::loads
+

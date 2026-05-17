@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-// testP case for coreObject object
+// testP case for CoreObject object
 
 #define TADJ_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/adj_tests/"
 
@@ -189,3 +189,4 @@ TEST_F(AdjustableTransformerTests, AdjTestContV)
     EXPECT_NEAR(st[1], 1.0, 1e-7);
     EXPECT_NEAR(st[2], 1.0, 1e-7);
 }
+

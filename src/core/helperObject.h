@@ -11,7 +11,7 @@
 #include <string_view>
 
 namespace griddyn {
-class coreObject;
+class CoreObject;
 /** @brief      base class for helper objects
  Base class for all helper objects the main purpose is to deal with names and
  give a common interface for the various helper objects in GridDyn
@@ -93,7 +93,7 @@ class helperObject {
     @brief get an expected or actual owner of the helperObject
     @return the actual or targeted owner of the helperObject
     */
-    virtual coreObject* getOwner() const;
+    virtual CoreObject* getOwner() const;
 
   protected:
     /** a notification functions primary implemented by derived class
@@ -111,3 +111,4 @@ a negative sign in front of the flag indicates the flag should be turned off
 */
 void setMultipleFlags(helperObject* obj, std::string_view flags);
 }  // namespace griddyn
+

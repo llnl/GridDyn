@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
-// testP case for coreObject object
+// testP case for CoreObject object
 
 #define AREA_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/area_tests/"
 
@@ -88,3 +88,4 @@ TEST_F(AreaTests, AreaTestAdd)
         FAIL();
     }
 }
+

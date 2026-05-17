@@ -14,7 +14,7 @@
 namespace griddyn::events {
 reversibleEvent::reversibleEvent(const std::string& eventName): Event(eventName) {}
 reversibleEvent::reversibleEvent(coreTime time0): Event(time0) {}
-reversibleEvent::reversibleEvent(const EventInfo& gdEI, coreObject* rootObject):
+reversibleEvent::reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject)
 {
     ggrab = createGrabber(field, m_obj);
@@ -22,7 +22,7 @@ reversibleEvent::reversibleEvent(const EventInfo& gdEI, coreObject* rootObject):
     canUndo = ggrab->loaded;
 }
 
-void reversibleEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void reversibleEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     Event::updateEvent(gdEI, rootObject);
     ggrab = createGrabber(field, m_obj);
@@ -51,7 +51,7 @@ void reversibleEvent::cloneTo(Event* gE) const
     nE->canUndo = canUndo;
 }
 
-// virtual void updateEvent(EventInfo &gdEI, coreObject *rootObject) override;
+// virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 change_code reversibleEvent::trigger()
 {
     if (canUndo) {
@@ -103,7 +103,7 @@ change_code reversibleEvent::trigger(coreTime time)
     return Event::trigger(time);
 }
 
-bool reversibleEvent::setTarget(coreObject* gdo, std::string_view var)
+bool reversibleEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     auto res = Event::setTarget(gdo, var);
     if (ggrab) {
@@ -123,7 +123,7 @@ void reversibleEvent::updateStringValue(const std::string& newStr)
     newStringValue = newStr;
 }
 
-void reversibleEvent::updateObject(coreObject* gco, object_update_mode mode)
+void reversibleEvent::updateObject(CoreObject* gco, object_update_mode mode)
 {
     Event::updateObject(gco, mode);
     if (ggrab) {
@@ -147,3 +147,4 @@ double reversibleEvent::query()
 }
 
 }  // namespace griddyn::events
+

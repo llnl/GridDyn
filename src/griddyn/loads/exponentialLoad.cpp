@@ -18,7 +18,7 @@ exponentialLoad::exponentialLoad(double rP, double qP, const std::string& objNam
     Load(rP, qP, objName)
 {
 }
-coreObject* exponentialLoad::clone(coreObject* obj) const
+CoreObject* exponentialLoad::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<exponentialLoad, Load>(this, obj);
     if (ld == nullptr) {
@@ -110,3 +110,4 @@ double exponentialLoad::getReactivePower(double V) const
     return 0.0;
 }
 }  // namespace griddyn::loads
+

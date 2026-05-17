@@ -29,14 +29,14 @@ class EventInfo {
     std::vector<coreTime> time;  //!< event trigger times
     std::vector<double> value;  //!< event trigger values
     stringVec fieldList;  //!< list of fields associated with the event
-    std::vector<coreObject*> targetObjs;  //!< the event targets
+    std::vector<CoreObject*> targetObjs;  //!< the event targets
     std::vector<index_t> columns;  //!< file columns associated with an event
     std::vector<units::unit> units;  //!< units associated with an event
   public:
     EventInfo() = default;
-    EventInfo(std::string_view eventString, coreObject* rootObj);
+    EventInfo(std::string_view eventString, CoreObject* rootObj);
 
-    void loadString(std::string_view eventString, coreObject* rootObj);
+    void loadString(std::string_view eventString, CoreObject* rootObj);
 };
 
 /** basic event class enabling a property change in an object
@@ -47,7 +47,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value
     coreTime triggerTime;  //!< the time the event is scheduled to be triggered
-    coreObject* m_obj = nullptr;  //!< the target object of the event
+    CoreObject* m_obj = nullptr;  //!< the target object of the event
     units::unit unitType = units::defunit;  //!< units of the event
     index_t eventId;  //!< a unique Identifier code for the event
     bool armed = false;  //!< flag indicating if the event is armed or not
@@ -67,7 +67,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     /** constructor from and EventInfo object and rootObject
     @param[in] gdEI a structure defining the information of an event
     @param[in] rootObject the base object to use for searching for any parameters or other objects*/
-    Event(const EventInfo& gdEI, coreObject* rootObject);
+    Event(const EventInfo& gdEI, CoreObject* rootObject);
     /** duplicate the event
     @return a pointer to the clone of the event
     */
@@ -80,7 +80,7 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     @param[in] gdEI the event information structure to get all the event information from
     @param[in] rootObject the root object to use in searching for other objects
     */
-    virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject);
+    virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject);
     /** trigger the event
     @return a change_code describing the impact associated with an event
     */
@@ -110,17 +110,17 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
     @param[in] var the new target field for the event
     @return true if the event is armed
     */
-    virtual bool setTarget(coreObject* gdo, std::string_view var = {});
+    virtual bool setTarget(CoreObject* gdo, std::string_view var = {});
 
-    virtual void updateObject(coreObject* gco,
+    virtual void updateObject(CoreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
 
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
   protected:
     /** update the target and field of an event*/
-    void loadField(coreObject* searchObj, std::string_view newField);
+    void loadField(CoreObject* searchObj, std::string_view newField);
     /** run a check to see if the event can be armed*/
     // Note: please remove calls to checkArmed in the constructor before making this virtual
     bool checkArmed();
@@ -134,19 +134,19 @@ class Event: public helperObject, public eventInterface, public objectOperatorIn
 @return a unique ptr to the created event
 */
 std::unique_ptr<Event>
-    make_event(std::string_view field, double val, coreTime eventTime, coreObject* rootObject);
+    make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject);
 /** construct an event from an event Info structure
 @param[in] gdEI the information associated with an event
 @param[in] rootObject the high level object to base any object searches from
 @return a unique ptr to the created event
 */
-std::unique_ptr<Event> make_event(EventInfo& gdEI, coreObject* rootObject);
+std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject);
 /** construct an event from a string description
 @param[in] eventString the information associated with an event
 @param[in] rootObject the high level object to base any object searches from
 @return a unique ptr to the created event
 */
-std::unique_ptr<Event> make_event(std::string_view eventString, coreObject* rootObject);
+std::unique_ptr<Event> make_event(std::string_view eventString, CoreObject* rootObject);
 
 /** equality operator*/
 inline bool operator==(const Event& event1, const Event& event2)
@@ -155,3 +155,4 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
+

@@ -27,7 +27,7 @@ class gridGrabberInfo;
 namespace griddyn {
 class collector;
 class Event;
-class coreObject;
+class CoreObject;
 
 /** @brief class containing some basic information for reading power system files*/
 class basicReaderInfo {
@@ -72,7 +72,7 @@ class readerInfo: public basicReaderInfo {
         objectTranslations;  //!< storage for object Translations
     std::unordered_map<std::string, std::string>
         objectTranslationsType;  //!< storage for the type associated with an object translation
-    std::unordered_map<std::string, std::pair<coreObject*, std::vector<gridParameter>>>
+    std::unordered_map<std::string, std::pair<CoreObject*, std::vector<gridParameter>>>
         library;  //!< library objects
     std::unordered_map<std::string, std::string> lockDefines;  //!< locked definitions
     std::unordered_map<std::string, std::pair<std::shared_ptr<readerElement>, int>>
@@ -83,7 +83,7 @@ class readerInfo: public basicReaderInfo {
                             // scope changes
     std::vector<scopeID> directoryScope;  //!< the scope of the listed directories
     ignoreListType parameterIgnoreStrings;  //!< parameters to ignore
-    coreObject* keyObj = nullptr;  //!< placeholder for storage of a keyObject
+    CoreObject* keyObj = nullptr;  //!< placeholder for storage of a keyObject
   public:
     /** @brief default constructor*/
     readerInfo();
@@ -98,19 +98,19 @@ class readerInfo: public basicReaderInfo {
     @param[in] pobjs a set of parameter objects to apply to newly created objects
     @return true if object was successfully added
     */
-    bool addLibraryObject(coreObject* obj, std::vector<gridParameter>& pobjs);
+    bool addLibraryObject(CoreObject* obj, std::vector<gridParameter>& pobjs);
     /** @brief  create an object based on a reference object in the library
     @param[in] objName  the name of the object in the library to find
     @param[in] mobj set to nullptr to create a new object, if set the library object is cloned onto
     the given object
     @return a pointer to the new object created/or cloned from the library object
     */
-    coreObject* makeLibraryObject(std::string_view objName, coreObject* mobj);
+    CoreObject* makeLibraryObject(std::string_view objName, CoreObject* mobj);
     /** @brief get a pointer to a library object
     @param[in] objName  the name of the object in the library to locate
     @return nullptr if no object found or a pointer to the library object
     */
-    coreObject* findLibraryObject(std::string_view objName) const;
+    CoreObject* findLibraryObject(std::string_view objName) const;
 
     /** @brief  find a collector stored in the readerInfo either by name or by sink location
     *@param[in] name  the name of the collector to find
@@ -119,9 +119,9 @@ class readerInfo: public basicReaderInfo {
     */
     std::shared_ptr<collector> findCollector(std::string_view name, std::string_view fileName);
     /** get the keyObject*/
-    coreObject* getKeyObject() { return keyObj; }
+    CoreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/
-    void setKeyObject(coreObject* obj) { keyObj = obj; }
+    void setKeyObject(CoreObject* obj) { keyObj = obj; }
     /** @brief change the scope for definitions and translations
     @return the new scopeID for closing the scope later */
     scopeID newScope();
@@ -247,3 +247,4 @@ class readerInfo: public basicReaderInfo {
 };
 
 }  // namespace griddyn
+

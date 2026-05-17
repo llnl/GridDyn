@@ -22,7 +22,7 @@ class GovernorIeeeSimple: public Governor {
     double Pdown;  //!< [pu] lower ramp limit
   public:
     explicit GovernorIeeeSimple(const std::string& objName = "govIeeeSimple_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorIeeeSimple();
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -59,3 +59,4 @@ class GovernorIeeeSimple: public Governor {
 };
 
 }  // namespace griddyn::governors
+

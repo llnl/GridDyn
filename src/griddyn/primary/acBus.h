@@ -86,19 +86,19 @@ class acBus: public gridBus {
 
     virtual ~acBus();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     using gridBus::add;
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief  add a gridBus object for merging buses*/
     virtual void add(acBus* bus);
     // remove components
     using gridBus::remove;
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
 
     virtual void remove(acBus* bus);
     // deal with control alerts
-    virtual void alert(coreObject* obj, int code) override;
+    virtual void alert(CoreObject* obj, int code) override;
 
     // dynInitializeB
     virtual void setOffsets(const solverOffsets& newOffsets, const solverMode& sMode) override;
@@ -383,3 +383,4 @@ class acBus: public gridBus {
 };
 
 }  // namespace griddyn
+

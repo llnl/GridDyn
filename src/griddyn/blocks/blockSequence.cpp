@@ -21,7 +21,7 @@ blockSequence::blockSequence(const std::string& objName): Block(objName)
 {
     opFlags[use_direct] = true;
 }
-coreObject* blockSequence::clone(coreObject* obj) const
+CoreObject* blockSequence::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<blockSequence, Block>(this, obj);
     if (nobj == nullptr) {
@@ -80,7 +80,7 @@ void blockSequence::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void blockSequence::add(coreObject* obj)
+void blockSequence::add(CoreObject* obj)
 {
     if (dynamic_cast<Block*>(obj) != nullptr) {
         add(static_cast<Block*>(obj));
@@ -313,7 +313,7 @@ double blockSequence::subBlockOutput(const std::string& blockname) const
     return kNullVal;
 }
 
-coreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "block") {
         if (std::cmp_less(num, blocks.size())) {
@@ -323,7 +323,7 @@ coreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) 
     return gridComponent::getSubObject(typeName, num);
 }
 
-coreObject* blockSequence::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* blockSequence::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "block") {
         for (const auto& blk : blocks) {
@@ -336,3 +336,4 @@ coreObject* blockSequence::findByUserID(std::string_view typeName, index_t searc
 }
 
 }  // namespace griddyn::blocks
+

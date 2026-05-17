@@ -13,7 +13,7 @@
 
 namespace griddyn::sources {
 rampSource::rampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
-coreObject* rampSource::clone(coreObject* obj) const
+CoreObject* rampSource::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<rampSource, Source>(this, obj);
     if (ld == nullptr) {
@@ -51,3 +51,4 @@ double rampSource::getDoutdt(const IOdata& /*inputs*/,
     return (num == 0) ? mp_dOdt : 0.0;
 }
 }  // namespace griddyn::sources
+

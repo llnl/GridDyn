@@ -27,7 +27,7 @@
 namespace griddyn {
 class gridParameter;
 class readerInfo;
-class coreObject;
+class CoreObject;
 class basicReaderInfo;
 
 void paramStringProcess(gridParameter& param, readerInfo& readerInformation);
@@ -45,16 +45,17 @@ bool readMatlabArray(const std::string& name, const std::string& text, mArray& m
 stringVec readMatlabCellArray(const std::string& text, size_t start);
 void removeMatlabComments(std::string& text);
 
-void loadPSAT(coreObject* parentObject,
+void loadPSAT(CoreObject* parentObject,
               const std::string& fileText,
               const basicReaderInfo& readerOptions);
-void loadMatPower(coreObject* parentObject,
+void loadMatPower(CoreObject* parentObject,
                   const std::string& fileText,
                   const std::string& baseName,
                   const basicReaderInfo& readerOptions);
-void loadMatDyn(coreObject* parentObject, const std::string& fileText, const basicReaderInfo& bri);
-void loadMatDynEvent(coreObject* parentObject,
+void loadMatDyn(CoreObject* parentObject, const std::string& fileText, const basicReaderInfo& bri);
+void loadMatDynEvent(CoreObject* parentObject,
                      const std::string& fileText,
                      const basicReaderInfo& bri);
 
 }  // namespace griddyn
+

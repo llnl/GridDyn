@@ -58,7 +58,7 @@ class FmiMESubModel: public gridSubModel {
 
     FmiMESubModel(std::shared_ptr<Fmi2ModelExchangeObject> fmi = nullptr);
     virtual ~FmiMESubModel();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -165,3 +165,4 @@ class FmiMESubModel: public gridSubModel {
 };
 
 }  // namespace griddyn::fmi
+

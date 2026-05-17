@@ -24,7 +24,7 @@ namespace griddyn {
 class coreObjectList {
   private:
     struct objectRecord {
-        coreObject* object = nullptr;
+        CoreObject* object = nullptr;
         std::string name;
         index_t userID = 0;
     };
@@ -45,13 +45,13 @@ class coreObjectList {
      * @param[in] replace an optional indicator telling whether to replace the object or nor
      * @return a bool indicating successful insertion
      */
-    bool insert(coreObject* obj, bool replace = false);
+    bool insert(CoreObject* obj, bool replace = false);
     /** @brief remove an object
      * function to remove an object from the container
      * @param[in] obj the object to insert
      * @return a bool indicating successful removal (0 on success, -1 on failure) const
      */
-    bool remove(coreObject* obj);
+    bool remove(CoreObject* obj);
     /** @brief remove an object by name
      * function to remove an object from the container
      * @param[in] objName the name of the object to remove
@@ -64,27 +64,27 @@ class coreObjectList {
      * @param[in] objName the name of the object to search for
      * @return a pointer to the object if found otherwise nullptr
      */
-    coreObject* find(std::string_view objName) const;
+    CoreObject* find(std::string_view objName) const;
 
     /** @brief find object by id
      * function to find an object by user id code
      * @param[in] searchID the user id of the object to search for
      * @return a vector of objects with the appropriate searchID
      */
-    std::vector<coreObject*> find(index_t searchID) const;
+    std::vector<CoreObject*> find(index_t searchID) const;
 
     /** @brief check if an object is already contained
      * function to find an object by id
      * @param[in] obj to check
      * @return a bool indicating if the object is a member or not
      */
-    bool isMember(const coreObject* obj) const;
+    bool isMember(const CoreObject* obj) const;
 
     /**
     * @brief deletes all object pointed to by the list
     calls the condDel
     */
-    void deleteAll(coreObject* parent);
+    void deleteAll(CoreObject* parent);
 
     /** @brief get the size of the list
 
@@ -96,7 +96,8 @@ class coreObjectList {
     * @brief update a single object with a name change or index change
     @param[in] obj the object with the change
     */
-    void updateObject(coreObject* obj);
+    void updateObject(CoreObject* obj);
 };
 
 }  // namespace griddyn
+

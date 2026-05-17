@@ -42,12 +42,12 @@ class grabberSet: public objectOperatorInterface {
     @param[in] obj the object to get the field from
     @param[in] step_only if set to true the underlying stateGrabber is not constructed
     */
-    grabberSet(std::string_view fld, coreObject* obj, bool step_only = false);
+    grabberSet(std::string_view fld, CoreObject* obj, bool step_only = false);
     /** create a grabber from an offset index
     @param[in] noffset the offset into the state to grab
     @param[in] obj the object to get the field from
     */
-    grabberSet(index_t noffset, coreObject* obj);
+    grabberSet(index_t noffset, CoreObject* obj);
     /** create a grabber from a gridGrabber and stateGrabber*/
     grabberSet(std::shared_ptr<gridGrabber> ggrab, std::shared_ptr<stateGrabber> stgrab);
     /** destructor*/
@@ -92,10 +92,10 @@ class grabberSet: public objectOperatorInterface {
     virtual std::string getDesc();
     /** set the grabber description*/
     void setDescription(const std::string& newDesc);
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** set the gain of the grabbers*/
     void setGain(double newGain);
     /** check if the grabberSet is using state information*/
@@ -105,3 +105,4 @@ class grabberSet: public objectOperatorInterface {
 };
 
 }  // namespace griddyn
+

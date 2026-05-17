@@ -16,7 +16,7 @@
 #include <utility>
 
 namespace griddyn::fmi {
-FmiCoordinator::FmiCoordinator(const std::string& /* unused */): coreObject("fmiCoordinator") {}
+FmiCoordinator::FmiCoordinator(const std::string& /* unused */): CoreObject("fmiCoordinator") {}
 
 static auto searchFunc = [](const auto& vp1, const auto& vp2) { return (vp1.first < vp2.first); };
 
@@ -206,3 +206,4 @@ bool FmiCoordinator::isStringParameter(const VrInputPair& param)
 }
 
 }  // namespace griddyn::fmi
+

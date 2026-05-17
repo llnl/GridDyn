@@ -47,7 +47,7 @@ void propertyBuffer::clear()
 {
     properties.clear();
 }
-void propertyBuffer::apply(coreObject* obj) const
+void propertyBuffer::apply(CoreObject* obj) const
 {
     for (const auto& prop : properties) {
         switch (prop.second.index()) {
@@ -75,3 +75,4 @@ void propertyBuffer::apply(coreObject* obj) const
 }
 
 }  // namespace griddyn
+

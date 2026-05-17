@@ -31,7 +31,7 @@ functionBlock::functionBlock(const std::string& functionName): Block("functionBl
     setFunction(functionName);
 }
 
-coreObject* functionBlock::clone(coreObject* obj) const
+CoreObject* functionBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<functionBlock, Block>(this, obj);
     if (nobj == nullptr) {
@@ -193,3 +193,4 @@ return m_state[0];
 }
 */
 }  // namespace griddyn::blocks
+

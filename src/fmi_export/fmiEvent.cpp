@@ -18,7 +18,7 @@ FmiEvent::FmiEvent(const std::string& newName, FmiEventType type):
 
 FmiEvent::FmiEvent(FmiEventType type): mEventType(type) {}
 
-FmiEvent::FmiEvent(const EventInfo& gdEI, coreObject* rootObject): reversibleEvent(gdEI, rootObject)
+FmiEvent::FmiEvent(const EventInfo& gdEI, CoreObject* rootObject): reversibleEvent(gdEI, rootObject)
 {
     findCoordinator();
 }
@@ -64,13 +64,13 @@ void FmiEvent::set(std::string_view param, std::string_view val)
     }
 }
 
-void FmiEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void FmiEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     reversibleEvent::updateEvent(gdEI, rootObject);
     findCoordinator();
 }
 
-bool FmiEvent::setTarget(coreObject* gdo, std::string_view var)
+bool FmiEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     auto ret = reversibleEvent::setTarget(gdo, var);
     if (ret) {
@@ -79,12 +79,12 @@ bool FmiEvent::setTarget(coreObject* gdo, std::string_view var)
     return ret;
 }
 
-coreObject* FmiEvent::getOwner() const
+CoreObject* FmiEvent::getOwner() const
 {
     return mCoordinator;
 }
 
-void FmiEvent::updateObject(coreObject* gco, object_update_mode mode)
+void FmiEvent::updateObject(CoreObject* gco, object_update_mode mode)
 {
     reversibleEvent::updateObject(gco, mode);
     findCoordinator();
@@ -111,3 +111,4 @@ void FmiEvent::findCoordinator()
 }
 
 }  // namespace griddyn::fmi
+

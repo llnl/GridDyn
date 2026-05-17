@@ -25,7 +25,7 @@ deadbandBlock::deadbandBlock(double deadbandWidth, const std::string& objName):
     opFlags.set(use_state);
 }
 
-coreObject* deadbandBlock::clone(coreObject* obj) const
+CoreObject* deadbandBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<deadbandBlock, Block>(this, obj);
     if (nobj == nullptr) {
@@ -566,3 +566,4 @@ void deadbandBlock::set(std::string_view param, double val, units::unit unitType
     }
 }
 }  // namespace griddyn::blocks
+

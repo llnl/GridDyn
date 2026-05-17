@@ -18,7 +18,7 @@ class GovernorReheat: public Governor {
     double T5;  //!< [s]    Reheat time constant
   public:
     explicit GovernorReheat(const std::string& objName = "govReheat_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorReheat();
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -45,3 +45,4 @@ class GovernorReheat: public Governor {
 };
 
 }  // namespace griddyn::governors
+

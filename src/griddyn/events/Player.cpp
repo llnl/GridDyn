@@ -19,7 +19,7 @@ Player::Player(const std::string& eventName): Event(eventName) {}
 
 Player::Player(coreTime time0, double loopPeriod): Event(time0), period(loopPeriod) {}
 
-Player::Player(const EventInfo& gdEI, coreObject* rootObject):
+Player::Player(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject), period(gdEI.period)
 {
     if (gdEI.file.empty()) {
@@ -32,7 +32,7 @@ Player::Player(const EventInfo& gdEI, coreObject* rootObject):
     }
 }
 
-void Player::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void Player::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     if (gdEI.file.empty()) {
         setTimeValue(gdEI.time, gdEI.value);
@@ -216,7 +216,7 @@ change_code Player::trigger(coreTime time)
 
 void Player::initialize() {}
 
-bool Player::setTarget(coreObject* gdo, std::string_view var)
+bool Player::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;
@@ -242,3 +242,4 @@ void Player::loadEventFile(const std::string& fileName)
     setNextValue();
 }
 }  // namespace griddyn::events
+

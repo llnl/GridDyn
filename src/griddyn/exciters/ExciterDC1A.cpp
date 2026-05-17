@@ -29,7 +29,7 @@ ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
 }
 
 // cloning function
-coreObject* ExciterDC1A::clone(coreObject* obj) const
+CoreObject* ExciterDC1A::clone(CoreObject* obj) const
 {
     ExciterDC1A* gdE;
     if (obj == nullptr) {
@@ -260,3 +260,4 @@ void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::exciters
+

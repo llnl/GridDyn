@@ -27,7 +27,7 @@ static const char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
-                        coreObject* searchObject)
+                        CoreObject* searchObject)
 {
     auto riScope = readerInformation.newScope();
 
@@ -86,3 +86,4 @@ gridBus* readBusElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

@@ -58,10 +58,10 @@ class stateGrabber: public objectOperatorInterface {
     index_t prevIndex = kInvalidLocation;  //!< temporary storage of the previous index
   public:
     stateGrabber() = default;
-    explicit stateGrabber(coreObject* obj);
+    explicit stateGrabber(CoreObject* obj);
 
-    stateGrabber(std::string_view fld, coreObject* obj);
-    stateGrabber(index_t noffset, coreObject* obj);
+    stateGrabber(std::string_view fld, CoreObject* obj);
+    stateGrabber(index_t noffset, CoreObject* obj);
     /** clone the grabber*/
     virtual std::unique_ptr<stateGrabber> clone() const;
     /** clone a grabber to another grabber
@@ -85,10 +85,10 @@ class stateGrabber: public objectOperatorInterface {
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** get the Jacobian abilities of a grabber*/
     JacobianMode getJacobianMode() const { return jacMode; }
 
@@ -117,7 +117,7 @@ using fstateobjectPair = std::pair<
 @return a vector of unique_ptrs to stateGrabbers containing all the generated grabbers
 */
 std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
-                                                             coreObject* obj);
+                                                             CoreObject* obj);
 
 /**
 class with an additional capability of a totally custom function grabber call
@@ -157,9 +157,9 @@ class stateFunctionGrabber: public stateGrabber {
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getObject() const override;
+    virtual CoreObject* getObject() const override;
     virtual void updateField(std::string_view fld) override;
 };
 
@@ -184,15 +184,16 @@ class stateOpGrabber: public stateGrabber {
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
     /** overload for updating an object to a specific number of the underlying stateGrabbers
     @param[in] obj the new targetObject
     @param[in] num the index of the underlying state grabber to update
     */
-    void updateObject(coreObject* obj, int num);
-    virtual coreObject* getObject() const override;
+    void updateObject(CoreObject* obj, int num);
+    virtual CoreObject* getObject() const override;
     virtual void updateField(std::string_view opName) override;
 };
 
 }  // namespace griddyn
+

@@ -33,7 +33,7 @@ schedulerReg::schedulerReg(double initialValue, double initialReg, const std::st
     rampTime = 600;
 }
 
-coreObject* schedulerReg::clone(coreObject* obj) const
+CoreObject* schedulerReg::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<schedulerReg, schedulerRamp>(this, obj);
     if (nobj == nullptr) {
@@ -359,3 +359,4 @@ void schedulerReg::receiveMessage(std::uint64_t sourceID,
 }
 
 }  // namespace griddyn
+

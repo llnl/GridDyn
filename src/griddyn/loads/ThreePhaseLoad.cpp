@@ -43,7 +43,7 @@ void ThreePhaseLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     Load::pFlowObjectInitializeA(time0, flags);
 }
 
-coreObject* ThreePhaseLoad::clone(coreObject* obj) const
+CoreObject* ThreePhaseLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<ThreePhaseLoad, Load>(this, obj);
     if (nobj == nullptr) {
@@ -460,3 +460,4 @@ const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
 
 // NOLINTEND(readability-identifier-length,bugprone-throwing-static-initialization,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 }  // namespace griddyn::loads
+

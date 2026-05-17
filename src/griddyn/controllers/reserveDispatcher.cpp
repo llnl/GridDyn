@@ -61,9 +61,9 @@ protected:
 };
 
 */
-reserveDispatcher::reserveDispatcher(const std::string& objName): coreObject(objName) {}
+reserveDispatcher::reserveDispatcher(const std::string& objName): CoreObject(objName) {}
 
-coreObject* reserveDispatcher::clone(coreObject* obj) const
+CoreObject* reserveDispatcher::clone(CoreObject* obj) const
 {
     reserveDispatcher* nobj;
     if (obj == nullptr) {
@@ -72,11 +72,11 @@ coreObject* reserveDispatcher::clone(coreObject* obj) const
         nobj = dynamic_cast<reserveDispatcher*>(obj);
         if (nobj == nullptr) {
             // if we can't cast the pointer clone at the next lower level
-            coreObject::clone(obj);
+            CoreObject::clone(obj);
             return obj;
         }
     }
-    coreObject::clone(nobj);
+    CoreObject::clone(nobj);
     nobj->thresholdStart = thresholdStart;
     nobj->thresholdStop = thresholdStop;
     nobj->dispatchInterval = dispatchInterval;  // 5 minutes
@@ -174,7 +174,7 @@ void reserveDispatcher::remove(schedulerRamp* sched)
     }
 }
 
-void reserveDispatcher::add(coreObject* obj)
+void reserveDispatcher::add(CoreObject* obj)
 {
     if (dynamic_cast<schedulerRamp*>(obj) != nullptr) {
         add(static_cast<schedulerRamp*>(obj));
@@ -193,7 +193,7 @@ void reserveDispatcher::add(schedulerRamp* sched)
     checkGen();
 }
 
-void reserveDispatcher::remove(coreObject* obj)
+void reserveDispatcher::remove(CoreObject* obj)
 {
     if (dynamic_cast<schedulerRamp*>(obj) != nullptr) {
         remove(static_cast<schedulerRamp*>(obj));
@@ -202,7 +202,7 @@ void reserveDispatcher::remove(coreObject* obj)
 
 void reserveDispatcher::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 
 void reserveDispatcher::set(std::string_view param, double val, units::unit unitType)
@@ -217,7 +217,7 @@ void reserveDispatcher::set(std::string_view param, double val, units::unit unit
     } else if ((param == "dispatchinterval") || (param == "interval")) {
         dispatchInterval = val;
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
@@ -291,3 +291,4 @@ void reserveDispatcher::dispatch(double level)
 }
 
 }  // namespace griddyn
+

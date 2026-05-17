@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 namespace griddyn {
-class coreObject;
+class CoreObject;
 
 /** @brief class implementing a discrete event queue for a continuous time simulation
  the time check on events includes a tolerance to allow for numerical error in the execution of
@@ -107,7 +107,7 @@ class eventQueue {
     virtual void cloneTo(eventQueue* eq) const;
     /** @brief map all objects used in the events to a new root object
      */
-    virtual void mapObjectsOnto(coreObject* newRootObject);
+    virtual void mapObjectsOnto(CoreObject* newRootObject);
     /** @brief Execute the events up to the given time
   @param[in] cTime the current Time
   @return code describing the effect of the executed events
@@ -140,7 +140,7 @@ class eventQueue {
     virtual void recheck();
 
     /** @brief get a vector of all the objects referenced in the event queue*/
-    virtual void getEventObjects(std::vector<coreObject*>& objV) const;
+    virtual void getEventObjects(std::vector<CoreObject*>& objV) const;
 
     /** @brief set parameters for the queue
   @param[in] param a string representing the parameter to set
@@ -162,10 +162,11 @@ class eventQueue {
 
   private:
     /** @brief check for duplicate events and remove the duplicate
-      this is important for removing duplicate coreObject events so we don't have two of those being
+      this is important for removing duplicate CoreObject events so we don't have two of those being
       executed which could cause all sorts of issues with the simulation
       */
     virtual void checkDuplicates();
 };
 
 }  // namespace griddyn
+

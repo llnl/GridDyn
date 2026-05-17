@@ -30,7 +30,7 @@ GovernorReheat::GovernorReheat(const std::string& objName): Governor(objName)
     offsets.local().local.jacSize = 12;
 }
 
-coreObject* GovernorReheat::clone(coreObject* obj) const
+CoreObject* GovernorReheat::clone(CoreObject* obj) const
 {
     auto* gov = cloneBase<GovernorReheat, Governor>(this, obj);
     if (gov == nullptr) {
@@ -224,3 +224,4 @@ void GovernorReheat::set(std::string_view param, double val, unit unitType)
     }
 }
 }  // namespace griddyn::governors
+

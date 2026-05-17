@@ -82,7 +82,7 @@ AGControl::AGControl(const std::string& objName): gridSubModel(objName)
     db->set("rampband", 4);
 }
 
-coreObject* AGControl::clone(coreObject* obj) const
+CoreObject* AGControl::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<AGControl, gridSubModel>(this, obj);
     if (nobj == nullptr) {
@@ -168,7 +168,7 @@ void AGControl::timestep(coreTime time, const IOdata& inputs, const solverMode& 
     }
 }
 
-void AGControl::add(coreObject* obj)
+void AGControl::add(CoreObject* obj)
 {
     if (dynamic_cast<schedulerReg*>(obj) != nullptr) {
         add(static_cast<schedulerReg*>(obj));
@@ -187,7 +187,7 @@ void AGControl::add(schedulerReg* sched)
     regChange();
 }
 
-void AGControl::remove(coreObject* obj)
+void AGControl::remove(CoreObject* obj)
 {
     for (index_t kk = 0; kk < schedCount; kk++) {
         if (isSameObject(schedList[kk], obj)) {
@@ -203,7 +203,7 @@ void AGControl::remove(coreObject* obj)
 
 void AGControl::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 
 void AGControl::set(std::string_view param, double val, units::unit unitType)
@@ -227,7 +227,7 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
         Tr = val;
         filt2->set("T1", Tr);
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
@@ -260,3 +260,4 @@ AGControl* newAGC(const std::string& type)
 }
 
 }  // namespace griddyn
+

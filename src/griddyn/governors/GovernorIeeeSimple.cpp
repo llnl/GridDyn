@@ -34,7 +34,7 @@ GovernorIeeeSimple::GovernorIeeeSimple(const std::string& objName): Governor(obj
     opFlags.set(ignore_throttle);
 }
 
-coreObject* GovernorIeeeSimple::clone(coreObject* obj) const
+CoreObject* GovernorIeeeSimple::clone(CoreObject* obj) const
 {
     auto* gov = cloneBase<GovernorIeeeSimple, Governor>(this, obj);
     if (gov == nullptr) {
@@ -270,3 +270,4 @@ void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
 }
 
 }  // namespace griddyn::governors
+

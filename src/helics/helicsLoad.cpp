@@ -22,7 +22,7 @@ HelicsLoad::HelicsLoad(const std::string& objName):
 {
 }
 
-coreObject* HelicsLoad::clone(coreObject* obj) const
+CoreObject* HelicsLoad::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<HelicsLoad, loads::rampLoad>(this, obj);
     if (nobj == nullptr) {
@@ -224,3 +224,4 @@ void HelicsLoad::setSubscription()
 }
 
 }  // namespace griddyn::helicsLib
+

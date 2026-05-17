@@ -50,7 +50,7 @@ class HelicsCollector;
 class HelicsEvent;
 
 /** class to manage the linkages from HELICS to the GridDyn objects*/
-class HelicsCoordinator: public coreObject {
+class HelicsCoordinator: public CoreObject {
   private:
     static std::unordered_map<std::string, HelicsCoordinator*> registry;
     static std::mutex registryProtection;
@@ -220,3 +220,4 @@ class HelicsCoordinator: public coreObject {
 };
 
 }  // namespace griddyn::helicsLib
+

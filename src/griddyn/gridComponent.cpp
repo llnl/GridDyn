@@ -26,7 +26,7 @@ namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::ensureSizeAtLeast;
 
-gridComponent::gridComponent(const std::string& objName): coreObject(objName)
+gridComponent::gridComponent(const std::string& objName): CoreObject(objName)
 {
     offsets.setAlgOffset(0, cLocalSolverMode);
 }
@@ -39,9 +39,9 @@ gridComponent::~gridComponent()
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-coreObject* gridComponent::clone(coreObject* obj) const
+CoreObject* gridComponent::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<gridComponent, coreObject>(this, obj);
+    auto* nobj = cloneBase<gridComponent, CoreObject>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -114,7 +114,7 @@ coreObject* gridComponent::clone(coreObject* obj) const
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void gridComponent::updateObjectLinkages(coreObject* newRoot)
+void gridComponent::updateObjectLinkages(CoreObject* newRoot)
 {
     for (auto* subobj : getSubObjects()) {
         subobj->updateObjectLinkages(newRoot);
@@ -442,7 +442,7 @@ void gridComponent::setFlag(std::string_view flag, bool val)
     } else if (subObjectSet(flag, val)) {
         return;
     } else {
-        coreObject::setFlag(flag, val);
+        CoreObject::setFlag(flag, val);
     }
 }
 
@@ -451,7 +451,7 @@ static const std::vector<index_t> parentSettableFlags{sampled_only,
                                                       no_gridcomponent_set,
                                                       separate_processing};
 
-void gridComponent::parentSetFlag(index_t flagID, bool val, coreObject* checkParent)
+void gridComponent::parentSetFlag(index_t flagID, bool val, CoreObject* checkParent)
 {
     if (isSameObject(getParent(), checkParent)) {
         if (std::binary_search(parentSettableFlags.begin(), parentSettableFlags.end(), flagID)) {
@@ -526,7 +526,7 @@ bool gridComponent::getFlag(std::string_view flag) const
     if (flagfind != flagmap.end()) {
         return opFlags[flagfind->second];
     }
-    return coreObject::getFlag(flag);
+    return CoreObject::getFlag(flag);
 }
 
 bool gridComponent::checkFlag(index_t flagID) const
@@ -564,7 +564,7 @@ static const stringVec locStrStrings{"status"};
 
 void gridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<gridComponent, coreObject>(this, pstr, locNumStrings, locStrStrings, {}, pstype);
+    getParamString<gridComponent, CoreObject>(this, pstr, locNumStrings, locStrStrings, {}, pstype);
 }
 
 void gridComponent::set(std::string_view param, std::string_view val)
@@ -603,7 +603,7 @@ void gridComponent::set(std::string_view param, std::string_view val)
     } else if (subObjectSet(param, val)) {
         return;
     } else {
-        coreObject::set(param, val);
+        CoreObject::set(param, val);
     }
 }
 
@@ -717,7 +717,7 @@ void gridComponent::set(std::string_view param, double val, units::unit unitType
     } else if (subObjectSet(param, val, unitType)) {
         return;
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
@@ -781,7 +781,7 @@ double gridComponent::get(std::string_view param, units::unit unitType) const
                     }
                 }
             }
-            out = coreObject::get(param, unitType);
+            out = CoreObject::get(param, unitType);
         }
     }
     return out;
@@ -794,7 +794,7 @@ void gridComponent::addSubObject(gridComponent* comp)
     }
     if (std::any_of(subObjectList.begin(),
                     subObjectList.end(),
-                    [comp](const coreObject* subObject) {
+                    [comp](const CoreObject* subObject) {
                         return isSameObject(subObject, comp);
                     })) {
         return;
@@ -816,7 +816,7 @@ void gridComponent::removeSubObject(gridComponent* obj)
 {
     if (!subObjectList.empty()) {
         auto rmobj =
-            std::find_if(subObjectList.begin(), subObjectList.end(), [obj](coreObject* subObject) {
+            std::find_if(subObjectList.begin(), subObjectList.end(), [obj](CoreObject* subObject) {
                 return isSameObject(subObject, obj);
             });
         if (rmobj != subObjectList.end()) {
@@ -842,7 +842,7 @@ void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldOb
     }
     auto repobj = std::find_if(subObjectList.begin(),
                                subObjectList.end(),
-                               [oldObj](const coreObject* subObject) {
+                               [oldObj](const CoreObject* subObject) {
                                    return isSameObject(subObject, oldObj);
                                });
     if (repobj != subObjectList.end()) {
@@ -863,7 +863,7 @@ void gridComponent::replaceSubObject(gridComponent* newObj, gridComponent* oldOb
         return;
     }
 }
-void gridComponent::remove(coreObject* obj)
+void gridComponent::remove(CoreObject* obj)
 {
     if (dynamic_cast<gridComponent*>(obj) != nullptr) {
         removeSubObject(static_cast<gridComponent*>(obj));
@@ -1309,7 +1309,7 @@ static const std::map<int, int> alertFlags{
     std::make_pair(CONSTRAINT_COUNT_CHANGE, 1),
 };
 
-void gridComponent::alert(coreObject* object, int code)
+void gridComponent::alert(CoreObject* object, int code)
 {
     if ((code >= MIN_CHANGE_ALERT) && (code <= MAX_CHANGE_ALERT)) {
         auto res = alertFlags.find(code);
@@ -1340,7 +1340,7 @@ void gridComponent::alert(coreObject* object, int code)
             }
         }
     }
-    coreObject::alert(object, code);
+    CoreObject::alert(object, code);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -1606,7 +1606,7 @@ void gridComponent::updateLocalCache(const IOdata& inputs,
     }
 }
 
-coreObject* gridComponent::find(std::string_view object) const
+CoreObject* gridComponent::find(std::string_view object) const
 {
     auto foundobj =
         std::find_if(subObjectList.begin(), subObjectList.end(), [object](gridComponent* comp) {
@@ -1620,10 +1620,10 @@ coreObject* gridComponent::find(std::string_view object) const
     if (rlc2 != std::string_view::npos) {
         return nullptr;
     }
-    return coreObject::find(object);
+    return CoreObject::find(object);
 }
 
-coreObject* gridComponent::getSubObject(std::string_view typeName, index_t objectNum) const
+CoreObject* gridComponent::getSubObject(std::string_view typeName, index_t objectNum) const
 {
     if ((typeName == "sub") || (typeName == "subobject") || (typeName == "object")) {
         if (isValidIndex(objectNum, subObjectList)) {
@@ -1633,7 +1633,7 @@ coreObject* gridComponent::getSubObject(std::string_view typeName, index_t objec
     return nullptr;
 }
 
-coreObject* gridComponent::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* gridComponent::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if ((typeName == "sub") || (typeName == "subobject") || (typeName == "object")) {
         auto foundobj = std::find_if(subObjectList.begin(),
@@ -1646,7 +1646,7 @@ coreObject* gridComponent::findByUserID(std::string_view typeName, index_t searc
         }
         return *foundobj;
     }
-    return coreObject::findByUserID(typeName, searchID);
+    return CoreObject::findByUserID(typeName, searchID);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -2000,3 +2000,4 @@ void printStateNames(const gridComponent* comp, const solverMode& sMode)
 }
 
 }  // namespace griddyn
+

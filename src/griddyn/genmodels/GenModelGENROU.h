@@ -14,7 +14,7 @@ class GenModelGENROU: public GenModel5 {
   protected:
   public:
     explicit GenModelGENROU(const std::string& objName = "genrou_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -43,3 +43,4 @@ class GenModelGENROU: public GenModel5 {
 };
 
 }  // namespace griddyn::genmodels
+

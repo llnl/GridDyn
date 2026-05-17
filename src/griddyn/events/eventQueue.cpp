@@ -73,7 +73,7 @@ void eventQueue::cloneTo(eventQueue* eQ) const
     eQ->timeTols = timeTols;
 }
 
-void eventQueue::mapObjectsOnto(coreObject* newRootObject)
+void eventQueue::mapObjectsOnto(CoreObject* newRootObject)
 {
     for (auto& ev : events) {
         ev->updateObject(newRootObject, object_update_mode::match);
@@ -214,13 +214,13 @@ void eventQueue::sort()
 }
 
 void eventQueue::checkDuplicates()
-{  // checking for duplicated coreObject updates which could potentially be bad
+{  // checking for duplicated CoreObject updates which could potentially be bad
     // this function is a private function and should only be called from inside a locked scope
     auto pred = [](const auto& a, const auto& b) -> bool {
         if (typeid(*a) == typeid(*b)) {
-            auto ap = dynamic_cast<eventTypeAdapter<coreObject>*>(a.get());
+            auto ap = dynamic_cast<eventTypeAdapter<CoreObject>*>(a.get());
             if (ap != nullptr) {
-                auto bp = static_cast<eventTypeAdapter<coreObject>*>(b.get());
+                auto bp = static_cast<eventTypeAdapter<CoreObject>*>(b.get());
                 if (isSameObject(ap->getTarget(), bp->getTarget())) {
                     return true;
                 }
@@ -234,7 +234,7 @@ void eventQueue::checkDuplicates()
     }
 }
 
-void eventQueue::getEventObjects(std::vector<coreObject*>& objV) const
+void eventQueue::getEventObjects(std::vector<CoreObject*>& objV) const
 {
     for (auto& ev : events) {
         ev->getObjects(objV);
@@ -263,3 +263,4 @@ void eventQueue::set(std::string_view param, double val)
 }
 
 }  // namespace griddyn
+

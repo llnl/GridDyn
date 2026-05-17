@@ -16,7 +16,7 @@
 
 namespace griddyn::genmodels {
 GenModel6type2::GenModel6type2(const std::string& objName): GenModel5type2(objName) {}
-coreObject* GenModel6type2::clone(coreObject* obj) const
+CoreObject* GenModel6type2::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel6type2, GenModel5type2>(this, obj);
     if (gd == nullptr) {
@@ -268,3 +268,4 @@ stringVec GenModel6type2::localStateNames() const
     return genModel6type2Names;
 }
 }  // namespace griddyn::genmodels
+

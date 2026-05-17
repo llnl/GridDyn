@@ -17,7 +17,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
     double Tf2 = 1.0;  // [s]    stabilizer time constant
   public:
     explicit ExciterIEEEtype2(const std::string& objName = "exciterIEEEtype2_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -55,3 +55,4 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
 };
 
 }  // namespace griddyn::exciters
+

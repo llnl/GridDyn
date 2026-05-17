@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "../gtestHelper.h"
 
@@ -158,7 +158,7 @@ TEST_F(XmlTests, XmlTest4)
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
 
     obj = gen->find("exciter");
     ASSERT_NE(obj, nullptr);
@@ -195,7 +195,7 @@ TEST_F(XmlTests, XmlTest5)
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
 
     obj = ri.findLibraryObject("ex1");
     ASSERT_NE(obj, nullptr);
@@ -238,7 +238,7 @@ TEST_F(XmlTests, XmlTest6)
     ASSERT_NE(gen, nullptr);
     GenModel* gm = nullptr;
 
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
 
     obj = gen->find("genmodel");
     ASSERT_NE(obj, nullptr);
@@ -269,7 +269,7 @@ TEST_F(XmlTests, XmlTest7)
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
 
     obj = gen->find("exciter");
     ASSERT_NE(obj, nullptr);
@@ -514,3 +514,4 @@ TEST_F(XmlTests, TestQueryIf)
     // This will show up as 2 or 0 if the conditions are not working properly
     EXPECT_EQ(bus->get("gencount"), 1);
 }
+

@@ -31,13 +31,13 @@ static void cdfReadBusLine(gridBus* bus,
                            const std::string& line,
                            double base,
                            const basicReaderInfo& readerOptions);
-static void cdfReadBranch(coreObject* parentObject,
+static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<gridBus*> busList,
                           const basicReaderInfo& readerOptions);
 
-void loadCdf(coreObject* parentObject,
+void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -402,7 +402,7 @@ Columns 113-119 Minimum voltage, MVAR or MW limit (F)
 Columns 120-126 Maximum voltage, MVAR or MW limit (F)
 */
 
-static void cdfReadBranch(coreObject* parentObject,
+static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<gridBus*> busList,
@@ -585,3 +585,4 @@ double convertBV(std::string& baseVoltageCode)
 }
 
 }  // namespace griddyn
+

@@ -18,7 +18,7 @@
 namespace griddyn::fmi {
 FmiMELoad::FmiMELoad(const std::string& objName): FmiMEWrapper<Load>(objName) {}
 
-coreObject* FmiMELoad::clone(coreObject* obj) const
+CoreObject* FmiMELoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiMELoad, FmiMEWrapper<Load>>(this, obj);
     if (nobj == nullptr) {
@@ -107,3 +107,4 @@ IOdata FmiMELoad::translateOutput(const IOdata& fmiOutput, const IOdata& busV)
     return powers;
 }
 }  // namespace griddyn::fmi
+

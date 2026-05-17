@@ -45,7 +45,7 @@ class zipLoad: public Load {
     explicit zipLoad(const std::string& objName = "zip_$");
     zipLoad(double rP, double rQ, const std::string& objName = "zip_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -129,3 +129,4 @@ class zipLoad: public Load {
 bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool printDiff = false);
 
 }  // namespace griddyn
+

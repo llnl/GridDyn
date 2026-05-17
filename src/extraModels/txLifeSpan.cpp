@@ -28,7 +28,7 @@ txLifeSpan::txLifeSpan(const std::string& objName): sensor(objName)
     m_outputSize = 3;
 }
 
-coreObject* txLifeSpan::clone(coreObject* obj) const
+CoreObject* txLifeSpan::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<txLifeSpan, sensor>(this, obj);
     if (nobj == nullptr) {
@@ -81,7 +81,7 @@ double txLifeSpan::get(std::string_view param, units::unit unitType) const
     return sensor::get(param, unitType);
 }
 
-void txLifeSpan::add(coreObject* /*obj*/)
+void txLifeSpan::add(CoreObject* /*obj*/)
 {
     throw(unrecognizedObjectException(this));
 }
@@ -120,7 +120,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::set("output1", "block0");
 
         auto rateGrabber = std::make_shared<customGrabber>();
-        rateGrabber->setGrabberFunction("rate", [this](coreObject*) -> double {
+        rateGrabber->setGrabberFunction("rate", [this](CoreObject*) -> double {
             return mAgingAccelerationFactor;
         });
         sensor::add(rateGrabber);
@@ -204,3 +204,4 @@ void txLifeSpan::actionTaken(index_t actionNumber,
 }
 
 }  // namespace griddyn::extra
+

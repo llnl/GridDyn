@@ -14,11 +14,11 @@
 #include <vector>
 
 namespace griddyn {
-GridOptObject::GridOptObject(const std::string& objName): coreObject(objName) {}
+GridOptObject::GridOptObject(const std::string& objName): CoreObject(objName) {}
 
-coreObject* GridOptObject::clone(coreObject* obj) const
+CoreObject* GridOptObject::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<GridOptObject, coreObject>(this, obj);
+    auto* nobj = cloneBase<GridOptObject, CoreObject>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -225,10 +225,10 @@ void GridOptObject::set(std::string_view param, std::string_view val)
                 enable();
             }
         } else {
-            coreObject::set(param, val);
+            CoreObject::set(param, val);
         }
     } else {
-        coreObject::set(param, val);
+        CoreObject::set(param, val);
     }
 }
 
@@ -236,7 +236,7 @@ void GridOptObject::set(std::string_view param, double val, units::unit unitType
 {
     if (param == "#") {
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
@@ -444,3 +444,4 @@ void printObjectiveStateNames(GridOptObject* obj, const OptimizationMode& oMode)
 }
 
 }  // namespace griddyn
+

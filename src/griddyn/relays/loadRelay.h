@@ -29,7 +29,7 @@ class loadRelay: public Relay {
                                   //!< cause has been corrected
   public:
     explicit loadRelay(const std::string& objName = "loadRelay_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
@@ -47,3 +47,4 @@ class loadRelay: public Relay {
     virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
 };
 }  // namespace griddyn::relays
+

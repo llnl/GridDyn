@@ -28,7 +28,7 @@ zonalRelay::zonalRelay(const std::string& objName): Relay(objName)
     opFlags.set(continuous_flag);
 }
 
-coreObject* zonalRelay::clone(coreObject* obj) const
+CoreObject* zonalRelay::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<zonalRelay, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -339,3 +339,4 @@ std::string zonalRelay::generateAutoName(int code)
     return autoname;
 }
 }  // namespace griddyn::relays
+

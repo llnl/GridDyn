@@ -18,7 +18,7 @@ nullBlock::nullBlock(const std::string& objName): Block(objName)
     opFlags[no_dynamics] = true;
 }
 
-coreObject* nullBlock::clone(coreObject* obj) const
+CoreObject* nullBlock::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<nullBlock, gridSubModel>(this, obj);
     if (nobj == nullptr) {
@@ -176,3 +176,4 @@ double nullBlock::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn::blocks
+

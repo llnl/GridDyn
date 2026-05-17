@@ -41,12 +41,12 @@ class GridGenOpt: public GridOptObject {
     double mBase = 100.0;  //!< the machine base of the generator
   public:
     GridGenOpt(const std::string& objName = "");
-    GridGenOpt(coreObject* obj, const std::string& objName = "");
+    GridGenOpt(CoreObject* obj, const std::string& objName = "");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
     virtual void loadSizes(const OptimizationMode& oMode) override;
 
@@ -109,3 +109,4 @@ class GridGenOpt: public GridOptObject {
 };
 
 }  // namespace griddyn
+

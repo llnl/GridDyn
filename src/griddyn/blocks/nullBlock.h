@@ -18,7 +18,7 @@ class nullBlock final: public Block {
     /** @brief default constructor*/
     explicit nullBlock(const std::string& objName = "nullblock_#");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -83,3 +83,4 @@ class nullBlock final: public Block {
 };
 
 }  // namespace griddyn::blocks
+

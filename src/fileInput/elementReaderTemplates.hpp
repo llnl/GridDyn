@@ -23,9 +23,9 @@ template<class COMPONENT>
 void loadParentInfo(std::shared_ptr<readerElement>& element,
                     COMPONENT* mobj,
                     readerInfo& ri,
-                    coreObject* parentObject)
+                    CoreObject* parentObject)
 {
-    coreObject* newParentObject = getParent(element, ri, parentObject, parentSearchComponent(mobj));
+    CoreObject* newParentObject = getParent(element, ri, parentObject, parentSearchComponent(mobj));
     if (newParentObject) {
         if (mobj->isRoot()) {
             addToParent(mobj, newParentObject);
@@ -47,11 +47,11 @@ void loadParentInfo(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-coreObject* updateSearchObject(std::shared_ptr<readerElement>& element,
+CoreObject* updateSearchObject(std::shared_ptr<readerElement>& element,
                                readerInfo& ri,
-                               coreObject* parentObject)
+                               CoreObject* parentObject)
 {
-    coreObject* alternateObject =
+    CoreObject* alternateObject =
         getParent(element,
                   ri,
                   parentObject,
@@ -68,9 +68,9 @@ template<class COMPONENT>
 COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
                                    const std::string& component,
                                    readerInfo& ri,
-                                   coreObject* searchObject)
+                                   CoreObject* searchObject)
 {
-    coreObject* obj;
+    CoreObject* obj;
     // try to locate the object if it exists already
     std::string ename = getElementField(element, "name", readerConfig::defMatchType);
     if (!ename.empty()) {
@@ -113,7 +113,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
                        COMPONENT* mobj,
                        const std::string& component,
                        readerInfo& ri,
-                       coreObject* searchObject)
+                       CoreObject* searchObject)
 {
     auto cof = coreObjectFactory::instance();
     auto tf = cof->getFactory(component);
@@ -229,7 +229,7 @@ COMPONENT* ElementReaderSetup(std::shared_ptr<readerElement>& element,
                               COMPONENT* mobj,
                               const std::string& component,
                               readerInfo& ri,
-                              coreObject* searchObject)
+                              CoreObject* searchObject)
 {
     loadDefines(element, ri);
     loadDirectories(element, ri);
@@ -252,7 +252,7 @@ COMPONENT* ElementReader(std::shared_ptr<readerElement>& element,
                          COMPONENT* mobj,
                          const std::string& component,
                          readerInfo& ri,
-                         coreObject* searchObject)
+                         CoreObject* searchObject)
 {
     auto riScope = ri.newScope();
 
@@ -265,3 +265,4 @@ COMPONENT* ElementReader(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

@@ -90,7 +90,7 @@ class collector: public helperObject, public eventInterface, public objectOperat
     */
     virtual void cloneTo(collector* col) const;
 
-    virtual void updateObject(coreObject* gco,
+    virtual void updateObject(CoreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
 
     /** function to grab the data to specific location
@@ -110,8 +110,8 @@ class collector: public helperObject, public eventInterface, public objectOperat
 
     virtual void add(std::shared_ptr<gridGrabber> ggb, int requestedColumn = -1);
     virtual void add(std::shared_ptr<stateGrabber> sst, int requestedColumn = -1);
-    virtual void add(const gridGrabberInfo& gdRI, coreObject* obj);
-    virtual void add(std::string_view field, coreObject* obj);
+    virtual void add(const gridGrabberInfo& gdRI, CoreObject* obj);
+    virtual void add(std::string_view field, CoreObject* obj);
     virtual void add(std::shared_ptr<gridGrabber> ggb,
                      std::shared_ptr<stateGrabber> sst,
                      int requestedColumn = -1);
@@ -124,9 +124,9 @@ class collector: public helperObject, public eventInterface, public objectOperat
 
     virtual void setTime(coreTime time);
 
-    virtual coreObject* getObject() const override;
+    virtual CoreObject* getObject() const override;
 
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** flush the buffer to a file or other sink*/
     virtual void flush();
     /** get a name or description associated with the sink of the data*/
@@ -188,3 +188,4 @@ class collector: public helperObject, public eventInterface, public objectOperat
 std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
+

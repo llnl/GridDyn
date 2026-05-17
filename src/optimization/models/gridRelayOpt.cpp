@@ -25,7 +25,7 @@ using units::unit;
 
 GridRelayOpt::GridRelayOpt(const std::string& objName): GridOptObject(objName) {}
 
-GridRelayOpt::GridRelayOpt(coreObject* obj, const std::string& objName):
+GridRelayOpt::GridRelayOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), relay(dynamic_cast<Relay*>(obj))
 {
     if (relay != nullptr) {
@@ -36,7 +36,7 @@ GridRelayOpt::GridRelayOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* GridRelayOpt::clone(coreObject* obj) const
+CoreObject* GridRelayOpt::clone(CoreObject* obj) const
 {
     GridRelayOpt* nobj;
     if (obj == nullptr) {
@@ -58,7 +58,7 @@ coreObject* GridRelayOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void GridRelayOpt::add(coreObject* obj)
+void GridRelayOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<Relay*>(obj) != nullptr) {
         relay = static_cast<Relay*>(obj);
@@ -107,7 +107,7 @@ count_t GridRelayOpt::constraintSize(const OptimizationMode& oMode)
 
 void GridRelayOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
-void GridRelayOpt::remove(coreObject* /*obj*/) {}
+void GridRelayOpt::remove(CoreObject* /*obj*/) {}
 
 void GridRelayOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 // for saving the state
@@ -208,9 +208,9 @@ void GridRelayOpt::set(std::string_view param, double val, unit unitType)
     }
 }
 
-coreObject* GridRelayOpt::find(std::string_view objName) const
+CoreObject* GridRelayOpt::find(std::string_view objName) const
 {
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
     if ((objName == getName()) || (objName == "relay")) {
         return const_cast<GridRelayOpt*>(this);
     }
@@ -218,7 +218,7 @@ coreObject* GridRelayOpt::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* GridRelayOpt::getSubObject([[maybe_unused]] std::string_view typeName,
+CoreObject* GridRelayOpt::getSubObject([[maybe_unused]] std::string_view typeName,
                                        index_t /*num*/) const
 {
     return nullptr;
@@ -235,7 +235,7 @@ coreObject* GridRelayOpt::getSubObject([[maybe_unused]] std::string_view typeNam
     */
 }
 
-coreObject* GridRelayOpt::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridRelayOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "relay") {
         if (searchID == getUserID()) {
@@ -256,3 +256,4 @@ double GridRelayOpt::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn
+

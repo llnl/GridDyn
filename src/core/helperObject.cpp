@@ -72,7 +72,7 @@ void helperObject::makeNewOID()
 {
     m_oid = ++s_obcnt;
 }
-coreObject* helperObject::getOwner() const
+CoreObject* helperObject::getOwner() const
 {
     return nullptr;
 }
@@ -94,3 +94,4 @@ void setMultipleFlags(helperObject* obj, std::string_view flags)
 }
 
 }  // namespace griddyn
+

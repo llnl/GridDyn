@@ -36,7 +36,7 @@ class fuse: public Relay {
     bool& useI2T;  //!< internal flag for using the i^2t functionality
   public:
     explicit fuse(const std::string& objName = "fuse_$");
-    virtual coreObject* clone(coreObject* obj) const override;
+    virtual CoreObject* clone(CoreObject* obj) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
@@ -91,3 +91,4 @@ class fuse: public Relay {
     change_code blowFuse();
 };
 }  // namespace griddyn::relays
+

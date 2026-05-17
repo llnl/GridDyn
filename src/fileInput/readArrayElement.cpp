@@ -30,7 +30,7 @@ namespace {
 // "aP" is the XML element passed from the reader
 void readArrayElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* parentObject)
+                      CoreObject* parentObject)
 {
     auto riScope = readerInformation.newScope();
     std::vector<int> indices;
@@ -114,3 +114,4 @@ namespace {
 }  // namespace
 
 }  // namespace griddyn
+

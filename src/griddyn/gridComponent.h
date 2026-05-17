@@ -31,7 +31,7 @@ class Violation;
  *@see gridSecondary, and @see gridSubModel as it encapsulated common functionality between those
  *objects
  **/
-class gridComponent: public coreObject {
+class gridComponent: public CoreObject {
   protected:
     std::bitset<64> opFlags;  //!< operational flags these flags are designed to be normal false
                               //!< @see ::operation_flags
@@ -53,7 +53,7 @@ class gridComponent: public coreObject {
     explicit gridComponent(const std::string& objName = "");
     /** @brief virtual destructor*/
     virtual ~gridComponent() override;
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     /** @brief update internal object linkages to use objects from a new tree
     @details after a clone call on a full simulation
     it is possible that there could be internal linkages inside of objects still pointing to the
@@ -62,7 +62,7 @@ class gridComponent: public coreObject {
     only be initiated by a root object
     @param[in] newRoot the root of the new simulation tree
     */
-    virtual void updateObjectLinkages(coreObject* newRoot);
+    virtual void updateObjectLinkages(CoreObject* newRoot);
 
     /** @brief initialize object for power flow part A
     after part A of the initialization the object should know how many states it has as part of the
@@ -155,7 +155,7 @@ see gridComponent::dynInitializeA for more details
     @param[in] val the value to set the flag too
     @param[in] checkParent the identifier of the parent, it must match the objects parent
     */
-    void parentSetFlag(index_t flagID, bool val, coreObject* checkParent);
+    void parentSetFlag(index_t flagID, bool val, CoreObject* checkParent);
     virtual bool getFlag(std::string_view flag) const override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
@@ -180,7 +180,7 @@ see gridComponent::dynInitializeA for more details
     */
     void replaceSubObject(gridComponent* newObj, gridComponent* oldObj);
 
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
     /** @brief method for checking a specific known flag
     @param[in] flagID the index of the flag to check
     @return boolean indicator of the flag
@@ -192,11 +192,11 @@ see gridComponent::dynInitializeA for more details
     */
     inline std::uint64_t cascadingFlags() const { return (opFlags.to_ullong() & flagMask); }
 
-    virtual coreObject* find(std::string_view object) const override;
+    virtual CoreObject* find(std::string_view object) const override;
 
-    virtual coreObject* getSubObject(std::string_view typeName, index_t objectNum) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t objectNum) const override;
 
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     /** @brief set the offsets of an object for a particular solver mode using a single offset.
     @param[in] newOffset the offset index all variables are sequential.
@@ -368,7 +368,7 @@ see gridComponent::dynInitializeA for more details
      */
     virtual void disconnect();
 
-    virtual void alert(coreObject*, int code) override;
+    virtual void alert(CoreObject*, int code) override;
 
     /** @brief common function to load some flags appropriate to pFlow.
      */
@@ -831,3 +831,4 @@ see gridComponent::dynInitializeA for more details
 void printStateNames(const gridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
+

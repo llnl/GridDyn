@@ -23,7 +23,7 @@ class GenModelInverter: public GenModel {
   public:
     //!< @brief default constructor
     explicit GenModelInverter(const std::string& objName = "genModel_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -117,3 +117,4 @@ class GenModelInverter: public GenModel {
 };
 
 }  // namespace griddyn::genmodels
+

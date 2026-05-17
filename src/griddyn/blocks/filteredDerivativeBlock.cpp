@@ -30,7 +30,7 @@ filteredDerivativeBlock::filteredDerivativeBlock(double preDerivativeTimeConstan
     opFlags.set(differential_output);
 }
 
-coreObject* filteredDerivativeBlock::clone(coreObject* obj) const
+CoreObject* filteredDerivativeBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<filteredDerivativeBlock, Block>(this, obj);
     if (nobj == nullptr) {
@@ -188,3 +188,4 @@ stringVec filteredDerivativeBlock::localStateNames() const
     }
 }
 }  // namespace griddyn::blocks
+

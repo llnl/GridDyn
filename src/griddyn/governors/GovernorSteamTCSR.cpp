@@ -27,7 +27,7 @@ GovernorSteamTCSR::GovernorSteamTCSR(const std::string& objName): GovernorSteamN
     offsets.local().local.jacSize = 5;
 }
 
-coreObject* GovernorSteamTCSR::clone(coreObject* obj) const
+CoreObject* GovernorSteamTCSR::clone(CoreObject* obj) const
 {
     GovernorSteamTCSR* gov;
     if (obj == nullptr) {
@@ -35,11 +35,11 @@ coreObject* GovernorSteamTCSR::clone(coreObject* obj) const
     } else {
         gov = dynamic_cast<GovernorSteamTCSR*>(obj);
         if (gov == nullptr) {
-            coreObject::clone(obj);
+            CoreObject::clone(obj);
             return obj;
         }
     }
-    coreObject::clone(gov);
+    CoreObject::clone(gov);
     gov->K = K;
     gov->T1 = T1;
     gov->T2 = T2;
@@ -120,7 +120,7 @@ index_t GovernorSteamTCSR::findIndex(std::string_view field, const solverMode& /
 // set parameters
 void GovernorSteamTCSR::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 
 void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unitType)
@@ -143,8 +143,9 @@ void GovernorSteamTCSR::set(std::string_view param, double val, units::unit unit
     } else if (param == "pmin") {
         Pmin = val;
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 
 }  // namespace griddyn::governors
+

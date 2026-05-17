@@ -45,7 +45,7 @@ class svd: public rampLoad {
     svd(double rP, double rQ, const std::string& objName = "svd_$");
     virtual ~svd();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -137,3 +137,4 @@ class svd: public rampLoad {
     virtual void updateSetting(int step);
 };
 }  // namespace griddyn::loads
+

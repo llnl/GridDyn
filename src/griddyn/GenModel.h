@@ -45,7 +45,7 @@ class GenModel: public gridSubModel {
   public:
     //!< @brief default constructor
     explicit GenModel(const std::string& objName = "genModel_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -83,3 +83,4 @@ class GenModel: public gridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
 };
 }  // namespace griddyn
+

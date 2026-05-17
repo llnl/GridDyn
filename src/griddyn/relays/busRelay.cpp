@@ -21,7 +21,7 @@ busRelay::busRelay(const std::string& objName): Relay(objName)
     opFlags.set(power_flow_checks_flag);  // enable power flow checks for busRelay
 }
 
-coreObject* busRelay::clone(coreObject* obj) const
+CoreObject* busRelay::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<busRelay, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -124,3 +124,4 @@ void busRelay::actionTaken(index_t /*actionNum*/,
     }
 }
 }  // namespace griddyn::relays
+

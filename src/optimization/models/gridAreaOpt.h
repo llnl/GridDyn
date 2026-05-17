@@ -35,20 +35,20 @@ class GridAreaOpt: public GridOptObject {
     coreObjectList optObList;  // a search index for object names
   public:
     GridAreaOpt(const std::string& objName = "");
-    GridAreaOpt(coreObject* obj, const std::string& objName = "");
+    GridAreaOpt(CoreObject* obj, const std::string& objName = "");
     ~GridAreaOpt();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
 
-    void add(coreObject* obj) override;
+    void add(CoreObject* obj) override;
     void add(GridAreaOpt* areaObj);
     void add(GridBusOpt* bus);
     void add(GridLinkOpt* lnk);
     void add(GridRelayOpt* relay);
 
     // remove components
-    void remove(coreObject* obj) override;
+    void remove(CoreObject* obj) override;
     void remove(GridAreaOpt* areaObj);
     void remove(GridBusOpt* bus);
     void remove(GridLinkOpt* lnk);
@@ -118,12 +118,12 @@ class GridAreaOpt: public GridOptObject {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual bool isMember(coreObject* obj) const;
+    virtual bool isMember(CoreObject* obj) const;
     // find components
 
-    virtual coreObject* find(std::string_view objName) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;
@@ -136,3 +136,4 @@ class GridAreaOpt: public GridOptObject {
 GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec);
 
 }  // namespace griddyn
+

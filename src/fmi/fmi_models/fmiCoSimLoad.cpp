@@ -17,7 +17,7 @@
 namespace griddyn::fmi {
 FmiCoSimLoad::FmiCoSimLoad(const std::string& objName): FmiCoSimWrapper<Load>(objName) {}
 
-coreObject* FmiCoSimLoad::clone(coreObject* obj) const
+CoreObject* FmiCoSimLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<Load>>(this, obj);
     if (nobj == nullptr) {
@@ -67,3 +67,4 @@ void FmiCoSimLoad::setState(coreTime time,
 }
 
 }  // namespace griddyn::fmi
+

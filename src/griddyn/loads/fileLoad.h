@@ -34,7 +34,7 @@ class fileLoad: public rampLoad {
   public:
     explicit fileLoad(const std::string& objName = "fileLoad_$");
     fileLoad(const std::string& objName, std::string fileName);
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
     virtual void updateA(coreTime time) override;
@@ -50,3 +50,4 @@ class fileLoad: public rampLoad {
     count_t loadFile();
 };
 }  // namespace griddyn::loads
+

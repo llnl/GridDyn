@@ -33,7 +33,7 @@ void coreObjectList::removeIndexes(id_type_t objectID, const objectRecord& recor
     }
 }
 
-bool coreObjectList::insert(coreObject* obj, bool replace)
+bool coreObjectList::insert(CoreObject* obj, bool replace)
 {
     if (obj == nullptr) {
         return false;
@@ -72,7 +72,7 @@ bool coreObjectList::insert(coreObject* obj, bool replace)
     return true;
 }
 
-coreObject* coreObjectList::find(std::string_view objName) const
+CoreObject* coreObjectList::find(std::string_view objName) const
 {
     auto foundObject = m_idsByName.find(std::string{objName});
     if (foundObject != m_idsByName.end()) {
@@ -84,9 +84,9 @@ coreObject* coreObjectList::find(std::string_view objName) const
     return nullptr;
 }
 
-std::vector<coreObject*> coreObjectList::find(index_t searchID) const
+std::vector<CoreObject*> coreObjectList::find(index_t searchID) const
 {
-    std::vector<coreObject*> out;
+    std::vector<CoreObject*> out;
     auto userRange = m_idsByUserId.equal_range(searchID);
     for (auto userIndex = userRange.first; userIndex != userRange.second; ++userIndex) {
         auto objectIndex = m_objectsById.find(userIndex->second);
@@ -97,7 +97,7 @@ std::vector<coreObject*> coreObjectList::find(index_t searchID) const
     return out;
 }
 
-bool coreObjectList::remove(coreObject* obj)
+bool coreObjectList::remove(CoreObject* obj)
 {
     if (obj == nullptr) {
         return false;
@@ -131,12 +131,12 @@ bool coreObjectList::remove(std::string_view objName)
     return true;
 }
 
-bool coreObjectList::isMember(const coreObject* obj) const
+bool coreObjectList::isMember(const CoreObject* obj) const
 {
     return (obj != nullptr) && (m_objectsById.find(obj->getID()) != m_objectsById.end());
 }
 
-void coreObjectList::deleteAll(coreObject* parent)
+void coreObjectList::deleteAll(CoreObject* parent)
 {
     for (const auto& [objectID, record] : m_objectsById) {
         static_cast<void>(objectID);
@@ -144,7 +144,7 @@ void coreObjectList::deleteAll(coreObject* parent)
     }
 }
 
-void coreObjectList::updateObject(coreObject* obj)
+void coreObjectList::updateObject(CoreObject* obj)
 {
     if (obj == nullptr) {
         return;
@@ -180,3 +180,4 @@ void coreObjectList::updateObject(coreObject* obj)
 }
 
 }  // namespace griddyn
+

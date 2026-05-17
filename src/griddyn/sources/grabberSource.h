@@ -31,7 +31,7 @@ namespace sources {
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet) override;
 
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+        virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
         /** update the target field of the grabber*/
         void updateField(const std::string& newField);
 
@@ -39,7 +39,7 @@ namespace sources {
         void updateTarget(const std::string& newTarget);
 
         /** update the target object of the grabber directly*/
-        void updateTarget(coreObject* obj);
+        void updateTarget(CoreObject* obj);
 
         virtual void setFlag(std::string_view flag, bool val) override;
         virtual void set(std::string_view param, std::string_view val) override;
@@ -65,3 +65,4 @@ namespace sources {
     };
 }  // namespace sources
 }  // namespace griddyn
+

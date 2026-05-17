@@ -24,7 +24,7 @@ aggregateLoad::aggregateLoad(const std::string& objName): zipLoad(objName)
     aggregateLoad::add(new zipLoad(getName() + "sub"));
 }
 
-coreObject* aggregateLoad::clone(coreObject* obj) const
+CoreObject* aggregateLoad::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<aggregateLoad, zipLoad>(this, obj);
     if (nobj == nullptr) {
@@ -57,7 +57,7 @@ void aggregateLoad::add(zipLoad* ld)
     }
 }
 
-void aggregateLoad::add(coreObject* obj)
+void aggregateLoad::add(CoreObject* obj)
 {
     auto* ld = dynamic_cast<zipLoad*>(obj);
     if (ld != nullptr) {
@@ -400,3 +400,4 @@ double aggregateLoad::getReactivePower() const
     return rp;
 }
 }  // namespace griddyn::loads
+

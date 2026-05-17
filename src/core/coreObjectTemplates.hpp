@@ -19,14 +19,14 @@ created
 * @return pointer to the cloned object
 */
 template<class A, class B>
-A* cloneBase(const A* originalObject, coreObject* obj)
+A* cloneBase(const A* originalObject, CoreObject* obj)
 {
     static_assert(std::is_base_of<B, A>::value,
                   "classes A and B must have parent child relationship");
-    static_assert(std::is_base_of<coreObject, B>::value,
-                  "classes must be inherited from coreObject");
-    static_assert(std::is_base_of<coreObject, A>::value,
-                  "classes must be inherited from coreObject");
+    static_assert(std::is_base_of<CoreObject, B>::value,
+                  "classes must be inherited from CoreObject");
+    static_assert(std::is_base_of<CoreObject, A>::value,
+                  "classes must be inherited from CoreObject");
     A* clonedObject;
     if (obj == nullptr) {
         clonedObject = new A(originalObject->getName());
@@ -62,10 +62,10 @@ void getParamString(const A* cobj,
 {
     static_assert(std::is_base_of<B, A>::value,
                   "classes A and B must have parent child relationship");
-    static_assert(std::is_base_of<coreObject, B>::value,
-                  "classes must be inherited from coreObject");
-    static_assert(std::is_base_of<coreObject, A>::value,
-                  "classes must be inherited from coreObject");
+    static_assert(std::is_base_of<CoreObject, B>::value,
+                  "classes must be inherited from CoreObject");
+    static_assert(std::is_base_of<CoreObject, A>::value,
+                  "classes must be inherited from CoreObject");
     switch (pstype) {
         case paramStringType::all:
             pstr.reserve(pstr.size() + numStr.size());
@@ -104,3 +104,4 @@ void getParamString(const A* cobj,
 }
 
 }  // namespace griddyn
+

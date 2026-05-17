@@ -30,7 +30,7 @@ using gmlc::utilities::string_viewOps::trim;
 // NOLINTBEGIN(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 enum class ModeState { READ_HEADER, READ_DATA };
 
-void loadCsv(coreObject* parentObject,
+void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
              readerInfo& readerInformation,
              const std::string& objectName)
@@ -140,7 +140,7 @@ void loadCsv(coreObject* parentObject,
                 (typekey >= 0) ? std::string{trim(lineTokens[typekey])} : std::string{};
             // find or create the object
             auto index = numeric_conversion<int>(lineTokens[0], -2);
-            coreObject* obj = nullptr;
+            CoreObject* obj = nullptr;
             if (index >= 0) {
                 obj = parentObject->findByUserID(objectMode, index);
             } else if (index == -2) {
@@ -308,3 +308,4 @@ void loadCsv(coreObject* parentObject,
 
 // NOLINTEND(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 }  // namespace griddyn
+

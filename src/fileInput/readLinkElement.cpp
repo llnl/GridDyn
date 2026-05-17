@@ -27,7 +27,7 @@ static const char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* searchObject,
+                      CoreObject* searchObject,
                       bool warnlink)
 {
     auto riScope = readerInformation.newScope();
@@ -94,3 +94,4 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

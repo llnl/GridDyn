@@ -30,7 +30,7 @@ class differentialRelay: public Relay {
         0.01;  //!< the minimum absolute level to trigger for relative differential mode
   public:
     explicit differentialRelay(const std::string& objName = "diffRelay_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual bool getFlag(std::string_view flag) const override;
 
@@ -54,3 +54,4 @@ class differentialRelay: public Relay {
 };
 
 }  // namespace griddyn::relays
+

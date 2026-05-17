@@ -20,7 +20,7 @@ nullBlock::nullBlock(const std::string& objName): Block(objName)
 
 CoreObject* nullBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<nullBlock, gridSubModel>(this, obj);
+    auto nobj = cloneBase<nullBlock, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -156,23 +156,24 @@ void nullBlock::setFlag(std::string_view flag, bool val)
         opFlags[differential_input] = val;
         opFlags[differential_output] = val;
     } else {
-        gridSubModel::setFlag(flag, val);
+        GridSubModel::setFlag(flag, val);
     }
 }
 
 // set parameters
 void nullBlock::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void nullBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    gridSubModel::set(param, val, unitType);
+    GridSubModel::set(param, val, unitType);
 }
 
 double nullBlock::get(std::string_view param, units::unit unitType) const
 {
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 }  // namespace griddyn::blocks
+

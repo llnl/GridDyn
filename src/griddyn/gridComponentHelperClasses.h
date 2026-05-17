@@ -17,7 +17,7 @@ namespace griddyn {
 constexpr static std::uint64_t flagMask = 0x3FE;  //!< general flag mask for convenience to mask out
                                                   //!< flags that typically cascade to parents
 
-/** @brief  an enumeration of flags in the opFlags bitset for gridComponent
+/** @brief  an enumeration of flags in the opFlags bitset for GridComponent
 @details flags are intended to be default off hence the various names in certain circumstances
  */
 enum operation_flags {
@@ -110,7 +110,7 @@ enum operation_flags {
     differential_output =
         50,  //!< flag that the model has a differential state variable that is the primary output
     no_gridcomponent_set =
-        51,  //!< flag indicating skipping of the gridComponent set function for parent setting
+        51,  //!< flag indicating skipping of the GridComponent set function for parent setting
     //! without throwing an error
     being_deleted = 52,  //!<  flag indicating the object is in the process of being deleted
                          //!<  NOTE::useful for some
@@ -118,7 +118,7 @@ enum operation_flags {
     //! in object removal
     separate_processing =
         53,  //!< flag indicating that the object math functions will be handled by the parent
-    //! object and should be skipped by the gridComponent Model
+    //! object and should be skipped by the GridComponent Model
     /*flags 54-63 are intended for object capabilities*/
 
     multipart_calculation_capable =
@@ -472,7 +472,7 @@ class stateData {
 const stateData emptyStateData{};
 
 #define DEFAULT_OFFSET_CONTAINER_SIZE 5
-class gridComponent;
+class GridComponent;
 
 }  // namespace griddyn
 #define ALGEBRAIC_VARIABLE (0.0)
@@ -482,3 +482,4 @@ class gridComponent;
 #define NEGATIVITY_CONSTRAINT (-1.0)
 #define NONNEGATIVE_CONSTRAINT (2.0)
 #define NONPOSITIVE_CONSTRAINT (-2.0)
+

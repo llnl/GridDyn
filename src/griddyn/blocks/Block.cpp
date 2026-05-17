@@ -41,11 +41,11 @@ namespace blocks {
                 std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
 }  // namespace blocks
 
-Block::Block(const std::string& objName): gridSubModel(objName)
+Block::Block(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = 1;
 }
-Block::Block(double gain, const std::string& objName): gridSubModel(objName), K(gain)
+Block::Block(double gain, const std::string& objName): GridSubModel(objName), K(gain)
 {
     m_inputSize = 1;
 }
@@ -53,7 +53,7 @@ Block::~Block() = default;
 
 CoreObject* Block::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<Block, gridSubModel>(this, obj);
+    auto nobj = cloneBase<Block, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -725,14 +725,14 @@ void Block::setFlag(std::string_view flag, bool val)
             opFlags[use_ramp_limits] = val;
         }
     } else {
-        gridSubModel::setFlag(flag, val);
+        GridSubModel::setFlag(flag, val);
     }
 }
 
 // set parameters
 void Block::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void Block::set(std::string_view param, double val, units::unit unitType)
 {
@@ -771,7 +771,7 @@ void Block::set(std::string_view param, double val, units::unit unitType)
             rLimiter->setResetLevel(val);
         }
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -780,7 +780,7 @@ double Block::get(std::string_view param, units::unit unitType) const
     if (param == "maxstepsize") {
         return kBigNum;
     }
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 void Block::valLimiterUpdate()
@@ -944,3 +944,4 @@ std::unique_ptr<Block> make_block(const std::string& blockstr)
     return ret;
 }
 }  // namespace griddyn
+

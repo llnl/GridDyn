@@ -27,7 +27,7 @@ using gmlc::utilities::vectorMultAdd;
 
 FmiMESubModel::FmiMESubModel(const std::string& newName,
                              std::shared_ptr<Fmi2ModelExchangeObject> fmi):
-    gridSubModel(newName), me(std::move(fmi))
+    GridSubModel(newName), me(std::move(fmi))
 {
 }
 
@@ -37,7 +37,7 @@ FmiMESubModel::~FmiMESubModel() = default;
 
 CoreObject* FmiMESubModel::clone(CoreObject* obj) const
 {
-    auto* gco = cloneBase<FmiMESubModel, gridSubModel>(this, obj);
+    auto* gco = cloneBase<FmiMESubModel, GridSubModel>(this, obj);
     if (gco == nullptr) {
         return obj;
     }
@@ -145,7 +145,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
 
-            gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             pstr.reserve(pstr.size() + strpcnt + 1);
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -155,7 +155,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, paramStringType::str);
             break;
         case paramStringType::localnum:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
@@ -200,7 +200,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
             break;
         case paramStringType::str:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
@@ -212,7 +212,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, paramStringType::str);
             break;
         case paramStringType::flags:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
@@ -224,7 +224,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            gridSubModel::getParameterStrings(pstr, paramStringType::flags);
+            GridSubModel::getParameterStrings(pstr, paramStringType::flags);
             break;
     }
 }
@@ -284,11 +284,11 @@ void FmiMESubModel::set(std::string_view param, std::string_view val)
                 me->set(std::string{param}, std::string{val});
                 resetState();
             } else {
-                gridSubModel::set(param, val);
+                GridSubModel::set(param, val);
             }
         } else {
             try {
-                gridSubModel::set(param, val);
+                GridSubModel::set(param, val);
             }
             catch (const unrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, std::string{val});
@@ -309,11 +309,11 @@ void FmiMESubModel::set(std::string_view param, double val, units::unit unitType
                 me->set(std::string{param}, val);
                 resetState();
             } else {
-                gridSubModel::set(param, val, unitType);
+                GridSubModel::set(param, val, unitType);
             }
         } else {
             try {
-                gridSubModel::set(param, val, unitType);
+                GridSubModel::set(param, val, unitType);
             }
             catch (const unrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, val, unitType);
@@ -330,7 +330,7 @@ double FmiMESubModel::get(std::string_view param, units::unit unitType) const
     if ((me) && (me->isVariable(std::string{param}, FmiVariableType::numeric))) {
         return me->get<double>(std::string{param});
     }
-    return gridSubModel::get(param, unitType);
+    return GridSubModel::get(param, unitType);
 }
 
 stateSizes FmiMESubModel::LocalStateSizes(const solverMode& sMode) const
@@ -1080,3 +1080,4 @@ void FmiMESubModel::loadOutputJac(int index)
 
 // NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi
+

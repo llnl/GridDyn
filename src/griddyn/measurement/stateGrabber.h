@@ -20,12 +20,12 @@
 @brief define a state Grabber object to retrieve data from a state information
 */
 namespace griddyn {
-using objJacFunction = std::function<void(gridComponent* comp,
+using objJacFunction = std::function<void(GridComponent* comp,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode)>;
 using objStateGrabberFunction = std::function<
-    double(gridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
+    double(GridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
 
 /** define if the grabber can compute the Jacobian information*/
 enum class JacobianMode {
@@ -52,7 +52,7 @@ class stateGrabber: public objectOperatorInterface {
 
   protected:
     JacobianMode jacMode = JacobianMode::NONE;  //!< the mode of the Jacobian calculation
-    gridComponent* cobj = nullptr;  //!< the target object
+    GridComponent* cobj = nullptr;  //!< the target object
     objStateGrabberFunction fptr;  //!< the functional to grab the data
     objJacFunction jacIfptr;  //!< the functional to compute the Jacobian
     index_t prevIndex = kInvalidLocation;  //!< temporary storage of the previous index
@@ -108,7 +108,7 @@ class stateGrabber: public objectOperatorInterface {
 };
 
 using fstateobjectPair = std::pair<
-    std::function<double(gridComponent*, const stateData& stateDataValue, const solverMode& sMode)>,
+    std::function<double(GridComponent*, const stateData& stateDataValue, const solverMode& sMode)>,
     units::unit>;
 
 /** construct a vector of state grabbers from a specific command string
@@ -125,7 +125,7 @@ class with an additional capability of a totally custom function grabber call
 class customStateGrabber: public stateGrabber {
   public:
     customStateGrabber() = default;
-    explicit customStateGrabber(gridComponent* comp);
+    explicit customStateGrabber(GridComponent* comp);
     virtual std::unique_ptr<stateGrabber> clone() const override;
     virtual void cloneTo(stateGrabber* ggb) const override;
     /** set the custom grabber function
@@ -196,3 +196,4 @@ class stateOpGrabber: public stateGrabber {
 };
 
 }  // namespace griddyn
+

@@ -28,10 +28,10 @@ class Violation;
  *needed by all objects in the simulation and defining some common methods for use by all objects.
  *This object is not really intended to be instantiated directly and is mostly a common interface to
  *inheriting objects @see gridPrimary,
- *@see gridSecondary, and @see gridSubModel as it encapsulated common functionality between those
+ *@see gridSecondary, and @see GridSubModel as it encapsulated common functionality between those
  *objects
  **/
-class gridComponent: public CoreObject {
+class GridComponent: public CoreObject {
   protected:
     std::bitset<64> opFlags;  //!< operational flags these flags are designed to be normal false
                               //!< @see ::operation_flags
@@ -46,13 +46,13 @@ class gridComponent: public CoreObject {
     std::vector<double> m_state;  //!< storage location for internal state
     std::vector<double> m_dstate_dt;  //!< storage location for internal state differential
   private:
-    objVector<gridComponent*> subObjectList;  //!< a vector of all the subObjects;
+    objVector<GridComponent*> subObjectList;  //!< a vector of all the subObjects;
     // stringVec stateNames;           //!<a vector with the names of the states
   public:
     /** @brief default constructor*/
-    explicit gridComponent(const std::string& objName = "");
+    explicit GridComponent(const std::string& objName = "");
     /** @brief virtual destructor*/
-    virtual ~gridComponent() override;
+    virtual ~GridComponent() override;
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     /** @brief update internal object linkages to use objects from a new tree
     @details after a clone call on a full simulation
@@ -106,25 +106,25 @@ class gridComponent: public CoreObject {
 
   protected:  // don't allow these functions to be called directly in the public interface
     /** @brief initialize local object for power flow part A
-    see gridComponent::pFlowInitializeA for more details
+    see GridComponent::pFlowInitializeA for more details
     @param[in] time0 the time0 at which the power flow will take place
     @param[in] flags  any flags indicating how the initialization or execution will take place
     */
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags);
 
     /** @brief initialize local object for power flow part B
-    see gridComponent::pFlowInitializeB for more details
+    see GridComponent::pFlowInitializeB for more details
     */
     virtual void pFlowObjectInitializeB();
     /** @brief initialize local object for dynamics part A
-see gridComponent::dynInitializeA for more details
+see GridComponent::dynInitializeA for more details
 @param[in] time0 the time at which the power flow will take place
 @param[in] flags  any flags indicating how the initialization or execution will take place
 */
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags);
 
     /** @brief initialize local object for dynamics part B
-    see gridComponent::dynInitializeB for more details
+    see GridComponent::dynInitializeB for more details
     @param[in] inputs the initial inputs to an object (can be empty)
     @param[in] desiredOutput the desired initial output of the component
     @param[in] fieldSet either the computed inputs or outputs depending on which was defined
@@ -169,16 +169,16 @@ see gridComponent::dynInitializeA for more details
     /** add a grid object to the subObject container
     @param[in] comp the component to add
     */
-    void addSubObject(gridComponent* comp);
+    void addSubObject(GridComponent* comp);
     /** remove a grid object to the subObject container
     @param[in] obj the component to remove
     */
-    void removeSubObject(gridComponent* obj);
+    void removeSubObject(GridComponent* obj);
     /** replace a grid object to the subObject container
     @param[in] newObj the component to add
     @param[in] oldObj the component to replace
     */
-    void replaceSubObject(gridComponent* newObj, gridComponent* oldObj);
+    void replaceSubObject(GridComponent* newObj, GridComponent* oldObj);
 
     virtual void remove(CoreObject* obj) override;
     /** @brief method for checking a specific known flag
@@ -459,7 +459,7 @@ see gridComponent::dynInitializeA for more details
     virtual void getVariableType(double sdata[], const solverMode& sMode);
 
     /**@brief get a reference to the vector of subObjects*/
-    const objVector<gridComponent*>& getSubObjects() const { return subObjectList; }
+    const objVector<GridComponent*>& getSubObjects() const { return subObjectList; }
     /** @brief load constraint information
      0 for no constraints
     1 for > 0
@@ -828,6 +828,7 @@ see gridComponent::dynInitializeA for more details
 @param comp the object to display the states for
 @param sMode the mode which to display the states for
 */
-void printStateNames(const gridComponent* comp, const solverMode& sMode);
+void printStateNames(const GridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
+

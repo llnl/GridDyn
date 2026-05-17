@@ -12,7 +12,7 @@
 
 namespace griddyn {
 // work in progress
-void numericJacobianCalculation(gridComponent* /* comp */,
+void numericJacobianCalculation(GridComponent* /* comp */,
                                 const IOdata& inputs,
                                 const stateData& sD,
                                 matrixData<double>& md,
@@ -34,7 +34,7 @@ void numericJacobianCalculation(gridComponent* /* comp */,
     [[maybe_unused]] IOdata testInputs = inputs;
 }
 
-void copyObjectLocalState(gridComponent* comp,
+void copyObjectLocalState(GridComponent* comp,
                           const double state[],
                           double newState[],
                           const solverMode& sMode)
@@ -45,7 +45,7 @@ void copyObjectLocalState(gridComponent* comp,
     }
 }
 
-std::vector<index_t> getObjectLocalStateIndices(const gridComponent* comp, const solverMode& sMode)
+std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const solverMode& sMode)
 {
     std::vector<index_t> states;
     const auto& offsets = comp->getOffsets(sMode);
@@ -77,3 +77,4 @@ std::vector<index_t> getObjectLocalStateIndices(const gridComponent* comp, const
 }
 
 }  // namespace griddyn
+

@@ -352,13 +352,13 @@ class acBus: public gridBus {
     // for registering and removing power control objects
 
     /** @brief  register an object for voltage control on a bus*/
-    void registerVoltageControl(gridComponent* comp) override;
+    void registerVoltageControl(GridComponent* comp) override;
     /** @brief  remove an object from voltage control on a bus*/
-    void removeVoltageControl(gridComponent* comp) override;
+    void removeVoltageControl(GridComponent* comp) override;
     /** @brief  register an object for power control on a bus*/
-    void registerPowerControl(gridComponent* comp) override;
+    void registerPowerControl(GridComponent* comp) override;
     /** @brief  remove an object from power control on a bus*/
-    void removePowerControl(gridComponent* comp) override;
+    void removePowerControl(GridComponent* comp) override;
 
     // for dealing with buses merged with zero impedance link
     /** @brief  merge a bus with the calling bus*/
@@ -383,3 +383,4 @@ class acBus: public gridBus {
 };
 
 }  // namespace griddyn
+

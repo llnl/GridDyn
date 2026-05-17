@@ -326,7 +326,7 @@ stringVec GenModelInverter::localStateNames() const
 // set parameters
 void GenModelInverter::set(std::string_view param, std::string_view val)
 {
-    return gridSubModel::set(param, val);
+    return GridSubModel::set(param, val);
 }
 
 void GenModelInverter::set(std::string_view param, double val, units::unit unitType)
@@ -474,3 +474,4 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::genmodels
+

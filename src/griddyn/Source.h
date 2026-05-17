@@ -13,7 +13,7 @@ namespace griddyn {
 /** Source is a signal generator in GridDyn.
 The component Definition class defines the interface for a Source
 */
-class Source: public gridSubModel {
+class Source: public GridSubModel {
   public:
     std::string purpose_;  //!< string for use by applications to indicate usage
   protected:
@@ -69,3 +69,4 @@ class Source: public gridSubModel {
 };
 
 }  // namespace griddyn
+

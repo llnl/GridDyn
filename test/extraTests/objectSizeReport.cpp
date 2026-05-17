@@ -32,8 +32,8 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     auto coreSize = sizeof(CoreObject);
     std::cout << "core object size=" << coreSize << '\n';
 
-    auto compSize = sizeof(gridComponent);
-    std::cout << "gridComponent size=" << compSize << " adds " << compSize - coreSize << '\n';
+    auto compSize = sizeof(GridComponent);
+    std::cout << "GridComponent size=" << compSize << " adds " << compSize - coreSize << '\n';
 
     auto primSize = sizeof(gridPrimary);
     std::cout << "gridPrimary size=" << primSize << " adds " << primSize - compSize << '\n';
@@ -58,12 +58,13 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "ac Link size=" << sizeof(acLine) << " adds " << sizeof(acLine) - sizeof(Link)
               << '\n';
 
-    std::cout << "submodel size" << sizeof(gridSubModel) << "adds "
-              << sizeof(gridSubModel) - compSize << '\n';
+    std::cout << "submodel size" << sizeof(GridSubModel) << "adds "
+              << sizeof(GridSubModel) - compSize << '\n';
 
     std::cout << "Source size=" << sizeof(Source) << " adds "
-              << sizeof(Source) - sizeof(gridSubModel) << '\n';
+              << sizeof(Source) - sizeof(GridSubModel) << '\n';
 
-    std::cout << "Block size=" << sizeof(Block) << " adds " << sizeof(Block) - sizeof(gridSubModel)
+    std::cout << "Block size=" << sizeof(Block) << " adds " << sizeof(Block) - sizeof(GridSubModel)
               << '\n';
 }
+

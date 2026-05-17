@@ -15,7 +15,7 @@ class gridSecondary;
 class acBus;
 class gridBus;
 class Link;
-class gridComponent;
+class GridComponent;
 
 /** @brief a set of  controls for a bus that manages controllable generators and loads
  provides autogen functionality and manages controlled generators to help with the transition from
@@ -74,8 +74,8 @@ class BusControls {
     double getAdjustableCapacityUp(coreTime time) const;
     double getAdjustableCapacityDown(coreTime time) const;
 
-    void addPowerControlObject(gridComponent* comp, bool update);
-    void addVoltageControlObject(gridComponent* comp, bool update);
+    void addPowerControlObject(GridComponent* comp, bool update);
+    void addVoltageControlObject(GridComponent* comp, bool update);
 
     void removePowerControlObject(id_type_t oid, bool update);
     void removeVoltageControlObject(id_type_t oid, bool update);
@@ -93,3 +93,4 @@ class BusControls {
 };
 
 }  // namespace griddyn
+

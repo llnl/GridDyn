@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn {
-class Stabilizer: public gridSubModel {
+class Stabilizer: public GridSubModel {
   public:
   protected:
     double mp_Tw;
@@ -52,3 +52,4 @@ class Stabilizer: public gridSubModel {
 };
 
 }  // namespace griddyn
+

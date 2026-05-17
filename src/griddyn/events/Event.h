@@ -42,7 +42,7 @@ class EventInfo {
 /** basic event class enabling a property change in an object
 eventInterface, objectOperatorInterface are pure virtual interfaces
 */
-class Event: public helperObject, public eventInterface, public objectOperatorInterface {
+class Event: public HelperObject, public eventInterface, public objectOperatorInterface {
   protected:
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value
@@ -155,3 +155,4 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
+

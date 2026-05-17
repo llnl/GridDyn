@@ -320,7 +320,7 @@ CoreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) 
             return blocks[num];
         }
     }
-    return gridComponent::getSubObject(typeName, num);
+    return GridComponent::getSubObject(typeName, num);
 }
 
 CoreObject* blockSequence::findByUserID(std::string_view typeName, index_t searchID) const
@@ -332,7 +332,8 @@ CoreObject* blockSequence::findByUserID(std::string_view typeName, index_t searc
             }
         }
     }
-    return gridComponent::findByUserID(typeName, searchID);
+    return GridComponent::findByUserID(typeName, searchID);
 }
 
 }  // namespace griddyn::blocks
+

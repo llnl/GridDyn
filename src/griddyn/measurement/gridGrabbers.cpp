@@ -258,9 +258,9 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj
         return ggb;
     }
 
-    auto* sub = dynamic_cast<gridSubModel*>(obj);
+    auto* sub = dynamic_cast<GridSubModel*>(obj);
     if (sub != nullptr) {
-        ggb = std::make_unique<objectOffsetGrabber<gridSubModel>>(fld, sub);
+        ggb = std::make_unique<objectOffsetGrabber<GridSubModel>>(fld, sub);
         return ggb;
     }
     return ggb;
@@ -627,3 +627,4 @@ void opGrabber::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
+

@@ -30,7 +30,7 @@ namespace sources {
 }  // namespace sources
 
 Source::Source(const std::string& objName, double startVal):
-    gridSubModel(objName), m_tempOut(startVal)
+    GridSubModel(objName), m_tempOut(startVal)
 {
     m_output = startVal;
     m_inputSize = 0;
@@ -40,7 +40,7 @@ Source::Source(const std::string& objName, double startVal):
 
 CoreObject* Source::clone(CoreObject* obj) const
 {
-    auto gS = cloneBase<Source, gridSubModel>(this, obj);
+    auto gS = cloneBase<Source, GridSubModel>(this, obj);
     if (gS == nullptr) {
         return obj;
     }
@@ -58,7 +58,7 @@ void Source::set(std::string_view param, std::string_view val)
     } else if ((param == "units") || (param == "outputunits")) {
         outputUnits_ = units::unit_cast_from_string(std::string{val});
     } else {
-        gridSubModel::set(param, val);
+        GridSubModel::set(param, val);
     }
 }
 
@@ -72,7 +72,7 @@ void Source::set(std::string_view param, double val, units::unit unitType)
         (param == "output")) {
         setLevel(units::convert(val, unitType, outputUnits_, systemBasePower, localBaseVoltage));
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -82,7 +82,7 @@ void Source::setState(coreTime time,
                       const solverMode& sMode)
 {
     updateOutput(time);
-    gridComponent::setState(time, state, dstate_dt, sMode);
+    GridComponent::setState(time, state, dstate_dt, sMode);
     m_tempOut = m_output;
     lastTime = time;
 }
@@ -152,3 +152,4 @@ double Source::computeOutput(coreTime /*time*/) const
     return m_output;
 }
 }  // namespace griddyn
+

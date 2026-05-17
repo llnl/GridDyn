@@ -1442,24 +1442,24 @@ int acBus::propogatePower(bool makeSlack)
 }
 // -------------------- Power Flow --------------------
 
-void acBus::registerVoltageControl(gridComponent* comp)
+void acBus::registerVoltageControl(GridComponent* comp)
 {
     bool update = ((opFlags[pFlow_initialized]) && (type != busType::PQ));
     busController.addVoltageControlObject(comp, update);
 }
 
-void acBus::removeVoltageControl(gridComponent* comp)
+void acBus::removeVoltageControl(GridComponent* comp)
 {
     busController.removeVoltageControlObject(comp->getID(), opFlags[pFlow_initialized]);
 }
 
-void acBus::registerPowerControl(gridComponent* comp)
+void acBus::registerPowerControl(GridComponent* comp)
 {
     bool update = ((opFlags[pFlow_initialized]) && (type != busType::PQ));
     busController.addPowerControlObject(comp, update);
 }
 
-void acBus::removePowerControl(gridComponent* comp)
+void acBus::removePowerControl(GridComponent* comp)
 {
     busController.removePowerControlObject(comp->getID(), opFlags[pFlow_initialized]);
 }
@@ -1485,7 +1485,7 @@ void acBus::guessState(coreTime time, double state[], double dstate_dt[], const 
             }
         }
     }
-    gridComponent::guessState(time, state, dstate_dt, sMode);
+    GridComponent::guessState(time, state, dstate_dt, sMode);
 }
 
 // set algebraic and dynamic variables assume preset to differential
@@ -1500,7 +1500,7 @@ void acBus::getVariableType(double sdata[], const solverMode& sMode)
     if (Aoffset != kNullLocation) {
         sdata[Aoffset] = ALGEBRAIC_VARIABLE;
     }
-    gridComponent::getVariableType(sdata, sMode);
+    GridComponent::getVariableType(sdata, sMode);
 }
 
 void acBus::getTols(double tols[], const solverMode& sMode)
@@ -1514,7 +1514,7 @@ void acBus::getTols(double tols[], const solverMode& sMode)
         tols[Aoffset] = Atol;
     }
 
-    gridComponent::getTols(tols, sMode);
+    GridComponent::getTols(tols, sMode);
 }
 
 // pass the solution
@@ -2670,3 +2670,4 @@ change_code acBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
+

@@ -78,7 +78,7 @@ static childClassFactory<solvers::basicOdeSolver, SolverInterface>
 
 #endif
 
-SolverInterface::SolverInterface(const std::string& objName): helperObject(objName) {}
+SolverInterface::SolverInterface(const std::string& objName): HelperObject(objName) {}
 SolverInterface::SolverInterface(gridDynSimulation* gds, const solverMode& sMode):
     mode(sMode), m_gds(gds)
 {
@@ -217,7 +217,7 @@ double SolverInterface::get(std::string_view param) const
     } else if (param == "tolerance") {
         res = tolerance;
     } else {
-        return helperObject::get(param);
+        return HelperObject::get(param);
     }
     return res;
 }
@@ -271,7 +271,7 @@ void SolverInterface::set(std::string_view param, std::string_view val)
         jacFile = std::string{val};
         stateFile = std::string{val};
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -309,7 +309,7 @@ void SolverInterface::set(std::string_view param, double val)
     } else if (param == "maxiterations") {
         max_iterations = static_cast<index_t>(val);
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -579,3 +579,4 @@ std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::st
 }
 
 }  // namespace griddyn
+

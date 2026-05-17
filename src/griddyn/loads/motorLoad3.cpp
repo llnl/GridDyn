@@ -168,7 +168,7 @@ void motorLoad3::setState(coreTime time,
                           const solverMode& sMode)
 {
     // NOLINTNEXTLINE
-    gridComponent::setState(time, state, dstate_dt, sMode);
+    GridComponent::setState(time, state, dstate_dt, sMode);
 }
 
 void motorLoad3::guessState(coreTime time,
@@ -177,7 +177,7 @@ void motorLoad3::guessState(coreTime time,
                             const solverMode& sMode)
 {
     // NOLINTNEXTLINE
-    gridComponent::guessState(time, state, dstate_dt, sMode);
+    GridComponent::guessState(time, state, dstate_dt, sMode);
 }
 
 // residual
@@ -681,3 +681,4 @@ double motorLoad3::getReactivePower(double voltage) const
     return Qtemp * scale;
 }
 }  // namespace griddyn::loads
+

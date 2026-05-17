@@ -169,7 +169,7 @@ static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
 void acLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<acLine, gridComponent>(
+    getParamString<acLine, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -1630,3 +1630,4 @@ void acLine::loadApproxFunctions()
 }
 
 }  // namespace griddyn
+

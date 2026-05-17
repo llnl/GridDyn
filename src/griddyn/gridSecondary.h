@@ -17,7 +17,7 @@ class gridBus;
  *  gridSecondary class defines the interface for secondary objects which are nominally objects that
  *hang directly off a bus
  **/
-class gridSecondary: public gridComponent {
+class gridSecondary: public GridComponent {
   protected:
     gridBus* bus = nullptr;  //!< reference to the bus connecting the object;
   public:
@@ -164,3 +164,4 @@ class gridSecondary: public gridComponent {
 };
 
 }  // namespace griddyn
+

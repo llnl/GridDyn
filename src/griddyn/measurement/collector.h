@@ -37,7 +37,7 @@ class gridGrabber;
 class stateGrabber;
 
 /** base class for capturing and storing data from a grid simulation */
-class collector: public helperObject, public eventInterface, public objectOperatorInterface {
+class collector: public HelperObject, public eventInterface, public objectOperatorInterface {
   protected:
     count_t mWarningCount = 0;  //!< counter for the number of warnings
     // there is currently a 4 byte gap here
@@ -188,3 +188,4 @@ class collector: public helperObject, public eventInterface, public objectOperat
 std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
+

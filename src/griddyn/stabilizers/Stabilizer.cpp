@@ -16,10 +16,10 @@
 namespace griddyn {
 static const typeFactory<Stabilizer> gf("pss", std::to_array<std::string_view>({"basic"}));
 
-Stabilizer::Stabilizer(const std::string& objName): gridSubModel(objName) {}
+Stabilizer::Stabilizer(const std::string& objName): GridSubModel(objName) {}
 CoreObject* Stabilizer::clone(CoreObject* obj) const
 {
-    auto pss = cloneBase<Stabilizer, gridSubModel>(this, obj);
+    auto pss = cloneBase<Stabilizer, GridSubModel>(this, obj);
     if (pss == nullptr) {
         return obj;
     }
@@ -80,3 +80,4 @@ void Stabilizer::derivative(const IOdata& /*inputs*/,
 }
 
 }  // namespace griddyn
+

@@ -14,7 +14,7 @@ namespace griddyn {
 class Block;
 
 /** @brief class implementing a control system built from the defined control blocks*/
-class controlSystem: public gridSubModel {
+class controlSystem: public GridSubModel {
   protected:
     std::vector<Block*> blocks;  //!< the set of blocks to operate on
     matrixDataSparse<double> inputMult;  //!< multipliers for the input to the blocks
@@ -70,3 +70,4 @@ class controlSystem: public gridSubModel {
 };
 
 }  // namespace griddyn
+

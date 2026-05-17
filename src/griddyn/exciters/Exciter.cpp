@@ -43,7 +43,7 @@ namespace exciters {
     }  // namespace
 }  // namespace exciters
 
-Exciter::Exciter(const std::string& objName): gridSubModel(objName)
+Exciter::Exciter(const std::string& objName): GridSubModel(objName)
 {
     m_inputSize = 4;
     m_outputSize = 1;
@@ -51,7 +51,7 @@ Exciter::Exciter(const std::string& objName): gridSubModel(objName)
 
 CoreObject* Exciter::clone(CoreObject* obj) const
 {
-    auto* gdE = cloneBase<Exciter, gridSubModel>(this, obj);
+    auto* gdE = cloneBase<Exciter, GridSubModel>(this, obj);
     if (gdE == nullptr) {
         return obj;
     }
@@ -249,7 +249,7 @@ stringVec Exciter::localStateNames() const
 
 void Exciter::set(std::string_view param, std::string_view val)
 {
-    gridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 
 void Exciter::set(std::string_view param, double val, units::unit unitType)
@@ -267,7 +267,7 @@ void Exciter::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "vbias") {
         vBias = val;
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -291,3 +291,4 @@ const std::vector<stringVec>& Exciter::outputNames() const
 }
 
 }  // namespace griddyn
+

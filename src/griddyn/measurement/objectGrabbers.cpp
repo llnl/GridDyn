@@ -146,24 +146,24 @@ namespace {
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
     {"connected",
      {[](CoreObject* obj) {
-          return static_cast<double>(static_cast<gridComponent*>(obj)->isConnected());
+          return static_cast<double>(static_cast<GridComponent*>(obj)->isConnected());
       },
       defunit}},
     {"enabled",
      {[](CoreObject* obj) {
-          return static_cast<double>(static_cast<gridComponent*>(obj)->isEnabled());
+          return static_cast<double>(static_cast<GridComponent*>(obj)->isEnabled());
       },
       defunit}},
     {"armed",
      {[](CoreObject* obj) {
-          return static_cast<double>(static_cast<gridComponent*>(obj)->isArmed());
+          return static_cast<double>(static_cast<GridComponent*>(obj)->isArmed());
       },
       defunit}},
     {"output",
-     {[](CoreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(0); }, defunit}},
+     {[](CoreObject* obj) { return static_cast<GridComponent*>(obj)->getOutput(0); }, defunit}},
     {"deriv",
      {[](CoreObject* obj) {
-          return static_cast<gridComponent*>(obj)->getDoutdt(noInputs,
+          return static_cast<GridComponent*>(obj)->getDoutdt(noInputs,
                                                              emptyStateData,
                                                              cLocalSolverMode,
                                                              0);
@@ -462,7 +462,7 @@ static std::string_view translateField(std::string_view field)
     return (translatedField != stringTranslate.end()) ? translatedField->second : field;
 }
 
-fobjectPair getObjectFunction(const gridComponent* comp, const std::string& field)
+fobjectPair getObjectFunction(const GridComponent* comp, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
     auto funcfind = objectFunctions.find(nfstr);
@@ -472,12 +472,12 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
     std::string fld;
     auto num = gmlc::utilities::stringOps::trailingStringInt(field, fld);
     if ((fld == "output") || (fld == "o") || (fld == "out")) {
-        return {[num](CoreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(num); },
+        return {[num](CoreObject* obj) { return static_cast<GridComponent*>(obj)->getOutput(num); },
                 defunit};
     }
     if ((fld == "deriv") || (fld == "dodt") || (fld == "doutdt")) {
         return {[num](CoreObject* obj) {
-                    return static_cast<gridComponent*>(obj)->getDoutdt(noInputs,
+                    return static_cast<GridComponent*>(obj)->getDoutdt(noInputs,
                                                                        emptyStateData,
                                                                        cLocalSolverMode,
                                                                        num);
@@ -489,7 +489,7 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
     const index_t outIndex = comp->lookupOutputIndex(field);
     if (outIndex != kNullLocation) {
         return {[outIndex](CoreObject* obj) {
-                    return static_cast<gridComponent*>(obj)->getOutput(outIndex);
+                    return static_cast<GridComponent*>(obj)->getOutput(outIndex);
                 },
                 defunit};
     }
@@ -504,7 +504,7 @@ fobjectPair getObjectFunction(const gridBus* bus, const std::string& field)
     if (funcfind != busFunctions.end()) {
         return funcfind->second;
     }
-    return getObjectFunction(static_cast<const gridComponent*>(bus), field);
+    return getObjectFunction(static_cast<const GridComponent*>(bus), field);
 }
 
 fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
@@ -520,7 +520,7 @@ fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
         return funcfind->second;
     }
 
-    return getObjectFunction(static_cast<const gridComponent*>(loadObject), field);
+    return getObjectFunction(static_cast<const GridComponent*>(loadObject), field);
 }
 
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
@@ -536,7 +536,7 @@ fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
         return funcfind->second;
     }
 
-    return getObjectFunction(static_cast<const gridComponent*>(gen), field);
+    return getObjectFunction(static_cast<const GridComponent*>(gen), field);
 }
 
 fobjectPair getObjectFunction(const Area* area, const std::string& field)
@@ -547,7 +547,7 @@ fobjectPair getObjectFunction(const Area* area, const std::string& field)
         return funcfind->second;
     }
 
-    return getObjectFunction(static_cast<const gridComponent*>(area), field);
+    return getObjectFunction(static_cast<const GridComponent*>(area), field);
 }
 
 fobjectPair getObjectFunction(const Link* lnk, const std::string& field)
@@ -558,7 +558,7 @@ fobjectPair getObjectFunction(const Link* lnk, const std::string& field)
         return funcfind->second;
     }
 
-    return getObjectFunction(static_cast<const gridComponent*>(lnk), field);
+    return getObjectFunction(static_cast<const GridComponent*>(lnk), field);
 }
 
 fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
@@ -623,23 +623,23 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
                 }
             }
         }
-        return getObjectFunction(static_cast<const gridComponent*>(rel), field);
+        return getObjectFunction(static_cast<const GridComponent*>(rel), field);
     }
 
     return retPair;
 }
 
-fobjectPair getObjectFunction(const gridSubModel* sub, const std::string& field)
+fobjectPair getObjectFunction(const GridSubModel* sub, const std::string& field)
 {
-    return getObjectFunction(static_cast<const gridComponent*>(sub), field);
+    return getObjectFunction(static_cast<const GridComponent*>(sub), field);
 }
 
-fvecPair getObjectVectorFunction(const gridComponent* /*comp*/, const std::string& field)
+fvecPair getObjectVectorFunction(const GridComponent* /*comp*/, const std::string& field)
 {
     if (field == "outputs") {
         return {[](CoreObject* obj, std::vector<double>& data) {
                     auto dataoutputs =
-                        static_cast<gridComponent*>(obj)->getOutputs(noInputs,
+                        static_cast<GridComponent*>(obj)->getOutputs(noInputs,
                                                                      emptyStateData,
                                                                      cLocalSolverMode);
                     data.clear();
@@ -657,10 +657,10 @@ fvecPair getObjectVectorFunction(const Area* area, const std::string& field)
     if (funcfind != areaVecFunctions.end()) {
         return funcfind->second;
     }
-    return getObjectVectorFunction(static_cast<const gridComponent*>(area), field);
+    return getObjectVectorFunction(static_cast<const GridComponent*>(area), field);
 }
 
-descVecFunc getObjectVectorDescFunction(const gridComponent* comp, const std::string& /*field*/)
+descVecFunc getObjectVectorDescFunction(const GridComponent* comp, const std::string& /*field*/)
 {
     static_cast<void>(comp);
     return nullptr;
@@ -678,3 +678,4 @@ descVecFunc getObjectVectorDescFunction(const Area* /*area*/, const std::string&
 }
 
 }  // namespace griddyn
+

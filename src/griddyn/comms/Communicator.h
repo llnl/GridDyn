@@ -22,7 +22,7 @@ class commMessage;
 @brief base class for communicator object
 */
 class Communicator:
-    public griddyn::helperObject,
+    public griddyn::HelperObject,
     public std::enable_shared_from_this<Communicator> {
   public:
     bool autoPingEnabled = true;  //!< control for automatic ping enable
@@ -113,3 +113,4 @@ std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
                                                const std::uint64_t commId);
 }  // namespace griddyn
+

@@ -78,7 +78,7 @@ class HelicsCoordinator: public CoreObject {
     helics::ValueFederate* vFed_;  //!< pointer to the federate
     helics::MessageFederate* mFed_;  //!< pointer to a message Federate
     std::mutex helperProtector;  //!< mutex lock to accept incoming helpers in a parallel system
-    std::vector<std::shared_ptr<helperObject>> helpers;  //!< storage to keep helper objects active
+    std::vector<std::shared_ptr<HelperObject>> helpers;  //!< storage to keep helper objects active
     std::unordered_map<std::string, int32_t> subMap_;  //!< map of all the subscription names
     std::unordered_map<std::string, int32_t> pubMap_;  //!< map of all the publication names
     std::unordered_map<std::string, int32_t> eptMap_;  //!< map of all the endpoints
@@ -120,7 +120,7 @@ class HelicsCoordinator: public CoreObject {
                         helics::Time messageTime); /* catch-all callback for HELICS messages */
     void sendMessage(int32_t index, const char* data, count_t size);
     void sendMessage(int32_t index, const std::string& dest, const char* data, count_t size);
-    void addHelper(std::shared_ptr<helperObject> helper) override;
+    void addHelper(std::shared_ptr<HelperObject> helper) override;
     void addEvent(HelicsEvent* eventObject);
     void addCollector(HelicsCollector* collectorObject);
     void set(const std::string& param, const std::string& val) override;
@@ -220,3 +220,4 @@ class HelicsCoordinator: public CoreObject {
 };
 
 }  // namespace griddyn::helicsLib
+

@@ -17,7 +17,7 @@ class OperatingBoundary;
 
 namespace griddyn {
 class scheduler;
-class gridSubModel;
+class GridSubModel;
 /**
 @ brief class describing a generator unit
  a generator is a power production unit in GridDyn.  the base generator class implements methods set
@@ -113,7 +113,7 @@ class Generator: public gridSecondary {
     /** @brief additional add function specific to subModels
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
-    virtual void add(gridSubModel* obj);
+    virtual void add(GridSubModel* obj);
 
     virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
 
@@ -232,3 +232,4 @@ class Generator: public gridSecondary {
 };
 
 }  // namespace griddyn
+

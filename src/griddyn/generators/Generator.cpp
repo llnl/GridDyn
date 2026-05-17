@@ -233,8 +233,8 @@ void Generator::guessState(coreTime /*time*/,
 
 void Generator::add(CoreObject* obj)
 {
-    if (dynamic_cast<gridSubModel*>(obj) != nullptr) {
-        return add(static_cast<gridSubModel*>(obj));
+    if (dynamic_cast<GridSubModel*>(obj) != nullptr) {
+        return add(static_cast<GridSubModel*>(obj));
     }
     if (dynamic_cast<gridBus*>(obj) != nullptr) {
         setRemoteBus(obj);
@@ -243,7 +243,7 @@ void Generator::add(CoreObject* obj)
     }
 }
 
-void Generator::add(gridSubModel* obj)
+void Generator::add(GridSubModel* obj)
 {
     if (dynamic_cast<scheduler*>(obj) != nullptr) {
         sched = static_cast<scheduler*>(obj);
@@ -730,7 +730,7 @@ CoreObject* Generator::find(std::string_view object) const
     if ((object == "generator") || (object == getName())) {
         return const_cast<Generator*>(this);
     }
-    return gridComponent::find(object);
+    return GridComponent::find(object);
 }
 
 double Generator::getAdjustableCapacityUp(coreTime time) const
@@ -811,3 +811,4 @@ double Generator::getAngle(const stateData& sD, const solverMode& sMode, index_t
 }
 
 }  // namespace griddyn
+

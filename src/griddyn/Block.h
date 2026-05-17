@@ -26,7 +26,7 @@ cannot be changed unless the object is reinitialized directly
 the blocks take 1 or 2 inputs the first being the single input,  if the differential input is set
 then the second argument is the time derivative of the input
 */
-class Block: public gridSubModel {
+class Block: public GridSubModel {
   public:
     /** @brief flags common for all control blocks
      */
@@ -264,3 +264,4 @@ class Block: public gridSubModel {
 std::unique_ptr<Block> make_block(const std::string& blockstr);
 
 }  // namespace griddyn
+

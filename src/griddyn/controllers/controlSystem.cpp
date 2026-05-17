@@ -13,13 +13,13 @@
 #include <vector>
 
 namespace griddyn {
-controlSystem::controlSystem(const std::string& objName): gridSubModel(objName) {}
+controlSystem::controlSystem(const std::string& objName): GridSubModel(objName) {}
 
 controlSystem::~controlSystem() = default;
 
 CoreObject* controlSystem::clone(CoreObject* obj) const
 {
-    auto* cs = cloneBase<controlSystem, gridSubModel>(this, obj);
+    auto* cs = cloneBase<controlSystem, GridSubModel>(this, obj);
     if (cs == nullptr) {
         return obj;
     }
@@ -58,7 +58,7 @@ void controlSystem::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridSubModel::set(param, val);
+        GridSubModel::set(param, val);
     }
 }
 
@@ -66,7 +66,7 @@ void controlSystem::set(std::string_view param, double val, units::unit unitType
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridSubModel::set(param, val, unitType);
+        GridSubModel::set(param, val, unitType);
     }
 }
 
@@ -119,3 +119,4 @@ change_code controlSystem::rootCheck(const IOdata& /*inputs*/,
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
+

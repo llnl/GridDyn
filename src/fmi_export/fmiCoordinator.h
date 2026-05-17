@@ -41,7 +41,7 @@ class FmiCoordinator: public griddyn::CoreObject {
     std::vector<VrOutputPair> mOutputVr;  //!< container for the outputs
     std::vector<double> mOutputPoints;  //!< temporary storage for the outputs
     std::vector<FmiCollector*> mCollectors;  //!< storage for the collectors
-    std::vector<std::shared_ptr<helperObject>> mHelpers;  //!< storage to keep helper objects active
+    std::vector<std::shared_ptr<HelperObject>> mHelpers;  //!< storage to keep helper objects active
     std::atomic<index_t> mNextVr{10};  //!< atomic to maintain a vr counter
     std::mutex mHelperProtector;  //!< mutex lock to accept incoming helpers in a parallel system
     std::map<std::string, index_t>
@@ -106,9 +106,10 @@ buffer
 @return kNullLocation if name is not found*/
     index_t findVR(const std::string& varName) const;
 
-    virtual void addHelper(std::shared_ptr<helperObject> helperObjectPtr) override;
+    virtual void addHelper(std::shared_ptr<HelperObject> helperObjectPtr) override;
 
     static bool isStringParameter(const VrInputPair& param);
 };
 
 }  // namespace griddyn::fmi
+

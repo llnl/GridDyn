@@ -16,7 +16,7 @@
 
 using griddyn::dyn_initialized;
 using griddyn::emptyStateData;
-using griddyn::gridComponent;
+using griddyn::GridComponent;
 using griddyn::gridDynSimulation;
 using griddyn::IOdata;
 using griddyn::IOlocs;
@@ -28,7 +28,7 @@ static constexpr char invalidSolver[] = "the given solver key was not valid";
 
 int gridDynObjectStateSize(GridDynObject obj, SolverKey key, GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -42,7 +42,7 @@ int gridDynObjectStateSize(GridDynObject obj, SolverKey key, GridDynError* err)
     return static_cast<int>(comp->stateSize(sMode));
 }
 
-void setUpSolverKeyInfo(solverKeyInfo* key, gridComponent* comp)
+void setUpSolverKeyInfo(solverKeyInfo* key, GridComponent* comp)
 {
     auto* root = dynamic_cast<gridDynSimulation*>(comp->getRoot());
     auto ssize = root->stateSize(key->sMode_);
@@ -52,7 +52,7 @@ void setUpSolverKeyInfo(solverKeyInfo* key, gridComponent* comp)
 
 void TranslateToLocal(const std::vector<double>& orig,
                       double* newData,
-                      const gridComponent* comp,
+                      const GridComponent* comp,
                       const solverMode& sMode)
 {
     auto offsets = comp->getOffsets(sMode);
@@ -80,7 +80,7 @@ void TranslateToLocal(const std::vector<double>& orig,
 
 void CopyFromLocal(std::vector<double>& dest,
                    const double* localData,
-                   const gridComponent* comp,
+                   const GridComponent* comp,
                    const solverMode& sMode)
 {
     auto offsets = comp->getOffsets(sMode);
@@ -113,7 +113,7 @@ void gridDynObjectGuessState(GridDynObject obj,
                              SolverKey key,
                              GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -160,7 +160,7 @@ void gridDynObjectSetState(GridDynObject obj,
                            SolverKey key,
                            GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -189,7 +189,7 @@ void gridDynObjectGetStateVariableTypes(GridDynObject obj,
                                         SolverKey key,
                                         GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -214,7 +214,7 @@ void gridDynObjectResidual(GridDynObject obj,
                            SolverKey key,
                            GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -242,7 +242,7 @@ void gridDynObjectDerivative(GridDynObject obj,
                              SolverKey key,
                              GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -277,7 +277,7 @@ void gridDynObjectAlgebraicUpdate(GridDynObject obj,
                                   SolverKey key,
                                   GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -318,7 +318,7 @@ void gridDynObjectJacobian(GridDynObject obj,
                            SolverKey key,
                            GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -348,7 +348,7 @@ void gridDynObjecIoPartialDerivatives(GridDynObject obj,
                                       SolverKey key,
                                       GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -374,7 +374,7 @@ void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                            SolverKey key,
                                            GridDynError* err)
 {
-    gridComponent* comp = getComponentPointer(obj);
+    GridComponent* comp = getComponentPointer(obj);
 
     if (comp == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
@@ -395,3 +395,4 @@ void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                    md,
                                    keyInfo->sMode_);
 }
+

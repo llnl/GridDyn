@@ -19,7 +19,7 @@ inline constexpr int govpSetInLocation = 1;
 /** @brief class defining the interface for a governor
  the governor class is a really basic governor it includes two time constants
 and takes as input the frequency and power setting*/
-class Governor: public gridSubModel {
+class Governor: public GridSubModel {
   public:
     /** @brief flags for governor control*/
     enum governor_flags {
@@ -90,3 +90,4 @@ class Governor: public gridSubModel {
 };
 
 }  // namespace griddyn
+

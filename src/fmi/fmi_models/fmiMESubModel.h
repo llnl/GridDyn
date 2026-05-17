@@ -23,7 +23,7 @@ enum class FmuMode;  // forward declare enumeration
 namespace griddyn::fmi {
 class OutputEstimator;
 /** class defining a subModel interacting with an FMU v2.0 object for model exchange*/
-class FmiMESubModel: public gridSubModel {
+class FmiMESubModel: public GridSubModel {
   public:
     enum fmiSubModelFlags {
         use_output_estimator = object_flag2,
@@ -165,3 +165,4 @@ class FmiMESubModel: public gridSubModel {
 };
 
 }  // namespace griddyn::fmi
+

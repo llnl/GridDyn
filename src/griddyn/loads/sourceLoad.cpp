@@ -367,8 +367,9 @@ CoreObject* sourceLoad::find(std::string_view obj) const
 {
     auto* src = findSource(obj);
     if (src == nullptr) {
-        return gridComponent::find(obj);
+        return GridComponent::find(obj);
     }
     return src;
 }
 }  // namespace griddyn::loads
+

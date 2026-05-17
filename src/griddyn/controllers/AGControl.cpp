@@ -69,7 +69,7 @@ static typeFactory<Block> bbof("agc", std::to_array<std::string_view>({"basic", 
 
 AGControl::~AGControl() = default;
 
-AGControl::AGControl(const std::string& objName): gridSubModel(objName)
+AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
     pid = make_owningPtr<blocks::pidBlock>(KP, KI, 0, "pid");
     pid->setParent(this);
@@ -84,7 +84,7 @@ AGControl::AGControl(const std::string& objName): gridSubModel(objName)
 
 CoreObject* AGControl::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<AGControl, gridSubModel>(this, obj);
+    auto nobj = cloneBase<AGControl, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -260,3 +260,4 @@ AGControl* newAGC(const std::string& type)
 }
 
 }  // namespace griddyn
+

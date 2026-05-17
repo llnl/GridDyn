@@ -814,7 +814,7 @@ static const stringVec flagStrings{};
 
 void Area::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<Area, gridComponent>(
+    getParamString<Area, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -1920,3 +1920,4 @@ Area* getMatchingArea(Area* area, gridPrimary* src, gridPrimary* sec)
 }
 
 }  // namespace griddyn
+

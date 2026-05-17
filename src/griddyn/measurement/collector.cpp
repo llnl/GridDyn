@@ -39,7 +39,7 @@ collector::collector(coreTime time0, coreTime period):
 }
 
 collector::collector(const std::string& collectorName):
-    helperObject(collectorName), mTimePeriod(1.0), mRequestedPeriod(1.0), mTriggerTime(timeZero)
+    HelperObject(collectorName), mTimePeriod(1.0), mRequestedPeriod(1.0), mTriggerTime(timeZero)
 {
 }
 
@@ -173,7 +173,7 @@ void collector::set(std::string_view param, double val)
             mTimePeriod = (per == 0) ? val : val * per;
         }
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -181,7 +181,7 @@ void collector::set(std::string_view param, std::string_view val)
 {
     if (param.front() == '#') {
     } else {
-        helperObject::set(param, val);
+        HelperObject::set(param, val);
     }
 }
 
@@ -190,7 +190,7 @@ void collector::setFlag(std::string_view flag, bool val)
     if (flag == "vector_name") {
         mVectorName = val;
     } else {
-        helperObject::setFlag(flag, val);
+        HelperObject::setFlag(flag, val);
     }
 }
 
@@ -493,3 +493,4 @@ std::unique_ptr<collector> makeCollector(std::string_view type, const std::strin
 }
 
 }  // namespace griddyn
+

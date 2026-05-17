@@ -102,7 +102,7 @@ class DynamicGenerator: public Generator {
     /** @brief additional add function specific to subModels
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
-    virtual void add(gridSubModel* obj) override;
+    virtual void add(GridSubModel* obj) override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& stateDataValue,
@@ -211,9 +211,10 @@ class DynamicGenerator: public Generator {
                                            const stateData& stateDataValue,
                                            const solverMode& sMode);
 
-    gridSubModel* replaceModel(gridSubModel* newObject, gridSubModel* oldObject, index_t newIndex);
+    GridSubModel* replaceModel(GridSubModel* newObject, GridSubModel* oldObject, index_t newIndex);
 
     void buildDynModel(dynModel_t dynModel);
 };
 
 }  // namespace griddyn
+

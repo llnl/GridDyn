@@ -93,7 +93,7 @@ CoreObject* gridDynSimulation::clone(CoreObject* obj) const
     sim->powerFlowFile = powerFlowFile;
     sim->defaultDynamicSolverMethod = defaultDynamicSolverMethod;
     // std::vector < std::shared_ptr < SolverInterface >> solverInterfaces;
-    // std::vector<gridComponent *>singleStepObjects;
+    // std::vector<GridComponent *>singleStepObjects;
     // now clone the solverInterfaces
     auto solverInterfaceCount = static_cast<count_t>(solverInterfaces.size());
     sim->solverInterfaces.resize(solverInterfaceCount);
@@ -1183,8 +1183,8 @@ void gridDynSimulation::alert(CoreObject* object, int code)
         Area::alert(object, code);
     } else if (code == SINGLE_STEP_REQUIRED) {
         controlFlags.set(single_step_mode);
-        if (dynamic_cast<gridComponent*>(object) != nullptr) {
-            singleStepObjects.push_back(static_cast<gridComponent*>(object));
+        if (dynamic_cast<GridComponent*>(object) != nullptr) {
+            singleStepObjects.push_back(static_cast<GridComponent*>(object));
         }
     } else {
         gridSimulation::alert(object, code);
@@ -1712,3 +1712,4 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
 }
 
 }  // namespace griddyn
+

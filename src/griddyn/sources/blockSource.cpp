@@ -28,14 +28,14 @@ void blockSource::add(CoreObject* obj)
 {
     if (dynamic_cast<Block*>(obj) != nullptr) {
         if (blk != nullptr) {
-            gridComponent::remove(blk);
+            GridComponent::remove(blk);
         }
         blk = static_cast<Block*>(obj);
         addSubObject(blk);
     }
     if (dynamic_cast<Source*>(obj) != nullptr) {
         if (src != nullptr) {
-            gridComponent::remove(src);
+            GridComponent::remove(src);
         }
         src = static_cast<Source*>(obj);
         addSubObject(src);
@@ -49,13 +49,13 @@ void blockSource::add(CoreObject* obj)
 void blockSource::remove(CoreObject* obj)
 {
     if (isSameObject(src, obj)) {
-        gridComponent::remove(obj);
+        GridComponent::remove(obj);
         src = nullptr;
         return;
     }
 
     if (isSameObject(blk, obj)) {
-        gridComponent::remove(obj);
+        GridComponent::remove(obj);
         blk = nullptr;
         return;
     }
@@ -379,7 +379,7 @@ CoreObject* blockSource::find(std::string_view object) const
     if (object == "block") {
         return blk;
     }
-    return gridComponent::find(object);
+    return GridComponent::find(object);
 }
 
 CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
@@ -391,6 +391,7 @@ CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) co
         return (num == 0) ? blk : nullptr;
     }
 
-    return gridComponent::getSubObject(typeName, num);
+    return GridComponent::getSubObject(typeName, num);
 }
 }  // namespace griddyn::sources
+

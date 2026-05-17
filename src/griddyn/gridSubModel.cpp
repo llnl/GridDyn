@@ -10,22 +10,22 @@
 #include <string>
 
 namespace griddyn {
-gridSubModel::gridSubModel(const std::string& objName): gridComponent(objName)
+GridSubModel::GridSubModel(const std::string& objName): GridComponent(objName)
 {
     opFlags.set(no_powerflow_operations);
     m_outputSize = 1;
 }
 
-void gridSubModel::pFlowInitializeA(coreTime time, std::uint32_t flags)
+void GridSubModel::pFlowInitializeA(coreTime time, std::uint32_t flags)
 {
-    gridComponent::pFlowInitializeA(time, flags);
+    GridComponent::pFlowInitializeA(time, flags);
 }
 
-void gridSubModel::pFlowInitializeB()
+void GridSubModel::pFlowInitializeB()
 {
-    gridComponent::pFlowInitializeB();
+    GridComponent::pFlowInitializeB();
 }
-void gridSubModel::dynInitializeA(coreTime time, std::uint32_t flags)
+void GridSubModel::dynInitializeA(coreTime time, std::uint32_t flags)
 {
     if (isEnabled()) {
         dynObjectInitializeA(time, flags);
@@ -44,7 +44,7 @@ void gridSubModel::dynInitializeA(coreTime time, std::uint32_t flags)
     }
 }
 
-void gridSubModel::dynInitializeB(const IOdata& inputs,
+void GridSubModel::dynInitializeB(const IOdata& inputs,
                                   const IOdata& desiredOutput,
                                   IOdata& fieldSet)
 {
@@ -65,14 +65,15 @@ void gridSubModel::dynInitializeB(const IOdata& inputs,
     }
 }
 
-double gridSubModel::get(std::string_view param, units::unit unitType) const
+double GridSubModel::get(std::string_view param, units::unit unitType) const
 {
     auto fptr = getObjectFunction(this, std::string{param});
     if (fptr.first) {
-        CoreObject* tobj = const_cast<gridSubModel*>(this);
+        CoreObject* tobj = const_cast<GridSubModel*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
     }
 
-    return gridComponent::get(param, unitType);
+    return GridComponent::get(param, unitType);
 }
 }  // namespace griddyn
+

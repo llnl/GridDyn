@@ -14,10 +14,10 @@
 #include <string>
 
 namespace griddyn {
-gridPrimary::gridPrimary(const std::string& objName): gridComponent(objName) {}
+gridPrimary::gridPrimary(const std::string& objName): GridComponent(objName) {}
 CoreObject* gridPrimary::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<gridPrimary, gridComponent>(this, obj);
+    auto nobj = cloneBase<gridPrimary, GridComponent>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -27,16 +27,16 @@ CoreObject* gridPrimary::clone(CoreObject* obj) const
 
 void gridPrimary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
-    gridComponent::pFlowInitializeA(time0, flags);
+    GridComponent::pFlowInitializeA(time0, flags);
 }
 
 void gridPrimary::pFlowInitializeB()
 {
-    gridComponent::pFlowInitializeB();
+    GridComponent::pFlowInitializeB();
 }
 void gridPrimary::dynInitializeA(coreTime time0, std::uint32_t flags)
 {
-    gridComponent::dynInitializeA(time0, flags);
+    GridComponent::dynInitializeA(time0, flags);
 }
 
 void gridPrimary::dynInitializeB(const IOdata& inputs,
@@ -44,21 +44,21 @@ void gridPrimary::dynInitializeB(const IOdata& inputs,
                                  IOdata& fieldSet)
 {
     if (isEnabled()) {
-        gridComponent::dynInitializeB(inputs, desiredOutput, fieldSet);
+        GridComponent::dynInitializeB(inputs, desiredOutput, fieldSet);
         updateLocalCache();
     }
 }
 
 void gridPrimary::set(std::string_view param, std::string_view val)
 {
-    gridComponent::set(param, val);
+    GridComponent::set(param, val);
 }
 void gridPrimary::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "zone") || (param == "zone number")) {
         zone = static_cast<int>(val);
     } else {
-        gridComponent::set(param, val, unitType);
+        GridComponent::set(param, val, unitType);
     }
 }
 
@@ -67,7 +67,7 @@ double gridPrimary::get(std::string_view param, units::unit unitType) const
     if (param == "zone") {
         return static_cast<double>(zone);
     }
-    return gridComponent::get(param, unitType);
+    return GridComponent::get(param, unitType);
 }
 
 void gridPrimary::converge(coreTime /*time*/,
@@ -84,7 +84,7 @@ void gridPrimary::setState(coreTime time,
                            const double dstate_dt[],
                            const solverMode& sMode)
 {
-    gridComponent::setState(time, state, dstate_dt, sMode);
+    GridComponent::setState(time, state, dstate_dt, sMode);
     // update local computations
     updateLocalCache();
 }
@@ -142,3 +142,4 @@ Relay* gridPrimary::getRelay(index_t /*num*/) const
     return nullptr;
 }
 }  // namespace griddyn
+

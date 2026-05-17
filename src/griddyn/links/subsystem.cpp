@@ -37,7 +37,7 @@ subsystem::subsystem(const std::string& objName): Link(objName)
     cterm[1] = 2;
     subarea.addOwningReference();
     addSubObject(&subarea);  // add the subArea to the subObject list to take advantage of the code
-                             // in gridComponent.
+                             // in GridComponent.
 }
 
 subsystem::subsystem(count_t terminals, const std::string& objName): Link(objName)
@@ -52,7 +52,7 @@ subsystem::subsystem(count_t terminals, const std::string& objName): Link(objNam
 
     subarea.addOwningReference();
     addSubObject(&subarea);  // add the subArea to the subObject list to take advantage of the code
-                             // in gridComponent.
+                             // in GridComponent.
 }
 
 CoreObject* subsystem::clone(CoreObject* obj) const
@@ -615,3 +615,4 @@ IOdata subsystem::getOutputs(id_type_t busId,
 }
 
 }  // namespace griddyn
+

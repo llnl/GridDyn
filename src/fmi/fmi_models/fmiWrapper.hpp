@@ -30,7 +30,7 @@ class FmiWrapper: public BaseObj {
     std::vector<std::string> outputNames_specified;  //!< storage for the specified output names
 
   public:
-    static_assert(std::is_base_of<gridComponent, BaseObj>::value,
+    static_assert(std::is_base_of<GridComponent, BaseObj>::value,
                   "BaseObj must inherit from GridComponent");
     /** constructor taking an object name
 @param[in] objName the name of the object
@@ -367,3 +367,4 @@ provided with the default to the regular call
     }
 };
 }  // namespace griddyn::fmi
+

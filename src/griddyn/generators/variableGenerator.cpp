@@ -64,21 +64,21 @@ void variableGenerator::dynObjectInitializeB(const IOdata& inputs,
 
 void variableGenerator::add(CoreObject* obj)
 {
-    if (dynamic_cast<gridSubModel*>(obj) != nullptr) {
-        add(static_cast<gridSubModel*>(obj));
+    if (dynamic_cast<GridSubModel*>(obj) != nullptr) {
+        add(static_cast<GridSubModel*>(obj));
     } else {
         DynamicGenerator::add(obj);
     }
 }
 
-void variableGenerator::add(gridSubModel* obj)
+void variableGenerator::add(GridSubModel* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         if (m_source != nullptr) {
             if (isSameObject(obj, m_source)) {
                 return;
             }
-            gridComponent::remove(m_source);
+            GridComponent::remove(m_source);
         }
         m_source = static_cast<Source*>(obj);
         m_source->locIndex = source_loc;
@@ -91,7 +91,7 @@ void variableGenerator::add(gridSubModel* obj)
                 return;
             }
 
-            gridComponent::remove(m_cBlock);
+            GridComponent::remove(m_cBlock);
         }
         m_cBlock = static_cast<Block*>(obj);
         m_cBlock->locIndex = control_block_loc;
@@ -188,3 +188,4 @@ index_t variableGenerator::pSetLocation(const solverMode& sMode)
 }
 
 }  // namespace griddyn
+

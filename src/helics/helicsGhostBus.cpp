@@ -18,7 +18,7 @@
 namespace griddyn::helicsLib {
 HelicsGhostBus::HelicsGhostBus(const std::string& objName): gridBus(objName) {}
 
-coreObject* HelicsGhostBus::clone(coreObject* obj) const
+CoreObject* HelicsGhostBus::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<HelicsGhostBus, gridBus>(this, obj);
     if (nobj == nullptr) {

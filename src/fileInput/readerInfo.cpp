@@ -254,7 +254,7 @@ std::string readerInfo::objectNameTranslate(const std::string& input)
     return out;
 }
 
-bool readerInfo::addLibraryObject(coreObject* obj, std::vector<gridParameter>& pobjs)
+bool readerInfo::addLibraryObject(CoreObject* obj, std::vector<gridParameter>& pobjs)
 {
     auto retval = library.find(obj->getName());
     if (retval == library.end()) {
@@ -265,7 +265,7 @@ bool readerInfo::addLibraryObject(coreObject* obj, std::vector<gridParameter>& p
     return false;
 }
 
-coreObject* readerInfo::findLibraryObject(std::string_view objName) const
+CoreObject* readerInfo::findLibraryObject(std::string_view objName) const
 {
     auto retval = library.find(std::string{objName});
     if (retval != library.end()) {
@@ -275,7 +275,7 @@ coreObject* readerInfo::findLibraryObject(std::string_view objName) const
 }
 
 const char libraryLabel[] = "library";
-coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* mobj)
+CoreObject* readerInfo::makeLibraryObject(std::string_view objName, CoreObject* mobj)
 {
     auto objloc = library.find(std::string{objName});
     if (objloc == library.end()) {
@@ -283,7 +283,7 @@ coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* 
         return mobj;
     }
 
-    coreObject* obj = objloc->second.first->clone(mobj);
+    CoreObject* obj = objloc->second.first->clone(mobj);
     for (auto& paramObj : objloc->second.second) {
         paramStringProcess(paramObj, *this);
         setObjectParameter(libraryLabel, obj, paramObj);

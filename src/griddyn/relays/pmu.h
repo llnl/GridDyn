@@ -37,7 +37,7 @@ class pmu: public sensor {
     coreTime mLastTransmitTime = negTime;  //!< the time of the last transmission
   public:
     pmu(const std::string& objName = "pmu_$");
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 

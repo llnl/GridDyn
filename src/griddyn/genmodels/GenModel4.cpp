@@ -14,7 +14,7 @@
 #include <string>
 namespace griddyn::genmodels {
 GenModel4::GenModel4(const std::string& objName): GenModel3(objName) {}
-coreObject* GenModel4::clone(coreObject* obj) const
+CoreObject* GenModel4::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel4, GenModel3>(this, obj);
     if (gd == nullptr) {

@@ -27,7 +27,7 @@ class ExciterSEXS: public Exciter {
 
   public:
     explicit ExciterSEXS(const std::string& objName = "exciterSEXS_#");
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

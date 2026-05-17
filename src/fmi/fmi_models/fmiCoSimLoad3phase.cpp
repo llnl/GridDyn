@@ -23,7 +23,7 @@ FmiCoSimLoad3phase::FmiCoSimLoad3phase(const std::string& objName):
     opFlags.set(three_phase_output);
 }
 
-coreObject* FmiCoSimLoad3phase::clone(coreObject* obj) const
+CoreObject* FmiCoSimLoad3phase::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiCoSimLoad3phase, FmiCoSimWrapper<loads::ThreePhaseLoad>>(this, obj);
     if (nobj == nullptr) {

@@ -34,7 +34,7 @@ class FmiCollector: public collector {
 
     virtual const std::string& getSinkName() const override;
 
-    virtual coreObject* getOwner() const override;
+    virtual CoreObject* getOwner() const override;
     friend class FmiCoordinator;
 
   protected:

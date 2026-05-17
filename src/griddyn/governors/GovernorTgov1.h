@@ -17,7 +17,7 @@ class GovernorTgov1: public GovernorIeeeSimple {
     double Dt = 0.0;  //!< speed damping constant
   public:
     explicit GovernorTgov1(const std::string& objName = "govTgov1_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorTgov1();
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

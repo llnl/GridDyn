@@ -20,7 +20,7 @@ pulseSource::pulseSource(const std::string& objName, double startVal):
 {
 }
 
-coreObject* pulseSource::clone(coreObject* obj) const
+CoreObject* pulseSource::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<pulseSource, Source>(this, obj);
     if (nobj == nullptr) {

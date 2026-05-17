@@ -46,7 +46,7 @@ namespace {
 static void readEventElement(std::shared_ptr<readerElement>& element,
                              EventInfo& eventInfo,
                              readerInfo& readerInformation,
-                             coreObject* obj)
+                             CoreObject* obj)
 {
     if (element->getName() != "event") {
         if (element->getName() != "scenario") {
@@ -126,7 +126,7 @@ static void readEventElement(std::shared_ptr<readerElement>& element,
 }
 
 int loadEventElement(std::shared_ptr<readerElement>& element,
-                     coreObject* obj,
+                     CoreObject* obj,
                      readerInfo& readerInformation)
 {
     int returnValue = FUNCTION_EXECUTION_SUCCESS;

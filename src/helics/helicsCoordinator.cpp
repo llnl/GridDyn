@@ -56,7 +56,7 @@ void HelicsCoordinator::loadCommandLine(int argc, char* argv[])
     info_.loadInfoFromArgs(argc, argv);
 }
 
-HelicsCoordinator::HelicsCoordinator(const std::string& fedName): coreObject("helics")
+HelicsCoordinator::HelicsCoordinator(const std::string& fedName): CoreObject("helics")
 {
     registerCoordinator(fedName, this);
 }
@@ -142,7 +142,7 @@ void HelicsCoordinator::setFlag(const std::string& flag, bool val)
             fed->setFlagOption(flagprop, val);
         }
     } else {
-        coreObject::setFlag(flag, val);
+        CoreObject::setFlag(flag, val);
     }
 }
 void HelicsCoordinator::set(const std::string& param, const std::string& val)
@@ -162,7 +162,7 @@ void HelicsCoordinator::set(const std::string& param, const std::string& val)
     } else if ((param == "broker") || (param == "connection_info")) {
         connectionInfo = val;
     } else {
-        coreObject::set(param, val);
+        CoreObject::set(param, val);
     }
 }
 
@@ -175,7 +175,7 @@ void HelicsCoordinator::set(const std::string& param, double val, units::unit un
             fed->setProperty(propVal, val);
         }
     } else {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 

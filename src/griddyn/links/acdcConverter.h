@@ -62,7 +62,7 @@ namespace links {
                       const std::string& objName = "acdcConveter_$");
 
         virtual ~acdcConverter();
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+        virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual double getMaxTransfer() const override;
 

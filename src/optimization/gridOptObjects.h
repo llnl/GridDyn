@@ -28,7 +28,7 @@ class consData;
  *inheriting objects gridPrimary, gridSecondary, and gridSubModel as it encapsulated common
  *functionality between those objects
  **/
-class GridOptObject: public coreObject {
+class GridOptObject: public CoreObject {
   public:
     std::bitset<32> optFlags;  //!< operational flags these flags are designed to be normal false
     count_t numParams = 0;  //!< the number of parameters to store in an archive
@@ -36,7 +36,7 @@ class GridOptObject: public coreObject {
   protected:
   public:
     GridOptObject(const std::string& objName = "optObject_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

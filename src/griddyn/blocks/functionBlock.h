@@ -37,7 +37,7 @@ class functionBlock: public Block {
 @param[in] functionName the name of the function as a string
 */
     explicit functionBlock(const std::string& functionName);
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

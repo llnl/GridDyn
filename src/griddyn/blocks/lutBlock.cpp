@@ -20,7 +20,7 @@ lutBlock::lutBlock(const std::string& objName): Block(objName)
 {
     opFlags.set(use_state);
 }
-coreObject* lutBlock::clone(coreObject* obj) const
+CoreObject* lutBlock::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<lutBlock, Block>(this, obj);
     if (nobj == nullptr) {

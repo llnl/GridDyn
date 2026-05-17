@@ -35,7 +35,7 @@ class Load: public gridSecondary {
     @objName the name of the load object*/
     Load(double rP, double rQ, const std::string& objName = "load_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
 

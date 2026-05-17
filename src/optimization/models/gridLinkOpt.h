@@ -34,15 +34,15 @@ class GridLinkOpt: public GridOptObject {
 
   public:
     GridLinkOpt(const std::string& objName = "");
-    GridLinkOpt(coreObject* obj, const std::string& objName = "");
+    GridLinkOpt(CoreObject* obj, const std::string& objName = "");
     ~GridLinkOpt();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     // remove components
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
 
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
     virtual void loadSizes(const OptimizationMode& oMode) override;
@@ -104,9 +104,9 @@ class GridLinkOpt: public GridOptObject {
                        units::unit unitType = units::defunit) const override;
 
     // find components
-    virtual coreObject* find(std::string_view objName) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;

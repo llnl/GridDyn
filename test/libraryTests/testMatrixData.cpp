@@ -8,7 +8,7 @@
  * All rights reserved.
  * For details, see the L */
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #include "../gtestHelper.h"
 #include "griddyn/gridDynDefinitions.hpp"

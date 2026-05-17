@@ -34,7 +34,7 @@ class blockSequence: public Block {
     /** @brief default constructor*/
     explicit blockSequence(const std::string& objName = "block_#");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -43,7 +43,7 @@ class blockSequence: public Block {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual void add(Block* blk);
 
     virtual void setFlag(std::string_view flag, bool val) override;
@@ -104,8 +104,8 @@ class blockSequence: public Block {
                                   const stateData& stateData,
                                   const solverMode& sMode) override;
 
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
 
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 };
 }  // namespace griddyn::blocks

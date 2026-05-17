@@ -22,17 +22,17 @@
 
 namespace griddyn {
 
-void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v);
+void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v);
 void allGrabbers(std::string_view mode,
-                 coreObject* obj,
+                 CoreObject* obj,
                  std::vector<std::unique_ptr<gridGrabber>>& v);
 
 void perObjectGrabbers(std::string_view cmd,
-                       coreObject* obj,
+                       CoreObject* obj,
                        std::vector<std::unique_ptr<gridGrabber>>& v);
 
 static grabberInterpreter<gridGrabber, opGrabber, functionGrabber>
-    gInterpret([](std::string_view fld, coreObject* obj) { return createGrabber(fld, obj); });
+    gInterpret([](std::string_view fld, CoreObject* obj) { return createGrabber(fld, obj); });
 
 bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& blocks, size_t loc)
 {
@@ -49,7 +49,7 @@ bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& block
     }
     return true;
 }
-std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command, coreObject* obj)
+std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command, CoreObject* obj)
 {
     std::vector<std::unique_ptr<gridGrabber>> v;
     auto gstr = gmlc::utilities::stringOps::splitlineBracket(std::string{command});
@@ -105,7 +105,7 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command,
     return v;
 }
 
-void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
+void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
 {
     auto bus = dynamic_cast<gridBus*>(obj);
     if (bus != nullptr) {
@@ -186,7 +186,7 @@ void autoGrabbers(coreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
     }
 }
 void perObjectGrabbers(std::string_view cmd,
-                       coreObject* obj,
+                       CoreObject* obj,
                        std::vector<std::unique_ptr<gridGrabber>>& v)
 {
     if (cmd.compare(0, 4, "per_") != 0) {
@@ -218,7 +218,7 @@ void perObjectGrabbers(std::string_view cmd,
 }
 
 void allGrabbers(std::string_view mode,
-                 coreObject* obj,
+                 CoreObject* obj,
                  std::vector<std::unique_ptr<gridGrabber>>& v)
 {
     auto bus = dynamic_cast<gridBus*>(obj);

@@ -24,7 +24,7 @@ class derivativeBlock: public Block {
 @param[in] timeConstant  the time constant
 */
     derivativeBlock(double timeConstant, const std::string& objName = "derivBlock_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;

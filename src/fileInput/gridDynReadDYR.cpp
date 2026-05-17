@@ -22,14 +22,14 @@
 
 namespace griddyn {
 namespace {
-    void loadGENROU(coreObject* parentObject, stringVec& tokens);
-    void loadESDC1A(coreObject* parentObject, stringVec& tokens);
-    void loadTGOV1(coreObject* parentObject, stringVec& tokens);
-    void loadEXDC2(coreObject* parentObject, stringVec& tokens);
-    void loadSEXS(coreObject* parentObject, stringVec& tokens);
+    void loadGENROU(CoreObject* parentObject, stringVec& tokens);
+    void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
+    void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
+    void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
+    void loadSEXS(CoreObject* parentObject, stringVec& tokens);
 }  // namespace
 
-void loadDyr(coreObject* parentObject,
+void loadDyr(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& /*readerOptions*/)
 {
@@ -82,7 +82,7 @@ void loadDyr(coreObject* parentObject,
 }
 
 namespace {
-    void loadGENROU(coreObject* parentObject, stringVec& tokens)
+    void loadGENROU(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
@@ -112,7 +112,7 @@ namespace {
         gen->add(genModel);
     }
 
-    void loadESDC1A(coreObject* parentObject, stringVec& tokens)
+    void loadESDC1A(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
@@ -147,7 +147,7 @@ namespace {
         gen->add(exciterModel);
     }
 
-    void loadEXDC2(coreObject* parentObject, stringVec& tokens)
+    void loadEXDC2(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
@@ -175,7 +175,7 @@ namespace {
         gen->add(exciterModel);
     }
 
-    void loadSEXS(coreObject* parentObject, stringVec& tokens)
+    void loadSEXS(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
@@ -196,7 +196,7 @@ namespace {
 
         gen->add(exciterModel);
     }
-    void loadTGOV1(coreObject* parentObject, stringVec& tokens)
+    void loadTGOV1(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));

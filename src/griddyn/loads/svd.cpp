@@ -32,7 +32,7 @@ svd::svd(double rP, double rQ, const std::string& objName): rampLoad(rP, rQ, obj
 }
 
 svd::~svd() = default;
-coreObject* svd::clone(coreObject* obj) const
+CoreObject* svd::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<svd, rampLoad>(this, obj);
     if (ld == nullptr) {

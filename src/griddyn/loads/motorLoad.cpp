@@ -42,7 +42,7 @@ motorLoad::motorLoad(const std::string& objName): Load(objName)
     opFlags.set(has_dyn_states);
 }
 
-coreObject* motorLoad::clone(coreObject* obj) const
+CoreObject* motorLoad::clone(CoreObject* obj) const
 {
     auto* clonedLoad = cloneBase<motorLoad, Load>(this, obj);
     if (clonedLoad == nullptr) {

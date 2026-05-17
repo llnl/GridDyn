@@ -16,7 +16,7 @@ namespace griddyn::sources {
 grabberSource::grabberSource(const std::string& objName): rampSource(objName) {}
 grabberSource::~grabberSource() = default;
 
-coreObject* grabberSource::clone(coreObject* obj) const
+CoreObject* grabberSource::clone(CoreObject* obj) const
 {
     auto src = cloneBase<grabberSource, Source>(this, obj);
     if (src == nullptr) {
@@ -79,7 +79,7 @@ double grabberSource::get(std::string_view param, units::unit unitType) const
 
 void grabberSource::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    coreObject* obj = locateObject(target, this);
+    CoreObject* obj = locateObject(target, this);
     gset = std::make_unique<grabberSet>(field, obj);
     gset->setGain(multiplier);
 }
@@ -141,7 +141,7 @@ void grabberSource::updateTarget(const std::string& newTarget)
     target = newTarget;
 }
 
-void grabberSource::updateTarget(coreObject* obj)
+void grabberSource::updateTarget(CoreObject* obj)
 {
     if (gset) {
         gset->updateObject(obj);

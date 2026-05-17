@@ -32,12 +32,12 @@ class compoundEventPlayer: public compoundEvent {
     /** default constructor*/
     compoundEventPlayer();
     /** construct from an eventInfo structure and root object*/
-    compoundEventPlayer(EventInfo& gdEI, coreObject* rootObject);
+    compoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* gE) const override;
 
-    // virtual void updateEvent(EventInfo &gdEI, coreObject *rootObject) override;
+    // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 
     virtual change_code trigger() override;
     virtual change_code trigger(coreTime time) override;
@@ -53,7 +53,7 @@ class compoundEventPlayer: public compoundEvent {
     void loadEventFile(const std::string& fileName);
     virtual std::string to_string() const override;
 
-    virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
+    virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
     virtual void initialize() override;
 
   protected:

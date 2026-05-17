@@ -85,7 +85,7 @@ class Generator: public gridSecondary {
   public:
     explicit Generator(const std::string& objName = "gen_$");
     ~Generator();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -109,7 +109,7 @@ class Generator: public gridSecondary {
                        units::unit unitType = units::defunit) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief additional add function specific to subModels
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
@@ -206,7 +206,7 @@ class Generator: public gridSecondary {
     virtual change_code powerFlowAdjust(const IOdata& inputs,
                                         std::uint32_t flags,
                                         check_level_t level) override;  // only applicable in pFlow
-    virtual coreObject* find(std::string_view object) const override;
+    virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
     @param[in] sD the current stateData
     @param[in] sMode the solvermode corresponding to the state
@@ -228,7 +228,7 @@ class Generator: public gridSecondary {
   protected:
     /** set the non-local bus that the generator controls
     @param[in] newRemoteBus the bus the generate is monitoring and controlling*/
-    void setRemoteBus(coreObject* newRemoteBus);
+    void setRemoteBus(CoreObject* newRemoteBus);
 };
 
 }  // namespace griddyn

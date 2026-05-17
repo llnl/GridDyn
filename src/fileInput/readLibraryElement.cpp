@@ -33,100 +33,100 @@
 
 namespace griddyn {
 namespace {
-    using load_function_t = coreObject* (*)(std::shared_ptr<readerElement>&, readerInfo&);
+    using load_function_t = CoreObject* (*)(std::shared_ptr<readerElement>&, readerInfo&);
 
     struct load_function_entry {
         const char* name;
         load_function_t loader;
     };
 
-    coreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, nullptr);
     }
 
-    coreObject* loadExciter(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadExciter(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, nullptr);
     }
 
-    coreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Governor*>(nullptr), "governor", readerInf, nullptr);
     }
 
-    coreObject* loadPss(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadPss(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Stabilizer*>(nullptr), "pss", readerInf, nullptr);
     }
 
-    coreObject* loadSource(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadSource(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Source*>(nullptr), "source", readerInf, nullptr);
     }
 
-    coreObject* loadControlBlock(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadControlBlock(std::shared_ptr<readerElement>& currentElement,
                                  readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Block*>(nullptr), "controlblock", readerInf, nullptr);
     }
 
-    coreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Generator*>(nullptr), "generator", readerInf, nullptr);
     }
 
-    coreObject* loadLoad(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadLoad(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<Load*>(nullptr), "load", readerInf, nullptr);
     }
 
-    coreObject* loadBus(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadBus(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return readBusElement(currentElement, readerInf, nullptr);
     }
 
-    coreObject* loadRelay(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadRelay(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return readRelayElement(currentElement, readerInf, nullptr);
     }
 
-    coreObject* loadArea(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadArea(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return readAreaElement(currentElement, readerInf, nullptr);
     }
 
-    coreObject* loadLink(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return readLinkElement(currentElement, readerInf, nullptr, false);
     }
 
-    coreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, nullptr);
     }
 
-    coreObject* loadAgc(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadAgc(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
             currentElement, static_cast<AGControl*>(nullptr), "agc", readerInf, nullptr);
     }
 
-    coreObject* loadEcon(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
+    CoreObject* loadEcon(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return readEconElement(currentElement, readerInf, nullptr);
     }
 
-    coreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
                                       readerInfo& readerInf)
     {
         return ElementReader(currentElement,
@@ -170,7 +170,7 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
     element->moveToFirstChild();
 
     while (element->isValid()) {
-        coreObject* obj = nullptr;
+        CoreObject* obj = nullptr;
         const std::string fieldName = gmlc::utilities::convertToLowerCase(element->getName());
         // std::cout<<"library model :"<<fieldName<<":\n";
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {

@@ -24,7 +24,7 @@ derivativeBlock::derivativeBlock(double timeConstant, const std::string& objName
     opFlags.set(use_state);
 }
 
-coreObject* derivativeBlock::clone(coreObject* obj) const
+CoreObject* derivativeBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<derivativeBlock, Block>(this, obj);
     if (nobj == nullptr) {

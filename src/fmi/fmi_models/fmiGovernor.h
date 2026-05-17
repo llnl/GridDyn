@@ -16,7 +16,7 @@ class FmiMESubModel;
 class FmiGovernor: public FmiMEWrapper<Governor> {
   public:
     FmiGovernor(const std::string& objName = "fmiExciter_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

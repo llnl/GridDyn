@@ -25,7 +25,7 @@ class HelicsGhostBus: public gridBus {
   public:
     explicit HelicsGhostBus(const std::string& objName = "helicsGhostbus_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 

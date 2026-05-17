@@ -16,7 +16,7 @@ class GovernorSteamNR: public GovernorIeeeSimple {
     model_parameter Tch;  //!< [s] steam reheat chest time constant
   public:
     GovernorSteamNR(const std::string& objName = "govSteamNR_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorSteamNR();
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

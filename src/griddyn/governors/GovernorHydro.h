@@ -16,7 +16,7 @@ class GovernorHydro: public GovernorIeeeSimple {
     model_parameter Tw;  //!< [s] spill tube time constant
   public:
     explicit GovernorHydro(const std::string& objName = "govHydro_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorHydro();
 
     virtual void dynObjectInitializeB(const IOdata& inputs,

@@ -66,7 +66,7 @@ GenModel::GenModel(const std::string& objName): gridSubModel(objName)
     m_inputSize = 4;
     m_outputSize = 2;
 }
-coreObject* GenModel::clone(coreObject* obj) const
+CoreObject* GenModel::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel, gridSubModel>(this, obj);
     if (gd == nullptr) {

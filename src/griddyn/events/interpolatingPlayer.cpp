@@ -22,7 +22,7 @@ interpolatingPlayer::interpolatingPlayer(coreTime time0, double loopPeriod):
 {
 }
 
-interpolatingPlayer::interpolatingPlayer(const EventInfo& gdEI, coreObject* rootObject):
+interpolatingPlayer::interpolatingPlayer(const EventInfo& gdEI, CoreObject* rootObject):
     Player(gdEI, rootObject)
 {
 }

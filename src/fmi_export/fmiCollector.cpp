@@ -67,7 +67,7 @@ const std::string& FmiCollector::getSinkName() const
     return defaultFMIName;
 }
 
-coreObject* FmiCollector::getOwner() const
+CoreObject* FmiCollector::getOwner() const
 {
     return mCoordinator;
 }

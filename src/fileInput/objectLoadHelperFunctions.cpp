@@ -38,7 +38,7 @@ std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& r
 }
 
 void setIndex(std::shared_ptr<readerElement>& element,
-              coreObject* mainObject,
+              CoreObject* mainObject,
               readerInfo& readerInformation)
 {
     std::string indexValue =

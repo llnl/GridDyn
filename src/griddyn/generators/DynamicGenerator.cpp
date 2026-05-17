@@ -68,7 +68,7 @@ DynamicGenerator::DynamicGenerator(dynModel_t dynModel, const std::string& objNa
 {
     buildDynModel(dynModel);
 }
-coreObject* DynamicGenerator::clone(coreObject* obj) const
+CoreObject* DynamicGenerator::clone(CoreObject* obj) const
 {
     auto* gen = cloneBaseFactory<DynamicGenerator, Generator>(this, obj, &generatorFactory);
     if (gen == nullptr) {
@@ -386,7 +386,7 @@ void DynamicGenerator::guessState(coreTime time,
     }
 }
 
-void DynamicGenerator::add(coreObject* obj)
+void DynamicGenerator::add(CoreObject* obj)
 {
     Generator::add(obj);
 }
@@ -938,7 +938,7 @@ index_t DynamicGenerator::findIndex(std::string_view field, const solverMode& sM
     return ret;
 }
 
-coreObject* DynamicGenerator::find(std::string_view object) const
+CoreObject* DynamicGenerator::find(std::string_view object) const
 {
     if (object == "genmodel") {
         return genModel;
@@ -964,7 +964,7 @@ coreObject* DynamicGenerator::find(std::string_view object) const
     return Generator::find(object);
 }
 
-coreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "submodelcode")  // undocumented for internal use
     {

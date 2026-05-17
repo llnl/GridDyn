@@ -32,7 +32,7 @@ void parameterOperator::setTarget(gridComponent* target, const std::string& fiel
     checkField();
 }
 
-void parameterOperator::updateObject(coreObject* target, object_update_mode mode)
+void parameterOperator::updateObject(CoreObject* target, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
         auto* nobj = dynamic_cast<gridComponent*>(target);
@@ -65,12 +65,12 @@ double parameterOperator::getParameter() const
     }
     return comp->getParameter(parameterIndex);
 }
-coreObject* parameterOperator::getObject() const
+CoreObject* parameterOperator::getObject() const
 {
     return comp;
 }
 
-void parameterOperator::getObjects(std::vector<coreObject*>& objects) const
+void parameterOperator::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(comp);
 }

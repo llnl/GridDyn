@@ -36,7 +36,7 @@ TEST_F(FaultTests, FaultTest1)
     std::string fileName = fault_test_directory + "fault_test1.xml";
 
     auto cof = coreObjectFactory::instance();
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
 
     auto genlist = cof->getTypeNames("genmodel");
 

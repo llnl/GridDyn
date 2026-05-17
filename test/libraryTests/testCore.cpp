@@ -17,14 +17,14 @@
 #include <iostream>
 #include <string>
 
-// test case for coreObject object
+// test case for CoreObject object
 
 using namespace griddyn;
 
 TEST(CoreTests, CoreObject)
 {
-    auto* obj1 = new coreObject();
-    auto* obj2 = new coreObject();
+    auto* obj1 = new CoreObject();
+    auto* obj2 = new CoreObject();
 
     EXPECT_EQ(obj1->getName().compare("object_" + std::to_string(obj1->getID())), 0);
 
@@ -49,7 +49,7 @@ TEST(CoreTests, CoreObject)
 
     EXPECT_TRUE(compareUpdates(obj2, obj1));
 
-    coreObject* obj3 = nullptr;
+    CoreObject* obj3 = nullptr;
     obj3 = obj1->clone(obj3);
 
     // check the copy constructor
@@ -151,7 +151,7 @@ TEST(CoreTests, UnitFunctions)
 TEST(CoreTests, ObjectFactory)
 {
     auto cof = coreObjectFactory::instance();
-    coreObject* obj = cof->createObject("load", "basic");
+    CoreObject* obj = cof->createObject("load", "basic");
     auto ld = dynamic_cast<zipLoad*>(obj);
     EXPECT_NE(ld, nullptr);
     delete ld;

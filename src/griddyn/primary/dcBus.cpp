@@ -27,7 +27,7 @@ using units::unit;
 
 dcBus::dcBus(const std::string& objName): gridBus(objName), busController(this) {}
 
-coreObject* dcBus::clone(coreObject* obj) const
+CoreObject* dcBus::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<dcBus, gridBus>(this, obj);
     if (nobj == nullptr) {

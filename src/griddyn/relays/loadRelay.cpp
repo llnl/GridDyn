@@ -20,7 +20,7 @@ loadRelay::loadRelay(const std::string& objName): Relay(objName)
     // opFlags.set(continuous_flag);
 }
 
-coreObject* loadRelay::clone(coreObject* obj) const
+CoreObject* loadRelay::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<loadRelay, Relay>(this, obj);
     if (nobj == nullptr) {

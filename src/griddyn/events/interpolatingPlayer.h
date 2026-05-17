@@ -31,12 +31,12 @@ class interpolatingPlayer: public Player {
     /** construct with a time and looping period*/
     interpolatingPlayer(coreTime time0 = 0.0, double loopPeriod = 0.0);
     /** construct from an event Info structure and root object*/
-    interpolatingPlayer(const EventInfo& gdEI, coreObject* rootObject);
+    interpolatingPlayer(const EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* evnt) const override;
 
-    // virtual void updateEvent(EventInfo &gdEI, coreObject *rootObject) override;
+    // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
     virtual change_code trigger() override;
     virtual change_code trigger(coreTime time) override;
 

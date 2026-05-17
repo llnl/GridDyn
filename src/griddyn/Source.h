@@ -26,7 +26,7 @@ class Source: public gridSubModel {
     @param[in] startVal the starting Value of the object
     */
     Source(const std::string& objName = "source_#", double startVal = 0.0);
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

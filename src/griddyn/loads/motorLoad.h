@@ -50,7 +50,7 @@ class motorLoad: public Load {
 */
     explicit motorLoad(const std::string& objName = "motor_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

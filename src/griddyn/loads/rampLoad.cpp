@@ -21,7 +21,7 @@ using units::puOhm;
 using units::unit;
 rampLoad::rampLoad(const std::string& objName): zipLoad(objName) {}
 rampLoad::rampLoad(double rP, double qP, const std::string& objName): zipLoad(rP, qP, objName) {}
-coreObject* rampLoad::clone(coreObject* obj) const
+CoreObject* rampLoad::clone(CoreObject* obj) const
 {
     auto* ld = cloneBase<rampLoad, zipLoad>(this, obj);
     if (ld == nullptr) {

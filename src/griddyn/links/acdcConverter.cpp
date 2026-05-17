@@ -83,7 +83,7 @@ void acdcConverter::buildSubsystem()
 }
 
 acdcConverter::~acdcConverter() = default;
-coreObject* acdcConverter::clone(coreObject* obj) const
+CoreObject* acdcConverter::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<acdcConverter, Link>(this, obj);
     if (nobj == nullptr) {

@@ -32,7 +32,7 @@ class infiniteBus: public gridBus {
      *@param[in] objName  the name of the infinite bus object
      */
     infiniteBus(double startVoltage, double startAngle, const std::string& objName = "infbus_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     void setState(coreTime time,

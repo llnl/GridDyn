@@ -33,7 +33,7 @@ approximatingLoad::approximatingLoad(const std::string& objName): rampLoad(objNa
 }
 approximatingLoad::~approximatingLoad() = default;
 
-coreObject* approximatingLoad::clone(coreObject* obj) const
+CoreObject* approximatingLoad::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<approximatingLoad, rampLoad>(this, obj);
     if (ld == nullptr) {
@@ -48,7 +48,7 @@ coreObject* approximatingLoad::clone(coreObject* obj) const
     return ld;
 }
 
-void approximatingLoad::add(coreObject* obj)
+void approximatingLoad::add(CoreObject* obj)
 {
     if (dynamic_cast<Load*>(obj) != nullptr) {
         if (subLoad != nullptr) {

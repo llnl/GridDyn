@@ -73,14 +73,14 @@ class eventAdapter {
 
     /** @brief update the next event time*/
     virtual void updateTime();
-    /** @brief update the target coreObject
+    /** @brief update the target CoreObject
     @param[in] newObject the new object
     @param[in] mode update_mode direct or match
     */
-    virtual void updateObject(coreObject* newObject,
+    virtual void updateObject(CoreObject* newObject,
                               object_update_mode mode = object_update_mode::direct);
     /** @brief get a list of all referenced objects*/
-    virtual void getObjects(std::vector<coreObject*>& objects) const;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const;
     /** initialize the event if needed*/
     virtual void initialize();
     /** get the event code*/
@@ -136,12 +136,12 @@ class eventTypeAdapter: public eventAdapter {
         return newAdapter;
     }
 
-    virtual void updateObject(coreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
     {
         m_eventObj->updateObject(newObject, mode);
         updateTime();
     }
-    virtual void getObjects(std::vector<coreObject*>& objects) const override
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override
     {
         m_eventObj->getObjects(objects);
     }
@@ -219,13 +219,13 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
         return newAdapter;
     }
 
-    virtual void updateObject(coreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
     {
         m_eventObj->updateObject(newObject, mode);
         updateTime();
     }
 
-    virtual void getObjects(std::vector<coreObject*>& objects) const override
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override
     {
         m_eventObj->getObjects(objects);
     }
@@ -257,24 +257,24 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
     virtual int eventCode() const override { return m_eventObj->eventCode(); }
 };
 
-class coreObject;
+class CoreObject;
 
 template<>
-class eventTypeAdapter<coreObject>: public eventAdapter {
+class eventTypeAdapter<CoreObject>: public eventAdapter {
   private:
-    coreObject* targetObject = nullptr;
+    CoreObject* targetObject = nullptr;
     int evCode_ = 0;
 
   public:
     eventTypeAdapter() = default;
-    explicit eventTypeAdapter(coreObject* gco): targetObject(gco)
+    explicit eventTypeAdapter(CoreObject* gco): targetObject(gco)
     {
         m_nextTime = targetObject->getNextUpdateTime();
         two_part_execute = true;
         evCode_ = gco->getInt("eventcode");
     }
 
-    virtual void updateObject(coreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
     {
         if (mode == object_update_mode::direct) {
             targetObject = newObject;
@@ -292,7 +292,7 @@ class eventTypeAdapter<coreObject>: public eventAdapter {
     virtual void cloneTo(eventAdapter* eA) const override
     {
         eventAdapter::cloneTo(eA);
-        auto eca = dynamic_cast<eventTypeAdapter<coreObject>*>(eA);
+        auto eca = dynamic_cast<eventTypeAdapter<CoreObject>*>(eA);
         if (eca == nullptr) {
             return;
         }
@@ -301,8 +301,8 @@ class eventTypeAdapter<coreObject>: public eventAdapter {
 
     virtual std::unique_ptr<eventAdapter> clone() const override
     {
-        std::unique_ptr<eventAdapter> newAdapter = std::make_unique<eventTypeAdapter<coreObject>>();
-        eventTypeAdapter<coreObject>::cloneTo(newAdapter.get());
+        std::unique_ptr<eventAdapter> newAdapter = std::make_unique<eventTypeAdapter<CoreObject>>();
+        eventTypeAdapter<CoreObject>::cloneTo(newAdapter.get());
         return newAdapter;
     }
 
@@ -324,7 +324,7 @@ class eventTypeAdapter<coreObject>: public eventAdapter {
 
     virtual int eventCode() const override { return evCode_; }
 
-    coreObject* getTarget() const { return targetObject; }
+    CoreObject* getTarget() const { return targetObject; }
 };
 /** eventAdapter with a custom function call
  */

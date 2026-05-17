@@ -46,7 +46,7 @@ class randomSource: public rampSource {
   public:
     randomSource(const std::string& objName = "randomsource_#", double startVal = 0.0);
     ~randomSource();  // included so the definition of gridRandom doesn't have to be
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;

@@ -16,7 +16,7 @@ template<class BaseObj>
 class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
   public:
     FmiCoSimWrapper(const std::string& objName): FmiWrapper<FmiCoSimSubModel, BaseObj>(objName) {}
-    coreObject* clone(coreObject* obj) const override
+    CoreObject* clone(CoreObject* obj) const override
     {
         auto nobj = cloneBase<FmiCoSimWrapper, FmiWrapper<FmiCoSimSubModel, BaseObj>>(this, obj);
         if (nobj == nullptr) {

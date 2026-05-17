@@ -39,7 +39,7 @@ adjustableTransformer::adjustableTransformer(double resistance,
 {
 }
 
-coreObject* adjustableTransformer::clone(coreObject* obj) const
+CoreObject* adjustableTransformer::clone(CoreObject* obj) const
 {
     auto* lnk = cloneBase<adjustableTransformer, acLine>(this, obj);
     if (lnk == nullptr) {
@@ -423,7 +423,7 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
                     controlBus = B2;
                     direction = 1;
                 } else if (!controlName.empty()) {
-                    coreObject* obj = locateObject(controlName, getParent());
+                    CoreObject* obj = locateObject(controlName, getParent());
                     if (obj != nullptr) {
                         controlBus = dynamic_cast<gridBus*>(obj);
                     }

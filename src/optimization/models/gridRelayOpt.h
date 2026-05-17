@@ -25,15 +25,15 @@ class GridRelayOpt: public GridOptObject {
 
   public:
     GridRelayOpt(const std::string& objName = "");
-    GridRelayOpt(coreObject* obj, const std::string& objName = "");
+    GridRelayOpt(CoreObject* obj, const std::string& objName = "");
     ~GridRelayOpt();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     // remove components
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
 
     virtual count_t objSize(const OptimizationMode& oMode);
     virtual count_t contObjSize(const OptimizationMode& oMode);
@@ -96,9 +96,9 @@ class GridRelayOpt: public GridOptObject {
                        units::unit unitType = units::defunit) const override;
 
     // find components
-    virtual coreObject* find(std::string_view objName) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
   protected:
 };

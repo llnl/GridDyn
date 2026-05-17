@@ -23,7 +23,7 @@ HelicsEvent::HelicsEvent(HelicsEventType type): eventType(type)
     initRequired = true;
 }
 
-HelicsEvent::HelicsEvent(const EventInfo& gdEI, coreObject* rootObject):
+HelicsEvent::HelicsEvent(const EventInfo& gdEI, CoreObject* rootObject):
     reversibleEvent(gdEI, rootObject)
 {
     initRequired = true;
@@ -95,13 +95,13 @@ void HelicsEvent::set(std::string_view param, std::string_view val)
     }
 }
 
-void HelicsEvent::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void HelicsEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     reversibleEvent::updateEvent(gdEI, rootObject);
     findCoordinator();
 }
 
-bool HelicsEvent::setTarget(coreObject* gdo, std::string_view var)
+bool HelicsEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     auto ret = reversibleEvent::setTarget(gdo, var);
     if (ret) {
@@ -110,7 +110,7 @@ bool HelicsEvent::setTarget(coreObject* gdo, std::string_view var)
     return ret;
 }
 
-coreObject* HelicsEvent::getOwner() const
+CoreObject* HelicsEvent::getOwner() const
 {
     return coordinator_;
 }
@@ -152,7 +152,7 @@ void HelicsEvent::initialize()
     initRequired = false;
 }
 
-void HelicsEvent::updateObject(coreObject* gco, object_update_mode mode)
+void HelicsEvent::updateObject(CoreObject* gco, object_update_mode mode)
 {
     reversibleEvent::updateObject(gco, mode);
     findCoordinator();

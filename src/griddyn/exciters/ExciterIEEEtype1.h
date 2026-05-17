@@ -22,7 +22,7 @@ class ExciterIEEEtype1: public Exciter {
     model_parameter Bex = 0.0;  // [pu] parameter saturation function
   public:
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

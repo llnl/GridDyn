@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace griddyn {
-class coreObject;
+class CoreObject;
 /** define a variant type for the different types of properties that may be set*/
 using property_type = std::variant<double, std::pair<double, units::unit>, int, bool, std::string>;
 
@@ -44,16 +44,16 @@ class propertyBuffer {
     @param[in] param the parameter to remove
     */
     void remove(std::string_view param);
-    /** apply the properties to a coreObject
+    /** apply the properties to a CoreObject
     @details the properties are applied sequentially and the apply may
     throw an exception from the underlying set function if the property is not valid
     those exceptions are not caught here and left up to the callers */
-    void apply(coreObject* obj) const;
+    void apply(CoreObject* obj) const;
     /** template specialization for coreOwningPtrs to route through the existing object*/
     template<class Y>
     void apply(coreOwningPtr<Y>& obj)
     {
-        this->apply(static_cast<coreObject*>(obj.get()));
+        this->apply(static_cast<CoreObject*>(obj.get()));
     }
     /** the template is supposed to work for all different types of pointer objects
     regular pointers, shared_ptrs, or unique ptrs, it takes a reference to the pointer

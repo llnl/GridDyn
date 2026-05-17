@@ -36,7 +36,7 @@ sensor::sensor(const std::string& objName): Relay(objName)
     opFlags.set(late_b_initialize);
 }
 
-coreObject* sensor::clone(coreObject* obj) const
+CoreObject* sensor::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<sensor, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -92,7 +92,7 @@ coreObject* sensor::clone(coreObject* obj) const
     return nobj;
 }
 
-void sensor::add(coreObject* obj)
+void sensor::add(CoreObject* obj)
 {
     if (dynamic_cast<Block*>(obj) != nullptr) {
         add(static_cast<Block*>(obj));
@@ -334,7 +334,7 @@ double sensor::get(std::string_view param, units::unit unitType) const
     return Relay::get(param, unitType);
 }
 
-void sensor::updateObject(coreObject* obj, object_update_mode mode)
+void sensor::updateObject(CoreObject* obj, object_update_mode mode)
 {
     for (auto& ds : dataSources) {
         if (ds) {
@@ -345,7 +345,7 @@ void sensor::updateObject(coreObject* obj, object_update_mode mode)
     Relay::updateObject(obj, mode);
 }
 
-void sensor::getObjects(std::vector<coreObject*>& objects) const
+void sensor::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (auto& ds : dataSources) {
         if (ds) {
@@ -378,7 +378,7 @@ void sensor::generateInputGrabbers()
                 }
             }
         }
-        coreObject* target_obj = (m_sourceObject != nullptr) ? m_sourceObject : getParent();
+        CoreObject* target_obj = (m_sourceObject != nullptr) ? m_sourceObject : getParent();
 
         dataSources[ii] = std::make_shared<grabberSet>(istr, target_obj, opFlags[sampled_only]);
     }

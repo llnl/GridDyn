@@ -33,7 +33,7 @@ using units::unit;
 
 GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
 
-GridBusOpt::GridBusOpt(coreObject* obj, const std::string& objName):
+GridBusOpt::GridBusOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), bus(dynamic_cast<gridBus*>(obj))
 {
     if (bus != nullptr) {
@@ -44,7 +44,7 @@ GridBusOpt::GridBusOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* GridBusOpt::clone(coreObject* obj) const
+CoreObject* GridBusOpt::clone(CoreObject* obj) const
 {
     GridBusOpt* nobj;
     if (obj == nullptr) {
@@ -161,7 +161,7 @@ void GridBusOpt::getTols(double tols[], const OptimizationMode& oMode)
     }
 }
 
-// void alert (coreObject *object, int code);
+// void alert (CoreObject *object, int code);
 
 void GridBusOpt::valueBounds(double time,
                              double upperLimit[],
@@ -336,7 +336,7 @@ GridBusOpt::~GridBusOpt()
     }
 }
 
-void GridBusOpt::add(coreObject* obj)
+void GridBusOpt::add(CoreObject* obj)
 {
     auto* loadObject = dynamic_cast<GridLoadOpt*>(obj);
     if (loadObject != nullptr) {
@@ -370,7 +370,7 @@ void GridBusOpt::add(coreObject* obj)
 // add load
 void GridBusOpt::add(GridLoadOpt* loadObject)
 {
-    const coreObject* obj = find(loadObject->getName());
+    const CoreObject* obj = find(loadObject->getName());
     if (obj == nullptr) {
         loadObject->locIndex = static_cast<index_t>(loadList.size());
         loadList.push_back(loadObject);
@@ -383,7 +383,7 @@ void GridBusOpt::add(GridLoadOpt* loadObject)
 // add generator
 void GridBusOpt::add(GridGenOpt* gen)
 {
-    const coreObject* obj = find(gen->getName());
+    const CoreObject* obj = find(gen->getName());
     if (obj == nullptr) {
         gen->locIndex = static_cast<index_t>(genList.size());
         genList.push_back(gen);
@@ -404,7 +404,7 @@ void GridBusOpt::add(GridLinkOpt* lnk)
     linkList.push_back(lnk);
 }
 
-void GridBusOpt::remove(coreObject* obj)
+void GridBusOpt::remove(CoreObject* obj)
 {
     auto* loadObject = dynamic_cast<GridLoadOpt*>(obj);
     if (loadObject != nullptr) {
@@ -493,9 +493,9 @@ void GridBusOpt::set(std::string_view param, double val, unit unitType)
     }
 }
 
-coreObject* GridBusOpt::find(std::string_view objName) const
+CoreObject* GridBusOpt::find(std::string_view objName) const
 {
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
     if ((objName == getName()) || (objName == "bus")) {
         return const_cast<GridBusOpt*>(this);
     }
@@ -516,7 +516,7 @@ coreObject* GridBusOpt::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* GridBusOpt::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* GridBusOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num - 1);
@@ -530,7 +530,7 @@ coreObject* GridBusOpt::getSubObject(std::string_view typeName, index_t num) con
     return nullptr;
 }
 
-coreObject* GridBusOpt::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridBusOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
         for (const auto* loadObject : loadList) {
@@ -574,7 +574,7 @@ double GridBusOpt::get(std::string_view param, units::unit unitType) const
     } else if (param == "loadcount") {
         ival = static_cast<count_t>(loadList.size());
     } else {
-        fval = coreObject::get(param, unitType);
+        fval = CoreObject::get(param, unitType);
     }
     return (ival != kInvalidCount) ? static_cast<double>(ival) : fval;
 }

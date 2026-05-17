@@ -32,18 +32,18 @@ class GridBusOpt: public GridOptObject {
 
   public:
     GridBusOpt(const std::string& objName = "");
-    GridBusOpt(coreObject* obj, const std::string& objName = "");
+    GridBusOpt(CoreObject* obj, const std::string& objName = "");
     ~GridBusOpt();
 
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    void add(coreObject* obj) override;
+    void add(CoreObject* obj) override;
     void add(GridLoadOpt* loadObject);
     void add(GridGenOpt* gen);
     void add(GridLinkOpt* lnk);
 
     // remove components
-    void remove(coreObject* obj) override;
+    void remove(CoreObject* obj) override;
     void remove(GridLoadOpt* loadObject);
     void remove(GridGenOpt* gen);
     void remove(GridLinkOpt* lnk);
@@ -111,13 +111,13 @@ class GridBusOpt: public GridOptObject {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    // void alert (coreObject *object, int code);
+    // void alert (CoreObject *object, int code);
 
     // find components
     GridLinkOpt* findLink(gridBus* bs) const;
-    coreObject* find(std::string_view objName) const override;
-    coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    CoreObject* find(std::string_view objName) const override;
+    CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 
     GridOptObject* getLink(index_t index) const override;
     GridOptObject* getLoad(index_t index = 0) const;

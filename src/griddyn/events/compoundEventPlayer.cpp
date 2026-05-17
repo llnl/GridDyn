@@ -18,7 +18,7 @@ namespace griddyn::events {
 compoundEventPlayer::compoundEventPlayer() = default;
 
 compoundEventPlayer::compoundEventPlayer(const std::string& eventName): compoundEvent(eventName) {}
-compoundEventPlayer::compoundEventPlayer(EventInfo& gdEI, coreObject* rootObject):
+compoundEventPlayer::compoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject):
     compoundEvent(gdEI, rootObject)
 {
 }
@@ -178,7 +178,7 @@ change_code compoundEventPlayer::trigger(coreTime time)
     return ret;
 }
 
-bool compoundEventPlayer::setTarget(coreObject* gdo, std::string_view var)
+bool compoundEventPlayer::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;

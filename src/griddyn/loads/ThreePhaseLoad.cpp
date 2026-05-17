@@ -43,7 +43,7 @@ void ThreePhaseLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     Load::pFlowObjectInitializeA(time0, flags);
 }
 
-coreObject* ThreePhaseLoad::clone(coreObject* obj) const
+CoreObject* ThreePhaseLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<ThreePhaseLoad, Load>(this, obj);
     if (nobj == nullptr) {

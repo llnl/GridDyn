@@ -79,7 +79,7 @@ void gridLabDLoad::gridLabDInitialize()
     }
 }
 
-coreObject* gridLabDLoad::clone(coreObject* obj) const
+CoreObject* gridLabDLoad::clone(CoreObject* obj) const
 {
     auto* ld = cloneBase<gridLabDLoad, rampLoad>(this, obj);
     if (ld == nullptr) {
@@ -120,7 +120,7 @@ coreObject* gridLabDLoad::clone(coreObject* obj) const
     return ld;
 }
 
-void gridLabDLoad::add(coreObject* obj)
+void gridLabDLoad::add(CoreObject* obj)
 {
     if (dynamic_cast<Load*>(obj) != nullptr) {
         for (size_t kk = 0; kk < dummy_load.size(); ++kk) {

@@ -19,9 +19,9 @@
 namespace griddyn {
 // start at 101 since there are some objects that use low numbers as a check for interface number
 // and the id as secondary
-std::atomic<id_type_t> coreObject::s_obcnt(101);
+std::atomic<id_type_t> CoreObject::s_obcnt(101);
 
-coreObject::coreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++), name(objName)
+CoreObject::CoreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++), name(objName)
 {
     static nullObject nullObject0(0);
     // not using updateName since in many cases the id has not been set yet
@@ -33,20 +33,20 @@ coreObject::coreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++
 }
 
 // this constructor is only used for building some select nullObjects
-coreObject::coreObject(id_type_t coid): m_refCount(0), m_oid(coid)
+CoreObject::CoreObject(id_type_t coid): m_refCount(0), m_oid(coid)
 {
     id = static_cast<index_t>(coid);
     parent = nullptr;
 }
-coreObject::~coreObject() = default;
+CoreObject::~CoreObject() = default;
 
 static dataDictionary<id_type_t, std::string> descriptionDictionary;
 
 // inherited copy construction method
-coreObject* coreObject::clone(coreObject* obj) const
+CoreObject* CoreObject::clone(CoreObject* obj) const
 {
     if (obj == nullptr) {
-        obj = new coreObject(name);
+        obj = new CoreObject(name);
         descriptionDictionary.copy(m_oid, obj->m_oid);
     }
     obj->enabled = enabled;
@@ -61,7 +61,7 @@ coreObject* coreObject::clone(coreObject* obj) const
     return obj;
 }
 
-void coreObject::updateName()
+void CoreObject::updateName()
 {
     if (name.empty()) {
         return;
@@ -84,28 +84,28 @@ void coreObject::updateName()
     }
 }
 
-void coreObject::add(coreObject* obj)
+void CoreObject::add(CoreObject* obj)
 {
     if (obj != nullptr) {
         throw(objectAddFailure(this));
     }
 }
 
-void coreObject::remove(coreObject* obj)
+void CoreObject::remove(CoreObject* obj)
 {
     if (obj != nullptr) {
         throw(objectRemoveFailure(this));
     }
 }
 
-void coreObject::addHelper(std::shared_ptr<helperObject> obj)  // NOLINT
+void CoreObject::addHelper(std::shared_ptr<helperObject> obj)  // NOLINT
 {
     if (obj) {
         throw(objectAddFailure(this));
     }
 }
 
-void coreObject::addOwningReference()
+void CoreObject::addOwningReference()
 {
     // use relaxed ordering since no one cares about order on the increment operation
     m_refCount.fetch_add(1, std::memory_order_relaxed);
@@ -119,7 +119,7 @@ static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
                                                                "id"};
 static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
-void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void CoreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
     switch (pstype) {
         case paramStringType::all:
@@ -156,7 +156,7 @@ void coreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) co
     }
 }
 
-void coreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
+void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(misc-no-recursion)
 {
     if ((param == "name") || (param == "rename") || (param == "id")) {
         setName(val);
@@ -182,30 +182,30 @@ void coreObject::set(std::string_view param, std::string_view val)  // NOLINT(mi
     }
 }
 
-void coreObject::setDescription(std::string_view description)  // NOLINT
+void CoreObject::setDescription(std::string_view description)  // NOLINT
 {
     descriptionDictionary.update(m_oid, std::string{description});
 }
 
-std::string coreObject::getDescription() const
+std::string CoreObject::getDescription() const
 {
     return descriptionDictionary.query(m_oid);
 }
-void coreObject::nameUpdate()
+void CoreObject::nameUpdate()
 {
     parent->alert(this, OBJECT_NAME_CHANGE);
 }
-void coreObject::idUpdate()
+void CoreObject::idUpdate()
 {
     parent->alert(this, OBJECT_ID_CHANGE);
 }
-void coreObject::setUpdateTime(double newUpdateTime)
+void CoreObject::setUpdateTime(double newUpdateTime)
 {
     nextUpdateTime = newUpdateTime;
 }
 
 // check for potential loops in the parent object
-static bool parentReferenceLoop(coreObject* pobj, coreObject* test)
+static bool parentReferenceLoop(CoreObject* pobj, CoreObject* test)
 {
     while (!isSameObject(pobj, pobj->getParent())) {
         if (pobj == test) {
@@ -217,7 +217,7 @@ static bool parentReferenceLoop(coreObject* pobj, coreObject* test)
 }
 static nullObject nullObjectEp(0);
 
-void coreObject::setParent(coreObject* parentObj)
+void CoreObject::setParent(CoreObject* parentObj)
 {
     if (parentObj == nullptr) {
         parent = &nullObjectEp;
@@ -229,7 +229,7 @@ void coreObject::setParent(coreObject* parentObj)
     parent = parentObj;
 }
 
-void coreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-recursion)
+void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-recursion)
 {
     if ((flag == "enable") || (flag == "status") || (flag == "enabled")) {
         if (isEnabled() != val) {
@@ -267,7 +267,7 @@ void coreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
     }
 }
 
-bool coreObject::getFlag(std::string_view flag) const
+bool CoreObject::getFlag(std::string_view flag) const
 {
     bool ret = false;
     if (flag == "enabled") {
@@ -278,7 +278,7 @@ bool coreObject::getFlag(std::string_view flag) const
     return ret;
 }
 
-double coreObject::get(std::string_view param, units::unit unitType) const
+double CoreObject::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "eventcode") {
@@ -297,7 +297,7 @@ double coreObject::get(std::string_view param, units::unit unitType) const
 
 // Lowercasing retries at most once, so this recursion is bounded.
 // NOLINTNEXTLINE(misc-no-recursion)
-void coreObject::set(std::string_view param, double val, units::unit unitType)
+void CoreObject::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "updateperiod") || (param == "period")) {
         updatePeriod = units::convert(val, unitType, units::second);
@@ -330,7 +330,7 @@ void coreObject::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-std::string coreObject::getString(std::string_view param) const
+std::string CoreObject::getString(std::string_view param) const
 {
     std::string out("NA");
     if (param == "name") {
@@ -345,23 +345,23 @@ std::string coreObject::getString(std::string_view param) const
     return out;
 }
 
-coreObject* coreObject::getSubObject(std::string_view /*typeName*/, index_t /*num*/) const
+CoreObject* CoreObject::getSubObject(std::string_view /*typeName*/, index_t /*num*/) const
 {
     return nullptr;
 }
-coreObject* coreObject::findByUserID(std::string_view /*typeName*/, index_t searchID) const
+CoreObject* CoreObject::findByUserID(std::string_view /*typeName*/, index_t searchID) const
 {
     if (searchID == id) {
-        return const_cast<coreObject*>(this);
+        return const_cast<CoreObject*>(this);
     }
     return nullptr;
 }
 
-void coreObject::updateA(coreTime time)
+void CoreObject::updateA(coreTime time)
 {
     lastUpdateTime = time;
 }
-coreTime coreObject::updateB()
+coreTime CoreObject::updateB()
 {
     assert(nextUpdateTime > negTime / 2.0);  // The assert is to check for spurious calls
     if (nextUpdateTime < maxTime) {
@@ -372,57 +372,57 @@ coreTime coreObject::updateB()
     return nextUpdateTime;
 }
 
-void coreObject::enable()
+void CoreObject::enable()
 {
     enabled = true;
 }
-void coreObject::disable()
+void CoreObject::disable()
 {
     enabled = false;
 }
-bool coreObject::isEnabled() const
+bool CoreObject::isEnabled() const
 {
     return enabled;
 }
 // core objects are clonable derived classes may not be
-bool coreObject::isCloneable() const
+bool CoreObject::isCloneable() const
 {
     return true;
 }
-void coreObject::alert(coreObject* object, int code)  // NOLINT(misc-no-recursion)
+void CoreObject::alert(CoreObject* object, int code)  // NOLINT(misc-no-recursion)
 {
     parent->alert(object, code);
 }
 // Parent-chain forwarding terminates at nullObject.
 // NOLINTNEXTLINE(misc-no-recursion)
-void coreObject::log(coreObject* object, print_level level, const std::string& message)
+void CoreObject::log(CoreObject* object, print_level level, const std::string& message)
 {
     parent->log(object, level, message);
 }
 
-bool coreObject::shouldLog(print_level level) const  // NOLINT(misc-no-recursion)
+bool CoreObject::shouldLog(print_level level) const  // NOLINT(misc-no-recursion)
 {
     return (parent != nullptr) ? parent->shouldLog(level) : true;
 }
 
-void coreObject::makeNewOID()
+void CoreObject::makeNewOID()
 {
     m_oid = ++s_obcnt;
 }
 // NOTE: there is some potential for recursion here if the parent object searches in lower objects
 // But in some cases you search up, and others you want to search down so we will rely on
 // intelligence on the part of the implementer
-coreObject* coreObject::find(std::string_view object) const  // NOLINT(misc-no-recursion)
+CoreObject* CoreObject::find(std::string_view object) const  // NOLINT(misc-no-recursion)
 {
     return (parent->find(object));
 }
 
-int coreObject::getInt(std::string_view param) const
+int CoreObject::getInt(std::string_view param) const
 {
     return static_cast<int>(get(param));
 }
 
-std::string fullObjectName(const coreObject* obj)  // NOLINT(misc-no-recursion)
+std::string fullObjectName(const CoreObject* obj)  // NOLINT(misc-no-recursion)
 {
     if (obj->parent->m_oid != 0)  // the nullobject oid==0
     {
@@ -436,7 +436,7 @@ std::string fullObjectName(const coreObject* obj)  // NOLINT(misc-no-recursion)
     return obj->getName();
 }
 
-void removeReference(coreObject* objToDelete)
+void removeReference(CoreObject* objToDelete)
 {
     if (objToDelete != nullptr) {
         // don't do a write unless we absolutely need to
@@ -446,7 +446,7 @@ void removeReference(coreObject* objToDelete)
     }
 }
 
-void removeReference(coreObject* objToDelete, const coreObject* parent)
+void removeReference(CoreObject* objToDelete, const CoreObject* parent)
 {
     if (objToDelete != nullptr) {
         if (objToDelete->m_refCount.fetch_sub(1, std::memory_order_acq_rel) <= 1) {
@@ -458,7 +458,7 @@ void removeReference(coreObject* objToDelete, const coreObject* parent)
     }
 }
 
-void setMultipleFlags(coreObject* obj, std::string_view flags)
+void setMultipleFlags(CoreObject* obj, std::string_view flags)
 {
     auto lcflags = gmlc::utilities::convertToLowerCase(std::string{flags});
     auto flgs = gmlc::utilities::string_viewOps::split(lcflags);

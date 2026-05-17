@@ -38,7 +38,7 @@ Source::Source(const std::string& objName, double startVal):
     opFlags.set(pflow_init_required);
 }
 
-coreObject* Source::clone(coreObject* obj) const
+CoreObject* Source::clone(CoreObject* obj) const
 {
     auto gS = cloneBase<Source, gridSubModel>(this, obj);
     if (gS == nullptr) {

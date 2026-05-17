@@ -37,7 +37,7 @@ ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): su
     cterm[1] = 2;
     cterm[2] = 2;
 }
-coreObject* ThreeWindingTransformer::clone(coreObject* obj) const
+CoreObject* ThreeWindingTransformer::clone(CoreObject* obj) const
 {
     auto line = cloneBase<ThreeWindingTransformer, Link>(this, obj);
     if (line == nullptr) {
@@ -47,12 +47,12 @@ coreObject* ThreeWindingTransformer::clone(coreObject* obj) const
     return line;
 }
 // add components
-void ThreeWindingTransformer::add(coreObject* /*obj*/)
+void ThreeWindingTransformer::add(CoreObject* /*obj*/)
 {
     throw(unrecognizedObjectException(this));
 }
 // remove components
-void ThreeWindingTransformer::remove(coreObject* /*obj*/) {}
+void ThreeWindingTransformer::remove(CoreObject* /*obj*/) {}
 
 void ThreeWindingTransformer::set(std::string_view param, std::string_view val)
 {

@@ -51,12 +51,12 @@ Event::Event(const std::string& eventName):
 
 Event::Event(coreTime time0): triggerTime(time0), eventId(static_cast<count_t>(getID())) {}
 
-Event::Event(const EventInfo& gdEI, coreObject* rootObject): eventId(static_cast<count_t>(getID()))
+Event::Event(const EventInfo& gdEI, CoreObject* rootObject): eventId(static_cast<count_t>(getID()))
 {
     Event::updateEvent(gdEI, rootObject);
 }
 
-void Event::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
+void Event::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     if (!gdEI.description.empty()) {
         setDescription(gdEI.description);
@@ -70,7 +70,7 @@ void Event::updateEvent(const EventInfo& gdEI, coreObject* rootObject)
     if (!gdEI.time.empty()) {
         triggerTime = gdEI.time[0];
     }
-    coreObject* searchObj = rootObject;
+    CoreObject* searchObj = rootObject;
 
     if (!gdEI.targetObjs.empty()) {
         searchObj = gdEI.targetObjs[0];
@@ -97,7 +97,7 @@ bool Event::checkArmed()
     return false;
 }
 
-void Event::loadField(coreObject* searchObj, std::string_view newField)
+void Event::loadField(CoreObject* searchObj, std::string_view newField)
 {
     auto renameloc = newField.find(" as ");  // spaces are important
                                              // extract out a rename
@@ -251,7 +251,7 @@ change_code Event::trigger(coreTime time)
     return ret;
 }
 
-void Event::updateObject(coreObject* gco, object_update_mode mode)
+void Event::updateObject(CoreObject* gco, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
         setTarget(gco);
@@ -269,17 +269,17 @@ void Event::updateObject(coreObject* gco, object_update_mode mode)
     }
 }
 
-coreObject* Event::getObject() const
+CoreObject* Event::getObject() const
 {
     return m_obj;
 }
 
-void Event::getObjects(std::vector<coreObject*>& objects) const
+void Event::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
 
-bool Event::setTarget(coreObject* gdo, std::string_view var)
+bool Event::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (gdo != nullptr) {
         m_obj = gdo;
@@ -346,7 +346,7 @@ event_types findEventType(EventInfo& gdEI)
     return event_types::basic;
 }
 
-EventInfo::EventInfo(std::string_view eventString, coreObject* rootObj)
+EventInfo::EventInfo(std::string_view eventString, CoreObject* rootObj)
 {
     loadString(eventString, rootObj);
 }
@@ -354,7 +354,7 @@ EventInfo::EventInfo(std::string_view eventString, coreObject* rootObj)
 // @time1[,time2,time3,... + period] |[rootobj::obj1:]field(units) const =
 // val1,[val2,val3,...];[rootobj::obj1:]field(units) const = val1,[val2,val3,...];  or
 // [rootobj::obj:]field(units) = val1,[val2,val3,...] @time1[,time2,time3,...|+ period] or
-void EventInfo::loadString(std::string_view eventString, coreObject* rootObj)
+void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
 {
     if (eventString.find_first_of(';') != std::string::npos) {
         auto svector = gmlc::utilities::stringOps::splitlineBracket(std::string{eventString}, ";");
@@ -426,7 +426,7 @@ void EventInfo::loadString(std::string_view eventString, coreObject* rootObj)
 }
 
 std::unique_ptr<Event>
-    make_event(std::string_view field, double val, coreTime eventTime, coreObject* rootObject)
+    make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
 {
     auto ev = std::make_unique<Event>(eventTime);
     objInfo fdata(std::string{field}, rootObject);
@@ -435,13 +435,13 @@ std::unique_ptr<Event>
     return ev;
 }
 
-std::unique_ptr<Event> make_event(std::string_view eventString, coreObject* rootObject)
+std::unique_ptr<Event> make_event(std::string_view eventString, CoreObject* rootObject)
 {
     EventInfo gdEI(eventString, rootObject);
     return make_event(gdEI, rootObject);
 }
 
-std::unique_ptr<Event> make_event(EventInfo& gdEI, coreObject* rootObject)
+std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
 {
     std::unique_ptr<Event> ev;
     if (!gdEI.type.empty()) {

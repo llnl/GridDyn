@@ -41,7 +41,7 @@ class FmiCoSimSubModel: public gridSubModel {
 
     FmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
     virtual ~FmiCoSimSubModel();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

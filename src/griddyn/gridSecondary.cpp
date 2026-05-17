@@ -23,7 +23,7 @@ gridSecondary::gridSecondary(const std::string& objName): gridComponent(objName)
     m_inputSize = 3;
 }
 
-coreObject* gridSecondary::clone(coreObject* obj) const
+CoreObject* gridSecondary::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<gridSecondary, gridComponent>(this, obj);
     if (nobj == nullptr) {
@@ -34,7 +34,7 @@ coreObject* gridSecondary::clone(coreObject* obj) const
     return nobj;
 }
 
-void gridSecondary::updateObjectLinkages(coreObject* newRoot)
+void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
 {
     if (opFlags[pFlow_initialized]) {
         auto nobj = findMatchingObject(bus, newRoot);

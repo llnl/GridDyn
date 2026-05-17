@@ -61,7 +61,7 @@ class Area: public gridPrimary {
     but also other objects that potentially act as storage containers, do periodic updates, generate
     alerts or interact with other simulations
     */
-    std::vector<coreObject*> objectHolder;  //!< storage location for shared pointers to an object
+    std::vector<CoreObject*> objectHolder;  //!< storage location for shared pointers to an object
 
     // std::vector<Source *> signalsSources;    //!< sources for the area outputs
 
@@ -75,11 +75,11 @@ class Area: public gridPrimary {
     /** @brief the default destructor*/
     virtual ~Area();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void updateObjectLinkages(coreObject* newRoot) override;
+    virtual void updateObjectLinkages(CoreObject* newRoot) override;
     // add components
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief add a bus to the area
     @param[in] bus  the bus to add
     @throw objectAddFailure on add failure typically duplicated names
@@ -102,7 +102,7 @@ class Area: public gridPrimary {
     virtual void add(Relay* relay);
 
     // remove components
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
     /** @brief remove a bus from the area
     @param[in] bus  the bus to remove
 
@@ -189,14 +189,14 @@ class Area: public gridPrimary {
     @param[in] object  the object to check
     @return true if the object is a member false if not
     */
-    virtual bool isMember(const coreObject* object) const;
+    virtual bool isMember(const CoreObject* object) const;
     // find components
-    virtual coreObject* find(std::string_view objName) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     // solver functions
 
-    virtual void alert(coreObject* obj, int code) override;
+    virtual void alert(CoreObject* obj, int code) override;
 
     virtual void getStateName(stringVec& stNames,
                               const solverMode& sMode,

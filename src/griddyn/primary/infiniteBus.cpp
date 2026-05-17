@@ -32,7 +32,7 @@ infiniteBus::infiniteBus(double startVoltage, double startAngle, const std::stri
     dynType = dynBusType::dynSLK;
 }
 
-coreObject* infiniteBus::clone(coreObject* obj) const
+CoreObject* infiniteBus::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<infiniteBus, gridBus>(this, obj);
     if (nobj == nullptr) {

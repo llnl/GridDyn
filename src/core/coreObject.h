@@ -40,7 +40,7 @@ name, updates and some common functionality that unifies all objects that are pa
 including object ownership, updates, set and get functions, search features, alert and logging
 functions
 **/
-class coreObject {
+class CoreObject {
   private:
     // this is used much more frequently than any other so it gets its own boolean at the beginning
     // of the object
@@ -51,7 +51,7 @@ class coreObject {
     bool extra_bool2 = false;  //!< a second extra flag for derived classes to use
   private:
     index_t id = 0;  //!< a user defined id for the object
-    coreObject* parent = nullptr;  //!< a pointer to the parent object
+    CoreObject* parent = nullptr;  //!< a pointer to the parent object
   protected:  // variables that are used regularly by child class objects
     coreTime prevTime = negTime;  //!<[s]the last state time of the object
     coreTime nextUpdateTime = maxTime;  //!<[s] the next scheduled update
@@ -76,19 +76,19 @@ class coreObject {
     the name can be followed by a few symbols see # appends the id, $ appends the userid, and @
     appends the locIndex
     */
-    explicit coreObject(std::string_view objName = "object_#");
+    explicit CoreObject(std::string_view objName = "object_#");
 
     // don't allow copy constructors and equal operator as they would introduce all sorts of other
     // complicated issues in the system
-    coreObject(const coreObject&) = delete;
-    void operator=(const coreObject& obj) = delete;
+    CoreObject(const CoreObject&) = delete;
+    void operator=(const CoreObject& obj) = delete;
     /** @brief default destructor  so it can be overridden*/
-    virtual ~coreObject();
+    virtual ~CoreObject();
     /**
      * @brief clones an object to another object or makes a new on
      * @param[in] obj the object to clone to or leave nullptr for a new object.
      */
-    virtual coreObject* clone(coreObject* obj = nullptr) const;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const;
 
     /** @brief update a name potentially containing specific codes
      names ending in # have the '#' replaced with the oid
@@ -102,7 +102,7 @@ class coreObject {
      * @param[in] object the object that generated the alert.
      * @param[in] code an alert code
      */
-    virtual void alert(coreObject* object, int code);
+    virtual void alert(CoreObject* object, int code);
 
     /**
      * @brief forwards a log message from object *object up the chain or processes it.
@@ -110,7 +110,7 @@ class coreObject {
      * @param[in] level the level of the log message
      * @param[in] message the log message
      */
-    virtual void log(coreObject* object, print_level level, const std::string& message);
+    virtual void log(CoreObject* object, print_level level, const std::string& message);
     /**
      * @brief checks whether a particular log level is currently enabled for this object's logger
      * chain.
@@ -128,27 +128,27 @@ class coreObject {
     * @param[in] object the name of the object to search for.
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* find(std::string_view object) const;
+    virtual CoreObject* find(std::string_view object) const;
     /**
     * @brief retrieve a subObject of type typeName and index num.
     * @param[in] typeName a string indicating which type of object to retrieve
     * @param[in] num the index of the object to retrieve  (index is 0 based)
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const;
     /**
     * @brief locate a subObject of type typeName and searchID.
     * @param[in] typeName a string indicating which type of object to retrieve
     * @param[in] searchID the id of the object to search for
     @return nullptr if the object is not found otherwise the object
     */
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const;
     /**
      * @brief adds an object to another object for instance adding a load to the bus.
      * @param[in] obj the object to add
      * throws an exception if the object is invalid or cannot be added
      */
-    virtual void add(coreObject* obj);
+    virtual void add(CoreObject* obj);
 
     /** @brief add a helperObject to the object
     @param[in] obj shared_ptr to a helper object
@@ -160,7 +160,7 @@ class coreObject {
      * @param[in] obj the object to remove
      * Throws an exception if the object cannot be removed.
      */
-    virtual void remove(coreObject* obj);
+    virtual void remove(CoreObject* obj);
     /**
      * @brief sets a string parameter of an object
      * @param[in] param the name of the parameter to change
@@ -263,13 +263,13 @@ class coreObject {
     @return a string describing the object may be empty if no description was entered*/
     std::string getDescription() const;
     /** @brief set the parent*/
-    virtual void setParent(coreObject* parentObj);
+    virtual void setParent(CoreObject* parentObj);
     /** @brief get the parent object*/
-    coreObject* getParent() const { return parent; }
+    CoreObject* getParent() const { return parent; }
     /** get the root object */
-    coreObject* getRoot() const
+    CoreObject* getRoot() const
     {  // the id of 0 is used by a special nullObject
-        return (parent->id != 0) ? (parent->getRoot()) : const_cast<coreObject*>(this);
+        return (parent->id != 0) ? (parent->getRoot()) : const_cast<CoreObject*>(this);
     }
     /** check if the object is a root object*/
     bool isRoot() const { return (parent->id == 0); }
@@ -306,14 +306,14 @@ class coreObject {
     /**@brief return the last time the object had its state set or was updated
      */
     coreTime currentTime() const noexcept { return prevTime; }
-    friend void removeReference(coreObject* objToDelete);
-    friend void removeReference(coreObject* objToDelete, const coreObject* parent);
-    friend bool compareUpdates(const coreObject* o1, const coreObject* o2);
-    friend bool compareNames(const coreObject* o1, const coreObject* o2);
-    friend bool isSameObject(const coreObject* o1, const coreObject* o2);
-    friend bool isSameObject(id_type_t id, const coreObject* o2);
-    friend bool isSameObject(const coreObject* o1, id_type_t id);
-    friend std::string fullObjectName(const coreObject* obj);
+    friend void removeReference(CoreObject* objToDelete);
+    friend void removeReference(CoreObject* objToDelete, const CoreObject* parent);
+    friend bool compareUpdates(const CoreObject* o1, const CoreObject* o2);
+    friend bool compareNames(const CoreObject* o1, const CoreObject* o2);
+    friend bool isSameObject(const CoreObject* o1, const CoreObject* o2);
+    friend bool isSameObject(id_type_t id, const CoreObject* o2);
+    friend bool isSameObject(const CoreObject* o1, id_type_t id);
+    friend std::string fullObjectName(const CoreObject* obj);
     friend class nullObject;
 
   protected:
@@ -326,7 +326,7 @@ class coreObject {
     /** private constructor function to build an object with a specified object id
     @details used in special objects for various purposes
     */
-    coreObject(id_type_t coid);
+    CoreObject(id_type_t coid);
 };
 
 /** @brief helper function to set multiple flags on a object separated by ; or ,
@@ -334,14 +334,14 @@ class coreObject {
 @param[in] obj the object to set the flags on
 @param[in] flags  the list of flags to set
 */
-void setMultipleFlags(coreObject* obj, std::string_view flags);
+void setMultipleFlags(CoreObject* obj, std::string_view flags);
 /**
 * @brief function to compare update times for object sorting
 * @param[in] o1 the first object to compare
 @param[in] o2 the second object to compare
 @return true if the update time from o1 comes before the update time in o2
 */
-inline bool compareUpdates(const coreObject* o1, const coreObject* o2)
+inline bool compareUpdates(const CoreObject* o1, const CoreObject* o2)
 {
     return (o1->nextUpdateTime < o2->nextUpdateTime);
 }
@@ -351,7 +351,7 @@ inline bool compareUpdates(const coreObject* o1, const coreObject* o2)
 * @param[in] o2 the second object to compare
 @return true if the first object comes before the second alphabetically
 */
-inline bool compareNames(const coreObject* o1, const coreObject* o2)
+inline bool compareNames(const CoreObject* o1, const CoreObject* o2)
 {
     return (o1->name < o2->name);
 }
@@ -361,7 +361,7 @@ inline bool compareNames(const coreObject* o1, const coreObject* o2)
  * 0;
  * @param[in] objToDelete the object to potentially delete
  */
-void removeReference(coreObject* objToDelete);
+void removeReference(CoreObject* objToDelete);
 /**
 * @brief general deletion function that checks the reference count and deletes the object if it is
 0;
@@ -369,13 +369,13 @@ void removeReference(coreObject* objToDelete);
 * @param[in] objToDelete the object to potentially delete
 @param[in] parent the parent of the object
 */
-void removeReference(coreObject* objToDelete, const coreObject* parent);
+void removeReference(CoreObject* objToDelete, const CoreObject* parent);
 /**
 * @brief get an objects full path name including all parent objects( except root)
 * @param[in] obj for which to get the full name
 @return the full object path
 */
-std::string fullObjectName(const coreObject* obj);
+std::string fullObjectName(const CoreObject* obj);
 
 /**
 * @brief function to check if two objects are the same object
@@ -383,7 +383,7 @@ std::string fullObjectName(const coreObject* obj);
 * @param[in] o2 the second object to check
 @return true if the objects have the object id
 */
-inline bool isSameObject(const coreObject* o1, const coreObject* o2)
+inline bool isSameObject(const CoreObject* o1, const CoreObject* o2)
 {
     return ((o2 != nullptr) && (o1 != nullptr) && (o1->m_oid == o2->m_oid));
 }
@@ -393,7 +393,7 @@ inline bool isSameObject(const coreObject* o1, const coreObject* o2)
 * @param[in] o2 the second object to check
 @return true if the id's match
 */
-inline bool isSameObject(id_type_t id, const coreObject* o2)
+inline bool isSameObject(id_type_t id, const CoreObject* o2)
 {
     return ((o2 != nullptr) && (id == o2->m_oid));
 }
@@ -403,7 +403,7 @@ inline bool isSameObject(id_type_t id, const coreObject* o2)
 * @param[in] id the identifier of the first object to check
 @return true if the id's match
 */
-inline bool isSameObject(const coreObject* o1, id_type_t id)
+inline bool isSameObject(const CoreObject* o1, id_type_t id)
 {
     return ((o1 != nullptr) && (id == o1->m_oid));
 }
@@ -416,13 +416,13 @@ inline bool isSameObject(const coreObject* o1, id_type_t id)
 print_level stringToPrintLevel(const std::string& level);
 
 namespace logging {
-    [[nodiscard]] inline bool should_log(const coreObject* logger, print_level level)
+    [[nodiscard]] inline bool should_log(const CoreObject* logger, print_level level)
     {
         return (logger != nullptr) && logger->shouldLog(level);
     }
 
-    inline void log_to(coreObject* logger,
-                       coreObject* object,
+    inline void log_to(CoreObject* logger,
+                       CoreObject* object,
                        print_level level,
                        const std::string& message)
     {
@@ -433,7 +433,7 @@ namespace logging {
     }
 
     inline void
-        log_to(coreObject* logger, coreObject* object, print_level level, std::string_view message)
+        log_to(CoreObject* logger, CoreObject* object, print_level level, std::string_view message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -442,7 +442,7 @@ namespace logging {
     }
 
     inline void
-        log_to(coreObject* logger, coreObject* object, print_level level, const char* message)
+        log_to(CoreObject* logger, CoreObject* object, print_level level, const char* message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -451,8 +451,8 @@ namespace logging {
     }
 
     template<class... Args>
-    inline void log_to(coreObject* logger,
-                       coreObject* object,
+    inline void log_to(CoreObject* logger,
+                       CoreObject* object,
                        print_level level,
                        std::string_view formatText,
                        Args&&... args)
@@ -471,43 +471,43 @@ namespace logging {
     }
 
     template<class... Args>
-    inline void log_self(coreObject* logger, print_level level, Args&&... args)
+    inline void log_self(CoreObject* logger, print_level level, Args&&... args)
     {
         log_to(logger, logger, level, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void error(coreObject* logger, Args&&... args)
+    inline void error(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::error, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void warning(coreObject* logger, Args&&... args)
+    inline void warning(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::warning, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void summary(coreObject* logger, Args&&... args)
+    inline void summary(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::summary, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void normal(coreObject* logger, Args&&... args)
+    inline void normal(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::normal, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void debug(coreObject* logger, Args&&... args)
+    inline void debug(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::debug, std::forward<Args>(args)...);
     }
 
     template<class... Args>
-    inline void trace(coreObject* logger, Args&&... args)
+    inline void trace(CoreObject* logger, Args&&... args)
     {
         log_self(logger, print_level::trace, std::forward<Args>(args)...);
     }

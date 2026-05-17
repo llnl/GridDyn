@@ -87,8 +87,8 @@ class Relay: public gridPrimary, objectOperatorInterface {
 
     };
     coreTime triggerTime = maxTime;  //!< the next time execute
-    coreObject* m_sourceObject = nullptr;  //!< the default object where the data comes from
-    coreObject* m_sinkObject = nullptr;  //!< the default object where the actions occur
+    CoreObject* m_sourceObject = nullptr;  //!< the default object where the data comes from
+    CoreObject* m_sinkObject = nullptr;  //!< the default object where the actions occur
     std::uint16_t triggerCount = 0;  //!< count of the number of triggers
     std::uint16_t actionsTakenCount = 0;  //!< count of the number of actions taken
     std::bitset<32> relayFlags =
@@ -104,9 +104,9 @@ class Relay: public gridPrimary, objectOperatorInterface {
   public:
     explicit Relay(const std::string& objName = "relay_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     /**
      *@brief add a Event to the relay
@@ -148,12 +148,12 @@ class Relay: public gridPrimary, objectOperatorInterface {
     * @brief set the relay source object
     @param[in] obj the object to act as the default source for measurements
     */
-    void setSource(coreObject* obj);
+    void setSource(CoreObject* obj);
     /**
     * @brief set the relay sink object
     @param[in] obj the object to act as the default sink for an object
     */
-    void setSink(coreObject* obj);
+    void setSink(CoreObject* obj);
     /**
     @brief set the status indicator for a particular condition
     @param[in] conditionNumber the index of the condition in question
@@ -285,13 +285,13 @@ class Relay: public gridPrimary, objectOperatorInterface {
     std::unique_ptr<eventAdapter> make_alarm(const std::string& val);
     // Object operator interface functions
 
-    virtual void updateObjectLinkages(coreObject* newRoot) override;
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObjectLinkages(CoreObject* newRoot) override;
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
-    virtual coreObject* find(std::string_view objName) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
 
   protected:
     /** update the number of root finding functions used in the relay

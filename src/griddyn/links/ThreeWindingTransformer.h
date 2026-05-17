@@ -27,11 +27,11 @@ class ThreeWindingTransformer: public subsystem {
   public:
     /** @brief default constructor*/
     ThreeWindingTransformer(const std::string& objName = "ThreeWinding_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    virtual void add(coreObject* obj) override final;  // there shouldn't be any additional adds
+    virtual void add(CoreObject* obj) override final;  // there shouldn't be any additional adds
     // remove components
-    virtual void remove(coreObject* obj)
+    virtual void remove(CoreObject* obj)
         override final;  // there shouldn't be any removes all models are controlled internally
 
     virtual void set(std::string_view param, std::string_view val) override;

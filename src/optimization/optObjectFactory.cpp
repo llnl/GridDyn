@@ -65,7 +65,7 @@ GridOptObject* OptComponentFactory::makeObject(std::string_view objType)
     return nullptr;
 }
 
-GridOptObject* OptComponentFactory::makeObject(coreObject* obj)
+GridOptObject* OptComponentFactory::makeObject(CoreObject* obj)
 {
     GridOptObject* optObject = nullptr;
 
@@ -87,7 +87,7 @@ GridOptObject* OptComponentFactory::makeObject(coreObject* obj)
     return nullptr;
 }
 
-// create a high level object factory for the coreObject class
+// create a high level object factory for the CoreObject class
 std::shared_ptr<CoreOptObjectFactory> CoreOptObjectFactory::instance()
 {
     static const std::shared_ptr<CoreOptObjectFactory> factory =
@@ -138,7 +138,7 @@ GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType,
     return nullptr;
 }
 
-GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType, coreObject* obj)
+GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType, CoreObject* obj)
 {
     auto mfind = mFactoryMap.find(optType);
     if (mfind != mFactoryMap.end()) {
@@ -147,7 +147,7 @@ GridOptObject* CoreOptObjectFactory::createObject(std::string_view optType, core
     return nullptr;
 }
 
-GridOptObject* CoreOptObjectFactory::createObject(coreObject* obj)
+GridOptObject* CoreOptObjectFactory::createObject(CoreObject* obj)
 {
     if (mDefaultType.empty()) {
         return nullptr;
@@ -212,7 +212,7 @@ void CoreOptObjectFactory::setDefaultType(std::string_view defType)
 void CoreOptObjectFactory::prepObjects(std::string_view optType,
                                        std::string_view typeName,
                                        count_t numObjects,
-                                       coreObject* baseObj)
+                                       CoreObject* baseObj)
 {
     auto mfind = mFactoryMap.find(optType);
     if (mfind != mFactoryMap.end()) {
@@ -225,7 +225,7 @@ void CoreOptObjectFactory::prepObjects(std::string_view optType,
 
 void CoreOptObjectFactory::prepObjects(std::string_view typeName,
                                        count_t numObjects,
-                                       coreObject* baseObj)
+                                       CoreObject* baseObj)
 {
     if (mDefaultType.empty()) {
         return;

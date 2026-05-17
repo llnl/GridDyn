@@ -37,23 +37,23 @@ using units::s;
 using mArray = std::vector<std::vector<double>>;
 
 // NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
-void loadBusArray(coreObject* parentObject,
+void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<gridBus*>& busList,
                   const basicReaderInfo& readerOptions);
-int loadGenArray(coreObject* parentObject,
+int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
                  std::vector<gridBus*>& busList,
                  const basicReaderInfo& readerOptions);
-void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount);
-void loadLinkArray(coreObject* parentObject,
+void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount);
+void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
                    std::vector<gridBus*>& busList,
                    const basicReaderInfo& readerOptions);
 // wrapper function to detect m file format for matpower or PSAT
 
-void loadMatPower(coreObject* parentObject,
+void loadMatPower(CoreObject* parentObject,
                   const std::string& filetext,
                   const std::string& basename,
                   const basicReaderInfo& readerOptions)
@@ -86,7 +86,7 @@ void loadMatPower(coreObject* parentObject,
     }
 }
 
-void loadBusArray(coreObject* parentObject,
+void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<gridBus*>& busList,
@@ -184,7 +184,7 @@ MU QMAX† 24 Kuhn-Tucker multiplier on upper Qg limit (u/MVAr)
 MU QMIN† 25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
 */
 
-int loadGenArray(coreObject* parentObject,
+int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
                  std::vector<gridBus*>& busList,
                  const basicReaderInfo& readerOptions)
@@ -281,7 +281,7 @@ COST                    5 parameters defining total cost function f(p) begin in 
                             highest order, where cost is f(p) = cn*p^n + ... + c1*p + c0
 */
 #ifdef ENABLE_OPTIMIZATION_LIBRARY
-void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount)
+void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount)
 {
     auto gdo = dynamic_cast<gridDynOptimization*>(parentObject->getRoot());
     if (gdo == nullptr)  // return if the core object doesn't support optimization
@@ -291,7 +291,7 @@ void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount)
 
     gridGenOpt* go;
     gridOptObject* oo;
-    coreObject* obj;
+    CoreObject* obj;
     int mode = 0;
     int numc = 0;
     int q = 0;
@@ -334,7 +334,7 @@ void loadGenCostArray(coreObject* parentObject, mArray& genCost, int gencount)
     }
 }
 #else
-void loadGenCostArray(coreObject* /*parentObject*/, mArray& /*genCost*/, int /*gencount*/) {}
+void loadGenCostArray(CoreObject* /*parentObject*/, mArray& /*genCost*/, int /*gencount*/) {}
 #endif
 /*
 see: http://www.pserc.cornell.edu/matpower/docs/ref/matpower6.0/idx_brch.html
@@ -364,7 +364,7 @@ MU ANGMIN‡ 20 Kuhn-Tucker multiplier lower angle difference limit (u/degree)
 MU ANGMAX‡ 21 Kuhn-Tucker multiplier upper angle difference limit (u/degree)
 */
 
-void loadLinkArray(coreObject* parentObject,
+void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
                    std::vector<gridBus*>& busList,
                    const basicReaderInfo& /*readerOptions*/)

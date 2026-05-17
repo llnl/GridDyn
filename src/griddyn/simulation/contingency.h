@@ -175,11 +175,11 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
      */
     std::future_status wait_for(std::chrono::milliseconds waitTime) const;
 
-    coreObject* getObject() const override;
+    CoreObject* getObject() const override;
 
-    void getObjects(std::vector<coreObject*>& objects) const override;
+    void getObjects(std::vector<CoreObject*>& objects) const override;
 
-    void updateObject(coreObject* newObj,
+    void updateObject(CoreObject* newObj,
                       object_update_mode mode = object_update_mode::match) override;
 
     std::shared_ptr<Contingency>

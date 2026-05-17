@@ -27,7 +27,7 @@ namespace {
 static const char collectorNameString[] = "collector";
 
 int loadCollectorElement(std::shared_ptr<readerElement>& element,
-                         coreObject* obj,
+                         CoreObject* obj,
                          readerInfo& readerInformation)
 {
     const int ret = FUNCTION_EXECUTION_SUCCESS;
@@ -114,7 +114,7 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element,
               collectorNameString,
               readerInformation,
               collectorIgnoreStrings());
-    coreObject* targetObj = obj;
+    CoreObject* targetObj = obj;
 
     if (!grabberInfo.m_target.empty() && (grabberInfo.m_target != obj->getName())) {
         targetObj = locateObject(grabberInfo.m_target, obj);

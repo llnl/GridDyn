@@ -30,7 +30,7 @@ namespace sources {
         };
         commSource(const std::string& objName = "commSource_#");
 
-        coreObject* clone(coreObject* obj = nullptr) const override;
+        CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
         virtual void set(std::string_view param, std::string_view val) override;

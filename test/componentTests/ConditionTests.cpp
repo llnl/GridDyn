@@ -8,7 +8,7 @@
 #include "griddyn/links/acLine.h"
 #include "griddyn/measurement/Condition.h"
 #include <gtest/gtest.h>
-// test case for coreObject object
+// test case for CoreObject object
 
 using namespace griddyn;
 

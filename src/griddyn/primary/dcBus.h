@@ -42,7 +42,7 @@ class dcBus: public gridBus {
   public:
     explicit dcBus(const std::string& objName = "dcBus_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     using gridBus::add;
     virtual void add(Link* lnk) override;  // this add function checks for DC capable links

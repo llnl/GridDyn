@@ -30,7 +30,7 @@ class motorLoad5: public motorLoad3 {
 */
     explicit motorLoad5(const std::string& objName = "motor5_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

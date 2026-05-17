@@ -41,7 +41,7 @@ double InterpretFunction(string_view command, double val1, double val2, readerIn
 double stringBlocktoDouble(string_view block, readerInfo& ri);
 double interpretString_sv(string_view command, readerInfo& ri);
 
-double ObjectQuery(string_view command, coreObject* obj);
+double ObjectQuery(string_view command, CoreObject* obj);
 
 double interpretString(const std::string& command, readerInfo& ri)
 {
@@ -257,7 +257,7 @@ double InterpretFunction(string_view command, double val1, double val2, readerIn
     return fval;
 }
 
-double ObjectQuery(string_view command, coreObject* obj)
+double ObjectQuery(string_view command, CoreObject* obj)
 {
     if (obj == nullptr) {
         return nan_val;

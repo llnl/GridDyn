@@ -71,7 +71,7 @@ class sensor: public Relay {
   public:
     /** @brief default constructor*/
     explicit sensor(const std::string& objName = "sensor_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
@@ -86,7 +86,7 @@ class sensor: public Relay {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
     using Relay::add;
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     /** @brief add a filter block to the relay
     @param[in] blk a pointer to a filter block
     */
@@ -184,9 +184,9 @@ class sensor: public Relay {
     virtual void receiveMessage(std::uint64_t sourceID,
                                 std::shared_ptr<commMessage> message) override;
 
-    virtual void updateObject(coreObject* obj,
+    virtual void updateObject(CoreObject* obj,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
     virtual const std::vector<stringVec>& outputNames() const override;
 

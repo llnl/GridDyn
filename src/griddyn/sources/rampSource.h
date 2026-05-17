@@ -17,7 +17,7 @@ class rampSource: public Source {
     model_parameter mp_dOdt = 0.0;  //!< [1/s] the ramp rate of the output
   public:
     rampSource(const std::string& objName = "rampSource_#", double startVal = 0.0);
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

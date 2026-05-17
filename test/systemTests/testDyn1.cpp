@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 using namespace griddyn;
 using namespace gmlc::utilities;

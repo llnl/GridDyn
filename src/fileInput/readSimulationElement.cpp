@@ -23,16 +23,16 @@ namespace {
         return *ignoreFields;
     }
 
-    bool isMasterObject(const coreObject* searchObject, const gridSimulation* simulationObject);
+    bool isMasterObject(const CoreObject* searchObject, const gridSimulation* simulationObject);
 }  // namespace
 
 static const char libstring[] = "library";
 // read XML file
-// coreObject * readSimXMLFile(const std::string &fileName, coreObject *gco, const std::string
+// CoreObject * readSimXMLFile(const std::string &fileName, CoreObject *gco, const std::string
 // prefix, readerInfo *ri) const
 gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                                       readerInfo& readerInformation,
-                                      coreObject* searchObject,
+                                      CoreObject* searchObject,
                                       gridSimulation* simulationObject)
 {
     // pointers
@@ -166,7 +166,7 @@ namespace {
         readerInformation.addTranslate("loop", "array");
     }
 
-    bool isMasterObject(const coreObject* searchObject, const gridSimulation* simulationObject)
+    bool isMasterObject(const CoreObject* searchObject, const gridSimulation* simulationObject)
     {
         if (searchObject != nullptr) {
             return (simulationObject != nullptr) ? (isSameObject(searchObject, simulationObject)) :

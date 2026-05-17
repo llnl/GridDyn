@@ -17,7 +17,7 @@ fileSource::fileSource(const std::string& fileName, int column): rampSource("fil
     }
 }
 
-coreObject* fileSource::clone(coreObject* obj) const
+CoreObject* fileSource::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<fileSource, rampSource>(this, obj);
     if (nobj == nullptr) {

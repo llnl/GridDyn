@@ -27,7 +27,7 @@ fileLoad::fileLoad(const std::string& objName, std::string fileName):
 {
 }
 
-coreObject* fileLoad::clone(coreObject* obj) const
+CoreObject* fileLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<fileLoad, rampLoad>(this, obj);
     if (nobj == nullptr) {

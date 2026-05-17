@@ -35,7 +35,7 @@ class FmiEvent: public events::reversibleEvent {
      */
     FmiEvent(FmiEventType type = FmiEventType::INPUT);
     /** event constructor taking an eventInfo structure and root object*/
-    FmiEvent(const EventInfo& gdEI, coreObject* rootObject);
+    FmiEvent(const EventInfo& gdEI, CoreObject* rootObject);
 
     virtual std::unique_ptr<Event> clone() const override;
 
@@ -43,13 +43,13 @@ class FmiEvent: public events::reversibleEvent {
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
-    virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject) override;
+    virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
 
-    virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
+    virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
-    virtual void updateObject(coreObject* gco,
+    virtual void updateObject(CoreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getOwner() const override;
+    virtual CoreObject* getOwner() const override;
     friend class FmiCoordinator;
 
   private:

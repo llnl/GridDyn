@@ -733,7 +733,7 @@ void jacobianAnalysis(matrixData<double>& md,
     printObjCountInfo(oi, 0, level);
 }
 
-bool checkObjectEquivalence(const coreObject* obj1, const coreObject* obj2, bool printMessage)
+bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool printMessage)
 {
     if ((obj1 == nullptr) || (obj2 == nullptr)) {
         if (printMessage) {
@@ -782,10 +782,10 @@ bool checkObjectEquivalence(const coreObject* obj1, const coreObject* obj2, bool
         return false;
     }
     int ii = 0;
-    coreObject* sub1 = obj1->getSubObject("subobject", ii);
+    CoreObject* sub1 = obj1->getSubObject("subobject", ii);
     bool result = true;
     while (sub1 != nullptr) {
-        coreObject* sub2 = obj2->find(sub1->getName());
+        CoreObject* sub2 = obj2->find(sub1->getName());
         if (sub2 == nullptr) {
             if (printMessage) {
                 std::println("object 2 ({}) does not have a subobject named {}",

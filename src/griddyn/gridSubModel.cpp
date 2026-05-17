@@ -69,7 +69,7 @@ double gridSubModel::get(std::string_view param, units::unit unitType) const
 {
     auto fptr = getObjectFunction(this, std::string{param});
     if (fptr.first) {
-        coreObject* tobj = const_cast<gridSubModel*>(this);
+        CoreObject* tobj = const_cast<gridSubModel*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
     }
 

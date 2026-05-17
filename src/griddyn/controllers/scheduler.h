@@ -36,7 +36,7 @@ class scheduler: public Source {
   public:
     scheduler(const std::string& objName = "scheduler_#", double initialValue = 0.0);
     scheduler(double initialValue, const std::string& objName = "scheduler_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~scheduler();
 
     virtual void updateA(coreTime time) override;
@@ -118,7 +118,7 @@ class schedulerRamp: public scheduler {
     explicit schedulerRamp(const std::string& objName = "schedulerRamp_#");
     schedulerRamp(double initialValue, const std::string& objName = "schedulerRamp_#");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     using scheduler::setTarget;
     void setTarget(coreTime time, double target) override;
     void setTarget(double target) override;
@@ -182,7 +182,7 @@ class schedulerReg: public schedulerRamp {
     schedulerReg(double initialValue,
                  double initialReg,
                  const std::string& objName = "schedulerReg_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     ~schedulerReg();
     void setReg(double regLevel);
 

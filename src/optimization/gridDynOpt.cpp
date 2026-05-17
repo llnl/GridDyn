@@ -39,7 +39,7 @@ GridDynOptimization::~GridDynOptimization()
     delete mAreaOpt;
 }
 
-coreObject* GridDynOptimization::clone(coreObject* obj) const
+CoreObject* GridDynOptimization::clone(CoreObject* obj) const
 {
     auto* sim = cloneBase<GridDynOptimization, gridDynSimulation>(this, obj);
     if (sim == nullptr) {
@@ -153,7 +153,7 @@ double GridDynOptimization::get(std::string_view param, units::unit unitType) co
     return gridDynSimulation::get(param, unitType);
 }
 
-coreObject* GridDynOptimization::find(std::string_view objName) const
+CoreObject* GridDynOptimization::find(std::string_view objName) const
 {
     if (objName == "optroot") {
         return mAreaOpt;
@@ -164,14 +164,14 @@ coreObject* GridDynOptimization::find(std::string_view objName) const
     return gridDynSimulation::find(objName);
 }
 
-coreObject* GridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* GridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName.starts_with("opt")) {
         return mAreaOpt->getSubObject(typeName.substr(3), num);
     }
     return gridDynSimulation::getSubObject(typeName, num);
 }
-coreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName.starts_with("opt")) {
         return mAreaOpt->findByUserID(typeName.substr(3), searchID);
@@ -179,10 +179,10 @@ coreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t
     return gridDynSimulation::findByUserID(typeName, searchID);
 }
 
-GridOptObject* GridDynOptimization::getOptimizationObject(coreObject* obj)
+GridOptObject* GridDynOptimization::getOptimizationObject(CoreObject* obj)
 {
     if (obj != nullptr) {
-        coreObject* nextObject = mAreaOpt->find(obj->getName());
+        CoreObject* nextObject = mAreaOpt->find(obj->getName());
         if (nextObject != nullptr) {
             return static_cast<GridOptObject*>(nextObject);
         }
@@ -192,7 +192,7 @@ GridOptObject* GridDynOptimization::getOptimizationObject(coreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-GridOptObject* GridDynOptimization::makeOptimizationObjectPath(coreObject* obj)
+GridOptObject* GridDynOptimization::makeOptimizationObjectPath(CoreObject* obj)
 {
     GridOptObject* optObject = getOptimizationObject(obj);
     if (optObject != nullptr) {

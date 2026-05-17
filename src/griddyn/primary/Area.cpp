@@ -52,7 +52,7 @@ Area::Area(const std::string& objName): gridPrimary(objName)
     opObjectLists = std::make_unique<listMaintainer>();
 }
 
-coreObject* Area::clone(coreObject* obj) const
+CoreObject* Area::clone(CoreObject* obj) const
 {
     auto* area = cloneBase<Area, gridPrimary>(this, obj);
     if (area == nullptr) {
@@ -126,7 +126,7 @@ coreObject* Area::clone(coreObject* obj) const
     return area;
 }
 
-void Area::updateObjectLinkages(coreObject* newRoot)
+void Area::updateObjectLinkages(CoreObject* newRoot)
 {
     for (auto* obj : primaryObjects) {
         obj->updateObjectLinkages(newRoot);
@@ -141,7 +141,7 @@ Area::~Area()
     }
 }
 
-void Area::add(coreObject* obj)
+void Area::add(CoreObject* obj)
 {
     if (obj == nullptr) {
         return;
@@ -216,7 +216,7 @@ void Area::add(Relay* relay)
 }
 
 // --------------- remove components ---------------
-void Area::remove(coreObject* obj)
+void Area::remove(CoreObject* obj)
 {
     if (obj == nullptr) {
         return;
@@ -305,7 +305,7 @@ void Area::remove(Relay* relay)
     removeObject(this, relay, m_Relays);
 }
 
-void Area::alert(coreObject* obj, int code)
+void Area::alert(CoreObject* obj, int code)
 {
     switch (code) {
         case OBJECT_NAME_CHANGE:
@@ -363,9 +363,9 @@ Generator* Area::getGen(index_t x)
     return nullptr;
 }
 
-coreObject* Area::find(std::string_view objName) const
+CoreObject* Area::find(std::string_view objName) const
 {
-    coreObject* obj = obList->find(objName);
+    CoreObject* obj = obList->find(objName);
     if (obj == nullptr) {
         auto rlc = objName.find_first_of(":/?@#$!%");
         if (rlc != std::string::npos) {
@@ -385,7 +385,7 @@ coreObject* Area::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* Area::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* Area::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         return getBus(num);
@@ -469,7 +469,7 @@ void Area::setAll(std::string_view type, std::string_view param, double val, uni
     }
 }
 
-coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* Area::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if ((typeName == "area") && (searchID == getUserID())) {
         return const_cast<Area*>(this);
@@ -478,13 +478,13 @@ coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) cons
         // this is potentially computationally expensive, wouldn't recommend doing this search in a
         // big system
         for (auto* bus : m_Buses) {
-            coreObject* obj = bus->findByUserID(typeName, searchID);
+            CoreObject* obj = bus->findByUserID(typeName, searchID);
             if (obj != nullptr) {
                 return obj;
             }
         }
         for (auto* area : m_Areas) {
-            coreObject* obj = area->findByUserID(typeName, searchID);
+            CoreObject* obj = area->findByUserID(typeName, searchID);
             if (obj != nullptr) {
                 return obj;
             }
@@ -494,7 +494,7 @@ coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) cons
     auto possObjs = obList->find(searchID);
     if (possObjs.empty()) {
         for (auto* area : m_Areas) {
-            coreObject* obj = area->findByUserID(typeName, searchID);
+            CoreObject* obj = area->findByUserID(typeName, searchID);
             if (obj != nullptr) {
                 return obj;
             }
@@ -536,7 +536,7 @@ coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) cons
     }
     // if we haven't found something try the subareas
     for (auto* area : m_Areas) {
-        coreObject* obj = area->findByUserID(typeName, searchID);
+        CoreObject* obj = area->findByUserID(typeName, searchID);
         if (obj != nullptr) {
             return obj;
         }
@@ -545,7 +545,7 @@ coreObject* Area::findByUserID(std::string_view typeName, index_t searchID) cons
 }
 
 // check bus members
-bool Area::isMember(const coreObject* object) const
+bool Area::isMember(const CoreObject* object) const
 {
     return obList->isMember(object);
 }
@@ -889,7 +889,7 @@ double Area::get(std::string_view param, unit unitType) const
         vali = primaryObjects.size();
     } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
         auto unit = getObjectFunction(this, std::string{param}).second;
-        coreObject* tobj = const_cast<Area*>(this);
+        CoreObject* tobj = const_cast<Area*>(this);
         val = convert(fptr(tobj), unit, unitType);
     } else {
         return gridPrimary::get(param, unitType);

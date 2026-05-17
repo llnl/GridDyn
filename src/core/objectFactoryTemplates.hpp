@@ -18,9 +18,9 @@
 namespace griddyn {
 /** @brief template class for object ownership*/
 template<class Ntype>
-class gridObjectHolder: public coreObject {
-    static_assert(std::is_base_of<coreObject, Ntype>::value,
-                  "holder object must have coreObject as base");
+class gridObjectHolder: public CoreObject {
+    static_assert(std::is_base_of<CoreObject, Ntype>::value,
+                  "holder object must have CoreObject as base");
 
   private:
     std::vector<Ntype>
@@ -29,7 +29,7 @@ class gridObjectHolder: public coreObject {
     count_t objCount = 0;
 
   public:
-    explicit gridObjectHolder(count_t objs): coreObject("holder_#"), objArray(objs), objCount(objs)
+    explicit gridObjectHolder(count_t objs): CoreObject("holder_#"), objArray(objs), objCount(objs)
     {
         for (auto& so : objArray) {  // we want to add an owning reference since these objects are
                                      // held internally and should not be deleted
@@ -56,7 +56,7 @@ class gridObjectHolder: public coreObject {
     }
 
     count_t remaining() const { return objCount - next; }
-    coreObject* getRoot() const
+    CoreObject* getRoot() const
     {
         if (getParent()->getID() > 0) {
             return getParent();
@@ -75,8 +75,8 @@ class gridObjectHolder: public coreObject {
 @details a class which contains an object holder and gives them out as requested*/
 template<class Ntype>
 class objectPrepper {
-    static_assert(std::is_base_of<coreObject, Ntype>::value,
-                  "factory class must have coreObject as base");
+    static_assert(std::is_base_of<CoreObject, Ntype>::value,
+                  "factory class must have CoreObject as base");
 
   private:
     coreOwningPtr<gridObjectHolder<Ntype>> obptr;
@@ -84,8 +84,8 @@ class objectPrepper {
     bool useBlock;
 
   public:
-    objectPrepper(count_t objCount, coreObject* example) { prepObjects(objCount, example); }
-    void prepObjects(count_t objCount, coreObject* example)
+    objectPrepper(count_t objCount, CoreObject* example) { prepObjects(objCount, example); }
+    void prepObjects(count_t objCount, CoreObject* example)
     {
         auto root = example->getRoot();
         useBlock = true;
@@ -160,14 +160,14 @@ class objectPrepper {
         return ret;
     }
     count_t remaining() { return (obptr) ? (obptr->remaining() + targetprepped) : 0; }
-    coreObject* getHolder() const { return obptr.get(); }
+    CoreObject* getHolder() const { return obptr.get(); }
 };
 
 /** @brief template class for object construction */
 template<class Ntype>
 class typeFactory: public objectFactory {
-    static_assert(std::is_base_of<coreObject, Ntype>::value,
-                  "factory class must have coreObject as base");
+    static_assert(std::is_base_of<CoreObject, Ntype>::value,
+                  "factory class must have CoreObject as base");
 
   private:
     std::unique_ptr<objectPrepper<Ntype>> preparedObjects;
@@ -217,9 +217,9 @@ class typeFactory: public objectFactory {
         tF->setDefault(defType);
     }
 
-    coreObject* makeObject() override { return makeTypeObject(); }
+    CoreObject* makeObject() override { return makeTypeObject(); }
 
-    coreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
+    CoreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
 
     virtual Ntype* makeTypeObject(std::string_view objName = {})
     {
@@ -232,7 +232,7 @@ class typeFactory: public objectFactory {
         return new Ntype();
     }
 
-    virtual void prepObjects(count_t objectCount, coreObject* obj) override
+    virtual void prepObjects(count_t objectCount, CoreObject* obj) override
     {
         if (!preparedObjects) {
             preparedObjects = std::make_unique<objectPrepper<Ntype>>(objectCount, obj);
@@ -245,7 +245,7 @@ class typeFactory: public objectFactory {
         return (preparedObjects) ? preparedObjects->remaining() : 0;
     }
 
-    virtual coreObject* getHolder() const
+    virtual CoreObject* getHolder() const
     {
         return (preparedObjects) ? preparedObjects->getHolder() : nullptr;
     }
@@ -254,8 +254,8 @@ class typeFactory: public objectFactory {
 /** @brief template class for inherited object factories to cascade correctly*/
 template<class Ntype, class Btype>
 class childTypeFactory: public typeFactory<Btype> {
-    static_assert(std::is_base_of<coreObject, Btype>::value,
-                  "factory class must have coreObject as base");
+    static_assert(std::is_base_of<CoreObject, Btype>::value,
+                  "factory class must have CoreObject as base");
     static_assert(std::is_base_of<Btype, Ntype>::value,
                   "factory class types must have parent child relationship");
 
@@ -287,9 +287,9 @@ class childTypeFactory: public typeFactory<Btype> {
                      std::string_view defType): typeFactory<Btype>(component, typeNames, defType)
     {
     }
-    coreObject* makeObject() override { return makeTypeObject(); }
+    CoreObject* makeObject() override { return makeTypeObject(); }
 
-    coreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
+    CoreObject* makeObject(std::string_view objName) override { return makeTypeObject(objName); }
 
     Btype* makeTypeObject(
         std::string_view objName = {}) override  // done this way to make sure calling
@@ -312,7 +312,7 @@ class childTypeFactory: public typeFactory<Btype> {
         return new Ntype();
     }
 
-    virtual void prepObjects(count_t objectCount, coreObject* obj) override
+    virtual void prepObjects(count_t objectCount, CoreObject* obj) override
     {
         if (!preparedObjects) {
             preparedObjects = std::make_unique<objectPrepper<Ntype>>(objectCount, obj);
@@ -325,7 +325,7 @@ class childTypeFactory: public typeFactory<Btype> {
         return (preparedObjects) ? preparedObjects->remaining() : 0;
     }
 
-    virtual coreObject* getHolder() const override
+    virtual CoreObject* getHolder() const override
     {
         return (preparedObjects) ? preparedObjects->getHolder() : nullptr;
     }
@@ -333,8 +333,8 @@ class childTypeFactory: public typeFactory<Btype> {
 
 template<class Ntype, class argType>
 class typeFactoryArg: public objectFactory {
-    static_assert(std::is_base_of<coreObject, Ntype>::value,
-                  "factory class must have coreObject as base");
+    static_assert(std::is_base_of<CoreObject, Ntype>::value,
+                  "factory class must have CoreObject as base");
     static_assert(!std::is_same<argType, std::string>::value, "arg type cannot be a std::string");
 
   public:
@@ -365,10 +365,10 @@ class typeFactoryArg: public objectFactory {
         }
     }
 
-    coreObject* makeObject() override { return static_cast<coreObject*>(new Ntype(arg)); }
-    coreObject* makeObject(std::string_view objName) override
+    CoreObject* makeObject() override { return static_cast<CoreObject*>(new Ntype(arg)); }
+    CoreObject* makeObject(std::string_view objName) override
     {
-        return static_cast<coreObject*>(new Ntype(arg, std::string{objName}));
+        return static_cast<CoreObject*>(new Ntype(arg, std::string{objName}));
     }
 
     Ntype* makeTypeObject(std::string_view objName = {})
@@ -385,14 +385,14 @@ class typeFactoryArg: public objectFactory {
  * @return pointer to the cloned object
  */
 template<class A, class B>
-A* cloneBaseFactory(const A* bobj, coreObject* obj, objectFactory* cfact)
+A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
 {
     static_assert(std::is_base_of<B, A>::value,
                   "classes A and B must have parent child relationship");
-    static_assert(std::is_base_of<coreObject, B>::value,
-                  "classes must be inherited from coreObject");
-    static_assert(std::is_base_of<coreObject, A>::value,
-                  "classes must be inherited from coreObject");
+    static_assert(std::is_base_of<CoreObject, B>::value,
+                  "classes must be inherited from CoreObject");
+    static_assert(std::is_base_of<CoreObject, A>::value,
+                  "classes must be inherited from CoreObject");
     A* nobj;
     if (obj == nullptr) {
         auto cobj = cfact->makeObject(bobj->getName());

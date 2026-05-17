@@ -31,7 +31,7 @@ namespace {
     {
         // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
         static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
-            [](std::string_view fld, coreObject* obj) {
+            [](std::string_view fld, CoreObject* obj) {
                 return std::make_unique<stateGrabber>(fld, obj);
             });
         return interpreter;
@@ -56,7 +56,7 @@ static const char specialChars[] = R"(:(+-/*\^?)";
 static const char sepChars[] = ",;";
 
 std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
-                                                             coreObject* obj)
+                                                             CoreObject* obj)
 {
     std::vector<std::unique_ptr<stateGrabber>> grabbers;
     auto gsplit = gmlc::utilities::stringOps::splitlineBracket(std::string{command}, sepChars);
@@ -77,13 +77,13 @@ std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view co
     return grabbers;
 }
 
-stateGrabber::stateGrabber(coreObject* obj): cobj(dynamic_cast<gridComponent*>(obj)) {}
-stateGrabber::stateGrabber(std::string_view fld, coreObject* obj): stateGrabber(obj)
+stateGrabber::stateGrabber(CoreObject* obj): cobj(dynamic_cast<gridComponent*>(obj)) {}
+stateGrabber::stateGrabber(std::string_view fld, CoreObject* obj): stateGrabber(obj)
 {
     stateGrabber::updateField(fld);
 }
 
-stateGrabber::stateGrabber(index_t noffset, coreObject* obj):
+stateGrabber::stateGrabber(index_t noffset, CoreObject* obj):
     offset(noffset), cobj(dynamic_cast<gridComponent*>(obj))
 {
 }
@@ -561,7 +561,7 @@ double stateGrabber::grabData(const stateData& stateDataValue, const solverMode&
     return kNullVal;
 }
 
-void stateGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void stateGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
         cobj = dynamic_cast<gridComponent*>(obj);
@@ -570,11 +570,11 @@ void stateGrabber::updateObject(coreObject* obj, object_update_mode mode)
     }
 }
 
-coreObject* stateGrabber::getObject() const
+CoreObject* stateGrabber::getObject() const
 {
     return cobj;
 }
-void stateGrabber::getObjects(std::vector<coreObject*>& objects) const
+void stateGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
@@ -687,14 +687,14 @@ double stateFunctionGrabber::grabData(const stateData& stateDataValue, const sol
     return val;
 }
 
-void stateFunctionGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void stateFunctionGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (bgrabber) {
         bgrabber->updateObject(obj, mode);
     }
 }
 
-coreObject* stateFunctionGrabber::getObject() const
+CoreObject* stateFunctionGrabber::getObject() const
 {
     return (bgrabber) ? bgrabber->getObject() : nullptr;
 }
@@ -790,7 +790,7 @@ double stateOpGrabber::grabData(const stateData& stateDataValue, const solverMod
     return val;
 }
 
-void stateOpGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void stateOpGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (bgrabber1) {
         bgrabber1->updateObject(obj, mode);
@@ -800,7 +800,7 @@ void stateOpGrabber::updateObject(coreObject* obj, object_update_mode mode)
     }
 }
 
-void stateOpGrabber::updateObject(coreObject* obj, int num)
+void stateOpGrabber::updateObject(CoreObject* obj, int num)
 {
     if (num == 1) {
         if (bgrabber1) {
@@ -813,7 +813,7 @@ void stateOpGrabber::updateObject(coreObject* obj, int num)
     }
 }
 
-coreObject* stateOpGrabber::getObject() const
+CoreObject* stateOpGrabber::getObject() const
 {
     if (bgrabber1) {
         return bgrabber1->getObject();

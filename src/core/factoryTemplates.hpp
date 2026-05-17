@@ -75,7 +75,7 @@ class coreClassFactory {
 
     /** @brief create an object from a given objectType and typeName
     @param[in] typeName  the specific type to create
-    @return the created coreObject */
+    @return the created CoreObject */
     std::unique_ptr<parentClass> createObject(std::string_view typeName)
     {
         auto mfind = m_factoryMap.find(typeName);
@@ -91,7 +91,7 @@ class coreClassFactory {
     /** @brief create an object from the specific type with a name of objName
     @param[in] typeName  the specific type to create
     @param[in] objName  the name of the object to create
-    @return the created coreObject */
+    @return the created CoreObject */
     std::unique_ptr<parentClass> createObject(std::string_view typeName, std::string_view objName)
     {
         auto mfind = m_factoryMap.find(typeName);

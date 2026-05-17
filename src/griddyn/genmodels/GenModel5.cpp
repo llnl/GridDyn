@@ -17,7 +17,7 @@
 
 namespace griddyn::genmodels {
 GenModel5::GenModel5(const std::string& objName): GenModel4(objName) {}
-coreObject* GenModel5::clone(coreObject* obj) const
+CoreObject* GenModel5::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel5, GenModel4>(this, obj);
     if (gd == nullptr) {

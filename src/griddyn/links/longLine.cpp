@@ -14,7 +14,7 @@
 
 namespace griddyn::links {
 longLine::longLine(const std::string& objName): subsystem(objName) {}
-coreObject* longLine::clone(coreObject* obj) const
+CoreObject* longLine::clone(CoreObject* obj) const
 {
     auto line = cloneBase<longLine, Link>(this, obj);
     if (line == nullptr) {
@@ -27,12 +27,12 @@ coreObject* longLine::clone(coreObject* obj) const
     return line;
 }
 // add components
-void longLine::add(coreObject* /*obj*/)
+void longLine::add(CoreObject* /*obj*/)
 {
     throw(unrecognizedObjectException(this));
 }
 // remove components
-void longLine::remove(coreObject* /*obj*/) {}
+void longLine::remove(CoreObject* /*obj*/) {}
 void longLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     generateIntermediateLinks();

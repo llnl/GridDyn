@@ -56,7 +56,7 @@ transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef, std::vec
     opFlags.set(use_state);
 }
 
-coreObject* transferFunctionBlock::clone(coreObject* obj) const
+CoreObject* transferFunctionBlock::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<transferFunctionBlock, Block>(this, obj);
     if (nobj == nullptr) {

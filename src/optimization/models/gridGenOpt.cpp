@@ -43,7 +43,7 @@ static OptObjectFactory<GridGenOpt, Generator> opgen("basic", "gen", 0, true);
 
 GridGenOpt::GridGenOpt(const std::string& objName): GridOptObject(objName), bus(nullptr) {}
 
-GridGenOpt::GridGenOpt(coreObject* obj, const std::string& objName):
+GridGenOpt::GridGenOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), gen(dynamic_cast<Generator*>(obj)), bus(nullptr)
 {
     if (gen != nullptr) {
@@ -54,7 +54,7 @@ GridGenOpt::GridGenOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* GridGenOpt::clone(coreObject* obj) const
+CoreObject* GridGenOpt::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<GridGenOpt, GridOptObject>(this, obj);
     if (nobj == nullptr) {
@@ -74,7 +74,7 @@ coreObject* GridGenOpt::clone(coreObject* obj) const
     return nobj;
 }
 
-void GridGenOpt::add(coreObject* obj)
+void GridGenOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<Generator*>(obj) != nullptr) {
         gen = static_cast<Generator*>(obj);

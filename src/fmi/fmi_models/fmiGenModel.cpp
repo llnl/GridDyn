@@ -16,7 +16,7 @@
 namespace griddyn::fmi {
 FmiGenModel::FmiGenModel(const std::string& objName): FmiMEWrapper<GenModel>(objName) {}
 
-coreObject* FmiGenModel::clone(coreObject* obj) const
+CoreObject* FmiGenModel::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiGenModel, FmiMEWrapper<GenModel>>(this, obj);
     if (nobj == nullptr) {

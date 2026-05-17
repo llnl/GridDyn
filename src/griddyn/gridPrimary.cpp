@@ -15,7 +15,7 @@
 
 namespace griddyn {
 gridPrimary::gridPrimary(const std::string& objName): gridComponent(objName) {}
-coreObject* gridPrimary::clone(coreObject* obj) const
+CoreObject* gridPrimary::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<gridPrimary, gridComponent>(this, obj);
     if (nobj == nullptr) {

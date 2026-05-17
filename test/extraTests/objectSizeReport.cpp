@@ -29,7 +29,7 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "solverModeSize=" << sizeof(solverMode) << '\n';
     std::cout << "coreTime size = " << sizeof(coreTime) << '\n';
 
-    auto coreSize = sizeof(coreObject);
+    auto coreSize = sizeof(CoreObject);
     std::cout << "core object size=" << coreSize << '\n';
 
     auto compSize = sizeof(gridComponent);

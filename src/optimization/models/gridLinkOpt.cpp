@@ -30,7 +30,7 @@ GridLinkOpt::GridLinkOpt(const std::string& objName):
 {
 }
 
-GridLinkOpt::GridLinkOpt(coreObject* obj, const std::string& objName):
+GridLinkOpt::GridLinkOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), B1(nullptr), B2(nullptr), link(dynamic_cast<Link*>(obj)),
     rampUpLimit(0.0), rampDownLimit(0.0)
 {
@@ -42,7 +42,7 @@ GridLinkOpt::GridLinkOpt(coreObject* obj, const std::string& objName):
     }
 }
 
-coreObject* GridLinkOpt::clone(coreObject* obj) const
+CoreObject* GridLinkOpt::clone(CoreObject* obj) const
 {
     GridLinkOpt* nobj;
     if (obj == nullptr) {
@@ -89,7 +89,7 @@ void GridLinkOpt::loadSizes(const OptimizationMode& oMode)
     offsetData.localLoad(true);
 }
 
-void GridLinkOpt::add(coreObject* obj)
+void GridLinkOpt::add(CoreObject* obj)
 {
     auto* tmpLink = dynamic_cast<Link*>(obj);
     if (tmpLink != nullptr) {
@@ -103,7 +103,7 @@ void GridLinkOpt::add(coreObject* obj)
     }
 }
 
-void GridLinkOpt::remove(coreObject* /*obj*/) {}
+void GridLinkOpt::remove(CoreObject* /*obj*/) {}
 
 void GridLinkOpt::setValues(const OptimizationData& /*optimizationData*/,
                             const OptimizationMode& /*oMode*/)
@@ -187,7 +187,7 @@ void GridLinkOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
 
 void GridLinkOpt::disable()
 {
-    coreObject::disable();
+    CoreObject::disable();
 }
 
 void GridLinkOpt::setOffsets(const OptimizationOffsets& /*newOffset*/,
@@ -216,7 +216,7 @@ void GridLinkOpt::set(std::string_view param, double val, unit unitType)
     }
 }
 
-coreObject* GridLinkOpt::find(std::string_view objName) const
+CoreObject* GridLinkOpt::find(std::string_view objName) const
 {
     if ((objName == getName()) || (objName == "link")) {
         return const_cast<GridLinkOpt*>(this);
@@ -228,10 +228,10 @@ coreObject* GridLinkOpt::find(std::string_view objName) const
         return B2;
     }
 
-    return (coreObject::find(objName));
+    return (CoreObject::find(objName));
 }
 
-coreObject* GridLinkOpt::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* GridLinkOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         if (num == 1) {
@@ -244,7 +244,7 @@ coreObject* GridLinkOpt::getSubObject(std::string_view typeName, index_t num) co
     return nullptr;
 }
 
-coreObject* GridLinkOpt::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridLinkOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "bus") {
         if (B1->getUserID() == searchID) {

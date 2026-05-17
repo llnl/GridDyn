@@ -33,7 +33,7 @@ class zonalRelay: public Relay {
     int mAutoName = -1;  //!< storage for indicator of the type of autoname to use
   public:
     explicit zonalRelay(const std::string& objName = "zonalRelay_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 

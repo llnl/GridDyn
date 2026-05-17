@@ -10,7 +10,7 @@
 #include "utilities/dataDictionary.h"
 #include <string>
 
-/** these objects are intended to capture extra properties about a coreObject that are not in the
+/** these objects are intended to capture extra properties about a CoreObject that are not in the
 common definition such as position information, metadata, etc
 */
 template<class PropertyType>
@@ -21,9 +21,9 @@ class coreObjectProperty {
 
   public:
     coreObjectProperty(const std::string& name): name_(name) {}
-    void set(coreObject* obj, PropertyType data) { dictionary.update(obj->getID(), data); }
-    PropertyType query(coreObject* obj) { return dictionary.query(obj->getID()); }
-    void clearProperty(coreObject* obj) { dictionary.erase(obj->getID()); }
+    void set(CoreObject* obj, PropertyType data) { dictionary.update(obj->getID(), data); }
+    PropertyType query(CoreObject* obj) { return dictionary.query(obj->getID()); }
+    void clearProperty(CoreObject* obj) { dictionary.erase(obj->getID()); }
 };
 /** @brief loads a position object
 *@details I don't know what a grid Position object looks like yet

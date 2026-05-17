@@ -48,7 +48,7 @@ class deadbandBlock: public Block {
 @param[in] deadbandWidth the size of the deadband
 */
     deadbandBlock(double deadbandWidth, const std::string& objName = "deadband_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

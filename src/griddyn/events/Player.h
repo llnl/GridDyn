@@ -38,12 +38,12 @@ namespace events {
         /** constructor taking a trigger time and period default constructor*/
         Player(coreTime time0 = 0.0, double loopPeriod = 0.0);
         /** constructor from an event Info structure and rootobject*/
-        Player(const EventInfo& gdEI, coreObject* rootObject);
+        Player(const EventInfo& gdEI, CoreObject* rootObject);
         virtual std::unique_ptr<Event> clone() const override;
 
         virtual void cloneTo(Event* gE) const override;
 
-        virtual void updateEvent(const EventInfo& gdEI, coreObject* rootObject) override;
+        virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
         virtual change_code trigger() override;
         virtual change_code trigger(coreTime time) override;
 
@@ -66,7 +66,7 @@ namespace events {
         void loadEventFile(const std::string& fileName);
         virtual std::string to_string() const override;
 
-        virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
+        virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
         virtual void initialize() override;
         // friendly helper functions for sorting

@@ -43,11 +43,11 @@ eventually will replace most of the shaped loads*/
       public:
         explicit sourceLoad(const std::string& objName = "sourceLoad_$");
         sourceLoad(sourceType type, const std::string& objName = "sourceLoad_$");
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+        virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-        virtual void add(coreObject* obj) override;
+        virtual void add(CoreObject* obj) override;
         virtual void add(Source* src);
-        virtual void remove(coreObject* obj) override;
+        virtual void remove(CoreObject* obj) override;
         virtual void remove(Source* src);
 
         virtual void set(std::string_view param, std::string_view val) override;
@@ -69,7 +69,7 @@ eventually will replace most of the shaped loads*/
         virtual void
             timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
-        coreObject* find(std::string_view obj) const override;
+        CoreObject* find(std::string_view obj) const override;
 
       private:
         void getSourceLoads();

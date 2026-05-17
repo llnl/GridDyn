@@ -24,7 +24,7 @@ class helperObject;
 // struct for holding and passing the information in Element reader files
 class readerInfo;
 
-class coreObject;
+class CoreObject;
 
 class zipLoad;
 class Generator;
@@ -41,42 +41,42 @@ class gridSubModel;
 
 gridBus* readBusElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
-                        coreObject* searchObject = nullptr);
+                        CoreObject* searchObject = nullptr);
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
-                        coreObject* searchObject = nullptr);
+                        CoreObject* searchObject = nullptr);
 
-// zipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, coreObject
+// zipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, CoreObject
 // *searchObject = nullptr); Generator * readGeneratorElement (std::shared_ptr<readerElement>
-// &element, readerInfo *ri, coreObject *searchObject = nullptr);
+// &element, readerInfo *ri, CoreObject *searchObject = nullptr);
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* searchObject = nullptr,
+                      CoreObject* searchObject = nullptr,
                       bool warnlink = true);
 Area* readAreaElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* searchObject = nullptr);
+                      CoreObject* searchObject = nullptr);
 gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                                       readerInfo& readerInformation,
-                                      coreObject* searchObject = nullptr,
+                                      CoreObject* searchObject = nullptr,
                                       gridSimulation* simulationObject = nullptr);
 
-coreObject* readEconElement(std::shared_ptr<readerElement>& element,
+CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             readerInfo& readerInformation,
-                            coreObject* searchObject = nullptr);
+                            CoreObject* searchObject = nullptr);
 void readArrayElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* parentObject);
+                      CoreObject* parentObject);
 void loadConditionElement(std::shared_ptr<readerElement>& element,
                           readerInfo& readerInformation,
-                          coreObject* parentObject);
+                          CoreObject* parentObject);
 void loadSubObjects(std::shared_ptr<readerElement>& element,
                     readerInfo& readerInformation,
-                    coreObject* parentObject);
+                    CoreObject* parentObject);
 
 void readImports(std::shared_ptr<readerElement>& element,
                  readerInfo& readerInformation,
-                 coreObject* parentObject,
+                 CoreObject* parentObject,
                  bool finalFlag);
 
 void loadDefines(std::shared_ptr<readerElement>& element,
@@ -96,19 +96,19 @@ void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& rea
 using IgnoreListType = std::unordered_set<std::string>;
 // using IgnoreListType = boost::container::flat_set<std::string>;
 
-void loadElementInformation(coreObject* obj,
+void loadElementInformation(CoreObject* obj,
                             std::shared_ptr<readerElement>& element,
                             const std::string& objectName,
                             readerInfo& readerInfoRef,
                             const IgnoreListType& ignoreList);
 
-void objSetAttributes(coreObject* obj,
+void objSetAttributes(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
                       readerInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
-void paramLoopElement(coreObject* obj,
+void paramLoopElement(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
                       readerInfo& readerInfoRef,
@@ -126,10 +126,10 @@ void setAttributes(helperObject* obj,
                    const IgnoreListType& ignoreList);
 
 int loadEventElement(std::shared_ptr<readerElement>& element,
-                     coreObject* obj,
+                     CoreObject* obj,
                      readerInfo& readerInformation);
 int loadCollectorElement(std::shared_ptr<readerElement>& element,
-                         coreObject* obj,
+                         CoreObject* obj,
                          readerInfo& readerInformation);
 
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element);
@@ -158,13 +158,13 @@ stringVec getElementFieldMultiple(
     readerConfig::MatchType matching = readerConfig::MatchType::STRICT_CASE_MATCH);
 
 void setIndex(std::shared_ptr<readerElement>& element,
-              coreObject* mainObject,
+              CoreObject* mainObject,
               readerInfo& readerInformation);
 std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
 
-coreObject* getParent(std::shared_ptr<readerElement>& element,
+CoreObject* getParent(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* parentObject,
+                      CoreObject* parentObject,
                       const std::string& alternateName = "");
 
 // This set of constants and functions is to allow templating of the object type but getting an
@@ -173,7 +173,7 @@ static const char emptyString[] = "";
 static const char areaTypeString[] = "area";
 static const char busTypeString[] = "bus";
 
-inline const std::string& parentSearchComponent(coreObject*)
+inline const std::string& parentSearchComponent(CoreObject*)
 {
     static const std::string emptyStringRef{emptyString};
     return emptyStringRef;

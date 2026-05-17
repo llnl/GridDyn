@@ -35,7 +35,7 @@ fuse::fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
     opFlags.set(continuous_flag);
 }
 
-coreObject* fuse::clone(coreObject* obj) const
+CoreObject* fuse::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<fuse, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -111,11 +111,11 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto gc2 = std::make_unique<Condition>();
 
     auto cg = std::make_unique<customGrabber>();
-    cg->setGrabberFunction("I2T", [this](coreObject*) { return cI2T; });
+    cg->setGrabberFunction("I2T", [this](CoreObject*) { return cI2T; });
 
     auto cgst = std::make_unique<customStateGrabber>(this);
     cgst->setGrabberFunction(
-        [](coreObject* obj, const stateData& sD, const solverMode& sMode) -> double {
+        [](CoreObject* obj, const stateData& sD, const solverMode& sMode) -> double {
             return sD.state[static_cast<fuse*>(obj)->offsets.getDiffOffset(sMode)];
         });
 

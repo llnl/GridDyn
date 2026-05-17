@@ -17,7 +17,7 @@ namespace griddyn {
 static const typeFactory<Stabilizer> gf("pss", std::to_array<std::string_view>({"basic"}));
 
 Stabilizer::Stabilizer(const std::string& objName): gridSubModel(objName) {}
-coreObject* Stabilizer::clone(coreObject* obj) const
+CoreObject* Stabilizer::clone(CoreObject* obj) const
 {
     auto pss = cloneBase<Stabilizer, gridSubModel>(this, obj);
     if (pss == nullptr) {
@@ -51,13 +51,13 @@ index_t Stabilizer::findIndex(std::string_view /*field*/, const solverMode& /*sM
 
 void Stabilizer::set(std::string_view param, std::string_view val)
 {
-    return coreObject::set(param, val);
+    return CoreObject::set(param, val);
 }
 // set parameters
 void Stabilizer::set(std::string_view param, double val, units::unit unitType)
 {
     {
-        coreObject::set(param, val, unitType);
+        CoreObject::set(param, val, unitType);
     }
 }
 

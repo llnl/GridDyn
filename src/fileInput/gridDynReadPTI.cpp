@@ -33,11 +33,11 @@ void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
 void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
-void ptiReadBranch(coreObject* parentObject,
+void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    std::vector<gridBus*>& busList,
                    basicReaderInfo& opt);
-int ptiReadTX(coreObject* parentObject,
+int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
               std::vector<gridBus*>& busList,
               basicReaderInfo& opt);
@@ -53,7 +53,7 @@ static typeFactory<Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-void loadPti(coreObject* parentObject,
+void loadPti(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -488,7 +488,7 @@ void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*
     // TODO(phlpt): Get the impedance fields and other data.
 }
 
-void ptiReadBranch(coreObject* parentObject,
+void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    std::vector<gridBus*>& busList,
                    basicReaderInfo& opt)
@@ -546,7 +546,7 @@ void ptiReadBranch(coreObject* parentObject,
     // TODO(phlpt): Get the other parameters; not critical for power flow.
 }
 
-int ptiReadTX(coreObject* parentObject,
+int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
               std::vector<gridBus*>& busList,
               basicReaderInfo& opt)

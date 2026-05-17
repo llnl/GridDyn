@@ -23,13 +23,13 @@ class GridLoadOpt: public GridOptObject {
 
   public:
     GridLoadOpt(const std::string& objName = "");
-    GridLoadOpt(coreObject* obj, const std::string& objName = "");
+    GridLoadOpt(CoreObject* obj, const std::string& objName = "");
 
     ~GridLoadOpt();
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
     virtual count_t objSize(const OptimizationMode& oMode);
     virtual count_t contObjSize(const OptimizationMode& oMode);
     virtual count_t intObjSize(const OptimizationMode& oMode);

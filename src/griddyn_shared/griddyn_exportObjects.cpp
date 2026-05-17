@@ -29,7 +29,7 @@
 
 using griddyn::Area;
 using griddyn::Block;
-using griddyn::coreObject;
+using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreOwningPtr;
 using griddyn::Exciter;
@@ -122,7 +122,7 @@ void gridDynObjectFree(GridDynObject obj)
 void gridDynObjectAdd(GridDynObject parentObject, GridDynObject objectToAdd, GridDynError* err)
 {
     gridComponent* parent = getComponentPointer(parentObject);
-    coreObject* child = getComponentPointer(objectToAdd);
+    CoreObject* child = getComponentPointer(objectToAdd);
 
     try {
         parent->add(child);
@@ -137,7 +137,7 @@ void gridDynObjectRemove(GridDynObject parentObject,
                          GridDynError* err)
 {
     gridComponent* parent = getComponentPointer(parentObject);
-    coreObject* child = getComponentPointer(objectToRemove);
+    CoreObject* child = getComponentPointer(objectToRemove);
 
     if ((parent == nullptr) || (child == nullptr)) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);

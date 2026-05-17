@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-// test case for coreObject object
+// test case for CoreObject object
 
 #define RECORDER_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/recorder_tests/"
 static const char collector_test_directory[] = GRIDDYN_TEST_DIRECTORY "/recorder_tests/";

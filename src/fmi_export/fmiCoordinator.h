@@ -18,7 +18,7 @@ class FmiEvent;
 class FmiCollector;
 
 /** class to manage the linkages from the FMI to the GridDyn objects*/
-class FmiCoordinator: public griddyn::coreObject {
+class FmiCoordinator: public griddyn::CoreObject {
   private:
     /** defining a small structure for containing inputs*/
     typedef struct {

@@ -14,7 +14,7 @@
 #include <vector>
 namespace griddyn::sources {
 blockSource::blockSource(const std::string& objName): Source(objName) {}
-coreObject* blockSource::clone(coreObject* obj) const
+CoreObject* blockSource::clone(CoreObject* obj) const
 {
     auto blkSrc = cloneBase<blockSource, Source>(this, obj);
     if (blkSrc == nullptr) {
@@ -24,7 +24,7 @@ coreObject* blockSource::clone(coreObject* obj) const
     return blkSrc;
 }
 
-void blockSource::add(coreObject* obj)
+void blockSource::add(CoreObject* obj)
 {
     if (dynamic_cast<Block*>(obj) != nullptr) {
         if (blk != nullptr) {
@@ -40,13 +40,13 @@ void blockSource::add(coreObject* obj)
         src = static_cast<Source*>(obj);
         addSubObject(src);
     } else {
-        coreObject::add(
+        CoreObject::add(
             obj);  // just pass it to the core to do the appropriate thing(probably throw an
         // exception)
     }
 }
 
-void blockSource::remove(coreObject* obj)
+void blockSource::remove(CoreObject* obj)
 {
     if (isSameObject(src, obj)) {
         gridComponent::remove(obj);
@@ -371,7 +371,7 @@ double blockSource::getDoutdt(const IOdata& inputs,
     return Source::getDoutdt(inputs, sD, sMode, outputNum);
 }
 
-coreObject* blockSource::find(std::string_view object) const
+CoreObject* blockSource::find(std::string_view object) const
 {
     if (object == "source") {
         return src;
@@ -382,7 +382,7 @@ coreObject* blockSource::find(std::string_view object) const
     return gridComponent::find(object);
 }
 
-coreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "source") {
         return (num == 0) ? src : nullptr;

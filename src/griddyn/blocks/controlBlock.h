@@ -38,7 +38,7 @@ class controlBlock: public Block {
     controlBlock(double timeConstant,
                  double upperTimeConstant,
                  const std::string& objName = "controlBlock_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

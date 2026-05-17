@@ -30,7 +30,7 @@ pmu::pmu(const std::string& objName): sensor(objName)
     outputStrings = {{"voltage"}, {"angle"}, {"frequency"}, {"rocof"}};
 }
 
-coreObject* pmu::clone(coreObject* obj) const
+CoreObject* pmu::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<pmu, sensor>(this, obj);
     if (nobj == nullptr) {

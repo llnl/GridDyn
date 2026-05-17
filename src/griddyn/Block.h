@@ -75,7 +75,7 @@ class Block: public gridSubModel {
     Block(double gain, const std::string& objName = "block_#");
 
     virtual ~Block();  // included for separation of types in unique Pointers
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;

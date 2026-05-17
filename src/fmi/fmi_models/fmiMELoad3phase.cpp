@@ -24,7 +24,7 @@ FmiMELoad3phase::FmiMELoad3phase(const std::string& objName):
     loads::ThreePhaseLoad::setFlag("three_phase_output");
 }
 
-coreObject* FmiMELoad3phase::clone(coreObject* obj) const
+CoreObject* FmiMELoad3phase::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiMELoad3phase, FmiMEWrapper<loads::ThreePhaseLoad>>(this, obj);
     if (nobj == nullptr) {

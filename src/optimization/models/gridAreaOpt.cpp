@@ -32,7 +32,7 @@ static OptObjectFactory<GridAreaOpt, Area> opa("basic", "area");
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
 
-GridAreaOpt::GridAreaOpt(coreObject* obj, const std::string& objName):
+GridAreaOpt::GridAreaOpt(CoreObject* obj, const std::string& objName):
     GridOptObject(objName), area(dynamic_cast<Area*>(obj))
 {
     if (area != nullptr) {
@@ -51,7 +51,7 @@ GridAreaOpt::~GridAreaOpt()
     }
 }
 
-coreObject* GridAreaOpt::clone(coreObject* obj) const
+CoreObject* GridAreaOpt::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<GridAreaOpt, GridOptObject>(this, obj);
     if (nobj == nullptr) {
@@ -376,7 +376,7 @@ void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const Opti
     offsets.setOffset(offset, oMode);
 }
 
-void GridAreaOpt::add(coreObject* obj)
+void GridAreaOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<Area*>(obj) != nullptr) {
         area = static_cast<Area*>(obj);
@@ -411,7 +411,7 @@ void GridAreaOpt::add(coreObject* obj)
     throw(unrecognizedObjectException(this));
 }
 
-void GridAreaOpt::remove(coreObject* obj)
+void GridAreaOpt::remove(CoreObject* obj)
 {
     auto* subareaObject = dynamic_cast<GridAreaOpt*>(obj);
     if (subareaObject != nullptr) {
@@ -621,9 +621,9 @@ void GridAreaOpt::set(std::string_view param, double val, unit unitType)
     }
 }
 
-coreObject* GridAreaOpt::find(std::string_view objName) const
+CoreObject* GridAreaOpt::find(std::string_view objName) const
 {
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
     if (objName == getName()) {
         return const_cast<GridAreaOpt*>(this);
     }
@@ -644,7 +644,7 @@ coreObject* GridAreaOpt::find(std::string_view objName) const
     return obj;
 }
 
-coreObject* GridAreaOpt::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* GridAreaOpt::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "link") {
         return getLink(num - 1);
@@ -661,9 +661,9 @@ coreObject* GridAreaOpt::getSubObject(std::string_view typeName, index_t num) co
     return nullptr;
 }
 
-coreObject* GridAreaOpt::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridAreaOpt::findByUserID(std::string_view typeName, index_t searchID) const
 {
-    coreObject* foundObject = nullptr;
+    CoreObject* foundObject = nullptr;
     if (typeName == "area") {
         for (auto* subarea : areaList) {
             if (subarea->getUserID() == searchID) {
@@ -708,7 +708,7 @@ coreObject* GridAreaOpt::findByUserID(std::string_view typeName, index_t searchI
 }
 
 // check bus members
-bool GridAreaOpt::isMember(coreObject* obj) const
+bool GridAreaOpt::isMember(CoreObject* obj) const
 {
     return optObList.isMember(obj);
 }
@@ -746,7 +746,7 @@ double GridAreaOpt::get(std::string_view param, units::unit unitType) const
     } else if (param == "relaycount") {
         ival = relayList.size();
     } else {
-        fval = coreObject::get(param, unitType);
+        fval = CoreObject::get(param, unitType);
     }
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }

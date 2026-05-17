@@ -16,7 +16,7 @@ template<class BaseObj>
 class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
   public:
     FmiMEWrapper(const std::string& objName): FmiWrapper<FmiMESubModel, BaseObj>(objName) {}
-    virtual coreObject* clone(coreObject* obj) const override
+    virtual CoreObject* clone(CoreObject* obj) const override
     {
         auto nobj = cloneBase<FmiMEWrapper, FmiWrapper<FmiMESubModel, BaseObj>>(this, obj);
         if (nobj == nullptr) {

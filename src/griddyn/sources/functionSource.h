@@ -22,7 +22,7 @@ class functionSource: public Source {
   public:
     functionSource(const std::string& objName = "functionsource_#");
 
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& sD,

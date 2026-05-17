@@ -22,12 +22,12 @@ namespace {
         return *ignoreVariables;
     }
 
-    bool checkCondition(string_view cond, readerInfo& readerInformation, coreObject* parentObject);
+    bool checkCondition(string_view cond, readerInfo& readerInformation, CoreObject* parentObject);
 }  // namespace
 // "aP" is the XML element passed from the reader
 void loadConditionElement(std::shared_ptr<readerElement>& element,
                           readerInfo& readerInformation,
-                          coreObject* parentObject)
+                          CoreObject* parentObject)
 {
     auto riScope = readerInformation.newScope();
 
@@ -77,7 +77,7 @@ static bool compare(const X& val1, const X& val2, char op1, char op2)
 }
 
 namespace {
-    bool checkCondition(string_view cond, readerInfo& readerInformation, coreObject* parentObject)
+    bool checkCondition(string_view cond, readerInfo& readerInformation, CoreObject* parentObject)
     {
         gmlc::utilities::string_viewOps::trim(cond);
         bool reverseResult = false;
@@ -101,7 +101,7 @@ namespace {
                 auto openParenPos = leftOperand.find_first_of('(', 6);
                 auto closeParenPos = leftOperand.find_last_of(')');
                 auto check = leftOperand.substr(openParenPos + 1, closeParenPos - openParenPos - 1);
-                const coreObject* obj = locateObject(std::string{check}, parentObject, false);
+                const CoreObject* obj = locateObject(std::string{check}, parentObject, false);
                 return reverseResult ? (obj == nullptr) : (obj != nullptr);
             }
         } else {

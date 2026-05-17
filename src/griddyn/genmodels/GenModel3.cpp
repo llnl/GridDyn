@@ -21,7 +21,7 @@ GenModel3::GenModel3(const std::string& objName): GenModelClassical(objName)
     Xd = 1.05;
 }
 
-coreObject* GenModel3::clone(coreObject* obj) const
+CoreObject* GenModel3::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel3, GenModelClassical>(this, obj);
     if (gd == nullptr) {

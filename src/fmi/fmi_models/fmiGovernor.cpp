@@ -16,7 +16,7 @@
 namespace griddyn::fmi {
 FmiGovernor::FmiGovernor(const std::string& objName): FmiMEWrapper<Governor>(objName) {}
 
-coreObject* FmiGovernor::clone(coreObject* obj) const
+CoreObject* FmiGovernor::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<FmiGovernor, FmiMEWrapper<Governor>>(this, obj);
     if (nobj == nullptr) {

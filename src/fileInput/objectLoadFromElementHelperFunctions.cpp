@@ -13,9 +13,9 @@
 #include <string>
 
 namespace griddyn {
-coreObject* getParent(std::shared_ptr<readerElement>& element,
+CoreObject* getParent(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
-                      coreObject* parentObject,
+                      CoreObject* parentObject,
                       const std::string& alternateName)
 {
     std::string parentName = getElementField(element, "parent", readerConfig::defMatchType);

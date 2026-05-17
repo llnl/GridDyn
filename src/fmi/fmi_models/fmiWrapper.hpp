@@ -36,7 +36,7 @@ class FmiWrapper: public BaseObj {
 @param[in] objName the name of the object
 */
     FmiWrapper(const std::string& objName): BaseObj(objName) {}
-    virtual coreObject* clone(coreObject* obj) const override
+    virtual CoreObject* clone(CoreObject* obj) const override
     {
         auto nobj = cloneBase<FmiWrapper, BaseObj>(this, obj);
         if (nobj == nullptr) {

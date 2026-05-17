@@ -27,7 +27,7 @@ pidBlock::pidBlock(double P, double I, double D, const std::string& objName):
     no_D = (D == 0.0);
 }
 
-coreObject* pidBlock::clone(coreObject* obj) const
+CoreObject* pidBlock::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<pidBlock, Block>(this, obj);
     if (nobj == nullptr) {

@@ -47,7 +47,7 @@ class gridPrimary: public gridComponent {
     /**@brief default constructor*/
     explicit gridPrimary(const std::string& objName = "");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowInitializeA(coreTime time0, std::uint32_t flags) override final;
 

@@ -42,9 +42,9 @@ void eventAdapter::cloneTo(eventAdapter* eA) const
     eA->m_nextTime = m_nextTime;
 }
 
-void eventAdapter::updateObject(coreObject* /*newObject*/, object_update_mode /*mode*/) {}
+void eventAdapter::updateObject(CoreObject* /*newObject*/, object_update_mode /*mode*/) {}
 
-void eventAdapter::getObjects(std::vector<coreObject*>& /*objects*/) const {}
+void eventAdapter::getObjects(std::vector<CoreObject*>& /*objects*/) const {}
 void eventAdapter::executeA(coreTime /*cTime*/) {}
 
 void eventAdapter::updateTime() {}

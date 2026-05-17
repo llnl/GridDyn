@@ -42,7 +42,7 @@ gridSimulation::~gridSimulation()
         being_deleted);  // set this flag to handle some unusual circumstances with extra objects
 }
 
-coreObject* gridSimulation::clone(coreObject* obj) const
+CoreObject* gridSimulation::clone(CoreObject* obj) const
 {
     auto* sim = cloneBase<gridSimulation, Area>(this, obj);
     if (sim == nullptr) {
@@ -105,7 +105,7 @@ void gridSimulation::add(const std::vector<std::shared_ptr<Event>>& elist)
     }
 }
 
-void gridSimulation::getEventObjects(std::vector<coreObject*>& objV) const
+void gridSimulation::getEventObjects(std::vector<CoreObject*>& objV) const
 {
     EvQ->getEventObjects(objV);
 }
@@ -261,7 +261,7 @@ std::shared_ptr<collector> gridSimulation::findCollector(const std::string& coll
     return nullptr;
 }
 
-void gridSimulation::log(coreObject* object, print_level level, const std::string& message)
+void gridSimulation::log(CoreObject* object, print_level level, const std::string& message)
 {
     if ((level > consolePrintLevel) && (level > logPrintLevel)) {
         return;
@@ -354,7 +354,7 @@ static const std::map<int, std::string> alertStrings{
 
 };
 
-void gridSimulation::alert(coreObject* object, int code)
+void gridSimulation::alert(CoreObject* object, int code)
 {
     if (code > MAX_CHANGE_ALERT) {
         switch (code) {
@@ -450,7 +450,7 @@ coreTime gridSimulation::getEventTime(int eventCode) const
     return EvQ->getNextTime(eventCode);
 }
 
-coreObject* findMatchingObject(coreObject* obj1, gridPrimary* src, gridPrimary* sec)
+CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec)
 {
     if (obj1 == nullptr) {
         return nullptr;
@@ -458,7 +458,7 @@ coreObject* findMatchingObject(coreObject* obj1, gridPrimary* src, gridPrimary* 
     if (isSameObject(obj1, src)) {
         return sec;
     }
-    coreObject* obj2 = nullptr;
+    CoreObject* obj2 = nullptr;
     if (dynamic_cast<gridSecondary*>(obj1) !=
         nullptr)  // we know it is a gen or load so it parent should be a bus
     {
@@ -479,7 +479,7 @@ coreObject* findMatchingObject(coreObject* obj1, gridPrimary* src, gridPrimary* 
         obj2 = getMatchingLink(dynamic_cast<Link*>(obj1), src, sec);
     } else {
         // now we get ugly we are gridSecondary Object
-        coreObject* pobj = findMatchingObject(obj1->getParent(), src, sec);
+        CoreObject* pobj = findMatchingObject(obj1->getParent(), src, sec);
         if (pobj != nullptr) {  // this is an internal string sequence for this purpose, likely
                                 // won't be documented
             obj2 = pobj->getSubObject("submodelcode", obj1->locIndex);

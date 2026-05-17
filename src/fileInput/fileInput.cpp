@@ -86,7 +86,7 @@ namespace readerConfig {
 
 }  // namespace readerConfig
 
-int setObjectParameter(const std::string& label, coreObject* obj, gridParameter& param) noexcept
+int setObjectParameter(const std::string& label, CoreObject* obj, gridParameter& param) noexcept
 {
     try {
         if (param.stringType) {
@@ -162,7 +162,7 @@ std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
         loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
 }
 
-void loadFile(coreObject* parentObject,
+void loadFile(CoreObject* parentObject,
               const std::string& fileName,
               readerInfo* readerInf,
               std::string ext)
@@ -209,7 +209,7 @@ void loadFile(coreObject* parentObject,
     }
 }
 
-void addToParent(coreObject* objectToAdd, coreObject* parentObject)
+void addToParent(CoreObject* objectToAdd, CoreObject* parentObject)
 {
     try {
         parentObject->add(objectToAdd);
@@ -228,7 +228,7 @@ void addToParent(coreObject* objectToAdd, coreObject* parentObject)
 // if multiple object with the same name may have been added (parallel transmission lines,
 // generators, etc) sequence through the count to find one that hasn't been used then rename the
 // object and add it.
-void addToParentWithRename(coreObject* objectToAdd, coreObject* parentObject)
+void addToParentWithRename(CoreObject* objectToAdd, CoreObject* parentObject)
 {
     const std::string bname = objectToAdd->getName();
     int cnt = 2;

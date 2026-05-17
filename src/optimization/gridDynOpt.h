@@ -58,7 +58,7 @@ class GridDynOptimization: public gridDynSimulation {
   public:
     GridDynOptimization(const std::string& simName = "gridDynOptSim_#");
     ~GridDynOptimization();
-    coreObject* clone(coreObject* obj) const override;
+    CoreObject* clone(CoreObject* obj) const override;
 
     void setOptimizationMode(OptimizationType omode)
     {
@@ -78,14 +78,14 @@ class GridDynOptimization: public gridDynSimulation {
     // void get(std::string param,int &val);
     // void get(std::string param, double &val);
 
-    virtual coreObject* find(std::string_view objName) const override;
-    virtual coreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual coreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
+    virtual CoreObject* find(std::string_view objName) const override;
+    virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     /** find the economic data for a corresponding grid core object
-    @input coreObject the object for which to find the corresponding econ Data
+    @input CoreObject the object for which to find the corresponding econ Data
     */
-    virtual GridOptObject* getOptimizationObject(coreObject* obj = nullptr);
-    virtual GridOptObject* makeOptimizationObjectPath(coreObject* obj);
+    virtual GridOptObject* getOptimizationObject(CoreObject* obj = nullptr);
+    virtual GridOptObject* makeOptimizationObjectPath(CoreObject* obj);
 
   protected:
     OptimizerInterface* updateOptimizer(const OptimizationMode& oMode);

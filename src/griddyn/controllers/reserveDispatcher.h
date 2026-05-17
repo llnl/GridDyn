@@ -17,7 +17,7 @@ class schedulerRamp;
 
 /** in development object to manage the dispatch of reserve generation
  */
-class reserveDispatcher: public coreObject {
+class reserveDispatcher: public CoreObject {
   public:
   protected:
     double thresholdStart = kBigNum;
@@ -34,7 +34,7 @@ class reserveDispatcher: public coreObject {
 
   public:
     explicit reserveDispatcher(const std::string& objName = "reserveDispatch_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~reserveDispatcher();
 
     virtual double dynInitializeA(coreTime time0, double dispatchSet);
@@ -46,10 +46,10 @@ class reserveDispatcher: public coreObject {
     double getOutput(index_t /*num*/ = 0) { return currDispatch; }
 
     virtual void add(schedulerRamp* sched);
-    virtual void add(coreObject* obj) override;
+    virtual void add(CoreObject* obj) override;
 
     virtual void remove(schedulerRamp* sched);
-    virtual void remove(coreObject* obj) override;
+    virtual void remove(CoreObject* obj) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

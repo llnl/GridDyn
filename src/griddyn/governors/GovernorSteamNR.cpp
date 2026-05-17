@@ -28,7 +28,7 @@ GovernorSteamNR::GovernorSteamNR(const std::string& objName): GovernorIeeeSimple
     offsets.local().local.jacSize = 5;
 }
 
-coreObject* GovernorSteamNR::clone(coreObject* obj) const
+CoreObject* GovernorSteamNR::clone(CoreObject* obj) const
 {
     GovernorSteamNR* gov;
     if (obj == nullptr) {
@@ -36,11 +36,11 @@ coreObject* GovernorSteamNR::clone(coreObject* obj) const
     } else {
         gov = dynamic_cast<GovernorSteamNR*>(obj);
         if (gov == nullptr) {
-            coreObject::clone(obj);
+            CoreObject::clone(obj);
             return obj;
         }
     }
-    coreObject::clone(gov);
+    CoreObject::clone(gov);
     gov->K = K;
     gov->T1 = T1;
     gov->T2 = T2;
@@ -122,7 +122,7 @@ index_t GovernorSteamNR::findIndex(std::string_view field, const solverMode& /*s
 // set parameters
 void GovernorSteamNR::set(std::string_view param, std::string_view val)
 {
-    coreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)

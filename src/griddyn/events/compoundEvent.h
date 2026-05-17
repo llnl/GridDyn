@@ -18,16 +18,16 @@ class compoundEvent: public Event {
     stringVec fields;  //!< the vector of fields to modify
     std::vector<double> values;  //!< the vector of values to change to
     std::vector<units::unit> units;  //!< vector of units corresponding to the changes
-    std::vector<coreObject*> targetObjects;  //!< the set of objects to target
+    std::vector<CoreObject*> targetObjects;  //!< the set of objects to target
   public:
     explicit compoundEvent(const std::string& eventName);
     explicit compoundEvent(coreTime time0 = 0.0);
-    compoundEvent(const EventInfo& gdEI, coreObject* rootObject);
+    compoundEvent(const EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* evnt) const override;
 
-    // virtual void updateEvent(EventInfo &gdEI, coreObject *rootObject) override;
+    // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
     virtual change_code trigger() override;
     virtual change_code trigger(coreTime time) override;
 
@@ -38,10 +38,10 @@ class compoundEvent: public Event {
     virtual void setValue(const std::vector<double>& val);
     virtual std::string to_string() const override;
 
-    virtual bool setTarget(coreObject* gdo, std::string_view var = {}) override;
-    virtual void updateObject(coreObject* gco,
+    virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
+    virtual void updateObject(CoreObject* gco,
                               object_update_mode mode = object_update_mode::direct) override;
-    virtual coreObject* getObject() const override;
-    virtual void getObjects(std::vector<coreObject*>& objects) const override;
+    virtual CoreObject* getObject() const override;
+    virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 };
 }  // namespace griddyn::events

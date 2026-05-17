@@ -32,14 +32,14 @@ class grabberInterpreter {
                   "functions class and base class must have a parent child relationship");
 
   private:
-    std::function<std::unique_ptr<baseX>(std::string_view, coreObject*)> createX;
+    std::function<std::unique_ptr<baseX>(std::string_view, CoreObject*)> createX;
 
   public:
     explicit grabberInterpreter(
-        std::function<std::unique_ptr<baseX>(std::string_view, coreObject*)> fc): createX(fc)
+        std::function<std::unique_ptr<baseX>(std::string_view, CoreObject*)> fc): createX(fc)
     {
     }
-    std::unique_ptr<baseX> interpretGrabberBlock(std::string_view command, coreObject* obj)
+    std::unique_ptr<baseX> interpretGrabberBlock(std::string_view command, CoreObject* obj)
     {
         // this is to resolve an issue with URI specified parameters and the division operator but
         // still allow normal division operator in most cases  for URI specified the % must be used
@@ -122,9 +122,9 @@ class grabberInterpreter {
     }
 
   private:
-    std::unique_ptr<baseX> singleBlockInterpreter(std::string_view command, coreObject* obj)
+    std::unique_ptr<baseX> singleBlockInterpreter(std::string_view command, CoreObject* obj)
     {
-        coreObject* mobj = obj;
+        CoreObject* mobj = obj;
         std::string field(command);
         units::unit outUnit = units::defunit;
         // get the object which to grab from
@@ -155,7 +155,7 @@ class grabberInterpreter {
     }
 
     std::unique_ptr<baseX>
-        addSubGrabberBlocks(std::string_view command, coreObject* obj, size_t rlc)
+        addSubGrabberBlocks(std::string_view command, CoreObject* obj, size_t rlc)
     {
         std::unique_ptr<baseX> ggb = nullptr;
         std::string Ablock{command.substr(0, rlc)};
@@ -215,7 +215,7 @@ class grabberInterpreter {
     }
 
     std::unique_ptr<baseX>
-        multDivGrabberBlocks(std::string_view command, coreObject* obj, size_t rlc)
+        multDivGrabberBlocks(std::string_view command, CoreObject* obj, size_t rlc)
     {
         std::unique_ptr<baseX> ggb = nullptr;
 

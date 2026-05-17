@@ -85,7 +85,7 @@ Link::Link(const std::string& objName): gridPrimary(objName)
     updateName();
 }
 
-coreObject* Link::clone(coreObject* obj) const
+CoreObject* Link::clone(CoreObject* obj) const
 {
     auto* lnk = cloneBaseFactory<Link, gridPrimary>(this, obj, &glf);
     if (lnk == nullptr) {
@@ -373,7 +373,7 @@ void Link::set(std::string_view param, double val, unit unitType)
     }
 }
 
-coreObject* Link::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* Link::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
         if (num == 1) {
@@ -419,7 +419,7 @@ double Link::get(std::string_view param, unit unitType) const
     } else {
         auto fptr = getObjectFunction(this, std::string{param});
         if (fptr.first) {
-            coreObject* tobj = const_cast<Link*>(this);
+            CoreObject* tobj = const_cast<Link*>(this);
             val = convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
         } else {
             val = gridPrimary::get(param, unitType);
@@ -539,7 +539,7 @@ void Link::disable()
     } else {
         alert(this, JAC_COUNT_CHANGE);
     }
-    coreObject::disable();
+    CoreObject::disable();
     if ((B1 != nullptr) && (B1->isEnabled())) {
         if (!(B1->checkCapable())) {
             B1->disable();

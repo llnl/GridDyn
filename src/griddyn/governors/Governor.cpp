@@ -59,7 +59,7 @@ Governor::Governor(const std::string& objName):
     m_outputSize = 1;
 }
 
-coreObject* Governor::clone(coreObject* obj) const
+CoreObject* Governor::clone(CoreObject* obj) const
 {
     auto* gov = cloneBase<Governor, gridSubModel>(this, obj);
     if (gov == nullptr) {

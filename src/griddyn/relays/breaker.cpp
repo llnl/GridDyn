@@ -29,7 +29,7 @@ breaker::breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool
     opFlags.set(continuous_flag);
 }
 
-coreObject* breaker::clone(coreObject* obj) const
+CoreObject* breaker::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<breaker, Relay>(this, obj);
     if (nobj == nullptr) {
@@ -132,11 +132,11 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto lowerCtiCondition = std::make_shared<Condition>();
 
     auto ctiGrabber = std::make_unique<customGrabber>();
-    ctiGrabber->setGrabberFunction("I2T", [this](coreObject* /*unused*/) { return mCti; });
+    ctiGrabber->setGrabberFunction("I2T", [this](CoreObject* /*unused*/) { return mCti; });
 
     auto ctiStateGrabber = std::make_unique<customStateGrabber>(this);
     ctiStateGrabber->setGrabberFunction(
-        [](coreObject* obj, const stateData& stateDataRef, const solverMode& sMode) -> double {
+        [](CoreObject* obj, const stateData& stateDataRef, const solverMode& sMode) -> double {
             return stateDataRef.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 

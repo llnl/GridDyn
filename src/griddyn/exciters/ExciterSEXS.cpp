@@ -32,7 +32,7 @@ ExciterSEXS::ExciterSEXS(const std::string& objName): Exciter(objName)
     Vrmax = 1.0;
 }
 
-coreObject* ExciterSEXS::clone(coreObject* obj) const
+CoreObject* ExciterSEXS::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<ExciterSEXS, Exciter>(this, obj);
     if (gdE == nullptr) {

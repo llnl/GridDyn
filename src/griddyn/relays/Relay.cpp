@@ -62,7 +62,7 @@ Relay::Relay(const std::string& objName): gridPrimary(objName)
     updateName();
 }
 
-coreObject* Relay::clone(coreObject* obj) const
+CoreObject* Relay::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<Relay, gridPrimary>(this, obj);
     if (nobj == nullptr) {
@@ -108,13 +108,13 @@ coreObject* Relay::clone(coreObject* obj) const
     return nobj;
 }
 
-void Relay::updateObjectLinkages(coreObject* newRoot)
+void Relay::updateObjectLinkages(CoreObject* newRoot)
 {
     updateObject(newRoot, object_update_mode::match);
     gridComponent::updateObjectLinkages(newRoot);
 }
 
-void Relay::add(coreObject* obj)
+void Relay::add(CoreObject* obj)
 {
     m_sourceObject = obj;
     m_sinkObject = obj;
@@ -145,14 +145,14 @@ void Relay::add(std::shared_ptr<eventAdapter> geA)
     actions.emplace_back(std::move(geA));
 }
 
-void Relay::setSource(coreObject* obj)
+void Relay::setSource(CoreObject* obj)
 {
     m_sourceObject = obj;
 }
 /**
  * set the relay sink object
  */
-void Relay::setSink(coreObject* obj)
+void Relay::setSink(CoreObject* obj)
 {
     m_sinkObject = obj;
 }
@@ -364,10 +364,10 @@ void Relay::set(std::string_view param, std::string_view val)
 void Relay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "samplingperiod") || (param == "ts") || (param == "sampleperiod")) {
-        coreObject::set("period", val, unitType);  // NOLINT
+        CoreObject::set("period", val, unitType);  // NOLINT
         m_nextSampleTime = timeZero;
     } else if ((param == "rate") || (param == "fs") || (param == "samplerate")) {
-        coreObject::set("period", 1.0 / convert(val, unitType, units::Hz));  // NOLINT
+        CoreObject::set("period", 1.0 / convert(val, unitType, units::Hz));  // NOLINT
         m_nextSampleTime = timeZero;
     } else {
         if (cManager.set(param, val)) {
@@ -382,7 +382,7 @@ double Relay::get(std::string_view param, units::unit unitType) const
 {
     auto fptr = getObjectFunction(this, std::string{param});
     if (fptr.first) {
-        coreObject* tobj = const_cast<Relay*>(this);
+        CoreObject* tobj = const_cast<Relay*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
     }
     return gridPrimary::get(param, unitType);
@@ -546,7 +546,7 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gridComponent::dynObjectInitializeA(time0, flags);
 }
 
-coreObject* Relay::find(std::string_view objName) const
+CoreObject* Relay::find(std::string_view objName) const
 {
     if (objName == "target") {
         return (m_sourceObject != nullptr) ? m_sourceObject : m_sinkObject;
@@ -912,7 +912,7 @@ void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)
     }
 }
 
-void Relay::updateObject(coreObject* obj, object_update_mode mode)
+void Relay::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (mode == object_update_mode::direct) {
         if (m_sourceObject != nullptr) {
@@ -937,7 +937,7 @@ void Relay::updateObject(coreObject* obj, object_update_mode mode)
     }
 }
 
-coreObject* Relay::getObject() const
+CoreObject* Relay::getObject() const
 {
     if (m_sourceObject != nullptr) {
         return m_sourceObject;
@@ -948,7 +948,7 @@ coreObject* Relay::getObject() const
     return nullptr;
 }
 
-void Relay::getObjects(std::vector<coreObject*>& objects) const
+void Relay::getObjects(std::vector<CoreObject*>& objects) const
 {
     if (m_sourceObject != nullptr) {
         objects.push_back(m_sourceObject);

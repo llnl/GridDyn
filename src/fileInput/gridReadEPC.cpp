@@ -53,23 +53,23 @@ void epcReadLoad(zipLoad* ld, string_view line, double base);
 void epcReadFixedShunt(zipLoad* ld, string_view line, double base);
 void epcReadSwitchShunt(loads::svd* ld, string_view line, double /* base */);
 void epcReadGen(Generator* gen, string_view line, double base);
-void epcReadBranch(coreObject* parentObject,
+void epcReadBranch(CoreObject* parentObject,
                    string_view line,
                    double base,
                    std::vector<gridBus*>& busList,
                    const basicReaderInfo& bri);
-void epcReadDCBranch(coreObject* parentObject,
+void epcReadDCBranch(CoreObject* parentObject,
                      string_view line,
                      double base,
                      std::vector<dcBus*>& dcbusList,
                      const basicReaderInfo& bri);
-void epcReadTX(coreObject* parentObject,
+void epcReadTX(CoreObject* parentObject,
                string_view line,
                double base,
                std::vector<gridBus*>& busList,
                const basicReaderInfo& bri);
 
-double epcReadSolutionParamters(coreObject* parentObject, string_view line);
+double epcReadSolutionParamters(CoreObject* parentObject, string_view line);
 
 bool nextLine(std::ifstream& file, std::string& line)
 {
@@ -191,7 +191,7 @@ void ProcessSectionObject(std::string line,
     }
 }
 
-void loadEpc(coreObject* parentObject,
+void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -411,7 +411,7 @@ sbase
 System base, MVA
 */
 
-double epcReadSolutionParamters(coreObject* parentObject, string_view line)
+double epcReadSolutionParamters(CoreObject* parentObject, string_view line)
 {
     auto tokens = split(line, " ", delimiter_compression::on);
     auto val = numeric_conversion<double>(tokens[1], 0.0);
@@ -895,7 +895,7 @@ std::string generateLineName(const string_viewVector& svec, const std::string& p
 //  pid N ty  rate5 rate6  rate7  rate8 ow1 part1 ow2 part2 ow3 part3 ow4 part4 ow5 part5 ow6 part6
 //  ow7 part7 ow8 part8 ohm sdmon
 // #
-void epcReadBranch(coreObject* parentObject,
+void epcReadBranch(CoreObject* parentObject,
                    string_view line,
                    double base,
                    std::vector<gridBus*>& busList,
@@ -972,7 +972,7 @@ void epcReadBranch(coreObject* parentObject,
 //  rate8 #len-- - loss - date_in date_out pid N  rate5  rate6  rate7  rate8 ow1 part1 ow2 part2 ow3
 //  part3 ow4 part4 ow5 part5 ow6 part6 ow7 part7 ow8 part8
 
-void epcReadDCBranch(coreObject* parentObject,
+void epcReadDCBranch(CoreObject* parentObject,
                      string_view line,
                      double base,
                      std::vector<dcBus*>& dcbusList,
@@ -1044,7 +1044,7 @@ void epcReadDCBranch(coreObject* parentObject,
         lnk->set("length", val, km);
     }
 }
-void epcReadTX(coreObject* parentObject,
+void epcReadTX(CoreObject* parentObject,
                string_view line,
                double base,
                std::vector<gridBus*>& busList,

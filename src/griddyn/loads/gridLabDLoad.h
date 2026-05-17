@@ -28,7 +28,7 @@ namespace loads {
 
         virtual ~gridLabDLoad();
 
-        virtual coreObject* clone(coreObject* obj = nullptr) const override;
+        virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void pFlowObjectInitializeB() override;
 
@@ -50,7 +50,7 @@ namespace loads {
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-        virtual void add(coreObject* obj) override;
+        virtual void add(CoreObject* obj) override;
 
         virtual void rootTest(const IOdata& inputs,
                               const stateData& sD,

@@ -128,7 +128,7 @@ class gridSimulation: public Area {
     /** @brief destructor
      */
     ~gridSimulation();
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     /** @brief get the current state of the simulation
     @return the current state
@@ -171,7 +171,7 @@ class gridSimulation: public Area {
     @return a shared_ptr to the recorder that was found or an empty shared ptr*/
     std::shared_ptr<collector> findCollector(const std::string& collectorName);
     /** @brief get all the objects from the event Queue */
-    void getEventObjects(std::vector<coreObject*>& objV) const;
+    void getEventObjects(std::vector<CoreObject*>& objV) const;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
     /** @brief run the simulator
@@ -192,8 +192,8 @@ class gridSimulation: public Area {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    void alert(coreObject* object, int code) override;
-    virtual void log(coreObject* object, print_level level, const std::string& message) override;
+    void alert(CoreObject* object, int code) override;
+    virtual void log(CoreObject* object, print_level level, const std::string& message) override;
     virtual bool shouldLog(print_level level) const override;
 
     /** @brief save all the recorder data to files
@@ -250,6 +250,6 @@ tree given by sec
 @param[in] sec the tree to do the search in
 @return the located object or nullptr
 */
-coreObject* findMatchingObject(coreObject* obj1, gridPrimary* src, gridPrimary* sec);
+CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn

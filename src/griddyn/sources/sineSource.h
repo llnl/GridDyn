@@ -27,7 +27,7 @@ class sineSource: public pulseSource {
   public:
     sineSource(const std::string& objName = "sineSource_#", double startVal = 0.0);
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

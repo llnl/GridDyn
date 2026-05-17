@@ -55,7 +55,7 @@ subsystem::subsystem(count_t terminals, const std::string& objName): Link(objNam
                              // in gridComponent.
 }
 
-coreObject* subsystem::clone(coreObject* obj) const
+CoreObject* subsystem::clone(CoreObject* obj) const
 {
     auto sub = cloneBase<subsystem, Link>(this, obj);
     if (sub == nullptr) {
@@ -70,13 +70,13 @@ coreObject* subsystem::clone(coreObject* obj) const
     return sub;
 }
 
-void subsystem::add(coreObject* obj)
+void subsystem::add(CoreObject* obj)
 {
     subarea.add(obj);
 }
 // --------------- remove components ---------------
 
-void subsystem::remove(coreObject* obj)
+void subsystem::remove(CoreObject* obj)
 {
     subarea.remove(obj);
 }
@@ -97,11 +97,11 @@ Area* subsystem::getArea(index_t num) const
     return (num == 0) ? static_cast<Area*>(getSubObjects()[0]) : subarea.getArea(num - 1);
 }
 
-coreObject* subsystem::find(std::string_view objName) const
+CoreObject* subsystem::find(std::string_view objName) const
 {
     return subarea.find(objName);
 }
-coreObject* subsystem::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* subsystem::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "area") {
         return getArea(num);
@@ -117,7 +117,7 @@ void subsystem::setAll(std::string_view type,
     subarea.setAll(type, param, val, unitType);
 }
 
-coreObject* subsystem::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* subsystem::findByUserID(std::string_view typeName, index_t searchID) const
 {
     return subarea.findByUserID(typeName, searchID);
 }

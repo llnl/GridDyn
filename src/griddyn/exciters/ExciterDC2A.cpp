@@ -37,7 +37,7 @@ ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
 }
 
 // cloning function
-coreObject* ExciterDC2A::clone(coreObject* obj) const
+CoreObject* ExciterDC2A::clone(CoreObject* obj) const
 {
     auto* gdE = cloneBase<ExciterDC2A, ExciterDC1A>(this, obj);
     if (gdE == nullptr) {

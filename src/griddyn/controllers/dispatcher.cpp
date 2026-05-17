@@ -10,10 +10,10 @@
 #include <string>
 
 namespace griddyn {
-dispatcher::dispatcher(const std::string& objName): coreObject(objName) {}
+dispatcher::dispatcher(const std::string& objName): CoreObject(objName) {}
 
 dispatcher::~dispatcher() = default;
-coreObject* dispatcher::clone(coreObject* /*obj*/) const
+CoreObject* dispatcher::clone(CoreObject* /*obj*/) const
 {
     return nullptr;
 }
@@ -33,7 +33,7 @@ double dispatcher::testP(coreTime /*time*/, double /*required*/, double /*target
     return 0;
 }
 
-void dispatcher::add(coreObject* /*obj*/)
+void dispatcher::add(CoreObject* /*obj*/)
 {
     throw(objectAddFailure(this));
 }
@@ -41,16 +41,16 @@ void dispatcher::add(scheduler* /*sched*/)
 {
     throw(objectAddFailure(this));
 }
-void dispatcher::remove(coreObject* /*obj*/) {}
+void dispatcher::remove(CoreObject* /*obj*/) {}
 void dispatcher::remove(scheduler* /*sched*/) {}
 
 void dispatcher::set(std::string_view param, std::string_view val)
 {
-    return coreObject::set(param, val);
+    return CoreObject::set(param, val);
 }
 void dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
-    return coreObject::set(param, val, unitType);
+    return CoreObject::set(param, val, unitType);
 }
 
 void dispatcher::checkGen() {}

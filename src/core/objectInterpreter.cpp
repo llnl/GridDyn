@@ -10,11 +10,11 @@
 #include <string>
 
 namespace griddyn {
-objInfo::objInfo(std::string_view Istring, const coreObject* obj)
+objInfo::objInfo(std::string_view Istring, const CoreObject* obj)
 {
     LoadInfo(Istring, obj);
 }
-void objInfo::LoadInfo(std::string_view Istring, const coreObject* obj)
+void objInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
 {
     // get the object which to grab from
     size_t rlc = Istring.find_last_of(":?");
@@ -23,13 +23,13 @@ void objInfo::LoadInfo(std::string_view Istring, const coreObject* obj)
 
         m_field = std::string{Istring.substr(rlc + 1, std::string::npos)};
     } else {
-        m_obj = const_cast<coreObject*>(obj);
+        m_obj = const_cast<CoreObject*>(obj);
         m_field = std::string{Istring};
     }
 
     rlc = m_field.find_first_of('(');
     if (rlc != std::string::npos) {
-        size_t rlc2 = m_field.find_last_of(')');
+        const size_t rlc2 = m_field.find_last_of(')');
         m_unitType =
             units::unit_cast(units::unit_from_string(m_field.substr(rlc + 1, rlc2 - rlc - 1)));
         m_field = gmlc::utilities::convertToLowerCase(m_field.substr(0, rlc));
@@ -40,12 +40,13 @@ void objInfo::LoadInfo(std::string_view Istring, const coreObject* obj)
     gmlc::utilities::stringOps::trimString(m_field);
 }
 
-coreObject* locateObject(std::string_view Istring,
-                         const coreObject* rootObj,
+// NOLINTNEXTLINE(misc-no-recursion)
+CoreObject* locateObject(std::string_view Istring,
+                         const CoreObject* rootObj,
                          bool rootSearch,
                          bool directFind)
 {
-    coreObject* obj = nullptr;
+    CoreObject* obj = nullptr;
     std::string_view mname = Istring;
     std::string secName = "_";
     // get the object which to grab from
@@ -58,7 +59,7 @@ coreObject* locateObject(std::string_view Istring,
     }
 
     if (mname == rootObj->getName()) {
-        obj = const_cast<coreObject*>(rootObj);
+        obj = const_cast<CoreObject*>(rootObj);
     } else if ((mname[0] == '@') || (mname[0] == '/')) {
         // implies searching the parent object as well
         mname.remove_prefix(1);
@@ -67,7 +68,7 @@ coreObject* locateObject(std::string_view Istring,
             obj = rootObj->getParent()->find(mname);
         }
     } else {
-        if ((mname != Istring) || (directFind)) {
+        if ((mname != Istring) || directFind) {
             obj = rootObj->find(mname);
         }
         if (obj == nullptr) {
@@ -110,9 +111,9 @@ coreObject* locateObject(std::string_view Istring,
     return obj;
 }
 
-coreObject* findMatchingObject(coreObject* obj, coreObject* root)
+CoreObject* findMatchingObject(CoreObject* obj, CoreObject* root)
 {
-    coreObject* par = obj;
+    const CoreObject* par = obj;
 
     stringVec stackNames;
     while (par->getName() != root->getName()) {
@@ -123,7 +124,7 @@ coreObject* findMatchingObject(coreObject* obj, coreObject* root)
         }
     }
     // now trace back through the new root object
-    coreObject* matchObj = root;
+    CoreObject* matchObj = root;
     while (!stackNames.empty()) {
         matchObj = matchObj->find(stackNames.back());
         stackNames.pop_back();

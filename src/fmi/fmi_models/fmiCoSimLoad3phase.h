@@ -25,7 +25,7 @@ class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
 
   public:
     FmiCoSimLoad3phase(const std::string& objName = "fmi3phase_$");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

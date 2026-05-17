@@ -32,7 +32,7 @@
 
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-using griddyn::coreObject;
+using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreTime;
 using griddyn::Generator;
@@ -172,7 +172,7 @@ TEST_F(HelicsTests, LoadHelicsXml)
     hR->InitializeFromString(std::string(helics_test_directory) +
                              "helics_test1.xml --core_type=inproc");
 
-    coreObject* obj =
+    CoreObject* obj =
         coreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
 
     ASSERT_NE(dynamic_cast<HelicsSource*>(obj), nullptr);

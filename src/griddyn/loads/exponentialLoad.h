@@ -26,7 +26,7 @@ class exponentialLoad: public Load {
 */
     exponentialLoad(double rP, double qP, const std::string& objName = "expLoad_$");
 
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

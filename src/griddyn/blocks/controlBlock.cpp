@@ -29,7 +29,7 @@ controlBlock::controlBlock(double timeConstant,
     opFlags.set(use_state);
 }
 
-coreObject* controlBlock::clone(coreObject* obj) const
+CoreObject* controlBlock::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<controlBlock, Block>(this, obj);
     if (nobj == nullptr) {

@@ -23,7 +23,7 @@ integralBlock::integralBlock(double gain, const std::string& objName): Block(gai
     opFlags.set(use_state);
 }
 
-coreObject* integralBlock::clone(coreObject* obj) const
+CoreObject* integralBlock::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<integralBlock, Block>(this, obj);
     if (nobj == nullptr) {

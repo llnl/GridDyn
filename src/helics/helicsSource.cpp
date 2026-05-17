@@ -22,7 +22,7 @@ HelicsSource::HelicsSource(const std::string& objName):
     opFlags.set(pflow_init_required);
 }
 
-coreObject* HelicsSource::clone(coreObject* obj) const
+CoreObject* HelicsSource::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<HelicsSource, rampSource>(this, obj);
     if (nobj == nullptr) {

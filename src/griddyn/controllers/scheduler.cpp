@@ -86,7 +86,7 @@ scheduler::scheduler(double initialValue, const std::string& objName):
 {
 }
 
-coreObject* scheduler::clone(coreObject* obj) const
+CoreObject* scheduler::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<scheduler, Source>(this, obj);
     if (nobj == nullptr) {

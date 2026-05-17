@@ -23,7 +23,7 @@ GenModel6::GenModel6(const std::string& objName): GenModel5(objName)
     D = 0.03;
 }
 
-coreObject* GenModel6::clone(coreObject* obj) const
+CoreObject* GenModel6::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModel6, GenModel5>(this, obj);
     if (gd == nullptr) {

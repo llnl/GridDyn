@@ -19,7 +19,7 @@ class gridDynSimulation;
 class gridComponent;
 class solverMode;
 class SolverInterface;
-class coreObject;
+class CoreObject;
 
 inline constexpr double resid_check_tol = 1e-5;
 inline constexpr double jac_check_tol = 1e-5;
@@ -115,8 +115,8 @@ the differences
 @param[in] printMessage bool indicating that messages should be printed
 @return true if the objects are deemed equivalent*/
 
-bool checkObjectEquivalence(const coreObject* obj1,
-                            const coreObject* obj2,
+bool checkObjectEquivalence(const CoreObject* obj1,
+                            const CoreObject* obj2,
                             bool printMessage = true);
 
 /** @brief check the state sizes and print out state size information in a nice format for each

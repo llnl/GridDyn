@@ -32,7 +32,7 @@ class pidBlock: public Block {
 @param[in] D the derivative gain
 */
     pidBlock(double P, double I, double D, const std::string& objName = "pidBlock_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,

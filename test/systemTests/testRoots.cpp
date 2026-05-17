@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <string>
-// test case for coreObject object
+// test case for CoreObject object
 
 using namespace griddyn;
 #define ROOTS_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/rootFinding_tests/"

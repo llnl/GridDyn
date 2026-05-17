@@ -41,11 +41,11 @@ class breaker: public Relay {
   private:
     double mCti = 0.0;  //!< storage for the current integral
     double mVoltageBase = 120.0;  //!< Voltage base for bus1
-    bool& mUseCti;  //!< internal flag to use the CTI stuff link to a coreObject extra boolean
+    bool& mUseCti;  //!< internal flag to use the CTI stuff link to a CoreObject extra boolean
   public:
     /** constructor with object name*/
     explicit breaker(const std::string& objName = "breaker_$");
-    virtual coreObject* clone(coreObject* obj) const override;
+    virtual CoreObject* clone(CoreObject* obj) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 

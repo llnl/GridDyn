@@ -13,7 +13,7 @@
 
 namespace griddyn::sources {
 rampSource::rampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
-coreObject* rampSource::clone(coreObject* obj) const
+CoreObject* rampSource::clone(CoreObject* obj) const
 {
     auto ld = cloneBase<rampSource, Source>(this, obj);
     if (ld == nullptr) {

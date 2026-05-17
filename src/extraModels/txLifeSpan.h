@@ -33,14 +33,14 @@ class txLifeSpan: public sensor {
 
   public:
     txLifeSpan(const std::string& objName = "txlifeSpan_$");
-    coreObject* clone(coreObject* obj = nullptr) const override;
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     using sensor::add;
-    virtual void add(coreObject* obj) override final;
+    virtual void add(CoreObject* obj) override final;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 

@@ -18,7 +18,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
 
   public:
     explicit ExciterDC1A(const std::string& objName = "exciterDC1A_#");
-    virtual coreObject* clone(coreObject* obj = nullptr) const override;
+    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

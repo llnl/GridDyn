@@ -40,18 +40,18 @@ class objectFactory {
     /** @brief make and object   abstract function
     @return a pointer to a newly constructed object
     */
-    virtual coreObject* makeObject() = 0;
+    virtual CoreObject* makeObject() = 0;
 
     /** @brief make and object   abstract function
     @param[in] objectName  the name of the object to construct
     @return a pointer to a newly constructed object
     */
 
-    virtual coreObject* makeObject(std::string_view objectName) = 0;
+    virtual CoreObject* makeObject(std::string_view objectName) = 0;
     /** @brief prepare to make a certain number of objects
     The parameters are intentionally unnamed in the interface because they are optional to use.
     */
-    virtual void prepObjects(count_t /*count*/, coreObject* /*obj*/);
+    virtual void prepObjects(count_t /*count*/, CoreObject* /*obj*/);
     /** @brief get the number of unused prepped objects
     @return the number of prepped objects
     */
@@ -73,9 +73,9 @@ class componentFactory {
     explicit componentFactory(std::string component);
     ~componentFactory();
     stringVec getTypeNames();
-    coreObject* makeObject(std::string_view type, std::string_view objectName);
-    coreObject* makeObject(std::string_view type);
-    coreObject* makeObject();
+    CoreObject* makeObject(std::string_view type, std::string_view objectName);
+    CoreObject* makeObject(std::string_view type);
+    CoreObject* makeObject();
     void registerFactory(std::string_view typeName, objectFactory* oFac);
     void registerFactory(objectFactory* oFac);
     void setDefault(std::string_view type);
@@ -87,7 +87,7 @@ class componentFactory {
     std::string m_defaultType;
 };
 
-// create a high level object factory for the coreObject class
+// create a high level object factory for the CoreObject class
 using fMap = std::map<std::string, std::shared_ptr<componentFactory>, std::less<>>;
 /** @brief central location for building objects and storing factories for making all the gridDyn
  component core object Factory class  intended to be a singleton it contains a map from strings to
@@ -121,21 +121,21 @@ class coreObjectFactory {
 
     /** @brief create the default object from a given component
     @param[in] component  the name of the category of objects
-    @return the created coreObject */
-    coreObject* createObject(std::string_view component);
+    @return the created CoreObject */
+    CoreObject* createObject(std::string_view component);
 
     /** @brief create an object from a given objectType and typeName
     @param[in] component  the name of the category of objects
     @param[in] typeName  the specific type to create
-    @return the created coreObject */
-    coreObject* createObject(std::string_view component, std::string_view typeName);
+    @return the created CoreObject */
+    CoreObject* createObject(std::string_view component, std::string_view typeName);
 
     /** @brief create an object from a given objectType and typeName
     @param[in] component  the name of the category of objects
     @param[in] typeName  the specific type to create
     @param[in] objName  the name of the object to create
-    @return the created coreObject */
-    coreObject* createObject(std::string_view component,
+    @return the created CoreObject */
+    CoreObject* createObject(std::string_view component,
                              std::string_view typeName,
                              std::string_view objName);
 
@@ -160,7 +160,7 @@ class coreObjectFactory {
     void prepObjects(std::string_view component,
                      std::string_view typeName,
                      count_t numObjects,
-                     coreObject* obj);
+                     CoreObject* obj);
 
     /** @brief prepare a number of objects for use later so they can all be constructed at once of
     the default type for a given container
@@ -168,7 +168,7 @@ class coreObjectFactory {
     @param[in] numObjects  the number of objects to preallocate
     @param[in] obj the object to reference as the owner responsible for deleting the container
     */
-    void prepObjects(std::string_view component, count_t numObjects, coreObject* obj);
+    void prepObjects(std::string_view component, count_t numObjects, CoreObject* obj);
 
   private:
     coreObjectFactory();

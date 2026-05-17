@@ -36,7 +36,7 @@ gridGrabber::gridGrabber(std::string_view fld)
 {
     gridGrabber::updateField(fld);
 }
-gridGrabber::gridGrabber(std::string_view fld, coreObject* obj)
+gridGrabber::gridGrabber(std::string_view fld, CoreObject* obj)
 {
     gridGrabber::updateObject(obj);
     gridGrabber::updateField(fld);
@@ -66,11 +66,11 @@ void gridGrabber::cloneTo(gridGrabber* ggb) const
 }
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string, std::function<double(coreObject*)>> coreFunctions{
-    {"nextupdatetime", [](coreObject* obj) { return obj->getNextUpdateTime(); }},
-    {"lastupdatetime", [](coreObject* obj) { return obj->get("lastupdatetime"); }},
-    {"currenttime", [](coreObject* obj) { return obj->currentTime(); }},
-    {"constant", [](coreObject* /*obj*/) { return 0.0; }},
+static const std::map<std::string, std::function<double(CoreObject*)>> coreFunctions{
+    {"nextupdatetime", [](CoreObject* obj) { return obj->getNextUpdateTime(); }},
+    {"lastupdatetime", [](CoreObject* obj) { return obj->get("lastupdatetime"); }},
+    {"currenttime", [](CoreObject* obj) { return obj->currentTime(); }},
+    {"constant", [](CoreObject* /*obj*/) { return 0.0; }},
 };
 
 void gridGrabber::updateField(std::string_view fld)
@@ -157,7 +157,7 @@ coreTime gridGrabber::getTime() const
     return negTime;
 }
 
-void gridGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void gridGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (obj != nullptr) {
         if (mode == object_update_mode::direct) {
@@ -185,11 +185,11 @@ void gridGrabber::makeDescription() const
     }
 }
 
-coreObject* gridGrabber::getObject() const
+CoreObject* gridGrabber::getObject() const
 {
     return mObject;
 }
-void gridGrabber::getObjects(std::vector<coreObject*>& objects) const
+void gridGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
@@ -218,7 +218,7 @@ bool gridGrabber::checkIfLoaded()
     return false;
 }
 
-std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, coreObject* obj)
+std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj)
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
@@ -266,7 +266,7 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, coreObject* obj
     return ggb;
 }
 
-std::unique_ptr<gridGrabber> createGrabber(int noffset, coreObject* obj)
+std::unique_ptr<gridGrabber> createGrabber(int noffset, CoreObject* obj)
 {
     std::unique_ptr<gridGrabber> ggb = nullptr;
 
@@ -284,7 +284,7 @@ std::unique_ptr<gridGrabber> createGrabber(int noffset, coreObject* obj)
 }
 
 void customGrabber::setGrabberFunction(std::string_view fld,
-                                       std::function<double(coreObject*)> nfptr)
+                                       std::function<double(CoreObject*)> nfptr)
 {
     mGrabberFunction = std::move(nfptr);
     loaded = true;
@@ -292,7 +292,7 @@ void customGrabber::setGrabberFunction(std::string_view fld,
     field = fld;
 }
 
-void customGrabber::setGrabberFunction(std::function<void(coreObject*, std::vector<double>&)> nVptr)
+void customGrabber::setGrabberFunction(std::function<void(CoreObject*, std::vector<double>&)> nVptr)
 {
     vectorGrab = true;
     mVectorGrabberFunction = std::move(nVptr);
@@ -418,7 +418,7 @@ coreTime functionGrabber::getTime() const
     return negTime;
 }
 
-void functionGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void functionGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (mBaseGrabber) {
         mBaseGrabber->updateObject(obj, mode);
@@ -431,7 +431,7 @@ bool functionGrabber::checkIfLoaded()
     return (mBaseGrabber->loaded);
 }
 
-coreObject* functionGrabber::getObject() const
+CoreObject* functionGrabber::getObject() const
 {
     if (mBaseGrabber) {
         return mBaseGrabber->getObject();
@@ -439,7 +439,7 @@ coreObject* functionGrabber::getObject() const
     return nullptr;
 }
 
-void functionGrabber::getObjects(std::vector<coreObject*>& objects) const
+void functionGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     if (mBaseGrabber) {
         mBaseGrabber->getObjects(objects);
@@ -574,7 +574,7 @@ void opGrabber::grabVectorData(std::vector<double>& vdata)
     }
 }
 
-void opGrabber::updateObject(coreObject* obj, object_update_mode mode)
+void opGrabber::updateObject(CoreObject* obj, object_update_mode mode)
 {
     if (mBaseGrabber1) {
         mBaseGrabber1->updateObject(obj, mode);
@@ -584,7 +584,7 @@ void opGrabber::updateObject(coreObject* obj, object_update_mode mode)
     }
 }
 
-void opGrabber::updateObject(coreObject* obj, int num)
+void opGrabber::updateObject(CoreObject* obj, int num)
 {
     if (num == 1) {
         if (mBaseGrabber1) {
@@ -608,7 +608,7 @@ coreTime opGrabber::getTime() const
 
     return negTime;
 }
-coreObject* opGrabber::getObject() const
+CoreObject* opGrabber::getObject() const
 {
     if (mBaseGrabber1) {
         return mBaseGrabber1->getObject();
@@ -616,7 +616,7 @@ coreObject* opGrabber::getObject() const
     return nullptr;
 }
 
-void opGrabber::getObjects(std::vector<coreObject*>& objects) const
+void opGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     if (mBaseGrabber1) {
         mBaseGrabber1->getObjects(objects);

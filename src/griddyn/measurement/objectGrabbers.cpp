@@ -145,24 +145,24 @@ namespace {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
     {"connected",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<double>(static_cast<gridComponent*>(obj)->isConnected());
       },
       defunit}},
     {"enabled",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<double>(static_cast<gridComponent*>(obj)->isEnabled());
       },
       defunit}},
     {"armed",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<double>(static_cast<gridComponent*>(obj)->isArmed());
       },
       defunit}},
     {"output",
-     {[](coreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(0); }, defunit}},
+     {[](CoreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(0); }, defunit}},
     {"deriv",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<gridComponent*>(obj)->getDoutdt(noInputs,
                                                              emptyStateData,
                                                              cLocalSolverMode,
@@ -172,91 +172,91 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> busFunctions{
-    {"voltage", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getVoltage(); }, puV}},
-    {"angle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
-    {"busangle", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
-    {"freq", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
-    {"busfreq", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
+    {"voltage", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getVoltage(); }, puV}},
+    {"angle", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
+    {"busangle", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getAngle(); }, rad}},
+    {"freq", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
+    {"busfreq", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getFreq(); }, puHz}},
     {"general",
-     {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
-     {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReactive(); }, puMW}},
-    {"loadreal", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getGenerationReactive(); }, puMW}},
+    {"loadreal", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReal(); }, puMW}},
     {"loadreactive",
-     {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReactive(); }, puMW}},
-    {"linkreal", {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLoadReactive(); }, puMW}},
+    {"linkreal", {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReal(); }, puMW}},
     {"linkreactive",
-     {[](coreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReactive(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<gridBus*>(obj)->getLinkReactive(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> areaFunctions{
-    {"avgfreq", {[](coreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
+    {"avgfreq", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
     {"general",
-     {[](coreObject* obj) { return static_cast<Area*>(obj)->getGenerationReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
-     {[](coreObject* obj) { return static_cast<Area*>(obj)->getGenerationReactive(); }, puMW}},
-    {"loadreal", {[](coreObject* obj) { return static_cast<Area*>(obj)->getLoadReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getGenerationReactive(); }, puMW}},
+    {"loadreal", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoadReal(); }, puMW}},
     {"loadreactive",
-     {[](coreObject* obj) { return static_cast<Area*>(obj)->getLoadReactive(); }, puMW}},
-    {"loss", {[](coreObject* obj) { return static_cast<Area*>(obj)->getLoss(); }, puMW}},
-    {"tieflow", {[](coreObject* obj) { return static_cast<Area*>(obj)->getTieFlowReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoadReactive(); }, puMW}},
+    {"loss", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoss(); }, puMW}},
+    {"tieflow", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fvecPair, std::less<std::string_view>> areaVecFunctions{
     {"voltage",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getVoltage(data);
       },
       puV}},
     {"angle",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getAngle(data);
       },
       rad}},
     {"freq",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getFreq(data);
       },
       puHz}},
     {"busfreq",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getFreq(data);
       },
       puHz}},
     {"busgenreal",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getBusGenerationReal(data);
       },
       puMW}},
     {"busgenreactive",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getBusGenerationReactive(data);
       },
       puMW}},
     {"busloadreal",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getBusLoadReal(data);
       },
       puMW}},
     {"busloadreactive",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getBusLoadReactive(data);
       },
       puMW}},
     {"linkreal",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getLinkRealPower(data);
       },
       puMW}},
     {"linkreactive",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getLinkReactivePower(data);
       },
       puMW}},
     {"linkloss",
-     {[](coreObject* obj, std::vector<double>& data) {
+     {[](CoreObject* obj, std::vector<double>& data) {
           return static_cast<Area*>(obj)->getLinkLoss(data);
       },
       puMW}},
@@ -269,47 +269,47 @@ namespace {
         static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
             areaVecDescFunctions{
                 {"voltage",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"angle",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"freq",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"busfreq",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"busgenreal",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"busgenreactive",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"busloadreal",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"busloadreactive",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getBusName(desc);
                  }},
                 {"linkreal",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getLinkName(desc);
                  }},
                 {"linkreactive",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getLinkName(desc);
                  }},
                 {"linkloss",
-                 [](coreObject* obj, stringVec& desc) {
+                 [](CoreObject* obj, stringVec& desc) {
                      return static_cast<Area*>(obj)->getLinkName(desc);
                  }},
             };
@@ -321,30 +321,30 @@ namespace {
         static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
             secondaryFunctions{
                 {"real",
-                 {[](coreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); },
+                 {[](CoreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); },
                   puMW}},
                 {"reactive",
-                 {[](coreObject* obj) {
+                 {[](CoreObject* obj) {
                       return static_cast<gridSecondary*>(obj)->getReactivePower();
                   },
                   puMW}},
                 {"voltage",
-                 {[](coreObject* obj) {
+                 {[](CoreObject* obj) {
                       return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
                   },
                   puV}},
                 {"busvoltage",
-                 {[](coreObject* obj) {
+                 {[](CoreObject* obj) {
                       return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
                   },
                   puV}},
                 {"busangle",
-                 {[](coreObject* obj) {
+                 {[](CoreObject* obj) {
                       return static_cast<gridSecondary*>(obj)->getBus()->getAngle();
                   },
                   rad}},
                 {"busfreq",
-                 {[](coreObject* obj) {
+                 {[](CoreObject* obj) {
                       return static_cast<gridSecondary*>(obj)->getBus()->getFreq();
                   },
                   puHz}},
@@ -355,35 +355,35 @@ namespace {
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
-    {"loadreal", {[](coreObject* obj) { return static_cast<Load*>(obj)->getRealPower(); }, puMW}},
+    {"loadreal", {[](CoreObject* obj) { return static_cast<Load*>(obj)->getRealPower(); }, puMW}},
     {"loadreactive",
-     {[](coreObject* obj) { return static_cast<Load*>(obj)->getReactivePower(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Load*>(obj)->getReactivePower(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> genFunctions{
     {"general",
-     {[](coreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
     {"genreactive",
-     {[](coreObject* obj) { return static_cast<Generator*>(obj)->getReactivePower(); }, puMW}},
-    {"pset", {[](coreObject* obj) { return static_cast<Generator*>(obj)->getPset(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getReactivePower(); }, puMW}},
+    {"pset", {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getPset(); }, puMW}},
     {"adjup",
-     {[](coreObject* obj) { return static_cast<Generator*>(obj)->getAdjustableCapacityUp(); },
+     {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getAdjustableCapacityUp(); },
       puMW}},
     {"adjdown",
-     {[](coreObject* obj) { return static_cast<Generator*>(obj)->getAdjustableCapacityDown(); },
+     {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getAdjustableCapacityDown(); },
       puMW}},
-    {"pmax", {[](coreObject* obj) { return static_cast<Generator*>(obj)->getPmax(); }, puMW}},
-    {"pmin", {[](coreObject* obj) { return static_cast<Generator*>(obj)->getPmin(); }, puMW}},
-    {"qmax", {[](coreObject* obj) { return static_cast<Generator*>(obj)->getQmax(); }, puMW}},
-    {"qmin", {[](coreObject* obj) { return static_cast<Generator*>(obj)->getQmin(); }, puMW}},
+    {"pmax", {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getPmax(); }, puMW}},
+    {"pmin", {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getPmin(); }, puMW}},
+    {"qmax", {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getQmax(); }, puMW}},
+    {"qmin", {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getQmin(); }, puMW}},
     {"freq",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<Generator*>(obj)->getFreq(emptyStateData, cLocalSolverMode);
       },
       puHz}},
     {"angle",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<Generator*>(obj)->getAngle(emptyStateData, cLocalSolverMode);
       },
       rad}},
@@ -391,62 +391,62 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> linkFunctions{
-    {"real", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
+    {"real", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
     {"reactive",
-     {[](coreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(1); }, puMW}},
-    {"linkreal", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(1); }, puMW}},
+    {"linkreal", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
     {"linkreactive",
-     {[](coreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(1); }, puMW}},
-    {"z", {[](coreObject* obj) { return static_cast<Link*>(obj)->getTotalImpedance(1); }, puOhm}},
+     {[](CoreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(1); }, puMW}},
+    {"z", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getTotalImpedance(1); }, puOhm}},
     {"y",
-     {[](coreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getTotalImpedance(1)); },
+     {[](CoreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getTotalImpedance(1)); },
       puOhm}},
-    {"r", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealImpedance(1); }, puOhm}},
+    {"r", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealImpedance(1); }, puOhm}},
     {"x",
-     {[](coreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getImagImpedance(1)); }, puOhm}},
-    {"current", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getCurrent(1)); }, puA}},
+     {[](CoreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getImagImpedance(1)); }, puOhm}},
+    {"current", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getCurrent(1)); }, puA}},
     {"realcurrent",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getRealCurrent(1)); }, puA}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getRealCurrent(1)); }, puA}},
     {"imagcurrent",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getImagCurrent(1)); }, puA}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getImagCurrent(1)); }, puA}},
     {"currentangle",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getCurrentAngle(1)); }, rad}},
-    {"voltage", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getVoltage(1)); }, puV}},
-    {"busangle", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getBusAngle(1)); }, rad}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getCurrentAngle(1)); }, rad}},
+    {"voltage", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getVoltage(1)); }, puV}},
+    {"busangle", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getBusAngle(1)); }, rad}},
     {"busfreq",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getBus(1)->getFreq()); }, Hz}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getBus(1)->getFreq()); }, Hz}},
     // functions for to side
-    {"real2", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(2); }, puMW}},
+    {"real2", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealPower(2); }, puMW}},
     {"reactive2",
-     {[](coreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(2); }, puMW}},
-    {"linkreal2", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealPower(2); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(2); }, puMW}},
+    {"linkreal2", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealPower(2); }, puMW}},
     {"linkreactive2",
-     {[](coreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(2); }, puMW}},
-    {"z2", {[](coreObject* obj) { return static_cast<Link*>(obj)->getTotalImpedance(2); }, puOhm}},
+     {[](CoreObject* obj) { return static_cast<Link*>(obj)->getReactivePower(2); }, puMW}},
+    {"z2", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getTotalImpedance(2); }, puOhm}},
     {"y2",
-     {[](coreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getTotalImpedance(2)); },
+     {[](CoreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getTotalImpedance(2)); },
       puOhm}},
-    {"r2", {[](coreObject* obj) { return static_cast<Link*>(obj)->getRealImpedance(2); }, puOhm}},
+    {"r2", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealImpedance(2); }, puOhm}},
     {"x2",
-     {[](coreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getImagImpedance(2)); }, puOhm}},
-    {"current2", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getCurrent(2)); }, puA}},
+     {[](CoreObject* obj) { return 1.0 / (static_cast<Link*>(obj)->getImagImpedance(2)); }, puOhm}},
+    {"current2", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getCurrent(2)); }, puA}},
     {"realcurrent2",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getRealCurrent(2)); }, puA}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getRealCurrent(2)); }, puA}},
     {"imagcurrent2",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getImagCurrent(2)); }, puA}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getImagCurrent(2)); }, puA}},
     {"currentangle2",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getCurrentAngle(2)); }, rad}},
-    {"voltage2", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getVoltage(2)); }, puV}},
-    {"busangle2", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getBusAngle(2)); }, rad}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getCurrentAngle(2)); }, rad}},
+    {"voltage2", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getVoltage(2)); }, puV}},
+    {"busangle2", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getBusAngle(2)); }, rad}},
     {"busfreq2",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getBus(1)->getFreq()); }, Hz}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getBus(1)->getFreq()); }, Hz}},
     // non numbered fields
-    {"angle", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getAngle()); }, rad}},
-    {"loss", {[](coreObject* obj) { return (static_cast<Link*>(obj)->getLoss()); }, puMW}},
+    {"angle", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getAngle()); }, rad}},
+    {"loss", {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getLoss()); }, puMW}},
     {"lossreactive",
-     {[](coreObject* obj) { return (static_cast<Link*>(obj)->getReactiveLoss()); }, puMW}},
+     {[](CoreObject* obj) { return (static_cast<Link*>(obj)->getReactiveLoss()); }, puMW}},
     {"attached",
-     {[](coreObject* obj) {
+     {[](CoreObject* obj) {
           return static_cast<double>(
               ((!static_cast<Link*>(obj)->checkFlag(Link::switch1_open_flag)) ||
                (!static_cast<Link*>(obj)->checkFlag(Link::switch2_open_flag))) &&
@@ -472,11 +472,11 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
     std::string fld;
     auto num = gmlc::utilities::stringOps::trailingStringInt(field, fld);
     if ((fld == "output") || (fld == "o") || (fld == "out")) {
-        return {[num](coreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(num); },
+        return {[num](CoreObject* obj) { return static_cast<gridComponent*>(obj)->getOutput(num); },
                 defunit};
     }
     if ((fld == "deriv") || (fld == "dodt") || (fld == "doutdt")) {
-        return {[num](coreObject* obj) {
+        return {[num](CoreObject* obj) {
                     return static_cast<gridComponent*>(obj)->getDoutdt(noInputs,
                                                                        emptyStateData,
                                                                        cLocalSolverMode,
@@ -488,7 +488,7 @@ fobjectPair getObjectFunction(const gridComponent* comp, const std::string& fiel
     // try to lookup named outputs
     const index_t outIndex = comp->lookupOutputIndex(field);
     if (outIndex != kNullLocation) {
-        return {[outIndex](coreObject* obj) {
+        return {[outIndex](CoreObject* obj) {
                     return static_cast<gridComponent*>(obj)->getOutput(outIndex);
                 },
                 defunit};
@@ -573,16 +573,16 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
     const int num = gmlc::utilities::stringOps::trailingStringInt(field, fld, 0);
     fobjectPair retPair(nullptr, defunit);
     if ((field == "cv") || (field == "currentvalue") || (field == "value") || (field == "output")) {
-        retPair.first = [](coreObject* obj) -> double {
+        retPair.first = [](CoreObject* obj) -> double {
             return static_cast<Relay*>(obj)->getOutput(0);
         };
     } else if (fld == "status") {
-        retPair.first = [num](coreObject* obj) {
+        retPair.first = [num](CoreObject* obj) {
             return static_cast<double>(static_cast<Relay*>(obj)->getConditionStatus(num));
         };
     } else if ((fld == "block") || (fld == "b")) {
         if (dynamic_cast<const sensor*>(rel) != nullptr) {
-            retPair.first = [=](coreObject* obj) {
+            retPair.first = [=](CoreObject* obj) {
                 return static_cast<sensor*>(obj)->getBlockOutput(emptyStateData,
                                                                  cLocalSolverMode,
                                                                  num);
@@ -590,26 +590,26 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
         }
     } else if ((fld == "blockderiv") || (fld == "dblockdt") || (fld == "dbdt")) {
         if (dynamic_cast<const sensor*>(rel) != nullptr) {
-            retPair.first = [=](coreObject* obj) {
+            retPair.first = [=](CoreObject* obj) {
                 return static_cast<sensor*>(obj)->getBlockDerivOutput(emptyStateData,
                                                                       cLocalSolverMode,
                                                                       num);
             };
         }
     } else if ((fld == "condition") || (fld == "c")) {
-        retPair.first = [num](coreObject* obj) {
+        retPair.first = [num](CoreObject* obj) {
             return static_cast<Relay*>(obj)->getConditionValue(num);
         };
     } else if ((fld == "input") || (fld == "i")) {
         if (dynamic_cast<const sensor*>(rel) != nullptr) {
-            retPair.first = [num](coreObject* obj) {
+            retPair.first = [num](CoreObject* obj) {
                 return static_cast<sensor*>(obj)->getInput(emptyStateData, cLocalSolverMode, num);
             };
         }
     } else {
         if (dynamic_cast<const relays::controlRelay*>(rel) != nullptr) {
             if ((fld == "point") || (fld == "measurement")) {
-                retPair.first = [num](coreObject* obj) {
+                retPair.first = [num](CoreObject* obj) {
                     return static_cast<relays::controlRelay*>(obj)->getMeasurement(num);
                 };
             } else {
@@ -617,7 +617,7 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
                 const index_t outIndex =
                     static_cast<const relays::controlRelay*>(rel)->findMeasurement(field);
                 if (outIndex != kNullLocation) {
-                    retPair.first = [outIndex](coreObject* obj) {
+                    retPair.first = [outIndex](CoreObject* obj) {
                         return static_cast<relays::controlRelay*>(obj)->getMeasurement(outIndex);
                     };
                 }
@@ -637,7 +637,7 @@ fobjectPair getObjectFunction(const gridSubModel* sub, const std::string& field)
 fvecPair getObjectVectorFunction(const gridComponent* /*comp*/, const std::string& field)
 {
     if (field == "outputs") {
-        return {[](coreObject* obj, std::vector<double>& data) {
+        return {[](CoreObject* obj, std::vector<double>& data) {
                     auto dataoutputs =
                         static_cast<gridComponent*>(obj)->getOutputs(noInputs,
                                                                      emptyStateData,

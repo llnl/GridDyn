@@ -12,7 +12,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-// test case for coreObject object
+// test case for CoreObject object
 
 static const char clone_test_directory[] = GRIDDYN_TEST_DIRECTORY "/clone_tests/";
 
@@ -130,8 +130,8 @@ TEST_F(CloneTests, CloningTestEvents)
     ASSERT_TRUE(res);
 
     /** get the event objects and make sure they are independent*/
-    std::vector<coreObject*> obj1;
-    std::vector<coreObject*> obj2;
+    std::vector<CoreObject*> obj1;
+    std::vector<CoreObject*> obj2;
     gds->getEventObjects(obj1);
     gds2->getEventObjects(obj2);
     ASSERT_EQ(obj1.size(), obj2.size());

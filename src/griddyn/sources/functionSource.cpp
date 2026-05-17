@@ -12,7 +12,7 @@
 
 namespace griddyn::sources {
 functionSource::functionSource(const std::string& objName): Source(objName) {}
-coreObject* functionSource::clone(coreObject* obj) const
+CoreObject* functionSource::clone(CoreObject* obj) const
 {
     auto gS = cloneBase<functionSource, gridSubModel>(this, obj);
     if (gS == nullptr) {

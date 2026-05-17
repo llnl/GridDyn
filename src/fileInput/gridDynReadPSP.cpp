@@ -30,7 +30,7 @@ void pspReadBus(gridBus* bus,
                 const std::string& line,
                 double base,
                 const basicReaderInfo& readerOptions);
-void pspReadBranch(coreObject* parentObject,
+void pspReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,
@@ -59,7 +59,7 @@ a 9999 card.
 The 15 card indicates that area interchange data follows. The data ends with
 a 9999 card.
 */
-void loadPsp(coreObject* parentObject,
+void loadPsp(CoreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -405,7 +405,7 @@ Second Line Card (follows 'C' in first card)
 
 */
 
-void pspReadBranch(coreObject* parentObject,
+void pspReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,

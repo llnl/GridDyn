@@ -14,7 +14,7 @@ namespace griddyn::sources {
 sineSource::sineSource(const std::string& objName, double startVal): pulseSource(objName, startVal)
 {
 }
-coreObject* sineSource::clone(coreObject* obj) const
+CoreObject* sineSource::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<sineSource, pulseSource>(this, obj);
     if (nobj == nullptr) {

@@ -19,7 +19,7 @@ compoundEvent::compoundEvent(coreTime time0): Event(time0) {}
 
 compoundEvent::compoundEvent(const std::string& eventName): Event(eventName) {}
 
-compoundEvent::compoundEvent(const EventInfo& gdEI, coreObject* rootObject): Event(gdEI, rootObject)
+compoundEvent::compoundEvent(const EventInfo& gdEI, CoreObject* rootObject): Event(gdEI, rootObject)
 {
     targetObjects = gdEI.targetObjs;
     values = gdEI.value;
@@ -47,7 +47,7 @@ void compoundEvent::cloneTo(Event* gE) const
     nE->targetObjects = targetObjects;
 }
 
-void compoundEvent::updateObject(coreObject* gco, object_update_mode mode)
+void compoundEvent::updateObject(CoreObject* gco, object_update_mode mode)
 {
     // TODO(pt): more thinking on exception safety
     if (mode == object_update_mode::direct) {
@@ -65,12 +65,12 @@ void compoundEvent::updateObject(coreObject* gco, object_update_mode mode)
     }
 }
 
-coreObject* compoundEvent::getObject() const
+CoreObject* compoundEvent::getObject() const
 {
     return targetObjects[0];
 }
 
-void compoundEvent::getObjects(std::vector<coreObject*>& objects) const
+void compoundEvent::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (auto& obj : targetObjects) {
         objects.push_back(obj);
@@ -173,7 +173,7 @@ change_code compoundEvent::trigger(coreTime time)
     return ret;
 }
 
-bool compoundEvent::setTarget(coreObject* gdo, std::string_view var)
+bool compoundEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;

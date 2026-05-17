@@ -51,7 +51,7 @@ Block::Block(double gain, const std::string& objName): gridSubModel(objName), K(
 }
 Block::~Block() = default;
 
-coreObject* Block::clone(coreObject* obj) const
+CoreObject* Block::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<Block, gridSubModel>(this, obj);
     if (nobj == nullptr) {

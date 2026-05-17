@@ -64,7 +64,7 @@ hvdc::hvdc(const std::string& objName): subsystem(4, objName)
     rec2->set("pset", 0);
 }
 
-coreObject* hvdc::clone(coreObject* obj) const
+CoreObject* hvdc::clone(CoreObject* obj) const
 {
     auto nobj = cloneBase<hvdc, subsystem>(this, obj);
     if (nobj == nullptr) {

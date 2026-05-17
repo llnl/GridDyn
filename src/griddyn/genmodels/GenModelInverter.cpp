@@ -20,7 +20,7 @@
 
 namespace griddyn::genmodels {
 GenModelInverter::GenModelInverter(const std::string& objName): GenModel(objName) {}
-coreObject* GenModelInverter::clone(coreObject* obj) const
+CoreObject* GenModelInverter::clone(CoreObject* obj) const
 {
     auto* gd = cloneBase<GenModelInverter, GenModel>(this, obj);
     if (gd == nullptr) {

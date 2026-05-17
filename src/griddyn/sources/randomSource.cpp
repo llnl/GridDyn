@@ -23,7 +23,7 @@ randomSource::randomSource(const std::string& objName, double startVal):
 
 randomSource::~randomSource() = default;
 
-coreObject* randomSource::clone(coreObject* obj) const
+CoreObject* randomSource::clone(CoreObject* obj) const
 {
     auto* src = cloneBase<randomSource, rampSource>(this, obj);
     if (src == nullptr) {

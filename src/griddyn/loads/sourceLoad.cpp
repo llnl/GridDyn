@@ -29,7 +29,7 @@ sourceLoad::sourceLoad(sourceType type, const std::string& objName): sourceLoad(
     sourceLoad::add(makeSource(q_source));
 }
 
-coreObject* sourceLoad::clone(coreObject* obj) const
+CoreObject* sourceLoad::clone(CoreObject* obj) const
 {
     auto* nobj = cloneBase<sourceLoad, zipLoad>(this, obj);
     if (nobj == nullptr) {
@@ -93,7 +93,7 @@ static const std::map<std::string_view, int, std::less<>> source_match{
     {"ip", sourceLoad::ip_source},        {"iq", sourceLoad::iq_source},
 };
 
-void sourceLoad::add(coreObject* obj)
+void sourceLoad::add(CoreObject* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         add(static_cast<Source*>(obj));
@@ -132,7 +132,7 @@ void sourceLoad::add(Source* src)
     addSubObject(src);
 }
 
-void sourceLoad::remove(coreObject* obj)
+void sourceLoad::remove(CoreObject* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         remove(static_cast<Source*>(obj));
@@ -363,7 +363,7 @@ Source* sourceLoad::makeSource(sourceLoc loc)
     return src;
 }
 
-coreObject* sourceLoad::find(std::string_view obj) const
+CoreObject* sourceLoad::find(std::string_view obj) const
 {
     auto* src = findSource(obj);
     if (src == nullptr) {

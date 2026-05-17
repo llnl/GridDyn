@@ -37,48 +37,50 @@ class nullBlock final: public Block {
 
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double resid[],
-                               const solverMode& sMode) override;
+                               const solverMode& solverModeValue) override;
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double deriv[],
-                                 const solverMode& sMode) override;
+                                 const solverMode& solverModeValue) override;
 
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       double update[],
-                                      const solverMode& sMode) override;
+                                      const solverMode& solverModeValue) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const solverMode& solverModeValue) override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const solverMode& solverModeValue) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const solverMode& solverModeValue) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
+                                  const stateData& stateDataValue,
+                                  const solverMode& solverModeValue,
                                   check_level_t level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 
-    virtual double getBlockOutput(const stateData& sD, const solverMode& sMode) const override;
+    virtual double getBlockOutput(const stateData& stateDataValue,
+                                  const solverMode& solverModeValue) const override;
     virtual double getBlockOutput() const override;
-    virtual double getBlockDoutDt(const stateData& sD, const solverMode& sMode) const override;
+    virtual double getBlockDoutDt(const stateData& stateDataValue,
+                                  const solverMode& solverModeValue) const override;
     virtual double getBlockDoutDt() const override;
 };
 

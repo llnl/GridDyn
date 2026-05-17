@@ -19,11 +19,11 @@ controlSystem::~controlSystem() = default;
 
 CoreObject* controlSystem::clone(CoreObject* obj) const
 {
-    auto* cs = cloneBase<controlSystem, GridSubModel>(this, obj);
-    if (cs == nullptr) {
+    auto* controlSystemClone = cloneBase<controlSystem, GridSubModel>(this, obj);
+    if (controlSystemClone == nullptr) {
         return obj;
     }
-    return cs;
+    return controlSystemClone;
 }
 
 void controlSystem::add(CoreObject* obj)
@@ -44,8 +44,8 @@ void controlSystem::add(Block* blk)
 
 void controlSystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    for (auto& bb : blocks) {
-        bb->dynInitializeA(time0, flags);
+    for (auto& blockObject : blocks) {
+        blockObject->dynInitializeA(time0, flags);
     }
 }
 void controlSystem::dynObjectInitializeB(const IOdata& /*inputs*/,

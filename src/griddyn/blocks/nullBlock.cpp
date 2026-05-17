@@ -20,7 +20,7 @@ nullBlock::nullBlock(const std::string& objName): Block(objName)
 
 CoreObject* nullBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<nullBlock, GridSubModel>(this, obj);
+    auto* nobj = cloneBase<nullBlock, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -70,10 +70,11 @@ double nullBlock::step(coreTime time, double input)
     return input;
 }
 
-double nullBlock::getBlockOutput(const stateData& sD, const solverMode& sMode) const
+double nullBlock::getBlockOutput(const stateData& stateDataValue,
+                                 const solverMode& solverModeValue) const
 {
-    auto Loc = offsets.getLocations(sD, sMode, this);
-    return opFlags[differential_output] ? *Loc.diffStateLoc : *Loc.algStateLoc;
+    auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+    return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
 }
 
 double nullBlock::getBlockOutput() const
@@ -82,11 +83,12 @@ double nullBlock::getBlockOutput() const
     return m_state[offset];
 }
 
-double nullBlock::getBlockDoutDt(const stateData& sD, const solverMode& sMode) const
+double nullBlock::getBlockDoutDt(const stateData& stateDataValue,
+                                 const solverMode& solverModeValue) const
 {
     if (opFlags[differential_output]) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
-        return *Loc.dstateLoc;
+        auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
+        return *locations.dstateLoc;
     }
     return 0.0;
 }

@@ -33,7 +33,7 @@ TEST_F(LargeValidationTests, TestPjmPflow)
     std::string fileName = std::string(OTHER_TEST_DIRECTORY "pf.output.raw");
     gds = std::make_unique<gridDynSimulation>();
     readerInfo ri;
-    addflags(ri, "ignore_step_up_transformers");
+    addFlags(ri, "ignore_step_up_transformers");
     loadFile(gds, fileName, &ri);
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
     std::vector<double> gv1, gv2;

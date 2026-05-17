@@ -69,7 +69,7 @@ void readImports(std::shared_ptr<readerElement>& element,
 
         const std::string flags = getElementField(element, "flags", readerConfig::defMatchType);
         if (!flags.empty()) {
-            addflags(readerInformation, flags);
+            addFlags(readerInformation, flags);
         }
         std::string sourceFile = getElementField(element, "file", readerConfig::defMatchType);
         if (sourceFile.empty()) {
@@ -290,12 +290,12 @@ void objSetAttributes(coreObject* obj,
             std::string strVal = att.getText();
             readerInfoRef.checkFileParam(strVal);
             gridParameter paramObject(fieldName, strVal);
-            objectParameterSet(component, obj, paramObject);
+            setObjectParameter(component, obj, paramObject);
         } else if (fieldName.contains("workdir") || fieldName.contains("directory")) {
             std::string strVal = att.getText();
             readerInfoRef.checkDirectoryParam(strVal);
             gridParameter paramObject(fieldName, strVal);
-            objectParameterSet(component, obj, paramObject);
+            setObjectParameter(component, obj, paramObject);
         } else if ((fieldName == "flag") || (fieldName == "flags")) {
             // read the flags parameter
             try {
@@ -309,11 +309,11 @@ void objSetAttributes(coreObject* obj,
             if (val != readerNullVal) {
                 gridParameter paramObject(fieldName, val);
                 paramObject.paramUnits = unitType;
-                objectParameterSet(component, obj, paramObject);
+                setObjectParameter(component, obj, paramObject);
             } else {
                 gridParameter paramObject(fieldName, att.getText());
                 paramStringProcess(paramObject, readerInfoRef);
-                objectParameterSet(component, obj, paramObject);
+                setObjectParameter(component, obj, paramObject);
             }
         }
         att = element->getNextAttribute();
@@ -351,10 +351,10 @@ void paramLoopElement(coreObject* obj,
             if (param.stringType) {
                 if (param.field.contains("file") || (param.field == "fmu")) {
                     readerInfoRef.checkFileParam(param.strVal);
-                    objectParameterSet(component, obj, param);
+                    setObjectParameter(component, obj, param);
                 } else if (param.field.contains("workdir") || param.field.contains("directory")) {
                     readerInfoRef.checkDirectoryParam(param.strVal);
-                    objectParameterSet(component, obj, param);
+                    setObjectParameter(component, obj, param);
                 } else if ((fieldName == "flag") || (fieldName == "flags")) {
                     // read the flags parameter
                     paramStringProcess(param, readerInfoRef);
@@ -366,10 +366,10 @@ void paramLoopElement(coreObject* obj,
                     }
                 } else {
                     paramStringProcess(param, readerInfoRef);
-                    objectParameterSet(component, obj, param);
+                    setObjectParameter(component, obj, param);
                 }
             } else {
-                objectParameterSet(component, obj, param);
+                setObjectParameter(component, obj, param);
             }
         }
         element->moveToNextSibling();

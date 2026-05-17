@@ -29,7 +29,7 @@ namespace {
     void loadSEXS(coreObject* parentObject, stringVec& tokens);
 }  // namespace
 
-void loadDYR(coreObject* parentObject,
+void loadDyr(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& /*readerOptions*/)
 {

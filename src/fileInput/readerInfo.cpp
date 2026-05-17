@@ -286,7 +286,7 @@ coreObject* readerInfo::makeLibraryObject(std::string_view objName, coreObject* 
     coreObject* obj = objloc->second.first->clone(mobj);
     for (auto& paramObj : objloc->second.second) {
         paramStringProcess(paramObj, *this);
-        objectParameterSet(libraryLabel, obj, paramObj);
+        setObjectParameter(libraryLabel, obj, paramObj);
     }
     obj->updateName();
     return obj;

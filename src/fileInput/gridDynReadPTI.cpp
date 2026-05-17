@@ -53,7 +53,7 @@ static typeFactory<Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
-void loadPTI(coreObject* parentObject,
+void loadPti(coreObject* parentObject,
              const std::string& fileName,
              const basicReaderInfo& readerOptions)
 {
@@ -144,7 +144,7 @@ void loadPTI(coreObject* parentObject,
                     parentObject->add(busList[index]);
                 }
                 catch (const objectAddFailure&) {
-                    addToParentRename(busList[index], parentObject);
+                    addToParentWithRename(busList[index], parentObject);
                 }
             } else {
                 std::cerr << "Invalid bus code " << index << '\n';

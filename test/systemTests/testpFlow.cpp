@@ -120,7 +120,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     gds = std::make_unique<gridDynSimulation>();
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_shunt_cap_tap_limit.cdf";
 
-    loadCDF(gds.get(), fileName);
+    loadCdf(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int count = gds->getInt("totalbuscount");
@@ -180,7 +180,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     gds = std::make_unique<gridDynSimulation>();
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
-    loadCDF(gds.get(), fileName);
+    loadCdf(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int count = gds->getInt("totalbuscount");
@@ -264,7 +264,7 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
     gds = std::make_unique<gridDynSimulation>();
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
-    loadCDF(gds.get(), fileName);
+    loadCdf(gds.get(), fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
     int count = gds->getInt("totalbuscount");
@@ -355,7 +355,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         gds = std::make_unique<gridDynSimulation>();
         std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
-        loadCDF(gds.get(), fileName);
+        loadCdf(gds.get(), fileName);
 
         requireState(gridDynSimulation::gridState_t::STARTUP);
 

@@ -251,25 +251,25 @@ void GridOptObject::getVariableType(double sdata[], const OptimizationMode& oMod
     }
 }
 
-void GridOptObject::getObjName(stringVec& objNames,
-                               const OptimizationMode& oMode,
-                               const std::string& prefix)
+void GridOptObject::getObjectiveNames(stringVec& objectiveNames,
+                                      const OptimizationMode& oMode,
+                                      const std::string& prefix)
 {
     auto& offsetSet = offsets.getOffsets(oMode);
-    auto ensureSize = [&objNames](count_t offset, count_t count) {
+    auto ensureSize = [&objectiveNames](count_t offset, count_t count) {
         const auto requiredSize = static_cast<size_t>(offset) + static_cast<size_t>(count);
-        if (objNames.size() < requiredSize) {
-            objNames.resize(requiredSize);
+        if (objectiveNames.size() < requiredSize) {
+            objectiveNames.resize(requiredSize);
         }
     };
     // angle variables
     ensureSize(offsetSet.aOffset, offsetSet.total.aSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.aSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
                 getName() + ":angle_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
                 prefix + "::" + getName() + ":angle_" + std::to_string(variableIndex);
         }
     }
@@ -277,10 +277,10 @@ void GridOptObject::getObjName(stringVec& objNames,
     ensureSize(offsetSet.vOffset, offsetSet.total.vSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.vSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
                 getName() + ":voltage_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
                 prefix + "::" + getName() + ":voltage_" + std::to_string(variableIndex);
         }
     }
@@ -288,10 +288,10 @@ void GridOptObject::getObjName(stringVec& objNames,
     ensureSize(offsetSet.gOffset, offsetSet.total.genSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.genSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
                 getName() + ":power_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
                 prefix + "::" + getName() + ":power_" + std::to_string(variableIndex);
         }
     }
@@ -299,10 +299,10 @@ void GridOptObject::getObjName(stringVec& objNames,
     ensureSize(offsetSet.qOffset, offsetSet.total.qSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.qSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
                 getName() + ":reactive_power_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
                 prefix + "::" + getName() + ":reactive_power_" + std::to_string(variableIndex);
         }
     }
@@ -310,10 +310,10 @@ void GridOptObject::getObjName(stringVec& objNames,
     ensureSize(offsetSet.contOffset, offsetSet.total.contSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.contSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
                 getName() + ":continuous_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
                 prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
         }
     }
@@ -321,10 +321,10 @@ void GridOptObject::getObjName(stringVec& objNames,
     ensureSize(offsetSet.intOffset, offsetSet.total.intSize);
     for (index_t variableIndex = 0; variableIndex < offsetSet.total.intSize; ++variableIndex) {
         if (prefix.empty()) {
-            objNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
                 getName() + ":continuous_" + std::to_string(variableIndex);
         } else {
-            objNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+            objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
                 prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
         }
     }
@@ -433,10 +433,10 @@ GridOptObject* GridOptObject::getRelay(index_t /*index*/) const
     return nullptr;
 }
 
-void printObjStateNames(GridOptObject* obj, const OptimizationMode& oMode)
+void printObjectiveStateNames(GridOptObject* obj, const OptimizationMode& oMode)
 {
     std::vector<std::string> sNames;
-    obj->getObjName(sNames, oMode);
+    obj->getObjectiveNames(sNames, oMode);
     int nameIndex = 0;
     for (auto& stateName : sNames) {
         std::cout << nameIndex++ << " " << stateName << '\n';

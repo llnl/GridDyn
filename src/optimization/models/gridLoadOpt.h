@@ -74,9 +74,9 @@ class GridLoadOpt: public GridOptObject {
     virtual void constraintJacobianElements(const OptimizationData& of,
                                             matrixData<double>& md,
                                             const OptimizationMode& oMode) override;
-    virtual void getObjName(stringVec& objNames,
-                            const OptimizationMode& oMode,
-                            const std::string& prefix = "") override;
+    virtual void getObjectiveNames(stringVec& objectiveNames,
+                                   const OptimizationMode& oMode,
+                                   const std::string& prefix = "") override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

@@ -171,9 +171,9 @@ void GridRelayOpt::getConstraints(const OptimizationData& /*of*/,
                                   const OptimizationMode& /*oMode*/)
 {
 }
-void GridRelayOpt::getObjName(stringVec& /*objNames*/,
-                              const OptimizationMode& /*oMode*/,
-                              const std::string& /*prefix*/)
+void GridRelayOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
+                                     const OptimizationMode& /*oMode*/,
+                                     const std::string& /*prefix*/)
 {
 }
 

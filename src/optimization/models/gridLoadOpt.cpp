@@ -169,9 +169,9 @@ void GridLoadOpt::getConstraints(const OptimizationData& /*of*/,
                                  const OptimizationMode& /*oMode*/)
 {
 }
-void GridLoadOpt::getObjName(stringVec& /*objNames*/,
-                             const OptimizationMode& /*oMode*/,
-                             const std::string& /*prefix*/)
+void GridLoadOpt::getObjectiveNames(stringVec& /*objectiveNames*/,
+                                    const OptimizationMode& /*oMode*/,
+                                    const std::string& /*prefix*/)
 {
 }
 

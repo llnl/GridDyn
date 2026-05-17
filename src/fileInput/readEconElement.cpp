@@ -73,7 +73,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
             targetName = readerInformation.checkDefines(targetName);
             targetObject = locateObject(targetName, searchObject);
         }
-        optObject = optimizationRoot->getOptData(targetObject);
+        optObject = optimizationRoot->getOptimizationObject(targetObject);
         if (optObject != nullptr)  // check for retyping
         {
             // if we need to do a type override
@@ -176,10 +176,10 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
                 if (dynamic_cast<gridOptObject*>(obj) != nullptr) {
                     parentOptObject = static_cast<gridOptObject*>(obj);
                 } else {
-                    parentOptObject = optimizationRoot->getOptData(obj);
+                    parentOptObject = optimizationRoot->getOptimizationObject(obj);
                 }
                 if (parentOptObject == nullptr) {
-                    parentOptObject = optimizationRoot->makeOptObjectPath(obj);
+                    parentOptObject = optimizationRoot->makeOptimizationObjectPath(obj);
                 }
                 addToParent(optObject, parentOptObject);
             }
@@ -190,7 +190,7 @@ coreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
     } else if (optObject->isRoot()) {
         if ((targetObject != nullptr) && (targetObject->getParent() != nullptr)) {
-            parentOptObject = optimizationRoot->makeOptObjectPath(targetObject->getParent());
+            parentOptObject = optimizationRoot->makeOptimizationObjectPath(targetObject->getParent());
             addToParent(optObject, parentOptObject);
         } else {
             // set the base power to the system default (usually used for library objects

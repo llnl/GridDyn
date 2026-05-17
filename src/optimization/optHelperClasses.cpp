@@ -213,12 +213,12 @@ void OptimizationOffsetTable::setConstraintOffset(index_t newOffset, const Optim
     offsetContainer[oMode.offsetIndex].constraintOffset = newOffset;
 }
 
-index_t OptimizationOffsetTable::getaOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getAngleOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).aOffset;
 }
 
-index_t OptimizationOffsetTable::getvOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getVoltageOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).vOffset;
 }
@@ -233,12 +233,12 @@ index_t OptimizationOffsetTable::getIntOffset(const OptimizationMode& oMode) con
     return getOffsets(oMode).intOffset;
 }
 
-index_t OptimizationOffsetTable::getgOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getGenerationOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).gOffset;
 }
 
-index_t OptimizationOffsetTable::getqOffset(const OptimizationMode& oMode) const
+index_t OptimizationOffsetTable::getReactiveGenerationOffset(const OptimizationMode& oMode) const
 {
     return getOffsets(oMode).qOffset;
 }

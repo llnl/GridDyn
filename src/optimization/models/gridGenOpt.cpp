@@ -332,14 +332,20 @@ void GridGenOpt::constraintJacobianElements(const OptimizationData& /* of */,
 {
 }
 
-void GridGenOpt::getObjName(stringVec& objNames,
-                            const OptimizationMode& oMode,
-                            const std::string& prefix)
+void GridGenOpt::getObjectiveNames(stringVec& objectiveNames,
+                                   const OptimizationMode& oMode,
+                                   const std::string& prefix)
 {
     auto& oo = offsets.getOffsets(oMode);
-    objNames[oo.gOffset] = prefix + getName() + ":PGen";
+    if (objectiveNames.size() <= static_cast<size_t>(oo.gOffset)) {
+        objectiveNames.resize(static_cast<size_t>(oo.gOffset) + 1);
+    }
+    objectiveNames[oo.gOffset] = prefix + getName() + ":PGen";
     if (isAC(oMode)) {
-        objNames[oo.gOffset] = prefix + getName() + ":QGen";
+        if (objectiveNames.size() <= static_cast<size_t>(oo.qOffset)) {
+            objectiveNames.resize(static_cast<size_t>(oo.qOffset) + 1);
+        }
+        objectiveNames[oo.qOffset] = prefix + getName() + ":QGen";
     }
 }
 

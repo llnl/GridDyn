@@ -49,7 +49,7 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         virtual coreTime Run() override;
 
         /** update the FMI outputs*/
-        void UpdateOutputs();
+        void updateOutputs();
 
         virtual coreTime Step(coreTime time) override;
         virtual void StepAsync(coreTime time) override;
@@ -61,11 +61,11 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
       public:
         virtual int Reset() override;
 
-        id_type_t GetID() const;
+        id_type_t getId() const;
 
-        virtual bool Set(index_t valueReference, double inputValue);
-        virtual bool SetString(index_t valueReference, const char* stringValue);
-        virtual double Get(index_t valueReference);
+        virtual bool setValue(index_t valueReference, double inputValue);
+        virtual bool setStringValue(index_t valueReference, const char* stringValue);
+        virtual double getValue(index_t valueReference);
 
         void setLoggingCategories(std::bitset<7> logCat) { mLoggingCategories = logCat; }
         /** check whether the runner is set to run asynchronously*/

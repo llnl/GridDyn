@@ -9,43 +9,35 @@
 #include <climits>
 #include <vector>
 
-// SGS make this an enum, #defines are bad.  Moved into class
-#define MODELSPECTAG 1
-#define VOLTAGESTEPTAG 2
-#define CURRENTTAG 3
-#define STOPTAG 4
-
 namespace griddyn {
-enum class messageTags {
-    model_spec = 1,
-    voltage_step = 2,
-    current = 3,
-    stop = 4,
+enum class MessageTags {
+    MODEL_SPEC = 1,
+    VOLTAGE_STEP = 2,
+    CURRENT = 3,
+    STOP = 4,
 };
 /**
  * Voltage message sent from transmission to distribution.
  */
 
-typedef struct {
+struct ThreePhaseValue {
     double real[3];
     double imag[3];
-} ThreePhaseValue;
+};
 
-struct Vmessage {
+struct VoltageMessage {
     ThreePhaseValue voltage[3];  // LEB: Start with 3 for now...grow later
     int numThreePhaseVoltage;
     unsigned int deltaTime;
 };
-typedef struct Vmessage VoltageMessage;
 
 /**
  * Current message sent from distribution to transmission.
  */
-struct Cmessage {
+struct CurrentMessage {
     ThreePhaseValue current[3];
     int numThreePhaseCurrent;
 };
-typedef struct Cmessage CurrentMessage;
 
 /**
  * Command line message to initialize a new distribution system model.

@@ -24,14 +24,14 @@ ProtectionMessage::ProtectionMessage():
 {
 }
 
-ProtectionMessage::ProtectionMessage(ProtectionMessage::MESSAGE_TYPE messageType):
+ProtectionMessage::ProtectionMessage(ProtectionMessage::MessageType messageType):
     EventMessage(), mMessageType(messageType)
 {
 }
 
 ProtectionMessage::~ProtectionMessage() {}
 
-ProtectionMessage::MESSAGE_TYPE ProtectionMessage::GetMessageType()
+ProtectionMessage::MessageType ProtectionMessage::GetMessageType()
 {
     return mMessageType;
 }

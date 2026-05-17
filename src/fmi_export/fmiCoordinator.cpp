@@ -189,7 +189,7 @@ void FmiCoordinator::updateOutputs(coreTime time)
     }
 }
 
-const std::string& FmiCoordinator::getFMIName() const
+const std::string& FmiCoordinator::getFmiName() const
 {
     return getParent()->getName();
 }

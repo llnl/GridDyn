@@ -9,7 +9,7 @@
 namespace griddyn {
 class readerInfo;
 
-void loadFMIExportObjects();
+void loadFmiExportObjects();
 
 void loadFmiExportReaderInfoDefinitions(readerInfo& readerInformation);
 

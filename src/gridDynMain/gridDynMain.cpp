@@ -27,13 +27,13 @@
 #endif
 
 namespace {
-enum class exec_mode_t : std::uint8_t {
-    normal = 0,
-    mpicount = 1,
-    helics = 2,
-    buildfmu = 3,
-    dime = 4,
-    buildgdz = 5,
+enum class ExecMode : std::uint8_t {
+    NORMAL = 0,
+    MPICOUNT = 1,
+    HELICS = 2,
+    BUILDFMU = 3,
+    DIME = 4,
+    BUILDGDZ = 5,
 };
 }
 
@@ -52,40 +52,40 @@ int main(int argc, char* argv[])
         // required (command line arg, config file?)
         griddyn::loadLibraries();
 
-        auto executionMode = exec_mode_t::normal;
+        auto executionMode = ExecMode::NORMAL;
         // check for different options
         for (int ii = 1; ii < argc; ++ii) {
             if (strcmp("--mpicount", argv[ii]) == 0) {
-                executionMode = exec_mode_t::mpicount;
+                executionMode = ExecMode::MPICOUNT;
                 break;
             }
             if (strncmp("--buildgdz", argv[ii], 10) == 0) {
-                executionMode = exec_mode_t::buildgdz;
+                executionMode = ExecMode::BUILDGDZ;
                 break;
             }
 #ifdef ENABLE_FMI_EXPORT
             if (strncmp("--buildfmu", argv[ii], 10) == 0) {
-                executionMode = exec_mode_t::buildfmu;
+                executionMode = ExecMode::BUILDFMU;
                 break;
             }
 #endif
 #ifdef ENABLE_HELICS_EXECUTABLE
             if (strcmp("--helics", argv[ii]) == 0) {
-                executionMode = exec_mode_t::helics;
+                executionMode = ExecMode::HELICS;
 
                 break;
             }
 #endif
 #ifdef ENABLE_DIME
             if (strcmp("--dime", argv[ii]) == 0) {
-                executionMode = exec_mode_t::dime;
+                executionMode = ExecMode::DIME;
                 break;
             }
 #endif
         }
 
         switch (executionMode) {
-            case exec_mode_t::normal: {
+            case ExecMode::NORMAL: {
                 auto runner = std::make_unique<griddyn::GriddynRunner>(simulation);
                 auto returnCode = runner->Initialize(argc, argv);
                 if (returnCode > 0) {
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
                 runner->simInitialize();
                 runner->Run();
             } break;
-            case exec_mode_t::mpicount: {
+            case ExecMode::MPICOUNT: {
                 auto runner = std::make_unique<griddyn::GriddynRunner>(simulation);
                 auto returnCode = runner->Initialize(argc, argv);
                 if (returnCode > 0) {
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
                 simulation->countMpiObjects(true);
             }
                 return 0;
-            case exec_mode_t::buildfmu:
+            case ExecMode::BUILDFMU:
 #ifdef ENABLE_FMI_EXPORT
             {
                 simulation->log(nullptr,
@@ -120,11 +120,11 @@ int main(int argc, char* argv[])
                 if (returnCode < 0) {
                     return returnCode;
                 }
-                builder->MakeFmu();
+                builder->makeFmu();
             }
 #endif
                 return 0;
-            case exec_mode_t::helics: {
+            case ExecMode::HELICS: {
 #ifdef ENABLE_HELICS_EXECUTABLE
                 auto runner = std::make_unique<helicsLib::HelicsRunner>(simulation);
                 simulation->log(nullptr,
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
                 }
 #endif
             } break;
-            case exec_mode_t::dime: {
+            case ExecMode::DIME: {
 #ifdef ENABLE_DIME
                 auto runner = std::make_unique<dimeLib::DimeRunner>(simulation);
                 simulation->log(nullptr,
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
                 runner->Run();
 #endif
             }
-            case exec_mode_t::buildgdz:
+            case ExecMode::BUILDGDZ:
                 simulation->log(nullptr,
                                 griddyn::print_level::error,
                                 std::string("GDZ builder not implemented yet"));

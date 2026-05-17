@@ -62,7 +62,7 @@ const std::string& FmiCollector::getSinkName() const
 {
     static const std::string defaultFMIName{defFMIName};
     if (mCoordinator != nullptr) {
-        return mCoordinator->getFMIName();
+        return mCoordinator->getFmiName();
     }
     return defaultFMIName;
 }

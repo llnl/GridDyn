@@ -20,20 +20,20 @@ namespace griddyn {
 static childClassFactory<FskitCommunicator, griddyn::Communicator>
     commFac(std::vector<std::string>{"fskit"});
 
-fskitRunner::fskitRunner() {}
+FskitRunner::FskitRunner() {}
 
-int fskitRunner::Initialize(
+int FskitRunner::Initialize(
     int argc,
     char* argv[],
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler)
 {
     if (grantedTimeWindowScheduler) {
-        GriddynFederatedScheduler::Initialize(grantedTimeWindowScheduler);
+        GridDynFederatedScheduler::initialize(grantedTimeWindowScheduler);
     }
     return Initialize(argc, argv);
 }
 
-int fskitRunner::Initialize(int argc, char* argv[])
+int FskitRunner::Initialize(int argc, char* argv[])
 {
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Initialize");
     auto returnValue = GriddynRunner::Initialize(argc, argv);
@@ -42,13 +42,13 @@ int fskitRunner::Initialize(int argc, char* argv[])
     return returnValue;
 }
 
-coreTime fskitRunner::Run()
+coreTime FskitRunner::Run()
 {
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Run");
     return GriddynRunner::Run();
 }
 
-void fskitRunner::Finalize()
+void FskitRunner::Finalize()
 {
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Finalize");
     GriddynRunner::Finalize();

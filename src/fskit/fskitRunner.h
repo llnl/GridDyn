@@ -19,9 +19,9 @@ class GrantedTimeWindowScheduler;
 }
 
 namespace griddyn {
-class fskitRunner: public GriddynRunner {
+class FskitRunner: public GriddynRunner {
   public:
-    fskitRunner();
+    FskitRunner();
 
   private:
     using GriddynRunner::Initialize;

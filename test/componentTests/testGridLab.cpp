@@ -21,7 +21,7 @@ TEST_F(GridLabTests, GridlabTest1)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
-    GhostSwingBusManager::SetDebug(false);
+    GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod.xml");
     gds = readSimXMLFile(fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -57,7 +57,7 @@ TEST_F(GridLabTests, GridlabTest2)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
-    GhostSwingBusManager::SetDebug(false);
+    GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x.xml");
     gds = readSimXMLFile(fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -95,7 +95,7 @@ TEST_F(GridLabTests, GridlabTest3)
 {
     int argc = 0;
     GhostSwingBusManager::initialize(&argc, nullptr);
-    GhostSwingBusManager::SetDebug(false);
+    GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x_current.xml");
     gds = readSimXMLFile(fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
@@ -135,7 +135,7 @@ TEST_F(GridLabTests, TestGridlabArray)
     int argc = 0;
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x_mix_scale.xml");
     GhostSwingBusManager::initialize(&argc, nullptr);
-    GhostSwingBusManager::SetDebug(false);
+    GhostSwingBusManager::setDebug(false);
     readerInfo ri;
     ri.keepdefines = true;
     gds = readSimXMLFile(fileName, &ri);

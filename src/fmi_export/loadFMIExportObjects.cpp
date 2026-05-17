@@ -40,7 +40,7 @@ namespace {
     }
 }  // namespace
 
-void loadFMIExportObjects()
+void loadFmiExportObjects()
 {
     registerFmiExportFactories();
 }

@@ -18,9 +18,9 @@ namespace griddyn::mpi {
 class MpiService {
   public:
     /** helper class for ordering MPI calls*/
-    class tokenholder {
+    class TokenHolder {
       public:
-        explicit tokenholder(std::unique_lock<std::mutex> lock, bool lockable = true):
+        explicit TokenHolder(std::unique_lock<std::mutex> lock, bool lockable = true):
             m_lock(std::move(lock)), needsLocking(lockable)
         {
         }
@@ -49,7 +49,7 @@ class MpiService {
     };
 
   public:
-    using token = std::unique_ptr<tokenholder>;
+    using Token = std::unique_ptr<TokenHolder>;
     /**
      * Create a new instance of the MpiService.  This should be
      * called at the program launch with the command line arguments
@@ -75,7 +75,7 @@ class MpiService {
 @throws runtime_error if a token cannot be obtained
 @return a token object. The token can be released or claimed
 */
-    token getToken();
+    Token getToken();
 
     ~MpiService();
 

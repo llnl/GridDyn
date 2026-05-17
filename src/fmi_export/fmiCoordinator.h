@@ -95,7 +95,7 @@ buffer
     void updateOutputs(coreTime time);
 
     /** get a string representing the FMIName of the current simulation*/
-    const std::string& getFMIName() const;
+    const std::string& getFmiName() const;
     /** get a vector of the inputs*/
     const std::vector<VrInputPair>& getInputs() const { return mInputVr; }
     /** get a vector of the parameter object*/

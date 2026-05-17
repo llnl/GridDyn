@@ -20,7 +20,7 @@
 namespace griddyn {
 
 #ifdef GRIDDYN_ENABLE_MPI
-class MPIRequests {
+class MpiRequests {
   public:
     std::vector<MPI_Request> m_mpiSendRequests;
     std::vector<MPI_Request> m_mpiRecvRequests;
@@ -72,7 +72,7 @@ GhostSwingBusManager::GhostSwingBusManager(int* argc, char** argv[])
 
     m_initializeCompleted.resize(m_numTasks);
     m_modelSpecificationMessages.resize(m_numTasks);
-    requests = new MPIRequests;
+    requests = new MpiRequests;
     requests->m_mpiSendRequests.resize(m_numTasks);
     requests->m_mpiRecvRequests.resize(m_numTasks);
 #else
@@ -114,7 +114,7 @@ int GhostSwingBusManager::createGridlabDInstance(std::string_view arguments)
               static_cast<int>(m_modelSpecificationMessages[taskId].size()),
               MPI_CHAR,
               taskId,
-              MODELSPECTAG,
+              static_cast<int>(MessageTags::MODEL_SPEC),
               MPI_COMM_WORLD,
               &requests->m_mpiSendRequests[taskId]);
 
@@ -147,15 +147,15 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
                   << '\n';
     }
 
-    for (int i = 0; i < numThreePhaseVoltage; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int ii = 0; ii < numThreePhaseVoltage; ++ii) {
+        for (int jj = 0; jj < 3; ++jj) {
             if (g_printStuff) {
-                std::cout << "\tvoltage[" << i << "][" << j << "] = " << voltage[(i * 3) + j]
-                          << " abs = " << std::abs(voltage[(i * 3) + j])
-                          << " arg = " << std::arg(voltage[(i * 3) + j]) << '\n';
+                std::cout << "\tvoltage[" << ii << "][" << jj << "] = " << voltage[(ii * 3) + jj]
+                          << " abs = " << std::abs(voltage[(ii * 3) + jj])
+                          << " arg = " << std::arg(voltage[(ii * 3) + jj]) << '\n';
             }
-            m_voltSendMessage[taskId].voltage[i].real[j] = voltage[(i * 3) + j].real();
-            m_voltSendMessage[taskId].voltage[i].imag[j] = voltage[(i * 3) + j].imag();
+            m_voltSendMessage[taskId].voltage[ii].real[jj] = voltage[(ii * 3) + jj].real();
+            m_voltSendMessage[taskId].voltage[ii].imag[jj] = voltage[(ii * 3) + jj].imag();
         }
     }
     m_voltSendMessage[taskId].numThreePhaseVoltage = numThreePhaseVoltage;
@@ -178,7 +178,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
               sizeof(VoltageMessage),
               MPI_BYTE,
               taskId,
-              VOLTAGESTEPTAG,
+              static_cast<int>(MessageTags::VOLTAGE_STEP),
               MPI_COMM_WORLD,
               &requests->m_mpiSendRequests[taskId]);
 
@@ -186,7 +186,7 @@ void GhostSwingBusManager::sendVoltageStep(int taskId, cvec& voltage, unsigned i
               sizeof(CurrentMessage),
               MPI_BYTE,
               taskId,
-              CURRENTTAG,
+              static_cast<int>(MessageTags::CURRENT),
               MPI_COMM_WORLD,
               &requests->m_mpiRecvRequests[taskId]);
 
@@ -207,7 +207,12 @@ void GhostSwingBusManager::sendStopMessage(int taskId)
 #ifdef GRIDDYN_ENABLE_MPI
     // Blocking send to gridlabd task
     auto token = servicer->getToken();
-    MPI_Send(&m_voltSendMessage[taskId], 1, MPI_BYTE, taskId, STOPTAG, MPI_COMM_WORLD);
+    MPI_Send(&m_voltSendMessage[taskId],
+             1,
+             MPI_BYTE,
+             taskId,
+             static_cast<int>(MessageTags::STOP),
+             MPI_COMM_WORLD);
 #endif
 }
 
@@ -238,15 +243,15 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
     const std::size_t currentSize =
         (numThreePhaseCurrent > 0) ? static_cast<std::size_t>(numThreePhaseCurrent) * 3U : 0U;
     current.resize(currentSize);  // resize vector to number of three phase currents received.
-    for (int i = 0; i < numThreePhaseCurrent; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            current[(i * 3) + j].real(m_currReceiveMessage[taskId].current[i].real[j]);
-            current[(i * 3) + j].imag(m_currReceiveMessage[taskId].current[i].imag[j]);
+    for (int ii = 0; ii < numThreePhaseCurrent; ++ii) {
+        for (int jj = 0; jj < 3; ++jj) {
+            current[(ii * 3) + jj].real(m_currReceiveMessage[taskId].current[ii].real[jj]);
+            current[(ii * 3) + jj].imag(m_currReceiveMessage[taskId].current[ii].imag[jj]);
             if (g_printStuff) {
-                std::cout << "\tcurrReceiveMessage, current[" << (i * 3) + j
-                          << "] = " << current[(i * 3) + j]
-                          << " abs = " << std::abs(current[(i * 3) + j])
-                          << " arg = " << std::arg(current[(i * 3) + j]) << '\n';
+                std::cout << "\tcurrReceiveMessage, current[" << (ii * 3) + jj
+                          << "] = " << current[(ii * 3) + jj]
+                          << " abs = " << std::abs(current[(ii * 3) + jj])
+                          << " arg = " << std::arg(current[(ii * 3) + jj]) << '\n';
             }
         }
     }
@@ -255,8 +260,8 @@ void GhostSwingBusManager::getCurrent(int taskId, cvec& current)
 // must cleanup MPI
 void GhostSwingBusManager::endSimulation()
 {
-    for (int i = 1; i < getNumTasks(); ++i) {
-        sendStopMessage(i);
+    for (int taskIndex = 1; taskIndex < getNumTasks(); ++taskIndex) {
+        sendStopMessage(taskIndex);
     }
 
 #ifdef GRIDDYN_ENABLE_MPI

@@ -192,4 +192,3 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
 }
 }  // namespace griddyn::sources
 // NOLINTEND
-

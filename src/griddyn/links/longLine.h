@@ -50,4 +50,3 @@ class longLine: public subsystem {
 };
 
 }  // namespace griddyn::links
-

@@ -291,4 +291,3 @@ double stringBlocktoDouble(string_view block, readerInfo& ri)
 
 }  // namespace griddyn
 // NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)
-

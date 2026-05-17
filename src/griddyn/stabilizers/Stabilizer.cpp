@@ -80,4 +80,3 @@ void Stabilizer::derivative(const IOdata& /*inputs*/,
 }
 
 }  // namespace griddyn
-

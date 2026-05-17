@@ -965,4 +965,3 @@ void Relay::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
-

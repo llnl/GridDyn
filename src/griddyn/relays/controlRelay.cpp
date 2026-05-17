@@ -400,4 +400,3 @@ index_t controlRelay::getFreeAction()
 }
 }  // namespace griddyn::relays
 // NOLINTEND
-

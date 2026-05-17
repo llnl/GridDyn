@@ -65,4 +65,3 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     virtual void limitJacobian(double V, int Vloc, int refLoc, double cj, matrixData<double>& md);
 };
 }  // namespace griddyn::exciters
-

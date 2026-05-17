@@ -373,4 +373,3 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& reade
 }
 
 }  // namespace griddyn
-

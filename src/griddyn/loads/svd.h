@@ -137,4 +137,3 @@ class svd: public rampLoad {
     virtual void updateSetting(int step);
 };
 }  // namespace griddyn::loads
-

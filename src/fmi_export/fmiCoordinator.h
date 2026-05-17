@@ -112,4 +112,3 @@ buffer
 };
 
 }  // namespace griddyn::fmi
-

@@ -42,4 +42,3 @@ class HelicsGhostBus: public gridBus {
 };
 
 }  // namespace griddyn::helicsLib
-

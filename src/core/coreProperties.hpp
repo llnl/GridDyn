@@ -30,4 +30,3 @@ class coreObjectProperty {
 @param[in] npos a gridPositionObject
 */
 // void loadPosition (std::shared_ptr<gridPositionInfo> npos);
-

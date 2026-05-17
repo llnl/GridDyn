@@ -105,4 +105,3 @@ class grabberSet: public objectOperatorInterface {
 };
 
 }  // namespace griddyn
-

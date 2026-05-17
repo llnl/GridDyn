@@ -226,4 +226,3 @@ double pulseSource::pulseCalc(double timeDelta) const
     return pamp;
 }
 }  // namespace griddyn::sources
-

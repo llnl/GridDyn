@@ -881,4 +881,3 @@ bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus, bool printDiff)
 }
 
 }  // namespace griddyn
-

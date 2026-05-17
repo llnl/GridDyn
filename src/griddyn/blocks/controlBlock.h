@@ -71,4 +71,3 @@ class controlBlock: public Block {
 };
 
 }  // namespace griddyn::blocks
-

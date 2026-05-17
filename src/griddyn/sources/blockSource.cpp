@@ -394,4 +394,3 @@ CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) co
     return gridComponent::getSubObject(typeName, num);
 }
 }  // namespace griddyn::sources
-

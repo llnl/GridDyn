@@ -156,4 +156,3 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
 };
 }  // namespace griddyn::fmi
-

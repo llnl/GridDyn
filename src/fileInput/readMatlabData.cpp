@@ -174,4 +174,3 @@ stringVec readMatlabCellArray(const std::string& text, size_t start)
 }
 
 }  // namespace griddyn
-

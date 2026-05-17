@@ -247,4 +247,3 @@ class readerInfo: public basicReaderInfo {
 };
 
 }  // namespace griddyn
-

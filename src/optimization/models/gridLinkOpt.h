@@ -115,4 +115,3 @@ class GridLinkOpt: public GridOptObject {
 };
 
 }  // namespace griddyn
-

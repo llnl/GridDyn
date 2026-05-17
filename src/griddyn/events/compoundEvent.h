@@ -45,4 +45,3 @@ class compoundEvent: public Event {
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 };
 }  // namespace griddyn::events
-

@@ -49,4 +49,3 @@ class exponentialLoad: public Load {
     virtual double getReactivePower() const override;
 };
 }  // namespace griddyn::loads
-

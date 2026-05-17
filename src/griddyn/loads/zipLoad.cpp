@@ -627,4 +627,3 @@ bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool /*printDiff*/)
 }
 
 }  // namespace griddyn
-

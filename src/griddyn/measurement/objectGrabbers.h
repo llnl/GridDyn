@@ -278,4 +278,3 @@ class objectOffsetGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
-

@@ -51,4 +51,3 @@ class lutBlock: public Block {
     double computeValue(double input);
 };
 }  // namespace griddyn::blocks
-

@@ -48,4 +48,3 @@ namespace events {
     };
 }  // namespace events
 }  // namespace griddyn
-

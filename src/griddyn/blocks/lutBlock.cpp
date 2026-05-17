@@ -166,4 +166,3 @@ double lutBlock::computeValue(double input)
 }
 
 }  // namespace griddyn::blocks
-

@@ -54,4 +54,3 @@ class HelicsSource: public sources::rampSource {
 };
 
 }  // namespace griddyn::helicsLib
-

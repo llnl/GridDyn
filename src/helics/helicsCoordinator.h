@@ -220,4 +220,3 @@ class HelicsCoordinator: public CoreObject {
 };
 
 }  // namespace griddyn::helicsLib
-

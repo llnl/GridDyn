@@ -59,4 +59,3 @@ class pulseSource: public Source {
 };
 
 }  // namespace griddyn::sources
-

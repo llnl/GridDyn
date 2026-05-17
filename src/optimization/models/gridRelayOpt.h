@@ -104,4 +104,3 @@ class GridRelayOpt: public GridOptObject {
 };
 
 }  // namespace griddyn
-

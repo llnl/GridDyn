@@ -14,4 +14,3 @@
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
 
 TEST(GridModelParameterTests, BasicSmokeTest) {}
-

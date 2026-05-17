@@ -140,4 +140,3 @@ class GridBusOpt: public GridOptObject {
 GridBusOpt* getMatchingBusOpt(GridBusOpt* bus, const GridOptObject* src, GridOptObject* sec);
 
 }  // namespace griddyn
-

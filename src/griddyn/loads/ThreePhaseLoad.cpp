@@ -460,4 +460,3 @@ const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
 
 // NOLINTEND(readability-identifier-length,bugprone-throwing-static-initialization,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 }  // namespace griddyn::loads
-

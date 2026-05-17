@@ -109,4 +109,3 @@ class GridGenOpt: public GridOptObject {
 };
 
 }  // namespace griddyn
-

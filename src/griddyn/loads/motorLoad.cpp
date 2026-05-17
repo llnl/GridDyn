@@ -618,4 +618,3 @@ double motorLoad::qPower(double vin, double slip) const
     return reactivePowerOutput;
 }
 }  // namespace griddyn::loads
-

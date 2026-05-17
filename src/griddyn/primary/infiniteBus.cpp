@@ -124,4 +124,3 @@ bool infiniteBus::checkCapable()
 }
 
 }  // namespace griddyn
-

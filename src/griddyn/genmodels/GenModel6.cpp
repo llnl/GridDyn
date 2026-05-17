@@ -272,4 +272,3 @@ stringVec GenModel6::localStateNames() const
     return genModel6Names;
 }
 }  // namespace griddyn::genmodels
-

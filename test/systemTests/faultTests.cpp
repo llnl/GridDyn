@@ -375,4 +375,3 @@ TEST_F(FaultTests, LinkTestFaultBreaker4)
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #endif
-

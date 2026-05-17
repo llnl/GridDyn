@@ -217,4 +217,3 @@ GridOptObject* GridLoadOpt::getArea(index_t index) const
 }
 
 }  // namespace griddyn
-

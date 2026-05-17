@@ -367,4 +367,3 @@ class functionEventAdapter: public eventAdapter {
 };
 
 }  // namespace griddyn
-

@@ -147,4 +147,3 @@ double reversibleEvent::query()
 }
 
 }  // namespace griddyn::events
-

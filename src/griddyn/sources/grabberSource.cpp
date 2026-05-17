@@ -149,4 +149,3 @@ void grabberSource::updateTarget(CoreObject* obj)
     target = obj->getName();
 }
 }  // namespace griddyn::sources
-

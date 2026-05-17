@@ -269,4 +269,3 @@ void GovernorTgov1::set(std::string_view param, double val, unit unitType)
     }
 }
 }  // namespace griddyn::governors
-

@@ -24,4 +24,3 @@ class FmiExciter: public FmiMEWrapper<Exciter> {
 };
 
 }  // namespace griddyn::fmi
-

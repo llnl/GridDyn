@@ -208,4 +208,3 @@ void frequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 }  // namespace griddyn::loads
-

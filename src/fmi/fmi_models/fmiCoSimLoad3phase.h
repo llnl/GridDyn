@@ -43,4 +43,3 @@ class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
 };
 
 }  // namespace griddyn::fmi
-

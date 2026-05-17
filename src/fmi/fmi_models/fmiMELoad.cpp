@@ -107,4 +107,3 @@ IOdata FmiMELoad::translateOutput(const IOdata& fmiOutput, const IOdata& busV)
     return powers;
 }
 }  // namespace griddyn::fmi
-

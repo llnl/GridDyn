@@ -785,4 +785,3 @@ GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObjec
 
 }  // namespace griddyn
 // NOLINTEND(misc-no-recursion,bugprone-branch-clone)
-

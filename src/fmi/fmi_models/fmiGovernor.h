@@ -24,4 +24,3 @@ class FmiGovernor: public FmiMEWrapper<Governor> {
 };
 
 }  // namespace griddyn::fmi
-

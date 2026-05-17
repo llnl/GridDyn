@@ -58,4 +58,3 @@ class FmiEvent: public events::reversibleEvent {
 };
 
 }  // namespace griddyn::fmi
-

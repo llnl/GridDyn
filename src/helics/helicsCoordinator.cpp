@@ -386,4 +386,3 @@ void HelicsCoordinator::finalize()
     }
 }
 }  // namespace griddyn::helicsLib
-

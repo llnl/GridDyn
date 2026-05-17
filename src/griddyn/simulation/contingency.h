@@ -223,4 +223,3 @@ void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
                             int count2 = 0);
 
 }  // namespace griddyn
-

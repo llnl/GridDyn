@@ -159,4 +159,3 @@ void rampLoad::clearRamp()
     dYpdt = 0.0;
 }
 }  // namespace griddyn::loads
-

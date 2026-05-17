@@ -126,4 +126,3 @@ object in a hierarchy
 */
 void printStateSizes(const gridComponent* comp, const solverMode& sMode);
 }  // namespace griddyn
-

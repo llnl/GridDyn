@@ -45,4 +45,3 @@ class GovernorSteamTCSR: public GovernorSteamNR {
 };
 
 }  // namespace griddyn::governors
-

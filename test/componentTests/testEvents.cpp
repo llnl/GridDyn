@@ -38,4 +38,3 @@ TEST_F(EventTests, EventTest1) {}
 TEST_F(EventTests, EventTest2) {}
 TEST_F(EventTests, EventTest3) {}
 TEST_F(EventTests, EventTest4) {}
-

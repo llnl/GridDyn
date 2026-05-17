@@ -92,4 +92,3 @@ class GridLoadOpt: public GridOptObject {
 };
 
 }  // namespace griddyn
-

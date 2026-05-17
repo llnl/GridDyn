@@ -503,4 +503,3 @@ print_level stringToPrintLevel(const std::string& level)
 }
 
 }  // namespace griddyn
-

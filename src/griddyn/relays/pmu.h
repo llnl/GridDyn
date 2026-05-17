@@ -63,4 +63,3 @@ class pmu: public sensor {
 };
 
 }  // namespace griddyn::relays
-

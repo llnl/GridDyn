@@ -32,4 +32,3 @@ class rampSource: public Source {
     void clearRamp() { mp_dOdt = 0.0; }
 };
 }  // namespace griddyn::sources
-

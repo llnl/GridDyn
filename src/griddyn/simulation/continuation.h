@@ -52,4 +52,3 @@ class continuationSequence {
 };
 
 }  // namespace griddyn
-

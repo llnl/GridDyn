@@ -216,4 +216,3 @@ OptimizerInterface* GridDynOptimization::updateOptimizer(const OptimizationMode&
 }
 
 }  // namespace griddyn
-

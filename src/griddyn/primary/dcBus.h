@@ -126,4 +126,3 @@ class dcBus: public gridBus {
 };
 
 }  // namespace griddyn
-

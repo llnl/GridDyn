@@ -339,4 +339,3 @@ std::string zonalRelay::generateAutoName(int code)
     return autoname;
 }
 }  // namespace griddyn::relays
-

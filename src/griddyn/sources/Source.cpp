@@ -152,4 +152,3 @@ double Source::computeOutput(coreTime /*time*/) const
     return m_output;
 }
 }  // namespace griddyn
-

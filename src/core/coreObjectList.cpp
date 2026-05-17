@@ -180,4 +180,3 @@ void coreObjectList::updateObject(CoreObject* obj)
 }
 
 }  // namespace griddyn
-

@@ -164,4 +164,3 @@ class gridSecondary: public gridComponent {
 };
 
 }  // namespace griddyn
-

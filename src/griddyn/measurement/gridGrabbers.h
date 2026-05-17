@@ -187,4 +187,3 @@ class opGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
-

@@ -248,4 +248,3 @@ change_code ExciterSEXS::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::exciters
-

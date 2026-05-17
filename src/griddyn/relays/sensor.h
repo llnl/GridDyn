@@ -208,4 +208,3 @@ class sensor: public Relay {
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;
 };
 }  // namespace griddyn
-

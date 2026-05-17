@@ -63,4 +63,3 @@ class delayBlock: public Block {
 };
 
 }  // namespace griddyn::blocks
-

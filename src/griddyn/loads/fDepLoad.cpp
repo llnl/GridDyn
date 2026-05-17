@@ -179,4 +179,3 @@ double fDepLoad::getReactivePower(double V, double f) const
     return 0.0;
 }
 }  // namespace griddyn::loads
-

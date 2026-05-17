@@ -178,4 +178,3 @@ change_code ExciterDC2A::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::exciters
-

@@ -235,4 +235,3 @@ stringVec controlBlock::localStateNames() const
     return out;
 }
 }  // namespace griddyn::blocks
-

@@ -110,4 +110,3 @@ double exponentialLoad::getReactivePower(double V) const
     return 0.0;
 }
 }  // namespace griddyn::loads
-

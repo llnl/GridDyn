@@ -1092,4 +1092,3 @@ void gridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, Curren
 #endif  // GRIDDYN_ENABLE_MPI
 
 }  // namespace griddyn::loads
-

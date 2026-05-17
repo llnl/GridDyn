@@ -284,4 +284,3 @@ void GenModel4::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::genmodels
-

@@ -1190,4 +1190,3 @@ void epcReadTX(CoreObject* parentObject,
 
 // NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,modernize-use-integer-sign-comparison,bugprone-implicit-widening-of-multiplication-result,readability-isolate-declaration,modernize-use-starts-ends-with,bugprone-branch-clone,readability-qualified-auto)
 }  // namespace griddyn
-

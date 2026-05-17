@@ -61,4 +61,3 @@ class ExciterIEEEtype1: public Exciter {
 };
 
 }  // namespace griddyn::exciters
-

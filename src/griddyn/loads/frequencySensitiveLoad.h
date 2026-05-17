@@ -75,4 +75,3 @@ class frequencySensitiveLoad: public Load {
 };
 
 }  // namespace griddyn::loads
-

@@ -116,4 +116,3 @@ namespace relays {
     };
 }  // namespace relays
 }  // namespace griddyn
-

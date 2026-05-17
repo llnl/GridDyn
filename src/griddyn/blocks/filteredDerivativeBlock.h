@@ -60,4 +60,3 @@ class filteredDerivativeBlock: public Block {
     // virtual void setTime(coreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks
-

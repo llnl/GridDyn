@@ -243,4 +243,3 @@ units::unit gridSecondary::outputUnits(index_t outputNum) const
 }
 
 }  // namespace griddyn
-

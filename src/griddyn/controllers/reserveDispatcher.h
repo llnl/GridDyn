@@ -65,4 +65,3 @@ class reserveDispatcher: public CoreObject {
 };
 
 }  // namespace griddyn
-

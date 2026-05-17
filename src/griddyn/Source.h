@@ -69,4 +69,3 @@ class Source: public gridSubModel {
 };
 
 }  // namespace griddyn
-

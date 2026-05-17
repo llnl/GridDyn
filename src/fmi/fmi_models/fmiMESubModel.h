@@ -165,4 +165,3 @@ class FmiMESubModel: public gridSubModel {
 };
 
 }  // namespace griddyn::fmi
-

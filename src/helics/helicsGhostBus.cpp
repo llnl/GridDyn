@@ -124,4 +124,3 @@ void HelicsGhostBus::updateSubscription()
 }
 
 }  // namespace griddyn::helicsLib
-

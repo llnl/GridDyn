@@ -514,4 +514,3 @@ TEST_F(XmlTests, TestQueryIf)
     // This will show up as 2 or 0 if the conditions are not working properly
     EXPECT_EQ(bus->get("gencount"), 1);
 }
-

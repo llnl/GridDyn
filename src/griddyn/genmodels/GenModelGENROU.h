@@ -43,4 +43,3 @@ class GenModelGENROU: public GenModel5 {
 };
 
 }  // namespace griddyn::genmodels
-

@@ -101,4 +101,3 @@ class dcLink: public Link {
 };
 
 }  // namespace griddyn::links
-

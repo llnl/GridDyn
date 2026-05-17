@@ -468,4 +468,3 @@ GridOptObject* GridGenOpt::getArea(index_t index) const
 
 }  // namespace griddyn
 // NOLINTEND(readability-identifier-length,misc-const-correctness,readability-isolate-declaration)
-

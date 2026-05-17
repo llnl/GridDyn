@@ -178,4 +178,3 @@ class gridPrimary: public gridComponent {
 };
 
 }  // namespace griddyn
-

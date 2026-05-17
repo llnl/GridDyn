@@ -756,4 +756,3 @@ void acdcConverter::getStateName(stringVec& stNames,
 }
 
 }  // namespace griddyn::links
-

@@ -83,4 +83,3 @@ class nullBlock final: public Block {
 };
 
 }  // namespace griddyn::blocks
-

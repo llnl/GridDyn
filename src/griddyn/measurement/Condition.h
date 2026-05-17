@@ -221,4 +221,3 @@ class compoundCondition: public Condition {
 };
 
 }  // namespace griddyn
-

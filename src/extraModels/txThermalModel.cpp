@@ -392,4 +392,3 @@ void txThermalModel::timestep(coreTime time, const IOdata& /*inputs*/, const sol
 }
 
 }  // namespace griddyn::extra
-

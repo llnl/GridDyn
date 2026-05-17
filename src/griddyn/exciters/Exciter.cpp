@@ -291,4 +291,3 @@ const std::vector<stringVec>& Exciter::outputNames() const
 }
 
 }  // namespace griddyn
-

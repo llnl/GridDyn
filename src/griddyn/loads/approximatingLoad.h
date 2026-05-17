@@ -112,4 +112,3 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
-

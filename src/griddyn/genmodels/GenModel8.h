@@ -39,4 +39,3 @@ class GenModel8: public GenModel6 {
 };
 
 }  // namespace griddyn::genmodels
-

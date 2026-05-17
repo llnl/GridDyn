@@ -263,4 +263,3 @@ void eventQueue::set(std::string_view param, double val)
 }
 
 }  // namespace griddyn
-

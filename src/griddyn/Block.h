@@ -264,4 +264,3 @@ class Block: public gridSubModel {
 std::unique_ptr<Block> make_block(const std::string& blockstr);
 
 }  // namespace griddyn
-

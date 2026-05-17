@@ -52,4 +52,3 @@ class GovernorTgov1: public GovernorIeeeSimple {
                              const solverMode& sMode) override;
 };
 }  // namespace griddyn::governors
-

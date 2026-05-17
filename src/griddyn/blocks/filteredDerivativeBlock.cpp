@@ -188,4 +188,3 @@ stringVec filteredDerivativeBlock::localStateNames() const
     }
 }
 }  // namespace griddyn::blocks
-

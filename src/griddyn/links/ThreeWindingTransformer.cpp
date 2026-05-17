@@ -143,4 +143,3 @@ double ThreeWindingTransformer::get(std::string_view param, units::unit unitType
 }
 
 }  // namespace griddyn::links
-

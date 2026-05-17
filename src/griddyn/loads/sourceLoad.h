@@ -79,4 +79,3 @@ eventually will replace most of the shaped loads*/
     };
 }  // namespace loads
 }  // namespace griddyn
-

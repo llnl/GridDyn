@@ -104,4 +104,3 @@ class Load: public gridSecondary {
 };
 
 }  // namespace griddyn
-

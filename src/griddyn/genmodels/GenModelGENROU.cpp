@@ -331,4 +331,3 @@ stringVec GenModelGENROU::localStateNames() const
     return genModelGenRouNames;
 }
 }  // namespace griddyn::genmodels
-

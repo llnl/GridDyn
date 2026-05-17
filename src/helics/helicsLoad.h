@@ -57,4 +57,3 @@ class HelicsLoad: public loads::rampLoad {
 };
 
 }  // namespace griddyn::helicsLib
-

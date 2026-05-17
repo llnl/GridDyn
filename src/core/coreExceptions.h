@@ -102,4 +102,3 @@ class invalidFileName: public fileOperationError {
 };
 
 }  // namespace griddyn
-

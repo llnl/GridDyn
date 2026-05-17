@@ -488,4 +488,3 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
     return obj2;
 }
 }  // namespace griddyn
-

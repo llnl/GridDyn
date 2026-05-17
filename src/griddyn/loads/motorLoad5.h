@@ -92,4 +92,3 @@ class motorLoad5: public motorLoad3 {
     void converge();
 };
 }  // namespace griddyn::loads
-

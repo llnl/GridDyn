@@ -14,4 +14,3 @@ std::string coreObjectException::who() const noexcept
     return fullObjectName(throwingObject);
 }
 }  // namespace griddyn
-

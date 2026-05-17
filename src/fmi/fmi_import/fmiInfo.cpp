@@ -146,7 +146,7 @@ static const FmiVariableSet& emptyVset()
     return *emptyVariableSet;
 }
 
-const VariableInformation& FmiInfo::getVariableInfo(const std::string& variableName) const
+const VariableInformation& FmiInfo::getVariableInformation(const std::string& variableName) const
 {
     auto variablefind = variableLookup.find(variableName);
     if (variablefind != variableLookup.end()) {
@@ -155,7 +155,7 @@ const VariableInformation& FmiInfo::getVariableInfo(const std::string& variableN
     return emptyVI();
 }
 
-const VariableInformation& FmiInfo::getVariableInfo(unsigned int index) const
+const VariableInformation& FmiInfo::getVariableInformation(unsigned int index) const
 {
     if (index < variables.size()) {
         return variables[index];
@@ -167,7 +167,7 @@ FmiVariableSet FmiInfo::getReferenceSet(const std::vector<std::string>& variable
 {
     FmiVariableSet vset;
     for (const auto& vname : variableList) {
-        auto vref = getVariableInfo(vname);
+        auto vref = getVariableInformation(vname);
         if (vref.valueRef > 0) {
             vset.push(vref.valueRef);
         }
@@ -177,7 +177,7 @@ FmiVariableSet FmiInfo::getReferenceSet(const std::vector<std::string>& variable
 
 FmiVariableSet FmiInfo::getVariableSet(const std::string& variable) const
 {
-    auto vref = getVariableInfo(variable);
+    auto vref = getVariableInformation(variable);
     if (vref.valueRef > 0) {
         return {vref.valueRef};
     }
@@ -192,7 +192,7 @@ FmiVariableSet FmiInfo::getVariableSet(unsigned int index) const
     return emptyVset();
 }
 
-FmiVariableSet FmiInfo::getOutputReference() const
+FmiVariableSet FmiInfo::getOutputReferences() const
 {
     FmiVariableSet vset;
     vset.reserve(outputs.size());
@@ -202,7 +202,7 @@ FmiVariableSet FmiInfo::getOutputReference() const
     return vset;
 }
 
-FmiVariableSet FmiInfo::getInputReference() const
+FmiVariableSet FmiInfo::getInputReferences() const
 {
     FmiVariableSet vset;
     vset.reserve(inputs.size());

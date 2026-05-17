@@ -108,7 +108,7 @@ current_output = object_flag10,
 complex_output = object_flag11,
 */
 
-const std::vector<stringVec>& FmiCoSimLoad3phase::fmiInputNames() const
+const std::vector<stringVec>& FmiCoSimLoad3phase::getFmiInputNames() const
 {
     if (opFlags[IGNORE_VOLTAGE_ANGLE]) {
         return inputNamesStr3phaseVoltageOnly();
@@ -147,7 +147,7 @@ namespace {
     }
 }  // namespace
 
-const std::vector<stringVec>& FmiCoSimLoad3phase::fmiOutputNames() const
+const std::vector<stringVec>& FmiCoSimLoad3phase::getFmiOutputNames() const
 {
     if (opFlags[CURRENT_OUTPUT]) {
         return (opFlags[COMPLEX_CURRENT_OUTPUT]) ? outputNamesStrCurrentOutput() :

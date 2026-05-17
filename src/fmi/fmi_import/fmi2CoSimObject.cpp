@@ -41,8 +41,8 @@ Fmi2CoSimObject::Fmi2CoSimObject(fmi2Component cmp,
 void Fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
 {
     auto ret = CoSimFunctions->fmi2SetRealInputDerivatives(comp,
-                                                           activeInputs.getValueRef(),
-                                                           activeInputs.getVRcount(),
+                                                           activeInputs.getValueReferences(),
+                                                           activeInputs.getVrCount(),
                                                            derivOrder[order].data(),
                                                            dIdt);
     if (ret != fmi2Status::fmi2OK) {
@@ -53,8 +53,8 @@ void Fmi2CoSimObject::setInputDerivatives(int order, const fmi2Real dIdt[])
 void Fmi2CoSimObject::getOutputDerivatives(int order, fmi2Real dOdt[]) const
 {
     auto ret = CoSimFunctions->fmi2GetRealOutputDerivatives(comp,
-                                                            activeOutputs.getValueRef(),
-                                                            activeOutputs.getVRcount(),
+                                                            activeOutputs.getValueReferences(),
+                                                            activeOutputs.getVrCount(),
                                                             derivOrder[order].data(),
                                                             dOdt);
     if (ret != fmi2Status::fmi2OK) {

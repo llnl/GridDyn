@@ -40,9 +40,9 @@ class FmiMELoad3phase: public FmiMEWrapper<loads::ThreePhaseLoad> {
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateDataRef,
                                   const solverMode& sMode) override;
-    virtual const std::vector<stringVec>& fmiInputNames() const override;
+    virtual const std::vector<stringVec>& getFmiInputNames() const override;
 
-    virtual const std::vector<stringVec>& fmiOutputNames() const override;
+    virtual const std::vector<stringVec>& getFmiOutputNames() const override;
 };
 
 }  // namespace griddyn::fmi

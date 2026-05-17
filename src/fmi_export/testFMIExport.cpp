@@ -181,9 +181,9 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     const auto version = gdFmu.getVersion();
     EXPECT_EQ(version, "2.0");
 
-    auto coSimObject1 = gdFmu.createCoSimulationObject("gd1");
+    auto coSimObject1 = gdFmu.createCoSimulationInstance("gd1");
 
-    auto coSimObject2 = gdFmu.createCoSimulationObject("gd2");
+    auto coSimObject2 = gdFmu.createCoSimulationInstance("gd2");
 
     EXPECT_TRUE(static_cast<bool>(coSimObject1));
     EXPECT_TRUE(static_cast<bool>(coSimObject2));

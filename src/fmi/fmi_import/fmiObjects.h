@@ -61,7 +61,7 @@ class Fmi2Object {
     template<typename T>
     T get(const std::string& param) const
     {
-        auto ref = info->getVariableInfo(param);
+        auto ref = info->getVariableInformation(param);
         fmi2Status retval = fmi2Status::fmi2Discard;
         T ret(0);
         switch (ref.type.value()) {
@@ -110,7 +110,7 @@ class Fmi2Object {
     template<typename T>
     void set(const std::string& param, T val)
     {
-        auto ref = info->getVariableInfo(param);
+        auto ref = info->getVariableInformation(param);
         fmi2Status ret = fmi2Status::fmi2Discard;
         switch (ref.type.value()) {
             case FmiVariableType::real: {
@@ -138,8 +138,8 @@ class Fmi2Object {
     }
 
     void setFlag(const std::string& param, bool val);
-    void getFMUState(fmi2FMUstate* FMUState);
-    void setFMUState(fmi2FMUstate FMUState);
+    void getFmuState(fmi2FMUstate* FMUState);
+    void setFmuState(fmi2FMUstate FMUState);
 
     size_t serializedStateSize(fmi2FMUstate FMUState);
     void serializeState(fmi2FMUstate FMUState, fmi2Byte serializedState[], size_t size);
@@ -148,7 +148,7 @@ class Fmi2Object {
     void getCurrentInputs(fmi2Real inputs[]);
     void getOutputs(fmi2Real outputs[]) const;
     fmi2Real getOutput(size_t outNum) const;
-    void deSerializeState(const fmi2Byte serializedState[], size_t size, fmi2FMUstate* FMUState);
+    void deserializeState(const fmi2Byte serializedState[], size_t size, fmi2FMUstate* FMUState);
     void getDirectionalDerivative(const fmi2ValueReference vUnknown_ref[],
                                   size_t nUnknown,
                                   const fmi2ValueReference vKnown_ref[],
@@ -164,9 +164,9 @@ class Fmi2Object {
 
     FmiVariableSet getVariableSet(const std::string& variable) const;
     FmiVariableSet getVariableSet(int index) const;
-    const FmiInfo* fmuInformation() const { return info.get(); }
-    int inputSize() const { return static_cast<int>(activeInputs.getVRcount()); }
-    int outputSize() const { return static_cast<int>(activeOutputs.getVRcount()); }
+    const FmiInfo* getFmiInformation() const { return info.get(); }
+    int inputSize() const { return static_cast<int>(activeInputs.getVrCount()); }
+    int outputSize() const { return static_cast<int>(activeOutputs.getVrCount()); }
 
     std::vector<std::string> getOutputNames() const;
     std::vector<std::string> getInputNames() const;
@@ -211,7 +211,7 @@ class Fmi2ModelExchangeObject: public Fmi2Object {
                             std::shared_ptr<const FmiInfo> keyInfo,
                             std::shared_ptr<const FmiCommonFunctions> comFunc,
                             std::shared_ptr<const FmiModelExchangeFunctions> meFunc);
-    void newDiscreteStates(fmi2EventInfo* fmi2eventInfo);
+    void updateDiscreteStates(fmi2EventInfo* fmi2eventInfo);
     /** call for a completed integrator step
     @param[in] noSetFMUStatePriorToCurrentPoint flag indicating that the state will not be updated
     at a prior time point
@@ -236,7 +236,7 @@ class Fmi2ModelExchangeObject: public Fmi2Object {
     @param[out] nominalValues the location to store the state data states must have sufficient space
     allocated for the states
     */
-    void getNominalsOfContinuousStates(fmi2Real nominalValues[]) const;
+    void getStateNominals(fmi2Real nominalValues[]) const;
     /** set the operating state of the FMU
      */
     virtual void setMode(FmuMode mode) override;

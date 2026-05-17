@@ -30,7 +30,7 @@ coreObject* FmiCoSimLoad::clone(coreObject* obj) const
 void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (fmisub->isLoaded()) {
-        setupFmiIo();
+        configureFmiIo();
         SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
         fmisub->dynInitializeA(time0, flags);
         // zipLoad::pFlowObjectInitializeA(time0, flags);

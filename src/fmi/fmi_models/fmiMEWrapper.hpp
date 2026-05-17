@@ -33,7 +33,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
             return;
         }
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub->isLoaded()) {
-            FmiWrapper<FmiMESubModel, BaseObj>::setupFmiIo();
+            FmiWrapper<FmiMESubModel, BaseObj>::configureFmiIo();
             SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
             BaseObj::pFlowObjectInitializeA(time0, flags);
         } else {

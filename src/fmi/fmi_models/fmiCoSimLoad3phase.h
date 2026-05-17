@@ -37,9 +37,9 @@ class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
                           const double dstate_dt[],
                           const solverMode& sMode) override;
 
-    virtual const std::vector<stringVec>& fmiInputNames() const override;
+    virtual const std::vector<stringVec>& getFmiInputNames() const override;
 
-    virtual const std::vector<stringVec>& fmiOutputNames() const override;
+    virtual const std::vector<stringVec>& getFmiOutputNames() const override;
 };
 
 }  // namespace griddyn::fmi

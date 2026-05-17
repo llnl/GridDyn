@@ -84,7 +84,7 @@ TEST_F(FmiTests, TestFmiLoadShared)
         rectFmu.loadSharedLibrary();
         ASSERT_TRUE(rectFmu.isSoLoaded());
 
-        auto b = rectFmu.createModelExchangeObject("rctf");
+        auto b = rectFmu.createModelExchangeInstance("rctf");
         ASSERT_TRUE(b);
         b->setMode(FmuMode::initializationMode);
         auto v = b->get<double>("VAC");
@@ -122,7 +122,7 @@ TEST_F(FmiTests, Test3phaseFmu)
     EXPECT_EQ(inputs, 6);
     // auto param = loadFmu.getCounts("parameters");
     // auto units = loadFmu.getCounts("unit");
-    auto fm = loadFmu.createModelExchangeObject("meload");
+    auto fm = loadFmu.createModelExchangeInstance("meload");
     ASSERT_TRUE(fm);
     double inp[6];
     double out[6];

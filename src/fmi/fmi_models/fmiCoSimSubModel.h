@@ -84,7 +84,7 @@ class FmiCoSimSubModel: public gridSubModel {
     bool isLoaded() const;
 
   protected:
-    void loadFMU();
+    void loadFmu();
 
     void instantiateFMU();
     void makeSettableState();

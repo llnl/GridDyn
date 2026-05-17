@@ -146,12 +146,12 @@ class FmiLibrary {
     bool isSoLoaded(FmuType type = FmuType::UNKNOWN) const;
     /** load the FMU from the fmu path
     @param[in] fmupath the fmu*/
-    void loadFMU(const std::string& fmupath);
+    void loadFmu(const std::string& fmupath);
     /** load the FMU from the fmu path
     @param[in] fmupath the fmu
     @param[in] extractPath the path to extract the fmu to
     */
-    void loadFMU(const std::string& fmupath, const std::string& extractPath);
+    void loadFmu(const std::string& fmupath, const std::string& extractPath);
     std::shared_ptr<FmiInfo> getInfo() const { return information; }
     void close();
     const std::string& getName() const { return modelName; }
@@ -160,8 +160,8 @@ class FmiLibrary {
 
     bool checkFlag(FmuCapabilityFlags flag) const;
 
-    std::unique_ptr<Fmi2ModelExchangeObject> createModelExchangeObject(const std::string& name);
-    std::unique_ptr<Fmi2CoSimObject> createCoSimulationObject(const std::string& name);
+    std::unique_ptr<Fmi2ModelExchangeObject> createModelExchangeInstance(const std::string& name);
+    std::unique_ptr<Fmi2CoSimObject> createCoSimulationInstance(const std::string& name);
     std::string getTypes() const;
     std::string getVersion() const;
 

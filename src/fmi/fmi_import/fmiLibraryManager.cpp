@@ -34,27 +34,27 @@ std::shared_ptr<FmiLibrary> FmiLibraryManager::getLibrary(const std::string& lib
 }
 
 std::unique_ptr<Fmi2ModelExchangeObject>
-    FmiLibraryManager::createModelExchangeObject(const std::string& fmuIdentifier,
-                                                 const std::string& ObjectName)
+    FmiLibraryManager::createModelExchangeInstance(const std::string& fmuIdentifier,
+                                                   const std::string& objectName)
 {
-    auto Lib = getLibrary(fmuIdentifier);
-    return Lib->createModelExchangeObject(ObjectName);
+    auto library = getLibrary(fmuIdentifier);
+    return library->createModelExchangeInstance(objectName);
 }
 
 std::unique_ptr<Fmi2CoSimObject>
-    FmiLibraryManager::createCoSimulationObject(const std::string& fmuIdentifier,
-                                                const std::string& ObjectName)
+    FmiLibraryManager::createCoSimulationInstance(const std::string& fmuIdentifier,
+                                                  const std::string& objectName)
 {
-    auto Lib = getLibrary(fmuIdentifier);
-    return Lib->createCoSimulationObject(ObjectName);
+    auto library = getLibrary(fmuIdentifier);
+    return library->createCoSimulationInstance(objectName);
 }
 
-void FmiLibraryManager::loadBookMarkFile(const std::string& /*bookmarksFile*/)
+void FmiLibraryManager::loadBookmarkFile(const std::string& /*bookmarksFile*/)
 {
     // TODO(phlpt): Load a bookmarks file.
 }
 
-void FmiLibraryManager::addShortCut(const std::string& name, const std::string& fmuLocation)
+void FmiLibraryManager::addShortcut(const std::string& name, const std::string& fmuLocation)
 {
     const std::scoped_lock lock(libraryLock);
     quickReferenceLibraries.emplace(name, fmuLocation);

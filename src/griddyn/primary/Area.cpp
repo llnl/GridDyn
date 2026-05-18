@@ -40,7 +40,8 @@ using units::unit;
 
 std::atomic<count_t> GridArea::areaCounter{0};
 
-static typeFactory<GridArea> gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
+static typeFactory<GridArea>
+    gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
 
 GridArea::GridArea(const std::string& objName): gridPrimary(objName)
 {
@@ -410,7 +411,10 @@ CoreObject* GridArea::getSubObject(std::string_view typeName, index_t num) const
     return nullptr;
 }
 
-void GridArea::setAll(std::string_view type, std::string_view param, double val, units::unit unitType)
+void GridArea::setAll(std::string_view type,
+                      std::string_view param,
+                      double val,
+                      units::unit unitType)
 {
     if (type == "all") {
         set(param, val, unitType);
@@ -663,7 +667,8 @@ void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const
     }
 }
 
-change_code GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
+change_code
+    GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
 {
     auto ret = change_code::no_change;
     opFlags.set(disable_flag_updates);  // this is so the adjustment object list can't get reset in
@@ -712,7 +717,9 @@ void GridArea::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 }
 
 // dynInitializeB states for dynamic solution part 2  //final clean up
-void GridArea::dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredOutput, IOdata& fieldSet)
+void GridArea::dynObjectInitializeB(const IOdata& inputs,
+                                    const IOdata& desiredOutput,
+                                    IOdata& fieldSet)
 {
     std::vector<gridPrimary*> lateBObjects;
 
@@ -769,11 +776,11 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredO
 void GridArea::updateTheta(coreTime /*time*/) {}
 
 void GridArea::converge(coreTime time,
-                    double state[],
-                    double dstate_dt[],
-                    const solverMode& sMode,
-                    converge_mode mode,
-                    double tol)
+                        double state[],
+                        double dstate_dt[],
+                        const solverMode& sMode,
+                        converge_mode mode,
+                        double tol)
 {
     if (opFlags[reverse_converge]) {
         auto ra = opObjectLists->rbegin(sMode);
@@ -971,9 +978,9 @@ count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
 }
 
 count_t GridArea::getVoltage(std::vector<double>& voltages,
-                         const double state[],
-                         const solverMode& sMode,
-                         index_t start) const
+                             const double state[],
+                             const solverMode& sMode,
+                             index_t start) const
 {
     count_t cnt = 0;
 
@@ -1006,9 +1013,9 @@ count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
 }
 
 count_t GridArea::getAngle(std::vector<double>& angles,
-                       const double state[],
-                       const solverMode& sMode,
-                       index_t start) const
+                           const double state[],
+                           const solverMode& sMode,
+                           index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1039,8 +1046,8 @@ count_t GridArea::getFreq(std::vector<double>& frequencies, index_t start) const
 }
 
 /*
-count_t GridArea::getFreq(std::vector<double> &F, const double state[], const solverMode &sMode, index_t
-start) const
+count_t GridArea::getFreq(std::vector<double> &F, const double state[], const solverMode &sMode,
+index_t start) const
 {
     count_t cnt = 0;
     for (auto &area : m_GridAreas)
@@ -1076,7 +1083,8 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers, index_t start, i
     return cnt;
 }
 
-count_t GridArea::getLinkReactivePower(std::vector<double>& powers, index_t start, int busNumber) const
+count_t
+    GridArea::getLinkReactivePower(std::vector<double>& powers, index_t start, int busNumber) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1372,7 +1380,10 @@ double GridArea::getAvgFreq() const
 // -------------------- Power Flow --------------------
 
 // guessState the solution
-void GridArea::guessState(coreTime time, double state[], double dstate_dt[], const solverMode& sMode)
+void GridArea::guessState(coreTime time,
+                          double state[],
+                          double dstate_dt[],
+                          const solverMode& sMode)
 {
     auto cobj = opObjectLists->begin(sMode);
     auto cend = opObjectLists->end(sMode);
@@ -1408,9 +1419,9 @@ void GridArea::getTols(double tols[], const solverMode& sMode)
 
 // #define DEBUG_PRINT
 void GridArea::rootTest(const IOdata& inputs,
-                    const stateData& sD,
-                    double roots[],
-                    const solverMode& sMode)
+                        const stateData& sD,
+                        double roots[],
+                        const solverMode& sMode)
 {
     for (auto* ro : rootObjects) {
         ro->rootTest(inputs, sD, roots, sMode);
@@ -1423,9 +1434,9 @@ void GridArea::rootTest(const IOdata& inputs,
 }
 
 change_code GridArea::rootCheck(const IOdata& inputs,
-                            const stateData& sD,
-                            const solverMode& sMode,
-                            check_level_t level)
+                                const stateData& sD,
+                                const solverMode& sMode,
+                                check_level_t level)
 {
     change_code ret = change_code::no_change;
     // root checks can trigger flag updates disable and just do the update once
@@ -1457,9 +1468,9 @@ change_code GridArea::rootCheck(const IOdata& inputs,
 }
 
 void GridArea::rootTrigger(coreTime time,
-                       const IOdata& inputs,
-                       const std::vector<int>& rootMask,
-                       const solverMode& sMode)
+                           const IOdata& inputs,
+                           const std::vector<int>& rootMask,
+                           const solverMode& sMode)
 {
     auto RF = vecFindne(rootMask, 0);
     size_t cloc = 0;
@@ -1502,9 +1513,9 @@ void GridArea::rootTrigger(coreTime time,
 
 // pass the solution
 void GridArea::setState(coreTime time,
-                    const double state[],
-                    const double dstate_dt[],
-                    const solverMode& sMode)
+                        const double state[],
+                        const double dstate_dt[],
+                        const solverMode& sMode)
 {
     prevTime = time;
 
@@ -1601,9 +1612,9 @@ void GridArea::preEx(const IOdata& inputs, const stateData& sD, const solverMode
 }
 
 void GridArea::residual(const IOdata& inputs,
-                    const stateData& sD,
-                    double resid[],
-                    const solverMode& sMode)
+                        const stateData& sD,
+                        double resid[],
+                        const solverMode& sMode)
 {
     opObjectLists->residual(inputs, sD, resid, sMode);
 
@@ -1611,10 +1622,10 @@ void GridArea::residual(const IOdata& inputs,
 }
 
 void GridArea::algebraicUpdate(const IOdata& inputs,
-                           const stateData& sD,
-                           double update[],
-                           const solverMode& sMode,
-                           double alpha)
+                               const stateData& sD,
+                               double update[],
+                               const solverMode& sMode,
+                               double alpha)
 {
     opObjectLists->algebraicUpdate(inputs, sD, update, sMode, alpha);
 
@@ -1622,8 +1633,8 @@ void GridArea::algebraicUpdate(const IOdata& inputs,
 }
 
 void GridArea::getStateName(stringVec& stNames,
-                        const solverMode& sMode,
-                        const std::string& prefix) const
+                            const solverMode& sMode,
+                            const std::string& prefix) const
 {
     std::string prefix2;
     if (!isRoot()) {
@@ -1640,43 +1651,43 @@ void GridArea::getStateName(stringVec& stNames,
 }
 
 void GridArea::delayedResidual(const IOdata& inputs,
-                           const stateData& sD,
-                           double resid[],
-                           const solverMode& sMode)
+                               const stateData& sD,
+                               double resid[],
+                               const solverMode& sMode)
 {
     opObjectLists->delayedResidual(inputs, sD, resid, sMode);
 }
 
 void GridArea::delayedDerivative(const IOdata& inputs,
-                             const stateData& sD,
-                             double deriv[],
-                             const solverMode& sMode)
+                                 const stateData& sD,
+                                 double deriv[],
+                                 const solverMode& sMode)
 {
     opObjectLists->delayedDerivative(inputs, sD, deriv, sMode);
 }
 
 void GridArea::delayedJacobian(const IOdata& inputs,
-                           const stateData& sD,
-                           matrixData<double>& md,
-                           const IOlocs& inputLocs,
-                           const solverMode& sMode)
+                               const stateData& sD,
+                               matrixData<double>& md,
+                               const IOlocs& inputLocs,
+                               const solverMode& sMode)
 {
     opObjectLists->delayedJacobian(inputs, sD, md, inputLocs, sMode);
 }
 
 void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
-                                  const stateData& sD,
-                                  double update[],
-                                  const solverMode& sMode,
-                                  double alpha)
+                                      const stateData& sD,
+                                      double update[],
+                                      const solverMode& sMode,
+                                      double alpha)
 {
     opObjectLists->delayedAlgebraicUpdate(inputs, sD, update, sMode, alpha);
 }
 
 void GridArea::derivative(const IOdata& inputs,
-                      const stateData& sD,
-                      double deriv[],
-                      const solverMode& sMode)
+                          const stateData& sD,
+                          double deriv[],
+                          const solverMode& sMode)
 {
     opObjectLists->derivative(inputs, sD, deriv, sMode);
     // next do any internal states
@@ -1684,10 +1695,10 @@ void GridArea::derivative(const IOdata& inputs,
 
 // Jacobian
 void GridArea::jacobianElements(const IOdata& inputs,
-                            const stateData& sD,
-                            matrixData<double>& md,
-                            const IOlocs& inputLocs,
-                            const solverMode& sMode)
+                                const stateData& sD,
+                                matrixData<double>& md,
+                                const IOlocs& inputLocs,
+                                const solverMode& sMode)
 {
     opObjectLists->jacobianElements(inputs, sD, md, inputLocs, sMode);
     // next do any internal control elements

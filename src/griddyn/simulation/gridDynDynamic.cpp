@@ -8,12 +8,12 @@
 #include "../gridBus.h"
 #include "../gridDynSimulation.h"
 #include "../solvers/solverInterface.h"
+#include "GridDynSimulationFileOps.h"
 #include "core/coreExceptions.h"
 #include "diagnostics.h"
 #include "dynamicInitialConditionRecovery.h"
 #include "faultResetRecovery.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "GridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 // system libraries
 #include <algorithm>

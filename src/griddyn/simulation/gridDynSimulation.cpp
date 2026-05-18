@@ -13,6 +13,7 @@
 #include "../gridBus.h"
 #include "../loads/gridLabDLoad.h"
 #include "../solvers/solverInterface.h"
+#include "GridDynSimulationFileOps.h"
 #include "contingency.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
@@ -20,7 +21,6 @@
 #include "core/objectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "GridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 #include <cassert>
 #include <compare>

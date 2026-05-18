@@ -154,8 +154,8 @@ namespace {
     }
 
     CoreObject* loadGridArea(std::shared_ptr<readerElement>& currentElement,
-                         readerInfo& readerInf,
-                         CoreObject* parentObject)
+                             readerInfo& readerInf,
+                             CoreObject* parentObject)
     {
         return readGridAreaElement(currentElement, readerInf, parentObject);
     }

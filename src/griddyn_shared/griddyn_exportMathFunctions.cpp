@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-using griddyn::GridArea;
 using griddyn::getObjectVectorFunction;
+using griddyn::GridArea;
 using griddyn::GriddynRunner;
 
 static constexpr char invalidSimulation[] = "the simulation object is not valid";

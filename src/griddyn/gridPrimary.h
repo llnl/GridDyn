@@ -30,10 +30,10 @@ enum secondary_output_locations {
     QoutLocation = 1,
 };
 
-/** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and GridArea
-  gridPrimary class defines the interface for gridPrimary objects which are nominally objects that
-can be contained by a root object which is an area usually,  though there is no restriction in other
-classes also containing primary objects.
+/** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and
+GridArea gridPrimary class defines the interface for gridPrimary objects which are nominally objects
+that can be contained by a root object which is an area usually,  though there is no restriction in
+other classes also containing primary objects.
 
 **/
 class gridPrimary: public GridComponent {

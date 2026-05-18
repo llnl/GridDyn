@@ -103,12 +103,12 @@ namespace {
     }
 
     std::string formatTxtGridAreaRecord(int areaNumber,
-                                    const std::string& areaName,
-                                    double generationReal,
-                                    double generationReactive,
-                                    double loadReal,
-                                    double loadReactive,
-                                    double loss)
+                                        const std::string& areaName,
+                                        double generationReal,
+                                        double generationReactive,
+                                        double loadReal,
+                                        double loadReactive,
+                                        double loss)
     {
         std::ostringstream output;
         output << areaNumber << "\t\t" << std::quoted(areaName) << "\t " << std::fixed
@@ -251,24 +251,24 @@ void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName)
     area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
         output << formatTxtGridAreaRecord(area->getUserID(),
-                                      area->getName(),
-                                      area->getGenerationReal() * basePower,
-                                      area->getGenerationReactive() * basePower,
-                                      area->getLoadReal() * basePower,
-                                      area->getLoadReactive() * basePower,
-                                      area->getLoss() * basePower)
+                                          area->getName(),
+                                          area->getGenerationReal() * basePower,
+                                          area->getGenerationReactive() * basePower,
+                                          area->getLoadReal() * basePower,
+                                          area->getLoadReactive() * basePower,
+                                          area->getLoss() * basePower)
                << '\n';
         ++areaIndex;
         area = gds->getGridArea(areaIndex);
     }
 
     output << formatTxtGridAreaRecord(1,
-                                  gds->getName(),
-                                  gds->getGenerationReal() * basePower,
-                                  gds->getGenerationReactive() * basePower,
-                                  gds->getLoadReal() * basePower,
-                                  gds->getLoadReactive() * basePower,
-                                  gds->getLoss() * basePower)
+                                      gds->getName(),
+                                      gds->getGenerationReal() * basePower,
+                                      gds->getGenerationReactive() * basePower,
+                                      gds->getLoadReal() * basePower,
+                                      gds->getLoadReactive() * basePower,
+                                      gds->getLoss() * basePower)
            << '\n';
     gds->log(gds, print_level::normal, "saving txt powerflow to " + fileName);
 }

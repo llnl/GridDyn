@@ -17,15 +17,16 @@
 
 namespace griddyn {
 namespace {
-typeFactory<GenModel>& genModelFactory()
-{
-    static typeFactory<GenModel> genModelFactoryInstance(
-        "genmodel", std::to_array<std::string_view>({"trivial"}));
+    typeFactory<GenModel>& genModelFactory()
+    {
+        static typeFactory<GenModel> genModelFactoryInstance("genmodel",
+                                                             std::to_array<std::string_view>(
+                                                                 {"trivial"}));
     return genModelFactoryInstance;
-}
+    }
 
-void registerGenModelTypes()
-{
+    void registerGenModelTypes()
+    {
     static childTypeFactory<griddyn::genmodels::GenModelInverter, GenModel> inverterGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"inverter"}));
 
@@ -57,7 +58,8 @@ void registerGenModelTypes()
     static childTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
         sixthOrderGenModelType2Factory(
         "genmodel",
-        std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
+            std::to_array<std::string_view>(
+                {"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
 
     static childTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
@@ -76,10 +78,10 @@ void registerGenModelTypes()
         return true;
     }();
     static_cast<void>(registered);
-}
+    }
 
-const std::vector<stringVec>& genModelInputNames()
-{
+    const std::vector<stringVec>& genModelInputNames()
+    {
     static const std::vector<stringVec> inputNames{
         {"voltage", "v", "volt"},
         {"angle", "ang", "a"},
@@ -87,15 +89,15 @@ const std::vector<stringVec>& genModelInputNames()
         {"pmech", "power", "p", "mech"},
     };
     return inputNames;
-}
+    }
 
-const std::vector<stringVec>& genModelOutputNames()
-{
+    const std::vector<stringVec>& genModelOutputNames()
+    {
     static const std::vector<stringVec> outputNames{
         {"e", "field", "exciter"},
     };
     return outputNames;
-}
+    }
 }  // namespace
 
 GenModel::GenModel(const std::string& objName): GridSubModel(objName)
@@ -232,15 +234,18 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
         matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -1.0);
     } else {
         const double factor = voltage / 0.85;
-        matrixDataValue.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd * factor);
+        matrixDataValue.assignCheckCol(QoutLocation,
+                                       inputLocs[genModelEftInLocation],
+                                       -Xd * factor);
 
         if (inputLocs[voltageInLocation] != kNullLocation) {
             const double exciterField = inputs[genModelEftInLocation];
             matrixDataValue.assign(PoutLocation,
                       inputLocs[voltageInLocation],
                       -inputs[genModelPmechInLocation] / 0.85);
-            matrixDataValue.assign(
-                QoutLocation, inputLocs[voltageInLocation], -exciterField * Xd / 0.85);
+            matrixDataValue.assign(QoutLocation,
+                                   inputLocs[voltageInLocation],
+                                   -exciterField * Xd / 0.85);
         }
         matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -factor);
     }

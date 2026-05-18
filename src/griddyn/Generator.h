@@ -213,10 +213,9 @@ class Generator: public gridSecondary {
     @param[out] freqOffset the location of the frequency state in the sD arrays
     @return the current frequency the generator is operating at
     */
-    virtual double
-        getFreq(const stateData& stateDataValue,
-                const solverMode& sMode,
-                index_t* freqOffset = nullptr) const;
+    virtual double getFreq(const stateData& stateDataValue,
+                           const solverMode& sMode,
+                           index_t* freqOffset = nullptr) const;
     /** get the internal angle of the generator
     @param[in] stateDataValue the current stateData
     @param[in] sMode the solvermode corresponding to the state

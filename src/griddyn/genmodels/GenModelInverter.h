@@ -103,10 +103,7 @@ class GenModelInverter: public GenModel {
 @param sinA  the sine of the power angle
 @return the real power output;
 */
-    double realPowerCompute(double voltage,
-                            double exciterField,
-                            double cosA,
-                            double sinA) const;
+    double realPowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     /** @brief compute the reactive power output
 @param V voltage
 @param Ef Exciter field
@@ -114,10 +111,8 @@ class GenModelInverter: public GenModel {
 @param sinA  the sine of the power angle
 @return the real power output;
 */
-    double reactivePowerCompute(double voltage,
-                                double exciterField,
-                                double cosA,
-                                double sinA) const;
+    double
+        reactivePowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     double g = 0;
     double b = (1.0 / 1.05);
 };

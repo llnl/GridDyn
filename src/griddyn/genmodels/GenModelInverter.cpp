@@ -95,8 +95,7 @@ void GenModelInverter::algebraicUpdate(const IOdata& inputs,
             const double gamma = std::atan(b / (2.0 * g)) - (kPI / 2);
             const double voltageLoss1 = voltage * voltage * g;
             const double voltageLoss3 = exciterField * exciterField * g;
-            const double powerRatio =
-                (mechanicalPower - voltageLoss1 - voltageLoss3) /
+            const double powerRatio = (mechanicalPower - voltageLoss1 - voltageLoss3) /
                 (exciterField * voltage * impedanceMagnitude);
             if (std::abs(powerRatio) >= 1.0) {
                 update[offset] = (powerRatio >= 1.0) ? kPI / 2.0 : -kPI / 2.0;
@@ -263,13 +262,13 @@ void GenModelInverter::ioPartialDerivatives(const IOdata& inputs,
     if (inputLocs[voltageInLocation] != kNullLocation) {
         const double exciterField = inputs[genModelEftInLocation] + 1.0;
         matrixDataValue.assign(PoutLocation,
-                  inputLocs[voltageInLocation],
-                  (2.0 * voltage * g) - (g * exciterField * cosineAngle) -
-                      (exciterField * b * sineAngle));
+                               inputLocs[voltageInLocation],
+                               (2.0 * voltage * g) - (g * exciterField * cosineAngle) -
+                                   (exciterField * b * sineAngle));
         matrixDataValue.assign(QoutLocation,
-                  inputLocs[voltageInLocation],
-                  (2.0 * voltage * b) - (exciterField * b * cosineAngle) +
-                      (voltage * exciterField * g * sineAngle));
+                               inputLocs[voltageInLocation],
+                               (2.0 * voltage * b) - (exciterField * b * cosineAngle) +
+                                   (voltage * exciterField * g * sineAngle));
     }
 }
 
@@ -295,19 +294,22 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
         // rva[0] = Pmt -V*V*g - Eft*Eft*g - 2.0*V * Eft*g*cos(gm[0]) - V *
         // Eft*b*sin(gm[0]);
 
-        matrixDataValue.assign(
-            offset, offset, (2.0 * voltage * exciterField * g * sineAngle) -
-                (voltage * exciterField * b * cosineAngle));
+        matrixDataValue.assign(offset,
+                               offset,
+                               (2.0 * voltage * exciterField * g * sineAngle) -
+                                   (voltage * exciterField * b * cosineAngle));
 
         matrixDataValue.assignCheckCol(offset, inputLocs[genModelPmechInLocation], 1.0);
         matrixDataValue.assignCheckCol(offset,
-                          inputLocs[genModelEftInLocation],
-                          (-2.0 * exciterField * g) - (2.0 * voltage * g * cosineAngle) -
-                              (voltage * b * sineAngle));
+                                       inputLocs[genModelEftInLocation],
+                                       (-2.0 * exciterField * g) -
+                                           (2.0 * voltage * g * cosineAngle) -
+                                           (voltage * b * sineAngle));
         matrixDataValue.assignCheckCol(offset,
-                          inputLocs[voltageInLocation],
-                          (-2.0 * voltage * g) - (2.0 * exciterField * g * cosineAngle) -
-                              (exciterField * b * sineAngle));
+                                       inputLocs[voltageInLocation],
+                                       (-2.0 * voltage * g) -
+                                           (2.0 * exciterField * g * cosineAngle) -
+                                           (exciterField * b * sineAngle));
     }
 }
 

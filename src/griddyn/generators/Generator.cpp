@@ -36,26 +36,15 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
-namespace {
-    typeFactory<Generator>& generatorFactory()
-    {
-        static typeFactory<Generator> generatorFactoryInstance("generator",
-                                                               std::to_array<std::string_view>(
-                                                                   {"basic", "simple", "pflow"}));
-        return generatorFactoryInstance;
-    }
-
-    void registerGeneratorTypes()
-    {
-        static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
-            "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
-        static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
-            "generator", std::to_array<std::string_view>({"variable", "renewable"}));
-        static const auto registered =
-            (&generatorFactory(), &dynamicGeneratorFactory, &variableGeneratorFactory, true);
-        static_cast<void>(registered);
-    }
-}  // namespace
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static typeFactory<Generator> generatorFactory(
+    "generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
+    "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
+    "generator", std::to_array<std::string_view>({"variable", "renewable"}));
 
 using units::convert;
 using units::MVAR;
@@ -69,7 +58,6 @@ std::atomic<count_t> Generator::genCount(0);
 
 Generator::Generator(const std::string& objName): gridSecondary(objName)
 {
-    registerGeneratorTypes();
     setUserID(++genCount);
     updateName();
     opFlags.set(adjustable_P);
@@ -82,7 +70,7 @@ Generator::~Generator() = default;
 
 CoreObject* Generator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &generatorFactory());
+    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &generatorFactory);
     if (gen == nullptr) {
         return obj;
     }

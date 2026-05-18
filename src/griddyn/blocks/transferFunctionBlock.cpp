@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "TransferfunctionBlock.h"
+#include "transferFunctionBlock.h"
 
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
@@ -95,9 +95,9 @@ void TransferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
         m_state[0] = m_state[1] * K;
         if (opFlags[has_limits]) {
             GridBlock::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
             m_state[0] = gmlc::utilities::valLimit(m_state[0], Omin, Omax);
         }
         fieldSet[0] = m_state[0];

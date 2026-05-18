@@ -127,7 +127,8 @@ void ControlBlock::blockJacobianElements(double input,
 
             jacobian.assignCheckCol(locationData.algOffset + limiter_alg, argLoc, K * mT2 / mT1);
             if (limiter_alg > 0) {
-                GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+                GridBlock::blockJacobianElements(
+                    input, didt, stateDataRef, jacobian, argLoc, sMode);
             }
             if (hasDifferential(sMode)) {
                 jacobian.assign(locationData.algOffset + limiter_alg, locationData.diffOffset, 1);

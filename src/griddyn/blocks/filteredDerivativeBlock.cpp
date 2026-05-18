@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "FilteredderivativeBlock.h"
+#include "filteredDerivativeBlock.h"
 
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"

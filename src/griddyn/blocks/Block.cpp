@@ -188,9 +188,9 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                 }
                 if (opFlags[use_block_limits]) {
                     GridBlock::rootCheck(inputs,
-                                     emptyStateData,
-                                     cLocalSolverMode,
-                                     check_level_t::reversable_only);
+                                         emptyStateData,
+                                         cLocalSolverMode,
+                                         check_level_t::reversable_only);
                     m_state[0] = vLimiter->clampOutput(m_state[1]);
                 }
             }
@@ -200,9 +200,9 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                 m_state[diffOffset - 1] = m_state[diffOffset];
                 if (opFlags[use_block_limits]) {
                     GridBlock::rootCheck(inputs,
-                                     emptyStateData,
-                                     cLocalSolverMode,
-                                     check_level_t::reversable_only);
+                                         emptyStateData,
+                                         cLocalSolverMode,
+                                         check_level_t::reversable_only);
                     m_state[0] = vLimiter->clampOutput(m_state[diffOffset - 1]);
                 }
             } else {
@@ -210,15 +210,15 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                     if (opFlags[differential_output]) {
                         const index_t diffOffset = offsets.local().local.algSize;
                         GridBlock::rootCheck(inputs,
-                                         emptyStateData,
-                                         cLocalSolverMode,
-                                         check_level_t::reversable_only);
+                                             emptyStateData,
+                                             cLocalSolverMode,
+                                             check_level_t::reversable_only);
                         m_state[0] = vLimiter->clampOutput(m_state[diffOffset]);
                     } else {
                         GridBlock::rootCheck(inputs,
-                                         emptyStateData,
-                                         cLocalSolverMode,
-                                         check_level_t::reversable_only);
+                                             emptyStateData,
+                                             cLocalSolverMode,
+                                             check_level_t::reversable_only);
                         m_state[0] = vLimiter->clampOutput(m_state[1]);
                     }
                 }
@@ -254,9 +254,9 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                         const index_t diffOffset =
                             offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
                         GridBlock::rootCheck(inputs,
-                                         emptyStateData,
-                                         cLocalSolverMode,
-                                         check_level_t::reversable_only);
+                                             emptyStateData,
+                                             cLocalSolverMode,
+                                             check_level_t::reversable_only);
                         m_state[diffOffset] = m_state[0];
                     } else {
                         m_state[1] = m_state[0];
@@ -941,8 +941,7 @@ std::unique_ptr<GridBlock> make_block(const std::string& blockstr)
             derivativeGain = inputs[2];
         }
 
-        ret = std::make_unique<blocks::PidBlock>(
-            proportionalGain, integralGain, derivativeGain);
+        ret = std::make_unique<blocks::PidBlock>(proportionalGain, integralGain, derivativeGain);
         if (gain != 1.0) {
             ret->set("gain", gain);
         }

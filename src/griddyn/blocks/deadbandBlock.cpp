@@ -71,17 +71,17 @@ void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
         if (limiter_alg > 0) {
             GridBlock::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
         }
     } else {
         fieldSet.resize(1);
         if (limiter_alg > 0) {
             GridBlock::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
         }
         mDeadbandState = DeadbandState::NORMAL;
         const double initialValue = m_state[limiter_alg] / K;
@@ -498,7 +498,8 @@ change_code DeadbandBlock::rootCheck(const IOdata& inputs,
     }
 
     if (limiter_alg > 0) {
-        auto iret = GridBlock::rootCheck(inputs, stateDataRef, sMode, check_level_t::reversable_only);
+        auto iret =
+            GridBlock::rootCheck(inputs, stateDataRef, sMode, check_level_t::reversable_only);
         ret = std::max(ret, iret);
     }
     return ret;

@@ -106,7 +106,8 @@ void FunctionBlock::blockJacobianElements(double input,
     }
     matrixDataValue.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        GridBlock::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
+        GridBlock::blockJacobianElements(
+            input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
 }
 

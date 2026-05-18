@@ -612,7 +612,8 @@ static void rawReadLoad(GridLoad* loadObject, const std::string& line, basicRead
     // ignore the owner field
 }
 
-static void rawReadFixedShunt(GridLoad* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
+static void
+    rawReadFixedShunt(GridLoad* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // 0,    1,      2,      3,      4
     // Bus, name, Status, g (MW), b (Mvar)

@@ -74,7 +74,8 @@ CoreObject* AcBus::clone(CoreObject* obj) const
 
     if (opFlags[compute_frequency]) {
         if (fblock) {
-            nobj->fblock = coreOwningPtr<GridBlock>(static_cast<GridBlock*>(fblock->clone(nullptr)));
+            nobj->fblock =
+                coreOwningPtr<GridBlock>(static_cast<GridBlock*>(fblock->clone(nullptr)));
             nobj->addSubObject(nobj->fblock.get());
         }
     }

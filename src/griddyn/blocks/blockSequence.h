@@ -15,14 +15,14 @@ namespace griddyn::blocks {
 A block is defined as a single input single output subModel.  This object takes any number of blocks
 in a sequence and processes them in the appropriate fashion.
 */
-class blockSequence: public Block {
+class BlockSequence: public GridBlock {
   public:
   protected:
     enum SequenceFlags {
         DIFFERENTIAL_INPUT_ACTUAL =
             object_flag11,  //!< flag specifying that the outer input is differential
     };
-    std::vector<Block*> blocks;  //!< the building blocks in the sequence
+    std::vector<GridBlock*> blocks;  //!< the building blocks in the sequence
     std::vector<int> sequence;  //!< a numerical ordering of the sequence
   private:
     std::vector<double> blockOutputs;  //!< temporary storage for block outputs
@@ -32,7 +32,7 @@ class blockSequence: public Block {
     double sampleTime = kBigNum;  //!< the minimum local sampling time for local integration
   public:
     /** @brief default constructor*/
-    explicit blockSequence(const std::string& objName = "block_#");
+    explicit BlockSequence(const std::string& objName = "block_#");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -44,7 +44,7 @@ class blockSequence: public Block {
 
   public:
     virtual void add(CoreObject* obj) override;
-    virtual void add(Block* blk);
+    virtual void add(GridBlock* blk);
 
     virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;

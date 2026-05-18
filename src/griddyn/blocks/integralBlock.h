@@ -13,17 +13,17 @@ namespace griddyn::blocks {
 /** @brief class implementing an integral block
 computes the integral of the input
 */
-class integralBlock: public Block {
+class IntegralBlock: public GridBlock {
   public:
   protected:
     double iv = 0.0;  //!< the initial value(current value) of the integral
   public:
     //!< default constructor
-    explicit integralBlock(const std::string& objName = "integralBlock_#");
+    explicit IntegralBlock(const std::string& objName = "integralBlock_#");
     /** alternate constructor to add in the gain
 @param[in] gain  the multiplication factor of the block
 */
-    integralBlock(double gain, const std::string& objName = "integralBlock_#");
+    IntegralBlock(double gain, const std::string& objName = "integralBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,

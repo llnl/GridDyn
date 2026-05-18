@@ -127,7 +127,7 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "seed") {
         utilities::gridRandom::setSeed(static_cast<int>(val));
     } else {
-        // I am purposely skipping over the rampLoad the functionality is needed but the access
+        // I am purposely skipping over the RampLoad the functionality is needed but the access
         // is not
         rampSource::set(param, val, unitType);
     }

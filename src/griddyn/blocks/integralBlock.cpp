@@ -11,21 +11,21 @@
 #include "utilities/matrixData.hpp"
 #include <string>
 namespace griddyn::blocks {
-integralBlock::integralBlock(const std::string& objName): Block(objName)
+IntegralBlock::IntegralBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(differential_output);
     opFlags.set(use_state);
 }
 
-integralBlock::integralBlock(double gain, const std::string& objName): Block(gain, objName)
+IntegralBlock::IntegralBlock(double gain, const std::string& objName): GridBlock(gain, objName)
 {
     opFlags.set(differential_output);
     opFlags.set(use_state);
 }
 
-CoreObject* integralBlock::clone(CoreObject* obj) const
+CoreObject* IntegralBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<integralBlock, Block>(this, obj);
+    auto nobj = cloneBase<IntegralBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -34,7 +34,7 @@ CoreObject* integralBlock::clone(CoreObject* obj) const
 }
 
 // initial conditions
-void integralBlock::dynObjectInitializeB(const IOdata& inputs,
+void IntegralBlock::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -42,31 +42,31 @@ void integralBlock::dynObjectInitializeB(const IOdata& inputs,
     if (desiredOutput.empty()) {
         m_state[loc] = iv;
         if (limiter_diff > 0) {
-            Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+            GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         }
         m_dstate_dt[loc] = K * (inputs[0] + bias);
     } else {
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
 }
 
 // residual
-void integralBlock::blockResidual(double input,
+void IntegralBlock::blockResidual(double input,
                                   double didt,
                                   const stateData& sD,
                                   double resid[],
                                   const solverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
-        Block::blockResidual(input, didt, sD, resid, sMode);
+        GridBlock::blockResidual(input, didt, sD, resid, sMode);
         return;
     }
     auto offset = offsets.getDiffOffset(sMode);
     resid[offset] = (K * (input + bias) - sD.dstate_dt[offset]);
-    Block::blockResidual(input, didt, sD, resid, sMode);
+    GridBlock::blockResidual(input, didt, sD, resid, sMode);
 }
 
-void integralBlock::blockDerivative(double input,
+void IntegralBlock::blockDerivative(double input,
                                     double didt,
                                     const stateData& sD,
                                     double deriv[],
@@ -75,11 +75,11 @@ void integralBlock::blockDerivative(double input,
     auto offset = offsets.getDiffOffset(sMode);
     deriv[offset + limiter_diff] = K * (input + bias);
     if (opFlags[use_ramp_limits]) {
-        Block::blockDerivative(input, didt, sD, deriv, sMode);
+        GridBlock::blockDerivative(input, didt, sD, deriv, sMode);
     }
 }
 
-void integralBlock::blockJacobianElements(double input,
+void IntegralBlock::blockJacobianElements(double input,
                                           double didt,
                                           const stateData& sD,
                                           matrixData<double>& md,
@@ -87,17 +87,17 @@ void integralBlock::blockJacobianElements(double input,
                                           const solverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
-        Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
     }
     auto offset = offsets.getDiffOffset(sMode);
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
     md.assignCheck(offset, argLoc, K);
     md.assign(offset, offset, -sD.cj);
-    Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+    GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
 }
 
-double integralBlock::step(coreTime time, double inputA)
+double IntegralBlock::step(coreTime time, double inputA)
 {
     double dt = time - prevTime;
     double out;
@@ -106,7 +106,7 @@ double integralBlock::step(coreTime time, double inputA)
     m_state[loc] = m_state[loc] + K * (input + prevInput) / 2.0 * dt;
     prevInput = input;
     if (loc > 0) {
-        out = Block::step(time, inputA);
+        out = GridBlock::step(time, inputA);
     } else {
         out = m_state[0];
         prevTime = time;
@@ -116,11 +116,11 @@ double integralBlock::step(coreTime time, double inputA)
 }
 
 // set parameters
-void integralBlock::set(std::string_view param, std::string_view val)
+void IntegralBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void integralBlock::set(std::string_view param, double val, units::unit unitType)
+void IntegralBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "iv") || (param == "initial_value")) {
         iv = val;
@@ -129,7 +129,7 @@ void integralBlock::set(std::string_view param, double val, units::unit unitType
             K = 1.0 / val;
         }
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 }  // namespace griddyn::blocks

@@ -38,7 +38,7 @@ static const char other_test_directory[] = GRIDDYN_TEST_DIRECTORY "/other_test_c
 #define ENABLE_IN_DEVELOPMENT_CASES
 
 namespace griddyn {
-class Load;
+class GridLoad;
 class solverMode;
 }  // namespace griddyn
 
@@ -72,8 +72,8 @@ struct gridLoadTestFixture {
     ~gridLoadTestFixture();
     gridLoadTestFixture& operator=(const gridLoadTestFixture&) = delete;
 
-    griddyn::Load* ld1 = nullptr;
-    griddyn::Load* ld2 = nullptr;
+    griddyn::GridLoad* ld1 = nullptr;
+    griddyn::GridLoad* ld2 = nullptr;
 };
 
 struct glbconfig {

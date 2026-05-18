@@ -73,12 +73,12 @@ void acdcConverter::buildSubsystem()
     opFlags.set(adjustable_P);
     opFlags.set(adjustable_Q);
     firingAngleControl =
-        make_owningPtr<blocks::pidBlock>(-dirMult * mp_Kp, -dirMult * mp_Ki, 0, "angleControl");
+        make_owningPtr<blocks::PidBlock>(-dirMult * mp_Kp, -dirMult * mp_Ki, 0, "angleControl");
     addSubObject(firingAngleControl.get());
     powerLevelControl =
-        make_owningPtr<blocks::pidBlock>(mp_controlKp, mp_controlKi, 0, "powerControl");
+        make_owningPtr<blocks::PidBlock>(mp_controlKp, mp_controlKi, 0, "powerControl");
     addSubObject(powerLevelControl.get());
-    controlDelay = make_owningPtr<blocks::delayBlock>(tD, "controlDelay");
+    controlDelay = make_owningPtr<blocks::DelayBlock>(tD, "controlDelay");
     addSubObject(controlDelay.get());
 }
 

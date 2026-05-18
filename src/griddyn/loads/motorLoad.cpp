@@ -24,27 +24,26 @@ using units::puMW;
 using units::puV;
 
 // setup the load object factories
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static typeFactory<MotorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad3> mlf3("load",
+static typeFactory<MotorLoad3> mlf3("load",
                                     std::to_array<std::string_view>({"motor3", "motorIII", "m3"}));
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<motorLoad5> mlf5("load",
+static typeFactory<MotorLoad5> mlf5("load",
                                     std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 static constexpr double cSmallDiff = 1e-7;
-motorLoad::motorLoad(const std::string& objName): Load(objName)
+MotorLoad::MotorLoad(const std::string& objName): GridLoad(objName)
 {
     // default values
     opFlags.set(has_dyn_states);
 }
 
-CoreObject* motorLoad::clone(CoreObject* obj) const
+CoreObject* MotorLoad::clone(CoreObject* obj) const
 {
-    auto* clonedLoad = cloneBase<motorLoad, Load>(this, obj);
+    auto* clonedLoad = cloneBase<MotorLoad, GridLoad>(this, obj);
     if (clonedLoad == nullptr) {
         return obj;
     }
@@ -63,7 +62,7 @@ CoreObject* motorLoad::clone(CoreObject* obj) const
     return clonedLoad;
 }
 
-void motorLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     m_state.resize(1);
     if (opFlags[init_transient]) {
@@ -78,16 +77,16 @@ void motorLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         m_state[0] = 0.03;
     }
     scale = mBase / systemBasePower;
-    Load::pFlowObjectInitializeA(time0, flags);
+    GridLoad::pFlowObjectInitializeA(time0, flags);
 }
 
-void motorLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     opFlags.set(has_roots);
-    Load::dynObjectInitializeA(time0, flags);
+    GridLoad::dynObjectInitializeA(time0, flags);
 }
 
-void motorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
+void MotorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
                                      const IOdata& /*desiredOutput*/,
                                      IOdata& /*fieldSet*/)
 {
@@ -99,7 +98,7 @@ void motorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-stateSizes motorLoad::LocalStateSizes(const solverMode& sMode) const
+stateSizes MotorLoad::LocalStateSizes(const solverMode& sMode) const
 {
     stateSizes stateSizeValues;
     if (isDynamic(sMode)) {
@@ -112,7 +111,7 @@ stateSizes motorLoad::LocalStateSizes(const solverMode& sMode) const
     return stateSizeValues;
 }
 
-count_t motorLoad::LocalJacobianCount(const solverMode& sMode) const
+count_t MotorLoad::LocalJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
@@ -125,7 +124,7 @@ count_t motorLoad::LocalJacobianCount(const solverMode& sMode) const
     return localJacSize;
 }
 
-std::pair<count_t, count_t> motorLoad::LocalRootCount(const solverMode& /*sMode*/) const
+std::pair<count_t, count_t> MotorLoad::LocalRootCount(const solverMode& /*sMode*/) const
 {
     count_t algRoots = 0;
     count_t diffRoots = 0;
@@ -138,15 +137,15 @@ std::pair<count_t, count_t> motorLoad::LocalRootCount(const solverMode& /*sMode*
 }
 
 // set properties
-void motorLoad::set(std::string_view param, std::string_view val)
+void MotorLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        Load::set(param, val);
+        GridLoad::set(param, val);
     }
 }
 
-void motorLoad::set(std::string_view param, double val, units::unit unitType)
+void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
     bool slipCheck = false;
 
@@ -210,7 +209,7 @@ void motorLoad::set(std::string_view param, double val, units::unit unitType)
             Vcontrol = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
             slipCheck = true;
         } else {
-            Load::set(param, val, unitType);
+            GridLoad::set(param, val, unitType);
         }
     }
 
@@ -224,7 +223,7 @@ void motorLoad::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void motorLoad::setState(coreTime time,
+void MotorLoad::setState(coreTime time,
                          const double state[],
                          const double dstate_dt[],
                          const solverMode& sMode)
@@ -244,7 +243,7 @@ void motorLoad::setState(coreTime time,
     prevTime = time;
 }
 
-void motorLoad::guessState(coreTime /*time*/,
+void MotorLoad::guessState(coreTime /*time*/,
                            double state[],
                            double dstate_dt[],
                            const solverMode& sMode)
@@ -262,7 +261,7 @@ void motorLoad::guessState(coreTime /*time*/,
 }
 
 // residual
-void motorLoad::residual(const IOdata& inputs,
+void MotorLoad::residual(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double resid[],
                          const solverMode& sMode)
@@ -282,7 +281,7 @@ void motorLoad::residual(const IOdata& inputs,
     }
 }
 
-void motorLoad::getStateName(stringVec& stNames,
+void MotorLoad::getStateName(stringVec& stNames,
                              const solverMode& sMode,
                              const std::string& prefix) const
 {
@@ -300,14 +299,14 @@ void motorLoad::getStateName(stringVec& stNames,
         return;
     }
 }
-void motorLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void MotorLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
 {
     const double timeDelta = time - prevTime;
-    motorLoad::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
+    MotorLoad::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     m_state[0] += timeDelta * m_dstate_dt[0];
 }
 
-void motorLoad::derivative(const IOdata& inputs,
+void MotorLoad::derivative(const IOdata& inputs,
                            const stateData& stateDataValue,
                            double deriv[],
                            const solverMode& sMode)
@@ -320,7 +319,7 @@ void motorLoad::derivative(const IOdata& inputs,
         (opFlags[stalled]) ? 0 : (0.5 / H * (mechPower(slip) - rPower(voltage * Vcontrol, slip)));
 }
 
-void motorLoad::jacobianElements(const IOdata& inputs,
+void MotorLoad::jacobianElements(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
@@ -366,7 +365,7 @@ void motorLoad::jacobianElements(const IOdata& inputs,
     }
 }
 
-void motorLoad::outputPartialDerivatives(const IOdata& inputs,
+void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
                                          const stateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const solverMode& sMode)
@@ -412,11 +411,11 @@ void motorLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-count_t motorLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t MotorLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
 {
     return 1;
 }
-void motorLoad::ioPartialDerivatives(const IOdata& inputs,
+void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
@@ -439,7 +438,7 @@ void motorLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-index_t motorLoad::findIndex(std::string_view field, const solverMode& sMode) const
+index_t MotorLoad::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "slip") {
@@ -448,7 +447,7 @@ index_t motorLoad::findIndex(std::string_view field, const solverMode& sMode) co
     return ret;
 }
 
-void motorLoad::rootTest(const IOdata& inputs,
+void MotorLoad::rootTest(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double roots[],
                          const solverMode& sMode)
@@ -463,7 +462,7 @@ void motorLoad::rootTest(const IOdata& inputs,
     }
 }
 
-void motorLoad::rootTrigger(coreTime /*time*/,
+void MotorLoad::rootTrigger(coreTime /*time*/,
                             const IOdata& inputs,
                             const std::vector<int>& rootMask,
                             const solverMode& sMode)
@@ -484,7 +483,7 @@ void motorLoad::rootTrigger(coreTime /*time*/,
     }
 }
 
-change_code motorLoad::rootCheck(const IOdata& inputs,
+change_code MotorLoad::rootCheck(const IOdata& inputs,
                                  const stateData& /*sD*/,
                                  const solverMode& /*sMode*/,
                                  check_level_t /*level*/)
@@ -499,7 +498,7 @@ change_code motorLoad::rootCheck(const IOdata& inputs,
     return change_code::no_change;
 }
 
-double motorLoad::getRealPower() const
+double MotorLoad::getRealPower() const
 {
     const double voltage = bus->getVoltage();
 
@@ -507,7 +506,7 @@ double motorLoad::getRealPower() const
     return rPower(voltage * Vcontrol, slip) * scale;
 }
 
-double motorLoad::getReactivePower() const
+double MotorLoad::getReactivePower() const
 {
     const double voltage = bus->getVoltage();
 
@@ -516,7 +515,7 @@ double motorLoad::getReactivePower() const
     return qPower(voltage * Vcontrol, slip) * scale;
 }
 
-double motorLoad::getRealPower(const IOdata& inputs,
+double MotorLoad::getRealPower(const IOdata& inputs,
                                const stateData& stateDataValue,
                                const solverMode& sMode) const
 {
@@ -540,7 +539,7 @@ double motorLoad::getRealPower(const IOdata& inputs,
     return Ptemp * scale;
 }
 
-double motorLoad::getReactivePower(const IOdata& inputs,
+double MotorLoad::getReactivePower(const IOdata& inputs,
                                    const stateData& stateDataValue,
                                    const solverMode& sMode) const
 {
@@ -562,32 +561,32 @@ double motorLoad::getReactivePower(const IOdata& inputs,
     return Qtemp * scale;
 }
 
-double motorLoad::getRealPower(const double voltage) const
+double MotorLoad::getRealPower(const double voltage) const
 {
     const double slip = m_state[0];
 
     return rPower(voltage * Vcontrol, slip) * scale;
 }
 
-double motorLoad::getReactivePower(double voltage) const
+double MotorLoad::getReactivePower(double voltage) const
 {
     const double slip = m_state[0];
     return qPower(voltage * Vcontrol, slip) * scale;
 }
 
-double motorLoad::mechPower(double slip) const
+double MotorLoad::mechPower(double slip) const
 {
     const double torqueMechanical = alpha + (beta * slip) + (gamma * slip * slip);
     return torqueMechanical;
 }
 
-double motorLoad::dmechds(double slip) const
+double MotorLoad::dmechds(double slip) const
 {
     const double torqueMechanicalDerivative = beta + (2 * gamma * slip);
     return torqueMechanicalDerivative;
 }
 
-double motorLoad::computeSlip(double Ptarget) const
+double MotorLoad::computeSlip(double Ptarget) const
 {
     if (gamma == 0) {
         return (beta == 0) ? 0.05 : (Ptarget - alpha) / beta;
@@ -604,13 +603,13 @@ double motorLoad::computeSlip(double Ptarget) const
     return outSlip2;
 }
 
-double motorLoad::rPower(double vin, double slip) const
+double MotorLoad::rPower(double vin, double slip) const
 {
     const double realPowerOutput =
         r1 * vin * vin * slip / ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)));
     return realPowerOutput;
 }
-double motorLoad::qPower(double vin, double slip) const
+double MotorLoad::qPower(double vin, double slip) const
 {
     const double xs2 = (x + x1) * slip * slip;
     const double reactivePowerOutput =

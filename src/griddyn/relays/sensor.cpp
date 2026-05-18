@@ -94,19 +94,19 @@ CoreObject* sensor::clone(CoreObject* obj) const
 
 void sensor::add(CoreObject* obj)
 {
-    if (dynamic_cast<Block*>(obj) != nullptr) {
-        add(static_cast<Block*>(obj));
+    if (dynamic_cast<GridBlock*>(obj) != nullptr) {
+        add(static_cast<GridBlock*>(obj));
     } else {
         Relay::add(obj);
     }
 }
 
-void sensor::add(Block* blk)
+void sensor::add(GridBlock* blk)
 {
     if (blk->locIndex != kNullLocation) {
         ensureSizeAtLeast(filterBlocks,
                           static_cast<size_t>(blk->locIndex) + 1,
-                          static_cast<Block*>(nullptr));
+                          static_cast<GridBlock*>(nullptr));
         filterBlocks[blk->locIndex] = blk;
     } else {
         filterBlocks.push_back(blk);

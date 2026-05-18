@@ -21,12 +21,12 @@ namespace griddyn {
 using units::unit;
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static OptObjectFactory<GridLoadOpt, zipLoad> opLoad("basic", "load");
+static OptObjectFactory<GridLoadOpt, ZipLoad> opLoad("basic", "load");
 
 GridLoadOpt::GridLoadOpt(const std::string& objName): GridOptObject(objName) {}
 
 GridLoadOpt::GridLoadOpt(CoreObject* obj, const std::string& objName):
-    GridOptObject(objName), load(dynamic_cast<zipLoad*>(obj))
+    GridOptObject(objName), load(dynamic_cast<ZipLoad*>(obj))
 {
     if (load != nullptr) {
         if (getName().empty()) {
@@ -60,8 +60,8 @@ CoreObject* GridLoadOpt::clone(CoreObject* obj) const
 
 void GridLoadOpt::add(CoreObject* obj)
 {
-    if (dynamic_cast<zipLoad*>(obj) != nullptr) {
-        load = static_cast<zipLoad*>(obj);
+    if (dynamic_cast<ZipLoad*>(obj) != nullptr) {
+        load = static_cast<ZipLoad*>(obj);
         if (getName().empty()) {
             setName(load->getName());
         }

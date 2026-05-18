@@ -14,7 +14,7 @@ namespace griddyn::blocks {
 /** @brief class implementing a deadband system
 TOBE added
 */
-class deadbandBlock: public Block {
+class DeadbandBlock: public GridBlock {
   public:
     /** @brief flags for the deadband block*/
     enum DeadbandBlockFlags {
@@ -43,11 +43,11 @@ class deadbandBlock: public Block {
 
   public:
     /** @brief the default constructor*/
-    explicit deadbandBlock(const std::string& objName = "deadband_#");
+    explicit DeadbandBlock(const std::string& objName = "deadband_#");
     /** @brief alternate constructor with a deadband argument
 @param[in] deadbandWidth the size of the deadband
 */
-    deadbandBlock(double deadbandWidth, const std::string& objName = "deadband_#");
+    DeadbandBlock(double deadbandWidth, const std::string& objName = "deadband_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

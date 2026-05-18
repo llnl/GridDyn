@@ -17,7 +17,7 @@ it then converts it to observable canonical form as state space matrices for imp
 the solver
 
 */
-class transferFunctionBlock: public Block {
+class TransferFunctionBlock: public GridBlock {
   public:
   protected:
     std::vector<double> a;  //!< lower time constant
@@ -31,22 +31,22 @@ class transferFunctionBlock: public Block {
     /** constructor to add in the order of the transfer function
 @param[in] order  the order of the transfer function
 */
-    explicit transferFunctionBlock(int order = 1);
+    explicit TransferFunctionBlock(int order = 1);
 
     /** constructor to add in the name of the block
 @param[in] objName  the name
 */
-    explicit transferFunctionBlock(const std::string& objName);
+    explicit TransferFunctionBlock(const std::string& objName);
     /** constructor to define the transfer function coefficients assuming $b_0=1$ and all others
 are 0
 @param[in] Acoef the denominator coefficients
 */
-    explicit transferFunctionBlock(std::vector<double> Acoef);
+    explicit TransferFunctionBlock(std::vector<double> Acoef);
     /** constructor to define the transfer function coefficients
 @param[in] Acoef the denominator coefficients
 @param[in] Bcoef the numerator coefficients
 */
-    transferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef);
+    TransferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

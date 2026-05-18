@@ -25,9 +25,9 @@ using units::puV;
 using units::rad;
 using units::unit;
 
-ThreePhaseLoad::ThreePhaseLoad(const std::string& objName): Load(objName) {}
+ThreePhaseLoad::ThreePhaseLoad(const std::string& objName): GridLoad(objName) {}
 ThreePhaseLoad::ThreePhaseLoad(double realPower, double reactivePower, const std::string& objName):
-    Load(realPower, reactivePower, objName)
+    GridLoad(realPower, reactivePower, objName)
 {
     Pa = Pb = Pc = realPower / 3.0;
     Qa = Qb = Qc = reactivePower / 3.0;
@@ -40,12 +40,12 @@ void ThreePhaseLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         opFlags[three_phase_output] = true;
     }
 
-    Load::pFlowObjectInitializeA(time0, flags);
+    GridLoad::pFlowObjectInitializeA(time0, flags);
 }
 
 CoreObject* ThreePhaseLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<ThreePhaseLoad, Load>(this, obj);
+    auto* nobj = cloneBase<ThreePhaseLoad, GridLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -84,7 +84,7 @@ static const stringVec flagStrings{"use_abs_angle",
 
 void ThreePhaseLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<ThreePhaseLoad, Load>(
+    getParamString<ThreePhaseLoad, GridLoad>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -101,7 +101,7 @@ void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
         opFlags.set(three_phase_output, val);
         m_outputSize = (val) ? 6 : 3;
     } else {
-        Load::setFlag(flag, val);
+        GridLoad::setFlag(flag, val);
     }
 }
 
@@ -109,7 +109,7 @@ void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 void ThreePhaseLoad::set(std::string_view param, std::string_view val)
 {
     if (!param.empty() && param[0] != '#') {
-        Load::set(param, val);
+        GridLoad::set(param, val);
     }
 }
 
@@ -220,7 +220,7 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
     } else if (param == "multiplier") {
         return multiplier;
     }
-    return Load::get(param, unitType);
+    return GridLoad::get(param, unitType);
 }
 
 void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
@@ -260,7 +260,7 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
                 }
                 break;
             default:
-                Load::set(param, val, unitType);
+                GridLoad::set(param, val, unitType);
         }
         return;
     }
@@ -341,7 +341,7 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
     } else if (param == "multiplier") {
         multiplier = val;
     } else {
-        Load::set(param, val, unitType);
+        GridLoad::set(param, val, unitType);
     }
 }
 
@@ -438,7 +438,7 @@ const std::vector<stringVec>& ThreePhaseLoad::inputNames() const
     if (opFlags[three_phase_input]) {
         return inputNamesStr3phase;
     }
-    return Load::inputNames();
+    return GridLoad::inputNames();
 }
 
 static const std::vector<stringVec> outputNamesStr3phase{
@@ -455,7 +455,7 @@ const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
     if (opFlags[three_phase_output]) {
         return outputNamesStr3phase;
     }
-    return Load::outputNames();
+    return GridLoad::outputNames();
 }
 
 // NOLINTEND(readability-identifier-length,bugprone-throwing-static-initialization,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)

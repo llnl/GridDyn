@@ -85,7 +85,7 @@ void variableGenerator::add(GridSubModel* obj)
 
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);
-    } else if (dynamic_cast<Block*>(obj) != nullptr) {
+    } else if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         if (m_cBlock != nullptr) {
             if (isSameObject(obj, m_cBlock)) {
                 return;
@@ -93,7 +93,7 @@ void variableGenerator::add(GridSubModel* obj)
 
             GridComponent::remove(m_cBlock);
         }
-        m_cBlock = static_cast<Block*>(obj);
+        m_cBlock = static_cast<GridBlock*>(obj);
         m_cBlock->locIndex = control_block_loc;
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);

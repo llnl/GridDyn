@@ -49,9 +49,9 @@ using units::puMW;
 
 void epcReadBus(GridBus* bus, string_view line, double base, const basicReaderInfo& bri);
 void epcReadDCBus(DcBus* bus, string_view line, double base, const basicReaderInfo& bri);
-void epcReadLoad(zipLoad* ld, string_view line, double base);
-void epcReadFixedShunt(zipLoad* ld, string_view line, double base);
-void epcReadSwitchShunt(loads::svd* ld, string_view line, double /* base */);
+void epcReadLoad(ZipLoad* ld, string_view line, double base);
+void epcReadFixedShunt(ZipLoad* ld, string_view line, double base);
+void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /* base */);
 void epcReadGen(Generator* gen, string_view line, double base);
 void epcReadBranch(CoreObject* parentObject,
                    string_view line,
@@ -299,18 +299,18 @@ void loadEpc(CoreObject* parentObject,
                     epcReadGen(gen, config, base);
                 });
         } else if (tokens[0] == "load") {
-            ProcessSectionObject<zipLoad>(
-                line, file, "load", busList, [base](zipLoad* ld, string_view config) {
+            ProcessSectionObject<ZipLoad>(
+                line, file, "load", busList, [base](ZipLoad* ld, string_view config) {
                     epcReadLoad(ld, config, base);
                 });
         } else if (tokens[0] == "shunt") {
-            ProcessSectionObject<zipLoad>(
-                line, file, "shunt", busList, [base](zipLoad* ld, string_view config) {
+            ProcessSectionObject<ZipLoad>(
+                line, file, "shunt", busList, [base](ZipLoad* ld, string_view config) {
                     epcReadFixedShunt(ld, config, base);
                 });
-        } else if (tokens[0] == "svd") {
-            ProcessSectionObject<loads::svd>(
-                line, file, "svd", busList, [base](loads::svd* ld, string_view config) {
+        } else if (tokens[0] == "Svd") {
+            ProcessSectionObject<loads::Svd>(
+                line, file, "Svd", busList, [base](loads::Svd* ld, string_view config) {
                     epcReadSwitchShunt(ld, config, base);
                 });
         } else if (tokens[0] == "area") {
@@ -391,7 +391,7 @@ Phase shifter adjustment flag
 area
 <1 or 0>
 Area interchange control flag
-svd
+Svd
 <1 or 0>
 Control shunt adjustment flag
 dctap
@@ -418,7 +418,7 @@ double epcReadSolutionParamters(CoreObject* parentObject, string_view line)
     if (tokens[0] == "tap") {
     } else if (tokens[0] == "phas") {
     } else if (tokens[0] == "area") {
-    } else if (tokens[0] == "svd") {
+    } else if (tokens[0] == "Svd") {
     } else if (tokens[0] == "dctap") {
     } else if (tokens[0] == "gcd") {
     } else if (tokens[0] == "jump") {
@@ -573,7 +573,7 @@ void epcReadDCBus(DcBus* bus, string_view line, double /*base*/, const basicRead
 // #load data  [10485]          id   ------------long_id_------------     st      mw      mvar mw_i
 //  mvar_i
 //  mw_z      mvar_z  ar zone  date_in date_out pid N own sdmon nonc ithbus ithflag
-void epcReadLoad(zipLoad* ld, string_view line, double /*base*/)
+void epcReadLoad(ZipLoad* ld, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
 
@@ -630,7 +630,7 @@ void epcReadLoad(zipLoad* ld, string_view line, double /*base*/)
 //  pu_mvar
 //  date_in date_out pid N own part1 own part2 own part3 own part4 --num--  --name--  --kv--
 
-void epcReadFixedShunt(zipLoad* ld, string_view line, double /*base*/)
+void epcReadFixedShunt(ZipLoad* ld, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
 
@@ -665,10 +665,10 @@ void epcReadFixedShunt(zipLoad* ld, string_view line, double /*base*/)
     }
 }
 
-// #svd data[1253]            id  ------------long_id_------------  st ty --no-- - reg_name
+// #Svd data[1253]            id  ------------long_id_------------  st ty --no-- - reg_name
 //  ar zone      g      b  min_c  max_c  vband   bmin   bmax  date_in date_out pid N
 //  own part1 own part2 own part3 own part4
-void epcReadSwitchShunt(loads::svd* ld, string_view line, double /*base*/)
+void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " ", default_bracket_chars, delimiter_compression::on);
     auto sz = strvec.size();

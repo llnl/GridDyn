@@ -136,7 +136,7 @@ void loadMatDyn(CoreObject* parentObject,
     // lastly all the loads need to be autoconverted
     const auto loadCount = static_cast<index_t>(parentObject->get("loadcount"));
     for (index_t loadIndex = 1; loadIndex <= loadCount; loadIndex++) {
-        auto* load = static_cast<zipLoad*>(parentObject->findByUserID("load", loadIndex));
+        auto* load = static_cast<ZipLoad*>(parentObject->findByUserID("load", loadIndex));
         load->set("converttoimpedance", 1);
     }
 }
@@ -326,7 +326,7 @@ void loadMatDynEvent(CoreObject* parentObject,
             auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", ind));
             auto* load = bus->getLoad();
             if (load == nullptr) {
-                load = new zipLoad();
+                load = new ZipLoad();
                 bus->add(load);
             }
             switch (static_cast<int>(eventSpec[2])) {

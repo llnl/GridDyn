@@ -13,14 +13,14 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-exponentialLoad::exponentialLoad(const std::string& objName): Load(objName) {}
-exponentialLoad::exponentialLoad(double rP, double qP, const std::string& objName):
-    Load(rP, qP, objName)
+ExponentialLoad::ExponentialLoad(const std::string& objName): GridLoad(objName) {}
+ExponentialLoad::ExponentialLoad(double rP, double qP, const std::string& objName):
+    GridLoad(rP, qP, objName)
 {
 }
-CoreObject* exponentialLoad::clone(CoreObject* obj) const
+CoreObject* ExponentialLoad::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<exponentialLoad, Load>(this, obj);
+    auto ld = cloneBase<ExponentialLoad, GridLoad>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -31,11 +31,11 @@ CoreObject* exponentialLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void exponentialLoad::set(std::string_view param, std::string_view val)
+void ExponentialLoad::set(std::string_view param, std::string_view val)
 {
-    Load::set(param, val);
+    GridLoad::set(param, val);
 }
-void exponentialLoad::set(std::string_view param, double val, units::unit unitType)
+void ExponentialLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "alphap") || (param == "ap")) {
         alphaP = val;
@@ -44,11 +44,11 @@ void exponentialLoad::set(std::string_view param, double val, units::unit unitTy
     } else if ((param == "alpha") || (param == "a")) {
         alphaP = alphaQ = val;
     } else {
-        Load::set(param, val, unitType);
+        GridLoad::set(param, val, unitType);
     }
 }
 
-void exponentialLoad::ioPartialDerivatives(const IOdata& inputs,
+void ExponentialLoad::ioPartialDerivatives(const IOdata& inputs,
                                            const stateData& /*sD*/,
                                            matrixData<double>& md,
                                            const IOlocs& inputLocs,
@@ -68,29 +68,29 @@ void exponentialLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-double exponentialLoad::getRealPower() const
+double ExponentialLoad::getRealPower() const
 {
     return getRealPower(bus->getVoltage());
 }
-double exponentialLoad::getReactivePower() const
+double ExponentialLoad::getReactivePower() const
 {
     return getReactivePower(bus->getVoltage());
 }
-double exponentialLoad::getRealPower(const IOdata& inputs,
+double ExponentialLoad::getRealPower(const IOdata& inputs,
                                      const stateData& /*sD*/,
                                      const solverMode& /*sMode*/) const
 {
     return getRealPower(inputs[voltageInLocation]);
 }
 
-double exponentialLoad::getReactivePower(const IOdata& inputs,
+double ExponentialLoad::getReactivePower(const IOdata& inputs,
                                          const stateData& /*sD*/,
                                          const solverMode& /*sMode*/) const
 {
     return getReactivePower(inputs[voltageInLocation]);
 }
 
-double exponentialLoad::getRealPower(const double V) const
+double ExponentialLoad::getRealPower(const double V) const
 {
     if (isConnected()) {
         double val = getP();
@@ -100,7 +100,7 @@ double exponentialLoad::getRealPower(const double V) const
     return 0.0;
 }
 
-double exponentialLoad::getReactivePower(double V) const
+double ExponentialLoad::getReactivePower(double V) const
 {
     if (isConnected()) {
         double val = getQ();

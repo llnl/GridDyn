@@ -1677,7 +1677,7 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
         index_t loadIndex = 0;
         const CoreObject* loadObject = bus->getLoad(loadIndex);
         while (loadObject != nullptr) {
-            const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(loadObject);
+            const auto* gridLabdLoad = dynamic_cast<const loads::GridLabDLoad*>(loadObject);
             if (gridLabdLoad != nullptr) {
                 cnt += gridLabdLoad->mpiCount();
             }
@@ -1704,7 +1704,7 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
         }
         return cnt;
     }
-    const auto* gridLabdLoad = dynamic_cast<const loads::gridLabDLoad*>(obj);
+    const auto* gridLabdLoad = dynamic_cast<const loads::GridLabDLoad*>(obj);
     if (gridLabdLoad != nullptr) {
         cnt += gridLabdLoad->mpiCount();
     }

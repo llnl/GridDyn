@@ -13,7 +13,7 @@
 namespace griddyn {
 class GridBus;
 
-/** @brief base class for objects that can attach to a bus like Load and Generator
+/** @brief base class for objects that can attach to a bus like GridLoad and Generator
  *  gridSecondary class defines the interface for secondary objects which are nominally objects that
  *hang directly off a bus
  **/

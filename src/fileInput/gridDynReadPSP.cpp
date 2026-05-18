@@ -205,10 +205,10 @@ Three default decimal places.
 41-45   Generation MVAR low limit
 46-50   Generation MVAR high limit
 51-55   Bus at which generation controls voltage
-56-60   Load MW
-61-65   Load MVAR
+56-60   GridLoad MW
+61-65   GridLoad MVAR
 66-70   Shunt MVAR. Reactors are minus.
-71-72   Load flow area. (Used for area interchange and losses).
+71-72   GridLoad flow area. (Used for area interchange and losses).
 
 */
 
@@ -219,7 +219,7 @@ void pspReadBus(GridBus* bus,
 {
     const auto& bri = readerOptions;
     std::string temp, temp2;
-    Load* ld = nullptr;
+    GridLoad* ld = nullptr;
     Generator* gen = nullptr;
     int code;
     double P, Q;
@@ -312,7 +312,7 @@ void pspReadBus(GridBus* bus,
     Q = numeric_conversion<double>(temp, 0.0);
 
     if ((P != 0) || (Q != 0)) {
-        ld = new zipLoad(P / base, Q / base);
+        ld = new ZipLoad(P / base, Q / base);
         bus->add(ld);
     }
     // get the shunt impedance
@@ -320,7 +320,7 @@ void pspReadBus(GridBus* bus,
     Q = numeric_conversion<double>(temp, 0.0);
     if (Q != 0.0) {
         if (ld == nullptr) {
-            ld = new zipLoad();
+            ld = new ZipLoad();
             bus->add(ld);
         }
         ld->set("yq", -Q / base);
@@ -374,7 +374,7 @@ Cols    Data
 7       'C' if second card present for same line. Used for transformers.
 9-12    To bus number
 14      Circuit number (blank in 4 section)
-16      'T' or 'F' - Load flow area of bus at this end of line gets losses.
+16      'T' or 'F' - GridLoad flow area of bus at this end of line gets losses.
 18-23   Line resistance in percent of base. (NOT per unit.)
 (percent = 100 x per unit) Two default decimal places.
 24-29   Line reactance, in percent. Two default decimal places.

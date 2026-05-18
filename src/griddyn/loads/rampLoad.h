@@ -12,7 +12,7 @@ namespace griddyn {
 /** contains the different types of loads that can be used in griddyn*/
 namespace loads {
     /** @brief a load with ramping of the load types*/
-    class rampLoad: public zipLoad {
+    class RampLoad: public ZipLoad {
       protected:
         double dPdt = 0.0;  //!< [pu] real component of the load (constant Power)
         double dQdt = 0.0;  //!< [pu] imaginary component of the load (constant Power)
@@ -23,8 +23,8 @@ namespace loads {
         double dYpdt = 0.0;  //!< [pu] ramp in real impedance power
         double dYqdt = 0.0;  //!< [pu] ramp in imaginary constant impedance power
       public:
-        explicit rampLoad(const std::string& objName = "rampLoad_$");
-        rampLoad(double rP, double qP, const std::string& objName = "rampLoad_$");
+        explicit RampLoad(const std::string& objName = "rampLoad_$");
+        RampLoad(double rP, double qP, const std::string& objName = "rampLoad_$");
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

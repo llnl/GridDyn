@@ -8,17 +8,17 @@
 
 #include <algorithm>
 namespace griddyn::blocks {
-rampLimiter::rampLimiter(double nmin, double nmax): minRamp(nmin), maxRamp(nmax) {}
-void rampLimiter::setLimits(double nmin, double nmax)
+RampLimiter::RampLimiter(double nmin, double nmax): minRamp(nmin), maxRamp(nmax) {}
+void RampLimiter::setLimits(double nmin, double nmax)
 {
     minRamp = nmin;
     maxRamp = nmax;
 }
-void rampLimiter::setResetLevel(double newReset)
+void RampLimiter::setResetLevel(double newReset)
 {
     resetLevel = newReset;
 }
-double rampLimiter::limitCheck(double currentVal, double input, double dIdt) const
+double RampLimiter::limitCheck(double currentVal, double input, double dIdt) const
 {
     double val;
     if (limiterEngaged) {
@@ -33,7 +33,7 @@ double rampLimiter::limitCheck(double currentVal, double input, double dIdt) con
     return val;
 }
 
-void rampLimiter::changeLimitActivation(double dIdt)
+void RampLimiter::changeLimitActivation(double dIdt)
 {
     if (limiterEngaged) {
         if (limiterHigh) {
@@ -62,7 +62,7 @@ void rampLimiter::changeLimitActivation(double dIdt)
     }
 }
 
-double rampLimiter::output(double dIdt) const
+double RampLimiter::output(double dIdt) const
 {
     if (limiterEngaged) {
         return (limiterHigh) ? maxRamp : minRamp;
@@ -70,7 +70,7 @@ double rampLimiter::output(double dIdt) const
     return dIdt;
 }
 
-double rampLimiter::deriv(double dIdt) const
+double RampLimiter::deriv(double dIdt) const
 {
     if (limiterEngaged) {
         return (limiterHigh) ? maxRamp : minRamp;
@@ -78,11 +78,11 @@ double rampLimiter::deriv(double dIdt) const
     return dIdt;
 }
 
-double rampLimiter::DoutDin() const
+double RampLimiter::DoutDin() const
 {
     return (limiterEngaged) ? 0.0 : 1.0;
 }
-double rampLimiter::clampOutputRamp(double dIdt) const
+double RampLimiter::clampOutputRamp(double dIdt) const
 {
     if (dIdt > maxRamp) {
         return maxRamp;

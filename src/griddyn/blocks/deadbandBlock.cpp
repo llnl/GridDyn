@@ -15,19 +15,19 @@
 #include <vector>
 
 namespace griddyn::blocks {
-deadbandBlock::deadbandBlock(const std::string& objName): Block(objName)
+DeadbandBlock::DeadbandBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(use_state);
 }
-deadbandBlock::deadbandBlock(double deadbandWidth, const std::string& objName):
-    Block(objName), mDeadbandHigh(deadbandWidth), mDeadbandLow(-deadbandWidth)
+DeadbandBlock::DeadbandBlock(double deadbandWidth, const std::string& objName):
+    GridBlock(objName), mDeadbandHigh(deadbandWidth), mDeadbandLow(-deadbandWidth)
 {
     opFlags.set(use_state);
 }
 
-CoreObject* deadbandBlock::clone(CoreObject* obj) const
+CoreObject* DeadbandBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<deadbandBlock, Block>(this, obj);
+    auto* nobj = cloneBase<DeadbandBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -41,9 +41,9 @@ CoreObject* deadbandBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void deadbandBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DeadbandBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     if (mDeadbandLow < mDeadbandHigh)  // this means it was set to some value
     {
         opFlags[has_roots] = true;
@@ -61,7 +61,7 @@ void deadbandBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 // initial conditions
-void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
+void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -70,18 +70,18 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
         rootCheck(inputs, emptyStateData, cLocalSolverMode, check_level_t::reversable_only);
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
         if (limiter_alg > 0) {
-            Block::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+            GridBlock::rootCheck(inputs,
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
         }
     } else {
         fieldSet.resize(1);
         if (limiter_alg > 0) {
-            Block::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+            GridBlock::rootCheck(inputs,
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
         }
         mDeadbandState = DeadbandState::NORMAL;
         const double initialValue = m_state[limiter_alg] / K;
@@ -118,7 +118,7 @@ void deadbandBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double deadbandBlock::computeValue(double input) const
+double DeadbandBlock::computeValue(double input) const
 {
     double out = input;
     switch (mDeadbandState) {
@@ -157,7 +157,7 @@ double deadbandBlock::computeValue(double input) const
     return out;
 }
 
-double deadbandBlock::computeDoutDin(double input) const
+double DeadbandBlock::computeDoutDin(double input) const
 {
     double out = 0.0;
     switch (mDeadbandState) {
@@ -188,12 +188,12 @@ double deadbandBlock::computeDoutDin(double input) const
     }
     return out;
 }
-double deadbandBlock::step(coreTime time, double input)
+double DeadbandBlock::step(coreTime time, double input)
 {
     rootCheck({input}, emptyStateData, cLocalSolverMode, check_level_t::reversable_only);
     m_state[limiter_alg] = K * computeValue(input + bias);
     if (limiter_alg > 0) {
-        Block::step(time, input);
+        GridBlock::step(time, input);
     } else {
         prevTime = time;
         m_output = m_state[0];
@@ -203,7 +203,7 @@ double deadbandBlock::step(coreTime time, double input)
     return m_state[0];
 }
 
-void deadbandBlock::blockDerivative(double input,
+void DeadbandBlock::blockDerivative(double input,
                                     double didt,
                                     const stateData& stateDataRef,
                                     double deriv[],
@@ -215,13 +215,13 @@ void deadbandBlock::blockDerivative(double input,
         deriv[offset] = K * computeDoutDin(inputWithBias) * didt;
 
         if (limiter_diff > 0) {
-            Block::blockDerivative(input, didt, stateDataRef, deriv, sMode);
+            GridBlock::blockDerivative(input, didt, stateDataRef, deriv, sMode);
             return;
         }
     }
 }
 
-void deadbandBlock::blockAlgebraicUpdate(double input,
+void DeadbandBlock::blockAlgebraicUpdate(double input,
                                          const stateData& stateDataRef,
                                          double update[],
                                          const solverMode& sMode)
@@ -233,13 +233,13 @@ void deadbandBlock::blockAlgebraicUpdate(double input,
         // printf("db %f input=%f val=%f dbstate=%d\n", sD.time, ival,
         // update[offset], static_cast<int>(dbstate));
         if (limiter_alg > 0) {
-            Block::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
+            GridBlock::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
             return;
         }
     }
 }
 
-void deadbandBlock::blockJacobianElements(double input,
+void DeadbandBlock::blockJacobianElements(double input,
                                           double didt,
                                           const stateData& stateDataRef,
                                           matrixData<double>& jacobian,
@@ -255,7 +255,7 @@ void deadbandBlock::blockJacobianElements(double input,
             jacobian.assign(offset, argLoc, dInputOutput);
         }
         if (limiter_alg > 0) {
-            Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+            GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
     } else if ((opFlags[differential_input]) && (hasDifferential(sMode))) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
@@ -267,18 +267,18 @@ void deadbandBlock::blockJacobianElements(double input,
         }
 
         if (limiter_diff > 0) {
-            Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+            GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
     }
 }
 
-void deadbandBlock::rootTest(const IOdata& inputs,
+void DeadbandBlock::rootTest(const IOdata& inputs,
                              const stateData& stateDataRef,
                              double roots[],
                              const solverMode& sMode)
 {
     if (limiter_alg + limiter_diff > 0) {
-        Block::rootTest(inputs, stateDataRef, roots, sMode);
+        GridBlock::rootTest(inputs, stateDataRef, roots, sMode);
     }
     if (opFlags[USES_DEADBAND]) {
         const int rootOffset = offsets.getRootOffset(sMode) + limiter_alg + limiter_diff;
@@ -334,7 +334,7 @@ void deadbandBlock::rootTest(const IOdata& inputs,
     }
 }
 
-void deadbandBlock::rootTrigger(coreTime time,
+void DeadbandBlock::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const solverMode& sMode)
@@ -343,7 +343,7 @@ void deadbandBlock::rootTrigger(coreTime time,
     if (limiter_alg + limiter_diff > 0) {
         if ((rootMask[rootOffset] != 0) ||
             (rootMask[rootOffset + limiter_alg + limiter_diff - 1] != 0)) {
-            Block::rootTrigger(time, inputs, rootMask, sMode);
+            GridBlock::rootTrigger(time, inputs, rootMask, sMode);
         }
         rootOffset += limiter_alg + limiter_diff;
     }
@@ -403,7 +403,7 @@ void deadbandBlock::rootTrigger(coreTime time,
     }
 }
 
-change_code deadbandBlock::rootCheck(const IOdata& inputs,
+change_code DeadbandBlock::rootCheck(const IOdata& inputs,
                                      const stateData& stateDataRef,
                                      const solverMode& sMode,
                                      check_level_t /*level*/)
@@ -498,13 +498,14 @@ change_code deadbandBlock::rootCheck(const IOdata& inputs,
     }
 
     if (limiter_alg > 0) {
-        auto iret = Block::rootCheck(inputs, stateDataRef, sMode, check_level_t::reversable_only);
+        auto iret =
+            GridBlock::rootCheck(inputs, stateDataRef, sMode, check_level_t::reversable_only);
         ret = std::max(ret, iret);
     }
     return ret;
 }
 
-void deadbandBlock::setFlag(std::string_view flag, bool val)
+void DeadbandBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "shifted") {
         opFlags.set(USES_SHIFTED_OUTPUT, val);
@@ -514,19 +515,19 @@ void deadbandBlock::setFlag(std::string_view flag, bool val)
         mResetLow = mDeadbandLevel;
         mResetHigh = mDeadbandLevel;
     } else {
-        Block::setFlag(flag, val);
+        GridBlock::setFlag(flag, val);
     }
 }
 // set parameters
-void deadbandBlock::set(std::string_view param, std::string_view val)
+void DeadbandBlock::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        Block::set(param, val);
+        GridBlock::set(param, val);
     }
 }
 
-void deadbandBlock::set(std::string_view param, double val, units::unit unitType)
+void DeadbandBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "level") || (param == "dblevel") || (param == "deadbandlevel")) {
         mDeadbandLevel = val;
@@ -562,7 +563,7 @@ void deadbandBlock::set(std::string_view param, double val, units::unit unitType
     } else if (param == "resetlow") {
         mResetLow = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 }  // namespace griddyn::blocks

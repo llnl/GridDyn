@@ -15,7 +15,7 @@
 namespace griddyn {
 // forward classes
 class Link;
-class Load;
+class GridLoad;
 class Generator;
 
 #define GOOD_SOLUTION (0)
@@ -87,7 +87,7 @@ class GridBus: public gridPrimary {
     double freq = 1.0;  //!<[puHz] estimated actual frequency
     busPowers S;  //!< storage for the power computation from the various sources;
     objVector<Generator*> attachedGens;  //!< list of the attached generators
-    objVector<Load*> attachedLoads;  //!<  list of all the loads
+    objVector<GridLoad*> attachedLoads;  //!<  list of all the loads
     objVector<Link*> attachedLinks;  //!< list of the attached links
 
     IOdata outputs;  //!< the current output values
@@ -114,8 +114,8 @@ class GridBus: public gridPrimary {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     virtual void add(CoreObject* obj) override;
-    /** @brief  add a Load object*/
-    virtual void add(Load* ld);
+    /** @brief  add a GridLoad object*/
+    virtual void add(GridLoad* ld);
     /** @brief  add a gridGenerator object*/
     virtual void add(Generator* gen);
     /** @brief  add a Link object*/
@@ -123,8 +123,8 @@ class GridBus: public gridPrimary {
 
     // remove components
     virtual void remove(CoreObject* obj) override;
-    /** @brief  remove a Load object*/
-    virtual void remove(Load* ld);
+    /** @brief  remove a GridLoad object*/
+    virtual void remove(GridLoad* ld);
     /** @brief  remove a Generator object*/
     virtual void remove(Generator* gen);
     /** @brief  remove a Link object*/
@@ -250,11 +250,11 @@ class GridBus: public gridPrimary {
 
     Link* getLink(index_t x) const override;
     /**
-    *@brief get a pointer for a particular Load
+    *@brief get a pointer for a particular GridLoad
     @param[in] x the index of the load being requested
     @return a pointer to the requested load or nullptr
     **/
-    Load* getLoad(index_t x = 0) const;
+    GridLoad* getLoad(index_t x = 0) const;
     /**
     *@brief get a pointer for a particular generator
     @param[in] x the index of the generator being requested
@@ -331,8 +331,8 @@ class GridBus: public gridPrimary {
     virtual double getMaxGenReactive() const { return kBigNum; }
 
     double getLoadReal() const { return S.loadP; }
-    /** @brief get the reactive power Load
-     * @return the reactive power Load
+    /** @brief get the reactive power GridLoad
+     * @return the reactive power GridLoad
      **/
     double getLoadReactive() const { return S.loadQ; }
     /** @brief get the real power coming from links

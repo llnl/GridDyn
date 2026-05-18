@@ -14,18 +14,18 @@ namespace griddyn::blocks {
 block implementing \f$H(S)=\frac{K s}{1+T_1 s} \frac{1}{1+T_2 s}\f$
 
 */
-class filteredDerivativeBlock: public Block {
+class FilteredDerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
     model_parameter mT2 = 0.1;  //!< filter on the derivative of block 1
   public:
     //!< default constructor
-    explicit filteredDerivativeBlock(const std::string& objName = "filtDerivBlock_#");
+    explicit FilteredDerivativeBlock(const std::string& objName = "filtDerivBlock_#");
     /** alternate constructor to add in the time constant
 @param[in] preDerivativeTimeConstant  the time constant for the prederivative filter
 @param[in] derivativeFilterTimeConstant the time constant for the derivative filter
 */
-    filteredDerivativeBlock(double preDerivativeTimeConstant,
+    FilteredDerivativeBlock(double preDerivativeTimeConstant,
                             double derivativeFilterTimeConstant,
                             const std::string& objName = "filtDerivBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

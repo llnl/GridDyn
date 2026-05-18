@@ -138,7 +138,7 @@ void GridBus::disable()
 
 void GridBus::add(CoreObject* obj)
 {
-    auto ld = dynamic_cast<Load*>(obj);
+    auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         return add(ld);
     }
@@ -173,7 +173,7 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
 }
 
 // add load
-void GridBus::add(Load* ld)
+void GridBus::add(GridLoad* ld)
 {
     addObject(this, ld, attachedLoads);
 }
@@ -197,7 +197,7 @@ void GridBus::add(Link* lnk)
 
 void GridBus::remove(CoreObject* obj)
 {
-    auto ld = dynamic_cast<Load*>(obj);
+    auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         return (remove(ld));
     }
@@ -236,7 +236,7 @@ bool removeObject(X* obj, objVector<X*>& OVector)
 }
 
 // remove load
-void GridBus::remove(Load* ld)
+void GridBus::remove(GridLoad* ld)
 {
     if (removeObject(ld, attachedLoads)) {
         GridComponent::remove(ld);
@@ -568,7 +568,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
                (param == "g")) {
         if (attachedLoads.empty()) {
             if (val != 0.0) {
-                add(new zipLoad());
+                add(new ZipLoad());
             } else {
                 return;
             }
@@ -578,7 +578,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
     } else if ((param == "shunt b") || (param == "b")) {
         if (attachedLoads.empty()) {
             if (val != 0.0) {
-                add(new zipLoad());
+                add(new ZipLoad());
             } else {
                 return;
             }
@@ -1319,7 +1319,7 @@ Link* GridBus::getLink(index_t x) const
     return (isValidIndex(x, attachedLinks)) ? attachedLinks[x] : nullptr;
 }
 
-Load* GridBus::getLoad(index_t x) const
+GridLoad* GridBus::getLoad(index_t x) const
 {
     return (isValidIndex(x, attachedLoads)) ? attachedLoads[x] : nullptr;
 }

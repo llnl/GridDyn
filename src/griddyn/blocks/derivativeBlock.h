@@ -14,16 +14,16 @@ namespace griddyn::blocks {
 block implementing \f$H(S)=\frac{K s}{1+T_1 s}\f$
 if the time constant is very small it reverts to the basic block
 */
-class derivativeBlock: public Block {
+class DerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation
   public:
     //!< default constructor
-    explicit derivativeBlock(const std::string& objName = "derivBlock_#");
+    explicit DerivativeBlock(const std::string& objName = "derivBlock_#");
     /** alternate constructor to add in the time constant
 @param[in] timeConstant  the time constant
 */
-    derivativeBlock(double timeConstant, const std::string& objName = "derivBlock_#");
+    DerivativeBlock(double timeConstant, const std::string& objName = "derivBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:

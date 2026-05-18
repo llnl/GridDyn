@@ -112,7 +112,7 @@ namespace {
                           CoreObject* parentObject)
     {
         return ElementReader(
-            currentElement, static_cast<Block*>(nullptr), "block", readerInf, parentObject);
+            currentElement, static_cast<GridBlock*>(nullptr), "block", readerInf, parentObject);
     }
 
     CoreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement,
@@ -128,7 +128,7 @@ namespace {
                          CoreObject* parentObject)
     {
         return ElementReader(
-            currentElement, static_cast<Load*>(nullptr), "load", readerInf, parentObject);
+            currentElement, static_cast<GridLoad*>(nullptr), "load", readerInf, parentObject);
     }
 
     CoreObject* loadExtra(std::shared_ptr<readerElement>& currentElement,

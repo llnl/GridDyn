@@ -17,7 +17,7 @@
 
 namespace griddyn {
 // NOLINTBEGIN(bugprone-throwing-static-initialization)
-static const typeFactory<Block>
+static const typeFactory<GridBlock>
     agcFactory("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
 // NOLINTEND(bugprone-throwing-static-initialization)
 /*
@@ -40,7 +40,7 @@ protected:
         double regUpAvailable;
         double regDownAvailable;
 
-        pidBlock *pid;
+        PidBlock *pid;
 
         int schedCount;
 
@@ -73,13 +73,13 @@ AGControl::~AGControl() = default;
 
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
-    pid = make_owningPtr<blocks::pidBlock>(KP, KI, 0, "pid");
+    pid = make_owningPtr<blocks::PidBlock>(KP, KI, 0, "pid");
     pid->setParent(this);
-    filt1 = make_owningPtr<blocks::delayBlock>(Tf, "delay1");
+    filt1 = make_owningPtr<blocks::DelayBlock>(Tf, "delay1");
     filt1->setParent(this);
-    filt2 = make_owningPtr<blocks::delayBlock>(Tr, "delay2");
+    filt2 = make_owningPtr<blocks::DelayBlock>(Tr, "delay2");
     filt2->setParent(this);
-    db = make_owningPtr<blocks::deadbandBlock>(deadband, "deadband");
+    db = make_owningPtr<blocks::DeadbandBlock>(deadband, "deadband");
     db->setParent(this);
     db->set("rampband", 4);
 }

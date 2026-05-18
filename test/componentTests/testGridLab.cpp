@@ -34,7 +34,7 @@ TEST_F(GridLabTests, GridlabTest1)
 
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload1"));
+    ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload1"));
 
     ASSERT_NE(ld, nullptr);
     double val = ld->get("p");
@@ -70,7 +70,7 @@ TEST_F(GridLabTests, GridlabTest2)
 
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload2"));
+    ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
     ASSERT_NE(ld, nullptr);
@@ -108,7 +108,7 @@ TEST_F(GridLabTests, GridlabTest3)
 
     gds->powerflow();
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    zipLoad* ld = static_cast<zipLoad*>(gds->find("bus2::gload2"));
+    ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
     ASSERT_NE(ld, nullptr);

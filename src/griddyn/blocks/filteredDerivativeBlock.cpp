@@ -15,24 +15,24 @@
 #include <string>
 
 namespace griddyn::blocks {
-filteredDerivativeBlock::filteredDerivativeBlock(const std::string& objName): Block(objName)
+FilteredDerivativeBlock::FilteredDerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(use_state);
     opFlags.set(differential_output);
 }
 
-filteredDerivativeBlock::filteredDerivativeBlock(double preDerivativeTimeConstant,
+FilteredDerivativeBlock::FilteredDerivativeBlock(double preDerivativeTimeConstant,
                                                  double derivativeFilterTimeConstant,
                                                  const std::string& objName):
-    Block(objName), mT1(preDerivativeTimeConstant), mT2(derivativeFilterTimeConstant)
+    GridBlock(objName), mT1(preDerivativeTimeConstant), mT2(derivativeFilterTimeConstant)
 {
     opFlags.set(use_state);
     opFlags.set(differential_output);
 }
 
-CoreObject* filteredDerivativeBlock::clone(CoreObject* obj) const
+CoreObject* FilteredDerivativeBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<filteredDerivativeBlock, Block>(this, obj);
+    auto* nobj = cloneBase<FilteredDerivativeBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -41,14 +41,14 @@ CoreObject* filteredDerivativeBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void filteredDerivativeBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FilteredDerivativeBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.diffSize++;
     offsets.local().local.jacSize += 2;
 }
 
-void filteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
+void FilteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
                                                    const IOdata& desiredOutput,
                                                    IOdata& fieldSet)
 {
@@ -57,10 +57,10 @@ void filteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
         m_state[loc + 1] = K * (inputs[0] + bias);
         m_state[loc] = 0;
         if (limiter_diff > 0) {
-            Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+            GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         }
     } else {
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         m_state[loc] = desiredOutput[0];
         m_dstate_dt[loc + 1] = desiredOutput[0];
         if (std::abs(m_dstate_dt[loc + 1]) < 1e-7) {
@@ -71,7 +71,7 @@ void filteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double filteredDerivativeBlock::step(coreTime time, double inputA)
+double FilteredDerivativeBlock::step(coreTime time, double inputA)
 {
     const index_t loc = limiter_diff;
     const double timeDelta = time - prevTime;
@@ -109,7 +109,7 @@ double filteredDerivativeBlock::step(coreTime time, double inputA)
     prevInput = input;
     double out;
     if (loc > 0) {
-        out = Block::step(time, inputA);
+        out = GridBlock::step(time, inputA);
     } else {
         out = m_state[0];
         prevTime = time;
@@ -118,7 +118,7 @@ double filteredDerivativeBlock::step(coreTime time, double inputA)
     return out;
 }
 
-void filteredDerivativeBlock::blockDerivative(double input,
+void FilteredDerivativeBlock::blockDerivative(double input,
                                               double /*didt*/,
                                               const stateData& stateDataRef,
                                               double deriv[],
@@ -130,7 +130,7 @@ void filteredDerivativeBlock::blockDerivative(double input,
     deriv[offset] = (stateDataRef.dstate_dt[offset + 1] - stateDataRef.state[offset]) / mT2;
 }
 
-void filteredDerivativeBlock::blockJacobianElements(double input,
+void FilteredDerivativeBlock::blockJacobianElements(double input,
                                                     double didt,
                                                     const stateData& stateDataRef,
                                                     matrixData<double>& jacobian,
@@ -149,16 +149,16 @@ void filteredDerivativeBlock::blockJacobianElements(double input,
     jacobian.assign(offset, offset, (-1 / mT2) - stateDataRef.cj);
 
     if (limiter_diff > 0) {
-        Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+        GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
     }
 }
 
 // set parameters
-void filteredDerivativeBlock::set(std::string_view param, std::string_view val)
+void FilteredDerivativeBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void filteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
+void FilteredDerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "t1") {
         mT1 = val;
@@ -168,11 +168,11 @@ void filteredDerivativeBlock::set(std::string_view param, double val, units::uni
         }
         mT2 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-stringVec filteredDerivativeBlock::localStateNames() const
+stringVec FilteredDerivativeBlock::localStateNames() const
 {
     switch (limiter_diff) {
         case 0:

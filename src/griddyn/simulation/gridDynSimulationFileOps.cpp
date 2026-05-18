@@ -246,7 +246,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 
     output << "===============AREA INFORMATION=====================\n";
     output
-        << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t Load Real\t Load Reactive\t Loss\t Export\n";
+        << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t GridLoad Real\t GridLoad Reactive\t Loss\t Export\n";
     areaIndex = 0;
     area = gds->getArea(areaIndex);
     while (area != nullptr) {
@@ -278,7 +278,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 /*
 Columns  1- 4   Bus number (I) *
 Columns  6-17   Name (A) (left justify) *
-Columns 19-20   Load flow area number (I) Don't use zero! *
+Columns 19-20   GridLoad flow area number (I) Don't use zero! *
 Columns 21-23   Loss zone number (I)
 Columns 25-26   Type (I) *
 0 - Unregulated (load, PQ)
@@ -288,8 +288,8 @@ Columns 25-26   Type (I) *
 have one)
 Columns 28-33   Final voltage, pu (F) *
 Columns 34-40   Final angle, degrees (F) *
-Columns 41-49   Load MW (F) *
-Columns 50-58   Load MVAR (F) *
+Columns 41-49   GridLoad MW (F) *
+Columns 50-58   GridLoad MVAR (F) *
 Columns 59-67   Generation MW (F) *
 Columns 68-75   Generation MVAR (F) *
 Columns 77-83   Base KV (F)
@@ -355,7 +355,7 @@ the non-unity tap is on
 Columns  6- 9   Z bus number (I) *
 For transformers and phase shifters, the side of the model
 the device impedance is on.
-Columns 11-12   Load flow area (I)
+Columns 11-12   GridLoad flow area (I)
 Columns 14-15   Loss zone (I)
 Column  17      Circuit (I) * (Use 1 for single lines)
 Column  19      Type (I) *

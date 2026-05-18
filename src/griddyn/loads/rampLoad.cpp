@@ -19,11 +19,11 @@ using units::puA;
 using units::puMW;
 using units::puOhm;
 using units::unit;
-rampLoad::rampLoad(const std::string& objName): zipLoad(objName) {}
-rampLoad::rampLoad(double rP, double qP, const std::string& objName): zipLoad(rP, qP, objName) {}
-CoreObject* rampLoad::clone(CoreObject* obj) const
+RampLoad::RampLoad(const std::string& objName): ZipLoad(objName) {}
+RampLoad::RampLoad(double rP, double qP, const std::string& objName): ZipLoad(rP, qP, objName) {}
+CoreObject* RampLoad::clone(CoreObject* obj) const
 {
-    auto* ld = cloneBase<rampLoad, zipLoad>(this, obj);
+    auto* ld = cloneBase<RampLoad, ZipLoad>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -40,11 +40,11 @@ CoreObject* rampLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void rampLoad::set(std::string_view param, std::string_view val)
+void RampLoad::set(std::string_view param, std::string_view val)
 {
-    zipLoad::set(param, val);
+    ZipLoad::set(param, val);
 }
-void rampLoad::set(std::string_view param, double val, unit unitType)
+void RampLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.length() == 4) {
         if ((param[0] == 'd') && (param[2] == 'd') && (param[3] == 't')) {
@@ -72,7 +72,7 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                     throw(unrecognizedParameter(param));
             }
         } else {
-            zipLoad::set(param, val, unitType);
+            ZipLoad::set(param, val, unitType);
         }
     } else if (param.length() == 5) {
         if ((param[0] == 'd') && (param[3] == 'd') && (param[4] == 't')) {
@@ -110,14 +110,14 @@ void rampLoad::set(std::string_view param, double val, unit unitType)
                     throw(unrecognizedParameter(param));
             }
         } else {
-            zipLoad::set(param, val, unitType);
+            ZipLoad::set(param, val, unitType);
         }
     } else {
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
 }
 
-void rampLoad::updateLocalCache(const IOdata& /*inputs*/,
+void RampLoad::updateLocalCache(const IOdata& /*inputs*/,
                                 const stateData& sD,
                                 const solverMode& /*sMode*/)
 {
@@ -147,7 +147,7 @@ void rampLoad::updateLocalCache(const IOdata& /*inputs*/,
     lastTime = sD.time;
 }
 
-void rampLoad::clearRamp()
+void RampLoad::clearRamp()
 {
     dPdt = 0.0;
     dQdt = 0.0;

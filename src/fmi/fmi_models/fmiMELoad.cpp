@@ -16,11 +16,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-FmiMELoad::FmiMELoad(const std::string& objName): FmiMEWrapper<Load>(objName) {}
+FmiMELoad::FmiMELoad(const std::string& objName): FmiMEWrapper<GridLoad>(objName) {}
 
 CoreObject* FmiMELoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<FmiMELoad, FmiMEWrapper<Load>>(this, obj);
+    auto* nobj = cloneBase<FmiMELoad, FmiMEWrapper<GridLoad>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -53,14 +53,14 @@ void FmiMELoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        FmiMEWrapper<Load>::set(param, val);
+        FmiMEWrapper<GridLoad>::set(param, val);
     }
 }
 void FmiMELoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty()) {
     } else {
-        FmiMEWrapper<Load>::set(param, val, unitType);
+        FmiMEWrapper<GridLoad>::set(param, val, unitType);
     }
 }
 
@@ -69,7 +69,7 @@ void FmiMELoad::setState(coreTime time,
                          const double dstate_dt[],
                          const solverMode& sMode)
 {
-    FmiMEWrapper<Load>::setState(time, state, dstate_dt, sMode);
+    FmiMEWrapper<GridLoad>::setState(time, state, dstate_dt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
     const IOdata voltageState = {bus->getVoltage(state, sMode), bus->getAngle(state, sMode)};

@@ -30,8 +30,8 @@ using units::MW;
 
 // NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt);
-void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
-void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
+void ptiReadLoad(GridLoad* ld, const std::string& line, basicReaderInfo& opt);
+void ptiReadFixedShunt(GridLoad* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
 void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
@@ -47,7 +47,7 @@ int ptiReadTX(CoreObject* parentObject,
 static typeFactory<GridBus>* busfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<Load>* ldfactory = nullptr;
+static typeFactory<GridLoad>* ldfactory = nullptr;
 // get the basic Link Factory
 static typeFactory<Link>* linkfactory = nullptr;
 // get the basic Generator Factory
@@ -62,7 +62,7 @@ void loadPti(CoreObject* parentObject,
     std::string temp1;  // temporary storage for substrings
     std::string pref2;  // temp storage to 2nd order prefix.
     std::vector<GridBus*> busList;
-    Load* ld;
+    GridLoad* ld;
     Generator* gen;
     index_t index;
     size_t pos;
@@ -354,7 +354,7 @@ void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt)
     }
 }
 
-void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*opt*/)
+void ptiReadLoad(GridLoad* ld, const std::string& line, basicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;
@@ -408,7 +408,7 @@ void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& /*opt*/)
     // ignore the owner field
 }
 
-void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& /*opt*/)
+void ptiReadFixedShunt(GridLoad* ld, const std::string& line, basicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;

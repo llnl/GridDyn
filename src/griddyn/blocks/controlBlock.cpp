@@ -12,26 +12,26 @@
 #include <string>
 
 namespace griddyn::blocks {
-controlBlock::controlBlock(const std::string& objName): Block(objName)
+ControlBlock::ControlBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(use_state);
 }
-controlBlock::controlBlock(double timeConstant, const std::string& objName):
-    Block(objName), mT1(timeConstant)
+ControlBlock::ControlBlock(double timeConstant, const std::string& objName):
+    GridBlock(objName), mT1(timeConstant)
 {
     opFlags.set(use_state);
 }
-controlBlock::controlBlock(double timeConstant,
+ControlBlock::ControlBlock(double timeConstant,
                            double upperTimeConstant,
                            const std::string& objName):
-    Block(objName), mT1(timeConstant), mT2(upperTimeConstant)
+    GridBlock(objName), mT1(timeConstant), mT2(upperTimeConstant)
 {
     opFlags.set(use_state);
 }
 
-CoreObject* controlBlock::clone(CoreObject* obj) const
+CoreObject* ControlBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<controlBlock, Block>(this, obj);
+    auto* nobj = cloneBase<ControlBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -40,24 +40,24 @@ CoreObject* controlBlock::clone(CoreObject* obj) const
     return nobj;
 }
 // set up the number of states
-void controlBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ControlBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (opFlags[differential_input]) {
         opFlags.set(differential_output);
     }
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
 
     offsets.local().local.diffSize += 1;
     offsets.local().local.jacSize += 6;
 }
 // initial conditions
-void controlBlock::dynObjectInitializeB(const IOdata& inputs,
+void ControlBlock::dynObjectInitializeB(const IOdata& inputs,
                                         const IOdata& desiredOutput,
                                         IOdata& fieldSet)
 {
     fieldSet.resize(1);
     if (opFlags[has_limits]) {
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
     if (desiredOutput.empty()) {
         m_state[limiter_alg + 1] = K * (1.0 - (mT2 / mT1)) * (inputs[0] + bias);
@@ -73,7 +73,7 @@ void controlBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void controlBlock::blockAlgebraicUpdate(double input,
+void ControlBlock::blockAlgebraicUpdate(double input,
                                         const stateData& stateDataRef,
                                         double update[],
                                         const solverMode& sMode)
@@ -84,12 +84,12 @@ void controlBlock::blockAlgebraicUpdate(double input,
         locationData.destLoc[limiter_alg] =
             locationData.diffStateLoc[0] + ((mT2 / mT1) * (input + bias) * K);
         if (limiter_alg > 0) {
-            Block::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
+            GridBlock::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
         }
     }
 }
 
-void controlBlock::blockDerivative(double input,
+void ControlBlock::blockDerivative(double input,
                                    double didt,
                                    const stateData& stateDataRef,
                                    double deriv[],
@@ -102,7 +102,7 @@ void controlBlock::blockDerivative(double input,
         locationData.destDiffLoc[limiter_diff + 1] =
             ((K * (input + bias)) - locationData.diffStateLoc[limiter_diff]) / mT1;
         if (limiter_diff > 0) {
-            Block::blockDerivative(input, didt, stateDataRef, deriv, sMode);
+            GridBlock::blockDerivative(input, didt, stateDataRef, deriv, sMode);
         }
     } else {
         locationData.destDiffLoc[0] =
@@ -110,7 +110,7 @@ void controlBlock::blockDerivative(double input,
     }
 }
 
-void controlBlock::blockJacobianElements(double input,
+void ControlBlock::blockJacobianElements(double input,
                                          double didt,
                                          const stateData& stateDataRef,
                                          matrixData<double>& jacobian,
@@ -127,7 +127,8 @@ void controlBlock::blockJacobianElements(double input,
 
             jacobian.assignCheckCol(locationData.algOffset + limiter_alg, argLoc, K * mT2 / mT1);
             if (limiter_alg > 0) {
-                Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+                GridBlock::blockJacobianElements(
+                    input, didt, stateDataRef, jacobian, argLoc, sMode);
             }
             if (hasDifferential(sMode)) {
                 jacobian.assign(locationData.algOffset + limiter_alg, locationData.diffOffset, 1);
@@ -146,7 +147,7 @@ void controlBlock::blockJacobianElements(double input,
     }
 }
 
-double controlBlock::step(coreTime time, double input)
+double ControlBlock::step(coreTime time, double input)
 {
     const double timeDelta = time - prevTime;
     double out;
@@ -182,7 +183,7 @@ double controlBlock::step(coreTime time, double input)
 
     prevInput = inputWithBias;
     if (opFlags[has_limits]) {
-        out = Block::step(time, inputWithBias);
+        out = GridBlock::step(time, inputWithBias);
     } else {
         out = m_state[0];
         prevTime = time;
@@ -191,23 +192,23 @@ double controlBlock::step(coreTime time, double input)
     return out;
 }
 
-index_t controlBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t ControlBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {
         ret = offsets.getDiffOffset(sMode);
     } else {
-        ret = Block::findIndex(field, sMode);
+        ret = GridBlock::findIndex(field, sMode);
     }
     return ret;
 }
 
 // set parameters
-void controlBlock::set(std::string_view param, std::string_view val)
+void ControlBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void controlBlock::set(std::string_view param, double val, units::unit unitType)
+void ControlBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
 
@@ -216,11 +217,11 @@ void controlBlock::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "t2") {
         mT2 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-stringVec controlBlock::localStateNames() const
+stringVec ControlBlock::localStateNames() const
 {
     stringVec out(stateSize(cLocalSolverMode));
     int loc = 0;

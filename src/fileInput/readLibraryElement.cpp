@@ -74,7 +74,7 @@ namespace {
                                  readerInfo& readerInf)
     {
         return ElementReader(
-            currentElement, static_cast<Block*>(nullptr), "controlblock", readerInf, nullptr);
+            currentElement, static_cast<GridBlock*>(nullptr), "controlblock", readerInf, nullptr);
     }
 
     CoreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
@@ -86,7 +86,7 @@ namespace {
     CoreObject* loadLoad(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
         return ElementReader(
-            currentElement, static_cast<Load*>(nullptr), "load", readerInf, nullptr);
+            currentElement, static_cast<GridLoad*>(nullptr), "load", readerInf, nullptr);
     }
 
     CoreObject* loadBus(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)

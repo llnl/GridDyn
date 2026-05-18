@@ -14,7 +14,7 @@ namespace griddyn {
 current these loads should for the basis of most non dynamic load models following the ZIP model
 Z-constant impedance, I-constant current, P- constant Power
 */
-class zipLoad: public Load {
+class ZipLoad: public GridLoad {
   public:
     enum load_flags {
         convert_to_constant_impedance = object_flag2,
@@ -42,8 +42,8 @@ class zipLoad: public Load {
     double trigVVhigh =
         1.0 / (1.3 * 1.3);  //!< constant for conversion of PQ loads to constant impedance loads
   public:
-    explicit zipLoad(const std::string& objName = "zip_$");
-    zipLoad(double rP, double rQ, const std::string& objName = "zip_$");
+    explicit ZipLoad(const std::string& objName = "zip_$");
+    ZipLoad(double rP, double rQ, const std::string& objName = "zip_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -92,7 +92,7 @@ class zipLoad: public Load {
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;  // for saving the state
 
-    friend bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool printDiff);
+    friend bool compareLoad(ZipLoad* ld1, ZipLoad* ld2, bool printDiff);
 
   protected:
     // getters for the actual property values
@@ -126,6 +126,6 @@ class zipLoad: public Load {
     double getQval() const;
 };
 
-bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool printDiff = false);
+bool compareLoad(ZipLoad* ld1, ZipLoad* ld2, bool printDiff = false);
 
 }  // namespace griddyn

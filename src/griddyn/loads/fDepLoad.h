@@ -10,7 +10,7 @@
 #include <string>
 namespace griddyn::loads {
 /** @brief a load with powers as a exponential function of voltage and frequency*/
-class fDepLoad: public exponentialLoad {
+class FDepLoad: public ExponentialLoad {
   public:
   protected:
     model_parameter betaP = 0.0;  //!< the frequency exponent parameter for the real power output
@@ -18,13 +18,13 @@ class fDepLoad: public exponentialLoad {
         0.0;  //!< the frequency exponent parameter for the reactive power output
 
   public:
-    explicit fDepLoad(const std::string& objName = "fdepLoad_$");
+    explicit FDepLoad(const std::string& objName = "fdepLoad_$");
     /** constructor taking power arguments
 @param[in] rP the real power of the load
 @param[in] qP the reactive power of the load
 @param[in] objName the name of the object
 */
-    fDepLoad(double rP, double qP, const std::string& objName = "fdepLoad_$");
+    FDepLoad(double rP, double qP, const std::string& objName = "fdepLoad_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

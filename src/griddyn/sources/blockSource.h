@@ -11,14 +11,14 @@
 #include <vector>
 
 namespace griddyn {
-class Block;
+class GridBlock;
 namespace sources {
-    /** define a source object that contains another source which is followed by a Block object
+    /** define a source object that contains another source which is followed by a GridBlock object
      */
     class blockSource: public Source {
       private:
         Source* src = nullptr;  //!< pointer to the source object
-        Block* blk = nullptr;  //!< pointer to the Block object
+        GridBlock* blk = nullptr;  //!< pointer to the GridBlock object
         double maxStepSize =
             kBigNum;  //!< calculation for the maximum step size that should be taken in a timestep
       public:

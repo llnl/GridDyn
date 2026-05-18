@@ -13,8 +13,8 @@
 
 namespace griddyn {
 namespace blocks {
-    class valueLimiter;
-    class rampLimiter;
+    class ValueLimiter;
+    class RampLimiter;
 }  // namespace blocks
 
 /** @brief class implementing basic control system block
@@ -26,7 +26,7 @@ cannot be changed unless the object is reinitialized directly
 the blocks take 1 or 2 inputs the first being the single input,  if the differential input is set
 then the second argument is the time derivative of the input
 */
-class Block: public GridSubModel {
+class GridBlock: public GridSubModel {
   public:
     /** @brief flags common for all control blocks
      */
@@ -62,19 +62,19 @@ class Block: public GridSubModel {
     count_t limiter_alg = 0;  //!< the number of algebraic states used by the limiters
     count_t limiter_diff = 0;  //!< the number of differential states used by the limiters
     std::string outputName = "output";  //!< the name of the output state
-    std::unique_ptr<blocks::valueLimiter>
+    std::unique_ptr<blocks::ValueLimiter>
         vLimiter;  //!< a pointer to an object that handles the value limits
-    std::unique_ptr<blocks::rampLimiter>
+    std::unique_ptr<blocks::RampLimiter>
         rLimiter;  //!< a pointer to an object that handles the ramp limits
   public:
     /** @brief default constructor*/
-    explicit Block(const std::string& objName = "block_#");
+    explicit GridBlock(const std::string& objName = "block_#");
     /** @brief alternate constructor
     @param[in] gain  the desired gain of the block
     */
-    Block(double gain, const std::string& objName = "block_#");
+    GridBlock(double gain, const std::string& objName = "block_#");
 
-    virtual ~Block();  // included for separation of types in unique Pointers
+    virtual ~GridBlock();  // included for separation of types in unique Pointers
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
@@ -265,6 +265,6 @@ class Block: public GridSubModel {
 @param[in] blockstr  a string defining a block
 @return a unique pointer to a block
 */
-std::unique_ptr<Block> make_block(const std::string& blockstr);
+std::unique_ptr<GridBlock> make_block(const std::string& blockstr);
 
 }  // namespace griddyn

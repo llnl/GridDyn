@@ -55,7 +55,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
                 if (dynamic_cast<GridBus*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
                         coreObjectFactory::instance()->createObject(relayComponentName, "bus"));
-                } else if (dynamic_cast<zipLoad*>(defaultTargetObject) != nullptr) {
+                } else if (dynamic_cast<ZipLoad*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
                         coreObjectFactory::instance()->createObject(relayComponentName, "load"));
                 } else if (dynamic_cast<Generator*>(defaultTargetObject) != nullptr) {

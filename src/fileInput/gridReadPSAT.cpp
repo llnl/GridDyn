@@ -284,7 +284,7 @@ void loadPSATBusArray(CoreObject* parentObject,
         auto P = pqInfo[3];
         auto Q = pqInfo[4];
         if ((P != 0.0) || (Q != 0.0)) {
-            auto ld = new zipLoad(P, Q);
+            auto ld = new ZipLoad(P, Q);
             bus->add(ld);
         }
 
@@ -534,7 +534,7 @@ void loadPSATShuntArray(CoreObject* /*parentObject*/,
 
         auto ld = bus1->getLoad();
         if (ld == nullptr) {
-            ld = new zipLoad();
+            ld = new ZipLoad();
             bus1->add(ld);
         }
 
@@ -639,8 +639,8 @@ void loadPSATLTCArray(CoreObject* parentObject,
 10 Pref Reference power pu
 11 rT Transformer resistance pu
 12 xT Transformer reactance pu
-13 αmax Maximum phase angle rad
-14 αmin Minimum phase angle rad
+13 ÃŽÂ±max Maximum phase angle rad
+14 ÃŽÂ±min Minimum phase angle rad
 15 m Transformer fixed tap ratio pu / pu
 16 u Connection status{ 0, 1 }
 */
@@ -683,34 +683,34 @@ void loadPSATPHSArray(CoreObject* parentObject,
 6 xl Leakage reactance pu all
 7 ra Armature resistance pu all
 8 xd d-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-9 x′
+9 xÃ¢â‚¬Â²
 d d-axis transient reactance pu II, III, IV, V.1, V.2, V.3, VI, VIII
-10 x′′
+10 xÃ¢â‚¬Â²Ã¢â‚¬Â²
 d d-axis subtransient reactance pu V.2, VI, VIII
-11 T′
+11 TÃ¢â‚¬Â²
 d0 d-axis open circuit transient time constant s III, IV, V.1, V.2, V.3, VI, VIII
-12 T′′
+12 TÃ¢â‚¬Â²Ã¢â‚¬Â²
 d0 d-axis open circuit subtransient time constant s V.2, VI, VIII
 13 xq q-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-14 x′
+14 xÃ¢â‚¬Â²
 q q-axis transient reactance pu IV, V.1, VI, VIII
-15 x′′
+15 xÃ¢â‚¬Â²Ã¢â‚¬Â²
 q q-axis subtransient reactance pu V.2, VI, VIII
-16 T′
+16 TÃ¢â‚¬Â²
 q0 q-axis open circuit transient time constant s IV, V.1, VI, VIII
-17 T′′
+17 TÃ¢â‚¬Â²Ã¢â‚¬Â²
 q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
-18 M = 2H Mechanical starting time (2 × inertia constant) kWs/kVA all
-19 D Damping coefficient − all
-† 20 Kω Speed feedback gain gain III, IV, V.1, V.2, VI
-† 21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
-† 22 γP Active power ratio at node [0,1] all
-† 23 γQ Reactive power ratio at node [0,1] all
-† 24 TAA d-axis additional leakage time constant s V.2, VI, VIII
-† 25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
-† 26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
-† 27 nCOI Center of inertia number int all
-† 28 u Connection status {0, 1} all
+18 M = 2H Mechanical starting time (2 Ãƒâ€” inertia constant) kWs/kVA all
+19 D Damping coefficient Ã¢Ë†â€™ all
+Ã¢â‚¬Â  20 KÃâ€° Speed feedback gain gain III, IV, V.1, V.2, VI
+Ã¢â‚¬Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
+Ã¢â‚¬Â  22 ÃŽÂ³P Active power ratio at node [0,1] all
+Ã¢â‚¬Â  23 ÃŽÂ³Q Reactive power ratio at node [0,1] all
+Ã¢â‚¬Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
+Ã¢â‚¬Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
+Ã¢â‚¬Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
+Ã¢â‚¬Â  27 nCOI Center of inertia number int all
+Ã¢â‚¬Â  28 u Connection status {0, 1} all
 */
 
 void loadPSATSynArray(CoreObject* /*parentObject*/,
@@ -911,7 +911,7 @@ void loadPsatFaultArray(CoreObject* parentObject,
         auto ind = static_cast<index_t>(flt[0]);
         auto bus = busList[ind];
 
-        auto ld = new zipLoad("faultLoad");
+        auto ld = new ZipLoad("faultLoad");
         bus->add(ld);
 
         if (flt[6] != 0) {
@@ -999,7 +999,7 @@ void loadPsatMotorArray(CoreObject* /*parentObject*/,
         auto ind1 = static_cast<index_t>(mtrline[0]);
         GridBus* bus1 = busList[ind1];
 
-        auto motor = new loads::motorLoad();
+        auto motor = new loads::MotorLoad();
         bus1->add(motor);
         // TODO(phlpt): Add parameters.
     }

@@ -30,7 +30,7 @@ void loadHelicsLibrary()
             helicsCommunicatorFactory(stringVec{"helics"});
         static const childTypeFactory<helicsLib::HelicsSource, sources::rampSource>
             helicsSourceFactory("source", std::to_array<std::string_view>({"helics"}));
-        static const childTypeFactory<helicsLib::HelicsLoad, loads::rampLoad> helicsLoadFactory(
+        static const childTypeFactory<helicsLib::HelicsLoad, loads::RampLoad> helicsLoadFactory(
             "load", "helics");
         static const typeFactory<helicsLib::HelicsCoordinator> helicsCoordinatorFactory("extra",
                                                                                         "helics");

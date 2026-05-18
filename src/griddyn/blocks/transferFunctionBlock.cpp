@@ -16,14 +16,14 @@
 #include <vector>
 
 namespace griddyn::blocks {
-transferFunctionBlock::transferFunctionBlock(const std::string& objName):
-    Block(objName), a(2, 1), b(2, 0)
+TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
+    GridBlock(objName), a(2, 1), b(2, 0)
 {
     b[0] = 1;
     opFlags.set(use_state);
 }
 
-transferFunctionBlock::transferFunctionBlock(int order): a(order + 1, 1), b(order + 1, 0)
+TransferFunctionBlock::TransferFunctionBlock(int order): a(order + 1, 1), b(order + 1, 0)
 {
     if (a.empty()) {
         a.push_back(1.0);
@@ -34,7 +34,7 @@ transferFunctionBlock::transferFunctionBlock(int order): a(order + 1, 1), b(orde
     opFlags.set(use_state);
 }
 
-transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef):
+TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef):
     a(std::move(Acoef)), b(a.size(), 0)
 {
     if (a.empty()) {
@@ -46,7 +46,7 @@ transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef):
     opFlags.set(use_state);
 }
 
-transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef):
+TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef):
     a(std::move(Acoef)), b(std::move(Bcoef))
 {
     if (a.empty()) {
@@ -56,9 +56,9 @@ transferFunctionBlock::transferFunctionBlock(std::vector<double> Acoef, std::vec
     opFlags.set(use_state);
 }
 
-CoreObject* transferFunctionBlock::clone(CoreObject* obj) const
+CoreObject* TransferFunctionBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<transferFunctionBlock, Block>(this, obj);
+    auto nobj = cloneBase<TransferFunctionBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -68,7 +68,7 @@ CoreObject* transferFunctionBlock::clone(CoreObject* obj) const
     return nobj;
 }
 // set up the number of states
-void transferFunctionBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void TransferFunctionBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (b.back() == 0) {
         opFlags[differential_output] = true;
@@ -76,7 +76,7 @@ void transferFunctionBlock::dynObjectInitializeA(coreTime time0, std::uint32_t f
     } else {
         extraOutputState = true;
     }
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.jacSize += static_cast<count_t>(3 * (a.size() - 2) + 1);
     offsets.local().local.diffSize += static_cast<count_t>(a.size()) - 2;
     if (extraOutputState) {
@@ -85,7 +85,7 @@ void transferFunctionBlock::dynObjectInitializeA(coreTime time0, std::uint32_t f
     }
 }
 // initial conditions
-void transferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
+void TransferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
                                                  const IOdata& desiredOutput,
                                                  IOdata& fieldSet)
 {
@@ -94,10 +94,10 @@ void transferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
         m_state[1] = (inputs[0] + bias);
         m_state[0] = m_state[1] * K;
         if (opFlags[has_limits]) {
-            Block::rootCheck(inputs,
-                             emptyStateData,
-                             cLocalSolverMode,
-                             check_level_t::reversable_only);
+            GridBlock::rootCheck(inputs,
+                                 emptyStateData,
+                                 cLocalSolverMode,
+                                 check_level_t::reversable_only);
             m_state[0] = gmlc::utilities::valLimit(m_state[0], Omin, Omax);
         }
         fieldSet[0] = m_state[0];
@@ -111,7 +111,7 @@ void transferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 // residual
-void transferFunctionBlock::blockResidual(double input,
+void TransferFunctionBlock::blockResidual(double input,
                                           double didt,
                                           const stateData& sD,
                                           double resid[],
@@ -128,10 +128,10 @@ void transferFunctionBlock::blockResidual(double input,
 
     // Loc.destLoc[limiter_alg] = Loc.diffStateLoc[limiter_diff] + m_T2 / m_T1 *
     // (input + bias) - Loc.algStateLoc[limiter_alg];
-    Block::blockResidual(input, didt, sD, resid, sMode);
+    GridBlock::blockResidual(input, didt, sD, resid, sMode);
 }
 
-void transferFunctionBlock::blockDerivative(double input,
+void TransferFunctionBlock::blockDerivative(double input,
                                             double didt,
                                             const stateData& sD,
                                             double deriv[],
@@ -142,11 +142,11 @@ void transferFunctionBlock::blockDerivative(double input,
     // deriv[offset + limiter_diff] = K*(input + bias - sD.state[Aoffset +
     // limiter_alg]) / m_T1;
     if (opFlags[use_ramp_limits]) {
-        Block::blockDerivative(input, didt, sD, deriv, sMode);
+        GridBlock::blockDerivative(input, didt, sD, deriv, sMode);
     }
 }
 
-void transferFunctionBlock::blockJacobianElements(double input,
+void TransferFunctionBlock::blockJacobianElements(double input,
                                                   double didt,
                                                   const stateData& sD,
                                                   matrixData<double>& md,
@@ -158,7 +158,7 @@ void transferFunctionBlock::blockJacobianElements(double input,
 
     // md.assignCheck(Loc.algOffset + 1, argLoc, m_T2 / m_T1);
 
-    Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+    GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
     if (isAlgebraicOnly(sMode)) {
         return;
     }
@@ -170,7 +170,7 @@ void transferFunctionBlock::blockJacobianElements(double input,
     md.assign(Loc.diffOffset, Loc.diffOffset, -sD.cj);
 }
 
-double transferFunctionBlock::step(coreTime time, double inputA)
+double TransferFunctionBlock::step(coreTime time, double inputA)
 {
     double dt = time - prevTime;
     double out;
@@ -202,7 +202,7 @@ double transferFunctionBlock::step(coreTime time, double inputA)
 
     prevInput = input;
     if (opFlags[has_limits]) {
-        out = Block::step(time, input);
+        out = GridBlock::step(time, input);
     } else {
         out = K * m_state[1];
         m_state[0] = out;
@@ -212,30 +212,30 @@ double transferFunctionBlock::step(coreTime time, double inputA)
     return out;
 }
 
-index_t transferFunctionBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t TransferFunctionBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {
         ret = offsets.getDiffOffset(sMode);
     } else {
-        ret = Block::findIndex(field, sMode);
+        ret = GridBlock::findIndex(field, sMode);
     }
     return ret;
 }
 
 // set parameters
-void transferFunctionBlock::set(std::string_view param, std::string_view val)
+void TransferFunctionBlock::set(std::string_view param, std::string_view val)
 {
     if (param == "a") {
         a = gmlc::utilities::str2vector<double>(std::string{val}, 0);
     } else if (param == "b") {
         b = gmlc::utilities::str2vector<double>(std::string{val}, 0);
     } else {
-        Block::set(param, val);
+        GridBlock::set(param, val);
     }
 }
 
-void transferFunctionBlock::set(std::string_view param, double val, units::unit unitType)
+void TransferFunctionBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param   = gridDynSimulation::toLower(param);
     std::string pstr;
@@ -278,13 +278,13 @@ void transferFunctionBlock::set(std::string_view param, double val, units::unit 
     if (param.empty() || param[0] == '#') {
         // m_T1 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
 static stringVec stNames{"output", "Intermediate1", "intermediate2"};
 
-stringVec transferFunctionBlock::localStateNames() const
+stringVec TransferFunctionBlock::localStateNames() const
 {
     return stNames;
 }

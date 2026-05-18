@@ -44,9 +44,9 @@ class Governor: public GridSubModel {
     model_parameter deadbandHigh = -kBigNum;  //!< upper threshold on the deadband;
     model_parameter deadbandLow = kBigNum;  //!< lower threshold on the deadband;
     model_parameter machineBasePower = 100.0;  //!< the machine base of the generator;
-    blocks::deadbandBlock dbb;  //!< block managing the deadband
-    blocks::controlBlock cb;  //!< block managing the filtering functions on the frequency response
-    blocks::delayBlock delay;  //!< block managing the throttle filter
+    blocks::DeadbandBlock dbb;  //!< block managing the deadband
+    blocks::ControlBlock cb;  //!< block managing the filtering functions on the frequency response
+    blocks::DelayBlock delay;  //!< block managing the throttle filter
   public:
     /** @brief constructor*/
     explicit Governor(const std::string& objName = "gov_#");

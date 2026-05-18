@@ -12,7 +12,7 @@
 namespace griddyn::loads {
 /** @brief class implementing a model of a 3rd order induction motor
  */
-class motorLoad3: public motorLoad {
+class MotorLoad3: public MotorLoad {
   protected:
     double xp = 0.0;  //!< transient reactance of the motor
     double T0p = 0.0;  //!< transient time constant of the motor
@@ -23,7 +23,7 @@ class motorLoad3: public motorLoad {
     /** @brief constructor
 @param[in] objName  the name of the object
 */
-    motorLoad3(const std::string& objName = "motor3_$");
+    MotorLoad3(const std::string& objName = "motor3_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

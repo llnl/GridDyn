@@ -32,7 +32,7 @@ class LoadTests: public gridLoadTestFixture, public ::testing::Test {};
 
 TEST_F(LoadTests, BasicLoadTest)
 {
-    ld1 = new zipLoad(1.1, -0.3);
+    ld1 = new ZipLoad(1.1, -0.3);
     ld1->setFlag("no_pqvoltage_limit");
     double val;
     val = ld1->getRealPower(1.0);
@@ -98,7 +98,7 @@ TEST_F(LoadTests, BasicLoadTest)
 
 TEST_F(LoadTests, LoadVoltageSweep)
 {
-    ld1 = new zipLoad(1.0, 0.0);
+    ld1 = new ZipLoad(1.0, 0.0);
     std::vector<double> v;
     std::vector<double> out;
     ld1->set("vpqmin", 0.75);
@@ -117,8 +117,8 @@ TEST_F(LoadTests, LoadVoltageSweep)
 
 TEST_F(LoadTests, RampLoadTest)
 {
-    ld1 = new rampLoad();
-    auto ldT = dynamic_cast<rampLoad*>(ld1);
+    ld1 = new RampLoad();
+    auto ldT = dynamic_cast<RampLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     double val;
     ld1->set("p", 0.5);
@@ -191,8 +191,8 @@ TEST_F(LoadTests, RampLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest)
 {
-    ld1 = new sourceLoad(sourceLoad::sourceType::random);
-    auto ldT = static_cast<sourceLoad*>(ld1);
+    ld1 = new SourceLoad(SourceLoad::sourceType::random);
+    auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     ld1->set("p:trigger_dist", "constant");
     ldT->set("p:mean_t", 5.0);
@@ -235,8 +235,8 @@ TEST_F(LoadTests, RandomLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest2)
 {
-    ld1 = new sourceLoad(sourceLoad::sourceType::random);
-    auto ldT = static_cast<sourceLoad*>(ld1);
+    ld1 = new SourceLoad(SourceLoad::sourceType::random);
+    auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     double val;
     ld1->set("p:trigger_dist", "constant");
@@ -267,8 +267,8 @@ TEST_F(LoadTests, RandomLoadTest2)
 
 TEST_F(LoadTests, PulseLoadTest2)
 {
-    ld1 = new sourceLoad(sourceLoad::sourceType::pulse);
-    auto ldT = static_cast<sourceLoad*>(ld1);
+    ld1 = new SourceLoad(SourceLoad::sourceType::pulse);
+    auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
 
     ld1->set("p:type", "square");
@@ -290,8 +290,8 @@ TEST_F(LoadTests, PulseLoadTest2)
 
 TEST_F(LoadTests, FileLoadTest1)
 {
-    ld1 = new fileLoad();
-    auto ldT = static_cast<fileLoad*>(ld1);
+    ld1 = new FileLoad();
+    auto ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     std::string fileName = load_test_directory + "FileLoadInfo.bin";
     ld1->set("file", fileName);
@@ -307,8 +307,8 @@ TEST_F(LoadTests, FileLoadTest1)
     EXPECT_NEAR(val, 0.8, 1e-6);
     delete ld1;
 
-    ld1 = new fileLoad();
-    ldT = static_cast<fileLoad*>(ld1);
+    ld1 = new FileLoad();
+    ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
 
     ld1->set("file", fileName);
@@ -334,8 +334,8 @@ TEST_F(LoadTests, FileLoadTest1)
 TEST_F(LoadTests, FileLoadTest2)
 {
     std::string fileName = load_test_directory + "testLoad.bin";
-    ld1 = new fileLoad("fload", fileName);
-    auto ldT = static_cast<fileLoad*>(ld1);
+    ld1 = new FileLoad("fload", fileName);
+    auto ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     ldT->set("column", "yp");
     ldT->set("scaling", 1.0);
@@ -356,7 +356,7 @@ TEST_F(LoadTests, GridDynLoadTest1)
     auto gds = readSimXMLFile(fileName);
 
     auto bus = gds->getBus(1);
-    auto gld = dynamic_cast<gridLabDLoad*>(bus->getLoad());
+    auto gld = dynamic_cast<GridLabDLoad*>(bus->getLoad());
 
     ASSERT_NE(gld, nullptr);
 
@@ -372,7 +372,7 @@ TEST_F(LoadTests, MotorTest1)
     auto gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(1);
-    auto mtld = dynamic_cast<motorLoad*>(bus->getLoad());
+    auto mtld = dynamic_cast<MotorLoad*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
 
@@ -391,7 +391,7 @@ TEST_F(LoadTests, MotorTest3)
     auto gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(1);
-    auto mtld = dynamic_cast<motorLoad3*>(bus->getLoad());
+    auto mtld = dynamic_cast<MotorLoad3*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
@@ -411,7 +411,7 @@ TEST_F(LoadTests, MotorTest3Stall)
     auto gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(1);
-    auto mtld = dynamic_cast<motorLoad3*>(bus->getLoad());
+    auto mtld = dynamic_cast<MotorLoad3*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
@@ -422,9 +422,9 @@ TEST_F(LoadTests, MotorTest3Stall)
     requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     gds->run(2.5);
     requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
-    EXPECT_TRUE(mtld->checkFlag(motorLoad::stalled));
+    EXPECT_TRUE(mtld->checkFlag(MotorLoad::stalled));
     gds->run();
-    EXPECT_FALSE(mtld->checkFlag(motorLoad::stalled));
+    EXPECT_FALSE(mtld->checkFlag(MotorLoad::stalled));
 }
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES
@@ -436,7 +436,7 @@ TEST_F(LoadTests, MotorTest5)
     auto gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(1);
-    auto mtld = dynamic_cast<motorLoad5*>(bus->getLoad());
+    auto mtld = dynamic_cast<MotorLoad5*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
@@ -458,7 +458,7 @@ TEST_F(LoadTests, FdepTest)
     auto gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(2);
-    auto mtld = dynamic_cast<fDepLoad*>(bus->getLoad());
+    auto mtld = dynamic_cast<FDepLoad*>(bus->getLoad());
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
@@ -472,9 +472,9 @@ TEST_F(LoadTests, FdepTest)
 
 TEST_F(LoadTests, ApproxloadTest1)
 {
-    approximatingLoad apload("apload1");
+    ApproximatingLoad apload("apload1");
 
-    ld1 = new zipLoad("zload1");
+    ld1 = new ZipLoad("zload1");
     ld1->set("p", 0.4);
     ld1->set("q", 0.3);
     ld1->set("yp", 0.1);

@@ -13,16 +13,16 @@ namespace griddyn::loads {
 /** @brief class implementing a generic composite load
 the load can consume other loads already as part of a bus or have its own loads
 */
-class aggregateLoad: public zipLoad {
+class AggregateLoad: public ZipLoad {
   protected:
     bool consumeSimpleLoad = false;  //!< flag indicating consumption of existing loads
-    std::vector<zipLoad*> subLoads;  //!< vector of subLoads
+    std::vector<ZipLoad*> subLoads;  //!< vector of subLoads
     std::vector<double> fraction;  //!< the overall load fraction of each of the loads
   private:
     // double sumFrac = 1.0;
   public:
     //!< default constructor
-    aggregateLoad(const std::string& objName = "compositeLoad_$");
+    AggregateLoad(const std::string& objName = "compositeLoad_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -36,7 +36,7 @@ class aggregateLoad: public zipLoad {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void add(zipLoad* ld);
+    virtual void add(ZipLoad* ld);
     virtual void add(CoreObject* obj) override;
 
     virtual void residual(const IOdata& inputs,

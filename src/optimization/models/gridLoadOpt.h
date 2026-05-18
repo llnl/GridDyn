@@ -13,13 +13,13 @@
 
 namespace griddyn {
 class GridBusOpt;
-class zipLoad;
+class ZipLoad;
 
 class GridLoadOpt: public GridOptObject {
   public:
   protected:
     GridBusOpt* bus = nullptr;
-    zipLoad* load = nullptr;
+    ZipLoad* load = nullptr;
 
   public:
     GridLoadOpt(const std::string& objName = "");

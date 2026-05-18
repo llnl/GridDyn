@@ -152,7 +152,7 @@ Read a line from a CDF file corresponding to a bus specification
 /*
 Columns  1- 4   Bus number (I) *
 Columns  7-17   Name (A) (left justify) *
-Columns 19-20   Load flow area number (I) Don't use zero! *
+Columns 19-20   GridLoad flow area number (I) Don't use zero! *
 Columns 21-23   Loss zone number (I)
 Columns 25-26   Type (I) *
 0 - Unregulated (load, PQ)
@@ -162,8 +162,8 @@ Columns 25-26   Type (I) *
 have one)
 Columns 28-33   Final voltage, pu (F) *
 Columns 34-40   Final angle, degrees (F) *
-Columns 41-49   Load MW (F) *
-Columns 50-58   Load MVAR (F) *
+Columns 41-49   GridLoad MW (F) *
+Columns 50-58   GridLoad MVAR (F) *
 Columns 59-67   Generation MW (F) *
 Columns 68-75   Generation MVAR (F) *
 Columns 77-83   Base KV (F)
@@ -182,7 +182,7 @@ static void cdfReadBusLine(GridBus* bus,
                            const basicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
-    zipLoad* load = nullptr;
+    ZipLoad* load = nullptr;
     Generator* gen = nullptr;
 
     std::string temp = trim(line.substr(5, 12));
@@ -303,7 +303,7 @@ static void cdfReadBusLine(GridBus* bus,
         gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(49, 9)));
 
     if ((realPower != 0) || (reactivePower != 0)) {
-        load = new zipLoad(realPower / base, reactivePower / base);
+        load = new ZipLoad(realPower / base, reactivePower / base);
         bus->add(load);
     }
     // get the shunt impedance
@@ -313,7 +313,7 @@ static void cdfReadBusLine(GridBus* bus,
         gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(114, 8)));
     if ((realPower != 0) || (reactivePower != 0)) {
         if (load == nullptr) {
-            load = new zipLoad();
+            load = new ZipLoad();
             bus->add(load);
         }
         if (realPower != 0) {
@@ -373,7 +373,7 @@ Columns  1- 4   Tap bus number (I) *
 Columns  6- 9   Z bus number (I) *
                  For transformers and phase shifters, the side of the model
                  the device impedance is on.
-Columns 11-12   Load flow area (I)
+Columns 11-12   GridLoad flow area (I)
 Columns 14-15   Loss zone (I)
 Column  17      Circuit (I) * (Use 1 for single lines)
 Column  19      Type (I) *

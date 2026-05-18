@@ -11,7 +11,7 @@ namespace griddyn::blocks {
 /** class that limits the rate of change of a value between an upper and lower limit and
  * maintains state of whether it is clamping or not
  */
-class rampLimiter {
+class RampLimiter {
   private:
     double minRamp = std::numeric_limits<double>::min();  //!< the minimum ramp
     double maxRamp = std::numeric_limits<double>::max();  //!< the maximum ramp to allow
@@ -21,12 +21,12 @@ class rampLimiter {
     bool limiterHigh = false;  //!< flag indicating the high limit is engaged
   public:
     /** default constructor*/
-    rampLimiter() = default;
+    RampLimiter() = default;
     /** constructor with the min and max limits
 @param[in] nmin the minimum ramp
 @param[in] nmax the maximum ramp
 */
-    rampLimiter(double nmin, double nmax);
+    RampLimiter(double nmin, double nmax);
     /** set the limits
 @param[in] nmin the minimum ramp
 @param[in] nmax the maximum ramp

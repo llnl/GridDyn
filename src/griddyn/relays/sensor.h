@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace griddyn {
-class Block;
+class GridBlock;
 class grabberSet;
 /** @brief class implementing a sensor relay object
  a sensor can contain a set of basic control blocks and data grabbers which can grab data from any
@@ -64,9 +64,9 @@ class sensor: public Relay {
                              //!< link_source and link_sink flags
     count_t instructionCounter = 0;  //!< the number of instructions the relay has received
     std::vector<std::shared_ptr<grabberSet>> dataSources;  // the data sources for the output
-    std::vector<Block*> filterBlocks;  //!< the filtered blocks
+    std::vector<GridBlock*> filterBlocks;  //!< the filtered blocks
     std::vector<std::shared_ptr<grabberSet>> outGrabbers;  //!< Grabbers for the output;
-    std::vector<std::shared_ptr<Block>>
+    std::vector<std::shared_ptr<GridBlock>>
         blkptrs;  //!< storage locations for the shared_ptr of blocks
   public:
     /** @brief default constructor*/
@@ -90,7 +90,7 @@ class sensor: public Relay {
     /** @brief add a filter block to the relay
     @param[in] blk a pointer to a filter block
     */
-    virtual void add(Block* blk);
+    virtual void add(GridBlock* blk);
     /** @brief add a shared pointer to a grabberSet
     @param[in] dGr a shared pointer to grabberSet Object
     */

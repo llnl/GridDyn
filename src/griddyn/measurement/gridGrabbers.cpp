@@ -228,9 +228,9 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj
         return ggb;
     }
 
-    auto* loadObject = dynamic_cast<Load*>(obj);
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
     if (loadObject != nullptr) {
-        ggb = std::make_unique<objectOffsetGrabber<Load>>(fld, loadObject);
+        ggb = std::make_unique<objectOffsetGrabber<GridLoad>>(fld, loadObject);
         return ggb;
     }
 
@@ -275,9 +275,9 @@ std::unique_ptr<gridGrabber> createGrabber(int noffset, CoreObject* obj)
         ggb = std::make_unique<objectOffsetGrabber<Generator>>(noffset, gen);
         return ggb;
     }
-    auto* loadObject = dynamic_cast<Load*>(obj);
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
     if (loadObject != nullptr) {
-        ggb = std::make_unique<objectOffsetGrabber<Load>>(noffset, loadObject);
+        ggb = std::make_unique<objectOffsetGrabber<GridLoad>>(noffset, loadObject);
         return ggb;
     }
     return ggb;

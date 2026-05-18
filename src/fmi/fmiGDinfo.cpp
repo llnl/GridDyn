@@ -40,19 +40,19 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 // create the component factories
 
 namespace griddyn {
-static childTypeFactory<fmi::FmiMELoad, Load>
+static childTypeFactory<fmi::FmiMELoad, GridLoad>
     fmild(  // NOLINT(bugprone-throwing-static-initialization)
         "load",
         std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
-static childTypeFactory<fmi::FmiCoSimLoad, Load>
+static childTypeFactory<fmi::FmiCoSimLoad, GridLoad>
     fmiCSld(  // NOLINT(bugprone-throwing-static-initialization)
         "load",
         std::to_array<std::string_view>({"fmicosimload", "cosim"}));
-static childTypeFactory<fmi::FmiCoSimLoad3phase, Load>
+static childTypeFactory<fmi::FmiCoSimLoad3phase, GridLoad>
     fmiCSld3(  // NOLINT(bugprone-throwing-static-initialization)
         "load",
         std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
-static childTypeFactory<fmi::FmiMELoad3phase, Load>
+static childTypeFactory<fmi::FmiMELoad3phase, GridLoad>
     fmiMEld3(  // NOLINT(bugprone-throwing-static-initialization)
         "load",
         std::to_array<std::string_view>(
@@ -69,7 +69,7 @@ static childTypeFactory<fmi::FmiGenModel, GenModel>
     fmiGM(  // NOLINT(bugprone-throwing-static-initialization)
         "genmodel",
         std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
-static childTypeFactory<fmi::CymeDistLoadME, Load>
+static childTypeFactory<fmi::CymeDistLoadME, GridLoad>
     cymeME(  // NOLINT(bugprone-throwing-static-initialization)
         "load",
         std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
@@ -97,9 +97,9 @@ namespace {
 
         void load() override
         {
-            auto factory =
-                std::make_shared<griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::Load>>(
-                    "load", griddyn::stringVec{"fmiload", "fmi"});
+            auto factory = std::make_shared<
+                griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::GridLoad>>(
+                "load", griddyn::stringVec{"fmiload", "fmi"});
             fmiFactories.push_back(factory);
         }
 

@@ -12,8 +12,8 @@
 
 namespace griddyn {
 namespace blocks {
-    class pidBlock;
-    class delayBlock;
+    class PidBlock;
+    class DelayBlock;
 }  // namespace blocks
 
 namespace links {
@@ -49,9 +49,9 @@ namespace links {
         model_parameter maxAngle = kPI / 2.0;  //!< [rad]  maximum tap angle
         ControlMode control_mode = ControlMode::VOLTAGE;
 
-        coreOwningPtr<blocks::pidBlock> firingAngleControl;  //!< block controlling firing angle
-        coreOwningPtr<blocks::pidBlock> powerLevelControl;  //!< block controlling power
-        coreOwningPtr<blocks::delayBlock> controlDelay;  //!< delayblock for control of tap
+        coreOwningPtr<blocks::PidBlock> firingAngleControl;  //!< block controlling firing angle
+        coreOwningPtr<blocks::PidBlock> powerLevelControl;  //!< block controlling power
+        coreOwningPtr<blocks::DelayBlock> controlDelay;  //!< delayblock for control of tap
 
       public:
         explicit acdcConverter(const std::string& objName = "acdcConveter_$");

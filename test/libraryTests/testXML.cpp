@@ -76,7 +76,7 @@ TEST_F(XmlTests, XmlTest2)
     ASSERT_NE(bus, nullptr);
     EXPECT_EQ(bus->getType(), GridBus::busType::PQ);
 
-    Load* ld = bus->getLoad();
+    GridLoad* ld = bus->getLoad();
     ASSERT_NE(ld, nullptr);
     if (!(ld)) {
         return;

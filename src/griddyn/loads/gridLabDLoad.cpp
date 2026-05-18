@@ -23,21 +23,23 @@
 
 // #define SGS_DEBUG
 namespace griddyn::loads {
-static typeFactory<gridLabDLoad> gfgld("load",
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static typeFactory<GridLabDLoad> gfgld("load",
                                        std::to_array<std::string_view>({"gridlabd", "gridlab"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 // constants for rotating a complex number by +120 and -120 degrees
 static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
 static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
 #define CONJUGATE 1
 
-gridLabDLoad::gridLabDLoad(const std::string& objName): rampLoad(objName)
+GridLabDLoad::GridLabDLoad(const std::string& objName): RampLoad(objName)
 {
     enable_updates();
 }
-gridLabDLoad::~gridLabDLoad() = default;
+GridLabDLoad::~GridLabDLoad() = default;
 
-void gridLabDLoad::gridLabDInitialize()
+void GridLabDLoad::gridLabDInitialize()
 {
     if (!opFlags[file_sent_flag]) {
         auto gsm = GhostSwingBusManager::instance();
@@ -59,7 +61,7 @@ void gridLabDLoad::gridLabDInitialize()
 #ifndef GRIDDYN_ENABLE_MPI
             for (size_t kk = 0; kk < gridlabDfile.size(); ++kk) {
                 if (!(dummy_load[kk])) {
-                    dummy_load[kk] = std::make_unique<zipLoad>(0.3, 0.1, "dummy");
+                    dummy_load[kk] = std::make_unique<ZipLoad>(0.3, 0.1, "dummy");
                     dummy_load[kk]->set("yp", 0.15);
                     dummy_load[kk]->set("yq", 0.192);
                     dummy_load[kk]->set("ip", 0.22);
@@ -71,7 +73,7 @@ void gridLabDLoad::gridLabDInitialize()
                                           });
                 if (opFlags[dual_mode_flag]) {
                     dummy_load_forward[kk] =
-                        std::unique_ptr<zipLoad>(static_cast<zipLoad*>(dummy_load[kk]->clone()));
+                        std::unique_ptr<ZipLoad>(static_cast<ZipLoad*>(dummy_load[kk]->clone()));
                 }
             }
 #endif
@@ -79,9 +81,9 @@ void gridLabDLoad::gridLabDInitialize()
     }
 }
 
-CoreObject* gridLabDLoad::clone(CoreObject* obj) const
+CoreObject* GridLabDLoad::clone(CoreObject* obj) const
 {
-    auto* ld = cloneBase<gridLabDLoad, rampLoad>(this, obj);
+    auto* ld = cloneBase<GridLabDLoad, RampLoad>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -97,11 +99,11 @@ CoreObject* gridLabDLoad::clone(CoreObject* obj) const
     for (size_t kk = 0; kk < dummy_load.size(); ++kk) {
         if (!(ld->dummy_load[kk])) {
             if (dummy_load[kk]) {
-                ld->dummy_load[kk].reset(static_cast<zipLoad*>(dummy_load[kk]->clone(nullptr)));
+                ld->dummy_load[kk].reset(static_cast<ZipLoad*>(dummy_load[kk]->clone(nullptr)));
                 ld->dummy_load[kk]->setParent(ld);
                 if (opFlags[dual_mode_flag]) {
                     ld->dummy_load_forward[kk].reset(
-                        static_cast<zipLoad*>(dummy_load[kk]->clone()));
+                        static_cast<ZipLoad*>(dummy_load[kk]->clone()));
                     ld->dummy_load_forward[kk]->setParent(ld);
                 }
             }
@@ -120,26 +122,26 @@ CoreObject* gridLabDLoad::clone(CoreObject* obj) const
     return ld;
 }
 
-void gridLabDLoad::add(CoreObject* obj)
+void GridLabDLoad::add(CoreObject* obj)
 {
-    if (dynamic_cast<Load*>(obj) != nullptr) {
+    if (dynamic_cast<GridLoad*>(obj) != nullptr) {
         for (size_t kk = 0; kk < dummy_load.size(); ++kk) {
             if (dummy_load[kk]) {
                 continue;
             }
-            dummy_load[kk].reset(static_cast<Load*>(obj));
+            dummy_load[kk].reset(static_cast<GridLoad*>(obj));
             obj->setParent(this);
             if (opFlags[dual_mode_flag]) {
-                dummy_load_forward[kk].reset(static_cast<Load*>(obj->clone()));
+                dummy_load_forward[kk].reset(static_cast<GridLoad*>(obj->clone()));
                 dummy_load_forward[kk]->setParent(this);
             }
         }
         if (obj->isRoot()) {
-            dummy_load.push_back(std::unique_ptr<Load>(static_cast<Load*>(obj)));
+            dummy_load.push_back(std::unique_ptr<GridLoad>(static_cast<GridLoad*>(obj)));
             obj->setParent(this);
             if (opFlags[dual_mode_flag]) {
                 dummy_load_forward.push_back(
-                    std::unique_ptr<Load>(static_cast<Load*>(obj->clone())));
+                    std::unique_ptr<GridLoad>(static_cast<GridLoad*>(obj->clone())));
                 dummy_load_forward.back()->setParent(this);
             }
         }
@@ -148,7 +150,7 @@ void gridLabDLoad::add(CoreObject* obj)
     }
 }
 
-void gridLabDLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridLabDLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (!opFlags[file_sent_flag]) {
         gridLabDInitialize();
@@ -156,14 +158,14 @@ void gridLabDLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     m_lastCallTime = time0;
     updateA(time0);
     opFlags[preEx_requested] = true;
-    rampLoad::pFlowObjectInitializeA(time0, flags);
+    RampLoad::pFlowObjectInitializeA(time0, flags);
 }
 
-void gridLabDLoad::pFlowObjectInitializeB()
+void GridLabDLoad::pFlowObjectInitializeB()
 {
     updateB();
 }
-void gridLabDLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridLabDLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     switch (dynCoupling) {
         case coupling_mode_t::none:
@@ -185,10 +187,10 @@ void gridLabDLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     if (opFlags[dual_mode_flag]) {
     }
-    rampLoad::dynObjectInitializeA(time0, flags);
+    RampLoad::dynObjectInitializeA(time0, flags);
 }
 
-void gridLabDLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
+void GridLabDLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
                                         const IOdata& /*desiredOutput*/,
                                         IOdata& /*fieldSet*/)
 {
@@ -196,7 +198,7 @@ void gridLabDLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void gridLabDLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridLabDLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     double V = inputs[voltageInLocation];
     double th = inputs[angleInLocation];
@@ -233,7 +235,7 @@ void gridLabDLoad::timestep(coreTime time, const IOdata& inputs, const solverMod
     prevTime = time;
 }
 
-void gridLabDLoad::updateA(coreTime time)
+void GridLabDLoad::updateA(coreTime time)
 {
     double V = bus->getVoltage();
     double th = bus->getAngle();
@@ -271,7 +273,7 @@ void gridLabDLoad::updateA(coreTime time)
     prevTime = time;
 }
 
-coreTime gridLabDLoad::updateB()
+coreTime GridLabDLoad::updateB()
 {
     switch (cDetail) {
         case coupling_detail_t::single: {
@@ -333,7 +335,7 @@ coreTime gridLabDLoad::updateB()
             }
 #ifdef SGS_DEBUG
             std::cout << "SGS : " << prevTime << " : " << name
-                      << " gridLabDLoad::updateB realPower = " << getRealPower()
+                      << " GridLabDLoad::updateB realPower = " << getRealPower()
                       << " reactive power = " << getReactivePower() << '\n';
 #endif
         } break;
@@ -348,7 +350,7 @@ coreTime gridLabDLoad::updateB()
     return nextUpdateTime;
 }
 
-void gridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
 {
     if ((lastSeqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -387,17 +389,17 @@ void gridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const solver
     }
 }
 
-void gridLabDLoad::updateLocalCache(const IOdata& inputs,
+void GridLabDLoad::updateLocalCache(const IOdata& inputs,
                                     const stateData& sD,
                                     const solverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
         updateB();
     }
-    rampLoad::updateLocalCache(inputs, sD, sMode);
+    RampLoad::updateLocalCache(inputs, sD, sMode);
 }
 
-void gridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
     logging::trace(this, "calling gridlab load 1A");
@@ -437,7 +439,7 @@ void gridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
     }
 }
 
-std::vector<double> gridLabDLoad::runGridLabB(bool unbalancedAlert)
+std::vector<double> GridLabDLoad::runGridLabB(bool unbalancedAlert)
 {
     logging::trace(this, "calling gridlab-d load 1B");
     assert(opFlags[waiting_flag]);  // this should not happen;
@@ -489,7 +491,7 @@ std::vector<double> gridLabDLoad::runGridLabB(bool unbalancedAlert)
 #ifdef SGS_DEBUG
     std::cout << "SGS : retP = " << retP << " systemBasePower = " << systemBasePower << '\n';
 
-    std::cout << "SGS : " << prevTime << " : " << name << " gridLabDLoad::runGridLabB P = " << retP
+    std::cout << "SGS : " << prevTime << " : " << name << " GridLabDLoad::runGridLabB P = " << retP
               << " Q = " << retQ << '\n';
 #endif
 
@@ -502,7 +504,7 @@ std::vector<double> gridLabDLoad::runGridLabB(bool unbalancedAlert)
     return {retP, retQ};
 }
 
-void gridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
 {
     assert(opFlags[waiting_flag] == false);  // this should not happen;
     logging::trace(this, "calling gridlab load 2A");
@@ -545,7 +547,7 @@ void gridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
     }
 }
 
-std::vector<double> gridLabDLoad::run2GridLabB(bool unbalancedAlert)
+std::vector<double> GridLabDLoad::run2GridLabB(bool unbalancedAlert)
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
     logging::trace(this, "calling gridlab-d load 2B");
@@ -607,7 +609,7 @@ std::vector<double> gridLabDLoad::run2GridLabB(bool unbalancedAlert)
     retP[1] = Q1 - V1 * retP[3];
 
 #ifdef SGS_DEBUG
-    std::cout << "SGS : gridLabDLoad::run2GridLabB P = " << retP[0] << " [1] = " << retP[1] << '\n';
+    std::cout << "SGS : GridLabDLoad::run2GridLabB P = " << retP[0] << " [1] = " << retP[1] << '\n';
 #endif
 
     if (unbalancedAlert) {
@@ -623,7 +625,7 @@ std::vector<double> gridLabDLoad::run2GridLabB(bool unbalancedAlert)
     return retP;
 }
 
-void gridLabDLoad::run3GridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::run3GridLabA(coreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
     logging::trace(this, "calling gridLab-d load 3A");
@@ -673,7 +675,7 @@ void gridLabDLoad::run3GridLabA(coreTime time, const IOdata& inputs)
     }
 }
 
-std::vector<double> gridLabDLoad::run3GridLabB(bool unbalancedAlert)
+std::vector<double> GridLabDLoad::run3GridLabB(bool unbalancedAlert)
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
 
@@ -834,7 +836,7 @@ Yq = LV[5];
 #endif
 
 #ifdef SGS_DEBUG
-    std::cout << "SGS : gridLabDLoad::run3GridLabB systemBasePower = " << systemBasePower << '\n';
+    std::cout << "SGS : GridLabDLoad::run3GridLabB systemBasePower = " << systemBasePower << '\n';
 
     std::cout << "SGS : gridlabDLaod::run3GridLabB V1 = " << V1 << " V2 = " << V2 << " V3 = " << V3
               << '\n';
@@ -844,10 +846,10 @@ Yq = LV[5];
     std::cout << "SGS : gridlabDLaod::run3GridLabB Ig[0] = " << Ig[0] << " Ig[1] = " << Ig[1]
               << " Ig[2] = " << Ig[2] << '\n';
 
-    std::cout << "SGS : gridLabDLoad::run3GridLabB P1 = " << P1 << " Q1 = " << Q1 << " P2 = " << P2
+    std::cout << "SGS : GridLabDLoad::run3GridLabB P1 = " << P1 << " Q1 = " << Q1 << " P2 = " << P2
               << " Q2 = " << Q2 << " P3 = " << P3 << " Q3 = " << Q3 << '\n';
 
-    std::cout << "SGS : gridLabDLoad::run3GridLabB retP[0] = " << retP[0] << " [1] = " << retP[1]
+    std::cout << "SGS : GridLabDLoad::run3GridLabB retP[0] = " << retP[0] << " [1] = " << retP[1]
               << " [2] = " << retP[2] << " [3] = " << retP[3] << " [4] = " << retP[4]
               << " [5] = " << retP[5] << '\n';
 #endif
@@ -855,7 +857,7 @@ Yq = LV[5];
     return retP;
 }
 
-void gridLabDLoad::set(std::string_view param, std::string_view val)
+void GridLabDLoad::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::convertToLowerCase;
     using gmlc::utilities::numeric_conversion;
@@ -937,11 +939,11 @@ void gridLabDLoad::set(std::string_view param, std::string_view val)
             pFlowCoupling = coupling_mode_t::full;
         }
     } else {
-        zipLoad::set(param, val);
+        ZipLoad::set(param, val);
     }
 }
 
-void gridLabDLoad::set(std::string_view param, double val, units::unit unitType)
+void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 {
     // TODO(phlpt): Convert some of these to a setFlags function.
     if ((param == "spread") || (param == "band")) {
@@ -970,13 +972,13 @@ void gridLabDLoad::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "lineartriple") {
         opFlags.set(linearize_triple, (val > 0.0));
     } else {
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
 }
 
 // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
-void gridLabDLoad::rootTest(const IOdata& inputs,
+void GridLabDLoad::rootTest(const IOdata& inputs,
                             const stateData& /*sD*/,
                             double roots[],
                             const solverMode& sMode)
@@ -988,7 +990,7 @@ void gridLabDLoad::rootTest(const IOdata& inputs,
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
 }
 
-void gridLabDLoad::rootTrigger(coreTime time,
+void GridLabDLoad::rootTrigger(coreTime time,
                                const IOdata& /*inputs*/,
                                const std::vector<int>& rootMask,
                                const solverMode& sMode)
@@ -1000,7 +1002,7 @@ void gridLabDLoad::rootTrigger(coreTime time,
     }
 }
 
-change_code gridLabDLoad::rootCheck(const IOdata& inputs,
+change_code GridLabDLoad::rootCheck(const IOdata& inputs,
                                     const stateData& sD,
                                     const solverMode& /*sMode*/,
                                     check_level_t /*level*/)
@@ -1014,7 +1016,7 @@ change_code gridLabDLoad::rootCheck(const IOdata& inputs,
     return change_code::no_change;
 }
 
-int gridLabDLoad::mpiCount() const
+int GridLabDLoad::mpiCount() const
 {
     int cnt = 0;
     if (opFlags[dual_mode_flag]) {
@@ -1034,7 +1036,7 @@ int gridLabDLoad::mpiCount() const
 }
 
 #ifndef GRIDDYN_ENABLE_MPI
-void gridLabDLoad::run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
+void GridLabDLoad::run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
 {
     for (int ii = 0; ii < vm->numThreePhaseVoltage; ii++) {
         auto vtest = std::hypot(vm->voltage[ii].real[0], vm->voltage[ii].imag[0]);
@@ -1062,7 +1064,7 @@ void gridLabDLoad::run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage
     cm->numThreePhaseCurrent = vm->numThreePhaseVoltage;
 }
 
-void gridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
+void GridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
 {
     for (int ii = 0; ii < vm->numThreePhaseVoltage; ii++) {
         auto vtest = std::hypot(vm->voltage[ii].real[0], vm->voltage[ii].imag[0]);

@@ -62,7 +62,7 @@ namespace {
         {"Gen", ContingencyMode::GEN},           {"GEN", ContingencyMode::GEN},
         {"bus", ContingencyMode::BUS},           {"Bus", ContingencyMode::BUS},
         {"BUS", ContingencyMode::BUS},           {"load", ContingencyMode::LOAD},
-        {"Load", ContingencyMode::LOAD},         {"LOAD", ContingencyMode::LOAD},
+        {"GridLoad", ContingencyMode::LOAD},         {"LOAD", ContingencyMode::LOAD},
         {"custom", ContingencyMode::CUSTOM},     {"Custom", ContingencyMode::CUSTOM},
         {"CUSTOM", ContingencyMode::CUSTOM},
     }};

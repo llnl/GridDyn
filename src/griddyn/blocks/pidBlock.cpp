@@ -12,24 +12,24 @@
 #include <algorithm>
 #include <string>
 namespace griddyn::blocks {
-pidBlock::pidBlock(const std::string& objName): Block(objName), no_D(extra_bool)
+PidBlock::PidBlock(const std::string& objName): GridBlock(objName), no_D(extra_bool)
 {
     opFlags.set(use_state);
     opFlags.set(differential_output);
     no_D = true;
 }
 
-pidBlock::pidBlock(double P, double I, double D, const std::string& objName):
-    Block(objName), m_P(P), m_I(I), m_D(D), no_D(extra_bool)
+PidBlock::PidBlock(double P, double I, double D, const std::string& objName):
+    GridBlock(objName), m_P(P), m_I(I), m_D(D), no_D(extra_bool)
 {
     opFlags.set(use_state);
     opFlags.set(differential_output);
     no_D = (D == 0.0);
 }
 
-CoreObject* pidBlock::clone(CoreObject* obj) const
+CoreObject* PidBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<pidBlock, Block>(this, obj);
+    auto nobj = cloneBase<PidBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -43,9 +43,9 @@ CoreObject* pidBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void pidBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void PidBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.diffSize += 2;
     offsets.local().local.jacSize += 8;
 }
@@ -59,12 +59,12 @@ void pidBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 [limiter_diff+1] is the derivative filter
 [limiter_diff+2] is the integral calculation
 */
-void pidBlock::dynObjectInitializeB(const IOdata& inputs,
+void PidBlock::dynObjectInitializeB(const IOdata& inputs,
                                     const IOdata& desiredOutput,
                                     IOdata& fieldSet)
 {
     double in = (inputs.empty()) ? 0 : inputs[0] + bias;
-    Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     if (desiredOutput.empty()) {
         m_state[limiter_diff + 2] = iv;
         m_dstate_dt[limiter_diff + 2] = in * m_I;  // integral
@@ -97,7 +97,7 @@ void pidBlock::dynObjectInitializeB(const IOdata& inputs,
     prevInput = in + bias;
 }
 
-void pidBlock::blockDerivative(double input,
+void PidBlock::blockDerivative(double input,
                                double didt,
                                const stateData& sD,
                                double deriv[],
@@ -114,11 +114,11 @@ void pidBlock::blockDerivative(double input,
                                      Loc.diffStateLoc[limiter_diff]) /
         m_Td;
     if (limiter_diff > 0) {
-        Block::blockDerivative(input, didt, sD, deriv, sMode);
+        GridBlock::blockDerivative(input, didt, sD, deriv, sMode);
     }
 }
 
-void pidBlock::blockJacobianElements(double input,
+void PidBlock::blockJacobianElements(double input,
                                      double didt,
                                      const stateData& sD,
                                      matrixData<double>& md,
@@ -133,7 +133,7 @@ void pidBlock::blockJacobianElements(double input,
         //  Loc.dstateLoc[limiter_diff + 1] + Loc.diffStateLoc[limiter_diff + 2]) -
         //  Loc.diffStateLoc[limiter_diff]) / m_Td;
         if (opFlags[has_limits]) {
-            Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+            GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
         }
 
         md.assign(Loc.diffOffset, Loc.diffOffset, -1.0 / m_Td - sD.cj);
@@ -153,7 +153,7 @@ void pidBlock::blockJacobianElements(double input,
     }
 }
 
-double pidBlock::step(coreTime time, double inputA)
+double PidBlock::step(coreTime time, double inputA)
 {
     double dt = time - prevTime;
     double input = inputA + bias;
@@ -194,7 +194,7 @@ double pidBlock::step(coreTime time, double inputA)
     prevInput = input;
 
     if (opFlags[has_limits]) {
-        Block::step(time, input);
+        GridBlock::step(time, input);
     } else {
         prevTime = time;
         m_output = m_state[0];
@@ -202,7 +202,7 @@ double pidBlock::step(coreTime time, double inputA)
     return m_output;
 }
 
-index_t pidBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t PidBlock::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "integral") {
@@ -211,17 +211,17 @@ index_t pidBlock::findIndex(std::string_view field, const solverMode& sMode) con
     } else if (field == "derivative") {
         ret = offsets.getDiffOffset(sMode);
     } else {
-        ret = Block::findIndex(field, sMode);
+        ret = GridBlock::findIndex(field, sMode);
     }
     return ret;
 }
 
 // set parameters
-void pidBlock::set(std::string_view param, std::string_view val)
+void PidBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void pidBlock::set(std::string_view param, double val, units::unit unitType)
+void PidBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "p") || (param == "proportional")) {
         m_P = val;
@@ -235,13 +235,13 @@ void pidBlock::set(std::string_view param, double val, units::unit unitType)
     } else if ((param == "iv") || (param == "initial_value")) {
         iv = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-stringVec pidBlock::localStateNames() const
+stringVec PidBlock::localStateNames() const
 {
-    stringVec out = Block::localStateNames();
+    stringVec out = GridBlock::localStateNames();
 
     out.emplace_back("deriv_delay");
     out.emplace_back("integral");

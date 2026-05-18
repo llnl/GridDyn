@@ -8,7 +8,7 @@
 
 #include "../Link.h"
 #include "../blocks/delayBlock.h"
-#include "../blocks/filteredDerivativeBlock.h"
+#include "../blocks/FilteredderivativeBlock.h"
 #include "../comms/Communicator.h"
 #include "../comms/controlMessage.h"
 #include "../events/Event.h"
@@ -223,10 +223,10 @@ void pmu::createFilterBlocks()
             // three phase voltage
         }
     } else {
-        auto* vBlock = new blocks::delayBlock(mVoltageFilterTime);
+        auto* vBlock = new blocks::DelayBlock(mVoltageFilterTime);
         vBlock->setName("voltage");
         add(vBlock);
-        vBlock = new blocks::delayBlock(mAngleFilterTime);
+        vBlock = new blocks::DelayBlock(mAngleFilterTime);
         vBlock->setName("angle");
         add(vBlock);
         set("input0", "voltage");
@@ -236,10 +236,10 @@ void pmu::createFilterBlocks()
         setupOutput(0, "block0");
         setupOutput(1, "block1");
         if (opFlags[CURRENT_ACTIVE]) {
-            vBlock = new blocks::delayBlock(mCurrentFilterTime);
+            vBlock = new blocks::DelayBlock(mCurrentFilterTime);
             vBlock->setName("current_real");
             add(vBlock);
-            vBlock = new blocks::delayBlock(mCurrentFilterTime);
+            vBlock = new blocks::DelayBlock(mCurrentFilterTime);
             vBlock->setName("current_reactive");
             add(vBlock);
             set("input2", "current_real");
@@ -249,7 +249,7 @@ void pmu::createFilterBlocks()
             setupOutput(2, "block2");
             setupOutput(3, "block3");
         }
-        auto* fblock = new blocks::filteredDerivativeBlock("freq");
+        auto* fblock = new blocks::FilteredDerivativeBlock("freq");
         fblock->set("t1", mAngleFilterTime);
         fblock->set("t2", mRocofFilterTime);
         add(fblock);

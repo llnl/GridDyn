@@ -23,11 +23,11 @@ struct CurrentMessage;
 namespace loads {
     /** @brief load model defining the interactions with a gridlabD simulation through the Ghost
      * Swing Bus Manager*/
-    class approximatingLoad: public rampLoad {
+    class ApproximatingLoad: public RampLoad {
       public:
-        approximatingLoad(const std::string& objName = "approxLoad_$");
+        ApproximatingLoad(const std::string& objName = "approxLoad_$");
 
-        virtual ~approximatingLoad();
+        virtual ~ApproximatingLoad();
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -104,7 +104,7 @@ namespace loads {
         coupling_mode_t dynCoupling = coupling_mode_t::trigger;  //!< the coupling dynamic mode
         coupling_detail_t cDetail = coupling_detail_t::triple;  //!< the detail of the check
         index_t lastSeqID = kNullLocation;
-        Load* subLoad = nullptr;
+        GridLoad* subLoad = nullptr;
 #ifndef HAVE_MPI
         // void run_dummy_load (index_t kk, VoltageMessage* vm, CurrentMessage* cm);
         // void run_dummy_load_forward (index_t kk, VoltageMessage* vm, CurrentMessage* cm);

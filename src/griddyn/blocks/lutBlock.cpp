@@ -16,13 +16,13 @@
 #include <utility>
 
 namespace griddyn::blocks {
-lutBlock::lutBlock(const std::string& objName): Block(objName)
+LutBlock::LutBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(use_state);
 }
-CoreObject* lutBlock::clone(CoreObject* obj) const
+CoreObject* LutBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<lutBlock, Block>(this, obj);
+    auto nobj = cloneBase<LutBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -36,20 +36,20 @@ CoreObject* lutBlock::clone(CoreObject* obj) const
 }
 
 // initial conditions
-void lutBlock::dynObjectInitializeB(const IOdata& inputs,
+void LutBlock::dynObjectInitializeB(const IOdata& inputs,
                                     const IOdata& desiredOutput,
                                     IOdata& fieldSet)
 {
     if (desiredOutput.empty()) {
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     } else {
         // TODO(pt): figure out how to invert the lookup table
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
 }
 
-void lutBlock::blockAlgebraicUpdate(double input,
+void LutBlock::blockAlgebraicUpdate(double input,
                                     const stateData& sD,
                                     double update[],
                                     const solverMode& sMode)
@@ -57,11 +57,11 @@ void lutBlock::blockAlgebraicUpdate(double input,
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     update[offset] = K * computeValue(input + bias);
     if (limiter_alg > 0) {
-        return Block::blockAlgebraicUpdate(input, sD, update, sMode);
+        return GridBlock::blockAlgebraicUpdate(input, sD, update, sMode);
     }
 }
 
-void lutBlock::blockJacobianElements(double input,
+void LutBlock::blockJacobianElements(double input,
                                      double didt,
                                      const stateData& sD,
                                      matrixData<double>& md,
@@ -74,12 +74,12 @@ void lutBlock::blockJacobianElements(double input,
     md.assignCheckCol(offset, argLoc, K * m);
     md.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        Block::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
     }
 }
 
 // set parameters
-void lutBlock::set(std::string_view param, std::string_view val)
+void LutBlock::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::str2vector;
     if (param == "lut") {
@@ -114,24 +114,24 @@ void lutBlock::set(std::string_view param, std::string_view val)
         lut[0].second = lut[1].second;
         (*lut.end()).second = (*(lut.end() - 1)).second;
     } else {
-        Block::set(param, val);
+        GridBlock::set(param, val);
     }
 }
 
-void lutBlock::set(std::string_view param, double val, units::unit unitType)
+void LutBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-double lutBlock::step(coreTime time, double input)
+double LutBlock::step(coreTime time, double input)
 {
     m_state[limiter_alg] = K * computeValue(input + bias);
 
     if (limiter_alg > 0) {
-        Block::step(time, input);
+        GridBlock::step(time, input);
     } else {
         m_output = m_state[0];
         prevTime = time;
@@ -140,7 +140,7 @@ double lutBlock::step(coreTime time, double input)
     return m_state[0];
 }
 
-double lutBlock::computeValue(double input)
+double LutBlock::computeValue(double input)
 {
     if (input > vupper) {
         ++lindex;

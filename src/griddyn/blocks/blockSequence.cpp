@@ -17,13 +17,13 @@
 #include <vector>
 
 namespace griddyn::blocks {
-blockSequence::blockSequence(const std::string& objName): Block(objName)
+BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
     opFlags[use_direct] = true;
 }
-CoreObject* blockSequence::clone(CoreObject* obj) const
+CoreObject* BlockSequence::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<blockSequence, Block>(this, obj);
+    auto* nobj = cloneBase<BlockSequence, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -31,7 +31,7 @@ CoreObject* blockSequence::clone(CoreObject* obj) const
     return nobj;
 }
 
-void blockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void BlockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     bool diffInput = opFlags[DIFFERENTIAL_INPUT_ACTUAL];
     if (sequence.empty()) {  // create a default sequence with all the blocks
@@ -47,11 +47,11 @@ void blockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         diffInput = blocks[sequenceIndex]->checkFlag(differential_output);
     }
     opFlags[differential_input] = diffInput;
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     updateFlags();  // update the flags for the subObjects;
 }
 // initial conditions
-void blockSequence::dynObjectInitializeB(const IOdata& inputs,
+void BlockSequence::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -65,11 +65,11 @@ void blockSequence::dynObjectInitializeB(const IOdata& inputs,
             // NOLINTNEXTLINE(readability-suspicious-call-argument)
             blocks[sequence[ii]]->dynInitializeB(inAct, noInputs, inAct);
         }
-        Block::dynObjectInitializeB(inAct, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inAct, desiredOutput, fieldSet);
     } else if (inputs.empty()) {
         IOdata inReq;
         inReq.resize(2);
-        Block::dynObjectInitializeB(noInputs, desiredOutput, inReq);
+        GridBlock::dynObjectInitializeB(noInputs, desiredOutput, inReq);
         for (auto ii = static_cast<int>(cnt - 1); ii >= 0; --ii) {
             blocks[sequence[ii]]->dynInitializeB(noInputs, inReq, inReq);
         }
@@ -80,16 +80,16 @@ void blockSequence::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void blockSequence::add(CoreObject* obj)
+void BlockSequence::add(CoreObject* obj)
 {
-    if (dynamic_cast<Block*>(obj) != nullptr) {
-        add(static_cast<Block*>(obj));
+    if (dynamic_cast<GridBlock*>(obj) != nullptr) {
+        add(static_cast<GridBlock*>(obj));
     } else {
         throw(unrecognizedObjectException(this));
     }
 }
 
-void blockSequence::add(Block* blk)
+void BlockSequence::add(GridBlock* blk)
 {
     if (blk->locIndex == kNullLocation) {
         blk->locIndex = static_cast<index_t>(blocks.size());
@@ -105,7 +105,7 @@ void blockSequence::add(Block* blk)
     addSubObject(blk);
 }
 
-void blockSequence::updateLocalCache(const IOdata& /*inputs*/,
+void BlockSequence::updateLocalCache(const IOdata& /*inputs*/,
                                      const stateData& stateData,
                                      const solverMode& sMode)
 {
@@ -118,7 +118,7 @@ void blockSequence::updateLocalCache(const IOdata& /*inputs*/,
         blockDoutDt.resize(sequenceSize);
     }
     for (index_t kk = 0; std::cmp_less(kk, sequenceSize); ++kk) {
-        const Block* block = blocks[sequence[kk]];
+        const GridBlock* block = blocks[sequence[kk]];
         blockOutputs[kk] = block->getBlockOutput(stateData, sMode);
         blockDoutDt[kk] =
             (block->checkFlag(differential_output)) ? block->getBlockDoutDt(stateData, sMode) : 0.0;
@@ -127,7 +127,7 @@ void blockSequence::updateLocalCache(const IOdata& /*inputs*/,
     seqID = stateData.seqID;
 }
 
-double blockSequence::step(coreTime time, double input)
+double BlockSequence::step(coreTime time, double input)
 {
     // compute a core sample time then cycle through all the objects at that
     // sampling rate
@@ -141,10 +141,10 @@ double blockSequence::step(coreTime time, double input)
         }
         prevTime = newTime;
     }
-    return Block::step(time, input);
+    return GridBlock::step(time, input);
 }
 
-void blockSequence::blockResidual(double input,
+void BlockSequence::blockResidual(double input,
                                   double didt,
                                   const stateData& stateData,
                                   double resid[],
@@ -162,7 +162,7 @@ void blockSequence::blockResidual(double input,
     limiterResidElements(blockInput, indt, stateData, resid, sMode);
 }
 
-void blockSequence::blockDerivative(double input,
+void BlockSequence::blockDerivative(double input,
                                     double didt,
                                     const stateData& stateData,
                                     double deriv[],
@@ -177,10 +177,10 @@ void blockSequence::blockDerivative(double input,
         blockInput = blockOutputs[sequence[ii]];
         indt = blockDoutDt[sequence[ii]];
     }
-    Block::blockDerivative(blockInput, indt, stateData, deriv, sMode);
+    GridBlock::blockDerivative(blockInput, indt, stateData, deriv, sMode);
 }
 
-void blockSequence::blockAlgebraicUpdate(double input,
+void BlockSequence::blockAlgebraicUpdate(double input,
                                          const stateData& stateData,
                                          double update[],
                                          const solverMode& sMode)
@@ -192,10 +192,10 @@ void blockSequence::blockAlgebraicUpdate(double input,
         blocks[sequence[ii]]->blockAlgebraicUpdate(blockInput, stateData, update, sMode);
         blockInput = blockOutputs[sequence[ii]];
     }
-    Block::blockAlgebraicUpdate(input, stateData, update, sMode);
+    GridBlock::blockAlgebraicUpdate(input, stateData, update, sMode);
 }
 
-void blockSequence::blockJacobianElements(double input,
+void BlockSequence::blockJacobianElements(double input,
                                           double didt,
                                           const stateData& stateData,
                                           matrixData<double>& matrixDataRef,
@@ -214,10 +214,10 @@ void blockSequence::blockJacobianElements(double input,
         indt = blockDoutDt[sequence[ii]];
         aLoc = blocks[sequence[ii]]->getOutputLoc(sMode, 0);
     }
-    Block::blockJacobianElements(blockInput, indt, stateData, matrixDataRef, aLoc, sMode);
+    GridBlock::blockJacobianElements(blockInput, indt, stateData, matrixDataRef, aLoc, sMode);
 }
 
-void blockSequence::rootTest(const IOdata& inputs,
+void BlockSequence::rootTest(const IOdata& inputs,
                              const stateData& stateData,
                              double roots[],
                              const solverMode& sMode)
@@ -231,10 +231,10 @@ void blockSequence::rootTest(const IOdata& inputs,
         inAct[0] = blockOutputs[sequence[ii]];
         inAct[1] = blockDoutDt[sequence[ii]];
     }
-    Block::rootTest(inAct, stateData, roots, sMode);
+    GridBlock::rootTest(inAct, stateData, roots, sMode);
 }
 
-void blockSequence::rootTrigger(coreTime time,
+void BlockSequence::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const solverMode& sMode)
@@ -247,10 +247,10 @@ void blockSequence::rootTrigger(coreTime time,
         inAct[0] = blockOutputs[sequence[ii]];
         inAct[1] = blockDoutDt[sequence[ii]];
     }
-    Block::rootTrigger(time, inAct, rootMask, sMode);
+    GridBlock::rootTrigger(time, inAct, rootMask, sMode);
 }
 
-change_code blockSequence::rootCheck(const IOdata& inputs,
+change_code BlockSequence::rootCheck(const IOdata& inputs,
                                      const stateData& stateData,
                                      const solverMode& sMode,
                                      check_level_t level)
@@ -266,37 +266,37 @@ change_code blockSequence::rootCheck(const IOdata& inputs,
         inAct[1] = blockDoutDt[sequence[ii]];
         ret = std::max(ret, lret);
     }
-    auto lret = Block::rootCheck(inAct, stateData, sMode, level);
+    auto lret = GridBlock::rootCheck(inAct, stateData, sMode, level);
     ret = std::max(ret, lret);
     return ret;
 }
 
-void blockSequence::setFlag(std::string_view flag, bool val)
+void BlockSequence::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
         opFlags.set(DIFFERENTIAL_INPUT_ACTUAL, val);
     } else {
-        Block::setFlag(flag, val);
+        GridBlock::setFlag(flag, val);
     }
 }
 // set parameters
-void blockSequence::set(std::string_view param, std::string_view val)
+void BlockSequence::set(std::string_view param, std::string_view val)
 {
     if (param == "sequence") {
     } else {
-        Block::set(param, val);
+        GridBlock::set(param, val);
     }
 }
 
-void blockSequence::set(std::string_view param, double val, units::unit unitType)
+void BlockSequence::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-double blockSequence::subBlockOutput(index_t blockNum) const
+double BlockSequence::subBlockOutput(index_t blockNum) const
 {
     if (std::cmp_less(blockNum, blocks.size())) {
         return blocks[blockNum]->getBlockOutput();
@@ -304,16 +304,16 @@ double blockSequence::subBlockOutput(index_t blockNum) const
     return kNullVal;
 }
 
-double blockSequence::subBlockOutput(const std::string& blockname) const
+double BlockSequence::subBlockOutput(const std::string& blockname) const
 {
-    auto* blk = static_cast<Block*>(find(blockname));
+    auto* blk = static_cast<GridBlock*>(find(blockname));
     if (blk != nullptr) {
         return blk->getBlockOutput();
     }
     return kNullVal;
 }
 
-CoreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* BlockSequence::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "block") {
         if (std::cmp_less(num, blocks.size())) {
@@ -323,7 +323,7 @@ CoreObject* blockSequence::getSubObject(std::string_view typeName, index_t num) 
     return GridComponent::getSubObject(typeName, num);
 }
 
-CoreObject* blockSequence::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* BlockSequence::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "block") {
         for (const auto& blk : blocks) {

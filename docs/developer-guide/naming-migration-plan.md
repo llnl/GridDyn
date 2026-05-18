@@ -367,23 +367,35 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 - [x] Audit all references to `gridBus`
 - [x] Audit all references to `acBus`
 - [x] Audit all references to `dcBus`
+- [x] Audit all references to `acLine`
+- [x] Audit all references to `longLine`
+- [x] Rename type families to compliant names
+- [x] Update dependents
+- [x] Update tests
+- [x] Remove temporary compatibility shims when safe
+
+### Epic D: Load And Block Model Types
+
+- [x] Audit all references to `Load`
+- [x] Audit all references to contained load model families
+- [x] Audit all references to `Block`
+- [x] Audit all references to contained block model families
+- [x] Rename type families to compliant names
+- [x] Update dependents
+- [x] Update tests
+- [x] Remove temporary compatibility shims when safe
+
+### Epic E: Area And Simulation Types
+
 - [ ] Audit all references to `Area`
-- [ ] Audit all references to `Link`
-- [~] Rename type families to compliant names
-- [~] Update dependents
-- [~] Update tests
-- [ ] Remove temporary compatibility shims when safe
-
-### Epic D: Simulation Types
-
 - [ ] Audit all references to `gridSimulation`
 - [ ] Audit all references to `gridDynSimulation`
-- [ ] Rename simulation classes and closely related API surface
+- [ ] Rename area and simulation classes plus closely related API surface
 - [ ] Update dependents
 - [ ] Update tests
 - [ ] Remove temporary compatibility shims when safe
 
-### Epic E: Solver Types
+### Epic F: Solver Types
 
 - [ ] Audit solver interface families
 - [ ] Rename non-compliant solver types and enums
@@ -391,7 +403,7 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 - [ ] Update tests
 - [ ] Remove temporary compatibility shims when safe
 
-### Epic F: Communication Core Types
+### Epic G: Communication Core Types
 
 - [ ] Audit all references to `commMessage`
 - [ ] Audit all references to related communication core types
@@ -504,6 +516,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/fmi`                                                                                                               | Phase 5 | Subsystem public API cleanup covering FMI import/runtime wrapper API normalization, FMI submodel and wrapper call-site cleanup, expanded instance/helper renames across the model layer, and dependent test fallout            | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/core`                                                                                                              | Phase 6 | Foundational type-family cleanup covering the `coreObject` to `CoreObject` base rename, immediate core infrastructure fallout, dependent repository-wide pointer/signature updates, and associated `clang-tidy` follow-through | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | `src/core` + `src/griddyn`                                                                                              | Phase 6 | Foundational hierarchy cleanup covering the `gridComponent`, `gridSubModel`, and `helperObject` base-family renames, repository-wide dependent type updates, and associated `clang-tidy` follow-through                        | No                   | CI compile and `clang-tidy` run  | Complete |
+| merged      | `src/griddyn` + `test/libraryTests`                                                                                     | Phase 6 | Topology and network model cleanup covering the `gridBus`, `acBus`, `dcBus`, `acLine`, and `longLine` type-family renames, XML/startup factory-registration follow-through, and associated `clang-tidy` plus test stabilization | No                   | CI compile, tests, and `clang-tidy` run | Complete |
 | merged      | `src/optimization`                                                                                                      | Phase 5 | Subsystem public API cleanup covering optimization-object lookup renames, objective-name API cleanup, offset-accessor normalization, dependent file-input call-site updates, and associated `clang-tidy` fixes                 | No                   | CI compile and `clang-tidy` run  | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                                           | No                   | CI workflow run                  | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                                           | No                   | No `clang-tidy` issues to report | Complete |

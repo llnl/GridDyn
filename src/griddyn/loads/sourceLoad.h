@@ -16,7 +16,7 @@ class Source;
 namespace loads {
     /** @brief a load that uses sources to calculate the values for the each of the load parameters
 eventually will replace most of the shaped loads*/
-    class sourceLoad: public zipLoad {
+    class SourceLoad: public ZipLoad {
       public:
         enum sourceLoc {
             p_source = 0,
@@ -41,8 +41,8 @@ eventually will replace most of the shaped loads*/
         sourceType sType = sourceType::other;
 
       public:
-        explicit sourceLoad(const std::string& objName = "sourceLoad_$");
-        sourceLoad(sourceType type, const std::string& objName = "sourceLoad_$");
+        explicit SourceLoad(const std::string& objName = "sourceLoad_$");
+        SourceLoad(sourceType type, const std::string& objName = "sourceLoad_$");
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual void add(CoreObject* obj) override;

@@ -11,20 +11,20 @@
 
 namespace griddyn::loads {
 /** @brief a load with powers as a exponential function of voltage*/
-class exponentialLoad: public Load {
+class ExponentialLoad: public GridLoad {
   public:
   protected:
     model_parameter alphaP = 0.0;  //!< the voltage exponent parameter for the real power output
     model_parameter alphaQ = 0.0;  //!< the voltage exponent parameter for the reactive power output
 
   public:
-    explicit exponentialLoad(const std::string& objName = "expLoad_$");
+    explicit ExponentialLoad(const std::string& objName = "expLoad_$");
     /** constructor taking power arguments
 @param[in] rP the real power of the load
 @param[in] qP the reactive power of the load
 @param[in] objName the name of the object
 */
-    exponentialLoad(double rP, double qP, const std::string& objName = "expLoad_$");
+    ExponentialLoad(double rP, double qP, const std::string& objName = "expLoad_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

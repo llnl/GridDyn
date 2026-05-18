@@ -13,10 +13,10 @@
 namespace griddyn::blocks {
 /** @brief class defining a null block  meaning input==output
  */
-class nullBlock final: public Block {
+class NullBlock final: public GridBlock {
   public:
     /** @brief default constructor*/
-    explicit nullBlock(const std::string& objName = "nullblock_#");
+    explicit NullBlock(const std::string& objName = "nullblock_#");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

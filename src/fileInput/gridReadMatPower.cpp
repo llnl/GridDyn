@@ -92,12 +92,12 @@ void loadBusArray(CoreObject* parentObject,
                   std::vector<GridBus*>& busList,
                   const basicReaderInfo& /*readerOptions*/)
 {
-    Load* ld = nullptr;
+    GridLoad* ld = nullptr;
     auto busFactory = dynamic_cast<typeFactory<GridBus>*>(
         coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
     busFactory->prepObjects(static_cast<count_t>(buses.size()), parentObject);
 
-    auto loadFactory = dynamic_cast<typeFactory<Load>*>(
+    auto loadFactory = dynamic_cast<typeFactory<GridLoad>*>(
         coreObjectFactory::instance()->getFactory("load")->getFactory(""));
     loadFactory->prepObjects(static_cast<count_t>(buses.size()), parentObject);
     for (const auto& busData : buses) {
@@ -178,10 +178,10 @@ RAMP 10* 18 ramp rate for 10 minute reserves (MW)
 RAMP 30* 19 ramp rate for 30 minute reserves (MW)
 RAMP Q* 20 ramp rate for reactive power (2 sec timescale) (MVAr/min)
 APF* 21 area participation factor
-MU PMAX† 22 Kuhn-Tucker multiplier on upper Pg limit (u/MW)
-MU PMIN† 23 Kuhn-Tucker multiplier on lower Pg limit (u/MW)
-MU QMAX† 24 Kuhn-Tucker multiplier on upper Qg limit (u/MVAr)
-MU QMIN† 25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
+MU PMAXÃ¢â‚¬Â  22 Kuhn-Tucker multiplier on upper Pg limit (u/MW)
+MU PMINÃ¢â‚¬Â  23 Kuhn-Tucker multiplier on lower Pg limit (u/MW)
+MU QMAXÃ¢â‚¬Â  24 Kuhn-Tucker multiplier on upper Qg limit (u/MVAr)
+MU QMINÃ¢â‚¬Â  25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
 */
 
 int loadGenArray(CoreObject* parentObject,
@@ -354,14 +354,14 @@ SHIFT 10 transformer phase shift angle (degrees), positive ) delay
 BR STATUS 11 initial branch status, 1 = in-service, 0 = out-of-service
 ANGMIN* 12 minimum angle difference, angle(Vf) - angle(Vt) (degrees)
 ANGMAX* 13 maximum angle difference, angle(Vf) - angle(Vt) (degrees)
-PF† 14 real power injected at \from" bus end (MW)
-QF† 15 reactive power injected at \from" bus end (MVAr)
-PT† 16 real power injected at \to" bus end (MW)
-QT† 17 reactive power injected at \to" bus end (MVAr)
-MU SF‡ 18 Kuhn-Tucker multiplier on MVA limit at \from" bus (u/MVA)
-MU ST‡ 19 Kuhn-Tucker multiplier on MVA limit at \to" bus (u/MVA)
-MU ANGMIN‡ 20 Kuhn-Tucker multiplier lower angle difference limit (u/degree)
-MU ANGMAX‡ 21 Kuhn-Tucker multiplier upper angle difference limit (u/degree)
+PFÃ¢â‚¬Â  14 real power injected at \from" bus end (MW)
+QFÃ¢â‚¬Â  15 reactive power injected at \from" bus end (MVAr)
+PTÃ¢â‚¬Â  16 real power injected at \to" bus end (MW)
+QTÃ¢â‚¬Â  17 reactive power injected at \to" bus end (MVAr)
+MU SFÃ¢â‚¬Â¡ 18 Kuhn-Tucker multiplier on MVA limit at \from" bus (u/MVA)
+MU STÃ¢â‚¬Â¡ 19 Kuhn-Tucker multiplier on MVA limit at \to" bus (u/MVA)
+MU ANGMINÃ¢â‚¬Â¡ 20 Kuhn-Tucker multiplier lower angle difference limit (u/degree)
+MU ANGMAXÃ¢â‚¬Â¡ 21 Kuhn-Tucker multiplier upper angle difference limit (u/degree)
 */
 
 void loadLinkArray(CoreObject* parentObject,

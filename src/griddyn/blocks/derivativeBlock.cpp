@@ -14,19 +14,19 @@
 #include <string>
 
 namespace griddyn::blocks {
-derivativeBlock::derivativeBlock(const std::string& objName): Block(objName)
+DerivativeBlock::DerivativeBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(use_state);
 }
-derivativeBlock::derivativeBlock(double timeConstant, const std::string& objName):
-    Block(objName), mT1(timeConstant)
+DerivativeBlock::DerivativeBlock(double timeConstant, const std::string& objName):
+    GridBlock(objName), mT1(timeConstant)
 {
     opFlags.set(use_state);
 }
 
-CoreObject* derivativeBlock::clone(CoreObject* obj) const
+CoreObject* DerivativeBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<derivativeBlock, Block>(this, obj);
+    auto* nobj = cloneBase<DerivativeBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -35,24 +35,24 @@ CoreObject* derivativeBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void derivativeBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DerivativeBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.diffSize++;
     offsets.local().local.jacSize += 2;
 }
 
-void derivativeBlock::dynObjectInitializeB(const IOdata& inputs,
+void DerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
                                            const IOdata& desiredOutput,
                                            IOdata& fieldSet)
 {
     const index_t loc = limiter_alg;  // can't have a ramp limiter
     if (desiredOutput.empty()) {
         m_state[loc + 1] = K * (inputs[0] + bias);
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         m_state[loc] = 0;
     } else {
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         m_dstate_dt[loc + 1] = desiredOutput[0];
         if (std::abs(m_dstate_dt[loc + 1]) < 1e-7) {
             m_state[loc + 1] = K * (inputs[0] + bias);
@@ -62,7 +62,7 @@ void derivativeBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double derivativeBlock::step(coreTime time, double inputA)
+double DerivativeBlock::step(coreTime time, double inputA)
 {
     const index_t loc = limiter_alg;
     const double timeDelta = time - prevTime;
@@ -99,7 +99,7 @@ double derivativeBlock::step(coreTime time, double inputA)
     }
     prevInput = input;
     if (loc > 0) {
-        out = Block::step(time, inputA);
+        out = GridBlock::step(time, inputA);
     } else {
         out = m_state[0];
         prevTime = time;
@@ -108,7 +108,7 @@ double derivativeBlock::step(coreTime time, double inputA)
     return out;
 }
 
-void derivativeBlock::blockAlgebraicUpdate(double input,
+void DerivativeBlock::blockAlgebraicUpdate(double input,
                                            const stateData& stateDataRef,
                                            double update[],
                                            const solverMode& sMode)
@@ -117,10 +117,10 @@ void derivativeBlock::blockAlgebraicUpdate(double input,
     locationData.destLoc[limiter_alg] = locationData.dstateLoc[0];
     //    update[Aoffset + limiter_alg] = sD.state[Aoffset + limiter_alg] -
     // sD.dstate_dt[offset];
-    Block::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
+    GridBlock::blockAlgebraicUpdate(input, stateDataRef, update, sMode);
 }
 
-void derivativeBlock::blockDerivative(double input,
+void DerivativeBlock::blockDerivative(double input,
                                       double /*didt*/,
                                       const stateData& stateDataRef,
                                       double deriv[],
@@ -132,7 +132,7 @@ void derivativeBlock::blockDerivative(double input,
     deriv[offset] = ((K * (input + bias)) - stateDataRef.state[offset]) / mT1;
 }
 
-void derivativeBlock::blockJacobianElements(double input,
+void DerivativeBlock::blockJacobianElements(double input,
                                             double didt,
                                             const stateData& stateDataRef,
                                             matrixData<double>& jacobian,
@@ -151,17 +151,17 @@ void derivativeBlock::blockJacobianElements(double input,
         jacobian.assignCheck(algebraicOffset, offset, stateDataRef.cj);
         jacobian.assign(algebraicOffset, algebraicOffset, -1);
         if (limiter_alg > 0) {
-            Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+            GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
     }
 }
 
 // set parameters
-void derivativeBlock::set(std::string_view param, std::string_view val)
+void DerivativeBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void derivativeBlock::set(std::string_view param, double val, units::unit unitType)
+void DerivativeBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "t1") || (param == "t")) {
         if (std::abs(val) < kMin_Res) {
@@ -169,13 +169,13 @@ void derivativeBlock::set(std::string_view param, double val, units::unit unitTy
         }
         mT1 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-stringVec derivativeBlock::localStateNames() const
+stringVec DerivativeBlock::localStateNames() const
 {
-    auto bbstates = Block::localStateNames();
+    auto bbstates = GridBlock::localStateNames();
     bbstates.emplace_back("deriv");
     bbstates.emplace_back("delayI");
     return bbstates;

@@ -152,15 +152,15 @@ TEST(CoreTests, ObjectFactory)
 {
     auto cof = coreObjectFactory::instance();
     CoreObject* obj = cof->createObject("load", "basic");
-    auto ld = dynamic_cast<zipLoad*>(obj);
+    auto ld = dynamic_cast<ZipLoad*>(obj);
     EXPECT_NE(ld, nullptr);
     delete ld;
-    auto gsL = dynamic_cast<loads::sourceLoad*>(cof->createObject("load", "sine"));
+    auto gsL = dynamic_cast<loads::SourceLoad*>(cof->createObject("load", "sine"));
     EXPECT_NE(gsL, nullptr);
     delete gsL;
 
     obj = cof->createObject("load");
-    ld = dynamic_cast<zipLoad*>(obj);
+    ld = dynamic_cast<ZipLoad*>(obj);
     EXPECT_NE(ld, nullptr);
     delete ld;
 }

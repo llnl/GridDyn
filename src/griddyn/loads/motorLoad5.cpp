@@ -17,13 +17,13 @@
 namespace griddyn::loads {
 // setup the load object factories
 
-motorLoad5::motorLoad5(const std::string& objName): motorLoad3(objName)
+MotorLoad5::MotorLoad5(const std::string& objName): MotorLoad3(objName)
 {
     H = 4;
 }
-CoreObject* motorLoad5::clone(CoreObject* obj) const
+CoreObject* MotorLoad5::clone(CoreObject* obj) const
 {
-    auto* ld = cloneBase<motorLoad5, motorLoad3>(this, obj);
+    auto* ld = cloneBase<MotorLoad5, MotorLoad3>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -35,7 +35,7 @@ CoreObject* motorLoad5::clone(CoreObject* obj) const
     return ld;
 }
 
-void motorLoad5::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad5::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // setup the parameters
     x0 = x + xm;
@@ -56,14 +56,14 @@ void motorLoad5::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         opFlags.set(init_transient);
     }
     // NOLINTNEXTLINE
-    Load::pFlowObjectInitializeA(time0, flags);
+    GridLoad::pFlowObjectInitializeA(time0, flags);
     converge();
 
     loadStateSizes(cLocalSolverMode);
     setOffset(0, cLocalSolverMode);
 }
 
-void motorLoad5::converge()
+void MotorLoad5::converge()
 {
     double voltage = bus->getVoltage();
     double theta = bus->getAngle();
@@ -127,8 +127,8 @@ void motorLoad5::converge()
     }
 }
 
-void motorLoad5::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/) {}
-void motorLoad5::dynObjectInitializeB(const IOdata& inputs,
+void MotorLoad5::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/) {}
+void MotorLoad5::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& /*desiredOutput*/,
                                       IOdata& /*fieldSet*/)
 {
@@ -137,7 +137,7 @@ void motorLoad5::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-stateSizes motorLoad5::LocalStateSizes(const solverMode& sMode) const
+stateSizes MotorLoad5::LocalStateSizes(const solverMode& sMode) const
 {
     stateSizes SS;
     if (isDynamic(sMode)) {
@@ -151,7 +151,7 @@ stateSizes motorLoad5::LocalStateSizes(const solverMode& sMode) const
     return SS;
 }
 
-count_t motorLoad5::LocalJacobianCount(const solverMode& sMode) const
+count_t MotorLoad5::LocalJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
@@ -170,27 +170,27 @@ count_t motorLoad5::LocalJacobianCount(const solverMode& sMode) const
 }
 
 // set properties
-void motorLoad5::set(std::string_view param, std::string_view val)
+void MotorLoad5::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        motorLoad3::set(param, val);
+        MotorLoad3::set(param, val);
     }
 }
 
-void motorLoad5::set(std::string_view param, double val, units::unit unitType)
+void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "r2") {
         r2 = val;
     } else if (param == "x2") {
         x2 = val;
     } else {
-        motorLoad3::set(param, val, unitType);
+        MotorLoad3::set(param, val, unitType);
     }
 }
 
 // residual
-void motorLoad5::residual(const IOdata& inputs,
+void MotorLoad5::residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
                           const solverMode& sMode)
@@ -262,7 +262,7 @@ void motorLoad5::residual(const IOdata& inputs,
     }
 }
 
-void motorLoad5::getStateName(stringVec& stNames,
+void MotorLoad5::getStateName(stringVec& stNames,
                               const solverMode& sMode,
                               const std::string& prefix) const
 {
@@ -291,7 +291,7 @@ void motorLoad5::getStateName(stringVec& stNames,
         stNames[offset + 6] = prefix2 + ":empp";
     }
 }
-void motorLoad5::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void MotorLoad5::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
 {
     stateData sD(time, m_state.data());
 
@@ -306,7 +306,7 @@ void motorLoad5::timestep(coreTime time, const IOdata& inputs, const solverMode&
     updateCurrents(inputs, sD, cLocalSolverMode);
 }
 
-void motorLoad5::updateCurrents(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void MotorLoad5::updateCurrents(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
     double voltage = inputs[voltageInLocation];
@@ -325,7 +325,7 @@ void motorLoad5::updateCurrents(const IOdata& inputs, const stateData& sD, const
                               Loc.destLoc[1]);
 }
 
-void motorLoad5::derivative(const IOdata& /*inputs*/,
+void MotorLoad5::derivative(const IOdata& /*inputs*/,
                             const stateData& sD,
                             double deriv[],
                             const solverMode& sMode)
@@ -359,7 +359,7 @@ void motorLoad5::derivative(const IOdata& /*inputs*/,
         (dst[empD] - dst[erppD] + (xp - xpp) * ast[irA]) / T0pp;
 }
 
-void motorLoad5::jacobianElements(const IOdata& inputs,
+void MotorLoad5::jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
@@ -482,7 +482,7 @@ void motorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 4, refDiff + 4, -cj);
 }
 
-index_t motorLoad5::findIndex(std::string_view field, const solverMode& sMode) const
+index_t MotorLoad5::findIndex(std::string_view field, const solverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "erpp") {
@@ -506,13 +506,13 @@ index_t motorLoad5::findIndex(std::string_view field, const solverMode& sMode) c
             ret = (ret != kNullLocation) ? ret + 6 : ret;
         }
     } else {
-        ret = motorLoad3::findIndex(field, sMode);
+        ret = MotorLoad3::findIndex(field, sMode);
     }
 
     return ret;
 }
 
-void motorLoad5::rootTest(const IOdata& /*inputs*/,
+void MotorLoad5::rootTest(const IOdata& /*inputs*/,
                           const stateData& sD,
                           double roots[],
                           const solverMode& sMode)
@@ -529,7 +529,7 @@ void motorLoad5::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void motorLoad5::rootTrigger(coreTime /*time*/,
+void MotorLoad5::rootTrigger(coreTime /*time*/,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode)
@@ -550,7 +550,7 @@ void motorLoad5::rootTrigger(coreTime /*time*/,
     }
 }
 
-change_code motorLoad5::rootCheck(const IOdata& /*inputs*/,
+change_code MotorLoad5::rootCheck(const IOdata& /*inputs*/,
                                   const stateData& sD,
                                   const solverMode& sMode,
                                   check_level_t /*level*/)

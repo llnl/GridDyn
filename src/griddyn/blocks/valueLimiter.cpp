@@ -9,17 +9,17 @@
 #include <algorithm>
 
 namespace griddyn::blocks {
-valueLimiter::valueLimiter(double nmin, double nmax): minVal(nmin), maxVal(nmax) {}
-void valueLimiter::setLimits(double nmin, double nmax)
+ValueLimiter::ValueLimiter(double nmin, double nmax): minVal(nmin), maxVal(nmax) {}
+void ValueLimiter::setLimits(double nmin, double nmax)
 {
     minVal = nmin;
     maxVal = nmax;
 }
-void valueLimiter::setResetLevel(double newReset)
+void ValueLimiter::setResetLevel(double newReset)
 {
     resetLevel = newReset;
 }
-double valueLimiter::limitCheck(double input) const
+double ValueLimiter::limitCheck(double input) const
 {
     double val;
     if (limiterEngaged) {
@@ -34,7 +34,7 @@ double valueLimiter::limitCheck(double input) const
     return val;
 }
 
-void valueLimiter::changeLimitActivation(double input)
+void ValueLimiter::changeLimitActivation(double input)
 {
     if (limiterEngaged) {
         if (limiterHigh) {
@@ -63,20 +63,20 @@ void valueLimiter::changeLimitActivation(double input)
     }
 }
 
-double valueLimiter::output(double input) const
+double ValueLimiter::output(double input) const
 {
     return (limiterEngaged) ? ((limiterHigh) ? maxVal : minVal) : input;
 }
 
-double valueLimiter::deriv(double dIdt) const
+double ValueLimiter::deriv(double dIdt) const
 {
     return (limiterEngaged) ? 0.0 : dIdt;
 }
-double valueLimiter::DoutDin() const
+double ValueLimiter::DoutDin() const
 {
     return (limiterEngaged) ? 0.0 : 1.0;
 }
-double valueLimiter::clampOutput(double input) const
+double ValueLimiter::clampOutput(double input) const
 {
     return (input > maxVal) ? maxVal : (input < minVal) ? minVal : input;
 }

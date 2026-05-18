@@ -355,9 +355,9 @@ namespace {
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
-    {"loadreal", {[](CoreObject* obj) { return static_cast<Load*>(obj)->getRealPower(); }, puMW}},
+    {"loadreal", {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getRealPower(); }, puMW}},
     {"loadreactive",
-     {[](CoreObject* obj) { return static_cast<Load*>(obj)->getReactivePower(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getReactivePower(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
@@ -507,7 +507,7 @@ fobjectPair getObjectFunction(const GridBus* bus, const std::string& field)
     return getObjectFunction(static_cast<const GridComponent*>(bus), field);
 }
 
-fobjectPair getObjectFunction(const Load* loadObject, const std::string& field)
+fobjectPair getObjectFunction(const GridLoad* loadObject, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
     const auto& secondaryFunctions = getSecondaryFunctions();

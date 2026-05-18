@@ -27,15 +27,15 @@ using gmlc::utilities::convertToLowerCase;
 namespace griddyn::loads {
 #define CONJUGATE 1
 
-approximatingLoad::approximatingLoad(const std::string& objName): rampLoad(objName)
+ApproximatingLoad::ApproximatingLoad(const std::string& objName): RampLoad(objName)
 {
     enable_updates();
 }
-approximatingLoad::~approximatingLoad() = default;
+ApproximatingLoad::~ApproximatingLoad() = default;
 
-CoreObject* approximatingLoad::clone(CoreObject* obj) const
+CoreObject* ApproximatingLoad::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<approximatingLoad, rampLoad>(this, obj);
+    auto ld = cloneBase<ApproximatingLoad, RampLoad>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -48,35 +48,35 @@ CoreObject* approximatingLoad::clone(CoreObject* obj) const
     return ld;
 }
 
-void approximatingLoad::add(CoreObject* obj)
+void ApproximatingLoad::add(CoreObject* obj)
 {
-    if (dynamic_cast<Load*>(obj) != nullptr) {
+    if (dynamic_cast<GridLoad*>(obj) != nullptr) {
         if (subLoad != nullptr) {
             gridSecondary::remove(subLoad);
         }
-        subLoad = static_cast<Load*>(obj);
+        subLoad = static_cast<GridLoad*>(obj);
         addSubObject(subLoad);
     } else {
         throw(unrecognizedObjectException(this));
     }
 }
 
-void approximatingLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ApproximatingLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     m_lastCallTime = time0;
 
     opFlags[preEx_requested] = true;
-    rampLoad::pFlowObjectInitializeA(time0, flags);
+    RampLoad::pFlowObjectInitializeA(time0, flags);
     updateA(time0);
 }
 
-void approximatingLoad::pFlowObjectInitializeB()
+void ApproximatingLoad::pFlowObjectInitializeB()
 {
     updateB();
-    rampLoad::pFlowObjectInitializeB();
+    RampLoad::pFlowObjectInitializeB();
 }
 
-void approximatingLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ApproximatingLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     switch (dynCoupling) {
         case coupling_mode_t::none:
@@ -98,10 +98,10 @@ void approximatingLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags
     }
     if (opFlags[dual_mode_flag]) {
     }
-    rampLoad::dynObjectInitializeA(time0, flags);
+    RampLoad::dynObjectInitializeA(time0, flags);
 }
 
-void approximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
+void ApproximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
                                              const IOdata& /*desiredOutput*/,
                                              IOdata& /*fieldSet*/)
 {
@@ -109,7 +109,7 @@ void approximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void approximatingLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     double V = inputs[voltageInLocation];
     double th = inputs[angleInLocation];
@@ -129,7 +129,7 @@ void approximatingLoad::timestep(coreTime time, const IOdata& inputs, const solv
     prevTime = time;
 }
 
-void approximatingLoad::updateA(coreTime time)
+void ApproximatingLoad::updateA(coreTime time)
 {
     double V = bus->getVoltage();
     double th = bus->getAngle();
@@ -155,7 +155,7 @@ void approximatingLoad::updateA(coreTime time)
     prevTime = time;
 }
 
-coreTime approximatingLoad::updateB()
+coreTime ApproximatingLoad::updateB()
 {
     switch (cDetail) {
         case coupling_detail_t::single: {
@@ -217,7 +217,7 @@ coreTime approximatingLoad::updateB()
             }
 #ifdef SGS_DEBUG
             std::cout << "SGS : " << prevTime << " : " << name
-                      << " approximatingLoad::updateB realPower = " << getRealPower()
+                      << " ApproximatingLoad::updateB realPower = " << getRealPower()
                       << " reactive power = " << getReactivePower() << '\n';
 #endif
         } break;
@@ -232,7 +232,7 @@ coreTime approximatingLoad::updateB()
     return nextUpdateTime;
 }
 
-void approximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void ApproximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
 {
     if ((lastSeqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -271,18 +271,18 @@ void approximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const s
     }
 }
 
-void approximatingLoad::updateLocalCache(const IOdata& inputs,
+void ApproximatingLoad::updateLocalCache(const IOdata& inputs,
                                          const stateData& sD,
                                          const solverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
         updateB();
     }
-    rampLoad::updateLocalCache(inputs, sD, sMode);
+    RampLoad::updateLocalCache(inputs, sD, sMode);
 }
 
 std::vector<std::tuple<double, double, double>>
-    approximatingLoad::getLoadValues(const std::vector<double>& inputs,
+    ApproximatingLoad::getLoadValues(const std::vector<double>& inputs,
                                      const std::vector<double>& voltages)
 {
     std::vector<std::tuple<double, double, double>> res;
@@ -301,7 +301,7 @@ std::vector<std::tuple<double, double, double>>
     return res;
 }
 
-void approximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -318,14 +318,14 @@ void approximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
     opFlags.set(waiting_flag);
 }
 
-std::vector<double> approximatingLoad::run1ApproxB()
+std::vector<double> ApproximatingLoad::run1ApproxB()
 {
     auto res = vres.get();
     opFlags.reset(waiting_flag);
     return {std::get<1>(res[0]), std::get<2>(res[0])};
 }
 
-void approximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -345,7 +345,7 @@ void approximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
     opFlags.set(waiting_flag);
 }
 
-std::vector<double> approximatingLoad::run2ApproxB()
+std::vector<double> ApproximatingLoad::run2ApproxB()
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
     auto res = vres.get();
@@ -364,7 +364,7 @@ std::vector<double> approximatingLoad::run2ApproxB()
     return retP;
 }
 
-void approximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -387,7 +387,7 @@ void approximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
     opFlags.set(waiting_flag);
 }
 
-std::vector<double> approximatingLoad::run3ApproxB()
+std::vector<double> ApproximatingLoad::run3ApproxB()
 {
     assert(opFlags[waiting_flag]);  // this should not happen;
     auto res = vres.get();
@@ -487,7 +487,7 @@ Yq = LV[5];
     return retP;
 }
 
-void approximatingLoad::set(std::string_view param, std::string_view val)
+void ApproximatingLoad::set(std::string_view param, std::string_view val)
 {
     if (param == "detail") {
         auto v2 = convertToLowerCase(val);
@@ -524,11 +524,11 @@ void approximatingLoad::set(std::string_view param, std::string_view val)
             pFlowCoupling = coupling_mode_t::full;
         }
     } else {
-        zipLoad::set(param, val);
+        ZipLoad::set(param, val);
     }
 }
 
-void approximatingLoad::set(std::string_view param, double val, units::unit unitType)
+void ApproximatingLoad::set(std::string_view param, double val, units::unit unitType)
 {
     // TODO(phlpt): Convert some of these to a setFlags function.
     if ((param == "spread") || (param == "band")) {
@@ -557,13 +557,13 @@ void approximatingLoad::set(std::string_view param, double val, units::unit unit
     } else if (param == "lineartriple") {
         opFlags.set(linearize_triple, (val > 0.0));
     } else {
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
 }
 
 // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
-void approximatingLoad::rootTest(const IOdata& inputs,
+void ApproximatingLoad::rootTest(const IOdata& inputs,
                                  const stateData& /*sD*/,
                                  double roots[],
                                  const solverMode& sMode)
@@ -575,7 +575,7 @@ void approximatingLoad::rootTest(const IOdata& inputs,
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
 }
 
-void approximatingLoad::rootTrigger(coreTime time,
+void ApproximatingLoad::rootTrigger(coreTime time,
                                     const IOdata& /*inputs*/,
                                     const std::vector<int>& rootMask,
                                     const solverMode& sMode)
@@ -587,7 +587,7 @@ void approximatingLoad::rootTrigger(coreTime time,
     }
 }
 
-change_code approximatingLoad::rootCheck(const IOdata& inputs,
+change_code ApproximatingLoad::rootCheck(const IOdata& inputs,
                                          const stateData& sD,
                                          const solverMode& /*sMode*/,
                                          check_level_t /*level*/)

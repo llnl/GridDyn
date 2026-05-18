@@ -150,7 +150,7 @@ TEST_F(FmiTests, Test3phaseFmu)
 TEST_F(FmiTests, TestFmiApproxLoad)
 {
     using namespace griddyn::loads;
-    approximatingLoad apload("apload1");
+    ApproximatingLoad apload("apload1");
 
     auto ld1 = new griddyn::fmi::FmiMELoad3phase("fmload1");
     std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";
@@ -209,10 +209,10 @@ TEST_F(FmiTests, TestFmiApproxLoadXml)
     ASSERT_TRUE(gds);
     auto obj = gds->getBus(1);
     ASSERT_NE(obj, nullptr);
-    auto apload = dynamic_cast<approximatingLoad*>(gds->getBus(1)->getLoad(0));
+    auto apload = dynamic_cast<ApproximatingLoad*>(gds->getBus(1)->getLoad(0));
     ASSERT_NE(apload, nullptr);
 
-    auto ld1 = dynamic_cast<griddyn::Load*>(apload->getSubObject("subobject", 0));
+    auto ld1 = dynamic_cast<griddyn::GridLoad*>(apload->getSubObject("subobject", 0));
     ASSERT_NE(ld1, nullptr);
     ld1->set("a2", 0.0);
     ld1->set("b2", 0);

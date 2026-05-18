@@ -12,9 +12,9 @@
 
 namespace griddyn::loads {
 /** @brief defining the interface for a static var device*/
-class svd: public rampLoad {
+class Svd: public RampLoad {
   public:
-    /** flags used for svd operation*/
+    /** flags used for Svd operation*/
     enum svd_flags {
         continuous_flag = object_flag6,
         locked_flag = object_flag7,
@@ -41,9 +41,9 @@ class svd: public rampLoad {
     model_parameter participation = 1.0;  //!< a participation factor
 
   public:
-    svd(const std::string& objName = "svd_$");
-    svd(double rP, double rQ, const std::string& objName = "svd_$");
-    virtual ~svd();
+    Svd(const std::string& objName = "svd_$");
+    Svd(double rP, double rQ, const std::string& objName = "svd_$");
+    virtual ~Svd();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -70,7 +70,7 @@ class svd: public rampLoad {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    /** define which bus the svd is controlling voltage on if it is not otherwise specified it
+    /** define which bus the Svd is controlling voltage on if it is not otherwise specified it
      * is assumed to be the parent bus
      */
     virtual void setControlBus(GridBus* cBus);

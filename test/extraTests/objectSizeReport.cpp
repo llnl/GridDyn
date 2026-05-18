@@ -45,8 +45,8 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "acbus size=" << sizeof(AcBus) << " adds " << sizeof(AcBus) - sizeof(GridBus)
               << '\n';
 
-    std::cout << "load size=" << sizeof(Load) << " adds " << sizeof(Load) - secSize << '\n';
-    std::cout << "zipload size=" << sizeof(zipLoad) << " adds " << sizeof(zipLoad) - sizeof(Load)
+    std::cout << "load size=" << sizeof(GridLoad) << " adds " << sizeof(GridLoad) - secSize << '\n';
+    std::cout << "zipload size=" << sizeof(ZipLoad) << " adds " << sizeof(ZipLoad) - sizeof(GridLoad)
               << '\n';
 
     std::cout << "Generator size=" << sizeof(Generator) << " adds " << sizeof(Generator) - secSize
@@ -64,6 +64,6 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "Source size=" << sizeof(Source) << " adds "
               << sizeof(Source) - sizeof(GridSubModel) << '\n';
 
-    std::cout << "Block size=" << sizeof(Block) << " adds " << sizeof(Block) - sizeof(GridSubModel)
+    std::cout << "GridBlock size=" << sizeof(GridBlock) << " adds " << sizeof(GridBlock) - sizeof(GridSubModel)
               << '\n';
 }

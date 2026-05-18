@@ -18,9 +18,9 @@ class schedulerReg;
 class Generator;
 class battery;
 namespace blocks {
-    class pidBlock;
-    class delayBlock;
-    class deadbandBlock;
+    class PidBlock;
+    class DelayBlock;
+    class DeadbandBlock;
 }  // namespace blocks
 
 class Communicator;
@@ -47,10 +47,10 @@ class AGControl: public GridSubModel {
     double regUpAvailable = 0;
     double regDownAvailable = 0;
 
-    coreOwningPtr<blocks::pidBlock> pid;
-    coreOwningPtr<blocks::delayBlock> filt1;
-    coreOwningPtr<blocks::delayBlock> filt2;
-    coreOwningPtr<blocks::deadbandBlock> db;
+    coreOwningPtr<blocks::PidBlock> pid;
+    coreOwningPtr<blocks::DelayBlock> filt1;
+    coreOwningPtr<blocks::DelayBlock> filt2;
+    coreOwningPtr<blocks::DeadbandBlock> db;
 
     count_t schedCount = 0;
 

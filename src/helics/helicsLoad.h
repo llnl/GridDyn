@@ -14,7 +14,7 @@ class HelicsCoordinator;
 enum class HelicsValueType : char;
 
 /** class defining a load object that links with a helics source*/
-class HelicsLoad: public loads::rampLoad {
+class HelicsLoad: public loads::RampLoad {
   public:
     enum HelicsLoadFlags {
         USE_RAMP = object_flag8,

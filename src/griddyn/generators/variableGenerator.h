@@ -11,7 +11,7 @@
 
 namespace griddyn {
 class GridBus;
-class Block;
+class GridBlock;
 
 /** @brief class defining some additional components for a variable generator such as a renewable
   source like wind and solar the generator includes the addition of a source and a filter block to
@@ -19,7 +19,7 @@ class Block;
 class variableGenerator: public DynamicGenerator {
   protected:
     Source* m_source = nullptr;  //!< reference to the generation source block
-    Block* m_cBlock = nullptr;  //!< reference to the control block
+    GridBlock* m_cBlock = nullptr;  //!< reference to the control block
     model_parameter mp_Vcutout = -1.0;  //!<[pu] the cutout voltage
     model_parameter mp_Vmax = kBigNum;  //!< [pu] the maximum operating voltage
   public:

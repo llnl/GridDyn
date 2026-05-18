@@ -122,12 +122,12 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
         return;
     }
 
-    auto ld = dynamic_cast<Load*>(obj);
+    auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         v.reserve(v.size() + 2);
-        v.push_back(std::make_unique<objectGrabber<Load>>("p", ld));
+        v.push_back(std::make_unique<objectGrabber<GridLoad>>("p", ld));
 
-        v.push_back(std::make_unique<objectGrabber<Load>>("q", ld));
+        v.push_back(std::make_unique<objectGrabber<GridLoad>>("q", ld));
         return;
     }
 
@@ -237,12 +237,12 @@ void allGrabbers(std::string_view mode,
         return;
     }
 
-    auto ld = dynamic_cast<Load*>(obj);
+    auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         v.reserve(v.size() + 2);
-        v.push_back(std::make_unique<objectGrabber<Load>>("p", ld));
+        v.push_back(std::make_unique<objectGrabber<GridLoad>>("p", ld));
 
-        v.push_back(std::make_unique<objectGrabber<Load>>("q", ld));
+        v.push_back(std::make_unique<objectGrabber<GridLoad>>("q", ld));
         return;
     }
 

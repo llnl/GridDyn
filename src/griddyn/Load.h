@@ -14,7 +14,7 @@ class GridBus;
 
 /** primary load class defines the load component is a very simple constant power load
  */
-class Load: public gridSecondary {
+class GridLoad: public gridSecondary {
   public:
     /** flags used in the load object*/
     enum load_flags {
@@ -28,12 +28,12 @@ class Load: public gridSecondary {
     model_parameter pfq = 0.0;  //!< power factor multiply  sqrt((1-pf*pf)/pf*pf)
   public:
     /** constructor which takes the object name*/
-    explicit Load(const std::string& objName = "load_$");
+    explicit GridLoad(const std::string& objName = "load_$");
     /** alternate constructor taking p and q values in addition to the name
     @param[in] rP the real power consumption of the load
     @param[in] rQ the reactive power consumption of the load
     @objName the name of the load object*/
-    Load(double rP, double rQ, const std::string& objName = "load_$");
+    GridLoad(double rP, double rQ, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

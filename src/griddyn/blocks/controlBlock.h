@@ -15,19 +15,19 @@ block implementing \f$H(S)=\frac{K(1+T_2 s}{1+T_1 s}\f$
 default is \f$T_2 =0\f$ for behavior equivalent to a delay block
 if T1 is 0 it behaves like the basic block
 */
-class controlBlock: public Block {
+class ControlBlock: public GridBlock {
   public:
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant
     model_parameter mT2 = 0.0;  //!< upper time constant
   public:
     //!< default constructor
-    explicit controlBlock(const std::string& objName = "controlBlock_#");
+    explicit ControlBlock(const std::string& objName = "controlBlock_#");
     /** alternate constructor to add in the time constant
 @param[in] timeConstant  the time constant
 @param[in] objName the name of the block
 */
-    controlBlock(double timeConstant,
+    ControlBlock(double timeConstant,
                  const std::string& objName = "controlBlock_#");  // convert to the equivalent
                                                                   // of a delay block with t2=0;
     /** alternate constructor to add in the time constant
@@ -35,7 +35,7 @@ class controlBlock: public Block {
 @param[in] upperTimeConstant the upper time constant
 @param[in] objName the name of the block
 */
-    controlBlock(double timeConstant,
+    ControlBlock(double timeConstant,
                  double upperTimeConstant,
                  const std::string& objName = "controlBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

@@ -14,7 +14,7 @@
 #include <string>
 
 namespace griddyn::blocks {
-functionBlock::functionBlock(): Block("functionBlock_#")
+FunctionBlock::FunctionBlock(): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;
     offsets.local().local.diffSize = 0;
@@ -22,7 +22,7 @@ functionBlock::functionBlock(): Block("functionBlock_#")
     offsets.local().local.jacSize = 3;
 }
 
-functionBlock::functionBlock(const std::string& functionName): Block("functionBlock_#")
+FunctionBlock::FunctionBlock(const std::string& functionName): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;
     offsets.local().local.diffSize = 0;
@@ -31,9 +31,9 @@ functionBlock::functionBlock(const std::string& functionName): Block("functionBl
     setFunction(functionName);
 }
 
-CoreObject* functionBlock::clone(CoreObject* obj) const
+CoreObject* FunctionBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<functionBlock, Block>(this, obj);
+    auto* nobj = cloneBase<FunctionBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -47,7 +47,7 @@ CoreObject* functionBlock::clone(CoreObject* obj) const
 }
 
 // initial conditions
-void functionBlock::dynObjectInitializeB(const IOdata& inputs,
+void FunctionBlock::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -57,13 +57,13 @@ void functionBlock::dynObjectInitializeB(const IOdata& inputs,
         } else {
             m_state[limiter_alg] = K * mFunctionPtr(mGain * (inputs[0] + bias));
         }
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     } else {
-        Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+        GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
 }
 
-void functionBlock::blockAlgebraicUpdate(double input,
+void FunctionBlock::blockAlgebraicUpdate(double input,
                                          const stateData& stateDataValue,
                                          double update[],
                                          const solverMode& sMode)
@@ -75,11 +75,11 @@ void functionBlock::blockAlgebraicUpdate(double input,
         update[offset] = K * mFunctionPtr(mGain * (input + bias));
     }
     if (limiter_alg > 0) {
-        Block::blockAlgebraicUpdate(input, stateDataValue, update, sMode);
+        GridBlock::blockAlgebraicUpdate(input, stateDataValue, update, sMode);
     }
 }
 
-void functionBlock::blockJacobianElements(double input,
+void FunctionBlock::blockJacobianElements(double input,
                                           double didt,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
@@ -106,11 +106,11 @@ void functionBlock::blockJacobianElements(double input,
     }
     matrixDataValue.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        Block::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
+        GridBlock::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
 }
 
-double functionBlock::step(coreTime time, double input)
+double FunctionBlock::step(coreTime time, double input)
 {
     if (opFlags[USES_CONSTANT_ARG]) {
         m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);
@@ -118,7 +118,7 @@ double functionBlock::step(coreTime time, double input)
         m_state[limiter_alg] = K * mFunctionPtr(mGain * (input + bias));
     }
     if (limiter_alg > 0) {
-        Block::step(time, input);
+        GridBlock::step(time, input);
     }
     m_output = m_state[0];
     prevTime = time;
@@ -126,28 +126,28 @@ double functionBlock::step(coreTime time, double input)
 }
 
 // set parameters
-void functionBlock::set(std::string_view param, std::string_view val)
+void FunctionBlock::set(std::string_view param, std::string_view val)
 {
     if ((param == "function") || (param == "func")) {
         auto functionName = gmlc::utilities::convertToLowerCase(val);
         setFunction(functionName);
     } else {
-        Block::set(param, val);
+        GridBlock::set(param, val);
     }
 }
 
-void functionBlock::set(std::string_view param, double val, units::unit unitType)
+void FunctionBlock::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "gain") {
         mGain = val;
     } else if (param == "arg") {
         mArg2 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 
-void functionBlock::setFunction(const std::string& functionName)
+void FunctionBlock::setFunction(const std::string& functionName)
 {
     if (auto unaryFunctionPtr = get1ArgFunction(functionName)) {
         mFunctionPtr = unaryFunctionPtr;
@@ -167,7 +167,7 @@ void functionBlock::setFunction(const std::string& functionName)
 }
 
 /*
-double functionBlock::currentValue(const IOdata &inputs, const stateData &sD,
+double FunctionBlock::currentValue(const IOdata &inputs, const stateData &sD,
 const solverMode &sMode) const
 {
 auto Loc;
@@ -184,10 +184,10 @@ else
   val = fptr(gain*(inputs[0] + bias));
 }
 }
-return Block::currentValue({ val }, sD, sMode);
+return GridBlock::currentValue({ val }, sD, sMode);
 }
 
-double functionBlock::currentValue() const
+double FunctionBlock::currentValue() const
 {
 return m_state[0];
 }

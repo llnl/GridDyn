@@ -12,14 +12,14 @@
 #include <cmath>
 #include <string>
 namespace griddyn::blocks {
-delayBlock::delayBlock(const std::string& objName): Block(objName)
+DelayBlock::DelayBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(differential_output);
     opFlags.set(use_state);
 }
 
-delayBlock::delayBlock(double timeConstant, const std::string& objName):
-    Block(objName), mT1(timeConstant)
+DelayBlock::DelayBlock(double timeConstant, const std::string& objName):
+    GridBlock(objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
@@ -28,8 +28,8 @@ delayBlock::delayBlock(double timeConstant, const std::string& objName):
         opFlags.set(use_state);
     }
 }
-delayBlock::delayBlock(double timeConstant, double gainValue, const std::string& objName):
-    Block(gainValue, objName), mT1(timeConstant)
+DelayBlock::DelayBlock(double timeConstant, double gainValue, const std::string& objName):
+    GridBlock(gainValue, objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
         opFlags.set(simplified);
@@ -39,9 +39,9 @@ delayBlock::delayBlock(double timeConstant, double gainValue, const std::string&
     }
 }
 
-CoreObject* delayBlock::clone(CoreObject* obj) const
+CoreObject* DelayBlock::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<delayBlock, Block>(this, obj);
+    auto* nobj = cloneBase<DelayBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -50,7 +50,7 @@ CoreObject* delayBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void delayBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DelayBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if ((mT1 < kMin_Res) || (opFlags[simplified])) {
         opFlags.set(simplified);
@@ -58,14 +58,14 @@ void delayBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         opFlags.reset(use_state);
     }
 
-    Block::dynObjectInitializeA(time0, flags);
+    GridBlock::dynObjectInitializeA(time0, flags);
 }
 
-void delayBlock::dynObjectInitializeB(const IOdata& inputs,
+void DelayBlock::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet)
 {
-    Block::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     if (inputs.empty()) {
         m_state[limiter_diff] = desiredOutput[0];
     } else {
@@ -73,10 +73,10 @@ void delayBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double delayBlock::step(coreTime time, double inputA)
+double DelayBlock::step(coreTime time, double inputA)
 {
     if (opFlags[simplified]) {
-        return Block::step(time, inputA);
+        return GridBlock::step(time, inputA);
     }
     const double timeDelta = time - prevTime;
 
@@ -109,7 +109,7 @@ double delayBlock::step(coreTime time, double inputA)
     prevInput = input;
     double out;
     if (stateIndex > 0) {
-        out = Block::step(time, input);
+        out = GridBlock::step(time, input);
     } else {
         out = m_state[stateIndex];
         prevTime = time;
@@ -118,7 +118,7 @@ double delayBlock::step(coreTime time, double inputA)
     return out;
 }
 
-void delayBlock::blockDerivative(double input,
+void DelayBlock::blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataRef,
                                  double deriv[],
@@ -128,11 +128,11 @@ void delayBlock::blockDerivative(double input,
 
     deriv[offset] = ((K * (input + bias)) - stateDataRef.state[offset]) / mT1;
     if (limiter_diff > 0) {
-        Block::blockDerivative(input, didt, stateDataRef, deriv, sMode);
+        GridBlock::blockDerivative(input, didt, stateDataRef, deriv, sMode);
     }
 }
 
-void delayBlock::blockJacobianElements(double input,
+void DelayBlock::blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataRef,
                                        matrixData<double>& jacobian,
@@ -140,21 +140,21 @@ void delayBlock::blockJacobianElements(double input,
                                        const solverMode& sMode)
 {
     if ((isAlgebraicOnly(sMode)) || (opFlags[simplified])) {
-        Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+        GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         return;
     }
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
     jacobian.assignCheck(offset, argLoc, K / mT1);
     jacobian.assign(offset, offset, (-1.0 / mT1) - stateDataRef.cj);
-    Block::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
+    GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
 }
 
 // set parameters
-void delayBlock::set(std::string_view param, std::string_view val)
+void DelayBlock::set(std::string_view param, std::string_view val)
 {
-    Block::set(param, val);
+    GridBlock::set(param, val);
 }
-void delayBlock::set(std::string_view param, double val, units::unit unitType)
+void DelayBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param = gridDynSimulation::toLower(param);
     if ((param == "t1") || (param == "t")) {
@@ -168,7 +168,7 @@ void delayBlock::set(std::string_view param, double val, units::unit unitType)
         }
         mT1 = val;
     } else {
-        Block::set(param, val, unitType);
+        GridBlock::set(param, val, unitType);
     }
 }
 }  // namespace griddyn::blocks

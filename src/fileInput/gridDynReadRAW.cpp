@@ -49,8 +49,8 @@ using units::MW;
 
 static int getPSSversion(const std::string& line);
 static void rawReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt);
-static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderInfo& opt);
-static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicReaderInfo& opt);
+static void rawReadLoad(GridLoad* loadObject, const std::string& line, basicReaderInfo& opt);
+static void rawReadFixedShunt(GridLoad* loadObject, const std::string& line, basicReaderInfo& opt);
 static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
 static void rawReadBranch(CoreObject* parentObject,
                           const std::string& line,
@@ -97,7 +97,7 @@ namespace {
 static typeFactory<GridBus>* busfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<Load>* ldfactory = nullptr;
+static typeFactory<GridLoad>* ldfactory = nullptr;
 // get the basic Link Factory
 static childTypeFactory<AcLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
@@ -138,7 +138,7 @@ void loadRaw(CoreObject* parentObject,
     std::vector<GridBus*> busList;
     basicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
-    Load* loadObject;
+    GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
     index_t index;
@@ -561,7 +561,7 @@ static void rawReadBus(GridBus* bus, const std::string& line, basicReaderInfo& o
     }
 }
 
-static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadLoad(GridLoad* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // version 32:
     //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
@@ -612,7 +612,7 @@ static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderIn
     // ignore the owner field
 }
 
-static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
+static void rawReadFixedShunt(GridLoad* loadObject, const std::string& line, basicReaderInfo& /*bri*/)
 {
     // 0,    1,      2,      3,      4
     // Bus, name, Status, g (MW), b (Mvar)
@@ -1482,7 +1482,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
 
     auto index = gmlc::utilities::numConv<std::size_t>(strvec[0]);
     GridBus* rbus = nullptr;
-    loads::svd* loadObject = nullptr;
+    loads::Svd* loadObject = nullptr;
     double temp;
     if (std::cmp_greater_equal(index, busList.size())) {
         throw std::runtime_error("Invalid bus number for load " + std::to_string(index));
@@ -1491,7 +1491,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
         throw std::runtime_error("Invalid bus number for load " + std::to_string(index));
     }
 
-    loadObject = new loads::svd();
+    loadObject = new loads::Svd();
     busList[index]->add(loadObject);
 
     auto mode = numeric_conversion<int>(strvec[1], 0);

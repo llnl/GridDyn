@@ -246,8 +246,8 @@ TEST_P(BlockCompareTests, CompareBlockTest)
     auto rel2 = gds->getRelay(1);
     auto& plist = blockparamMap[caseIndex];
 
-    auto bb1 = static_cast<Block*>(bf->makeObject(plist.first));
-    auto bb2 = static_cast<Block*>(bf->makeObject(plist.first));
+    auto bb1 = static_cast<GridBlock*>(bf->makeObject(plist.first));
+    auto bb2 = static_cast<GridBlock*>(bf->makeObject(plist.first));
 
     ASSERT_NE(bb1, nullptr);
     ASSERT_NE(bb2, nullptr);
@@ -287,7 +287,7 @@ TEST_P(BlockCompareTests, CompareBlockTest)
     if (gds->getSimulationTime() < 7.99) {
         runJacobianCheck(gds, cDaeSolverMode);
         runResidualCheck(gds, cDaeSolverMode);
-        ASSERT_GT(gds->getSimulationTime(), 7.99) << "Block " << plist.first << " failed to solve";
+        ASSERT_GT(gds->getSimulationTime(), 7.99) << "GridBlock " << plist.first << " failed to solve";
     }
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
@@ -329,8 +329,8 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
     auto rel1 = gds->getRelay(0);
     auto rel2 = gds->getRelay(1);
 
-    auto bb1 = static_cast<Block*>(bf->makeObject(plist.first));
-    auto bb2 = static_cast<Block*>(bf->makeObject(plist.first));
+    auto bb1 = static_cast<GridBlock*>(bf->makeObject(plist.first));
+    auto bb2 = static_cast<GridBlock*>(bf->makeObject(plist.first));
 
     ASSERT_NE(bb1, nullptr);
     ASSERT_NE(bb2, nullptr);
@@ -355,15 +355,15 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
 
     EXPECT_EQ(retval, 0);
     auto mmatch = runResidualCheck(gds, cDaeSolverMode);
-    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " residual issue";
+    ASSERT_EQ(mmatch, 0) << "GridBlock " << plist.first << " residual issue";
     mmatch = runDerivativeCheck(gds, cDaeSolverMode);
-    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " derivative issue";
+    ASSERT_EQ(mmatch, 0) << "GridBlock " << plist.first << " derivative issue";
     mmatch = runAlgebraicCheck(gds, cDaeSolverMode);
-    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " algebraic issue";
+    ASSERT_EQ(mmatch, 0) << "GridBlock " << plist.first << " algebraic issue";
     mmatch = runJacobianCheck(gds, cDynDiffSolverMode);
-    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " Jacobian dynDiff issue";
+    ASSERT_EQ(mmatch, 0) << "GridBlock " << plist.first << " Jacobian dynDiff issue";
     mmatch = runJacobianCheck(gds, cDynAlgSolverMode);
-    ASSERT_EQ(mmatch, 0) << "Block " << plist.first << " Jacobian dynAlg issue";
+    ASSERT_EQ(mmatch, 0) << "GridBlock " << plist.first << " Jacobian dynAlg issue";
 }
 
 #endif

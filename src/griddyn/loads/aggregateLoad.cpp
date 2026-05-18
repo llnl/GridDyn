@@ -13,20 +13,22 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-static typeFactory<aggregateLoad>
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static typeFactory<AggregateLoad>
     glfld("load", std::to_array<std::string_view>({"composite", "cluster", "group"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
-aggregateLoad::aggregateLoad(const std::string& objName): zipLoad(objName)
+AggregateLoad::AggregateLoad(const std::string& objName): ZipLoad(objName)
 {
-    aggregateLoad::add(new zipLoad(getName() + "sub"));
+    AggregateLoad::add(new ZipLoad(getName() + "sub"));
 }
 
-CoreObject* aggregateLoad::clone(CoreObject* obj) const
+CoreObject* AggregateLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<aggregateLoad, zipLoad>(this, obj);
+    auto nobj = cloneBase<AggregateLoad, ZipLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -40,7 +42,7 @@ CoreObject* aggregateLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void aggregateLoad::add(zipLoad* ld)
+void AggregateLoad::add(ZipLoad* ld)
 {
     if (ld->locIndex != kNullLocation) {
         if (static_cast<index_t>(subLoads.size()) <= ld->locIndex) {
@@ -57,30 +59,30 @@ void aggregateLoad::add(zipLoad* ld)
     }
 }
 
-void aggregateLoad::add(CoreObject* obj)
+void AggregateLoad::add(CoreObject* obj)
 {
-    auto* ld = dynamic_cast<zipLoad*>(obj);
+    auto* ld = dynamic_cast<ZipLoad*>(obj);
     if (ld != nullptr) {
         return add(ld);
     }
     throw(unrecognizedObjectException(this));
 }
 
-void aggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // TODO(phlpt): Need to rethink this object.
-    zipLoad::pFlowInitializeA(time0, flags);
+    ZipLoad::pFlowInitializeA(time0, flags);
     if (consumeSimpleLoad) {
         int nLoads = bus->getInt("loadcount");
 
         if (nLoads == 0) {
             return;
         }
-        zipLoad* sLoad = nullptr;
-        zipLoad* testLoad = nullptr;
+        ZipLoad* sLoad = nullptr;
+        ZipLoad* testLoad = nullptr;
         double mxP = 0;
         for (int kk = 0; kk < nLoads; ++kk) {
-            testLoad = static_cast<zipLoad*>(getParent()->getSubObject("load", kk));
+            testLoad = static_cast<ZipLoad*>(getParent()->getSubObject("load", kk));
             if (testLoad->getID() == getID()) {
                 continue;
             }
@@ -95,8 +97,8 @@ void aggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         // do a first pass of loading
         double rem = 1.0;
 
-        // we know sLoad is actually an aggregateLoad
-        auto aggregateSLoad = static_cast<aggregateLoad*>(sLoad);
+        // we know sLoad is actually an AggregateLoad
+        auto aggregateSLoad = static_cast<AggregateLoad*>(sLoad);
 
         setP(aggregateSLoad->getP());
         setQ(aggregateSLoad->getQ());
@@ -145,21 +147,21 @@ void aggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
-void aggregateLoad::pFlowObjectInitializeB()
+void AggregateLoad::pFlowObjectInitializeB()
 {
     for (auto& ld : subLoads) {
         ld->pFlowInitializeB();
     }
 }
 
-void aggregateLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AggregateLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     for (auto& ld : subLoads) {
         ld->dynInitializeA(time0, flags);
     }
 }
 
-void aggregateLoad::dynObjectInitializeB(const IOdata& inputs,
+void AggregateLoad::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -170,20 +172,20 @@ void aggregateLoad::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::set(std::string_view param, std::string_view val)
+void AggregateLoad::set(std::string_view param, std::string_view val)
 {
     std::string iparam;
     int num = trailingStringInt(param, iparam, -1);
     double frac = -1.0;
     if (iparam == "subload") {
-        zipLoad* Ld;
+        ZipLoad* Ld;
         auto strSplit = splitline(val);
         trim(strSplit);
         auto load_factory = coreObjectFactory::instance()->getFactory("load");
         size_t nn = 0;
         while (nn < strSplit.size()) {
             if (load_factory->isValidType(strSplit[nn])) {
-                Ld = static_cast<zipLoad*>(load_factory->makeObject(strSplit[nn]));
+                Ld = static_cast<ZipLoad*>(load_factory->makeObject(strSplit[nn]));
                 Ld->locIndex = num;
                 add(Ld);
                 ++nn;
@@ -228,10 +230,10 @@ void aggregateLoad::set(std::string_view param, std::string_view val)
             }
         }
     } else {
-        zipLoad::set(param, val);
+        ZipLoad::set(param, val);
     }
 }
-void aggregateLoad::set(std::string_view param, double val, units::unit unitType)
+void AggregateLoad::set(std::string_view param, double val, units::unit unitType)
 {
     std::string iparam;
     int num = trailingStringInt(param, iparam, -1);
@@ -249,7 +251,7 @@ void aggregateLoad::set(std::string_view param, double val, units::unit unitType
         }
         fraction[num] = val;
     } else {
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
     if ((reallocate) && (opFlags[pFlow_initialized])) {
         for (size_t nn = 0; nn < subLoads.size(); ++nn) {
@@ -263,7 +265,7 @@ void aggregateLoad::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-void aggregateLoad::residual(const IOdata& inputs,
+void AggregateLoad::residual(const IOdata& inputs,
                              const stateData& sD,
                              double resid[],
                              const solverMode& sMode)
@@ -275,7 +277,7 @@ void aggregateLoad::residual(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::derivative(const IOdata& inputs,
+void AggregateLoad::derivative(const IOdata& inputs,
                                const stateData& sD,
                                double deriv[],
                                const solverMode& sMode)
@@ -287,7 +289,7 @@ void aggregateLoad::derivative(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::outputPartialDerivatives(const IOdata& inputs,
+void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
                                              const stateData& sD,
                                              matrixData<double>& md,
                                              const solverMode& sMode)
@@ -299,7 +301,7 @@ void aggregateLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::ioPartialDerivatives(const IOdata& inputs,
+void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
                                          const stateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& inputLocs,
@@ -310,7 +312,7 @@ void aggregateLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::jacobianElements(const IOdata& inputs,
+void AggregateLoad::jacobianElements(const IOdata& inputs,
                                      const stateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
@@ -323,14 +325,14 @@ void aggregateLoad::jacobianElements(const IOdata& inputs,
     }
 }
 
-void aggregateLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     for (auto& ld : subLoads) {
         ld->timestep(time, inputs, sMode);
     }
 }
 
-double aggregateLoad::getRealPower(const IOdata& inputs,
+double AggregateLoad::getRealPower(const IOdata& inputs,
                                    const stateData& sD,
                                    const solverMode& sMode) const
 {
@@ -343,7 +345,7 @@ double aggregateLoad::getRealPower(const IOdata& inputs,
     return rp;
 }
 
-double aggregateLoad::getReactivePower(const IOdata& inputs,
+double AggregateLoad::getReactivePower(const IOdata& inputs,
                                        const stateData& sD,
                                        const solverMode& sMode) const
 {
@@ -356,7 +358,7 @@ double aggregateLoad::getReactivePower(const IOdata& inputs,
     return rp;
 }
 
-double aggregateLoad::getRealPower(double V) const
+double AggregateLoad::getRealPower(double V) const
 {
     double rp = 0;
     for (auto& ld : subLoads) {
@@ -367,7 +369,7 @@ double aggregateLoad::getRealPower(double V) const
     return rp;
 }
 
-double aggregateLoad::getReactivePower(double V) const
+double AggregateLoad::getReactivePower(double V) const
 {
     double rp = 0;
     for (auto& ld : subLoads) {
@@ -378,7 +380,7 @@ double aggregateLoad::getReactivePower(double V) const
     return rp;
 }
 
-double aggregateLoad::getRealPower() const
+double AggregateLoad::getRealPower() const
 {
     double rp = 0;
     for (auto& ld : subLoads) {
@@ -389,7 +391,7 @@ double aggregateLoad::getRealPower() const
     return rp;
 }
 
-double aggregateLoad::getReactivePower() const
+double AggregateLoad::getReactivePower() const
 {
     double rp = 0;
     for (auto& ld : subLoads) {

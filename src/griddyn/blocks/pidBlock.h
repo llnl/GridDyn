@@ -13,7 +13,7 @@ namespace griddyn::blocks {
 /** @brief class implementing a PID controller
 the derivative operator has a prefilter operation on it with a time constant T1 and the output has a
 delay of Td*/
-class pidBlock: public Block {
+class PidBlock: public GridBlock {
   public:
   protected:
     double m_P = 1;  //!< proportional control constant
@@ -25,13 +25,13 @@ class pidBlock: public Block {
     bool& no_D;  //!< ignore the derivative part of the calculations
   public:
     /** @brief default constructor*/
-    explicit pidBlock(const std::string& objName = "pidBlock_#");
+    explicit PidBlock(const std::string& objName = "pidBlock_#");
     /** @brief alternate constructor
 @param[in] P the proportional gain
 @param[in] I the integral gain
 @param[in] D the derivative gain
 */
-    pidBlock(double P, double I, double D, const std::string& objName = "pidBlock_#");
+    PidBlock(double P, double I, double D, const std::string& objName = "pidBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,

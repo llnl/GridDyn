@@ -12,7 +12,7 @@
 
 namespace griddyn::blocks {
 /** @brief lookup table block*/
-class lutBlock: public Block {
+class LutBlock: public GridBlock {
   public:
   private:
     std::vector<std::pair<double, double>> lut;  //!< the lookup table
@@ -23,7 +23,7 @@ class lutBlock: public Block {
     int lindex = -1;  //!< the index of the current lookup table section
     // NOTE: extra 4 bytes here
   public:
-    explicit lutBlock(const std::string& objName = "lutBlock_#");
+    explicit LutBlock(const std::string& objName = "lutBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags);
     virtual void dynObjectInitializeB(const IOdata& inputs,

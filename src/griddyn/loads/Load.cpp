@@ -21,26 +21,29 @@ using units::convert;
 using units::puMW;
 using units::unit;
 
-std::atomic<count_t> Load::loadCount(0);
-Load::Load(const std::string& objName): gridSecondary(objName)
+std::atomic<count_t> GridLoad::loadCount(0);
+GridLoad::GridLoad(const std::string& objName): gridSecondary(objName)
 {
     constructionHelper();
 }
-Load::Load(double rP, double rQ, const std::string& objName): gridSecondary(objName), P(rP), Q(rQ)
+GridLoad::GridLoad(double rP, double rQ, const std::string& objName):
+    gridSecondary(objName),
+    P(rP),
+    Q(rQ)
 {
     constructionHelper();
 }
 
-void Load::constructionHelper()
+void GridLoad::constructionHelper()
 {
     // default values
     setUserID(++loadCount);
     updateName();
 }
 
-CoreObject* Load::clone(CoreObject* obj) const
+CoreObject* GridLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<Load, gridSecondary>(this, obj);
+    auto nobj = cloneBase<GridLoad, gridSecondary>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -51,12 +54,12 @@ CoreObject* Load::clone(CoreObject* obj) const
     return nobj;
 }
 
-void Load::setLoad(double level, unit unitType)
+void GridLoad::setLoad(double level, unit unitType)
 {
     setP(convert(level, unitType, puMW, systemBasePower));
 }
 
-void Load::setLoad(double Plevel, double Qlevel, unit unitType)
+void GridLoad::setLoad(double Plevel, double Qlevel, unit unitType)
 {
     setP(convert(Plevel, unitType, puMW, systemBasePower));
     setQ(convert(Qlevel, unitType, puMW, systemBasePower));
@@ -70,13 +73,13 @@ static const stringVec locStrStrings{
 
 static const stringVec flagStrings{"usepowerfactor"};
 
-void Load::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<Load, GridComponent>(
+    getParamString<GridLoad, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void Load::setFlag(std::string_view flag, bool val)
+void GridLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
@@ -93,7 +96,7 @@ void Load::setFlag(std::string_view flag, bool val)
 }
 
 // set properties
-void Load::set(std::string_view param, std::string_view val)
+void GridLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -101,7 +104,7 @@ void Load::set(std::string_view param, std::string_view val)
     }
 }
 
-double Load::get(std::string_view param, unit unitType) const
+double GridLoad::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {
@@ -122,7 +125,7 @@ double Load::get(std::string_view param, unit unitType) const
         val = pfq;
     } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
         auto unit = getObjectFunction(this, std::string{param}).second;
-        CoreObject* tobj = const_cast<Load*>(this);
+        CoreObject* tobj = const_cast<GridLoad*>(this);
         val = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
         val = gridSecondary::get(param, unitType);
@@ -130,7 +133,7 @@ double Load::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void Load::set(std::string_view param, double val, unit unitType)
+void GridLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
         return;
@@ -198,28 +201,28 @@ void Load::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void Load::setP(double newP)
+void GridLoad::setP(double newP)
 {
     P = newP;
     checkpfq();
     checkFaultChange();
 }
 
-void Load::setQ(double newQ)
+void GridLoad::setQ(double newQ)
 {
     Q = newQ;
     updatepfq();
     checkFaultChange();
 }
 
-void Load::updatepfq()
+void GridLoad::updatepfq()
 {
     if (opFlags[use_power_factor_flag]) {
         pfq = (P == 0.0) ? kBigNum : Q / P;
     }
 }
 
-void Load::checkpfq()
+void GridLoad::checkpfq()
 {
     if (opFlags[use_power_factor_flag]) {
         if (pfq > 1000.0)  // if the pfq is screwy, recalculate, otherwise leave it the same.
@@ -231,44 +234,44 @@ void Load::checkpfq()
     }
 }
 
-void Load::checkFaultChange()
+void GridLoad::checkFaultChange()
 {
     if ((opFlags[pFlow_initialized]) && (bus->getVoltage() < 0.05)) {
         alert(this, POTENTIAL_FAULT_CHANGE);
     }
 }
 
-double Load::getRealPower() const
+double GridLoad::getRealPower() const
 {
     return P;
 }
-double Load::getReactivePower() const
+double GridLoad::getReactivePower() const
 {
     return Q;
 }
-double Load::getRealPower(const IOdata& /*inputs*/,
-                          const stateData& /*sD*/,
-                          const solverMode& /*sMode*/) const
-{
-    return getRealPower();
-}
-
-double Load::getReactivePower(const IOdata& /*inputs*/,
+double GridLoad::getRealPower(const IOdata& /*inputs*/,
                               const stateData& /*sD*/,
                               const solverMode& /*sMode*/) const
 {
+    return getRealPower();
+}
+
+double GridLoad::getReactivePower(const IOdata& /*inputs*/,
+                                  const stateData& /*sD*/,
+                                  const solverMode& /*sMode*/) const
+{
     return getReactivePower();
 }
 
-double Load::getRealPower(const double /*V*/) const
+double GridLoad::getRealPower(const double /*V*/) const
 {
     return getRealPower();
 }
-double Load::getReactivePower(double /*V*/) const
+double GridLoad::getReactivePower(double /*V*/) const
 {
     return getReactivePower();
 }
-count_t Load::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t GridLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
 {
     return 0;
 }

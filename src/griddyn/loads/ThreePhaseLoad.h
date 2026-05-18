@@ -19,7 +19,7 @@ namespace loads {
     /** Three phase load is a base object for supporting 3-phase constant power loads includes a few
 conversions to positive sequence values.
 */
-    class ThreePhaseLoad: public Load {
+    class ThreePhaseLoad: public GridLoad {
       public:
         enum threephase_load_flags {
             use_abs_angle = object_flag5,

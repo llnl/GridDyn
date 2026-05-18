@@ -13,7 +13,7 @@
 namespace griddyn::fmi {
 class FmiMESubModel;
 
-class FmiMELoad: public FmiMEWrapper<Load> {
+class FmiMELoad: public FmiMEWrapper<GridLoad> {
   public:
     enum ThreePhaseFmiLoadFlags {
         IGNORE_VOLTAGE_ANGLE = object_flag8,

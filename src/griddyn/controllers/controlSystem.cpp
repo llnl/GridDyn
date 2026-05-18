@@ -28,14 +28,14 @@ CoreObject* controlSystem::clone(CoreObject* obj) const
 
 void controlSystem::add(CoreObject* obj)
 {
-    if (dynamic_cast<Block*>(obj) != nullptr) {
-        add(static_cast<Block*>(obj));
+    if (dynamic_cast<GridBlock*>(obj) != nullptr) {
+        add(static_cast<GridBlock*>(obj));
     } else {
         throw(unrecognizedObjectException(this));
     }
 }
 
-void controlSystem::add(Block* blk)
+void controlSystem::add(GridBlock* blk)
 {
     blocks.push_back(blk);
     blk->locIndex = static_cast<index_t>(blocks.size()) - 1;

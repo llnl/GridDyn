@@ -14,7 +14,7 @@
 namespace griddyn::loads {
 /** @brief class defining operations and equations for an induction motor load
  */
-class motorLoad: public Load {
+class MotorLoad: public GridLoad {
   public:
     /** @brief motor load flags*/
     enum motor_load_flags {
@@ -48,7 +48,7 @@ class motorLoad: public Load {
     /** @brief constructor
 @param[in] objName  the name of the object
 */
-    explicit motorLoad(const std::string& objName = "motor_$");
+    explicit MotorLoad(const std::string& objName = "motor_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

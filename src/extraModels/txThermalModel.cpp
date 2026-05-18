@@ -241,8 +241,8 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::set("input1", "loss");
         sensor::set("input2", "attached");
 
-        auto* topOilDelayBlock = new blocks::delayBlock(mOilTimeConstant);
-        auto* windingDelayBlock = new blocks::delayBlock(mWindingTimeConstant);
+        auto* topOilDelayBlock = new blocks::DelayBlock(mOilTimeConstant);
+        auto* windingDelayBlock = new blocks::DelayBlock(mWindingTimeConstant);
 
         sensor::add(topOilDelayBlock);
         sensor::add(windingDelayBlock);

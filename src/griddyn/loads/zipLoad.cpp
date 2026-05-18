@@ -32,40 +32,42 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-static typeFactory<Load> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
-static childTypeFactory<zipLoad, Load> zlf("load",
-                                           std::to_array<std::string_view>({"basic", "zip"}),
-                                           "zip");  // set basic to the default
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static typeFactory<GridLoad> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
+static childTypeFactory<ZipLoad, GridLoad> zlf("load",
+                                               std::to_array<std::string_view>({"basic", "zip"}),
+                                               "zip");  // set basic to the default
 namespace loads {
-    static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
-        glfp("load", "pulse", sourceLoad::sourceType::pulse);
-    static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
+    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
+        glfp("load", "pulse", SourceLoad::sourceType::pulse);
+    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
         cfgsl("load",
               std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
-              sourceLoad::sourceType::sine);
-    static childTypeFactory<rampLoad, Load> glfr("load", "ramp");
-    static typeFactoryArg<sourceLoad, sourceLoad::sourceType>
+              SourceLoad::sourceType::sine);
+    static childTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
+    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
         glfrand("load",
                 std::to_array<std::string_view>({"random", "rand"}),
-                sourceLoad::sourceType::random);
-    static childTypeFactory<fileLoad, Load> glfld("load", "file");
-    static childTypeFactory<sourceLoad, Load>
+                SourceLoad::sourceType::random);
+    static childTypeFactory<FileLoad, GridLoad> glfld("load", "file");
+    static childTypeFactory<SourceLoad, GridLoad>
         srcld("load", std::to_array<std::string_view>({"src", "source"}));
-    static childTypeFactory<exponentialLoad, Load>
+    static childTypeFactory<ExponentialLoad, GridLoad>
         glexp("load", std::to_array<std::string_view>({"exponential", "exp"}));
-    static childTypeFactory<fDepLoad, Load> glfd("load", "fdep");
-    static childTypeFactory<ThreePhaseLoad, Load>
+    static childTypeFactory<FDepLoad, GridLoad> glfd("load", "fdep");
+    static childTypeFactory<ThreePhaseLoad, GridLoad>
         gl3("load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
-    static childTypeFactory<approximatingLoad, Load>
+    static childTypeFactory<ApproximatingLoad, GridLoad>
         apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
+// NOLINTEND(bugprone-throwing-static-initialization)
 
-zipLoad::zipLoad(const std::string& objName): Load(objName) {}
-zipLoad::zipLoad(double rP, double rQ, const std::string& objName): Load(rP, rQ, objName) {}
-CoreObject* zipLoad::clone(CoreObject* obj) const
+ZipLoad::ZipLoad(const std::string& objName): GridLoad(objName) {}
+ZipLoad::ZipLoad(double rP, double rQ, const std::string& objName): GridLoad(rP, rQ, objName) {}
+CoreObject* ZipLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBaseFactory<zipLoad, Load>(this, obj, &zlf);
+    auto* nobj = cloneBaseFactory<ZipLoad, GridLoad>(this, obj, &zlf);
     if (nobj == nullptr) {
         return obj;
     }
@@ -83,20 +85,20 @@ CoreObject* zipLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void zipLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ZipLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    Load::pFlowObjectInitializeA(time0, flags);
+    GridLoad::pFlowObjectInitializeA(time0, flags);
     // Psched = getRealPower();
     // dPdf = -H / 30 * Psched;
     lastTime = time0;
 #ifdef SGS_DEBUG
     std::cout << "SGS : " << prevTime << " : " << name
-              << " zipLoad::pFlowInitializeA realPower = " << getRealPower()
+              << " ZipLoad::pFlowInitializeA realPower = " << getRealPower()
               << " reactive power = " << getReactivePower() << '\n';
 #endif
 }
 
-void zipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
+void ZipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
 {
     if ((opFlags[convert_to_constant_impedance]) ||
         CHECK_CONTROLFLAG(flags, all_loads_to_constant_impedence)) {
@@ -115,12 +117,12 @@ void zipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
 
 #ifdef SGS_DEBUG
     std::cout << "SGS : " << prevTime << " : " << name
-              << " zipLoad::dynInitializeA realPower = " << getRealPower()
+              << " ZipLoad::dynInitializeA realPower = " << getRealPower()
               << " reactive power = " << getReactivePower() << '\n';
 #endif
 }
 
-void zipLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void ZipLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
 {
     if (!isConnected()) {
         Pout = 0;
@@ -137,7 +139,7 @@ void zipLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*
 
 #ifdef SGS_DEBUG
     std::cout << "SGS : " << prevTime << " : " << name
-              << " zipLoad::timestep realPower = " << getRealPower()
+              << " ZipLoad::timestep realPower = " << getRealPower()
               << " reactive power = " << getReactivePower() << '\n';
 #endif
 }
@@ -151,12 +153,12 @@ static const stringVec locStrStrings{
 
 static const stringVec flagStrings{"converttoimpedance", "no_pqvoltage_limit"};
 
-void zipLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void ZipLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<zipLoad, Load>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    getParamString<ZipLoad, GridLoad>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
-void zipLoad::setFlag(std::string_view flag, bool val)
+void ZipLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
@@ -176,20 +178,20 @@ void zipLoad::setFlag(std::string_view flag, bool val)
             Vpqmin = -1.0;
         }
     } else {
-        Load::setFlag(flag, val);
+        GridLoad::setFlag(flag, val);
     }
 }
 
 // set properties
-void zipLoad::set(std::string_view param, std::string_view val)
+void ZipLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        Load::set(param, val);
+        GridLoad::set(param, val);
     }
 }
 
-double zipLoad::get(std::string_view param, unit unitType) const
+double ZipLoad::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param.length() == 1) {
@@ -234,12 +236,12 @@ double zipLoad::get(std::string_view param, unit unitType) const
     } else if (param == "pf") {
         val = pfq;
     } else {
-        val = Load::get(param, unitType);
+        val = GridLoad::get(param, unitType);
     }
     return val;
 }
 
-void zipLoad::set(std::string_view param, double val, unit unitType)
+void ZipLoad::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
         return;
@@ -377,35 +379,35 @@ void zipLoad::set(std::string_view param, double val, unit unitType)
         // SGS added to set the base voltage 2015-01-30
         localBaseVoltage = val;
     } else {
-        Load::set(param, val, unitType);
+        GridLoad::set(param, val, unitType);
     }
 }
 
-void zipLoad::setup(double newYp)
+void ZipLoad::setup(double newYp)
 {
     Yp = newYp;
     checkFaultChange();
 }
 
-void zipLoad::setYq(double newYq)
+void ZipLoad::setYq(double newYq)
 {
     Yq = newYq;
     checkFaultChange();
 }
 
-void zipLoad::setIp(double newIp)
+void ZipLoad::setIp(double newIp)
 {
     Ip = newIp;
     checkFaultChange();
 }
 
-void zipLoad::setIq(double newIq)
+void ZipLoad::setIq(double newIq)
 {
     Iq = newIq;
     checkFaultChange();
 }
 
-void zipLoad::setr(double newr)
+void ZipLoad::setr(double newr)
 {
     if (newr == 0.0) {
         Yp = 0.0;
@@ -417,7 +419,7 @@ void zipLoad::setr(double newr)
     Yq = y.imag();
     checkFaultChange();
 }
-void zipLoad::setx(double newx)
+void ZipLoad::setx(double newx)
 {
     if (newx == 0.0) {
         Yq = 0.0;
@@ -430,7 +432,7 @@ void zipLoad::setx(double newx)
     checkFaultChange();
 }
 
-double zipLoad::getr() const
+double ZipLoad::getr() const
 {
     if (Yp == 0.0) {
         return 0.0;
@@ -441,7 +443,7 @@ double zipLoad::getr() const
     return z.real();
 }
 
-double zipLoad::getx() const
+double ZipLoad::getx() const
 {
     if (Yq == 0.0) {
         return 0.0;
@@ -451,14 +453,14 @@ double zipLoad::getx() const
     return z.imag();
 }
 
-void zipLoad::updateLocalCache(const IOdata& /*inputs*/,
+void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
                                const stateData& sD,
                                const solverMode& /*sMode*/)
 {
     lastTime = sD.time;
 }
 
-void zipLoad::setState(coreTime time,
+void ZipLoad::setState(coreTime time,
                        const double state[],
                        const double dstate_dt[],
                        const solverMode& sMode)
@@ -468,7 +470,7 @@ void zipLoad::setState(coreTime time,
     prevTime = time;
 }
 
-double zipLoad::voltageAdjustment(double val, double voltage) const
+double ZipLoad::voltageAdjustment(double val, double voltage) const
 {
     if (voltage < Vpqmin) {
         val = voltage * voltage * val * trigVVlow;
@@ -478,7 +480,7 @@ double zipLoad::voltageAdjustment(double val, double voltage) const
     return val;
 }
 
-double zipLoad::getQval() const
+double ZipLoad::getQval() const
 {
     double val = Q;
 
@@ -490,24 +492,24 @@ double zipLoad::getQval() const
     return val;
 }
 
-double zipLoad::getRealPower() const
+double ZipLoad::getRealPower() const
 {
     return getRealPower(bus->getVoltage());
 }
 
-double zipLoad::getReactivePower() const
+double ZipLoad::getReactivePower() const
 {
     return getReactivePower(bus->getVoltage());
 }
 
 double
-    zipLoad::getRealPower(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const
+    ZipLoad::getRealPower(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const
 {
     double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
     return getRealPower(voltage);
 }
 
-double zipLoad::getReactivePower(const IOdata& inputs,
+double ZipLoad::getReactivePower(const IOdata& inputs,
                                  const stateData& sD,
                                  const solverMode& sMode) const
 {
@@ -515,7 +517,7 @@ double zipLoad::getReactivePower(const IOdata& inputs,
     return getReactivePower(voltage);
 }
 
-double zipLoad::getRealPower(const double voltage) const
+double ZipLoad::getRealPower(const double voltage) const
 {
     if (!isConnected()) {
         return 0.0;
@@ -526,7 +528,7 @@ double zipLoad::getRealPower(const double voltage) const
     return val;
 }
 
-double zipLoad::getReactivePower(double voltage) const
+double ZipLoad::getReactivePower(double voltage) const
 {
     if (!isConnected()) {
         return 0.0;
@@ -537,7 +539,7 @@ double zipLoad::getReactivePower(double voltage) const
     return val;
 }
 
-void zipLoad::outputPartialDerivatives(const IOdata& inputs,
+void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
                                        const stateData& sD,
                                        matrixData<double>& md,
                                        const solverMode& sMode)
@@ -550,11 +552,11 @@ void zipLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-count_t zipLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t ZipLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
 {
     return 0;
 }
-void zipLoad::ioPartialDerivatives(const IOdata& inputs,
+void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
                                    const stateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
@@ -592,7 +594,7 @@ void zipLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-bool compareLoad(zipLoad* ld1, zipLoad* ld2, bool /*printDiff*/)
+bool compareLoad(ZipLoad* ld1, ZipLoad* ld2, bool /*printDiff*/)
 {
     bool cmp = true;
 

@@ -428,11 +428,11 @@ class Area: public gridPrimary {
     */
     double getGenerationReactive() const;
     /** @brief get the total area real load power
-    @return the real Load power for the area
+    @return the real GridLoad power for the area
     */
     double getLoadReal() const;
     /** @brief get the total area reactive load power
-    @return the reactive Load power for the area
+    @return the reactive GridLoad power for the area
     */
     double getLoadReactive() const;
     /** @brief get the average angle for the area

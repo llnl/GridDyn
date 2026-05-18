@@ -11,7 +11,7 @@
 #include <string>
 
 namespace griddyn::fmi {
-class FmiCoSimLoad: public FmiCoSimWrapper<Load> {
+class FmiCoSimLoad: public FmiCoSimWrapper<GridLoad> {
   public:
     enum ThreePhaseFmiLoadFlags {
         IGNORE_VOLTAGE_ANGLE = object_flag8,

@@ -130,9 +130,9 @@ set(block_headers
     blocks/derivativeBlock.h
     blocks/functionBlock.h
     blocks/lutBlock.h
-    blocks/transferFunctionBlock.h
+    blocks/transferfunctionBlock.h
     blocks/blockSequence.h
-    blocks/filteredDerivativeBlock.h
+    blocks/filteredderivativeBlock.h
     blocks/valueLimiter.h
     blocks/rampLimiter.h
     blocks/blockLibrary.h
@@ -150,8 +150,8 @@ set(block_sources
     blocks/derivativeBlock.cpp
     blocks/functionBlock.cpp
     blocks/lutBlock.cpp
-    blocks/transferFunctionBlock.cpp
-    blocks/filteredDerivativeBlock.cpp
+    blocks/transferfunctionBlock.cpp
+    blocks/filteredderivativeBlock.cpp
     blocks/blockSequence.cpp
     blocks/valueLimiter.cpp
     blocks/rampLimiter.cpp

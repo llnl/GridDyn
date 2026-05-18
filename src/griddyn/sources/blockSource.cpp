@@ -26,11 +26,11 @@ CoreObject* blockSource::clone(CoreObject* obj) const
 
 void blockSource::add(CoreObject* obj)
 {
-    if (dynamic_cast<Block*>(obj) != nullptr) {
+    if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         if (blk != nullptr) {
             GridComponent::remove(blk);
         }
-        blk = static_cast<Block*>(obj);
+        blk = static_cast<GridBlock*>(obj);
         addSubObject(blk);
     }
     if (dynamic_cast<Source*>(obj) != nullptr) {

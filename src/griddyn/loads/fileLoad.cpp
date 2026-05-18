@@ -20,16 +20,16 @@ using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
 
-fileLoad::fileLoad(const std::string& objName): rampLoad(objName) {}
+FileLoad::FileLoad(const std::string& objName): RampLoad(objName) {}
 
-fileLoad::fileLoad(const std::string& objName, std::string fileName):
-    rampLoad(objName), fileName_(std::move(fileName))
+FileLoad::FileLoad(const std::string& objName, std::string fileName):
+    RampLoad(objName), fileName_(std::move(fileName))
 {
 }
 
-CoreObject* fileLoad::clone(CoreObject* obj) const
+CoreObject* FileLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<fileLoad, rampLoad>(this, obj);
+    auto* nobj = cloneBase<FileLoad, RampLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -40,7 +40,7 @@ CoreObject* fileLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void fileLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FileLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     currIndex = 0;
     count = loadFile();
@@ -57,11 +57,11 @@ void fileLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
             columnkey[kk] = kk;
         }
     }
-    rampLoad::pFlowObjectInitializeA(time0, flags);
+    RampLoad::pFlowObjectInitializeA(time0, flags);
     updateA(time0);
 }
 
-void fileLoad::updateA(coreTime time)
+void FileLoad::updateA(coreTime time)
 {
     while (time >= schedLoad.time(currIndex)) {
         ++currIndex;
@@ -146,22 +146,22 @@ void fileLoad::updateA(coreTime time)
     }
     lastTime = prevTime;
     if (!opFlags[use_step_change_flag]) {
-        rampLoad::updateLocalCache(noInputs, stateData(time), cLocalSolverMode);
+        RampLoad::updateLocalCache(noInputs, stateData(time), cLocalSolverMode);
     }
     lastUpdateTime = time;
     nextUpdateTime = (currIndex == count - 1) ? maxTime : schedLoad.time(currIndex + 1);
 }
 
-void fileLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void FileLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     if (time >= nextUpdateTime) {
         updateA(time);
     }
 
-    rampLoad::timestep(time, inputs, sMode);
+    RampLoad::timestep(time, inputs, sMode);
 }
 
-void fileLoad::setFlag(std::string_view flag, bool val)
+void FileLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
         opFlags.set(use_absolute_time_flag, val);
@@ -172,7 +172,7 @@ void fileLoad::setFlag(std::string_view flag, bool val)
     } else if (flag == "interpolate") {
         opFlags.set(use_step_change_flag, !val);
     } else {
-        zipLoad::setFlag(flag, val);
+        ZipLoad::setFlag(flag, val);
     }
 }
 
@@ -200,7 +200,7 @@ static int columnCode(const std::string& ldc)
     return code;
 }
 
-void fileLoad::set(std::string_view param, std::string_view val)
+void FileLoad::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {
         fileName_ = val;
@@ -243,22 +243,22 @@ void fileLoad::set(std::string_view param, std::string_view val)
     } else if ((param == "mode") || (param == "timemode")) {
         setFlag(val, true);
     } else {
-        zipLoad::set(param, val);  // NOLINT
+        ZipLoad::set(param, val);  // NOLINT
     }
 }
 
-void fileLoad::set(std::string_view param, double val, units::unit unitType)
+void FileLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "scalefactor") || (param == "scaling")) {
         scaleFactor = val;
     } else if (param == "qratio") {
         qratio = val;
     } else {
-        zipLoad::set(param, val, unitType);  // NOLINT
+        ZipLoad::set(param, val, unitType);  // NOLINT
     }
 }
 
-count_t fileLoad::loadFile()
+count_t FileLoad::loadFile()
 {
     try {
         schedLoad.loadFile(fileName_);

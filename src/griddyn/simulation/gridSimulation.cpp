@@ -432,7 +432,7 @@ void gridSimulation::setLogger(std::function<void(int, const std::string&)> logg
 // need it addressed
 void gridSimulation::resetObjectCounters()
 {
-    zipLoad::loadCount = 0;
+    ZipLoad::loadCount = 0;
     // Area::areaCount = 0;
     GridBus::busCount = 0;
     Link::linkCount = 0;
@@ -467,7 +467,7 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
         if (bus2 != nullptr) {
             if (dynamic_cast<Generator*>(obj1) != nullptr) {
                 obj2 = bus2->getGen(obj1->locIndex);
-            } else if (dynamic_cast<zipLoad*>(obj1) != nullptr) {
+            } else if (dynamic_cast<ZipLoad*>(obj1) != nullptr) {
                 obj2 = bus2->getLoad(obj1->locIndex);
             }
         }

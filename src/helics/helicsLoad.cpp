@@ -17,14 +17,14 @@
 
 namespace griddyn::helicsLib {
 HelicsLoad::HelicsLoad(const std::string& objName):
-    rampLoad(objName), loadType(helics::data_type::helics_complex),
+    RampLoad(objName), loadType(helics::data_type::helics_complex),
     voltageType(helics::data_type::helics_complex)
 {
 }
 
 CoreObject* HelicsLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<HelicsLoad, loads::rampLoad>(this, obj);
+    auto nobj = cloneBase<HelicsLoad, loads::RampLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -43,7 +43,7 @@ void HelicsLoad::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
         coordinator_ = static_cast<HelicsCoordinator*>(rt->find("helics"));
     }
     setSubscription();
-    loads::rampLoad::pFlowObjectInitializeA(time0, flags);
+    loads::RampLoad::pFlowObjectInitializeA(time0, flags);
 
     prevP = getP();
     prevQ = getQ();
@@ -134,7 +134,7 @@ void HelicsLoad::timestep(coreTime ttime, const IOdata& inputs, const solverMode
         updateB();
     }
 
-    rampLoad::timestep(ttime, inputs, sMode);
+    RampLoad::timestep(ttime, inputs, sMode);
 }
 
 void HelicsLoad::setFlag(const std::string& flag, bool val)
@@ -156,7 +156,7 @@ void HelicsLoad::setFlag(const std::string& flag, bool val)
     } else if (flag == "use_ramp") {
         opFlags.set(USE_RAMP, val);
     } else {
-        rampLoad::setFlag(flag, val);
+        RampLoad::setFlag(flag, val);
     }
 }
 
@@ -183,8 +183,8 @@ void HelicsLoad::set(const std::string& param, const std::string& val)
     } else if ((param == "units") || (param == "inputunits")) {
         inputUnits = units::unit_cast_from_string(val);
     } else {
-        // no reason to set the ramps in helics load so go to zipLoad instead
-        zipLoad::set(param, val);  // NOLINT
+        // no reason to set the ramps in helics load so go to ZipLoad instead
+        ZipLoad::set(param, val);  // NOLINT
     }
 }
 
@@ -194,7 +194,7 @@ void HelicsLoad::set(const std::string& param, double val, units::unit unitType)
         scaleFactor = val;
         setSubscription();
     } else {
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
 }
 

@@ -15,11 +15,11 @@
 #include <string>
 
 namespace griddyn::fmi {
-FmiCoSimLoad::FmiCoSimLoad(const std::string& objName): FmiCoSimWrapper<Load>(objName) {}
+FmiCoSimLoad::FmiCoSimLoad(const std::string& objName): FmiCoSimWrapper<GridLoad>(objName) {}
 
 CoreObject* FmiCoSimLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<Load>>(this, obj);
+    auto* nobj = cloneBase<FmiCoSimLoad, FmiCoSimWrapper<GridLoad>>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -33,7 +33,7 @@ void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         configureFmiIo();
         SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
         fmisub->dynInitializeA(time0, flags);
-        // zipLoad::pFlowObjectInitializeA(time0, flags);
+        // ZipLoad::pFlowObjectInitializeA(time0, flags);
         auto inputs = bus->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
         IOdata outset;
         fmisub->dynInitializeB(inputs, outset, outset);
@@ -45,7 +45,7 @@ void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 void FmiCoSimLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     fmisub->dynInitializeA(time0, flags);
-    // zipLoad::dynObjectInitializeA(time0, flags);
+    // ZipLoad::dynObjectInitializeA(time0, flags);
 }
 
 void FmiCoSimLoad::dynObjectInitializeB(const IOdata& inputs,

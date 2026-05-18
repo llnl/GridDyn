@@ -28,7 +28,7 @@
 #include <map>
 
 using griddyn::Area;
-using griddyn::Block;
+using griddyn::GridBlock;
 using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreOwningPtr;
@@ -42,7 +42,7 @@ using griddyn::gridDynSimulation;
 using griddyn::GridSubModel;
 using griddyn::kNullVal;
 using griddyn::Link;
-using griddyn::Load;
+using griddyn::GridLoad;
 using griddyn::Relay;
 using griddyn::scheduler;
 using griddyn::sensor;
@@ -429,7 +429,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const Area*>(comp) != nullptr) {
         return area_str;
     }
-    if (dynamic_cast<const Load*>(comp) != nullptr) {
+    if (dynamic_cast<const GridLoad*>(comp) != nullptr) {
         return load_str;
     }
     if (dynamic_cast<const Generator*>(comp) != nullptr) {
@@ -450,7 +450,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const Source*>(comp) != nullptr) {
         return source_str;
     }
-    if (dynamic_cast<const Block*>(comp) != nullptr) {
+    if (dynamic_cast<const GridBlock*>(comp) != nullptr) {
         return block_str;
     }
     if (dynamic_cast<const sensor*>(comp) != nullptr) {

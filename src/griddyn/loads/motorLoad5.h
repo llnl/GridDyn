@@ -12,7 +12,7 @@
 namespace griddyn::loads {
 /** @brief class implementing a model of a 3rd order induction motor
  */
-class motorLoad5: public motorLoad3 {
+class MotorLoad5: public MotorLoad3 {
   private:
     /** @brief private enumerations of state variable locations in powerflow*/
     enum pLocA { irA = 0, imA = 1, slipA = 2, erpA = 3, empA = 4, erppA = 5, emppA = 6 };
@@ -28,7 +28,7 @@ class motorLoad5: public motorLoad3 {
     /** @brief constructor
 @param[in] objName  the name of the object
 */
-    explicit motorLoad5(const std::string& objName = "motor5_$");
+    explicit MotorLoad5(const std::string& objName = "motor5_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

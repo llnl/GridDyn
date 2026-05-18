@@ -15,7 +15,7 @@
 #include <string>
 
 namespace griddyn {
-class Block;
+class GridBlock;
 
 /** @brief basic power system bus for a power grid simulation
   The GridBus class provides the basic node in a power systems analysis.  It is a locational basis
@@ -68,7 +68,7 @@ class AcBus: public GridBus {
     model_parameter Tw = 0.1;  //!< time constant for the frequency estimator
 
     coreTime lastSetTime = negTime;  //!< last set time
-    coreOwningPtr<Block> fblock;  //!< pointer to frequency estimator block
+    coreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
 
     BusControls busController;  //!< pointer to the eControls object
     // extra blocks and object for remote controlled buses and bus merging

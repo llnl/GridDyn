@@ -14,24 +14,24 @@ namespace griddyn::blocks {
 block implementing \f$H(S)=\frac{K}{1+T_1 s}\f$
 if the time constant is very small it reverts to the basic block
 */
-class delayBlock: public Block {
+class DelayBlock: public GridBlock {
   public:
   protected:
     model_parameter mT1 = 0.1;  //!< the time constant
   public:
     //!< default constructor
-    explicit delayBlock(const std::string& objName = "delayBlock_#");
+    explicit DelayBlock(const std::string& objName = "delayBlock_#");
     /** alternate constructor to add in the time constant
 @param[in] timeConstant  the time constant
 @param[in] objName the name of the block
 */
-    delayBlock(double timeConstant, const std::string& objName = "delayBlock_#");
+    DelayBlock(double timeConstant, const std::string& objName = "delayBlock_#");
     /** alternate constructor to add in the time constant
 @param[in] timeConstant  the time constant
 @param[in] gainValue the block gain
 @param[in] objName the name of the object
 */
-    delayBlock(double timeConstant, double gainValue, const std::string& objName = "delayBlock_#");
+    DelayBlock(double timeConstant, double gainValue, const std::string& objName = "delayBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:

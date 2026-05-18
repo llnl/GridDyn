@@ -11,12 +11,12 @@
 #include <string>
 #include <vector>
 namespace griddyn {
-class Block;
+class GridBlock;
 
 /** @brief class implementing a control system built from the defined control blocks*/
 class controlSystem: public GridSubModel {
   protected:
-    std::vector<Block*> blocks;  //!< the set of blocks to operate on
+    std::vector<GridBlock*> blocks;  //!< the set of blocks to operate on
     matrixDataSparse<double> inputMult;  //!< multipliers for the input to the blocks
     matrixDataSparse<double> outputMult;  //!< multipliers for the outputs
     matrixDataSparse<double> connections;  //!< multipliers for the block inputs
@@ -34,7 +34,7 @@ class controlSystem: public GridSubModel {
                                       IOdata& fieldSet) override;
 
     virtual void add(CoreObject* obj) override;
-    virtual void add(Block* blk);
+    virtual void add(GridBlock* blk);
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

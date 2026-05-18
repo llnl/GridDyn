@@ -13,7 +13,7 @@ namespace griddyn::loads {
 constant current these loads should for the basis of most non dynamic load models following the ZIP
 model Z-constant impedance, I-constant current, P- constant Power
 */
-class frequencySensitiveLoad: public Load {
+class FrequencySensitiveLoad: public GridLoad {
   private:
     double dPdf = 0.0;  //!< factor for determining how sensitive Pout is to frequency
     double Pout = 0.0;  //!< Pout before applying frequency variation
@@ -21,9 +21,9 @@ class frequencySensitiveLoad: public Load {
   protected:
     model_parameter M = 0.0;  //!< load droop factor
     model_parameter H = 0.0;  //!< load inertia used in computing dPdf
-    Load* subLoad;  //!< pointer to the subload type
+    GridLoad* subLoad;  //!< pointer to the subload type
   public:
-    explicit frequencySensitiveLoad(const std::string& objName = "load_$");
+    explicit FrequencySensitiveLoad(const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

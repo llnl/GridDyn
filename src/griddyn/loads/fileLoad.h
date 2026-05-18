@@ -13,7 +13,7 @@
 
 namespace griddyn::loads {
 /** @brief a load that generates its value from files*/
-class fileLoad: public rampLoad {
+class FileLoad: public RampLoad {
   public:
     enum file_load_flags {
         use_absolute_time_flag = object_flag7,
@@ -32,8 +32,8 @@ class fileLoad: public rampLoad {
     std::vector<int> columnkey;
 
   public:
-    explicit fileLoad(const std::string& objName = "fileLoad_$");
-    fileLoad(const std::string& objName, std::string fileName);
+    explicit FileLoad(const std::string& objName = "fileLoad_$");
+    FileLoad(const std::string& objName, std::string fileName);
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 

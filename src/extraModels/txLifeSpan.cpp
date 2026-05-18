@@ -111,7 +111,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             // assume we are connected to a temperature sensor
             sensor::set("input0", "hot_spot");
         }
-        auto* lifeIntegrator = new blocks::integralBlock(1.0 / 3600);  // add a gain so the
+        auto* lifeIntegrator = new blocks::IntegralBlock(1.0 / 3600);  // add a gain so the
                                                                        // output is in hours
         sensor::add(lifeIntegrator);
         lifeIntegrator->parentSetFlag(separate_processing, true, this);

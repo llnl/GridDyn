@@ -12,7 +12,7 @@ namespace griddyn::blocks {
 /** class that clamps a value between an upper and lower limit and maintains state of whether it
  * is clamping or not
  */
-class valueLimiter {
+class ValueLimiter {
   private:
     double minVal = std::numeric_limits<double>::min();  //!< Minimum value
     double maxVal = std::numeric_limits<double>::max();  //!< maximum value
@@ -22,9 +22,9 @@ class valueLimiter {
     bool limiterHigh = false;  //!< flag indicating the limit is engaged on the high side
   public:
     /** default constructor*/
-    valueLimiter() = default;
+    ValueLimiter() = default;
     /** constructor with the min and max values defined*/
-    valueLimiter(double nmin, double nmax);
+    ValueLimiter(double nmin, double nmax);
     /** define the lower and upper limits*/
     void setLimits(double nmin, double nmax);
     /** set the gap required to go below the minimum to reset the values*/

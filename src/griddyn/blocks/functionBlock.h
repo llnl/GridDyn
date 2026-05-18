@@ -14,7 +14,7 @@ namespace griddyn::blocks {
 /** @brief class implementing a function operation on the input
 a wide assortment of functions are available including trig, logs, and other common math
 operations*/
-class functionBlock: public Block {
+class FunctionBlock: public GridBlock {
   public:
     //!< flags for function block
     enum FunctionBlockFlags {
@@ -32,11 +32,11 @@ class functionBlock: public Block {
     model_parameter mArg2 = 0.0;  //!< second argument for 2 argument functions
   public:
     /** @brief default constructor*/
-    functionBlock();
+    FunctionBlock();
     /** @brief alternate constructor
 @param[in] functionName the name of the function as a string
 */
-    explicit functionBlock(const std::string& functionName);
+    explicit FunctionBlock(const std::string& functionName);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,

@@ -13,22 +13,22 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-fDepLoad::fDepLoad(const std::string& objName): exponentialLoad(objName) {}
-fDepLoad::fDepLoad(double rP, double qP, const std::string& objName):
-    exponentialLoad(rP, qP, objName)
+FDepLoad::FDepLoad(const std::string& objName): ExponentialLoad(objName) {}
+FDepLoad::FDepLoad(double rP, double qP, const std::string& objName):
+    ExponentialLoad(rP, qP, objName)
 {
 }
-void fDepLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FDepLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if ((betaP != 0.0) || (betaQ != 0.0)) {
         opFlags.set(uses_bus_frequency);
     }
-    return exponentialLoad::dynObjectInitializeA(time0, flags);
+    return ExponentialLoad::dynObjectInitializeA(time0, flags);
 }
 
-CoreObject* fDepLoad::clone(CoreObject* obj) const
+CoreObject* FDepLoad::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<fDepLoad, exponentialLoad>(this, obj);
+    auto ld = cloneBase<FDepLoad, ExponentialLoad>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -39,7 +39,7 @@ CoreObject* fDepLoad::clone(CoreObject* obj) const
 }
 
 // set properties
-void fDepLoad::set(std::string_view param, std::string_view val)
+void FDepLoad::set(std::string_view param, std::string_view val)
 {
     if (param == "loadtype") {
         auto vtype = gmlc::utilities::convertToLowerCase(val);
@@ -80,11 +80,11 @@ void fDepLoad::set(std::string_view param, std::string_view val)
             betaQ = 0.6;
         }
     } else {
-        exponentialLoad::set(param, val);
+        ExponentialLoad::set(param, val);
     }
 }
 
-void fDepLoad::set(std::string_view param, double val, units::unit unitType)
+void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "betap") {
         betaP = val;
@@ -93,14 +93,14 @@ void fDepLoad::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "beta") {
         betaP = betaQ = val;
     } else {
-        exponentialLoad::set(param, val, unitType);
+        ExponentialLoad::set(param, val, unitType);
     }
     if ((betaP != 0.0) || (betaQ != 0.0)) {
         opFlags.set(uses_bus_frequency);
     }
 }
 
-void fDepLoad::ioPartialDerivatives(const IOdata& inputs,
+void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
                                     const stateData& /*sD*/,
                                     matrixData<double>& md,
                                     const IOlocs& inputLocs,
@@ -129,37 +129,37 @@ void fDepLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-double fDepLoad::getRealPower() const
+double FDepLoad::getRealPower() const
 {
     return getRealPower(bus->getVoltage(), bus->getFreq());
 }
-double fDepLoad::getReactivePower() const
+double FDepLoad::getReactivePower() const
 {
     return getReactivePower(bus->getVoltage(), bus->getFreq());
 }
-double fDepLoad::getRealPower(const IOdata& inputs,
+double FDepLoad::getRealPower(const IOdata& inputs,
                               const stateData& /*sD*/,
                               const solverMode& /*sMode*/) const
 {
     return getRealPower(inputs[voltageInLocation], inputs[frequencyInLocation]);
 }
 
-double fDepLoad::getReactivePower(const IOdata& inputs,
+double FDepLoad::getReactivePower(const IOdata& inputs,
                                   const stateData& /*sD*/,
                                   const solverMode& /*sMode*/) const
 {
     return getReactivePower(inputs[voltageInLocation], inputs[frequencyInLocation]);
 }
 
-double fDepLoad::getRealPower(const double V) const
+double FDepLoad::getRealPower(const double V) const
 {
     return getRealPower(V, bus->getFreq());
 }
-double fDepLoad::getReactivePower(double V) const
+double FDepLoad::getReactivePower(double V) const
 {
     return getReactivePower(V, bus->getFreq());
 }
-double fDepLoad::getRealPower(double V, double f) const
+double FDepLoad::getRealPower(double V, double f) const
 {
     if (isConnected()) {
         double val = getP();
@@ -169,7 +169,7 @@ double fDepLoad::getRealPower(double V, double f) const
     return 0.0;
 }
 
-double fDepLoad::getReactivePower(double V, double f) const
+double FDepLoad::getReactivePower(double V, double f) const
 {
     if (isConnected()) {
         double val = getQ();

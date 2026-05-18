@@ -26,7 +26,7 @@ class readerInfo;
 
 class CoreObject;
 
-class zipLoad;
+class ZipLoad;
 class Generator;
 class Area;
 class Link;
@@ -46,7 +46,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
                         readerInfo& readerInformation,
                         CoreObject* searchObject = nullptr);
 
-// zipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, CoreObject
+// ZipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, CoreObject
 // *searchObject = nullptr); Generator * readGeneratorElement (std::shared_ptr<readerElement>
 // &element, readerInfo *ri, CoreObject *searchObject = nullptr);
 Link* readLinkElement(std::shared_ptr<readerElement>& element,

@@ -72,7 +72,7 @@ CoreObject* GridBusOpt::clone(CoreObject* obj) const
     }
     for (size_t kk = 0; kk < loadList.size(); ++kk) {
         if (kk >= nobj->loadList.size()) {
-            nobj->add(static_cast<zipLoad*>(loadList[kk]->clone(nullptr)));
+            nobj->add(static_cast<ZipLoad*>(loadList[kk]->clone(nullptr)));
         } else {
             loadList[kk]->clone(nobj->loadList[kk]);
         }

@@ -17,21 +17,21 @@
 #include <utility>
 
 namespace griddyn::loads {
-sourceLoad::sourceLoad(const std::string& objName): zipLoad(objName), sourceLink{}
+SourceLoad::SourceLoad(const std::string& objName): ZipLoad(objName), sourceLink{}
 {
     sourceLink.fill(-1);
 }
-sourceLoad::sourceLoad(sourceType type, const std::string& objName): sourceLoad(objName)
+SourceLoad::SourceLoad(sourceType type, const std::string& objName): SourceLoad(objName)
 {
     sType = type;
     // add the sources for P and Q
-    sourceLoad::add(makeSource(p_source));
-    sourceLoad::add(makeSource(q_source));
+    SourceLoad::add(makeSource(p_source));
+    SourceLoad::add(makeSource(q_source));
 }
 
-CoreObject* sourceLoad::clone(CoreObject* obj) const
+CoreObject* SourceLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<sourceLoad, zipLoad>(this, obj);
+    auto* nobj = cloneBase<SourceLoad, ZipLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -41,66 +41,66 @@ CoreObject* sourceLoad::clone(CoreObject* obj) const
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> source_lookup{
-    {"source", sourceLoad::p_source},
-    {"psource", sourceLoad::p_source},
-    {"p_source", sourceLoad::p_source},
-    {"qsource", sourceLoad::q_source},
-    {"q_source", sourceLoad::q_source},
-    {"resource", sourceLoad::r_source},
-    {"r_source", sourceLoad::r_source},
-    {"xsource", sourceLoad::x_source},
-    {"x_source", sourceLoad::x_source},
-    {"ypsource", sourceLoad::yp_source},
-    {"yp_source", sourceLoad::yp_source},
-    {"yqsource", sourceLoad::yq_source},
-    {"yq_source", sourceLoad::yq_source},
-    {"ipsource", sourceLoad::ip_source},
-    {"ip_source", sourceLoad::ip_source},
-    {"iqsource", sourceLoad::iq_source},
-    {"iq_source", sourceLoad::iq_source},
+    {"source", SourceLoad::p_source},
+    {"psource", SourceLoad::p_source},
+    {"p_source", SourceLoad::p_source},
+    {"qsource", SourceLoad::q_source},
+    {"q_source", SourceLoad::q_source},
+    {"resource", SourceLoad::r_source},
+    {"r_source", SourceLoad::r_source},
+    {"xsource", SourceLoad::x_source},
+    {"x_source", SourceLoad::x_source},
+    {"ypsource", SourceLoad::yp_source},
+    {"yp_source", SourceLoad::yp_source},
+    {"yqsource", SourceLoad::yq_source},
+    {"yq_source", SourceLoad::yq_source},
+    {"ipsource", SourceLoad::ip_source},
+    {"ip_source", SourceLoad::ip_source},
+    {"iqsource", SourceLoad::iq_source},
+    {"iq_source", SourceLoad::iq_source},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
-    {"p", sourceLoad::p_source},
-    {"q", sourceLoad::q_source},
-    {"r", sourceLoad::r_source},
-    {"x", sourceLoad::x_source},
-    {"yp", sourceLoad::yp_source},
-    {"zp", sourceLoad::yp_source},
-    {"zr", sourceLoad::yp_source},
-    {"yq", sourceLoad::yq_source},
-    {"zq", sourceLoad::yq_source},
-    {"ip", sourceLoad::ip_source},
-    {"iq", sourceLoad::iq_source},
+    {"p", SourceLoad::p_source},
+    {"q", SourceLoad::q_source},
+    {"r", SourceLoad::r_source},
+    {"x", SourceLoad::x_source},
+    {"yp", SourceLoad::yp_source},
+    {"zp", SourceLoad::yp_source},
+    {"zr", SourceLoad::yp_source},
+    {"yq", SourceLoad::yq_source},
+    {"zq", SourceLoad::yq_source},
+    {"ip", SourceLoad::ip_source},
+    {"iq", SourceLoad::iq_source},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> source_match{
-    {"source", sourceLoad::p_source},     {"psource", sourceLoad::p_source},
-    {"p_source", sourceLoad::p_source},   {"qsource", sourceLoad::q_source},
-    {"q_source", sourceLoad::q_source},   {"resource", sourceLoad::r_source},
-    {"r_source", sourceLoad::r_source},   {"xsource", sourceLoad::x_source},
-    {"x_source", sourceLoad::x_source},   {"ypsource", sourceLoad::yp_source},
-    {"yp_source", sourceLoad::yp_source}, {"yqsource", sourceLoad::yq_source},
-    {"yq_source", sourceLoad::yq_source}, {"ipsource", sourceLoad::ip_source},
-    {"ip_source", sourceLoad::ip_source}, {"iqsource", sourceLoad::iq_source},
-    {"iq_source", sourceLoad::iq_source}, {"p", sourceLoad::p_source},
-    {"q", sourceLoad::q_source},          {"r", sourceLoad::r_source},
-    {"x", sourceLoad::x_source},          {"yp", sourceLoad::yp_source},
-    {"zp", sourceLoad::yp_source},        {"zr", sourceLoad::yp_source},
-    {"yq", sourceLoad::yq_source},        {"zq", sourceLoad::yq_source},
-    {"ip", sourceLoad::ip_source},        {"iq", sourceLoad::iq_source},
+    {"source", SourceLoad::p_source},     {"psource", SourceLoad::p_source},
+    {"p_source", SourceLoad::p_source},   {"qsource", SourceLoad::q_source},
+    {"q_source", SourceLoad::q_source},   {"resource", SourceLoad::r_source},
+    {"r_source", SourceLoad::r_source},   {"xsource", SourceLoad::x_source},
+    {"x_source", SourceLoad::x_source},   {"ypsource", SourceLoad::yp_source},
+    {"yp_source", SourceLoad::yp_source}, {"yqsource", SourceLoad::yq_source},
+    {"yq_source", SourceLoad::yq_source}, {"ipsource", SourceLoad::ip_source},
+    {"ip_source", SourceLoad::ip_source}, {"iqsource", SourceLoad::iq_source},
+    {"iq_source", SourceLoad::iq_source}, {"p", SourceLoad::p_source},
+    {"q", SourceLoad::q_source},          {"r", SourceLoad::r_source},
+    {"x", SourceLoad::x_source},          {"yp", SourceLoad::yp_source},
+    {"zp", SourceLoad::yp_source},        {"zr", SourceLoad::yp_source},
+    {"yq", SourceLoad::yq_source},        {"zq", SourceLoad::yq_source},
+    {"ip", SourceLoad::ip_source},        {"iq", SourceLoad::iq_source},
 };
 
-void sourceLoad::add(CoreObject* obj)
+void SourceLoad::add(CoreObject* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         add(static_cast<Source*>(obj));
     }
 }
 
-void sourceLoad::add(Source* src)
+void SourceLoad::add(Source* src)
 {
     src->setParent(this);
     src->setFlag("pflow_init_required", true);
@@ -132,7 +132,7 @@ void sourceLoad::add(Source* src)
     addSubObject(src);
 }
 
-void sourceLoad::remove(CoreObject* obj)
+void SourceLoad::remove(CoreObject* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         remove(static_cast<Source*>(obj));
@@ -141,7 +141,7 @@ void sourceLoad::remove(CoreObject* obj)
     }
 }
 
-void sourceLoad::remove(Source* src)
+void SourceLoad::remove(Source* src)
 {
     if (src == nullptr) {
         return;
@@ -160,7 +160,7 @@ void sourceLoad::remove(Source* src)
     }
 }
 
-Source* sourceLoad::findSource(std::string_view srcname)
+Source* SourceLoad::findSource(std::string_view srcname)
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
@@ -168,7 +168,7 @@ Source* sourceLoad::findSource(std::string_view srcname)
         if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
             (sources[index] == nullptr)) {
             // this may not actually do anything is the sType is set to other
-            add(makeSource(static_cast<sourceLoad::sourceLoc>(ind->second)));
+            add(makeSource(static_cast<SourceLoad::sourceLoc>(ind->second)));
         }
         const int updatedIndex = sourceLink[ind->second];
         return (updatedIndex >= 0 && std::cmp_greater(sources.size(), updatedIndex)) ?
@@ -178,7 +178,7 @@ Source* sourceLoad::findSource(std::string_view srcname)
     return nullptr;
 }
 
-Source* sourceLoad::findSource(std::string_view srcname) const
+Source* SourceLoad::findSource(std::string_view srcname) const
 {
     auto ind = source_match.find(srcname);
     if (ind != source_match.end()) {
@@ -191,7 +191,7 @@ Source* sourceLoad::findSource(std::string_view srcname) const
     return nullptr;
 }
 
-void sourceLoad::setFlag(std::string_view flag, bool val)
+void SourceLoad::setFlag(std::string_view flag, bool val)
 {
     auto sfnd = flag.find_last_of(":?");
     if (sfnd != std::string::npos) {
@@ -202,11 +202,11 @@ void sourceLoad::setFlag(std::string_view flag, bool val)
             throw(unrecognizedParameter(flag));
         }
     } else {
-        zipLoad::setFlag(flag, val);
+        ZipLoad::setFlag(flag, val);
     }
 }
 
-void sourceLoad::set(std::string_view param, std::string_view val)
+void SourceLoad::set(std::string_view param, std::string_view val)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
@@ -217,21 +217,21 @@ void sourceLoad::set(std::string_view param, std::string_view val)
             throw(unrecognizedParameter(param));
         }
     } else {
-        zipLoad::set(param, val);
+        ZipLoad::set(param, val);
     }
 }
 
-void sourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void SourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
     for (const auto& src : getSubObjects()) {
         static_cast<Source*>(src)->timestep(time, noInputs, sMode);
     }
     getSourceLoads();
     prevTime = time;
-    zipLoad::timestep(time, inputs, sMode);
+    ZipLoad::timestep(time, inputs, sMode);
 }
 
-void sourceLoad::setState(coreTime time,
+void SourceLoad::setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const solverMode& sMode)
@@ -243,7 +243,7 @@ void sourceLoad::setState(coreTime time,
     prevTime = time;
 }
 
-void sourceLoad::set(std::string_view param, double val, units::unit unitType)
+void SourceLoad::set(std::string_view param, double val, units::unit unitType)
 {
     auto sfnd = param.find_last_of(":?");
     if (sfnd != std::string::npos) {
@@ -277,11 +277,11 @@ void sourceLoad::set(std::string_view param, double val, units::unit unitType)
                 return;
             }
         }
-        zipLoad::set(param, val, unitType);
+        ZipLoad::set(param, val, unitType);
     }
 }
 
-void sourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // Do a check on the sources;
     for (auto& sourceLocation : sourceLink) {
@@ -293,18 +293,18 @@ void sourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
             logging::warning(this, "no source given at called index");
         }
     }
-    zipLoad::pFlowObjectInitializeA(time0, flags);  // to initialize the submodels
+    ZipLoad::pFlowObjectInitializeA(time0, flags);  // to initialize the submodels
 
     getSourceLoads();
 }
 
-void sourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    zipLoad::dynObjectInitializeA(time0, flags);
+    ZipLoad::dynObjectInitializeA(time0, flags);
     getSourceLoads();
 }
 
-void sourceLoad::updateLocalCache(const IOdata& /*inputs*/,
+void SourceLoad::updateLocalCache(const IOdata& /*inputs*/,
                                   const stateData& stateDataValue,
                                   const solverMode& sMode)
 {
@@ -314,7 +314,7 @@ void sourceLoad::updateLocalCache(const IOdata& /*inputs*/,
     getSourceLoads();
 }
 
-void sourceLoad::getSourceLoads()
+void SourceLoad::getSourceLoads()
 {
     if (sourceLink[p_source] >= 0) {
         setP(sources[sourceLink[p_source]]->getOutput());
@@ -342,7 +342,7 @@ void sourceLoad::getSourceLoads()
     }
 }
 
-Source* sourceLoad::makeSource(sourceLoc loc)
+Source* SourceLoad::makeSource(sourceLoc loc)
 {
     Source* src = nullptr;
     switch (sType) {
@@ -363,7 +363,7 @@ Source* sourceLoad::makeSource(sourceLoc loc)
     return src;
 }
 
-CoreObject* sourceLoad::find(std::string_view obj) const
+CoreObject* SourceLoad::find(std::string_view obj) const
 {
     auto* src = findSource(obj);
     if (src == nullptr) {

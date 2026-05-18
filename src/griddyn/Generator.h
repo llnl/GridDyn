@@ -208,7 +208,7 @@ class Generator: public gridSecondary {
                                         check_level_t level) override;  // only applicable in pFlow
     virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
-    @param[in] sD the current stateData
+    @param[in] stateDataValue the current stateData
     @param[in] sMode the solvermode corresponding to the state
     @param[out] freqOffset the location of the frequency state in the sD arrays
     @return the current frequency the generator is operating at

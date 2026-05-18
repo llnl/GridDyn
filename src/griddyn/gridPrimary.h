@@ -74,7 +74,7 @@ class gridPrimary: public GridComponent {
                           const solverMode& sMode) override;
     /** @brief get the residual computation for object requiring a delay
       basically calls the residual calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] resid the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
@@ -85,7 +85,7 @@ class gridPrimary: public GridComponent {
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the derivative calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] deriv the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
@@ -96,7 +96,7 @@ class gridPrimary: public GridComponent {
 
     /** @brief get the algebraic update for object requesting a delay
       basically calls the residual calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] update the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
@@ -108,8 +108,8 @@ class gridPrimary: public GridComponent {
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the Jacobian calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
-    @param[out] md the matrixData structure to store the Jacobian values
+    @param[in] stateDataValue the data representing the current state to operate on
+    @param[out] matrixDataValue the matrixData structure to store the Jacobian values
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedJacobian(const IOdata& inputs,

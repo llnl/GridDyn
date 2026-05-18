@@ -26,50 +26,55 @@ typeFactory<GenModel>& genModelFactory()
 
 void registerGenModelTypes()
 {
-    static childTypeFactory<GenModelInverter, GenModel> inverterGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModelInverter, GenModel> inverterGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"inverter"}));
 
-    static childTypeFactory<GenModelClassical, GenModel> classicalGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModelClassical, GenModel>
+        classicalGenModelFactory(
         "genmodel",
         std::to_array<std::string_view>(
             {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
 
-    static childTypeFactory<GenModel3, GenModel> thirdOrderGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModel3, GenModel> thirdOrderGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
-    static childTypeFactory<GenModel4, GenModel> fourthOrderGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModel4, GenModel> fourthOrderGenModelFactory(
         "genmodel",
         std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
         "4");
 
-    static childTypeFactory<GenModel5, GenModel> fifthOrderGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModel5, GenModel> fifthOrderGenModelFactory(
         "genmodel",
         std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 
-    static childTypeFactory<GenModel5type2, GenModel> fifthOrderGenModelType2Factory(
+    static childTypeFactory<griddyn::genmodels::GenModel5type2, GenModel>
+        fifthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 
-    static childTypeFactory<GenModel6, GenModel> sixthOrderGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModel6, GenModel> sixthOrderGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
 
-    static childTypeFactory<GenModel6type2, GenModel> sixthOrderGenModelType2Factory(
+    static childTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
+        sixthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
 
-    static childTypeFactory<GenModel8, GenModel> eighthOrderGenModelFactory(
+    static childTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
         "genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
 
-    static const auto registered = (&genModelFactory(),
-                                    &inverterGenModelFactory,
-                                    &classicalGenModelFactory,
-                                    &thirdOrderGenModelFactory,
-                                    &fourthOrderGenModelFactory,
-                                    &fifthOrderGenModelFactory,
-                                    &fifthOrderGenModelType2Factory,
-                                    &sixthOrderGenModelFactory,
-                                    &sixthOrderGenModelType2Factory,
-                                    &eighthOrderGenModelFactory,
-                                    true);
+    static const bool registered = []() {
+        static_cast<void>(genModelFactory());
+        static_cast<void>(&inverterGenModelFactory);
+        static_cast<void>(&classicalGenModelFactory);
+        static_cast<void>(&thirdOrderGenModelFactory);
+        static_cast<void>(&fourthOrderGenModelFactory);
+        static_cast<void>(&fifthOrderGenModelFactory);
+        static_cast<void>(&fifthOrderGenModelType2Factory);
+        static_cast<void>(&sixthOrderGenModelFactory);
+        static_cast<void>(&sixthOrderGenModelType2Factory);
+        static_cast<void>(&eighthOrderGenModelFactory);
+        return true;
+    }();
     static_cast<void>(registered);
 }
 

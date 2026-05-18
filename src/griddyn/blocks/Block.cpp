@@ -18,37 +18,29 @@
 #include <vector>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static const typeFactory<Block>
     blockFactory("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block", "control");
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::deadbandBlock, Block>
     deadbandBlockFactory("block", std::to_array<std::string_view>({"deadband", "db"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::delayBlock, Block>
     delayBlockFactory("block", std::to_array<std::string_view>({"delay", "filter"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::integralBlock, Block>
     integralBlockFactory("block", std::to_array<std::string_view>({"integrator", "integral"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::functionBlock, Block>
     functionBlockFactory("block", std::to_array<std::string_view>({"function", "func"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::lutBlock, Block>
     lookupTableBlockFactory("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::derivativeBlock, Block>
     derivativeBlockFactory("block",
                            std::to_array<std::string_view>({"der", "derivative", "deriv"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const childTypeFactory<blocks::filteredDerivativeBlock, Block>
     filteredDerivativeBlockFactory(
         "block",
         std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 Block::Block(const std::string& objName): GridSubModel(objName)
 {

@@ -37,48 +37,40 @@ namespace {
     }
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<GenModel> genModelFactory("genmodel",
                                              std::to_array<std::string_view>({"trivial"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
     inverterGenModelFactory("genmodel", std::to_array<std::string_view>({"inverter"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> classicalGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>(
         {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel3, GenModel>
     thirdOrderGenModelFactory("genmodel",
                               std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel4, GenModel> fourthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
     "4");
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel5, GenModel> fifthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel5type2, GenModel>
     fifthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel6, GenModel>
     sixthOrderGenModelFactory("genmodel",
                               std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
     sixthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 GenModel::GenModel(const std::string& objName): GridSubModel(objName)
 {

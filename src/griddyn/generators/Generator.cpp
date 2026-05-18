@@ -36,20 +36,31 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
-static typeFactory<Generator> gf("generator",
-                                 std::to_array<std::string_view>({"basic", "simple", "pflow"}));
-static childTypeFactory<DynamicGenerator, Generator>
-    dgf("generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
-static childTypeFactory<variableGenerator, Generator>
-    vgf("generator", std::to_array<std::string_view>({"variable", "renewable"}));
+namespace {
+typeFactory<Generator>& generatorFactory()
+{
+    static typeFactory<Generator> generatorFactoryInstance(
+        "generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
+    return generatorFactoryInstance;
+}
+
+void registerGeneratorTypes()
+{
+    static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
+        "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
+    static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
+        "generator", std::to_array<std::string_view>({"variable", "renewable"}));
+    static const auto registered =
+        (&generatorFactory(), &dynamicGeneratorFactory, &variableGeneratorFactory, true);
+    static_cast<void>(registered);
+}
+}  // namespace
+
 using units::convert;
 using units::MVAR;
 using units::MW;
-using units::puHz;
 using units::puMW;
 using units::puV;
-using units::rad;
-using units::second;
 using units::unit;
 
 std::atomic<count_t> Generator::genCount(0);
@@ -57,6 +68,7 @@ std::atomic<count_t> Generator::genCount(0);
 
 Generator::Generator(const std::string& objName): gridSecondary(objName)
 {
+    registerGeneratorTypes();
     setUserID(++genCount);
     updateName();
     opFlags.set(adjustable_P);
@@ -69,7 +81,7 @@ Generator::~Generator() = default;
 
 CoreObject* Generator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &gf);
+    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &generatorFactory());
     if (gen == nullptr) {
         return obj;
     }
@@ -234,7 +246,8 @@ void Generator::guessState(coreTime /*time*/,
 void Generator::add(CoreObject* obj)
 {
     if (dynamic_cast<GridSubModel*>(obj) != nullptr) {
-        return add(static_cast<GridSubModel*>(obj));
+        add(static_cast<GridSubModel*>(obj));
+        return;
     }
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
         setRemoteBus(obj);
@@ -352,14 +365,13 @@ void Generator::timestep(coreTime time, const IOdata& inputs, const solverMode& 
     if (Pset < -kHalfBigNum) {
         Pset = P;
     }
-    auto dt = time - prevTime;
-    Pset = Pset + dPdt * dt;
-    Pset = (Pset > getPmax(dt)) ? getPmax(dt) : ((Pset < getPmin(dt)) ? getPmin(dt) : Pset);
+    const auto timeDelta = time - prevTime;
+    Pset = Pset + dPdt * timeDelta;
+    Pset = gmlc::utilities::valLimit(Pset, getPmin(timeDelta), getPmax(timeDelta));
 
     P = Pset;
-    Q = Q + dQdt * dt;
-    Q = (Q > getQmax(dt, Pset)) ? getQmax(dt, Pset) :
-                                  ((Q < getQmin(dt, Pset)) ? getQmin(dt, Pset) : Q);
+    Q = Q + dQdt * timeDelta;
+    Q = gmlc::utilities::valLimit(Q, getQmin(timeDelta, Pset), getQmax(timeDelta, Pset));
     if (inputs[voltageInLocation] < 0.8) {
         if (!opFlags[no_voltage_derate]) {
             P = P * (inputs[voltageInLocation] * 1.25);
@@ -376,7 +388,7 @@ change_code Generator::powerFlowAdjust(const IOdata& /*inputs*/,
                                        check_level_t /*level*/)
 {
     if (opFlags[at_limit]) {
-        double voltage = remoteBus->getVoltage();
+        const double voltage = remoteBus->getVoltage();
         if (Q >= getQmax()) {
             if (voltage < m_Vtarget) {
                 opFlags.reset(at_limit);
@@ -418,7 +430,7 @@ void Generator::setFlag(std::string_view flag, bool val)
 {
     if (flag == "capabilitycurve") {
         opFlags.set(use_capability_curve, val);
-        if ((val) && (!bounds)) {
+        if (val && (!bounds)) {
             bounds = std::make_unique<utilities::OperatingBoundary>(Pmin, Pmax, Qmin, Qmax);
         }
     } else if ((flag == "variable") || (flag == "variablegen")) {
@@ -509,7 +521,7 @@ void Generator::set(std::string_view param, double val, unit unitType)
             bounds->setValidRange(Pmin, Pmax);
         }
     } else if (param == "remote") {
-        CoreObject* root = getRoot();
+        const CoreObject* root = getRoot();
         setRemoteBus(root->findByUserID("bus", static_cast<index_t>(val)));
     } else {
         gridSecondary::set(param, val, unitType);
@@ -530,14 +542,14 @@ void Generator::setCapabilityCurve(const std::vector<double>& Ppts,
 }
 
 void Generator::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                         const stateData& /*sD*/,
-                                         matrixData<double>& md,
+                                         const stateData& /*stateDataValue*/,
+                                         matrixData<double>& matrixDataValue,
                                          const solverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         if (stateSize(sMode) > 0) {
             auto offset = offsets.getAlgOffset(sMode);
-            md.assign(QoutLocation, offset, 1.0);
+            matrixDataValue.assign(QoutLocation, offset, 1.0);
         }
         return;
     }
@@ -554,30 +566,34 @@ count_t Generator::outputDependencyCount(index_t num, const solverMode& sMode) c
 }
 
 void Generator::ioPartialDerivatives(const IOdata& inputs,
-                                     const stateData& /*sD*/,
-                                     matrixData<double>& md,
+                                     const stateData& /*stateDataValue*/,
+                                     matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const solverMode& sMode)
 {
     if (!isDynamic(sMode)) {
         if (inputs[voltageInLocation] < 0.8) {
             if (!opFlags[no_voltage_derate]) {
-                md.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], -P * 1.25);
-                md.assignCheckCol(QoutLocation, inputLocs[voltageInLocation], -Q * 1.25);
+                matrixDataValue.assignCheckCol(
+                    PoutLocation, inputLocs[voltageInLocation], -P * 1.25);
+                matrixDataValue.assignCheckCol(
+                    QoutLocation, inputLocs[voltageInLocation], -Q * 1.25);
             }
         }
     }
 }
 
 IOdata
-    Generator::getOutputs(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const
+    Generator::getOutputs(const IOdata& inputs,
+                          const stateData& stateDataValue,
+                          const solverMode& sMode) const
 {
     IOdata output = {-P, -Q};
     if (!isDynamic(sMode))  // use as a proxy for dynamic state
     {
         if (opFlags[indirect_voltage_control]) {
             auto offset = offsets.getAlgOffset(sMode);
-            output[QoutLocation] = -sD.state[offset];
+            output[QoutLocation] = -stateDataValue.state[offset];
             if (inputs[voltageInLocation] < 0.8) {
                 if (!opFlags[no_voltage_derate]) {
                     output[PoutLocation] *= inputs[voltageInLocation] * 1.25;
@@ -620,7 +636,7 @@ double Generator::getRealPower(const IOdata& inputs,
     return output;
 }
 double Generator::getReactivePower(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const stateData& stateDataValue,
                                    const solverMode& sMode) const
 {
     double output = -Q;
@@ -628,7 +644,7 @@ double Generator::getReactivePower(const IOdata& inputs,
     {
         if (opFlags[indirect_voltage_control]) {
             auto offset = offsets.getAlgOffset(sMode);
-            output = sD.state[offset];
+            output = stateDataValue.state[offset];
         } else if (inputs[voltageInLocation] < 0.8) {
             if (!opFlags[no_voltage_derate]) {
                 output *= inputs[voltageInLocation] * 1.25;
@@ -650,18 +666,18 @@ double Generator::getReactivePower() const
 }
 
 void Generator::algebraicUpdate(const IOdata& /*inputs*/,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double update[],
                                 const solverMode& sMode,
                                 double /*alpha*/)
 {
     if ((!isDynamic(sMode)) &&
         (opFlags[indirect_voltage_control])) {  // the bus is managing a remote bus voltage
-        double voltage = remoteBus->getVoltage(sD, sMode);
+        const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
         auto offset = offsets.getAlgOffset(sMode);
         // printf("Q=%f\n",sD.state[offset]);
         if (!opFlags[at_limit]) {
-            update[offset] = -Qbias + (voltage - m_Vtarget) * vRegFraction * 10000.0;
+            update[offset] = -Qbias + ((voltage - m_Vtarget) * vRegFraction * 10000.0);
         } else {
             update[offset] = -Q;
         }
@@ -669,27 +685,27 @@ void Generator::algebraicUpdate(const IOdata& /*inputs*/,
 }
 // compute the residual for the dynamic states
 void Generator::residual(const IOdata& /*inputs*/,
-                         const stateData& sD,
+                         const stateData& stateDataValue,
                          double resid[],
                          const solverMode& sMode)
 {
     if ((!isDynamic(sMode)) &&
         (opFlags[indirect_voltage_control])) {  // the bus is managing a remote bus voltage
-        double voltage = remoteBus->getVoltage(sD, sMode);
+        const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
         auto offset = offsets.getAlgOffset(sMode);
         // printf("Q=%f\n",sD.state[offset]);
         if (!opFlags[at_limit]) {
-            resid[offset] =
-                sD.state[offset] + Qbias - (voltage - m_Vtarget) * vRegFraction * 10000.0;
+            resid[offset] = stateDataValue.state[offset] + Qbias -
+                ((voltage - m_Vtarget) * vRegFraction * 10000.0);
         } else {
-            resid[offset] = sD.state[offset] + Q;
+            resid[offset] = stateDataValue.state[offset] + Q;
         }
     }
 }
 
 void Generator::jacobianElements(const IOdata& /*inputs*/,
-                                 const stateData& /*sD*/,
-                                 matrixData<double>& md,
+                                 const stateData& /*stateDataValue*/,
+                                 matrixData<double>& matrixDataValue,
                                  const IOlocs& /*inputLocs*/,
                                  const solverMode& sMode)
 {
@@ -699,10 +715,10 @@ void Generator::jacobianElements(const IOdata& /*inputs*/,
         auto offset = offsets.getAlgOffset(sMode);
         if (!opFlags[at_limit]) {
             // resid[offset] = sD.state[offset] - (voltage - m_Vtarget)*remoteVRegFraction * 10000;
-            md.assignCheck(offset, offset, 1);
-            md.assignCheck(offset, Voff, -vRegFraction * 10000);
+            matrixDataValue.assignCheck(offset, offset, 1);
+            matrixDataValue.assignCheck(offset, Voff, -vRegFraction * 10000);
         } else {
-            md.assignCheck(offset, offset, 1.0);
+            matrixDataValue.assignCheck(offset, offset, 1.0);
         }
     }
 }
@@ -711,7 +727,7 @@ void Generator::getStateName(stringVec& stNames,
                              const solverMode& sMode,
                              const std::string& prefix) const
 {
-    std::string prefix2 = prefix + getName();
+    const std::string prefix2 = prefix + getName();
     if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
         auto offset = offsets.getAlgOffset(sMode);
         stNames[offset] = prefix2 + ":Q";
@@ -798,16 +814,20 @@ double Generator::getQmin(const coreTime /*time*/, double Ptest) const
     return Qmin;
 }
 
-double Generator::getFreq(const stateData& sD, const solverMode& sMode, index_t* freqOffset) const
+double Generator::getFreq(const stateData& stateDataValue,
+                          const solverMode& sMode,
+                          index_t* freqOffset) const
 {
     *freqOffset = kNullLocation;
-    return bus->getFreq(sD, sMode);
+    return bus->getFreq(stateDataValue, sMode);
 }
 
-double Generator::getAngle(const stateData& sD, const solverMode& sMode, index_t* angleOffset) const
+double Generator::getAngle(const stateData& stateDataValue,
+                           const solverMode& sMode,
+                           index_t* angleOffset) const
 {
     *angleOffset = kNullLocation;
-    return bus->getAngle(sD, sMode);
+    return bus->getAngle(stateDataValue, sMode);
 }
 
 }  // namespace griddyn

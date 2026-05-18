@@ -79,7 +79,7 @@ class gridPrimary: public GridComponent {
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedResidual(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double resid[],
                                  const solverMode& sMode);
 
@@ -90,7 +90,7 @@ class gridPrimary: public GridComponent {
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedDerivative(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const stateData& stateDataValue,
                                    double deriv[],
                                    const solverMode& sMode);
 
@@ -101,7 +101,7 @@ class gridPrimary: public GridComponent {
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedAlgebraicUpdate(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         double update[],
                                         const solverMode& sMode,
                                         double alpha);
@@ -113,8 +113,8 @@ class gridPrimary: public GridComponent {
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedJacobian(const IOdata& inputs,
-                                 const stateData& sD,
-                                 matrixData<double>& md,
+                                 const stateData& stateDataValue,
+                                 matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const solverMode& sMode);
 

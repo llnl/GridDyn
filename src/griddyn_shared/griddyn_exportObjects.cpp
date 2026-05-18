@@ -28,7 +28,6 @@
 #include <map>
 
 using griddyn::Area;
-using griddyn::GridBlock;
 using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreOwningPtr;
@@ -36,13 +35,14 @@ using griddyn::Exciter;
 using griddyn::Generator;
 using griddyn::GenModel;
 using griddyn::Governor;
+using griddyn::GridBlock;
 using griddyn::GridBus;
 using griddyn::GridComponent;
 using griddyn::gridDynSimulation;
+using griddyn::GridLoad;
 using griddyn::GridSubModel;
 using griddyn::kNullVal;
 using griddyn::Link;
-using griddyn::GridLoad;
 using griddyn::Relay;
 using griddyn::scheduler;
 using griddyn::sensor;

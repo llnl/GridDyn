@@ -97,9 +97,9 @@ namespace {
 
         void load() override
         {
-            auto factory =
-                std::make_shared<griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::GridLoad>>(
-                    "load", griddyn::stringVec{"fmiload", "fmi"});
+            auto factory = std::make_shared<
+                griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::GridLoad>>(
+                "load", griddyn::stringVec{"fmiload", "fmi"});
             fmiFactories.push_back(factory);
         }
 

@@ -27,9 +27,7 @@ GridLoad::GridLoad(const std::string& objName): gridSecondary(objName)
     constructionHelper();
 }
 GridLoad::GridLoad(double rP, double rQ, const std::string& objName):
-    gridSecondary(objName),
-    P(rP),
-    Q(rQ)
+    gridSecondary(objName), P(rP), Q(rQ)
 {
     constructionHelper();
 }

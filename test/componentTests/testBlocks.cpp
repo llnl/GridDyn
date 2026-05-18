@@ -287,7 +287,8 @@ TEST_P(BlockCompareTests, CompareBlockTest)
     if (gds->getSimulationTime() < 7.99) {
         runJacobianCheck(gds, cDaeSolverMode);
         runResidualCheck(gds, cDaeSolverMode);
-        ASSERT_GT(gds->getSimulationTime(), 7.99) << "GridBlock " << plist.first << " failed to solve";
+        ASSERT_GT(gds->getSimulationTime(), 7.99)
+            << "GridBlock " << plist.first << " failed to solve";
     }
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");

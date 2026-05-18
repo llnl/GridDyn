@@ -106,7 +106,8 @@ namespace loads {
         coupling_mode_t dynCoupling = coupling_mode_t::trigger;  //!< the coupling dynamic mode
         coupling_detail_t cDetail = coupling_detail_t::triple;  //!< the detail of the check
         index_t lastSeqID = kNullLocation;
-        std::vector<std::unique_ptr<GridLoad>> dummy_load;  //!< a dummy load for testing without MPI
+        std::vector<std::unique_ptr<GridLoad>>
+            dummy_load;  //!< a dummy load for testing without MPI
         std::vector<std::unique_ptr<GridLoad>>
             dummy_load_forward;  //!< the dummy load for forward projection
 #ifndef HAVE_MPI

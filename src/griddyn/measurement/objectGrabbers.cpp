@@ -355,7 +355,8 @@ namespace {
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
-    {"loadreal", {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getRealPower(); }, puMW}},
+    {"loadreal",
+     {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getRealPower(); }, puMW}},
     {"loadreactive",
      {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getReactivePower(); }, puMW}},
 };

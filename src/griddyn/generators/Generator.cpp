@@ -37,14 +37,17 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<Generator> generatorFactory(
-    "generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
+static typeFactory<Generator>
+    generatorFactory("generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
-    "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
+static childTypeFactory<DynamicGenerator, Generator>
+    dynamicGeneratorFactory("generator",
+                            std::to_array<std::string_view>({"dynamic", "spinning"}),
+                            "dynamic");
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
-    "generator", std::to_array<std::string_view>({"variable", "renewable"}));
+static childTypeFactory<variableGenerator, Generator>
+    variableGeneratorFactory("generator",
+                             std::to_array<std::string_view>({"variable", "renewable"}));
 
 using units::convert;
 using units::MVAR;

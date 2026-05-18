@@ -17,8 +17,8 @@
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const typeFactory<Block> agcFactory(
-    "agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+static const typeFactory<Block>
+    agcFactory("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
 /*
 class AGControl
 {

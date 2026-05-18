@@ -63,9 +63,9 @@ static childTypeFactory<griddyn::genmodels::GenModel5, GenModel> fifthOrderGenMo
     std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel5type2, GenModel>
-    fifthOrderGenModelType2Factory(
-        "genmodel",
-        std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
+            fifthOrderGenModelType2Factory("genmodel",
+                                           std::to_array<std::string_view>(
+                                               {"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<griddyn::genmodels::GenModel6, GenModel> sixthOrderGenModelFactory(
     "genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));

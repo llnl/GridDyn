@@ -154,7 +154,7 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         }
     }
 
-    if (dynamic_cast<gridBus*>(m_sourceObject) != nullptr) {
+    if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         // no way to get current from a bus
         opFlags[CURRENT_ACTIVE] = false;
     }

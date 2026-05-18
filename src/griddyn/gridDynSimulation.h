@@ -169,7 +169,7 @@ class gridDynSimulation: public gridSimulation {
                                                        //!< Information for solverMode pairings
     std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
-    std::vector<gridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
+    std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
     std::queue<gridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<continuationSequence>>
         continList;  //!< set of continuation sequences to run

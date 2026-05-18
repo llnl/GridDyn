@@ -53,7 +53,7 @@ CoreObject* svd::clone(CoreObject* obj) const
     return ld;
 }
 
-void svd::setControlBus(gridBus* cBus)
+void svd::setControlBus(GridBus* cBus)
 {
     if (cBus != nullptr) {
         controlBus = cBus;

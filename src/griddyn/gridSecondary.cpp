@@ -15,9 +15,34 @@
 #include <vector>
 
 namespace griddyn {
-static gridBus defBus(1.0, 0);
+namespace {
+    GridBus& defaultBus()
+    {
+        static GridBus defaultBusInstance(1.0, 0);
+        return defaultBusInstance;
+    }
 
-gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName), bus(&defBus)
+    const std::vector<stringVec>& secondaryInputNames()
+    {
+        static const std::vector<stringVec> inputNames{
+            {"voltage", "v", "volt"},
+            {"angle", "theta", "ang", "a"},
+            {"frequency", "freq", "f", "omega"},
+        };
+        return inputNames;
+    }
+
+    const std::vector<stringVec>& secondaryOutputNames()
+    {
+        static const std::vector<stringVec> outputNames{
+            {"p", "power", "realpower", "real"},
+            {"q", "reactive", "reactivepower"},
+        };
+        return outputNames;
+    }
+}  // namespace
+
+gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName), bus(&defaultBus())
 {
     m_outputSize = 2;
     m_inputSize = 3;
@@ -25,7 +50,7 @@ gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName)
 
 CoreObject* gridSecondary::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<gridSecondary, GridComponent>(this, obj);
+    auto* nobj = cloneBase<gridSecondary, GridComponent>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -37,9 +62,9 @@ CoreObject* gridSecondary::clone(CoreObject* obj) const
 void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
 {
     if (opFlags[pFlow_initialized]) {
-        auto nobj = findMatchingObject(bus, newRoot);
-        if (dynamic_cast<gridBus*>(nobj) != nullptr) {
-            bus = static_cast<gridBus*>(nobj);
+        auto* matchedObject = findMatchingObject(bus, newRoot);
+        if (dynamic_cast<GridBus*>(matchedObject) != nullptr) {
+            bus = static_cast<GridBus*>(matchedObject);
         }
     }
     GridComponent::updateObjectLinkages(newRoot);
@@ -47,9 +72,9 @@ void gridSecondary::updateObjectLinkages(CoreObject* newRoot)
 
 void gridSecondary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
-    bus = static_cast<gridBus*>(getParent()->find("bus"));
+    bus = static_cast<GridBus*>(getParent()->find("bus"));
     if (bus == nullptr) {
-        bus = &defBus;
+        bus = &defaultBus();
     }
     GridComponent::pFlowInitializeA(time0, flags);
 }
@@ -68,10 +93,10 @@ void gridSecondary::dynInitializeB(const IOdata& inputs,
                                    IOdata& fieldSet)
 {
     if (isEnabled()) {
-        auto ns = stateSize(cLocalSolverMode);
-        m_state.resize(ns, 0);
+        auto stateCount = stateSize(cLocalSolverMode);
+        m_state.resize(stateCount, 0);
         m_dstate_dt.clear();
-        m_dstate_dt.resize(ns, 0);
+        m_dstate_dt.resize(stateCount, 0);
         dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         if (updatePeriod < maxTime) {
             setUpdateTime(prevTime + updatePeriod);
@@ -85,7 +110,10 @@ void gridSecondary::dynInitializeB(const IOdata& inputs,
 void gridSecondary::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (!getSubObjects().empty()) {
-        for (auto& subobj : getSubObjects()) {
+        for (const auto& subobj : getSubObjects()) {
+            if (subobj == nullptr) {
+                continue;
+            }
             if (dynamic_cast<GridSubModel*>(subobj) != nullptr) {
                 if ((subobj->checkFlag(pflow_init_required)) ||
                     (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization))) {
@@ -111,14 +139,14 @@ void gridSecondary::set(std::string_view param, double val, units::unit unitType
 }
 
 double gridSecondary::getRealPower(const IOdata& /*inputs*/,
-                                   const stateData& /*sD*/,
+                                   const stateData& /*stateDataValue*/,
                                    const solverMode& /*sMode*/) const
 {
     return 0.0;
 }
 
 double gridSecondary::getReactivePower(const IOdata& /*inputs*/,
-                                       const stateData& /*sD*/,
+                                       const stateData& /*stateDataValue*/,
                                        const solverMode& /*sMode*/) const
 {
     return 0.0;
@@ -141,7 +169,7 @@ double gridSecondary::getAdjustableCapacityDown(coreTime /*time*/) const
     return 0.0;
 }
 double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
-                                const stateData& /*sD*/,
+                                const stateData& /*stateDataValue*/,
                                 const solverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
 {
@@ -149,15 +177,15 @@ double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
 }
 
 double gridSecondary::getOutput(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 const solverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum == PoutLocation) {
-        return getRealPower(inputs, sD, sMode);
+        return getRealPower(inputs, stateDataValue, sMode);
     }
     if (outputNum == QoutLocation) {
-        return getReactivePower(inputs, sD, sMode);
+        return getReactivePower(inputs, stateDataValue, sMode);
     }
     return kNullVal;
 }
@@ -174,45 +202,34 @@ double gridSecondary::getOutput(index_t outputNum) const
 }
 
 IOdata gridSecondary::getOutputs(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  const solverMode& sMode) const
 {
     IOdata out(2);
-    out[PoutLocation] = getRealPower(inputs, sD, sMode);
-    out[QoutLocation] = getReactivePower(inputs, sD, sMode);
+    out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);
+    out[QoutLocation] = getReactivePower(inputs, stateDataValue, sMode);
     return out;
 }
 
 IOdata gridSecondary::predictOutputs(coreTime /*predictionTime*/,
                                      const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const solverMode& sMode) const
 {
     IOdata out(2);
-    out[PoutLocation] = getRealPower(inputs, sD, sMode);
-    out[QoutLocation] = getReactivePower(inputs, sD, sMode);
+    out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);
+    out[QoutLocation] = getReactivePower(inputs, stateDataValue, sMode);
     return out;
 }
 
-static const std::vector<stringVec> inputNamesStr{
-    {"voltage", "v", "volt"},
-    {"angle", "theta", "ang", "a"},
-    {"frequency", "freq", "f", "omega"},
-};
-
 const std::vector<stringVec>& gridSecondary::inputNames() const
 {
-    return inputNamesStr;
+    return secondaryInputNames();
 }
-
-static const std::vector<stringVec> outputNamesStr{
-    {"p", "power", "realpower", "real"},
-    {"q", "reactive", "reactivepower"},
-};
 
 const std::vector<stringVec>& gridSecondary::outputNames() const
 {
-    return outputNamesStr;
+    return secondaryOutputNames();
 }
 
 units::unit gridSecondary::inputUnits(index_t inputNum) const
@@ -233,7 +250,6 @@ units::unit gridSecondary::outputUnits(index_t outputNum) const
 {
     switch (outputNum) {
         case PoutLocation:
-            return units::puMW;
         case QoutLocation:
             return units::puMW;
 

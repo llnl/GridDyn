@@ -231,7 +231,7 @@ void buildBusContingencies(gridDynSimulation* gds,
                            const extraContingencyInfo& info,
                            int skip)
 {
-    std::vector<gridBus*> buses;
+    std::vector<GridBus*> buses;
     gds->getBusVector(buses);
     const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());
@@ -277,7 +277,7 @@ void buildLoadContingencies(gridDynSimulation* gds,
                             const extraContingencyInfo& info,
                             int skip)
 {
-    std::vector<gridBus*> buses;
+    std::vector<GridBus*> buses;
     gds->getBusVector(buses);
     const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());
@@ -308,7 +308,7 @@ void buildGenContingencies(gridDynSimulation* gds,
                            const extraContingencyInfo& info,
                            int skip)
 {
-    std::vector<gridBus*> buses;
+    std::vector<GridBus*> buses;
     gds->getBusVector(buses);
     const size_t startSize = contList.size();
     contList.reserve(startSize + buses.size());

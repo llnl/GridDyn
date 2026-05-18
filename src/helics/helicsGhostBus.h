@@ -13,7 +13,7 @@ class HelicsCoordinator;
 /** class meant to implement a Ghost Bus
 @details the bus gets its voltage from another simulation, otherwise it acts pretty much like an
 infinite bus*/
-class HelicsGhostBus: public gridBus {
+class HelicsGhostBus: public GridBus {
   protected:
     std::string voltageKey;  //!< the key to send voltage
     std::string loadKey;  //!< time series containing the load information

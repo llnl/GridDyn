@@ -18,7 +18,7 @@ namespace griddyn {
 class Block;
 
 /** @brief basic power system bus for a power grid simulation
-  The gridBus class provides the basic node in a power systems analysis.  It is a locational basis
+  The GridBus class provides the basic node in a power systems analysis.  It is a locational basis
 for voltages and angles.  For the power systems analysis the equations include a power balance
 equations \f[ f(V)=\sum Q_{load}+ \sum Q_{gen}+ \sum Q_{link} \f] \f[ f(\theta)=\sum P_{load}+\sum
 P_{gen}+\sum P_{link} \f] Buses can have a number of different configurations SLK buses fix the
@@ -30,7 +30,7 @@ Buses act as connection points for links to tie to other buses and gridSecondary
 generators and loads.
 
 */
-class acBus: public gridBus {
+class AcBus: public GridBus {
     friend class BusControls;
 
   public:
@@ -77,26 +77,26 @@ class acBus: public gridBus {
 
   public:
     /** @brief default constructor*/
-    explicit acBus(const std::string& objName = "bus_$");
+    explicit AcBus(const std::string& objName = "bus_$");
     /** @brief alternate constructor to specify voltage and angle
     @param[in] vStart the initial voltage
     @param[in] angleStart the initial angle
     */
-    acBus(double vStart, double angleStart, const std::string& objName = "bus_$");
+    AcBus(double vStart, double angleStart, const std::string& objName = "bus_$");
 
-    virtual ~acBus();
+    virtual ~AcBus();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    using gridBus::add;
+    using GridBus::add;
     virtual void add(CoreObject* obj) override;
-    /** @brief  add a gridBus object for merging buses*/
-    virtual void add(acBus* bus);
+    /** @brief  add a GridBus object for merging buses*/
+    virtual void add(AcBus* bus);
     // remove components
-    using gridBus::remove;
+    using GridBus::remove;
     virtual void remove(CoreObject* obj) override;
 
-    virtual void remove(acBus* bus);
+    virtual void remove(AcBus* bus);
     // deal with control alerts
     virtual void alert(CoreObject* obj, int code) override;
 
@@ -132,8 +132,8 @@ class acBus: public gridBus {
 
   public:
     virtual void disable() override;
-    using gridBus::reconnect;
-    virtual void reconnect(gridBus* mapBus) override;
+    using GridBus::reconnect;
+    virtual void reconnect(GridBus* mapBus) override;
     // parameter set functions
     virtual void getParameterStrings(stringVec& pstr,
                                      paramStringType pstype = paramStringType::all) const override;
@@ -362,9 +362,9 @@ class acBus: public gridBus {
 
     // for dealing with buses merged with zero impedance link
     /** @brief  merge a bus with the calling bus*/
-    virtual void mergeBus(gridBus* mbus) override;
+    virtual void mergeBus(GridBus* mbus) override;
     /** @brief  unmerge a bus with the calling bus*/
-    virtual void unmergeBus(gridBus* mbus) override;
+    virtual void unmergeBus(GridBus* mbus) override;
     /** @brief  check if all the buses that are merged should be*/
     virtual void checkMerge() override;
 

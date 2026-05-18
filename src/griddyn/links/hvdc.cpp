@@ -41,9 +41,9 @@ hvdc::hvdc(const std::string& objName): subsystem(4, objName)
     auto inv2 = new acdcConverter("inv2");
     subsystem::add(inv2);
 
-    auto dcb1 = new dcBus("bus1");
+    auto dcb1 = new DcBus("bus1");
     subsystem::add(dcb1);
-    auto dcb2 = new dcBus("bus2");
+    auto dcb2 = new DcBus("bus2");
     subsystem::add(dcb2);
 
     dcl->updateBus(dcb1, 1);
@@ -125,7 +125,7 @@ double hvdc::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void hvdc::updateBus(gridBus* bus, index_t busnumber)
+void hvdc::updateBus(GridBus* bus, index_t busnumber)
 {
     if (busnumber == 1) {
         subsystem::updateBus(bus, 1);

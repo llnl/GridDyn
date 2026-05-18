@@ -16,11 +16,11 @@
 #include <string>
 
 namespace griddyn::helicsLib {
-HelicsGhostBus::HelicsGhostBus(const std::string& objName): gridBus(objName) {}
+HelicsGhostBus::HelicsGhostBus(const std::string& objName): GridBus(objName) {}
 
 CoreObject* HelicsGhostBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<HelicsGhostBus, gridBus>(this, obj);
+    auto nobj = cloneBase<HelicsGhostBus, GridBus>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -32,12 +32,12 @@ CoreObject* HelicsGhostBus::clone(CoreObject* obj) const
 
 void HelicsGhostBus::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
 {
-    gridBus::pFlowObjectInitializeA(time0, flags);
+    GridBus::pFlowObjectInitializeA(time0, flags);
 }
 
 void HelicsGhostBus::pFlowObjectInitializeB()
 {
-    gridBus::pFlowInitializeB();
+    GridBus::pFlowInitializeB();
     updateA(prevTime);
     updateB();
 }
@@ -76,17 +76,17 @@ void HelicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const solver
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);
         updateB();
-        gridBus::timestep(nextUpdateTime, inputs, sMode);
+        GridBus::timestep(nextUpdateTime, inputs, sMode);
     }
 
-    gridBus::timestep(ttime, inputs, sMode);
+    GridBus::timestep(ttime, inputs, sMode);
 }
 
 void HelicsGhostBus::setFlag(const std::string& flag, bool val)
 {
     if (flag.front() == '#') {
     } else {
-        gridBus::setFlag(flag, val);
+        GridBus::setFlag(flag, val);
     }
 }
 
@@ -103,7 +103,7 @@ void HelicsGhostBus::set(const std::string& param, const std::string& val)
     } else if ((param == "outunits") || (param == "outputunits")) {
         outUnits = units::unit_cast_from_string(val);
     } else {
-        gridBus::set(param, val);
+        GridBus::set(param, val);
     }
 }
 
@@ -111,7 +111,7 @@ void HelicsGhostBus::set(const std::string& param, double val, units::unit unitT
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridBus::set(param, val, unitType);
+        GridBus::set(param, val, unitType);
     }
 }
 

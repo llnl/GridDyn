@@ -41,8 +41,8 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     auto secSize = sizeof(gridSecondary);
     std::cout << "gridSecondary size=" << secSize << " adds " << secSize - compSize << '\n';
 
-    std::cout << "bus size=" << sizeof(gridBus) << " adds " << sizeof(gridBus) - primSize << '\n';
-    std::cout << "acbus size=" << sizeof(acBus) << " adds " << sizeof(acBus) - sizeof(gridBus)
+    std::cout << "bus size=" << sizeof(GridBus) << " adds " << sizeof(GridBus) - primSize << '\n';
+    std::cout << "acbus size=" << sizeof(AcBus) << " adds " << sizeof(AcBus) - sizeof(GridBus)
               << '\n';
 
     std::cout << "load size=" << sizeof(Load) << " adds " << sizeof(Load) - secSize << '\n';
@@ -55,7 +55,7 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
               << sizeof(DynamicGenerator) - sizeof(Generator) << '\n';
 
     std::cout << "Link size=" << sizeof(Link) << " adds " << sizeof(Link) - primSize << '\n';
-    std::cout << "ac Link size=" << sizeof(acLine) << " adds " << sizeof(acLine) - sizeof(Link)
+    std::cout << "ac Link size=" << sizeof(AcLine) << " adds " << sizeof(AcLine) - sizeof(Link)
               << '\n';
 
     std::cout << "submodel size" << sizeof(GridSubModel) << "adds "

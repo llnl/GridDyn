@@ -129,7 +129,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
                    load_time.count(),
                    pflow_time.count());
             printf("%d residual calls, %d Jacobian call\n", rcount, jcount);
-            auto bus = static_cast<gridBus*>(gds->findByUserID("bus", 10000000));
+            auto bus = static_cast<GridBus*>(gds->findByUserID("bus", 10000000));
             printf("slack bus gen p=%f, gen q =%f\n",
                    bus->getGenerationReal(),
                    bus->getGenerationReactive());
@@ -195,7 +195,7 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
            load_time.count(),
            pflow_time.count());
     printf("%d residual calls, %d Jacobian call\n", rcount, jcount);
-    auto bus = static_cast<gridBus*>(gds->findByUserID("bus", 10000000));
+    auto bus = static_cast<GridBus*>(gds->findByUserID("bus", 10000000));
     printf("slack bus gen p=%f, gen q =%f\n",
            bus->getGenerationReal(),
            bus->getGenerationReactive());

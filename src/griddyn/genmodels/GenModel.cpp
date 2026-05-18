@@ -16,50 +16,61 @@
 #include <vector>
 
 namespace griddyn {
-static typeFactory<GenModel> gdm("genmodel", std::to_array<std::string_view>({"trivial"}));
+namespace {
+    const std::vector<stringVec>& genModelInputNames()
+    {
+        static const std::vector<stringVec> inputNames{
+            {"voltage", "v", "volt"},
+            {"angle", "ang", "a"},
+            {"eft", "e", "field", "exciter"},
+            {"pmech", "power", "p", "mech"},
+        };
+        return inputNames;
+    }
 
-namespace genmodels {
-    static childTypeFactory<GenModelInverter, GenModel>
-        gfgm("genmodel", std::to_array<std::string_view>({"inverter"}));
+    const std::vector<stringVec>& genModelOutputNames()
+    {
+        static const std::vector<stringVec> outputNames{
+            {"e", "field", "exciter"},
+        };
+        return outputNames;
+    }
+}  // namespace
 
-    static childTypeFactory<GenModelClassical, GenModel>
-        gfgm2("genmodel",
-              std::to_array<std::string_view>(
-                  {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
-
-    static childTypeFactory<GenModel3, GenModel>
-        gfgm3("genmodel", std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
-    static childTypeFactory<GenModel4, GenModel>
-        gfgm4("genmodel",
-              std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
-              "4");  // set 4th order as the default
-
-    static childTypeFactory<GenModel5, GenModel>
-        gfgm5("genmodel",
-              std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
-
-    static childTypeFactory<GenModel5type2, GenModel> gfgm5p2(
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static typeFactory<GenModel> genModelFactory("genmodel",
+                                             std::to_array<std::string_view>({"trivial"}));
+static childTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
+    inverterGenModelFactory("genmodel", std::to_array<std::string_view>({"inverter"}));
+static childTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> classicalGenModelFactory(
+    "genmodel",
+    std::to_array<std::string_view>(
+        {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
+static childTypeFactory<griddyn::genmodels::GenModel3, GenModel>
+    thirdOrderGenModelFactory("genmodel",
+                              std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
+static childTypeFactory<griddyn::genmodels::GenModel4, GenModel> fourthOrderGenModelFactory(
+    "genmodel",
+    std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
+    "4");
+static childTypeFactory<griddyn::genmodels::GenModel5, GenModel> fifthOrderGenModelFactory(
+    "genmodel",
+    std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
+static childTypeFactory<griddyn::genmodels::GenModel5type2, GenModel>
+    fifthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
-
-    // static typeFactory<GenModel5type3> gfgm5p3 ("genmodel", stringVec{"5.3",
-    // "fifthtype3", "fifthordertype3", "Vtype3"});
-
-    static childTypeFactory<GenModel6, GenModel>
-        gfgm6("genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
-
-    static childTypeFactory<GenModel6type2, GenModel> gfgm6p2(
+static childTypeFactory<griddyn::genmodels::GenModel6, GenModel>
+    sixthOrderGenModelFactory("genmodel",
+                              std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
+static childTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
+    sixthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
-    /*
-static typeFactory<GenModelGENROU> gfgm6p3("genmodel", stringVec{"6.3",
-"sixtype3", "sixthordertype3", "VItype3", "VI.3","genrou"});
-*/
-
-    static childTypeFactory<GenModel8, GenModel>
-        gfgm8("genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
-
-}  // namespace genmodels
+static childTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
+    "genmodel",
+    std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 GenModel::GenModel(const std::string& objName): GridSubModel(objName)
 {
@@ -68,15 +79,15 @@ GenModel::GenModel(const std::string& objName): GridSubModel(objName)
 }
 CoreObject* GenModel::clone(CoreObject* obj) const
 {
-    auto* gd = cloneBase<GenModel, GridSubModel>(this, obj);
-    if (gd == nullptr) {
+    auto* genModelClone = cloneBase<GenModel, GridSubModel>(this, obj);
+    if (genModelClone == nullptr) {
         return obj;
     }
 
-    gd->Rs = Rs;
-    gd->Xd = Xd;
-    gd->machineBasePower = machineBasePower;
-    return gd;
+    genModelClone->Rs = Rs;
+    genModelClone->Xd = Xd;
+    genModelClone->machineBasePower = machineBasePower;
+    return genModelClone;
 }
 
 // initial conditions
@@ -95,22 +106,24 @@ void GenModel::dynObjectInitializeB(const IOdata& inputs,
             desiredOutput[QoutLocation] / Xd / inputs[voltageInLocation] * 0.85;
     }
 
-    bus = static_cast<gridBus*>(find("bus"));
+    bus = static_cast<GridBus*>(find("bus"));
 }
 
 // residual
 
-double GenModel::getFreq(const stateData& sD, const solverMode& sMode, index_t* freqOffset) const
+double GenModel::getFreq(const stateData& stateDataValue,
+                         const solverMode& sMode,
+                         index_t* freqOffset) const
 {
     // there is no inertia in this gen model so it can't compute a frequency and
     // must use the bus frequency
     if (freqOffset != nullptr) {
         *freqOffset = bus->getOutputLoc(sMode, frequencyInLocation);
     }
-    return bus->getFreq(sD, sMode);
+    return bus->getFreq(stateDataValue, sMode);
 }
 
-double GenModel::getAngle(const stateData& /*sD*/,
+double GenModel::getAngle(const stateData& /*stateDataValue*/,
                           const solverMode& /*sMode*/,
                           index_t* angleOffset) const
 {
@@ -127,43 +140,43 @@ count_t GenModel::outputDependencyCount(index_t /*num*/, const solverMode& /*sMo
     return 0;
 }
 IOdata GenModel::getOutputs(const IOdata& inputs,
-                            const stateData& /*sD*/,
+                            const stateData& /*stateDataValue*/,
                             const solverMode& /*sMode*/) const
 {
     IOdata out(2);
-    double V = inputs[voltageInLocation];
-    double Eft = inputs[genModelEftInLocation];
-    if (V > 0.85) {
+    const double voltage = inputs[voltageInLocation];
+    const double exciterField = inputs[genModelEftInLocation];
+    if (voltage > 0.85) {
         out[PoutLocation] = -inputs[genModelPmechInLocation];
-        out[QoutLocation] = -Eft * Xd;
+        out[QoutLocation] = -exciterField * Xd;
     } else {
-        out[PoutLocation] = -inputs[genModelPmechInLocation] * V / 0.85;
-        out[QoutLocation] = -Eft * Xd * V / 0.85;
+        out[PoutLocation] = -inputs[genModelPmechInLocation] * voltage / 0.85;
+        out[QoutLocation] = -exciterField * Xd * voltage / 0.85;
     }
 
     return out;
 }
 
 double GenModel::getOutput(const IOdata& inputs,
-                           const stateData& /*sD*/,
+                           const stateData& /*stateDataValue*/,
                            const solverMode& /*sMode*/,
                            index_t outNum) const
 {
-    double V = inputs[voltageInLocation];
-    double Eft = inputs[genModelEftInLocation];
-    if (V > 0.85) {
+    const double voltage = inputs[voltageInLocation];
+    const double exciterField = inputs[genModelEftInLocation];
+    if (voltage > 0.85) {
         if (outNum == PoutLocation) {
             return -inputs[genModelPmechInLocation];
         }
         if (outNum == QoutLocation) {
-            return -Eft * Xd;
+            return -exciterField * Xd;
         }
     } else {
         if (outNum == PoutLocation) {
-            return -inputs[genModelPmechInLocation] * V / 0.85;
+            return -inputs[genModelPmechInLocation] * voltage / 0.85;
         }
         if (outNum == QoutLocation) {
-            return -Eft * Xd * V / 0.85;
+            return -exciterField * Xd * voltage / 0.85;
         }
     }
     return kNullVal;
@@ -175,40 +188,44 @@ double GenModel::getOutput(index_t /*numOut*/) const
 }
 
 void GenModel::ioPartialDerivatives(const IOdata& inputs,
-                                    const stateData& /*sD*/,
-                                    matrixData<double>& md,
+                                    const stateData& /*stateDataValue*/,
+                                    matrixData<double>& matrixDataValue,
                                     const IOlocs& inputLocs,
                                     const solverMode& /*sMode*/)
 {
-    double V = inputs[voltageInLocation];
+    const double voltage = inputs[voltageInLocation];
 
-    if (V > 0.85) {
-        md.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd);
+    if (voltage > 0.85) {
+        matrixDataValue.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd);
 
         if (inputLocs[voltageInLocation] != kNullLocation) {
-            md.assign(PoutLocation, inputLocs[voltageInLocation], 0);
-            md.assign(QoutLocation, inputLocs[voltageInLocation], 0);
+            matrixDataValue.assign(PoutLocation, inputLocs[voltageInLocation], 0);
+            matrixDataValue.assign(QoutLocation, inputLocs[voltageInLocation], 0);
         }
-        md.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -1.0);
+        matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -1.0);
     } else {
-        double factor = V / 0.85;
-        md.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd * factor);
+        const double factor = voltage / 0.85;
+        matrixDataValue.assignCheckCol(QoutLocation,
+                                       inputLocs[genModelEftInLocation],
+                                       -Xd * factor);
 
         if (inputLocs[voltageInLocation] != kNullLocation) {
-            double Eft = inputs[genModelEftInLocation];
-            md.assign(PoutLocation,
-                      inputLocs[voltageInLocation],
-                      -inputs[genModelPmechInLocation] / 0.85);
-            md.assign(QoutLocation, inputLocs[voltageInLocation], -Eft * Xd / 0.85);
+            const double exciterField = inputs[genModelEftInLocation];
+            matrixDataValue.assign(PoutLocation,
+                                   inputLocs[voltageInLocation],
+                                   -inputs[genModelPmechInLocation] / 0.85);
+            matrixDataValue.assign(QoutLocation,
+                                   inputLocs[voltageInLocation],
+                                   -exciterField * Xd / 0.85);
         }
-        md.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -factor);
+        matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -factor);
     }
 }
 
 // set parameters
 void GenModel::set(std::string_view param, std::string_view val)
 {
-    return GridSubModel::set(param, val);
+    GridSubModel::set(param, val);
 }
 void GenModel::set(std::string_view param, double val, units::unit unitType)
 {
@@ -237,25 +254,14 @@ void GenModel::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-static const std::vector<stringVec> inputNamesStr{
-    {"voltage", "v", "volt"},
-    {"angle", "ang", "a"},
-    {"eft", "e", "field", "exciter"},
-    {"pmech", "power", "p", "mech"},
-};
-
 const std::vector<stringVec>& GenModel::inputNames() const
 {
-    return inputNamesStr;
+    return genModelInputNames();
 }
-
-static const std::vector<stringVec> outputNamesStr{
-    {"e", "field", "exciter"},
-};
 
 const std::vector<stringVec>& GenModel::outputNames() const
 {
-    return outputNamesStr;
+    return genModelOutputNames();
 }
 
 }  // namespace griddyn

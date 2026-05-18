@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn {
-class gridBus;
+class GridBus;
 class Block;
 
 /** @brief class defining some additional components for a variable generator such as a renewable

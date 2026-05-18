@@ -15,7 +15,7 @@ namespace griddyn {
 class GridLinkOpt;
 class GridLoadOpt;
 class GridGenOpt;
-class gridBus;
+class GridBus;
 
 class GridBusOpt: public GridOptObject {
   public:
@@ -28,7 +28,7 @@ class GridBusOpt: public GridOptObject {
     std::vector<GridLinkOpt*> linkList;
     std::vector<GridGenOpt*> genList;
 
-    gridBus* bus = nullptr;
+    GridBus* bus = nullptr;
 
   public:
     GridBusOpt(const std::string& objName = "");
@@ -114,7 +114,7 @@ class GridBusOpt: public GridOptObject {
     // void alert (CoreObject *object, int code);
 
     // find components
-    GridLinkOpt* findLink(gridBus* bs) const;
+    GridLinkOpt* findLink(GridBus* bs) const;
     CoreObject* find(std::string_view objName) const override;
     CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
@@ -135,7 +135,7 @@ class GridBusOpt: public GridOptObject {
   protected:
 };
 
-// bool compareBus (gridBus *bus1, gridBus *bus2, bool cmpLink = false,bool printDiff = false);
+// bool compareBus (GridBus *bus1, GridBus *bus2, bool cmpLink = false,bool printDiff = false);
 
 GridBusOpt* getMatchingBusOpt(GridBusOpt* bus, const GridOptObject* src, GridOptObject* sec);
 

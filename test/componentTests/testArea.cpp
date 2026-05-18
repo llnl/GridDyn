@@ -61,7 +61,7 @@ TEST_F(AreaTests, AreaTestAdd)
 {
     auto area = std::make_unique<Area>("area1");
 
-    auto bus1 = new gridBus("bus1");
+    auto bus1 = new GridBus("bus1");
     try {
         area->add(bus1);
         area->add(bus1);

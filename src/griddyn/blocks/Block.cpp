@@ -18,51 +18,36 @@
 #include <vector>
 
 namespace griddyn {
-namespace {
-    void registerBlockFactoryTypes()
-    {
-        static const typeFactory<Block> blockFactory(
-            "block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
-        static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block",
-                                                                                       "control");
-        static const childTypeFactory<blocks::deadbandBlock, Block> deadbandBlockFactory(
-            "block", std::to_array<std::string_view>({"deadband", "db"}));
-        static const childTypeFactory<blocks::delayBlock, Block> delayBlockFactory(
-            "block", std::to_array<std::string_view>({"delay", "filter"}));
-        static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
-        static const childTypeFactory<blocks::integralBlock, Block> integralBlockFactory(
-            "block", std::to_array<std::string_view>({"integrator", "integral"}));
-        static const childTypeFactory<blocks::functionBlock, Block> functionBlockFactory(
-            "block", std::to_array<std::string_view>({"function", "func"}));
-        static const childTypeFactory<blocks::lutBlock, Block> lookupTableBlockFactory(
-            "block", std::to_array<std::string_view>({"lut", "lookuptable"}));
-        static const childTypeFactory<blocks::derivativeBlock, Block> derivativeBlockFactory(
-            "block", std::to_array<std::string_view>({"der", "derivative", "deriv"}));
-        static const childTypeFactory<blocks::filteredDerivativeBlock, Block>
-            filteredDerivativeBlockFactory("block",
-                                           std::to_array<std::string_view>(
-                                               {"fder", "filtered_deriv", "filtered_derivative"}));
-        static_cast<void>(blockFactory);
-        static_cast<void>(controlBlockFactory);
-        static_cast<void>(deadbandBlockFactory);
-        static_cast<void>(delayBlockFactory);
-        static_cast<void>(pidBlockFactory);
-        static_cast<void>(integralBlockFactory);
-        static_cast<void>(functionBlockFactory);
-        static_cast<void>(lookupTableBlockFactory);
-        static_cast<void>(derivativeBlockFactory);
-        static_cast<void>(filteredDerivativeBlockFactory);
-    }
-}  // namespace
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static const typeFactory<Block>
+    blockFactory("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
+static const childTypeFactory<blocks::controlBlock, Block> controlBlockFactory("block", "control");
+static const childTypeFactory<blocks::deadbandBlock, Block>
+    deadbandBlockFactory("block", std::to_array<std::string_view>({"deadband", "db"}));
+static const childTypeFactory<blocks::delayBlock, Block>
+    delayBlockFactory("block", std::to_array<std::string_view>({"delay", "filter"}));
+static const childTypeFactory<blocks::pidBlock, Block> pidBlockFactory("block", "pid");
+static const childTypeFactory<blocks::integralBlock, Block>
+    integralBlockFactory("block", std::to_array<std::string_view>({"integrator", "integral"}));
+static const childTypeFactory<blocks::functionBlock, Block>
+    functionBlockFactory("block", std::to_array<std::string_view>({"function", "func"}));
+static const childTypeFactory<blocks::lutBlock, Block>
+    lookupTableBlockFactory("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
+static const childTypeFactory<blocks::derivativeBlock, Block>
+    derivativeBlockFactory("block",
+                           std::to_array<std::string_view>({"der", "derivative", "deriv"}));
+static const childTypeFactory<blocks::filteredDerivativeBlock, Block>
+    filteredDerivativeBlockFactory(
+        "block",
+        std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
+// NOLINTEND(bugprone-throwing-static-initialization)
 
 Block::Block(const std::string& objName): GridSubModel(objName)
 {
-    registerBlockFactoryTypes();
     m_inputSize = 1;
 }
 Block::Block(double gain, const std::string& objName): GridSubModel(objName), K(gain)
 {
-    registerBlockFactoryTypes();
     m_inputSize = 1;
 }
 Block::~Block() = default;

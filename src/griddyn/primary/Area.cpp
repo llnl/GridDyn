@@ -73,7 +73,7 @@ CoreObject* Area::clone(CoreObject* obj) const
     // clone all the buses
     for (size_t kk = 0; kk < m_Buses.size(); kk++) {
         if (kk >= area->m_Buses.size()) {
-            auto* bus = static_cast<gridBus*>(m_Buses[kk]->clone());
+            auto* bus = static_cast<GridBus*>(m_Buses[kk]->clone());
             area->add(bus);
         } else {
             m_Buses[kk]->clone(area->m_Buses[kk]);
@@ -97,7 +97,7 @@ CoreObject* Area::clone(CoreObject* obj) const
             // now we need to make sure the links are mapped properly
             for (index_t tt = 0; tt < lnk->terminalCount(); ++tt) {
                 auto* bus =
-                    static_cast<gridBus*>(findMatchingObject(m_Links[kk]->getBus(tt + 1), area));
+                    static_cast<GridBus*>(findMatchingObject(m_Links[kk]->getBus(tt + 1), area));
 
                 if (bus != nullptr) {
                     lnk->updateBus(bus, tt + 1);
@@ -108,7 +108,7 @@ CoreObject* Area::clone(CoreObject* obj) const
             m_Links[kk]->clone(area->m_Links[kk]);
             for (index_t tt = 0; tt < area->m_Links[kk]->terminalCount(); ++tt) {
                 auto* bus =
-                    static_cast<gridBus*>(findMatchingObject(m_Links[kk]->getBus(tt + 1), area));
+                    static_cast<GridBus*>(findMatchingObject(m_Links[kk]->getBus(tt + 1), area));
                 area->m_Links[kk]->updateBus(bus, tt + 1);
             }
         }
@@ -146,8 +146,8 @@ void Area::add(CoreObject* obj)
     if (obj == nullptr) {
         return;
     }
-    if (dynamic_cast<gridBus*>(obj) != nullptr) {
-        return add(static_cast<gridBus*>(obj));
+    if (dynamic_cast<GridBus*>(obj) != nullptr) {
+        return add(static_cast<GridBus*>(obj));
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
         return add(static_cast<Link*>(obj));
@@ -193,7 +193,7 @@ void addObject(Area* area, X* obj, std::vector<X*>& objVector)
     }
 }
 
-void Area::add(gridBus* bus)
+void Area::add(GridBus* bus)
 {
     addObject(this, bus, m_Buses);
 }
@@ -221,8 +221,8 @@ void Area::remove(CoreObject* obj)
     if (obj == nullptr) {
         return;
     }
-    if (dynamic_cast<gridBus*>(obj) != nullptr) {
-        return remove(static_cast<gridBus*>(obj));
+    if (dynamic_cast<GridBus*>(obj) != nullptr) {
+        return remove(static_cast<GridBus*>(obj));
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
         return remove(static_cast<Link*>(obj));
@@ -282,7 +282,7 @@ void removeObject(Area* area, X* obj, std::vector<X*>& objVector)
 }
 
 // remove bus
-void Area::remove(gridBus* bus)
+void Area::remove(GridBus* bus)
 {
     removeObject(this, bus, m_Buses);
 }
@@ -324,7 +324,7 @@ void Area::alert(CoreObject* obj, int code)
     }
 }
 
-gridBus* Area::getBus(index_t x) const
+GridBus* Area::getBus(index_t x) const
 {
     return (isValidIndex(x, m_Buses)) ? m_Buses[x] : nullptr;
 }
@@ -923,7 +923,7 @@ void Area::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode
     prevTime = time;
 }
 
-count_t Area::getBusVector(std::vector<gridBus*>& busVector, index_t start) const
+count_t Area::getBusVector(std::vector<GridBus*>& busVector, index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Buses.size());
     if (cnt > 0) {

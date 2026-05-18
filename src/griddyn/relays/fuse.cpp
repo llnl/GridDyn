@@ -102,7 +102,7 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         opFlags.set(NONLINK_SOURCE_FLAG);
         ge->setTarget(m_sinkObject, "status");
         ge->setValue(0.0);
-        bus = static_cast<gridBus*>(m_sourceObject->find("bus"));
+        bus = static_cast<GridBus*>(m_sourceObject->find("bus"));
     }
 
     add(std::move(ge));

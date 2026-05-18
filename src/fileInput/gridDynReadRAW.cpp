@@ -48,35 +48,35 @@ using units::MVAR;
 using units::MW;
 
 static int getPSSversion(const std::string& line);
-static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
+static void rawReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt);
 static void rawReadLoad(Load* loadObject, const std::string& line, basicReaderInfo& opt);
 static void rawReadFixedShunt(Load* loadObject, const std::string& line, basicReaderInfo& opt);
 static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
 static void rawReadBranch(CoreObject* parentObject,
                           const std::string& line,
-                          std::vector<gridBus*>& busList,
+                          std::vector<GridBus*>& busList,
                           basicReaderInfo& opt);
 static int rawReadTX(CoreObject* parentObject,
                      stringVec& txlines,
-                     std::vector<gridBus*>& busList,
+                     std::vector<GridBus*>& busList,
                      basicReaderInfo& opt);
 static int rawReadTxV33(CoreObject* parentObject,
                         stringVec& txlines,
-                        std::vector<gridBus*>& busList,
+                        std::vector<GridBus*>& busList,
                         basicReaderInfo& opt);
 
 static void rawReadSwitchedShunt(CoreObject* parentObject,
                                  const std::string& line,
-                                 std::vector<gridBus*>& busList,
+                                 std::vector<GridBus*>& busList,
                                  basicReaderInfo& opt);
 static void rawReadTXadj(CoreObject* parentObject,
                          const std::string& line,
-                         std::vector<gridBus*>& busList,
+                         std::vector<GridBus*>& busList,
                          basicReaderInfo& opt);
 
 // static int rawReadDCLine(CoreObject* parentObject,
 //                          stringVec& txlines,
-//                          std::vector<gridBus*>& busList,
+//                          std::vector<GridBus*>& busList,
 //                          basicReaderInfo& opt);
 
 namespace {
@@ -94,12 +94,12 @@ namespace {
 }  // namespace
 
 // get the basic busFactory
-static typeFactory<gridBus>* busfactory = nullptr;
+static typeFactory<GridBus>* busfactory = nullptr;
 
 // get the basic load Factory
 static typeFactory<Load>* ldfactory = nullptr;
 // get the basic Link Factory
-static childTypeFactory<acLine, Link>* linkfactory = nullptr;
+static childTypeFactory<AcLine, Link>* linkfactory = nullptr;
 // get the basic Generator Factory
 static typeFactory<Generator>* genfactory = nullptr;
 
@@ -114,7 +114,7 @@ static bool checkNextLine(std::ifstream& file, std::string& nextLine)
     return false;
 }
 
-static gridBus* findBus(std::vector<gridBus*>& busList, const std::string& line)
+static GridBus* findBus(std::vector<GridBus*>& busList, const std::string& line)
 {
     auto pos = line.find_first_of(',');
     const auto temp1 = gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(0, pos));
@@ -135,12 +135,12 @@ void loadRaw(CoreObject* parentObject,
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     basicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
     Load* loadObject;
     Generator* gen;
-    gridBus* bus;
+    GridBus* bus;
     index_t index;
     size_t pos;
 
@@ -461,7 +461,7 @@ static SectionType findSectionType(const std::string& line)
     return SectionType::UNKNOWN;
 }
 
-static void rawReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
+static void rawReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt)
 {
     double baseVoltage = 0.0;
     double voltageMagnitude = 0.0;
@@ -698,7 +698,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
 
     if (rbus != 0) {
         auto* remoteBus =
-            static_cast<gridBus*>(gen->getParent()->getParent()->findByUserID("bus", rbus));
+            static_cast<GridBus*>(gen->getParent()->getParent()->findByUserID("bus", rbus));
         gen->add(remoteBus);
     }
 
@@ -713,9 +713,9 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
         reactance = numeric_conversion<double>(strvec[12], 0.0);
         if ((resistance != 0) || (reactance != 0))  // need to add a step up transformer
         {
-            auto* oBus = static_cast<gridBus*>(gen->find("bus"));
-            gridBus* nBus = busfactory->makeTypeObject();
-            auto* lnk = new acLine(resistance * opt.base / machineBase,
+            auto* oBus = static_cast<GridBus*>(gen->find("bus"));
+            GridBus* nBus = busfactory->makeTypeObject();
+            auto* lnk = new AcLine(resistance * opt.base / machineBase,
                                    reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as
                                                       // opposed to the machine base
@@ -760,7 +760,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
 }
 
 static auto generateBranchName(const stringVector& strvec,
-                               const std::vector<gridBus*>& busList,
+                               const std::vector<GridBus*>& busList,
                                const std::string& prefix,
                                int cctIndex = -1)
 {
@@ -804,7 +804,7 @@ static auto generateBranchName(const stringVector& strvec,
 
 static void rawReadBranch(CoreObject* parentObject,
                           const std::string& line,
-                          std::vector<gridBus*>& busList,
+                          std::vector<GridBus*>& busList,
                           basicReaderInfo& opt)
 {
     //
@@ -817,7 +817,7 @@ static void rawReadBranch(CoreObject* parentObject,
     int ind2;
     std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
 
-    acLine* lnk = linkfactory->makeDirectObject(name);
+    AcLine* lnk = linkfactory->makeDirectObject(name);
     // set the base power to that used this model
     lnk->set("basepower", opt.base);
 
@@ -903,7 +903,7 @@ static void rawReadBranch(CoreObject* parentObject,
 
 static void rawReadTXadj(CoreObject* parentObject,
                          const std::string& line,
-                         std::vector<gridBus*>& busList,
+                         std::vector<GridBus*>& busList,
                          basicReaderInfo& opt)
 {
     // int status;
@@ -916,7 +916,7 @@ static void rawReadTXadj(CoreObject* parentObject,
     std::tie(name, ind1, ind2) =
         generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
 
-    auto* lnk = static_cast<acLine*>(parentObject->find(name));
+    auto* lnk = static_cast<AcLine*>(parentObject->find(name));
 
     if (lnk == nullptr) {
         parentObject->log(parentObject, print_level::error, "unable to locate link " + name);
@@ -953,7 +953,7 @@ static void rawReadTXadj(CoreObject* parentObject,
                 adjTX->setControlBus(2);
             } else {
                 adjTX->setControlBus(
-                    static_cast<gridBus*>(adjTX->getParent()->findByUserID("bus", cind)));
+                    static_cast<GridBus*>(adjTX->getParent()->findByUserID("bus", cind)));
             }
         } else {
             if (-cind == ind1) {
@@ -962,7 +962,7 @@ static void rawReadTXadj(CoreObject* parentObject,
                 adjTX->setControlBus(2);
             } else {
                 adjTX->setControlBus(
-                    static_cast<gridBus*>(adjTX->getParent()->findByUserID("bus", -cind)));
+                    static_cast<GridBus*>(adjTX->getParent()->findByUserID("bus", -cind)));
                 adjTX->set("direction", -1);
             }
         }
@@ -1045,7 +1045,7 @@ static void rawReadTXadj(CoreObject* parentObject,
 
 static int rawReadTxV33(CoreObject* parentObject,
                         stringVec& txlines,
-                        std::vector<gridBus*>& busList,
+                        std::vector<GridBus*>& busList,
                         basicReaderInfo& opt)
 {
     /* version 33
@@ -1063,8 +1063,8 @@ static int rawReadTxV33(CoreObject* parentObject,
     0.00000,  0.000 1.00000,   0.000
 
     */
-    // gridBus *bus3;
-    acLine* lnk = nullptr;
+    // GridBus *bus3;
+    AcLine* lnk = nullptr;
 
     stringVec strvec5;
     auto strvec = splitline(txlines[0]);
@@ -1304,11 +1304,11 @@ static int rawReadTxV33(CoreObject* parentObject,
 
 static int rawReadTX(CoreObject* parentObject,
                      stringVec& txlines,
-                     std::vector<gridBus*>& busList,
+                     std::vector<GridBus*>& busList,
                      basicReaderInfo& opt)
 {
-    // gridBus *bus3;
-    acLine* lnk = nullptr;
+    // GridBus *bus3;
+    AcLine* lnk = nullptr;
 
     stringVec strvec5;
     auto strvec = splitline(txlines[0]);
@@ -1467,7 +1467,7 @@ static int rawReadTX(CoreObject* parentObject,
 
 // static int rawReadDCLine(CoreObject* /*parentObject*/,
 //                          stringVec& /*txlines*/,
-//                          std::vector<gridBus*>& /*busList*/,
+//                          std::vector<GridBus*>& /*busList*/,
 //                          basicReaderInfo& /*bri*/)
 // {
 //     return 0;
@@ -1475,13 +1475,13 @@ static int rawReadTX(CoreObject* parentObject,
 
 static void rawReadSwitchedShunt(CoreObject* parentObject,
                                  const std::string& line,
-                                 std::vector<gridBus*>& busList,
+                                 std::vector<GridBus*>& busList,
                                  basicReaderInfo& opt)
 {
     auto strvec = splitline(line);
 
     auto index = gmlc::utilities::numConv<std::size_t>(strvec[0]);
-    gridBus* rbus = nullptr;
+    GridBus* rbus = nullptr;
     loads::svd* loadObject = nullptr;
     double temp;
     if (std::cmp_greater_equal(index, busList.size())) {
@@ -1511,7 +1511,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
         if ((strvec[4 + shift] == "I") || strvec[4 + shift].empty()) {
             cbus = index;
         } else {
-            rbus = static_cast<gridBus*>(parentObject->find(strvec[4 + shift]));
+            rbus = static_cast<GridBus*>(parentObject->find(strvec[4 + shift]));
             if (rbus != nullptr) {
                 cbus = rbus->getUserID();
             }

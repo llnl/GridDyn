@@ -50,7 +50,7 @@ it implements the basic transmission model
 
 Each link has a disconnect switch at the "from" bus and the "to" bus
 */
-class acLine: public Link {
+class AcLine: public Link {
   public:
     enum acLine_flags {
         // indicator that the angle slipped past 90 degree on a test
@@ -79,19 +79,19 @@ class acLine: public Link {
 
     linkF constLinkFlows;  //!< holder for previous steady state link flows
 
-    using glMP = void (acLine::*)();
+    using glMP = void (AcLine::*)();
     glMP flowCalc[APPROXIMATION_LEVELS];  //!< function pointers to power flow calculations
     glMP derivCalc[APPROXIMATION_LEVELS];  //!< function objects to the derivative calculations
 
   public:
     /** @brief default constructor*/
-    explicit acLine(const std::string& objName = "acline_$");
+    explicit AcLine(const std::string& objName = "acline_$");
     /** @brief constructor specifying the real and imaginary part of the impedance
     @param[in] rP  the real impedance in pu ohm
     @param[in] xP  the reactance in pu Ohm
     @param[in] objName the name of the link
     */
-    acLine(double rP, double xP, const std::string& objName = "acline_$");
+    AcLine(double rP, double xP, const std::string& objName = "acline_$");
     /** @brief virtual destructor*/
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

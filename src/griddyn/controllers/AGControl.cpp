@@ -16,14 +16,10 @@
 #include <string>
 
 namespace griddyn {
-namespace {
-    void registerAgcFactoryTypes()
-    {
-        static const typeFactory<Block> agcFactory(
-            "agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
-        static_cast<void>(agcFactory);
-    }
-}  // namespace
+// NOLINTBEGIN(bugprone-throwing-static-initialization)
+static const typeFactory<Block>
+    agcFactory("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+// NOLINTEND(bugprone-throwing-static-initialization)
 /*
 class AGControl
 {
@@ -77,7 +73,6 @@ AGControl::~AGControl() = default;
 
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
-    registerAgcFactoryTypes();
     pid = make_owningPtr<blocks::pidBlock>(KP, KI, 0, "pid");
     pid->setParent(this);
     filt1 = make_owningPtr<blocks::delayBlock>(Tf, "delay1");

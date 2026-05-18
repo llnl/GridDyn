@@ -108,9 +108,9 @@ class Block: public GridSubModel {
     @param[in] input  the block input
     @param[in] didt the input derivative used if the differential input flag is set and it is needed
     otherwise ignored
-    @param[in] sD the state data
+    @param[in] stateDataValue the state data
     @param[out] resid the location to store the Jacobian elements
-    @param[in] sMode the solverMode that corresponds to the state data
+    @param[in] solverModeValue the solverMode that corresponds to the state data
     */
     virtual void blockResidual(double input,
                                double didt,
@@ -128,9 +128,9 @@ class Block: public GridSubModel {
     @param[in] input  the block input
     @param[in] didt the input derivative used if the differential input flag is set and it is needed
     otherwise ignored
-    @param[in] sD the state data
+    @param[in] stateDataValue the state data
     @param[out] deriv the location to store the derivative elements
-    @param[in] sMode the solverMode that corresponds to the state data
+    @param[in] solverModeValue the solverMode that corresponds to the state data
     */
     virtual void blockDerivative(double input,
                                  double didt,
@@ -145,9 +145,9 @@ class Block: public GridSubModel {
     /** @brief simplifying function in place of algebraicUpdate call since block have only one
     input/output
     @param[in] input  the block input
-    @param[in] sD the state data
+    @param[in] stateDataValue the state data
     @param[out] update the location to store the algebraic update elements
-    @param[in] sMode the solverMode that corresponds to the state data
+    @param[in] solverModeValue the solverMode that corresponds to the state data
     */
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& stateDataValue,
@@ -164,10 +164,10 @@ class Block: public GridSubModel {
     @param[in] input  the block input
     @param[in] didt the input derivative used if the differential input flag is set and it is needed
     otherwise ignored
-    @param[in] sD the state data
-    @param[out] md the location to store the Jacobian elements
+    @param[in] stateDataValue the state data
+    @param[out] matrixDataValue the location to store the Jacobian elements
     @param[in] argLoc the index location of the input
-    @param[in] sMode the solverMode that corresponds to the state data
+    @param[in] solverModeValue the solverMode that corresponds to the state data
     */
     virtual void blockJacobianElements(double input,
                                        double didt,
@@ -204,8 +204,8 @@ class Block: public GridSubModel {
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
     /** get the single output for the block
-    @param[in] sD the state data to use in computing the output
-    @param[in] sMode the solverMode associated with the stateData
+    @param[in] stateDataValue the state data to use in computing the output
+    @param[in] solverModeValue the solverMode associated with the stateData
     */
     virtual double getBlockOutput(const stateData& stateDataValue,
                                   const solverMode& solverModeValue) const;
@@ -214,8 +214,8 @@ class Block: public GridSubModel {
     virtual double getBlockOutput() const;
     /** get the time derivative of the block output -should only be used for block with a
     differential output
-    @param[in] sD the state data to use in computing the output
-    @param[in] sMode the solverMode associated with the stateData
+    @param[in] stateDataValue the state data to use in computing the output
+    @param[in] solverModeValue the solverMode associated with the stateData
     */
     virtual double getBlockDoutDt(const stateData& stateDataValue,
                                   const solverMode& solverModeValue) const;
@@ -230,9 +230,9 @@ class Block: public GridSubModel {
     /** compute the elements of the residual associated with the limiter
     @param[in] input the input to the block
     @param[in] didt the time derivative of the input of the block
-    @param[in] sD the stateData associated with a block
+    @param[in] stateDataValue the stateData associated with a block
     @param[in] resid the memory location to store the residual
-    @param[in] sMode the solverMode associated with the state Data
+    @param[in] solverModeValue the solverMode associated with the state Data
     */
     void limiterResidElements(double input,
                               double didt,

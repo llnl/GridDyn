@@ -42,9 +42,9 @@ TEST_F(XmlTests, XmlTest1)
     EXPECT_EQ(readerConfig::warnCount, 0);
     EXPECT_EQ(gds->getName().compare("test1"), 0);
 
-    gridBus* bus = gds->getBus(0);
+    GridBus* bus = gds->getBus(0);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::SLK);
+    EXPECT_EQ(bus->getType(), GridBus::busType::SLK);
     EXPECT_EQ(bus->getAngle(), 0);
     EXPECT_EQ(bus->getVoltage(), 1.04);
 
@@ -68,13 +68,13 @@ TEST_F(XmlTests, XmlTest2)
     EXPECT_EQ(count, 4);
     EXPECT_EQ(readerConfig::warnCount, 0);
 
-    gridBus* bus = gds->getBus(1);
+    GridBus* bus = gds->getBus(1);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::PV);
+    EXPECT_EQ(bus->getType(), GridBus::busType::PV);
 
     bus = gds->getBus(3);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::PQ);
+    EXPECT_EQ(bus->getType(), GridBus::busType::PQ);
 
     Load* ld = bus->getLoad();
     ASSERT_NE(ld, nullptr);
@@ -103,7 +103,7 @@ TEST_F(XmlTests, XmlTest3)
         return;
     }
 
-    gridBus* bus = lnk->getBus(1);
+    GridBus* bus = lnk->getBus(1);
     if (!(bus)) {
         return;
     }
@@ -147,9 +147,9 @@ TEST_F(XmlTests, XmlTest4)
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
 
-    gridBus* bus = gds->getBus(0);
+    GridBus* bus = gds->getBus(0);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::SLK);
+    EXPECT_EQ(bus->getType(), GridBus::busType::SLK);
 
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
@@ -230,9 +230,9 @@ TEST_F(XmlTests, XmlTest6)
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
 
-    gridBus* bus = gds->getBus(0);
+    GridBus* bus = gds->getBus(0);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::SLK);
+    EXPECT_EQ(bus->getType(), GridBus::busType::SLK);
 
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
@@ -258,9 +258,9 @@ TEST_F(XmlTests, XmlTest7)
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
 
-    gridBus* bus = gds->getBus(0);
+    GridBus* bus = gds->getBus(0);
     ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->getType(), gridBus::busType::SLK);
+    EXPECT_EQ(bus->getType(), GridBus::busType::SLK);
 
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
@@ -430,7 +430,7 @@ TEST_F(XmlTests, TestFunctionConstants)
     std::string fileName = xmlTestDirectory + "test_function_constant.xml";
     gds = readSimXMLFile(fileName);
 
-    gridBus* bus = gds->getBus(0);
+    GridBus* bus = gds->getBus(0);
     EXPECT_NEAR(bus->getVoltage(), 1.0, 1e-5);
 
     bus = gds->getBus(1);

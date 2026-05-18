@@ -122,7 +122,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         // action 2 to re-enable object
         recloseEvent->setTarget(m_sinkObject, "status");
         recloseEvent->setValue(0.0);
-        mBus = static_cast<gridBus*>(m_sourceObject->find("bus"));
+        mBus = static_cast<GridBus*>(m_sourceObject->find("bus"));
     }
 
     add(std::move(tripEvent));

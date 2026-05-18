@@ -44,9 +44,9 @@ TEST_F(LinkTests, LinkTest1Simple)
 
 TEST_F(LinkTests, LinkTestSwitches)
 {
-    auto B1 = new gridBus();
-    auto B2 = new gridBus();
-    auto L1 = std::make_unique<acLine>(0.005, 0.2);
+    auto B1 = new GridBus();
+    auto B2 = new GridBus();
+    auto L1 = std::make_unique<AcLine>(0.005, 0.2);
     L1->updateBus(B1, 1);
     L1->updateBus(B2, 2);
     B2->set("angle", -0.2);
@@ -221,16 +221,16 @@ TEST_F(LinkTests, LinkTestFaultPowerflow2)
 TEST_F(LinkTests, LinkTestFixPower)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    Link* a = new acLine();
+    Link* a = new AcLine();
     a->set("r", 0.008);
     a->set("x", 0.14);
     double v1 = 1.0;
     double a1 = 0;
     double v2 = 1.02;
     double a2 = -0.12;
-    gridBus* b1 = new gridBus(v1, a1);
+    GridBus* b1 = new GridBus(v1, a1);
 
-    gridBus* b2 = new gridBus(v2, a2);
+    GridBus* b2 = new GridBus(v2, a2);
     a->updateBus(b1, 1);
     a->updateBus(b2, 2);
 

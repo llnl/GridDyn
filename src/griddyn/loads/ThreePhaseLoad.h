@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 namespace griddyn {
-class gridBus;
+class GridBus;
 namespace loads {
     enum class phase_type_t {
         abc,

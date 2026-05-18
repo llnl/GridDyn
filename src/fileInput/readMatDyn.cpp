@@ -323,7 +323,7 @@ void loadMatDynEvent(CoreObject* parentObject,
         for (auto& eventSpec : matrixData) {
             auto evnt = std::make_shared<Event>(eventSpec[0]);
             auto ind = static_cast<index_t>(eventSpec[1]);
-            auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", ind));
+            auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", ind));
             auto* load = bus->getLoad();
             if (load == nullptr) {
                 load = new zipLoad();

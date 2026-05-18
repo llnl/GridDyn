@@ -18,7 +18,7 @@ namespace griddyn {
 class gridDynSimulation;
 class Relay;
 class Link;
-class gridBus;
+class GridBus;
 class Generator;
 class Source;
 class coreObjectList;
@@ -43,7 +43,7 @@ class Area: public gridPrimary {
     };
 
   private:
-    std::vector<gridBus*> m_Buses;  //!< list of buses contained in a the area
+    std::vector<GridBus*> m_Buses;  //!< list of buses contained in a the area
     std::vector<Link*> m_Links;  //!< links completely inside the area
     std::vector<Link*> m_externalLinks;  //!< links going to other areas
     std::vector<Area*> m_Areas;  //!< list of the areas contained within the parent area
@@ -84,7 +84,7 @@ class Area: public gridPrimary {
     @param[in] bus  the bus to add
     @throw objectAddFailure on add failure typically duplicated names
     */
-    virtual void add(gridBus* bus);
+    virtual void add(GridBus* bus);
     /** @brief add a link to the area
     @param[in] lnk  the link to add
     @throw objectAddFailure on add failure typically duplicated names
@@ -107,7 +107,7 @@ class Area: public gridPrimary {
     @param[in] bus  the bus to remove
 
     */
-    virtual void remove(gridBus* bus);
+    virtual void remove(GridBus* bus);
     /** @brief remove a link from the area
     @param[in] lnk  the link to remove
 
@@ -124,7 +124,7 @@ class Area: public gridPrimary {
     virtual void remove(Relay* relay);
 
     // get component models
-    virtual gridBus* getBus(index_t x) const override;
+    virtual GridBus* getBus(index_t x) const override;
     virtual Link* getLink(index_t x) const override;
     virtual Area* getArea(index_t x) const override;
     virtual Relay* getRelay(index_t x) const override;
@@ -469,7 +469,7 @@ class Area: public gridPrimary {
     @param[in] start  the index to start placing the bus pointers
     @return the total number of buses placed start+busCount
     */
-    count_t getBusVector(std::vector<gridBus*>& busVector, index_t start = 0) const;
+    count_t getBusVector(std::vector<GridBus*>& busVector, index_t start = 0) const;
 
     /** @brief  get a vector of all the links of the area
     @param[out] linkVector  a vector of links

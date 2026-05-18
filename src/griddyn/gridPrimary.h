@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn {
-class gridBus;
+class GridBus;
 class Area;
 class Link;
 class Relay;
@@ -30,7 +30,7 @@ enum secondary_output_locations {
     QoutLocation = 1,
 };
 
-/** @brief base class for top level simulation objects including gridBus, Link, gridRelays, and Area
+/** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and Area
   gridPrimary class defines the interface for gridPrimary objects which are nominally objects that
 can be contained by a root object which is an area usually,  though there is no restriction in other
 classes also containing primary objects.
@@ -74,47 +74,47 @@ class gridPrimary: public GridComponent {
                           const solverMode& sMode) override;
     /** @brief get the residual computation for object requiring a delay
       basically calls the residual calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] resid the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedResidual(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double resid[],
                                  const solverMode& sMode);
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the derivative calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] deriv the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedDerivative(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const stateData& stateDataValue,
                                    double deriv[],
                                    const solverMode& sMode);
 
     /** @brief get the algebraic update for object requesting a delay
       basically calls the residual calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
+    @param[in] stateDataValue the data representing the current state to operate on
     @param[out] update the array to store the computed derivative values
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedAlgebraicUpdate(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         double update[],
                                         const solverMode& sMode,
                                         double alpha);
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the Jacobian calculation on the delayed objects
-    @param[in] sD the data representing the current state to operate on
-    @param[out] md the matrixData structure to store the Jacobian values
+    @param[in] stateDataValue the data representing the current state to operate on
+    @param[out] matrixDataValue the matrixData structure to store the Jacobian values
     @param[in] sMode the solverMode which is being solved for
     */
     virtual void delayedJacobian(const IOdata& inputs,
-                                 const stateData& sD,
-                                 matrixData<double>& md,
+                                 const stateData& stateDataValue,
+                                 matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const solverMode& sMode);
 
@@ -153,7 +153,7 @@ class gridPrimary: public GridComponent {
     @param[in] num the index of the bus being requested
     @return a pointer to the requested bus or nullptr
     **/
-    virtual gridBus* getBus(index_t num) const;
+    virtual GridBus* getBus(index_t num) const;
 
     /**
     *@brief get a pointer for a particular Link

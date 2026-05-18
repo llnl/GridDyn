@@ -52,7 +52,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
             relayType = getElementField(element, "ref", defMatchType);
             if (relayType.empty()) {
                 // no type information so generate default relay of a specific type
-                if (dynamic_cast<gridBus*>(defaultTargetObject) != nullptr) {
+                if (dynamic_cast<GridBus*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
                         coreObjectFactory::instance()->createObject(relayComponentName, "bus"));
                 } else if (dynamic_cast<zipLoad*>(defaultTargetObject) != nullptr) {

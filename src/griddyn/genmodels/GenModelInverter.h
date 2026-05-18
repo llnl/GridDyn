@@ -38,51 +38,51 @@ class GenModelInverter: public GenModel {
     // dynamics
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const solverMode& sMode) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               const solverMode& sMode) const override;
 
     using GenModel::getOutput;
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              const solverMode& sMode,
                              index_t outNum = 0) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode) override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
                                  const solverMode& sMode,
                                  double alpha) override;
     /** helper function to get omega and its state location
      */
-    virtual double getFreq(const stateData& sD,
+    virtual double getFreq(const stateData& stateDataValue,
                            const solverMode& sMode,
                            index_t* freqOffset = nullptr) const override;
-    virtual double getAngle(const stateData& sD,
+    virtual double getAngle(const stateData& stateDataValue,
                             const solverMode& sMode,
                             index_t* angleOffset = nullptr) const override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
                           const solverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -90,7 +90,7 @@ class GenModelInverter: public GenModel {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const solverMode& sMode,
                                   check_level_t level) override;
 
@@ -103,7 +103,7 @@ class GenModelInverter: public GenModel {
 @param sinA  the sine of the power angle
 @return the real power output;
 */
-    double realPowerCompute(double V, double Ef, double cosA, double sinA) const;
+    double realPowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     /** @brief compute the reactive power output
 @param V voltage
 @param Ef Exciter field
@@ -111,7 +111,8 @@ class GenModelInverter: public GenModel {
 @param sinA  the sine of the power angle
 @return the real power output;
 */
-    double reactivePowerCompute(double V, double Ef, double cosA, double sinA) const;
+    double
+        reactivePowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     double g = 0;
     double b = (1.0 / 1.05);
 };

@@ -15,7 +15,7 @@ using namespace griddyn;
 /** test basic operations */
 TEST(ConditionTests, BasicTests)
 {
-    gridBus B;
+    GridBus B;
     B.setVoltageAngle(1.0, 0.05);
 
     auto cond = make_condition("voltage", "<", 0.7, &B);
@@ -32,7 +32,7 @@ TEST(ConditionTests, BasicTests)
 /** test basic operations */
 TEST(ConditionTests, BasicTest2)
 {
-    gridBus B;
+    GridBus B;
     B.setVoltageAngle(1.0, 0.05);
 
     auto cond = make_condition("voltage-0.4", "<", 0.7, &B);
@@ -49,11 +49,11 @@ TEST(ConditionTests, BasicTest2)
 /** test basic operations */
 TEST(ConditionTests, LinkTests)
 {
-    gridBus B1;
+    GridBus B1;
     B1.setVoltageAngle(1.0, 0.05);
-    gridBus B2;
+    GridBus B2;
     B2.setVoltageAngle(1.05, -0.05);
-    acLine L2;
+    AcLine L2;
     L2.set("x", 0.01);
     L2.set("r", 0.001);
 
@@ -76,11 +76,11 @@ TEST(ConditionTests, LinkTests)
 /** test basic operations */
 TEST(ConditionTests, LinkTestsQueries)
 {
-    gridBus B1;
+    GridBus B1;
     B1.setVoltageAngle(1.0, 0.05);
-    gridBus B2;
+    GridBus B2;
     B2.setVoltageAngle(1.05, -0.05);
-    acLine L2;
+    AcLine L2;
     L2.set("x", 0.01);
     L2.set("r", 0.001);
     L2.set("g", 0.05);
@@ -102,11 +102,11 @@ TEST(ConditionTests, LinkTestsQueries)
 /** test basic operations */
 TEST(ConditionTests, LinkTestsQueries2)
 {
-    gridBus B1;
+    GridBus B1;
     B1.setVoltageAngle(1.0, 0.05);
-    gridBus B2;
+    GridBus B2;
     B2.setVoltageAngle(1.05, -0.05);
-    acLine L2;
+    AcLine L2;
     L2.set("x", 0.01);
     L2.set("r", 0.001);
     L2.set("g", 0.05);
@@ -130,11 +130,11 @@ TEST(ConditionTests, LinkTestsQueries2)
 /** test basic operations */
 TEST(ConditionTests, LinkTestsQueries3)
 {
-    gridBus B1;
+    GridBus B1;
     B1.setVoltageAngle(1.0, 0.05);
-    gridBus B2;
+    GridBus B2;
     B2.setVoltageAngle(1.05, -0.05);
-    acLine L2;
+    AcLine L2;
     L2.set("x", 0.01);
     L2.set("r", 0.001);
     L2.set("g", 0.05);

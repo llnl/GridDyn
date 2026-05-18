@@ -14,7 +14,7 @@ namespace griddyn::links {
 /** @brief class defining a long line model
 the model splits the line into a number of short line segments with buses in between
 */
-class longLine: public subsystem {
+class LongLine: public subsystem {
   protected:
     double segmentationLength = 50;  //!< [km] the length of each segment
     double fault = -1.0;  //!< fault location along the line keep at <0 for no fault
@@ -27,7 +27,7 @@ class longLine: public subsystem {
     int faultLink = -1;  //!< link number of the fault if one is present
   public:
     /** @brief default constructor*/
-    longLine(const std::string& objName = "longLine_$");
+    LongLine(const std::string& objName = "longLine_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
     virtual void add(CoreObject* obj) override final;  // there shouldn't be any additional adds

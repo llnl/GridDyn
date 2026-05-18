@@ -26,7 +26,7 @@
 
 namespace griddyn {
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static OptObjectFactory<GridBusOpt, gridBus> opbus("basic", "bus");
+static OptObjectFactory<GridBusOpt, GridBus> opbus("basic", "bus");
 // NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
@@ -34,7 +34,7 @@ using units::unit;
 GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
 
 GridBusOpt::GridBusOpt(CoreObject* obj, const std::string& objName):
-    GridOptObject(objName), bus(dynamic_cast<gridBus*>(obj))
+    GridOptObject(objName), bus(dynamic_cast<GridBus*>(obj))
 {
     if (bus != nullptr) {
         if (getName().empty()) {
@@ -356,8 +356,8 @@ void GridBusOpt::add(CoreObject* obj)
         return;
     }
 
-    if (dynamic_cast<gridBus*>(obj) != nullptr) {
-        bus = static_cast<gridBus*>(obj);
+    if (dynamic_cast<GridBus*>(obj) != nullptr) {
+        bus = static_cast<GridBus*>(obj);
         if (getName().empty()) {
             setName(bus->getName());
         }

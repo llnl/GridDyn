@@ -26,7 +26,7 @@ using gmlc::utilities::stringOps::trim;
 using units::deg;
 
 // NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
-void pspReadBus(gridBus* bus,
+void pspReadBus(GridBus* bus,
                 const std::string& line,
                 double base,
                 const basicReaderInfo& readerOptions);
@@ -34,7 +34,7 @@ void pspReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,
-                   std::vector<gridBus*> busList,
+                   std::vector<GridBus*> busList,
                    const basicReaderInfo& readerOptions);
 
 /*
@@ -68,7 +68,7 @@ void loadPsp(CoreObject* parentObject,
     std::string line2;  // line 2 storage for transformers
     std::string temp;  // temporary storage for substrings
     bool nobus = true;
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     int index;
     const double base = 100;
     int code;
@@ -116,7 +116,7 @@ void loadPsp(CoreObject* parentObject,
                             busList.resize(2 * index + 1, nullptr);
                         }
                         if (busList[index] == nullptr) {
-                            busList[index] = new acBus();
+                            busList[index] = new AcBus();
                             pspReadBus(busList[index], line, base, readerOptions);
                             try {
                                 parentObject->add(busList[index]);
@@ -212,7 +212,7 @@ Three default decimal places.
 
 */
 
-void pspReadBus(gridBus* bus,
+void pspReadBus(GridBus* bus,
                 const std::string& line,
                 double base,
                 const basicReaderInfo& readerOptions)
@@ -347,7 +347,7 @@ void pspReadBus(gridBus* bus,
         if (Q != 0.0) {
             gen->set("qmax", Q / base);
         }
-    } else if (bus->getType() != gridBus::busType::PQ) {
+    } else if (bus->getType() != GridBus::busType::PQ) {
         temp = line.substr(40, 5);
         P = numeric_conversion<double>(temp, 0.0);
         temp = line.substr(45, 5);
@@ -409,11 +409,11 @@ void pspReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,
-                   std::vector<gridBus*> busList,
+                   std::vector<GridBus*> busList,
                    const basicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
-    gridBus *bus1, *bus2;
+    GridBus *bus1, *bus2;
     Link* lnk;
     int ind1, ind2;
     double val;
@@ -438,7 +438,7 @@ void pspReadBranch(CoreObject* parentObject,
         temp = line2.substr(66, 4);
         gmlc::utilities::stringOps::trimString(temp);
         if (temp.empty()) {
-            lnk = new acLine();
+            lnk = new AcLine();
             // lnk->set ("type", "transformer");
         } else {
             lnk = new links::adjustableTransformer();
@@ -448,7 +448,7 @@ void pspReadBranch(CoreObject* parentObject,
             /*TODO add the controls for an adjustable transformer*/
         }
     } else {
-        lnk = new acLine();
+        lnk = new AcLine();
     }
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);

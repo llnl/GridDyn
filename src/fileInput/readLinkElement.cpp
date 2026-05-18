@@ -45,7 +45,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     } else if (searchObject != nullptr) {
         busName = readerInformation.checkDefines(busName);
         auto* locatedObject = locateObject(busName, searchObject);
-        auto* bus = dynamic_cast<gridBus*>(locatedObject);
+        auto* bus = dynamic_cast<GridBus*>(locatedObject);
         if (bus != nullptr) {
             try {
                 linkObject->updateBus(bus, 1);
@@ -68,7 +68,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     } else if (searchObject != nullptr) {
         busName = readerInformation.checkDefines(busName);
         auto* locatedObject = locateObject(busName, searchObject);
-        auto* bus = dynamic_cast<gridBus*>(locatedObject);
+        auto* bus = dynamic_cast<GridBus*>(locatedObject);
         if (bus != nullptr) {
             try {
                 linkObject->updateBus(bus, 2);

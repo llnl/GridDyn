@@ -13,7 +13,7 @@ namespace griddyn {
 constexpr index_t genModelEftInLocation = 2;
 constexpr index_t genModelPmechInLocation = 3;
 
-class gridBus;
+class GridBus;
 
 /** @brief model simulation implementing a generator model into GridDyn
  the GenModel implements a very basic generator model with 4 states the real and reactive
@@ -41,7 +41,7 @@ class GenModel: public GridSubModel {
     double machineBasePower = 100;  //!< [pu]  the operating base of the generator
     double Xd = 1.05;  //!< [pu] d-axis reactance
     double Rs = 0.0;  //!< [pu] generator resistance
-    gridBus* bus = nullptr;  //!< reference to the connected bus;
+    GridBus* bus = nullptr;  //!< reference to the connected bus;
   public:
     //!< @brief default constructor
     explicit GenModel(const std::string& objName = "genModel_#");
@@ -56,26 +56,27 @@ class GenModel: public GridSubModel {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               const solverMode& sMode) const override;
 
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              const solverMode& sMode,
                              index_t outNum = 0) const override;
     virtual double getOutput(index_t outNum = 0) const override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode) override;
 
     virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
     // TODO(phlpt): Split these into separate value and offset accessors.
-    virtual double
-        getFreq(const stateData& sD, const solverMode& sMode, index_t* freqOffset = nullptr) const;
-    virtual double getAngle(const stateData& sD,
+    virtual double getFreq(const stateData& stateDataValue,
+                           const solverMode& sMode,
+                           index_t* freqOffset = nullptr) const;
+    virtual double getAngle(const stateData& stateDataValue,
                             const solverMode& sMode,
                             index_t* angleOffset = nullptr) const;
 

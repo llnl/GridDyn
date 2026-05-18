@@ -79,7 +79,7 @@ class Generator: public gridSecondary {
     model_parameter m_Vtarget = -1;  //!< voltage target for the generator at the control bus
     model_parameter m_Rs = 0.0;  //!< the real part of the generator impedance
     model_parameter m_Xs = 1.0;  //!< generator impedance defined on Mbase;
-    gridBus* remoteBus = nullptr;  //!< the bus for remote control
+    GridBus* remoteBus = nullptr;  //!< the bus for remote control
     std::unique_ptr<utilities::OperatingBoundary> bounds;
 
   public:
@@ -120,32 +120,32 @@ class Generator: public gridSecondary {
     virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
                                  const solverMode& sMode,
                                  double alpha) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const solverMode& sMode) override;
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               const solverMode& sMode) const override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
@@ -158,10 +158,10 @@ class Generator: public gridSecondary {
     @return the current generator set point*/
     virtual double getPset() const { return Pset; }
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 const solverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     const solverMode& sMode) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
@@ -176,7 +176,7 @@ class Generator: public gridSecondary {
 
     virtual IOdata predictOutputs(coreTime predictionTime,
                                   const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const solverMode& sMode) const override;
 
     virtual double getAdjustableCapacityUp(coreTime time = maxTime) const override;
@@ -208,20 +208,21 @@ class Generator: public gridSecondary {
                                         check_level_t level) override;  // only applicable in pFlow
     virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
-    @param[in] sD the current stateData
+    @param[in] stateDataValue the current stateData
     @param[in] sMode the solvermode corresponding to the state
     @param[out] freqOffset the location of the frequency state in the sD arrays
     @return the current frequency the generator is operating at
     */
-    virtual double
-        getFreq(const stateData& sD, const solverMode& sMode, index_t* freqOffset = nullptr) const;
+    virtual double getFreq(const stateData& stateDataValue,
+                           const solverMode& sMode,
+                           index_t* freqOffset = nullptr) const;
     /** get the internal angle of the generator
-    @param[in] sD the current stateData
+    @param[in] stateDataValue the current stateData
     @param[in] sMode the solvermode corresponding to the state
     @param[out] angleOffset the location of the frequency state in the sD arrays
     @return the current angle of  the generator is operating at
     */
-    virtual double getAngle(const stateData& sD,
+    virtual double getAngle(const stateData& stateDataValue,
                             const solverMode& sMode,
                             index_t* angleOffset = nullptr) const;
 

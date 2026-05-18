@@ -29,22 +29,22 @@ using units::MVAR;
 using units::MW;
 
 // NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
-void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt);
+void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt);
 void ptiReadLoad(Load* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadFixedShunt(Load* ld, const std::string& line, basicReaderInfo& opt);
 void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
 void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    basicReaderInfo& opt);
 int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
-              std::vector<gridBus*>& busList,
+              std::vector<GridBus*>& busList,
               basicReaderInfo& opt);
 
 // static variables with the factories
 // get the basic busFactory
-static typeFactory<gridBus>* busfactory = nullptr;
+static typeFactory<GridBus>* busfactory = nullptr;
 
 // get the basic load Factory
 static typeFactory<Load>* ldfactory = nullptr;
@@ -61,7 +61,7 @@ void loadPti(CoreObject* parentObject,
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
     std::string pref2;  // temp storage to 2nd order prefix.
-    std::vector<gridBus*> busList;
+    std::vector<GridBus*> busList;
     Load* ld;
     Generator* gen;
     index_t index;
@@ -283,7 +283,7 @@ void loadPti(CoreObject* parentObject,
     file.close();
 }
 
-void ptiReadBus(gridBus* bus, const std::string& line, basicReaderInfo& opt)
+void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt)
 {
     std::string temp, temp2;
     double bv;
@@ -490,11 +490,11 @@ void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*
 
 void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
-                   std::vector<gridBus*>& busList,
+                   std::vector<GridBus*>& busList,
                    basicReaderInfo& opt)
 {
     std::string temp, temp2;
-    gridBus *bus1, *bus2;
+    GridBus *bus1, *bus2;
     Link* lnk;
     int ind1, ind2;
     double R, X;
@@ -548,13 +548,13 @@ void ptiReadBranch(CoreObject* parentObject,
 
 int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
-              std::vector<gridBus*>& busList,
+              std::vector<GridBus*>& busList,
               basicReaderInfo& opt)
 {
     int tline = 4;
     std::string temp, temp2;
-    gridBus *bus1, *bus2;
-    // gridBus *bus3;
+    GridBus *bus1, *bus2;
+    // GridBus *bus3;
     Link* lnk;
     int code;
     int ind1, ind2, ind3;

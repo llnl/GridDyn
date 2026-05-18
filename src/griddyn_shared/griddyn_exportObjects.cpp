@@ -36,7 +36,7 @@ using griddyn::Exciter;
 using griddyn::Generator;
 using griddyn::GenModel;
 using griddyn::Governor;
-using griddyn::gridBus;
+using griddyn::GridBus;
 using griddyn::GridComponent;
 using griddyn::gridDynSimulation;
 using griddyn::GridSubModel;
@@ -417,7 +417,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (comp == nullptr) {
         return invalid_str;
     }
-    if (dynamic_cast<const gridBus*>(comp) != nullptr) {
+    if (dynamic_cast<const GridBus*>(comp) != nullptr) {
         return bus_str;
     }
     if (dynamic_cast<const Link*>(comp) != nullptr) {

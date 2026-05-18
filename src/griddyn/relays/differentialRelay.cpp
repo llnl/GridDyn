@@ -134,7 +134,7 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
         }
         opFlags.set(LINK_MODE);
         opFlags.reset(BUS_MODE);
-    } else if (dynamic_cast<gridBus*>(m_sourceObject) != nullptr) {
+    } else if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
             make_condition("abs(load)", "<=", mMaxDifferential, m_sourceObject)));
         opFlags.set(BUS_MODE);

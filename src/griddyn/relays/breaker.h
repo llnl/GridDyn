@@ -36,7 +36,7 @@ class breaker: public Relay {
     std::uint16_t mRecloseAttempts = 0;  //!< reclose attempt counter
   protected:
     index_t m_terminal = 1;  //!< link terminal
-    gridBus* mBus = nullptr;
+    GridBus* mBus = nullptr;
 
   private:
     double mCti = 0.0;  //!< storage for the current integral

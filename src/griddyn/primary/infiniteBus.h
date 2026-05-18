@@ -17,7 +17,7 @@ overrides all math operations and does nothing since there are no calculations o
 infinite bus except to update the parameters for the scheduled change in voltage and frequency and
 hence angle, objects attached to it are ignored
 */
-class infiniteBus: public gridBus {
+class infiniteBus: public GridBus {
   protected:
     model_parameter dvdt = 0;  //!< [puV/s] ramp rate for voltage
     model_parameter dfdt = 0;  //!< [puHz/s] ramp rate for frequency

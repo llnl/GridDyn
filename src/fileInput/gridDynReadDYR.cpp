@@ -85,7 +85,7 @@ namespace {
     void loadGENROU(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 
@@ -115,7 +115,7 @@ namespace {
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 
@@ -150,7 +150,7 @@ namespace {
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 
@@ -178,7 +178,7 @@ namespace {
     void loadSEXS(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 
@@ -199,7 +199,7 @@ namespace {
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<gridBus*>(parentObject->findByUserID("bus", busId));
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 

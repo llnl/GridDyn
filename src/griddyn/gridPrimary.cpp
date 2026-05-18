@@ -17,7 +17,7 @@ namespace griddyn {
 gridPrimary::gridPrimary(const std::string& objName): GridComponent(objName) {}
 CoreObject* gridPrimary::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<gridPrimary, GridComponent>(this, obj);
+    auto* nobj = cloneBase<gridPrimary, GridComponent>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -90,42 +90,42 @@ void gridPrimary::setState(coreTime time,
 }
 
 void gridPrimary::delayedResidual(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   double resid[],
                                   const solverMode& sMode)
 {
-    residual(inputs, sD, resid, sMode);
+    residual(inputs, stateDataValue, resid, sMode);
 }
 
 void gridPrimary::delayedDerivative(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     double deriv[],
                                     const solverMode& sMode)
 {
-    derivative(inputs, sD, deriv, sMode);
+    derivative(inputs, stateDataValue, deriv, sMode);
 }
 
 void gridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const stateData& stateDataValue,
                                          double update[],
                                          const solverMode& sMode,
                                          double alpha)
 {
-    algebraicUpdate(inputs, sD, update, sMode, alpha);
+    algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
 }
 
 void gridPrimary::delayedJacobian(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode)
 {
-    jacobianElements(inputs, sD, md, inputLocs, sMode);
+    jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
 }
 
 void gridPrimary::pFlowCheck(std::vector<Violation>& /*Violation_vector*/) {}
 void gridPrimary::updateLocalCache() {}
-gridBus* gridPrimary::getBus(index_t /*num*/) const
+GridBus* gridPrimary::getBus(index_t /*num*/) const
 {
     return nullptr;
 }

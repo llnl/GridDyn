@@ -13,10 +13,10 @@
 #include <string>
 
 namespace griddyn::links {
-longLine::longLine(const std::string& objName): subsystem(objName) {}
-CoreObject* longLine::clone(CoreObject* obj) const
+LongLine::LongLine(const std::string& objName): subsystem(objName) {}
+CoreObject* LongLine::clone(CoreObject* obj) const
 {
-    auto line = cloneBase<longLine, Link>(this, obj);
+    auto line = cloneBase<LongLine, Link>(this, obj);
     if (line == nullptr) {
         return obj;
     }
@@ -27,23 +27,23 @@ CoreObject* longLine::clone(CoreObject* obj) const
     return line;
 }
 // add components
-void longLine::add(CoreObject* /*obj*/)
+void LongLine::add(CoreObject* /*obj*/)
 {
     throw(unrecognizedObjectException(this));
 }
 // remove components
-void longLine::remove(CoreObject* /*obj*/) {}
-void longLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void LongLine::remove(CoreObject* /*obj*/) {}
+void LongLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     generateIntermediateLinks();
     return subsystem::pFlowObjectInitializeA(time0, flags);
 }
 
-void longLine::set(std::string_view param, std::string_view val)
+void LongLine::set(std::string_view param, std::string_view val)
 {
     return Link::set(param, val);
 }
-void longLine::set(std::string_view param, double val, units::unit unitType)
+void LongLine::set(std::string_view param, double val, units::unit unitType)
 {
     if (param.length() == 1) {
         switch (param[0]) {
@@ -107,7 +107,7 @@ void longLine::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double longLine::get(std::string_view param, units::unit unitType) const
+double LongLine::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "segmentationlength") {
@@ -118,7 +118,7 @@ double longLine::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void longLine::generateIntermediateLinks()
+void LongLine::generateIntermediateLinks()
 {
     int numLinks = static_cast<int>(std::ceil(length / segmentationLength));
 
@@ -131,7 +131,7 @@ void longLine::generateIntermediateLinks()
     Link* link;
 
     if (clinks == 0) {
-        link = new acLine(sr, sx);
+        link = new AcLine(sr, sx);
         link->set("b", sB);
         if (sG != 0) {
             link->set("g", sG);
@@ -151,11 +151,11 @@ void longLine::generateIntermediateLinks()
         }
     }
     for (int pp = clinks; pp < numLinks; ++pp) {
-        gridBus* bus = new acBus("ibus" + std::to_string(pp));
+        GridBus* bus = new AcBus("ibus" + std::to_string(pp));
 
         subsystem::add(bus);
 
-        link = new acLine(sr, sx);
+        link = new AcLine(sr, sx);
         link->set("b", sB);
         if (sG != 0) {
             link->set("g", sG);

@@ -57,9 +57,9 @@ Psched=sched->timestepP(time);
 }*/
 }
 
-void dcLink::updateBus(gridBus* bus, index_t busnumber)
+void dcLink::updateBus(GridBus* bus, index_t busnumber)
 {
-    if (dynamic_cast<dcBus*>(bus) != nullptr) {
+    if (dynamic_cast<DcBus*>(bus) != nullptr) {
         Link::updateBus(bus, busnumber);
     } else {
         throw(unrecognizedObjectException(this));
@@ -383,7 +383,7 @@ int dcLink::fixRealPower(double power,
     }
     Pset = convert(power, unitType, puMW, systemBasePower);
     if ((fixedTerminal == 2) || (fixedTerminal == B2->getID())) {
-        if (B2->getType() == gridBus::busType::SLK) {
+        if (B2->getType() == GridBus::busType::SLK) {
             linkInfo.v2 = B2->getVoltage();
             Idc = power / linkInfo.v2;
             double v1 = linkInfo.v2 - Idc * r;
@@ -391,7 +391,7 @@ int dcLink::fixRealPower(double power,
             updateLocalCache();
             return B1->propogatePower(true);
         }
-        if (B1->getType() == gridBus::busType::SLK) {
+        if (B1->getType() == GridBus::busType::SLK) {
             linkInfo.v1 = B1->getVoltage();
             if (r > 0) {
                 double temp = linkInfo.v1 / r;
@@ -418,7 +418,7 @@ int dcLink::fixRealPower(double power,
         }
         Idc = -Idc;
     } else {
-        if (B1->getType() == gridBus::busType::SLK) {
+        if (B1->getType() == GridBus::busType::SLK) {
             linkInfo.v1 = B1->getVoltage();
             Idc = power / linkInfo.v1;
             double v2 = linkInfo.v1 - Idc * r;
@@ -426,7 +426,7 @@ int dcLink::fixRealPower(double power,
             updateLocalCache();
             return B2->propogatePower(true);
         }
-        if (B2->getType() == gridBus::busType::SLK) {
+        if (B2->getType() == GridBus::busType::SLK) {
             linkInfo.v2 = B2->getVoltage();
             if (r > 0) {
                 double temp = linkInfo.v2 / r;

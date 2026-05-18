@@ -12,8 +12,8 @@
 namespace griddyn {
 
 class gridSecondary;
-class acBus;
-class gridBus;
+class AcBus;
+class GridBus;
 class Link;
 class GridComponent;
 
@@ -24,7 +24,7 @@ by perfect links
 */
 class BusControls {
   public:
-    acBus* controlledBus;  //!< the bus that is being controlled
+    AcBus* controlledBus;  //!< the bus that is being controlled
 
     double Qmin = -kBigNum;  //!< [pu]    reactive power minimum
     double Qmax = kBigNum;  //!< [pu]    reactive power maximum
@@ -60,13 +60,13 @@ class BusControls {
                                      //!< a specific controllable link
 
     // for coordinating node-breaker models and directly connected buses
-    std::vector<acBus*> slaveBusses;  //!< buses which are slaved to this bus
-    gridBus* masterBus = nullptr;  //!< if the bus is a slave this is the master
-    gridBus* directBus = nullptr;  //!< if the bus is direct connected this is the master
+    std::vector<AcBus*> slaveBusses;  //!< buses which are slaved to this bus
+    GridBus* masterBus = nullptr;  //!< if the bus is a slave this is the master
+    GridBus* directBus = nullptr;  //!< if the bus is direct connected this is the master
 
   public:
     /** @brief const*/
-    explicit BusControls(acBus* busToControl);
+    explicit BusControls(AcBus* busToControl);
 
     bool hasVoltageAdjustments(id_type_t sid) const;
     bool hasPowerAdjustments(id_type_t sid) const;
@@ -87,8 +87,8 @@ class BusControls {
 
     bool checkIdenticalControls();
 
-    void mergeBus(acBus* mbus);
-    void unmergeBus(acBus* mbus);
+    void mergeBus(AcBus* mbus);
+    void unmergeBus(AcBus* mbus);
     void checkMerge();
 };
 

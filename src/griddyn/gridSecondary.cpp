@@ -16,30 +16,30 @@
 
 namespace griddyn {
 namespace {
-GridBus& defaultBus()
-{
-    static GridBus defaultBusInstance(1.0, 0);
-    return defaultBusInstance;
-}
+    GridBus& defaultBus()
+    {
+        static GridBus defaultBusInstance(1.0, 0);
+        return defaultBusInstance;
+    }
 
-const std::vector<stringVec>& secondaryInputNames()
-{
-    static const std::vector<stringVec> inputNames{
-        {"voltage", "v", "volt"},
-        {"angle", "theta", "ang", "a"},
-        {"frequency", "freq", "f", "omega"},
-    };
-    return inputNames;
-}
+    const std::vector<stringVec>& secondaryInputNames()
+    {
+        static const std::vector<stringVec> inputNames{
+            {"voltage", "v", "volt"},
+            {"angle", "theta", "ang", "a"},
+            {"frequency", "freq", "f", "omega"},
+        };
+        return inputNames;
+    }
 
-const std::vector<stringVec>& secondaryOutputNames()
-{
-    static const std::vector<stringVec> outputNames{
-        {"p", "power", "realpower", "real"},
-        {"q", "reactive", "reactivepower"},
-    };
-    return outputNames;
-}
+    const std::vector<stringVec>& secondaryOutputNames()
+    {
+        static const std::vector<stringVec> outputNames{
+            {"p", "power", "realpower", "real"},
+            {"q", "reactive", "reactivepower"},
+        };
+        return outputNames;
+    }
 }  // namespace
 
 gridSecondary::gridSecondary(const std::string& objName): GridComponent(objName), bus(&defaultBus())

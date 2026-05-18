@@ -73,10 +73,9 @@ class GenModel: public GridSubModel {
 
     virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
     // TODO(phlpt): Split these into separate value and offset accessors.
-    virtual double
-        getFreq(const stateData& stateDataValue,
-                const solverMode& sMode,
-                index_t* freqOffset = nullptr) const;
+    virtual double getFreq(const stateData& stateDataValue,
+                           const solverMode& sMode,
+                           index_t* freqOffset = nullptr) const;
     virtual double getAngle(const stateData& stateDataValue,
                             const solverMode& sMode,
                             index_t* angleOffset = nullptr) const;

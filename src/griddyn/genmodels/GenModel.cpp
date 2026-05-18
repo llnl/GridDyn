@@ -17,80 +17,82 @@
 
 namespace griddyn {
 namespace {
-typeFactory<GenModel>& genModelFactory()
-{
-    static typeFactory<GenModel> genModelFactoryInstance(
-        "genmodel", std::to_array<std::string_view>({"trivial"}));
-    return genModelFactoryInstance;
-}
+    typeFactory<GenModel>& genModelFactory()
+    {
+        static typeFactory<GenModel> genModelFactoryInstance("genmodel",
+                                                             std::to_array<std::string_view>(
+                                                                 {"trivial"}));
+        return genModelFactoryInstance;
+    }
 
-void registerGenModelTypes()
-{
-    static childTypeFactory<GenModelInverter, GenModel> inverterGenModelFactory(
-        "genmodel", std::to_array<std::string_view>({"inverter"}));
+    void registerGenModelTypes()
+    {
+        static childTypeFactory<GenModelInverter, GenModel> inverterGenModelFactory(
+            "genmodel", std::to_array<std::string_view>({"inverter"}));
 
-    static childTypeFactory<GenModelClassical, GenModel> classicalGenModelFactory(
-        "genmodel",
-        std::to_array<std::string_view>(
-            {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
+        static childTypeFactory<GenModelClassical, GenModel> classicalGenModelFactory(
+            "genmodel",
+            std::to_array<std::string_view>(
+                {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
 
-    static childTypeFactory<GenModel3, GenModel> thirdOrderGenModelFactory(
-        "genmodel", std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
-    static childTypeFactory<GenModel4, GenModel> fourthOrderGenModelFactory(
-        "genmodel",
-        std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
-        "4");
+        static childTypeFactory<GenModel3, GenModel> thirdOrderGenModelFactory(
+            "genmodel", std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
+        static childTypeFactory<GenModel4, GenModel> fourthOrderGenModelFactory(
+            "genmodel",
+            std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
+            "4");
 
-    static childTypeFactory<GenModel5, GenModel> fifthOrderGenModelFactory(
-        "genmodel",
-        std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
+        static childTypeFactory<GenModel5, GenModel> fifthOrderGenModelFactory(
+            "genmodel",
+            std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 
-    static childTypeFactory<GenModel5type2, GenModel> fifthOrderGenModelType2Factory(
-        "genmodel",
-        std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
+        static childTypeFactory<GenModel5type2, GenModel> fifthOrderGenModelType2Factory(
+            "genmodel",
+            std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 
-    static childTypeFactory<GenModel6, GenModel> sixthOrderGenModelFactory(
-        "genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
+        static childTypeFactory<GenModel6, GenModel> sixthOrderGenModelFactory(
+            "genmodel", std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
 
-    static childTypeFactory<GenModel6type2, GenModel> sixthOrderGenModelType2Factory(
-        "genmodel",
-        std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
+        static childTypeFactory<GenModel6type2, GenModel> sixthOrderGenModelType2Factory(
+            "genmodel",
+            std::to_array<std::string_view>(
+                {"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
 
-    static childTypeFactory<GenModel8, GenModel> eighthOrderGenModelFactory(
-        "genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
+        static childTypeFactory<GenModel8, GenModel> eighthOrderGenModelFactory(
+            "genmodel", std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
 
-    static const auto registered = (&genModelFactory(),
-                                    &inverterGenModelFactory,
-                                    &classicalGenModelFactory,
-                                    &thirdOrderGenModelFactory,
-                                    &fourthOrderGenModelFactory,
-                                    &fifthOrderGenModelFactory,
-                                    &fifthOrderGenModelType2Factory,
-                                    &sixthOrderGenModelFactory,
-                                    &sixthOrderGenModelType2Factory,
-                                    &eighthOrderGenModelFactory,
-                                    true);
-    static_cast<void>(registered);
-}
+        static const auto registered = (&genModelFactory(),
+                                        &inverterGenModelFactory,
+                                        &classicalGenModelFactory,
+                                        &thirdOrderGenModelFactory,
+                                        &fourthOrderGenModelFactory,
+                                        &fifthOrderGenModelFactory,
+                                        &fifthOrderGenModelType2Factory,
+                                        &sixthOrderGenModelFactory,
+                                        &sixthOrderGenModelType2Factory,
+                                        &eighthOrderGenModelFactory,
+                                        true);
+        static_cast<void>(registered);
+    }
 
-const std::vector<stringVec>& genModelInputNames()
-{
-    static const std::vector<stringVec> inputNames{
-        {"voltage", "v", "volt"},
-        {"angle", "ang", "a"},
-        {"eft", "e", "field", "exciter"},
-        {"pmech", "power", "p", "mech"},
-    };
-    return inputNames;
-}
+    const std::vector<stringVec>& genModelInputNames()
+    {
+        static const std::vector<stringVec> inputNames{
+            {"voltage", "v", "volt"},
+            {"angle", "ang", "a"},
+            {"eft", "e", "field", "exciter"},
+            {"pmech", "power", "p", "mech"},
+        };
+        return inputNames;
+    }
 
-const std::vector<stringVec>& genModelOutputNames()
-{
-    static const std::vector<stringVec> outputNames{
-        {"e", "field", "exciter"},
-    };
-    return outputNames;
-}
+    const std::vector<stringVec>& genModelOutputNames()
+    {
+        static const std::vector<stringVec> outputNames{
+            {"e", "field", "exciter"},
+        };
+        return outputNames;
+    }
 }  // namespace
 
 GenModel::GenModel(const std::string& objName): GridSubModel(objName)
@@ -227,15 +229,18 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
         matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -1.0);
     } else {
         const double factor = voltage / 0.85;
-        matrixDataValue.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd * factor);
+        matrixDataValue.assignCheckCol(QoutLocation,
+                                       inputLocs[genModelEftInLocation],
+                                       -Xd * factor);
 
         if (inputLocs[voltageInLocation] != kNullLocation) {
             const double exciterField = inputs[genModelEftInLocation];
             matrixDataValue.assign(PoutLocation,
-                      inputLocs[voltageInLocation],
-                      -inputs[genModelPmechInLocation] / 0.85);
-            matrixDataValue.assign(
-                QoutLocation, inputLocs[voltageInLocation], -exciterField * Xd / 0.85);
+                                   inputLocs[voltageInLocation],
+                                   -inputs[genModelPmechInLocation] / 0.85);
+            matrixDataValue.assign(QoutLocation,
+                                   inputLocs[voltageInLocation],
+                                   -exciterField * Xd / 0.85);
         }
         matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -factor);
     }

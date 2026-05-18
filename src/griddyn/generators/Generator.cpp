@@ -37,23 +37,24 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 namespace {
-typeFactory<Generator>& generatorFactory()
-{
-    static typeFactory<Generator> generatorFactoryInstance(
-        "generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
-    return generatorFactoryInstance;
-}
+    typeFactory<Generator>& generatorFactory()
+    {
+        static typeFactory<Generator> generatorFactoryInstance("generator",
+                                                               std::to_array<std::string_view>(
+                                                                   {"basic", "simple", "pflow"}));
+        return generatorFactoryInstance;
+    }
 
-void registerGeneratorTypes()
-{
-    static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
-        "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
-    static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
-        "generator", std::to_array<std::string_view>({"variable", "renewable"}));
-    static const auto registered =
-        (&generatorFactory(), &dynamicGeneratorFactory, &variableGeneratorFactory, true);
-    static_cast<void>(registered);
-}
+    void registerGeneratorTypes()
+    {
+        static childTypeFactory<DynamicGenerator, Generator> dynamicGeneratorFactory(
+            "generator", std::to_array<std::string_view>({"dynamic", "spinning"}), "dynamic");
+        static childTypeFactory<variableGenerator, Generator> variableGeneratorFactory(
+            "generator", std::to_array<std::string_view>({"variable", "renewable"}));
+        static const auto registered =
+            (&generatorFactory(), &dynamicGeneratorFactory, &variableGeneratorFactory, true);
+        static_cast<void>(registered);
+    }
 }  // namespace
 
 using units::convert;
@@ -574,19 +575,20 @@ void Generator::ioPartialDerivatives(const IOdata& inputs,
     if (!isDynamic(sMode)) {
         if (inputs[voltageInLocation] < 0.8) {
             if (!opFlags[no_voltage_derate]) {
-                matrixDataValue.assignCheckCol(
-                    PoutLocation, inputLocs[voltageInLocation], -P * 1.25);
-                matrixDataValue.assignCheckCol(
-                    QoutLocation, inputLocs[voltageInLocation], -Q * 1.25);
+                matrixDataValue.assignCheckCol(PoutLocation,
+                                               inputLocs[voltageInLocation],
+                                               -P * 1.25);
+                matrixDataValue.assignCheckCol(QoutLocation,
+                                               inputLocs[voltageInLocation],
+                                               -Q * 1.25);
             }
         }
     }
 }
 
-IOdata
-    Generator::getOutputs(const IOdata& inputs,
-                          const stateData& stateDataValue,
-                          const solverMode& sMode) const
+IOdata Generator::getOutputs(const IOdata& inputs,
+                             const stateData& stateDataValue,
+                             const solverMode& sMode) const
 {
     IOdata output = {-P, -Q};
     if (!isDynamic(sMode))  // use as a proxy for dynamic state

@@ -42,29 +42,31 @@ class GridLoad;
 class solverMode;
 }  // namespace griddyn
 
-struct gridDynSimulationTestFixture {
-    gridDynSimulationTestFixture();
-    gridDynSimulationTestFixture(const gridDynSimulationTestFixture&) = delete;
-    ~gridDynSimulationTestFixture();
-    gridDynSimulationTestFixture& operator=(const gridDynSimulationTestFixture&) = delete;
+struct GridDynSimulationTestFixture {
+    GridDynSimulationTestFixture();
+    GridDynSimulationTestFixture(const GridDynSimulationTestFixture&) = delete;
+    ~GridDynSimulationTestFixture();
+    GridDynSimulationTestFixture& operator=(const GridDynSimulationTestFixture&) = delete;
 
-    std::unique_ptr<griddyn::gridDynSimulation> gds;
-    std::unique_ptr<griddyn::gridDynSimulation> gds2;
+    std::unique_ptr<griddyn::GridDynSimulation> gds;
+    std::unique_ptr<griddyn::GridDynSimulation> gds2;
 
     void simpleRunTestXML(const std::string& fileName);
     void runTestXML(const std::string& fileName,
-                    griddyn::gridDynSimulation::gridState_t finalState);
+                    griddyn::GridDynSimulation::gridState_t finalState);
     void detailedStageCheck(const std::string& fileName,
-                            griddyn::gridDynSimulation::gridState_t finalState);
+                            griddyn::GridDynSimulation::gridState_t finalState);
     void simpleStageCheck(const std::string& fileName,
-                          griddyn::gridDynSimulation::gridState_t finalState);
+                          griddyn::GridDynSimulation::gridState_t finalState);
     void dynamicInitializationCheck(const std::string& fileName);
 
-    void checkState(griddyn::gridDynSimulation::gridState_t state);
-    void requireState(griddyn::gridDynSimulation::gridState_t state);
-    void checkState2(griddyn::gridDynSimulation::gridState_t state);
-    void requireState2(griddyn::gridDynSimulation::gridState_t state);
+    void checkState(griddyn::GridDynSimulation::gridState_t state);
+    void requireState(griddyn::GridDynSimulation::gridState_t state);
+    void checkState2(griddyn::GridDynSimulation::gridState_t state);
+    void requireState2(griddyn::GridDynSimulation::gridState_t state);
 };
+
+using gridDynSimulationTestFixture = GridDynSimulationTestFixture;
 
 struct gridLoadTestFixture {
     gridLoadTestFixture();
@@ -81,34 +83,34 @@ struct glbconfig {
     ~glbconfig();
 };
 
-std::ostream& operator<<(std::ostream& os, griddyn::gridDynSimulation::gridState_t state);
+std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::gridState_t state);
 
-const std::string& to_string(griddyn::gridDynSimulation::gridState_t state);
+const std::string& to_string(griddyn::GridDynSimulation::gridState_t state);
 
-void checkStates(griddyn::gridDynSimulation::gridState_t state1,
-                 griddyn::gridDynSimulation::gridState_t state2);
+void checkStates(griddyn::GridDynSimulation::gridState_t state1,
+                 griddyn::GridDynSimulation::gridState_t state2);
 
-void requireStates(griddyn::gridDynSimulation::gridState_t state1,
-                   griddyn::gridDynSimulation::gridState_t state2);
+void requireStates(griddyn::GridDynSimulation::gridState_t state1,
+                   griddyn::GridDynSimulation::gridState_t state2);
 
-int runJacobianCheck(std::unique_ptr<griddyn::gridDynSimulation>& gds,
+int runJacobianCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                      const griddyn::solverMode& sMode,
                      bool checkRequired = true);
 
-int runJacobianCheck(std::unique_ptr<griddyn::gridDynSimulation>& gds,
+int runJacobianCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                      const griddyn::solverMode& sMode,
                      double tol,
                      bool checkRequired = true);
 
-int runResidualCheck(std::unique_ptr<griddyn::gridDynSimulation>& gds,
+int runResidualCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                      const griddyn::solverMode& sMode,
                      bool checkRequired = true);
 
-int runDerivativeCheck(std::unique_ptr<griddyn::gridDynSimulation>& gds,
+int runDerivativeCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                        const griddyn::solverMode& sMode,
                        bool checkRequired = true);
 
-int runAlgebraicCheck(std::unique_ptr<griddyn::gridDynSimulation>& gds,
+int runAlgebraicCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                       const griddyn::solverMode& sMode,
                       bool checkRequired = true);
 

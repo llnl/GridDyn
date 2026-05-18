@@ -40,7 +40,7 @@ namespace solvers {
     @param[in] gds  the gridDynSimulation to link to
     @param[in] sMode the solverMode to solve with
     */
-        basicSolver(gridDynSimulation* gds, const solverMode& sMode);
+        basicSolver(GridDynSimulation* gds, const solverMode& sMode);
 
         virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

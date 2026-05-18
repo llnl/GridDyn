@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-using griddyn::Area;
+using griddyn::GridArea;
 using griddyn::getObjectVectorFunction;
 using griddyn::GriddynRunner;
 
@@ -81,7 +81,7 @@ void gridDynSimulationGetResults(GridDynSimulation sim,
         return;
     }
     std::vector<double> dataVec;
-    auto fvecfunc = getObjectVectorFunction(static_cast<const Area*>(nullptr), dataType);
+    auto fvecfunc = getObjectVectorFunction(static_cast<const GridArea*>(nullptr), dataType);
     if (!fvecfunc.first) {
         return;
     }

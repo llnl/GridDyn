@@ -21,7 +21,7 @@ enum class SolverPrintLevel {
     ERROR_TRAP = 0,
 };
 
-class gridDynSimulation;
+class GridDynSimulation;
 
 /** error class for throwing solver exceptions*/
 class solverException: public std::exception {
@@ -131,7 +131,7 @@ class SolverInterface: public HelperObject {
     coreTime solveTime = negTime;  //!< storage for the time the solver is called
     std::string jacFile;  //!< the file to write the Jacobian to
     std::string stateFile;  //!< the file to write the state and residual to
-    gridDynSimulation* m_gds = nullptr;  //!< pointer the gridDynSimulation object used
+    GridDynSimulation* m_gds = nullptr;  //!< pointer the gridDynSimulation object used
     count_t svsize = 0;  //!< the state size
     count_t nnz = 0;  //!< the actual number of non-zeros in a Jacobian
     std::bitset<32> flags;  //!< flags for the solver
@@ -146,7 +146,7 @@ class SolverInterface: public HelperObject {
     @param[in] gds  gridDynSimulation to link with
     @param[in] sMode the solverMode associated with the solver
     */
-    SolverInterface(gridDynSimulation* gds, const solverMode& sMode);
+    SolverInterface(GridDynSimulation* gds, const solverMode& sMode);
 
     /** @brief make a copy of the solver interface
     @param[in] fullCopy set to true to initialize and copy over all data to the new object
@@ -305,11 +305,11 @@ class SolverInterface: public HelperObject {
     @param[in] gds the gridDynSimulationObject to attach to
     @param[in] sMode the solverMode associated with the solver
     */
-    virtual void setSimulationData(gridDynSimulation* gds, const solverMode& sMode);
+    virtual void setSimulationData(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief input the simulation data to attach to
     @param[in] gds the gridDynSimulationObject to attach to
     */
-    virtual void setSimulationData(gridDynSimulation* gds);
+    virtual void setSimulationData(GridDynSimulation* gds);
 
     /** @brief input the solverMode associated with the solver
     @param[in] sMode the solverMode to attach to
@@ -364,7 +364,7 @@ class SolverInterface: public HelperObject {
 @param[in] sMode the solverMode to construct the SolverInterface from
 @return a unique_ptr to a SolverInterface object
 */
-std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solverMode& sMode);
+std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solverMode& sMode);
 /** @brief make a solver from a string
 @param[in] type the type of SolverInterface to create
 @return a unique_ptr to a SolverInterface object

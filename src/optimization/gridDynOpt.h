@@ -41,12 +41,12 @@ class OptimizationData;
 class GridAreaOpt;
 class GridOptObject;
 
-class GridDynOptimization: public gridDynSimulation {
+class GridDynOptimization: public GridDynSimulation {
   public:
   protected:
     // storageSpace for SUNDIALS solverInterface
     std::vector<std::shared_ptr<OptimizerInterface>> mOptimizerData;
-    GridAreaOpt* mAreaOpt = nullptr;
+    GridAreaOpt* mGridAreaOpt = nullptr;
     std::string mDefaultOptMode;
     // ---------------solution mode-------------
     // total thread count

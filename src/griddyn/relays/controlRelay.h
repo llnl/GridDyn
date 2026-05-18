@@ -20,7 +20,7 @@ namespace comms {
     class controlMessagePayload;
 }
 
-class gridSimulation;
+class GridSimulation;
 class functionEventAdapter;
 class gridGrabber;
 
@@ -59,7 +59,7 @@ namespace relays {
             1;  //!< the terminal of a link device to act upon(if source or sink is a link
         std::int16_t autoName = -1;  //!< variable for autonaming
         std::vector<delayedControlAction> actions;  //!< queue for delayed control actions
-        gridSimulation* rootSim = nullptr;  //!< pointer to the root object
+        GridSimulation* rootSim = nullptr;  //!< pointer to the root object
         std::vector<std::unique_ptr<gridGrabber>>
             measurement_points_;  //!< vector of grabbers defining measurement points
         std::unordered_map<std::string, index_t>

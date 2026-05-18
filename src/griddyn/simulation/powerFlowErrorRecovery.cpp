@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace griddyn {
-powerFlowErrorRecovery::powerFlowErrorRecovery(gridDynSimulation* gds,
+powerFlowErrorRecovery::powerFlowErrorRecovery(GridDynSimulation* gds,
                                                std::shared_ptr<SolverInterface> solverData):
     sim(gds), solver(std::move(solverData))
 {
@@ -25,7 +25,7 @@ powerFlowErrorRecovery::RecoveryReturnCodes powerFlowErrorRecovery::attemptFix(i
 {
     if ((error_code == -11) &&
         (sim->currentProcessState() !=
-         gridDynSimulation::gridState_t::INITIALIZED)) {  // something possibly went wrong in the
+         GridDynSimulation::gridState_t::INITIALIZED)) {  // something possibly went wrong in the
                                                           // initial setup try a full
                                                           // reinitialization
         sim->reInitpFlow(solver->getSolverMode(), change_code::state_count_change);
@@ -91,7 +91,7 @@ bool powerFlowErrorRecovery::powerFlowFix1()
     const change_code eval =
         sim->powerFlowAdjust(noInputs, lower_flags(sim->controlFlags), check_level_t::full_check);
     if (eval > change_code::non_state_change) {
-        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
+        sim->checkNetwork(GridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }
@@ -220,7 +220,7 @@ bool powerFlowErrorRecovery::lowVoltageFix()
                                                   lower_flags(sim->controlFlags),
                                                   check_level_t::low_voltage_check);
     if (eval > change_code::no_change) {
-        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
+        sim->checkNetwork(GridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }
@@ -234,7 +234,7 @@ bool powerFlowErrorRecovery::powerFlowFix5()
                                                   lower_flags(sim->controlFlags),
                                                   check_level_t::high_angle_trip);
     if (eval > change_code::no_change) {
-        sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);
+        sim->checkNetwork(GridDynSimulation::NetworkCheckType::SIMPLIFIED);
         sim->reInitpFlow(solver->getSolverMode(), eval);
         return true;
     }

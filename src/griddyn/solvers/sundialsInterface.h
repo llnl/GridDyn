@@ -93,7 +93,7 @@ class sundialsInterface: public SolverInterface {
 @param[in] gds  the gridDynSimulation to link with
 @param[in] sMode the solverMode for the solver
 */
-    sundialsInterface(gridDynSimulation* gds, const solverMode& sMode);
+    sundialsInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor
      */
     virtual ~sundialsInterface();

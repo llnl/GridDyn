@@ -22,7 +22,7 @@ class kinsolInterface: public sundialsInterface {
 @param[in] gds  the gridDynSimulation to link with
 @param[in] sMode the solverMode for the solver
 */
-    kinsolInterface(gridDynSimulation* gds, const solverMode& sMode);
+    kinsolInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor
      */
     virtual ~kinsolInterface();

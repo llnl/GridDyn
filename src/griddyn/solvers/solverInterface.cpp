@@ -79,7 +79,7 @@ static childClassFactory<solvers::basicOdeSolver, SolverInterface>
 #endif
 
 SolverInterface::SolverInterface(const std::string& objName): HelperObject(objName) {}
-SolverInterface::SolverInterface(gridDynSimulation* gds, const solverMode& sMode):
+SolverInterface::SolverInterface(GridDynSimulation* gds, const solverMode& sMode):
     mode(sMode), m_gds(gds)
 {
 }
@@ -184,7 +184,7 @@ void SolverInterface::setSimulationData(const solverMode& sMode)
 {
     mode = sMode;
 }
-void SolverInterface::setSimulationData(gridDynSimulation* gds, const solverMode& sMode)
+void SolverInterface::setSimulationData(GridDynSimulation* gds, const solverMode& sMode)
 {
     mode = sMode;
     if (gds != nullptr) {
@@ -192,7 +192,7 @@ void SolverInterface::setSimulationData(gridDynSimulation* gds, const solverMode
     }
 }
 
-void SolverInterface::setSimulationData(gridDynSimulation* gds)
+void SolverInterface::setSimulationData(GridDynSimulation* gds)
 {
     if (gds != nullptr) {
         m_gds = gds;
@@ -541,7 +541,7 @@ void SolverInterface::setMaxNonZeros(count_t nonZeroCount)
 }
 
 // TODO(phlpt): Change this so the defaults can be something other than sundials solvers.
-std::unique_ptr<SolverInterface> makeSolver(gridDynSimulation* gds, const solverMode& sMode)
+std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solverMode& sMode)
 {
     std::unique_ptr<SolverInterface> sd = nullptr;
     if (isLocal(sMode)) {

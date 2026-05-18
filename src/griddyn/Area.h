@@ -15,7 +15,7 @@
 
 namespace griddyn {
 // forward classes
-class gridDynSimulation;
+class GridDynSimulation;
 class Relay;
 class Link;
 class GridBus;
@@ -29,7 +29,7 @@ class listMaintainer;
 it also acts as focal point for wide area controls such as AGC and can compute other functions and
 statistics across a wide area
 */
-class Area: public gridPrimary {
+class GridArea: public gridPrimary {
     friend class listMaintainer;
 
   public:
@@ -46,7 +46,7 @@ class Area: public gridPrimary {
     std::vector<GridBus*> m_Buses;  //!< list of buses contained in a the area
     std::vector<Link*> m_Links;  //!< links completely inside the area
     std::vector<Link*> m_externalLinks;  //!< links going to other areas
-    std::vector<Area*> m_Areas;  //!< list of the areas contained within the parent area
+    std::vector<GridArea*> m_GridAreas;  //!< list of the areas contained within the parent area
     std::vector<Relay*> m_Relays;  //!< list of relay objects
 
     std::vector<gridPrimary*> primaryObjects;  //!< list of all the primary objects in the area
@@ -71,9 +71,9 @@ class Area: public gridPrimary {
 
   public:
     /** @brief the default constructor*/
-    explicit Area(const std::string& objName = "area_$");
+    explicit GridArea(const std::string& objName = "area_$");
     /** @brief the default destructor*/
-    virtual ~Area();
+    virtual ~GridArea();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -94,7 +94,7 @@ class Area: public gridPrimary {
     @param[in] area  the area to add
     @throw objectAddFailure on add failure typically duplicated names
     */
-    virtual void add(Area* area);
+    virtual void add(GridArea* area);
     /** @brief add a relay to the area
     @param[in] relay  the relay to add
    @throw objectAddFailure on add failure typically duplicated names
@@ -117,7 +117,7 @@ class Area: public gridPrimary {
     @param[in] area  the area to remove
 
     */
-    virtual void remove(Area* area);
+    virtual void remove(GridArea* area);
     /** @brief remove a relay from the area
     @param[in] relay  the relay to remove
     */
@@ -126,7 +126,8 @@ class Area: public gridPrimary {
     // get component models
     virtual GridBus* getBus(index_t x) const override;
     virtual Link* getLink(index_t x) const override;
-    virtual Area* getArea(index_t x) const override;
+    virtual GridArea* getArea(index_t x) const override;
+    GridArea* getGridArea(index_t x) const;
     virtual Relay* getRelay(index_t x) const override;
     /** @brief get a generator by index number
      this is kind of an ugly function but needed for some applications to search through all buses
@@ -482,10 +483,10 @@ class Area: public gridPrimary {
     static std::atomic<count_t> areaCounter;  //!< basic counter for the areas to compute an id
 
     template<class X>
-    friend void addObject(Area* area, X* obj, std::vector<X*>& objVector);
+    friend void addObject(GridArea* area, X* obj, std::vector<X*>& objVector);
 
     template<class X>
-    friend void removeObject(Area* area, X* obj, std::vector<X*>& objVector);
+    friend void removeObject(GridArea* area, X* obj, std::vector<X*>& objVector);
 };
 
 /** @brief find the matching area in a different tree
@@ -495,6 +496,8 @@ class Area: public gridPrimary {
 @param[in] sec  the desired parent object tree
 @return a pointer to an area on the second tree that matches the area based on name and location
 */
-Area* getMatchingArea(Area* area, gridPrimary* src, gridPrimary* sec);
+GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec);
+
+using Area = GridArea;
 
 }  // namespace griddyn

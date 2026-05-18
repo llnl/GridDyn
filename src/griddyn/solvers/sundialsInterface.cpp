@@ -61,7 +61,7 @@ sundialsInterface::sundialsInterface(const std::string& objName): SolverInterfac
     check_flag(&retval, "SUNContext_Create", 1);
     registerErrorHandler();
 }
-sundialsInterface::sundialsInterface(gridDynSimulation* gds, const solverMode& sMode):
+sundialsInterface::sundialsInterface(GridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
     ensureSundialsFactories();

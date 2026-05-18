@@ -284,6 +284,7 @@ class GridOptObject: public CoreObject {
     @return the gridOptObject represented by the area index
     */
     virtual GridOptObject* getArea(index_t index) const;
+    GridOptObject* getGridArea(index_t index) const { return getArea(index); }
 
     /** get a specific Link
     @param index  the index of the area to return

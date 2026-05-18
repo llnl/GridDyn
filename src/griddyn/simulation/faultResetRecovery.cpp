@@ -16,7 +16,7 @@
 namespace griddyn {
 bool checkResetVoltages(const std::vector<double>& prev, const std::vector<double>& curr);
 
-faultResetRecovery::faultResetRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> sd):
+faultResetRecovery::faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> sd):
     sim(gds), solver(std::move(sd))
 {
     sim->getVoltage(initVolts);

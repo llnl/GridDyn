@@ -26,7 +26,7 @@
 #include <vector>
 
 namespace griddyn {
-gridSimulation::gridSimulation(const std::string& objName): Area(objName), simulationTime(timeZero)
+GridSimulation::GridSimulation(const std::string& objName): GridArea(objName), simulationTime(timeZero)
 {
     EvQ = std::make_unique<eventQueue>();
 #ifdef ENABLE_MULTITHREADING
@@ -36,15 +36,15 @@ gridSimulation::gridSimulation(const std::string& objName): Area(objName), simul
 #endif
 }
 
-gridSimulation::~gridSimulation()
+GridSimulation::~GridSimulation()
 {
     opFlags.set(
         being_deleted);  // set this flag to handle some unusual circumstances with extra objects
 }
 
-CoreObject* gridSimulation::clone(CoreObject* obj) const
+CoreObject* GridSimulation::clone(CoreObject* obj) const
 {
-    auto* sim = cloneBase<gridSimulation, Area>(this, obj);
+    auto* sim = cloneBase<GridSimulation, GridArea>(this, obj);
     if (sim == nullptr) {
         return obj;
     }
@@ -74,12 +74,12 @@ CoreObject* gridSimulation::clone(CoreObject* obj) const
     return sim;
 }
 
-void gridSimulation::setErrorCode(int ecode)
+void GridSimulation::setErrorCode(int ecode)
 {
     pState = ((ecode == GS_NO_ERROR) ? pState : gridState_t::GD_ERROR), errorCode = ecode;
 }
 
-void gridSimulation::add(std::shared_ptr<collector> col)
+void GridSimulation::add(std::shared_ptr<collector> col)
 {
     if (!recordDirectory.empty()) {
         col->set("directory", recordDirectory);
@@ -88,45 +88,45 @@ void gridSimulation::add(std::shared_ptr<collector> col)
     collectorList.push_back(std::move(col));
 }
 
-void gridSimulation::add(std::shared_ptr<Event> evnt)
+void GridSimulation::add(std::shared_ptr<Event> evnt)
 {
     EvQ->insert(std::move(evnt));
 }
 
-void gridSimulation::add(std::shared_ptr<eventAdapter> eA)
+void GridSimulation::add(std::shared_ptr<eventAdapter> eA)
 {
     EvQ->insert(std::move(eA));
 }
 
-void gridSimulation::add(const std::vector<std::shared_ptr<Event>>& elist)
+void GridSimulation::add(const std::vector<std::shared_ptr<Event>>& elist)
 {
     for (const auto& ev : elist) {
         EvQ->insert(ev);
     }
 }
 
-void gridSimulation::getEventObjects(std::vector<CoreObject*>& objV) const
+void GridSimulation::getEventObjects(std::vector<CoreObject*>& objV) const
 {
     EvQ->getEventObjects(objV);
 }
 
-int gridSimulation::run(coreTime /*finishTime*/)
+int GridSimulation::run(coreTime /*finishTime*/)
 {
     return FUNCTION_EXECUTION_FAILURE;
 }
 
-int gridSimulation::step()
+int GridSimulation::step()
 {
     return FUNCTION_EXECUTION_FAILURE;
 }
 
-void gridSimulation::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridSimulation::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
-    Area::timestep(time, inputs, sMode);
+    GridArea::timestep(time, inputs, sMode);
     EvQ->executeEvents(time);
 }
 
-void gridSimulation::saveRecorders()
+void GridSimulation::saveRecorders()
 {
     // save the recorder files
     for (auto& col : collectorList) {
@@ -145,7 +145,7 @@ void gridSimulation::saveRecorders()
 }
 
 static const char consoleprint[] = "consoleprintlevel";
-void gridSimulation::set(std::string_view param, std::string_view val)
+void GridSimulation::set(std::string_view param, std::string_view val)
 {
     std::string temp;
     if ((param == "recorddirectory") || (param == "outputdirectory")) {
@@ -173,11 +173,11 @@ void gridSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "sourcefile") {
         sourceFile = val;
     } else {
-        Area::set(param, val);
+        GridArea::set(param, val);
     }
 }
 
-std::string gridSimulation::getString(std::string_view param) const
+std::string GridSimulation::getString(std::string_view param) const
 {
     if (param == "logfile") {
         return logFile;
@@ -191,10 +191,10 @@ std::string gridSimulation::getString(std::string_view param) const
     if (param == "version") {
         return version;
     }
-    return Area::getString(param);
+    return GridArea::getString(param);
 }
 
-void gridSimulation::set(std::string_view param, double val, units::unit unitType)
+void GridSimulation::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestart") || (param == "start") || (param == "starttime")) {
         startTime = units::convert(val, unitType, units::second);
@@ -238,12 +238,12 @@ void gridSimulation::set(std::string_view param, double val, units::unit unitTyp
     } else if (param == "recordstart") {
         recordStart = units::convert(val, unitType, units::second);
     } else {
-        Area::set(param, val, unitType);
+        GridArea::set(param, val, unitType);
     }
 }
 
 // find collector
-std::shared_ptr<collector> gridSimulation::findCollector(const std::string& collectorName)
+std::shared_ptr<collector> GridSimulation::findCollector(const std::string& collectorName)
 {
     for (auto& col : collectorList) {
         if (collectorName == col->getName()) {
@@ -261,7 +261,7 @@ std::shared_ptr<collector> gridSimulation::findCollector(const std::string& coll
     return nullptr;
 }
 
-void gridSimulation::log(CoreObject* object, print_level level, const std::string& message)
+void GridSimulation::log(CoreObject* object, print_level level, const std::string& message)
 {
     if ((level > consolePrintLevel) && (level > logPrintLevel)) {
         return;
@@ -312,7 +312,7 @@ void gridSimulation::log(CoreObject* object, print_level level, const std::strin
     }
 }
 
-bool gridSimulation::shouldLog(print_level level) const
+bool GridSimulation::shouldLog(print_level level) const
 {
     return !((level > consolePrintLevel) && (level > logPrintLevel));
 }
@@ -354,7 +354,7 @@ static const std::map<int, std::string> alertStrings{
 
 };
 
-void gridSimulation::alert(CoreObject* object, int code)
+void GridSimulation::alert(CoreObject* object, int code)
 {
     if (code > MAX_CHANGE_ALERT) {
         switch (code) {
@@ -369,7 +369,7 @@ void gridSimulation::alert(CoreObject* object, int code)
             case OBJECT_NAME_CHANGE:
             case OBJECT_ID_CHANGE:
             case OBJECT_IS_SEARCHABLE:
-                Area::alert(object, code);
+                GridArea::alert(object, code);
             default:
                 break;
         }
@@ -387,7 +387,7 @@ void gridSimulation::alert(CoreObject* object, int code)
     }
 }
 
-double gridSimulation::get(std::string_view param, units::unit unitType) const
+double GridSimulation::get(std::string_view param, units::unit unitType) const
 {
     count_t ival = kInvalidCount;
     double fval = kNullVal;
@@ -418,34 +418,34 @@ double gridSimulation::get(std::string_view param, units::unit unitType) const
     } else if (param == "state") {
         fval = static_cast<double>(pState);
     } else {
-        fval = Area::get(param, unitType);
+        fval = GridArea::get(param, unitType);
     }
     return (ival != kInvalidCount) ? static_cast<double>(ival) : fval;
 }
 
-void gridSimulation::setLogger(std::function<void(int, const std::string&)> loggingFunction)
+void GridSimulation::setLogger(std::function<void(int, const std::string&)> loggingFunction)
 {
     customLogger = std::move(loggingFunction);
 }
 
 // TODO(PT):: this really shouldn't be a function,  but still debating alternative approaches to the
 // need it addressed
-void gridSimulation::resetObjectCounters()
+void GridSimulation::resetObjectCounters()
 {
     ZipLoad::loadCount = 0;
-    // Area::areaCount = 0;
+    // GridArea::areaCount = 0;
     GridBus::busCount = 0;
     Link::linkCount = 0;
     Relay::relayCount = 0;
     Generator::genCount = 0;
 }
 
-coreTime gridSimulation::getEventTime() const
+coreTime GridSimulation::getEventTime() const
 {
     return EvQ->getNextTime();
 }
 
-coreTime gridSimulation::getEventTime(int eventCode) const
+coreTime GridSimulation::getEventTime(int eventCode) const
 {
     return EvQ->getNextTime(eventCode);
 }
@@ -473,8 +473,8 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
         }
     } else if (dynamic_cast<GridBus*>(obj1) != nullptr) {
         obj2 = getMatchingBus(dynamic_cast<GridBus*>(obj1), src, sec);
-    } else if (dynamic_cast<Area*>(obj1) != nullptr) {
-        obj2 = getMatchingArea(dynamic_cast<Area*>(obj1), src, sec);
+    } else if (dynamic_cast<GridArea*>(obj1) != nullptr) {
+        obj2 = getMatchingGridArea(dynamic_cast<GridArea*>(obj1), src, sec);
     } else if (dynamic_cast<Link*>(obj1) != nullptr) {
         obj2 = getMatchingLink(dynamic_cast<Link*>(obj1), src, sec);
     } else {

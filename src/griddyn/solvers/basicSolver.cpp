@@ -30,7 +30,7 @@ namespace solvers {
         mode.algebraic = true;
     }
 
-    basicSolver::basicSolver(gridDynSimulation* gds, const solverMode& sMode):
+    basicSolver::basicSolver(GridDynSimulation* gds, const solverMode& sMode):
         SolverInterface(gds, sMode), algorithm(mode_t::gauss)
     {
         mode.algebraic = true;

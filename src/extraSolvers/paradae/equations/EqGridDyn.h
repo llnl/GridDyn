@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 class solverMode;
 }  // namespace griddyn
 

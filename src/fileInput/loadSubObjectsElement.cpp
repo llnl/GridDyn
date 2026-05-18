@@ -153,11 +153,11 @@ namespace {
         return readRelayElement(currentElement, readerInf, parentObject);
     }
 
-    CoreObject* loadArea(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadGridArea(std::shared_ptr<readerElement>& currentElement,
                          readerInfo& readerInf,
                          CoreObject* parentObject)
     {
-        return readAreaElement(currentElement, readerInf, parentObject);
+        return readGridAreaElement(currentElement, readerInf, parentObject);
     }
 
     CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
@@ -206,7 +206,7 @@ namespace {
          {.name = "extra", .loader = &loadExtra},
          {.name = "bus", .loader = &loadBus},
          {.name = "relay", .loader = &loadRelay},
-         {.name = "area", .loader = &loadArea},
+         {.name = "area", .loader = &loadGridArea},
          {.name = "link", .loader = &loadLink},
          {.name = "econ", .loader = &loadEcon},
          {.name = "array", .loader = &loadArray},
@@ -234,7 +234,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
     if (element->hasElement("area")) {
         element->moveToFirstChild("area");
         while (element->isValid()) {
-            readAreaElement(element, readerInformation, parentObject);
+            readGridAreaElement(element, readerInformation, parentObject);
             element->moveToNextSibling("area");  // next area
         }
         element->moveToParent();

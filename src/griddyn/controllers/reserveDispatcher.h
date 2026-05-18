@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace griddyn {
-class Area;
+class GridArea;
 class schedulerRamp;
 
 /** in development object to manage the dispatch of reserve generation

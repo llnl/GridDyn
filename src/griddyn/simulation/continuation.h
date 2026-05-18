@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 
 class parameterSequence {
   public:

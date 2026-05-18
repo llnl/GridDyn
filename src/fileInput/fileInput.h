@@ -20,7 +20,7 @@ class Recorder;
 
 class CoreObject;
 
-class gridDynSimulation;
+class GridDynSimulation;
 
 #define READER_VERBOSE_PRINT 3
 #define READER_NORMAL_PRINT 2
@@ -76,12 +76,12 @@ enum ReaderFlags {
 
 };
 
-std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
+std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
                                                   readerInfo* readerInfoPtr = nullptr);
 
 void addFlags(basicReaderInfo& bri, const std::string& flags);
 
-void loadFile(std::unique_ptr<gridDynSimulation>& gds,
+void loadFile(std::unique_ptr<GridDynSimulation>& gds,
               const std::string& fileName,
               readerInfo* readerInf = nullptr,
               const std::string& ext = "");

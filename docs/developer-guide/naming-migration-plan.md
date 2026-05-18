@@ -387,9 +387,9 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 
 ### Epic E: Area And Simulation Types
 
-- [ ] Audit all references to `Area`
-- [ ] Audit all references to `gridSimulation`
-- [ ] Audit all references to `gridDynSimulation`
+- [~] Audit all references to `Area`
+- [~] Audit all references to `gridSimulation`
+- [~] Audit all references to `gridDynSimulation`
 - [ ] Rename area and simulation classes plus closely related API surface
 - [ ] Update dependents
 - [ ] Update tests
@@ -517,6 +517,7 @@ Use this table to log each naming migration PR as it lands.
 | merged      | `src/core`                                                                                                              | Phase 6 | Foundational type-family cleanup covering the `coreObject` to `CoreObject` base rename, immediate core infrastructure fallout, dependent repository-wide pointer/signature updates, and associated `clang-tidy` follow-through  | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/core` + `src/griddyn`                                                                                              | Phase 6 | Foundational hierarchy cleanup covering the `gridComponent`, `gridSubModel`, and `helperObject` base-family renames, repository-wide dependent type updates, and associated `clang-tidy` follow-through                         | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/griddyn` + `test/libraryTests`                                                                                     | Phase 6 | Topology and network model cleanup covering the `gridBus`, `acBus`, `dcBus`, `acLine`, and `longLine` type-family renames, XML/startup factory-registration follow-through, and associated `clang-tidy` plus test stabilization | No                   | CI compile, tests, and `clang-tidy` run | Complete |
+| merged      | `src/griddyn` + `src/fileInput` + `src/formatInterpreters` + `src/fmi` + `src/helics` + `src/optimization` + `test` | Phase 6 | Load and block model cleanup covering the `Load` to `GridLoad` and `Block` to `GridBlock` base renames, contained load/block family type normalization, startup factory-registration suppression follow-through, and case-sensitive include/path cleanup | No                   | CI compile, tests, and `clang-tidy` run | Complete |
 | merged      | `src/optimization`                                                                                                      | Phase 5 | Subsystem public API cleanup covering optimization-object lookup renames, objective-name API cleanup, offset-accessor normalization, dependent file-input call-site updates, and associated `clang-tidy` fixes                  | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | CI tooling                                                                                                              | Phase 2 | Updated `clang-tidy` workflow checkout and configure flags so optional networking files are analyzed                                                                                                                            | No                   | CI workflow run                         | Complete |
 | merged      | `src/utilities`                                                                                                         | Phase 3 | Low-risk utilities cleanup batches covering member naming in `valuePredictor`, `gridRandom`, and `dataDictionary`, plus local helper cleanup in `zipUtilities` and `GlobalWorkQueue`                                            | No                   | No `clang-tidy` issues to report        | Complete |

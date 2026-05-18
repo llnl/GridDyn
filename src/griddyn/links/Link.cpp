@@ -837,7 +837,7 @@ Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
         // now work our way backwards through the secondary
         par = sec;
         for (size_t kk = lkind.size() - 1; kk > 0; --kk) {
-            par = dynamic_cast<gridPrimary*>(par->getArea(lkind[kk]));
+            par = dynamic_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
         }
         matchingLink = par->getLink(lkind[0]);
     }

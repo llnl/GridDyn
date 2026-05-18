@@ -173,7 +173,7 @@ void loadRaw(CoreObject* parentObject,
     Column  46-73   Case identification (A) */
 
     // reset all the object counters
-    gridSimulation::resetObjectCounters();
+    GridSimulation::resetObjectCounters();
     // get the base scenario information
     if (std::getline(file, line)) {
         // auto res = sscanf(
@@ -565,7 +565,7 @@ static void rawReadLoad(GridLoad* loadObject, const std::string& line, basicRead
 {
     // version 32:
     //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
-    // Bus, Id, Status, Area, Zone, PL(MW), QL (MW), IP, IQ, YP, YQ, OWNER
+    // Bus, Id, Status, GridArea, Zone, PL(MW), QL (MW), IP, IQ, YP, YQ, OWNER
 
     auto strvec = splitline(line);
 

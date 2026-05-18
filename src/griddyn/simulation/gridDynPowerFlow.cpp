@@ -12,7 +12,7 @@
 #include "../solvers/solverInterface.h"
 #include "continuation.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "gridDynSimulationFileOps.h"
+#include "GridDynSimulationFileOps.h"
 #include "powerFlowErrorRecovery.h"
 // system headers
 #include <cmath>
@@ -26,7 +26,7 @@ namespace griddyn {
 // --------------- power flow program ---------------
 
 // power flow solver
-int gridDynSimulation::powerflow()
+int GridDynSimulation::powerflow()
 {
     const solverMode& solverModeRef = *defPowerFlowMode;
     const int out = FUNCTION_EXECUTION_SUCCESS;
@@ -218,7 +218,7 @@ int gridDynSimulation::powerflow()
     return out;
 }
 
-void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
+void GridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
 {
     if (opFlags[slack_bus_change]) {
         checkNetwork(NetworkCheckType::FULL);
@@ -286,7 +286,7 @@ void gridDynSimulation::reInitpFlow(const solverMode& sMode, change_code change)
 
 // we initialize all the objects in the simulation and the default SolverInterface
 // all other solver data objects would be initialized by a reInitPFlow(xxx) call;
-int gridDynSimulation::pFlowInitialize(coreTime time0)
+int GridDynSimulation::pFlowInitialize(coreTime time0)
 {
     if (time0 == negTime) {
         time0 = powerFlowStartTime;
@@ -341,7 +341,7 @@ int gridDynSimulation::pFlowInitialize(coreTime time0)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-bool gridDynSimulation::generatorAdjust(double adjustment)
+bool GridDynSimulation::generatorAdjust(double adjustment)
 {
     double availPower{0.0};
     std::vector<double> avail;
@@ -389,7 +389,7 @@ bool gridDynSimulation::generatorAdjust(double adjustment)
 }
 
 // TODO(PT) this really should be done by areas instead of globally
-bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
+bool GridDynSimulation::loadBalance(double prevPower, const std::vector<double>& prevSlkGen)
 {
     double cPower = 0.0;
 
@@ -411,7 +411,7 @@ bool gridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
     return generatorAdjust(cPower);
 }
 
-void gridDynSimulation::continuationPowerFlow(std::string_view contName)
+void GridDynSimulation::continuationPowerFlow(std::string_view contName)
 {
     std::shared_ptr<continuationSequence> continuation;
     for (auto& clN : continList) {
@@ -425,9 +425,9 @@ void gridDynSimulation::continuationPowerFlow(std::string_view contName)
     }
 }
 
-void gridDynSimulation::pFlowSensitivityAnalysis() {}
+void GridDynSimulation::pFlowSensitivityAnalysis() {}
 
-int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
+int GridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
 {
     if (t_end == negTime) {
         t_end = stopTime;
@@ -461,7 +461,7 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
         bool powerflow_executed = false;
         currentTime = nextEvent;
         // advance the time
-        Area::timestep(currentTime, noInputs, *defPowerFlowMode);
+        GridArea::timestep(currentTime, noInputs, *defPowerFlowMode);
         // execute any events
         ret = EvQ->executeEventsAonly(currentTime);
         // run the power flow
@@ -494,7 +494,7 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
         }
     }
     if (getSimulationTime() != t_end) {
-        Area::timestep(t_end, noInputs, *defPowerFlowMode);
+        GridArea::timestep(t_end, noInputs, *defPowerFlowMode);
         currentTime = t_end;
         const int powerflowResult = powerflow();
         if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
@@ -504,7 +504,7 @@ int gridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int gridDynSimulation::algUpdateFunction(coreTime time,
+int GridDynSimulation::algUpdateFunction(coreTime time,
                                          const double state[],
                                          double update[],
                                          const solverMode& sMode,

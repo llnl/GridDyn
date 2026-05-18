@@ -92,9 +92,14 @@ Relay* subsystem::getRelay(index_t num) const
 {
     return subarea.getRelay(num);
 }
-Area* subsystem::getArea(index_t num) const
+GridArea* subsystem::getArea(index_t num) const
 {
-    return (num == 0) ? static_cast<Area*>(getSubObjects()[0]) : subarea.getArea(num - 1);
+    return (num == 0) ? static_cast<GridArea*>(getSubObjects()[0]) : subarea.getArea(num - 1);
+}
+
+GridArea* subsystem::getGridArea(index_t num) const
+{
+    return getArea(num);
 }
 
 CoreObject* subsystem::find(std::string_view objName) const

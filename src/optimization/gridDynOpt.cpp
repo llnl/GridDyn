@@ -28,20 +28,20 @@ static typeFactory<GridDynOptimization> gfo(  // NOLINT(bugprone-throwing-static
     std::to_array<std::string_view>({"optimization", "optim"}));
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
-    gridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
+    GridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
 {
     // defaults
-    mAreaOpt = new GridAreaOpt(this);
+    mGridAreaOpt = new GridAreaOpt(this);
 }
 
 GridDynOptimization::~GridDynOptimization()
 {
-    delete mAreaOpt;
+    delete mGridAreaOpt;
 }
 
 CoreObject* GridDynOptimization::clone(CoreObject* obj) const
 {
-    auto* sim = cloneBase<GridDynOptimization, gridDynSimulation>(this, obj);
+    auto* sim = cloneBase<GridDynOptimization, GridDynSimulation>(this, obj);
     if (sim == nullptr) {
         return obj;
     }
@@ -52,7 +52,7 @@ CoreObject* GridDynOptimization::clone(CoreObject* obj) const
 void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
 {
     if (setupMode == 0) {  // no distinction between Voltage, angle, and others
-        mAreaOpt->setOffset(1, 0, oMode);
+        mGridAreaOpt->setOffset(1, 0, oMode);
         return;
     }
     OptimizationOffsets baseOffset;
@@ -66,7 +66,7 @@ void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int set
     }
 
     // call the area setOffset function to distribute the offsets
-    mAreaOpt->setOffsets(baseOffset, oMode);
+    mGridAreaOpt->setOffsets(baseOffset, oMode);
 }
 
 // --------------- set properties ---------------
@@ -99,7 +99,7 @@ void GridDynOptimization::set(std::string_view param, std::string_view val)
             logging::warning(this, "unknown optimization mode {}", temp);
         }
     } else {
-        gridDynSimulation::set(param, val);
+        GridDynSimulation::set(param, val);
     }
 }
 
@@ -114,7 +114,7 @@ void GridDynOptimization::setFlag(std::string_view flag, bool val)
     power_adjust_enabled = 5,
     dcFlow_initialization = 6,*/
     if (!flag.empty()) {
-        gridDynSimulation::setFlag(flag, val);
+        GridDynSimulation::setFlag(flag, val);
     }
 }
 
@@ -134,7 +134,7 @@ void GridDynOptimization::set(std::string_view param, double val, units::unit un
     } else {
         // out = setFlags (param, val);
         try {
-            gridDynSimulation::set(param, val, unitType);
+            GridDynSimulation::set(param, val, unitType);
         }
         catch (const unrecognizedParameter&) {
             setFlag(param, (val > 0.1));
@@ -150,45 +150,45 @@ double GridDynOptimization::get(std::string_view param, units::unit unitType) co
     if (param == "angletolerance") {
         return tols.angleTolerance;
     }
-    return gridDynSimulation::get(param, unitType);
+    return GridDynSimulation::get(param, unitType);
 }
 
 CoreObject* GridDynOptimization::find(std::string_view objName) const
 {
     if (objName == "optroot") {
-        return mAreaOpt;
+        return mGridAreaOpt;
     }
     if (objName.starts_with("opt")) {
-        return mAreaOpt->find(objName.substr(3));
+        return mGridAreaOpt->find(objName.substr(3));
     }
-    return gridDynSimulation::find(objName);
+    return GridDynSimulation::find(objName);
 }
 
 CoreObject* GridDynOptimization::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName.starts_with("opt")) {
-        return mAreaOpt->getSubObject(typeName.substr(3), num);
+        return mGridAreaOpt->getSubObject(typeName.substr(3), num);
     }
-    return gridDynSimulation::getSubObject(typeName, num);
+    return GridDynSimulation::getSubObject(typeName, num);
 }
 CoreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName.starts_with("opt")) {
-        return mAreaOpt->findByUserID(typeName.substr(3), searchID);
+        return mGridAreaOpt->findByUserID(typeName.substr(3), searchID);
     }
-    return gridDynSimulation::findByUserID(typeName, searchID);
+    return GridDynSimulation::findByUserID(typeName, searchID);
 }
 
 GridOptObject* GridDynOptimization::getOptimizationObject(CoreObject* obj)
 {
     if (obj != nullptr) {
-        CoreObject* nextObject = mAreaOpt->find(obj->getName());
+        CoreObject* nextObject = mGridAreaOpt->find(obj->getName());
         if (nextObject != nullptr) {
             return static_cast<GridOptObject*>(nextObject);
         }
         return nullptr;
     }
-    return mAreaOpt;
+    return mGridAreaOpt;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

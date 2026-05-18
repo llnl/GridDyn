@@ -49,7 +49,7 @@ arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(
     max_iterations = 1500;
 }
 
-arkodeInterface::arkodeInterface(gridDynSimulation* gds, const solverMode& sMode):
+arkodeInterface::arkodeInterface(GridDynSimulation* gds, const solverMode& sMode):
     sundialsInterface(gds, sMode)
 {
     mode.dynamic = true;

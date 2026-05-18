@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 class SolverInterface;
 
 enum class reset_levels;
@@ -33,7 +33,7 @@ class faultResetRecovery {
     @param[in] gds the gridDynSimulation object to work from
     @param[in] sd the SolverInterface object to work from
     */
-    faultResetRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);
+    faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);
 
     /** @brief virtual destructor*/
     virtual ~faultResetRecovery();
@@ -59,7 +59,7 @@ class faultResetRecovery {
 
   protected:
     int attempt_number = 0;  //!< the current attempt number
-    gridDynSimulation* sim;  //!< the gridDynsimulation to work from
+    GridDynSimulation* sim;  //!< the gridDynsimulation to work from
     std::shared_ptr<SolverInterface> solver;  //!< the SolverInterface to use
 
     int faultResetFix1();

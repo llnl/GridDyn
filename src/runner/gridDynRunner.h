@@ -23,7 +23,7 @@ class App;
 }  // namespace CLI
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 class readerInfo;
 /**
  * Build and run a GridDyn simulation.
@@ -32,7 +32,7 @@ class GriddynRunner {
   public:
     /** constructor*/
     GriddynRunner();
-    GriddynRunner(std::shared_ptr<gridDynSimulation> sim);
+    GriddynRunner(std::shared_ptr<GridDynSimulation> sim);
     /** Destructor*/
     virtual ~GriddynRunner();
     int InitializeFromString(const std::string& cmdargs);
@@ -105,11 +105,11 @@ class GriddynRunner {
     virtual int Reset();
     virtual int Reset(readerInfo& readerInformation);
     /** reset the underlying simulation of a runner*/
-    void resetSim(std::shared_ptr<gridDynSimulation> sim) { m_gds = std::move(sim); }
+    void resetSim(std::shared_ptr<GridDynSimulation> sim) { m_gds = std::move(sim); }
     /** get a pointer to the simulation object*/
-    std::shared_ptr<const gridDynSimulation> getSim() const { return m_gds; }
+    std::shared_ptr<const GridDynSimulation> getSim() const { return m_gds; }
 
-    std::shared_ptr<gridDynSimulation>& getSim();
+    std::shared_ptr<GridDynSimulation>& getSim();
     /** check if the runner is ready for another command */
     virtual bool isReady() const;
 
@@ -119,7 +119,7 @@ class GriddynRunner {
      */
     void StopRecording(void);
 
-    std::shared_ptr<gridDynSimulation> m_gds;
+    std::shared_ptr<GridDynSimulation> m_gds;
 
     decltype(std::chrono::high_resolution_clock::now()) m_startTime;
     decltype(std::chrono::high_resolution_clock::now()) m_stopTime;

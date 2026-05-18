@@ -23,17 +23,17 @@ namespace {
         return *ignoreFields;
     }
 
-    bool isMasterObject(const CoreObject* searchObject, const gridSimulation* simulationObject);
+    bool isMasterObject(const CoreObject* searchObject, const GridSimulation* simulationObject);
 }  // namespace
 
 static const char libstring[] = "library";
 // read XML file
 // CoreObject * readSimXMLFile(const std::string &fileName, CoreObject *gco, const std::string
 // prefix, readerInfo *ri) const
-gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
+GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                                       readerInfo& readerInformation,
                                       CoreObject* searchObject,
-                                      gridSimulation* simulationObject)
+                                      GridSimulation* simulationObject)
 {
     // pointers
     const bool isMaster = isMasterObject(searchObject, simulationObject);
@@ -47,7 +47,7 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
     }
     loadTranslations(element, readerInformation);
     loadCustomSections(element, readerInformation);
-    gridSimulation* simulation = ElementReaderSetup(
+    GridSimulation* simulation = ElementReaderSetup(
         element, simulationObject, "simulation", readerInformation, searchObject);
 
     // load the simulation name and id
@@ -96,7 +96,7 @@ gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
 
     element->moveToFirstChild("solver");
     while (element->isValid()) {
-        loadSolverElement(element, readerInformation, dynamic_cast<gridDynSimulation*>(simulation));
+        loadSolverElement(element, readerInformation, dynamic_cast<GridDynSimulation*>(simulation));
         element->moveToNextSibling("solver");
     }
     element->moveToParent();
@@ -166,7 +166,7 @@ namespace {
         readerInformation.addTranslate("loop", "array");
     }
 
-    bool isMasterObject(const CoreObject* searchObject, const gridSimulation* simulationObject)
+    bool isMasterObject(const CoreObject* searchObject, const GridSimulation* simulationObject)
     {
         if (searchObject != nullptr) {
             return (simulationObject != nullptr) ? (isSameObject(searchObject, simulationObject)) :

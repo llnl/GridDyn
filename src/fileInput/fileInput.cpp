@@ -144,7 +144,7 @@ void addFlags(basicReaderInfo& bri, const std::string& flags)
     }
 }
 
-void loadFile(std::unique_ptr<gridDynSimulation>& gds,
+void loadFile(std::unique_ptr<GridDynSimulation>& gds,
               const std::string& fileName,
               readerInfo* readerInf,
               const std::string& ext)
@@ -152,13 +152,13 @@ void loadFile(std::unique_ptr<gridDynSimulation>& gds,
     loadFile(gds.get(), fileName, readerInf, ext);
 }
 
-std::unique_ptr<gridDynSimulation> readSimXMLFile(const std::string& fileName,
+std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
                                                   readerInfo* readerInfoPtr)
 {
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
-    return std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(
+    return std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(
         loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
 }
 

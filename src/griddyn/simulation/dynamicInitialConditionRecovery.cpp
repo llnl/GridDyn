@@ -16,7 +16,7 @@
 
 namespace griddyn {
 dynamicInitialConditionRecovery::dynamicInitialConditionRecovery(
-    gridDynSimulation* gds,
+    GridDynSimulation* gds,
     std::shared_ptr<SolverInterface> solverData): sim(gds), solver(std::move(solverData))
 {
 }
@@ -98,7 +98,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
 // Try any non-reversible adjustments which might be out there
 int dynamicInitialConditionRecovery::dynamicFix1()
 {
-    sim->checkNetwork(gridDynSimulation::NetworkCheckType::SIMPLIFIED);  // do a network check
+    sim->checkNetwork(GridDynSimulation::NetworkCheckType::SIMPLIFIED);  // do a network check
     sim->converge(sim->getSimulationTime(),
                   solver->state_data(),
                   solver->deriv_data(),

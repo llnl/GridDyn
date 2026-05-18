@@ -20,7 +20,7 @@ basicOdeSolver::basicOdeSolver(const std::string& objName): SolverInterface(objN
     mode.differential = true;
     mode.algebraic = false;
 }
-basicOdeSolver::basicOdeSolver(gridDynSimulation* gds, const solverMode& sMode):
+basicOdeSolver::basicOdeSolver(GridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
 }

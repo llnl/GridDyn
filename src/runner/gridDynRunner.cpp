@@ -29,14 +29,14 @@
 namespace griddyn {
 GriddynRunner::GriddynRunner() = default;
 
-GriddynRunner::GriddynRunner(std::shared_ptr<gridDynSimulation> sim): m_gds(std::move(sim)) {}
+GriddynRunner::GriddynRunner(std::shared_ptr<GridDynSimulation> sim): m_gds(std::move(sim)) {}
 
 GriddynRunner::~GriddynRunner() = default;
 
 int GriddynRunner::InitializeFromString(const std::string& cmdargs)
 {
     if (!m_gds) {
-        m_gds = std::make_shared<gridDynSimulation>();
+        m_gds = std::make_shared<GridDynSimulation>();
         // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
         // ();
     }
@@ -72,7 +72,7 @@ int GriddynRunner::Initialize(int argc,
                               bool allowUnrecognized)
 {
     if (!m_gds) {
-        m_gds = std::make_shared<gridDynSimulation>();
+        m_gds = std::make_shared<GridDynSimulation>();
         // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
         // ();
     }
@@ -133,7 +133,7 @@ int GriddynRunner::Reset(readerInfo& readerInformation)
         throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     // make a new simulation object
-    m_gds = std::make_shared<gridDynSimulation>();
+    m_gds = std::make_shared<GridDynSimulation>();
     // reload it from the existing vm
     auto returnCode = loadCommandArgument(readerInformation, false);
     if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
@@ -205,10 +205,10 @@ void GriddynRunner::StepAsync(coreTime time)
     mAsyncReturn = std::async(std::launch::async, [this, time] { return Step(time); });
 }
 
-std::shared_ptr<gridDynSimulation>& GriddynRunner::getSim()
+std::shared_ptr<GridDynSimulation>& GriddynRunner::getSim()
 {
     if (!m_gds) {
-        m_gds = std::make_shared<gridDynSimulation>();
+        m_gds = std::make_shared<GridDynSimulation>();
     }
     return m_gds;
 }

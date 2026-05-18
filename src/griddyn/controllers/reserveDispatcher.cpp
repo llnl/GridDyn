@@ -21,7 +21,7 @@ class reserveDispatcher
 {
 public:
         std::string name;
-        Area *Parent;
+        GridArea *Parent;
         bool enabled;
 
 protected:

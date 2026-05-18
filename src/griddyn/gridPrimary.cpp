@@ -133,7 +133,7 @@ Link* gridPrimary::getLink(index_t /*num*/) const
 {
     return nullptr;
 }
-Area* gridPrimary::getArea(index_t /*num*/) const
+GridArea* gridPrimary::getArea(index_t /*num*/) const
 {
     return nullptr;
 }

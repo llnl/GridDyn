@@ -33,7 +33,7 @@ class subsystem: public Link {
     std::vector<GridBus*>
         terminalBus;  //!< list of buses which attach to the external terminal points
 
-    Area subarea;  //!<  a container area
+    GridArea subarea;  //!<  a container area
     std::vector<double> Pout;  //!< vector of output powers on each of the terminals
     std::vector<double> Qout;  //!< vector of output reactive powers on each of the terminals
   public:
@@ -53,7 +53,8 @@ class subsystem: public Link {
     virtual GridBus* getBus(index_t num) const override;
     virtual Link* getLink(index_t num) const override;
     virtual Relay* getRelay(index_t num) const override;
-    virtual Area* getArea(index_t num) const override;
+    virtual GridArea* getArea(index_t num) const override;
+    GridArea* getGridArea(index_t num) const;
     // dynInitializeB
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

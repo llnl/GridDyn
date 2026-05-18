@@ -22,24 +22,24 @@
 #include <vector>
 
 namespace griddyn {
-static void buildBusContingencies(gridDynSimulation* gds,
+static void buildBusContingencies(GridDynSimulation* gds,
                                   std::vector<std::shared_ptr<Contingency>>& contList,
                                   const extraContingencyInfo& info,
                                   int skip);
-static void buildLineContingencies(gridDynSimulation* gds,
+static void buildLineContingencies(GridDynSimulation* gds,
                                    std::vector<std::shared_ptr<Contingency>>& contList,
                                    const extraContingencyInfo& info,
                                    int skip);
-static void buildGenContingencies(gridDynSimulation* gds,
+static void buildGenContingencies(GridDynSimulation* gds,
                                   std::vector<std::shared_ptr<Contingency>>& contList,
                                   const extraContingencyInfo& info,
                                   int skip);
-static void buildLoadContingencies(gridDynSimulation* gds,
+static void buildLoadContingencies(GridDynSimulation* gds,
                                    std::vector<std::shared_ptr<Contingency>>& contList,
                                    const extraContingencyInfo& info,
                                    int skip);
 
-static void addContingency(gridDynSimulation* gds,
+static void addContingency(GridDynSimulation* gds,
                            std::vector<std::shared_ptr<Contingency>>& contList,
                            std::shared_ptr<Event>& newEvent,
                            const extraContingencyInfo& info);
@@ -50,7 +50,7 @@ static void addContingencyIfUnique(std::vector<std::shared_ptr<Contingency>>& co
                                    bool simplified);
 
 // NOLINTNEXTLINE(misc-no-recursion)
-size_t buildContingencyList(gridDynSimulation* gds,
+size_t buildContingencyList(GridDynSimulation* gds,
                             ContingencyMode cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info,
@@ -166,7 +166,7 @@ size_t buildContingencyList(gridDynSimulation* gds,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-std::vector<std::shared_ptr<Contingency>> buildContingencyList(gridDynSimulation* gds,
+std::vector<std::shared_ptr<Contingency>> buildContingencyList(GridDynSimulation* gds,
                                                                const std::string& contMode,
                                                                const extraContingencyInfo& info,
                                                                int skip)
@@ -226,7 +226,7 @@ void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
     }
 }
 
-void buildBusContingencies(gridDynSimulation* gds,
+void buildBusContingencies(GridDynSimulation* gds,
                            std::vector<std::shared_ptr<Contingency>>& contList,
                            const extraContingencyInfo& info,
                            int skip)
@@ -249,7 +249,7 @@ void buildBusContingencies(gridDynSimulation* gds,
     }
 }
 
-void buildLineContingencies(gridDynSimulation* gds,
+void buildLineContingencies(GridDynSimulation* gds,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info,
                             int skip)
@@ -272,7 +272,7 @@ void buildLineContingencies(gridDynSimulation* gds,
     }
 }
 
-void buildLoadContingencies(gridDynSimulation* gds,
+void buildLoadContingencies(GridDynSimulation* gds,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info,
                             int skip)
@@ -303,7 +303,7 @@ void buildLoadContingencies(gridDynSimulation* gds,
     }
 }
 
-void buildGenContingencies(gridDynSimulation* gds,
+void buildGenContingencies(GridDynSimulation* gds,
                            std::vector<std::shared_ptr<Contingency>>& contList,
                            const extraContingencyInfo& info,
                            int skip)
@@ -334,7 +334,7 @@ void buildGenContingencies(gridDynSimulation* gds,
     }
 }
 
-void addContingency(gridDynSimulation* gds,
+void addContingency(GridDynSimulation* gds,
                     std::vector<std::shared_ptr<Contingency>>& contList,
                     std::shared_ptr<Event>& newEvent,
                     const extraContingencyInfo& info)

@@ -390,7 +390,7 @@ phas
 Phase shifter adjustment flag
 area
 <1 or 0>
-Area interchange control flag
+GridArea interchange control flag
 Svd
 <1 or 0>
 Control shunt adjustment flag

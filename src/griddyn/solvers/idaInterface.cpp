@@ -57,7 +57,7 @@ idaInterface::idaInterface(const std::string& objName): sundialsInterface(objNam
     max_iterations = 1500;
 }
 
-idaInterface::idaInterface(gridDynSimulation* gds, const solverMode& sMode):
+idaInterface::idaInterface(GridDynSimulation* gds, const solverMode& sMode):
     sundialsInterface(gds, sMode)
 {
     max_iterations = 1500;

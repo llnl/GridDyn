@@ -111,7 +111,7 @@ void controlRelay::set(std::string_view param, double val, units::unit unitType)
 
 void controlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    rootSim = dynamic_cast<gridSimulation*>(getRoot());
+    rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
     Relay::dynObjectInitializeA(time0, flags);
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
@@ -323,7 +323,7 @@ void controlRelay::updateObject(CoreObject* obj, object_update_mode mode)
 {
     Relay::updateObject(obj, mode);
     if (opFlags[dyn_initialized]) {
-        rootSim = dynamic_cast<gridSimulation*>(getRoot());
+        rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
         if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
             opFlags.set(LINK_TYPE_SOURCE);

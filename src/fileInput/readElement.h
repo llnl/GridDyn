@@ -28,11 +28,11 @@ class CoreObject;
 
 class ZipLoad;
 class Generator;
-class Area;
+class GridArea;
 class Link;
 class EventInfo;
-class gridSimulation;
-class gridDynSimulation;
+class GridSimulation;
+class GridDynSimulation;
 class Relay;
 class GridBus;
 class gridPrimary;
@@ -53,13 +53,13 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,
                       CoreObject* searchObject = nullptr,
                       bool warnlink = true);
-Area* readAreaElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
-                      CoreObject* searchObject = nullptr);
-gridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
+GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
+                              readerInfo& readerInformation,
+                              CoreObject* searchObject = nullptr);
+GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                                       readerInfo& readerInformation,
                                       CoreObject* searchObject = nullptr,
-                                      gridSimulation* simulationObject = nullptr);
+                                      GridSimulation* simulationObject = nullptr);
 
 CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
                             readerInfo& readerInformation,
@@ -90,7 +90,7 @@ void loadCustomSections(std::shared_ptr<readerElement>& element,
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
                        readerInfo& readerInformation,
-                       gridDynSimulation* parentObject);
+                       GridDynSimulation* parentObject);
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
 
 using IgnoreListType = std::unordered_set<std::string>;

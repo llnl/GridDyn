@@ -23,7 +23,7 @@ class GridBus;
 class GridLoad;
 class Link;
 class Generator;
-class Area;
+class GridArea;
 class Relay;
 class GridSubModel;
 
@@ -34,7 +34,7 @@ fobjectPair getObjectFunction(const GridBus* bus, const std::string& field);
 fobjectPair getObjectFunction(const GridLoad* loadObject, const std::string& field);
 fobjectPair getObjectFunction(const Link* lnk, const std::string& field);
 fobjectPair getObjectFunction(const Generator* gen, const std::string& field);
-fobjectPair getObjectFunction(const Area* area, const std::string& field);
+fobjectPair getObjectFunction(const GridArea* area, const std::string& field);
 fobjectPair getObjectFunction(const Relay* rel, const std::string& field);
 fobjectPair getObjectFunction(const GridSubModel* sub, const std::string& field);
 
@@ -42,12 +42,12 @@ using fvecPair = std::pair<std::function<void(CoreObject*, std::vector<double>&)
 
 fvecPair getObjectVectorFunction(const GridComponent* comp, const std::string& field);
 
-fvecPair getObjectVectorFunction(const Area* area, const std::string& field);
+fvecPair getObjectVectorFunction(const GridArea* area, const std::string& field);
 
 using descVecFunc = std::function<void(CoreObject*, stringVec&)>;
 
 descVecFunc getObjectVectorDescFunction(const GridComponent* comp, const std::string& field);
-descVecFunc getObjectVectorDescFunction(const Area* area, const std::string& field);
+descVecFunc getObjectVectorDescFunction(const GridArea* area, const std::string& field);
 
 const char objEmptyString[] = "";
 

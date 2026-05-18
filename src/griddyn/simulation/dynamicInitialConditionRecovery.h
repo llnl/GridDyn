@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 class SolverInterface;
 
 /** @brief the purpose of this class is to try to recover a valid initial condition for dynamic
@@ -20,7 +20,7 @@ class dynamicInitialConditionRecovery {
     @param[in] gds the gridDynSimulation object to work from
     @param[in] solverData the SolverInterface object to work from
     */
-    dynamicInitialConditionRecovery(gridDynSimulation* gds,
+    dynamicInitialConditionRecovery(GridDynSimulation* gds,
                                     std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
@@ -48,7 +48,7 @@ class dynamicInitialConditionRecovery {
 
   protected:
     int attempt_number = 0;  //!< the current attempt number
-    gridDynSimulation* sim;  //!< the gridDynsimulation to work from
+    GridDynSimulation* sim;  //!< the gridDynsimulation to work from
     std::shared_ptr<SolverInterface> solver;  //!< the SolverInterface to use
 
     int dynamicFix1();

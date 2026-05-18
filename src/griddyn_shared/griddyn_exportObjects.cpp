@@ -27,7 +27,7 @@
 #include <cstring>
 #include <map>
 
-using griddyn::Area;
+using griddyn::GridArea;
 using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreOwningPtr;
@@ -38,7 +38,7 @@ using griddyn::Governor;
 using griddyn::GridBlock;
 using griddyn::GridBus;
 using griddyn::GridComponent;
-using griddyn::gridDynSimulation;
+using griddyn::GridDynSimulation;
 using griddyn::GridLoad;
 using griddyn::GridSubModel;
 using griddyn::kNullVal;
@@ -423,10 +423,10 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const Link*>(comp) != nullptr) {
         return link_str;
     }
-    if (dynamic_cast<const gridDynSimulation*>(comp) != nullptr) {
+    if (dynamic_cast<const GridDynSimulation*>(comp) != nullptr) {
         return sim_str;
     }
-    if (dynamic_cast<const Area*>(comp) != nullptr) {
+    if (dynamic_cast<const GridArea*>(comp) != nullptr) {
         return area_str;
     }
     if (dynamic_cast<const GridLoad*>(comp) != nullptr) {

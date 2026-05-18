@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 class SolverInterface;
 
 /** @brief the purpose of this class is to try to recover a valid power flow solution after a solver
@@ -27,7 +27,7 @@ class powerFlowErrorRecovery {
   @param[in] gds the gridDynSimulation object to work from
   @param[in] solverData the SolverInterface object to work from
   */
-    powerFlowErrorRecovery(gridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
+    powerFlowErrorRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> solverData);
 
     /** @brief virtual destructor*/
     virtual ~powerFlowErrorRecovery();
@@ -53,7 +53,7 @@ class powerFlowErrorRecovery {
 
   protected:
     int attempt_number = 0;  //!< the current attempt number
-    gridDynSimulation* sim;  //!< the gridDynsimulation to work from
+    GridDynSimulation* sim;  //!< the gridDynsimulation to work from
     std::shared_ptr<SolverInterface> solver;  //!< the SolverInterface to use
 
     bool powerFlowFix1();

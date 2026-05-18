@@ -9,15 +9,15 @@
 /** @file
 @brief helper header file defining all the different block types
 */
-#include "filteredDerivativeBlock.h"
-#include "transferFunctionBlock.h"
 #include "blockSequence.h"
 #include "controlBlock.h"
 #include "deadbandBlock.h"
 #include "delayBlock.h"
 #include "derivativeBlock.h"
+#include "filteredDerivativeBlock.h"
 #include "functionBlock.h"
 #include "integralBlock.h"
 #include "lutBlock.h"
 #include "nullBlock.h"
 #include "pidBlock.h"
+#include "transferFunctionBlock.h"

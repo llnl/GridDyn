@@ -7,8 +7,8 @@
 #include "pmu.h"
 
 #include "../Link.h"
-#include "../blocks/filteredDerivativeBlock.h"
 #include "../blocks/delayBlock.h"
+#include "../blocks/filteredDerivativeBlock.h"
 #include "../comms/Communicator.h"
 #include "../comms/controlMessage.h"
 #include "../events/Event.h"

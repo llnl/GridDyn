@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "deadbandBlock.h"
+#include "DeadbandBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"

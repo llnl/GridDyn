@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "nullBlock.h"
+#include "NullBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
 #include <string>

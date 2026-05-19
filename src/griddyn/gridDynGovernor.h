@@ -7,9 +7,9 @@
 #pragma once
 
 #include "gridSubModel.h"
-#include "submodels/controlBlocks/controlBlock.h"
-#include "submodels/controlBlocks/deadbandBlock.h"
-#include "submodels/controlBlocks/delayBlock.h"
+#include "submodels/controlBlocks/ControlBlock.h"
+#include "submodels/controlBlocks/DeadbandBlock.h"
+#include "submodels/controlBlocks/DelayBlock.h"
 #include <string>
 
 namespace griddyn {

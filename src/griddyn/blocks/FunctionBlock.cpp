@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "functionBlock.h"
+#include "FunctionBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"

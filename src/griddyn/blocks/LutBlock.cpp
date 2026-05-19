@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "lutBlock.h"
+#include "LutBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"

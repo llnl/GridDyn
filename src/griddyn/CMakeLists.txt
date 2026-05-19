@@ -121,18 +121,18 @@ set(gov_sources
 
 set(block_headers
     Block.h
-    blocks/integralBlock.h
-    blocks/deadbandBlock.h
-    blocks/delayBlock.h
-    blocks/nullBlock.h
-    blocks/pidBlock.h
-    blocks/controlBlock.h
-    blocks/derivativeBlock.h
-    blocks/functionBlock.h
-    blocks/lutBlock.h
+    blocks/IntegralBlock.h
+    blocks/DeadbandBlock.h
+    blocks/DelayBlock.h
+    blocks/NullBlock.h
+    blocks/PidBlock.h
+    blocks/ControlBlock.h
+    blocks/DerivativeBlock.h
+    blocks/FunctionBlock.h
+    blocks/LutBlock.h
     blocks/transferFunctionBlock.h
     blocks/blockSequence.h
-    blocks/filteredDerivativeBlock.h
+    blocks/FilteredDerivativeBlock.h
     blocks/valueLimiter.h
     blocks/rampLimiter.h
     blocks/blockLibrary.h
@@ -141,17 +141,17 @@ set(block_headers
 set(block_sources
     ${block_headers}
     blocks/Block.cpp
-    blocks/integralBlock.cpp
-    blocks/deadbandBlock.cpp
-    blocks/delayBlock.cpp
-    blocks/nullBlock.cpp
-    blocks/pidBlock.cpp
-    blocks/controlBlock.cpp
-    blocks/derivativeBlock.cpp
-    blocks/functionBlock.cpp
-    blocks/lutBlock.cpp
+    blocks/IntegralBlock.cpp
+    blocks/DeadbandBlock.cpp
+    blocks/DelayBlock.cpp
+    blocks/NullBlock.cpp
+    blocks/PidBlock.cpp
+    blocks/ControlBlock.cpp
+    blocks/DerivativeBlock.cpp
+    blocks/FunctionBlock.cpp
+    blocks/LutBlock.cpp
     blocks/transferFunctionBlock.cpp
-    blocks/filteredDerivativeBlock.cpp
+    blocks/FilteredDerivativeBlock.cpp
     blocks/blockSequence.cpp
     blocks/valueLimiter.cpp
     blocks/rampLimiter.cpp

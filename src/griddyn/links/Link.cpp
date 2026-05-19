@@ -51,12 +51,12 @@ namespace links {
     static childTypeFactory<dcLink, Link> dclnk(
         "link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcrect(
-        "link",
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcrect("link",
         std::to_array<std::string_view>({"rectifier", "rect"}),
         acdcConverter::Mode::RECTIFIER);
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode> dcinv(
-        "link",
+    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+        dcinv("link",
         std::to_array<std::string_view>({"inverter", "inv"}),
         acdcConverter::Mode::INVERTER);
     static childTypeFactory<acdcConverter, Link> acdc(

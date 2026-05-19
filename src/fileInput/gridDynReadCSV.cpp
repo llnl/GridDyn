@@ -10,7 +10,7 @@
 #include "fileInput.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
 #include "griddyn/gridBus.h"

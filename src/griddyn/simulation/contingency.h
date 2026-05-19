@@ -31,7 +31,7 @@
 #define CONVERGENCE_FAILURE 45
 
 namespace griddyn {
-class gridDynSimulation;
+class GridDynSimulation;
 
 /** class encapsulating the data needed to record a violation */
 class Violation {
@@ -109,7 +109,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     double contingencyGen{0.0};  //!< the storage for the final generation
     int islands{0};  // number of islands in the output
   protected:
-    gridDynSimulation* gds = nullptr;  //!< master simulation object
+    GridDynSimulation* gds = nullptr;  //!< master simulation object
     std::promise<int> promise_val;  //!< paired with future for asynchronous operation
     /// the future object to contain the data that will come upon execution
     std::shared_future<int> future_ret;
@@ -120,7 +120,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     /** default constructor*/
     Contingency();
     /** construct from a sim and event*/
-    Contingency(gridDynSimulation* sim, std::shared_ptr<Event> gridEvent = nullptr);
+    Contingency(GridDynSimulation* sim, std::shared_ptr<Event> gridEvent = nullptr);
     /** run the contingency
      */
     virtual void execute() override;
@@ -130,7 +130,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
     /** set the contingency root object
     @param[in] gdSim  a gridDynSimulation object that is the basis for the contingencies
     */
-    void setContingencyRoot(gridDynSimulation* gdSim);
+    void setContingencyRoot(GridDynSimulation* gdSim);
     /** add an event to a contingency
     @param[in] gridEvent the new Event to add to the contingency
       @param[in] stage  the stage to execute the contingency
@@ -193,7 +193,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
 @return a vector of contingencies
 */
 std::vector<std::shared_ptr<Contingency>>
-    buildContingencyList(gridDynSimulation* gds,
+    buildContingencyList(GridDynSimulation* gds,
                          const std::string& contMode,
                          const extraContingencyInfo& info = emptyExtraInfo,
                          int skip = 0);
@@ -206,7 +206,7 @@ std::vector<std::shared_ptr<Contingency>>
 @param[in] skip skip the first N contingencies
 @return the number of contingencies added to the list
 */
-size_t buildContingencyList(gridDynSimulation* gds,
+size_t buildContingencyList(GridDynSimulation* gds,
                             ContingencyMode cmode,
                             std::vector<std::shared_ptr<Contingency>>& contList,
                             const extraContingencyInfo& info = emptyExtraInfo,

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include <queue>
 #include <string>
@@ -33,7 +33,7 @@ class subsystem: public Link {
     std::vector<GridBus*>
         terminalBus;  //!< list of buses which attach to the external terminal points
 
-    Area subarea;  //!<  a container area
+    GridArea subarea;  //!<  a container area
     std::vector<double> Pout;  //!< vector of output powers on each of the terminals
     std::vector<double> Qout;  //!< vector of output reactive powers on each of the terminals
   public:
@@ -53,7 +53,8 @@ class subsystem: public Link {
     virtual GridBus* getBus(index_t num) const override;
     virtual Link* getLink(index_t num) const override;
     virtual Relay* getRelay(index_t num) const override;
-    virtual Area* getArea(index_t num) const override;
+    virtual GridArea* getArea(index_t num) const override;
+    GridArea* getGridArea(index_t num) const;
     // dynInitializeB
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -110,7 +111,7 @@ class subsystem: public Link {
                           double tol = 0.01) override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateData,
                                   const solverMode& sMode) override;
 
     virtual void reset(reset_levels level) override;
@@ -169,23 +170,24 @@ class subsystem: public Link {
     // for computing all the Jacobian elements at once
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateData,
+                                      matrixData<double>& jacobian,
                                       const IOlocs& inputLocs,
                                       const solverMode& sMode) override;
     using Link::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateData,
+                                          matrixData<double>& jacobian,
                                           const solverMode& sMode) override;
 
     // virtual void busResidual(index_t busId, const stateData &sD, double *Fp, double *Fq, const
     // solverMode &sMode);
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateData,
                               const solverMode& sMode) const override;
-    virtual IOdata
-        getOutputs(id_type_t busId, const stateData& sD, const solverMode& sMode) const override;
+    virtual IOdata getOutputs(id_type_t busId,
+                              const stateData& stateData,
+                              const solverMode& sMode) const override;
     // TODO(phlpt): Add the other getOutput functions.
   protected:
     /** @brief get a vector with pointers to all the buses
@@ -197,7 +199,7 @@ class subsystem: public Link {
     /** @brief change the number of terminals
   @param[in] count  the desired number of terminals
   */
-    void resize(count_t count);
+    void resize(count_t newSize);
 };
 
 }  // namespace griddyn

@@ -96,10 +96,10 @@ class Event;
 
 enum class ContingencyMode;  // forward declare the enumeration
 /** @brief the GridDyn Simulation Class
-  the gridDynSimulation class contains the mechanics for generating solutions to various power
+  the GridDynSimulation class contains the mechanics for generating solutions to various power
   systems problems of interest
 */
-class gridDynSimulation: public gridSimulation {
+class GridDynSimulation: public GridSimulation {
   public:
     friend class powerFlowErrorRecovery;
     friend class dynamicInitialConditionRecovery;
@@ -180,19 +180,19 @@ class gridDynSimulation: public gridSimulation {
   public:
     /** @ constructor to set the name
     @param[in] objName the name of the simulation*/
-    explicit gridDynSimulation(const std::string& objName = "gridDynSim_#");
-    ~gridDynSimulation();
+    explicit GridDynSimulation(const std::string& objName = "gridDynSim_#");
+    ~GridDynSimulation();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     /** @brief set a particular instantiation of the simulation object to be the master for various
     purposes this function along with getInstance is used by external libraries to get particular
     information about the simulation without needing to store a copy of the simulation pointer
     @param[in] gds a pointer to the simulation intended to be the master*/
-    static void setInstance(gridDynSimulation* gds);
+    static void setInstance(GridDynSimulation* gds);
 
-    /** @brief get the master instance of a gridDynSimulation
-    @return a pointer to the master gridDynSimulation object*/
-    static gridDynSimulation* getInstance(void);
+    /** @brief get the master instance of a GridDynSimulation
+    @return a pointer to the master GridDynSimulation object*/
+    static GridDynSimulation* getInstance(void);
 
     // simulation
     /** @brief define an enumeration for the network check level*/
@@ -497,7 +497,7 @@ class gridDynSimulation: public gridSimulation {
     */
     std::shared_ptr<SolverInterface> getSolverInterface(std::string_view solverName);
 
-    using gridSimulation::add;  // use the add functions from gridSimulation
+    using GridSimulation::add;  // use the add functions from GridSimulation
 
     /** @brief  add a SolverInterface object to the solverDat storage array
     @param[in] nSolver the SolverInterface to add to the storage array
@@ -731,8 +731,10 @@ class gridDynSimulation: public gridSimulation {
                              coreTime nextStop,
                              coreTime& timeActual);
 
-    static std::atomic<gridDynSimulation*>
+    static std::atomic<GridDynSimulation*>
         s_instance;  //!< static variable to set the master simulation instance
 };
+
+using gridDynSimulation = GridDynSimulation;
 
 }  // namespace griddyn

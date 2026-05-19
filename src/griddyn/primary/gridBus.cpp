@@ -7,8 +7,8 @@
 // headers
 #include "../gridBus.h"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../loads/zipLoad.h"
 #include "../measurement/objectGrabbers.h"
@@ -1647,7 +1647,7 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
     // now work our way backwards through the secondary
     par = sec;
     for (auto kk = lkind.size() - 1; kk > 0; --kk) {
-        par = static_cast<gridPrimary*>(par->getArea(lkind[kk]));
+        par = static_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
     }
     return par->getBus(lkind[0]);
 }

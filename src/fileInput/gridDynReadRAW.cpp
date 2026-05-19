@@ -173,7 +173,7 @@ void loadRaw(CoreObject* parentObject,
     Column  46-73   Case identification (A) */
 
     // reset all the object counters
-    gridSimulation::resetObjectCounters();
+    GridSimulation::resetObjectCounters();
     // get the base scenario information
     if (std::getline(file, line)) {
         // auto res = sscanf(

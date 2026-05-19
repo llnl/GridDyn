@@ -7,7 +7,7 @@
 // headers
 #include "acLine.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../gridBus.h"
 #include "../simulation/contingency.h"
 #include "core/coreExceptions.h"
@@ -29,6 +29,7 @@ using units::km;
 using units::puMW;
 using units::rad;
 using units::unit;
+// NOLINTBEGIN(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 // make the object factory types
 
 // helper defines to have things make more sense
@@ -1629,4 +1630,5 @@ void AcLine::loadApproxFunctions()
     derivCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearDeriv;
 }
 
+// NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn

@@ -53,7 +53,7 @@ kinsolInterface::kinsolInterface(const std::string& objName): sundialsInterface(
     max_iterations = 50;
 }
 
-kinsolInterface::kinsolInterface(gridDynSimulation* gds, const solverMode& sMode):
+kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
     sundialsInterface(gds, sMode)
 {
     tolerance = 1e-8;

@@ -6,8 +6,8 @@
 
 #include "gridGrabbers.h"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../Relay.h"
@@ -246,9 +246,9 @@ std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj
         return ggb;
     }
 
-    auto* area = dynamic_cast<Area*>(obj);
+    auto* area = dynamic_cast<GridArea*>(obj);
     if (area != nullptr) {
-        ggb = std::make_unique<objectGrabber<Area>>(fld, area);
+        ggb = std::make_unique<objectGrabber<GridArea>>(fld, area);
         return ggb;
     }
 

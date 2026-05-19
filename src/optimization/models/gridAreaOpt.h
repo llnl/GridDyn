@@ -19,7 +19,7 @@ class GridBusOpt;
 class GridLinkOpt;
 class GridRelayOpt;
 
-class Area;
+class GridArea;
 
 class GridAreaOpt: public GridOptObject {
   public:
@@ -30,7 +30,7 @@ class GridAreaOpt: public GridOptObject {
     std::vector<GridRelayOpt*> relayList;
 
     std::vector<GridOptObject*> objectList;
-    Area* area = nullptr;
+    GridArea* area = nullptr;
 
     coreObjectList optObList;  // a search index for object names
   public:
@@ -127,6 +127,7 @@ class GridAreaOpt: public GridOptObject {
 
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;
+    GridOptObject* getGridArea(index_t index) const { return getArea(index); }
     virtual GridOptObject* getRelay(index_t index) const override;
     virtual GridOptObject* getLink(index_t index) const override;
 

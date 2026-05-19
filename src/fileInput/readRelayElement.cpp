@@ -5,8 +5,8 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "griddyn/Area.h"
 #include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Relay.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/zipLoad.h"
@@ -38,7 +38,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
     CoreObject* defaultTargetObject = searchObject;
     Relay* relay = nullptr;
     searchObject = updateSearchObject<gridPrimary>(element, readerInformation, searchObject);
-    if (dynamic_cast<Area*>(searchObject) == nullptr) {
+    if (dynamic_cast<GridArea*>(searchObject) == nullptr) {
         if (searchObject != nullptr) {
             searchObject = searchObject->getRoot();
         }

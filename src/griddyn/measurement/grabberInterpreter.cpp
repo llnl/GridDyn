@@ -6,8 +6,8 @@
 
 #include "grabberInterpreter.hpp"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../gridBus.h"
@@ -153,35 +153,35 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
     }
 
     // get the vector grabs if this is a simulation
-    auto gds = dynamic_cast<gridSimulation*>(obj);
+    auto gds = dynamic_cast<GridSimulation*>(obj);
     if (gds != nullptr) {
         v.reserve(v.size() + 4);
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("voltage", gds));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("voltage", gds));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("angle", gds));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("angle", gds));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("busgenerationreal", gds));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("busgenerationreal", gds));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("busloadreal", gds));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("busloadreal", gds));
         return;
     }
 
-    auto area = dynamic_cast<Area*>(obj);
+    auto area = dynamic_cast<GridArea*>(obj);
     if (area != nullptr) {
         v.reserve(v.size() + 6);
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("generationreal", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreal", area));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("generationreactive", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreactive", area));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("loadreal", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreal", area));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("loadreactive", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreactive", area));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("loss", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("loss", area));
 
-        v.push_back(std::make_unique<objectGrabber<Area>>("tieflowreal", area));
+        v.push_back(std::make_unique<objectGrabber<GridArea>>("tieflowreal", area));
         return;
     }
 }
@@ -309,22 +309,22 @@ void allGrabbers(std::string_view mode,
         return;
     }
 
-    auto area = dynamic_cast<Area*>(obj);
+    auto area = dynamic_cast<GridArea*>(obj);
     if (area != nullptr) {
         if ((mode.empty()) || (mode == "all")) {
             v.reserve(v.size() + 6);
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("generationreal", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreal", area));
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("generationreactive", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreactive", area));
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("loadreal", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreal", area));
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("loadreactive", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreactive", area));
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("loss", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("loss", area));
 
-            v.push_back(std::make_unique<objectGrabber<Area>>("tieflowreal", area));
+            v.push_back(std::make_unique<objectGrabber<GridArea>>("tieflowreal", area));
             return;
         }
         if (mode.compare(0, 8, "all_gen_") == 0) {

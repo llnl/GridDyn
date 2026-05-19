@@ -30,7 +30,7 @@ class basicOdeSolver: public SolverInterface {
 @param[in] gds  the gridDynSimulation to link to
 @param[in] sMode the solverMode to solve with
 */
-    basicOdeSolver(gridDynSimulation* gds, const solverMode& sMode);
+    basicOdeSolver(GridDynSimulation* gds, const solverMode& sMode);
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

@@ -5,8 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include "griddyn/Area.h"
 #include "griddyn/Block.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Source.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -64,6 +64,9 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "Source size=" << sizeof(Source) << " adds "
               << sizeof(Source) - sizeof(GridSubModel) << '\n';
 
-    std::cout << "GridBlock size=" << sizeof(GridBlock) << " adds "
+    std::cout << "Block size=" << sizeof(GridBlock) << " adds "
               << sizeof(GridBlock) - sizeof(GridSubModel) << '\n';
+
+    std::cout << "Area size=" << sizeof(GridArea) << " adds " << sizeof(GridArea) - primSize
+              << '\n';
 }

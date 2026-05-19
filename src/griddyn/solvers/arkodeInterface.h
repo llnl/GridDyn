@@ -35,7 +35,7 @@ class arkodeInterface: public sundialsInterface {
 @param[in] gds  the gridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
-    arkodeInterface(gridDynSimulation* gds, const solverMode& sMode);
+    arkodeInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor*/
     virtual ~arkodeInterface();
 

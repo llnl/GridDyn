@@ -102,13 +102,13 @@ namespace {
         return output.str();
     }
 
-    std::string formatTxtAreaRecord(int areaNumber,
-                                    const std::string& areaName,
-                                    double generationReal,
-                                    double generationReactive,
-                                    double loadReal,
-                                    double loadReactive,
-                                    double loss)
+    std::string formatTxtGridAreaRecord(int areaNumber,
+                                        const std::string& areaName,
+                                        double generationReal,
+                                        double generationReactive,
+                                        double loadReal,
+                                        double loadReactive,
+                                        double loss)
     {
         std::ostringstream output;
         output << areaNumber << "\t\t" << std::quoted(areaName) << "\t " << std::fixed
@@ -121,7 +121,7 @@ namespace {
     }
 }  // namespace
 
-void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
+void savePowerFlow(GridDynSimulation* gds, const std::string& fileName)
 {
     std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
@@ -151,17 +151,17 @@ void savePowerFlow(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
+void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName)
 {
     auto output = makeOutputFile(fileName);
     const double basePower = gds->get("basepower");
     output << std::fixed << "basepower=" << basePower << '\n';
     output
-        << "\"Area #\",\"Bus #\",\"Bus ID\",\"Bus "
+        << "\"GridArea #\",\"Bus #\",\"Bus ID\",\"Bus "
            "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
            "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
     index_t areaIndex = 0;
-    const auto* area = gds->getArea(areaIndex);
+    const auto* area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
         index_t busIndex = 0;
         const auto* bus = area->getBus(busIndex);
@@ -172,7 +172,7 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
             bus = area->getBus(busIndex);
         }
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
 
     index_t busIndex = 0;
@@ -186,7 +186,7 @@ void savePowerFlowCSV(gridDynSimulation* gds, const std::string& fileName)
     gds->log(gds, print_level::normal, "saving csv powerflow to " + fileName);
 }
 
-void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
+void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName)
 {
     auto output = makeOutputFile(fileName);
     const double basePower = gds->get("basepower");
@@ -196,10 +196,10 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 
     output << "===============BUS INFORMATION=====================\n";
     output
-        << "Area#\tBus#\tBus "
+        << "GridArea#\tBus#\tBus "
            "name\t\t\t\tvoltage(pu)\tangle(deg)\tPgen(MW)\tQgen(MW)\tPload(MW)\tQload(MW)\tPlink(MW)\tQlink(MW)\n";
     index_t areaIndex = 0;
-    const auto* area = gds->getArea(areaIndex);
+    const auto* area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
         index_t busIndex = 0;
         const auto* bus = area->getBus(busIndex);
@@ -209,7 +209,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
             bus = area->getBus(busIndex);
         }
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
 
     index_t busIndex = 0;
@@ -221,9 +221,9 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
     }
     output << "===============LINE INFORMATION=====================\n";
     output
-        << "Area#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n";
+        << "GridArea#\tLine #\tLine Name\t\t\t\t\tfrom\tto\t\tP1_2\t\tQ1_2\t\tP2_1\t\tQ2_1\t\tLoss\n";
     areaIndex = 0;
-    area = gds->getArea(areaIndex);
+    area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
         index_t linkIndex = 0;
         const auto* link = area->getLink(linkIndex);
@@ -233,7 +233,7 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
             link = area->getLink(linkIndex);
         }
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
 
     index_t linkIndex = 0;
@@ -246,29 +246,29 @@ void savePowerFlowTXT(gridDynSimulation* gds, const std::string& fileName)
 
     output << "===============AREA INFORMATION=====================\n";
     output
-        << "Area#\tArea Name\t\t\t\tGen Real\t Gen Reactive\t GridLoad Real\t GridLoad Reactive\t Loss\t Export\n";
+        << "GridArea#\tGridArea Name\t\t\t\tGen Real\t Gen Reactive\t GridLoad Real\t GridLoad Reactive\t Loss\t Export\n";
     areaIndex = 0;
-    area = gds->getArea(areaIndex);
+    area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
-        output << formatTxtAreaRecord(area->getUserID(),
-                                      area->getName(),
-                                      area->getGenerationReal() * basePower,
-                                      area->getGenerationReactive() * basePower,
-                                      area->getLoadReal() * basePower,
-                                      area->getLoadReactive() * basePower,
-                                      area->getLoss() * basePower)
+        output << formatTxtGridAreaRecord(area->getUserID(),
+                                          area->getName(),
+                                          area->getGenerationReal() * basePower,
+                                          area->getGenerationReactive() * basePower,
+                                          area->getLoadReal() * basePower,
+                                          area->getLoadReactive() * basePower,
+                                          area->getLoss() * basePower)
                << '\n';
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
 
-    output << formatTxtAreaRecord(1,
-                                  gds->getName(),
-                                  gds->getGenerationReal() * basePower,
-                                  gds->getGenerationReactive() * basePower,
-                                  gds->getLoadReal() * basePower,
-                                  gds->getLoadReactive() * basePower,
-                                  gds->getLoss() * basePower)
+    output << formatTxtGridAreaRecord(1,
+                                      gds->getName(),
+                                      gds->getGenerationReal() * basePower,
+                                      gds->getGenerationReactive() * basePower,
+                                      gds->getLoadReal() * basePower,
+                                      gds->getLoadReactive() * basePower,
+                                      gds->getLoss() * basePower)
            << '\n';
     gds->log(gds, print_level::normal, "saving txt powerflow to " + fileName);
 }
@@ -493,7 +493,7 @@ static void cdfLinkPrint(std::ostream& output, int areaNumber, AcLine* link)
     }
 }
 
-void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
+void savePowerFlowCdf(GridDynSimulation* gds, const std::string& fileName)
 {
     auto output = makeOutputFile(fileName);
     const double basePower = gds->get("basepower");
@@ -512,7 +512,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
         bus = gds->getBus(busIndex);
     }
 
-    auto* area = gds->getArea(0);
+    auto* area = gds->getGridArea(0);
 
     index_t areaIndex = 0;
     while (area != nullptr) {
@@ -524,7 +524,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
             bus = area->getBus(busIndex);
         }
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
     output << "-999\n";
 
@@ -538,7 +538,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
         link = gds->getLink(linkIndex);
     }
     areaIndex = 0;
-    area = gds->getArea(areaIndex);
+    area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
         linkIndex = 0;
         link = area->getLink(linkIndex);
@@ -548,7 +548,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
             link = area->getLink(linkIndex);
         }
         ++areaIndex;
-        area = gds->getArea(areaIndex);
+        area = gds->getGridArea(areaIndex);
     }
 
     output << "-999\n";
@@ -562,7 +562,7 @@ void savePowerFlowCdf(gridDynSimulation* gds, const std::string& fileName)
     output << "END OF DATA";
 }
 
-void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
+void savePowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
 {
     pugi::xml_document doc;
     auto decl = doc.append_child(pugi::node_declaration);
@@ -617,7 +617,7 @@ void savePowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void saveBusData(gridDynSimulation* gds, const std::string& fileName)
+void saveBusData(GridDynSimulation* gds, const std::string& fileName)
 {
     std::vector<double> voltages;
     std::vector<double> angles;
@@ -644,7 +644,7 @@ void saveBusData(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void saveLineData(gridDynSimulation* gds, const std::string& fileName)
+void saveLineData(GridDynSimulation* gds, const std::string& fileName)
 {
     std::vector<double> loss;
     std::vector<double> forwardRealPower;
@@ -670,9 +670,9 @@ void saveLineData(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void savePowerFlowBinary(gridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
+void savePowerFlowBinary(GridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
 
-void saveState(gridDynSimulation* gds,
+void saveState(GridDynSimulation* gds,
                const std::string& fileName,
                const solverMode& sMode,
                bool append)
@@ -696,13 +696,13 @@ void saveState(gridDynSimulation* gds,
     }
 }
 
-void saveStateXML(gridDynSimulation* /*gds*/,
+void saveStateXML(GridDynSimulation* /*gds*/,
                   const std::string& /*fileName*/,
                   const solverMode& /*sMode*/)
 {
 }
 
-void saveStateBinary(gridDynSimulation* gds,
+void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
                      const solverMode& sMode,
                      bool append)
@@ -815,7 +815,7 @@ void writeArray(coreTime time,
     }
 }
 
-void loadState(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void loadState(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
     const std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
@@ -843,7 +843,7 @@ void loadState(gridDynSimulation* gds, const std::string& fileName, const solver
     }
 }
 
-void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
     const solverMode& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
@@ -883,13 +883,13 @@ void loadStateBinary(gridDynSimulation* gds, const std::string& fileName, const 
     }
 }
 
-void loadStateXML(gridDynSimulation* /*gds*/,
+void loadStateXML(GridDynSimulation* /*gds*/,
                   const std::string& /*fileName*/,
                   const solverMode& /*sMode*/)
 {
 }
 
-void loadPowerFlow(gridDynSimulation* gds, const std::string& fileName)
+void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName)
 {
     const std::filesystem::path filePath(fileName);
     std::string ext = convertToLowerCase(filePath.extension().string());
@@ -908,13 +908,13 @@ void loadPowerFlow(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void loadPowerFlowCdf(gridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
+void loadPowerFlowCdf(GridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
 
-void loadPowerFlowCSV(gridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
+void loadPowerFlowCSV(GridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
 
-void loadPowerFlowBinary(gridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
+void loadPowerFlowBinary(GridDynSimulation* /*gds*/, const std::string& /*fileName*/) {}
 
-void loadPowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
+void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
 {
     pugi::xml_document doc;
     auto res = doc.load_file(fileName.c_str());
@@ -948,7 +948,7 @@ void loadPowerFlowXML(gridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void captureJacState(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void captureJacState(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {
@@ -995,7 +995,7 @@ void captureJacState(gridDynSimulation* gds, const std::string& fileName, const 
     bFile.close();
 }
 
-void saveJacobian(gridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {

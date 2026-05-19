@@ -26,10 +26,10 @@ TEST_F(AreaTests, AreaTest1)
     std::string fileName = std::string(AREA_TEST_DIRECTORY "area_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     int count;
     count = gds->getInt("totalareacount");
@@ -41,7 +41,7 @@ TEST_F(AreaTests, AreaTest1)
     EXPECT_EQ(count, 9);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto st = gds->getState();
 
@@ -50,7 +50,7 @@ TEST_F(AreaTests, AreaTest1)
     gds2 = readSimXMLFile(fileName);
 
     gds2->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto st2 = gds2->getState();
     auto diffs = gmlc::utilities::countDiffs(st, st2, 0.00001);
@@ -59,7 +59,7 @@ TEST_F(AreaTests, AreaTest1)
 
 TEST_F(AreaTests, AreaTestAdd)
 {
-    auto area = std::make_unique<Area>("area1");
+    auto area = std::make_unique<GridArea>("area1");
 
     auto bus1 = new GridBus("bus1");
     try {

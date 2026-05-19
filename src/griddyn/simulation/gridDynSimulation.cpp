@@ -36,19 +36,19 @@
 #include <vector>
 
 namespace griddyn {
-static typeFactory<gridDynSimulation>
+static typeFactory<GridDynSimulation>
     simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
         "simulation",
         stringVec{"GridDyn", "gridlab", "gridlabd"},
         "GridDyn");
 
-std::atomic<gridDynSimulation*> gridDynSimulation::s_instance{nullptr};
+std::atomic<GridDynSimulation*> GridDynSimulation::s_instance{nullptr};
 
 // local search functions for MPI based objects
 static count_t searchForGridlabDobject(const CoreObject* obj);
 
-gridDynSimulation::gridDynSimulation(const std::string& objName):
-    gridSimulation(objName), controlFlags(0LL)
+GridDynSimulation::GridDynSimulation(const std::string& objName):
+    GridSimulation(objName), controlFlags(0LL)
 {
 // defaults
 #ifndef GRIDDYN_ENABLE_KLU
@@ -56,26 +56,26 @@ gridDynSimulation::gridDynSimulation(const std::string& objName):
 #endif
 }
 
-gridDynSimulation::~gridDynSimulation()
+GridDynSimulation::~GridDynSimulation()
 {
     // if we are destroying the primary instance then we need to remove it from access
     auto* instancePtr = this;
-    s_instance.compare_exchange_strong(instancePtr, static_cast<gridDynSimulation*>(nullptr));
+    s_instance.compare_exchange_strong(instancePtr, static_cast<GridDynSimulation*>(nullptr));
 }
 
-void gridDynSimulation::setInstance(gridDynSimulation* gds)
+void GridDynSimulation::setInstance(GridDynSimulation* gds)
 {
     s_instance = gds;
 }
 
-gridDynSimulation* gridDynSimulation::getInstance()
+GridDynSimulation* GridDynSimulation::getInstance()
 {
     return s_instance;
 }
 
-CoreObject* gridDynSimulation::clone(CoreObject* obj) const
+CoreObject* GridDynSimulation::clone(CoreObject* obj) const
 {
-    auto* sim = cloneBase<gridDynSimulation, gridSimulation>(this, obj);
+    auto* sim = cloneBase<GridDynSimulation, GridSimulation>(this, obj);
     if (sim == nullptr) {
         return obj;
     }
@@ -131,7 +131,7 @@ CoreObject* gridDynSimulation::clone(CoreObject* obj) const
     }
     return sim;
 }
-int gridDynSimulation::tripSlippedLines()
+int GridDynSimulation::tripSlippedLines()
 {
     std::vector<Link*> lineTest;
     lineTest.reserve(linkCount);
@@ -145,7 +145,7 @@ int gridDynSimulation::tripSlippedLines()
     return disconnectCount;
 }
 
-int gridDynSimulation::rebalanceLoadGen()
+int GridDynSimulation::rebalanceLoadGen()
 {
     std::vector<GridBus*> bnetwork;
     bnetwork.reserve(busCount);
@@ -172,7 +172,7 @@ int gridDynSimulation::rebalanceLoadGen()
     return -1;
 }
 
-bool gridDynSimulation::doAutomaticLoadLoss()
+bool GridDynSimulation::doAutomaticLoadLoss()
 {
     std::vector<GridBus*> bnetwork;
     bnetwork.reserve(busCount);
@@ -235,7 +235,7 @@ bool gridDynSimulation::doAutomaticLoadLoss()
     return modified;
 }
 
-int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
+int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
 {
     // make a full list of all buses
     std::vector<GridBus*> bnetwork;
@@ -390,12 +390,12 @@ int gridDynSimulation::checkNetwork(NetworkCheckType checkType)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-double gridDynSimulation::getState(index_t offset) const
+double GridDynSimulation::getState(index_t offset) const
 {
     return getState(offset, cLocalSolverMode);
 }
 
-double gridDynSimulation::getState(index_t offset, const solverMode& sMode) const
+double GridDynSimulation::getState(index_t offset, const solverMode& sMode) const
 {
     solverMode nMode = sMode;
     double ret = kNullVal;
@@ -431,7 +431,7 @@ double gridDynSimulation::getState(index_t offset, const solverMode& sMode) cons
     return ret;
 }
 
-std::vector<double> gridDynSimulation::getState(const solverMode& sMode) const
+std::vector<double> GridDynSimulation::getState(const solverMode& sMode) const
 {
     solverMode nMode = sMode;
     if (isLocal(sMode)) {
@@ -476,7 +476,7 @@ grouped with the angle coming first differential_first = 5, //!< differential an
 with differential first
 */
 
-void gridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering offsetOrdering)
+void GridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering offsetOrdering)
 {
     solverOffsets offsetValues;
     switch (offsetOrdering) {
@@ -519,7 +519,7 @@ void gridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering of
 
 // --------------- run the simulation ---------------
 
-int gridDynSimulation::run(coreTime t_end)
+int GridDynSimulation::run(coreTime t_end)
 {
     if (t_end == negTime) {
         t_end = stopTime;
@@ -530,24 +530,24 @@ int gridDynSimulation::run(coreTime t_end)
     return execute(gda);
 }
 
-void gridDynSimulation::add(std::string_view actionString)
+void GridDynSimulation::add(std::string_view actionString)
 {
     actionQueue.emplace(std::string{actionString});
 }
 
-void gridDynSimulation::add(gridDynAction& newAction)
+void GridDynSimulation::add(gridDynAction& newAction)
 {
     actionQueue.push(newAction);
 }
 
-int gridDynSimulation::execute(std::string_view cmd)
+int GridDynSimulation::execute(std::string_view cmd)
 {
     const gridDynAction gda(std::string{cmd});
     return execute(gda);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-int gridDynSimulation::execute(const gridDynAction& cmd)
+int GridDynSimulation::execute(const gridDynAction& cmd)
 {
     int out = FUNCTION_EXECUTION_SUCCESS;
     switch (cmd.command) {
@@ -798,20 +798,20 @@ int gridDynSimulation::execute(const gridDynAction& cmd)
     return out;
 }
 
-bool gridDynSimulation::hasDynamics() const
+bool GridDynSimulation::hasDynamics() const
 {
     return diffSize(*defDAEMode) > 0;
 }
 
 // need to update probably with a new field in SolverInterface
-count_t gridDynSimulation::nonZeros(const solverMode& sMode) const
+count_t GridDynSimulation::nonZeros(const solverMode& sMode) const
 {
     auto solverInterface = getSolverInterface(sMode);
     return solverInterface ? solverInterface->nonZeros() : 0;
 }
 
 // --------------- set properties ---------------
-void gridDynSimulation::set(std::string_view param, std::string_view val)
+void GridDynSimulation::set(std::string_view param, std::string_view val)
 {
     if (param == "powerflowfile") {
         powerFlowFile = val;
@@ -862,11 +862,11 @@ void gridDynSimulation::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(val));
         }
     } else {
-        gridSimulation::set(param, val);
+        GridSimulation::set(param, val);
     }
 }
 
-std::string gridDynSimulation::getString(std::string_view param) const
+std::string GridDynSimulation::getString(std::string_view param) const
 {
     if (param == "powerflowfile") {
         return powerFlowFile;
@@ -874,10 +874,10 @@ std::string gridDynSimulation::getString(std::string_view param) const
     if (param == "powerflowinputfile") {
         return powerFlowInputFile;
     }
-    return gridSimulation::getString(param);
+    return GridSimulation::getString(param);
 }
 
-void gridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& sMode)
+void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& sMode)
 {
     auto solverData = getSolverInterface(sMode);
     if (!solverData) {
@@ -974,7 +974,7 @@ static const std::unordered_map<std::string, int>& getFlagControlMap()
     return flagControlMap;
 }
 
-void gridDynSimulation::setFlag(std::string_view flag, bool val)
+void GridDynSimulation::setFlag(std::string_view flag, bool val)
 {
     const auto& flagControlMap = getFlagControlMap();
     auto flagIter = flagControlMap.find(std::string{flag});
@@ -993,11 +993,11 @@ void gridDynSimulation::setFlag(std::string_view flag, bool val)
         controlFlags.set(parallel_jacobian_enabled, val);
         // TODO(phlpt): Add some more option controls here.
     } else {
-        gridSimulation::setFlag(flag, val);
+        GridSimulation::setFlag(flag, val);
     }
 }
 
-void gridDynSimulation::set(std::string_view param, double val, units::unit unitType)
+void GridDynSimulation::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "tolerance") || (param == "rtol")) {
         tols.rtol = val;
@@ -1030,7 +1030,7 @@ void gridDynSimulation::set(std::string_view param, double val, units::unit unit
         max_Vadjust_iterations = static_cast<count_t>(val);
     } else {
         try {
-            gridSimulation::set(param, val, unitType);
+            GridSimulation::set(param, val, unitType);
         }
         catch (const unrecognizedParameter&) {
             setFlag(param, (val > 0.1));
@@ -1038,13 +1038,13 @@ void gridDynSimulation::set(std::string_view param, double val, units::unit unit
     }
 }
 
-void gridDynSimulation::solverSet(std::string_view solverName, std::string_view field, double val)
+void GridDynSimulation::solverSet(std::string_view solverName, std::string_view field, double val)
 {
     auto solverData = getSolverInterface(solverName);
     solverData->set(field, val);
 }
 
-void gridDynSimulation::solverSet(std::string_view solverName,
+void GridDynSimulation::solverSet(std::string_view solverName,
                                   std::string_view field,
                                   std::string_view val)
 {
@@ -1052,7 +1052,7 @@ void gridDynSimulation::solverSet(std::string_view solverName,
     solverData->set(field, val);
 }
 
-double gridDynSimulation::get(std::string_view param, units::unit unitType) const
+double GridDynSimulation::get(std::string_view param, units::unit unitType) const
 {
     count_t val = kInvalidCount;
     double fval = kNullVal;
@@ -1135,7 +1135,7 @@ double gridDynSimulation::get(std::string_view param, units::unit unitType) cons
     } else if (param == "poweradjustthreshold") {
         fval = powerAdjustThreshold;
     } else {
-        fval = gridSimulation::get(param, unitType);
+        fval = GridSimulation::get(param, unitType);
     }
     return (val != kInvalidCount) ? static_cast<double>(val) : fval;
 }
@@ -1168,7 +1168,7 @@ static const std::map<int, size_t>& getAlertFlags()
     return alertFlags;
 }
 
-void gridDynSimulation::alert(CoreObject* object, int code)
+void GridDynSimulation::alert(CoreObject* object, int code)
 {
     if ((code >= MIN_CHANGE_ALERT) && (code < MAX_CHANGE_ALERT)) {
         const auto& alertFlags = getAlertFlags();
@@ -1177,21 +1177,21 @@ void gridDynSimulation::alert(CoreObject* object, int code)
             auto flagNum = res->second;
             opFlags.set(flagNum);
         } else {
-            gridSimulation::alert(object, code);
+            GridSimulation::alert(object, code);
         }
 
-        Area::alert(object, code);
+        GridArea::alert(object, code);
     } else if (code == SINGLE_STEP_REQUIRED) {
         controlFlags.set(single_step_mode);
         if (dynamic_cast<GridComponent*>(object) != nullptr) {
             singleStepObjects.push_back(static_cast<GridComponent*>(object));
         }
     } else {
-        gridSimulation::alert(object, code);
+        GridSimulation::alert(object, code);
     }
 }
 
-int gridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMode)
+int GridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMode)
 {
     // check to make sure we at or greater than the desiredState
     int retval = FUNCTION_EXECUTION_SUCCESS;
@@ -1261,7 +1261,7 @@ int gridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
     return retval;
 }
 
-int gridDynSimulation::countMpiObjects(bool printInfo) const
+int GridDynSimulation::countMpiObjects(bool printInfo) const
 {
     const int gridlabdObjects = searchForGridlabDobject(this);
     // print out the gridlabd objects
@@ -1271,12 +1271,12 @@ int gridDynSimulation::countMpiObjects(bool printInfo) const
     return gridlabdObjects;
 }
 
-void gridDynSimulation::setMaxNonZeros(const solverMode& sMode, count_t nonZeros)
+void GridDynSimulation::setMaxNonZeros(const solverMode& sMode, count_t nonZeros)
 {
     getSolverInterface(sMode)->setMaxNonZeros(nonZeros);
 }
 
-std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(const solverMode& sMode)
+std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(const solverMode& sMode)
 {
     std::shared_ptr<SolverInterface> solveD;
     if (isValidIndex(sMode.offsetIndex, solverInterfaces)) {
@@ -1291,7 +1291,7 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(const sol
 }
 
 std::shared_ptr<const SolverInterface>
-    gridDynSimulation::getSolverInterface(const solverMode& sMode) const
+    GridDynSimulation::getSolverInterface(const solverMode& sMode) const
 {
     if (isValidIndex(sMode.offsetIndex, solverInterfaces)) {
         return solverInterfaces[sMode.offsetIndex];
@@ -1299,7 +1299,7 @@ std::shared_ptr<const SolverInterface>
     return nullptr;
 }
 
-void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
+void GridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
 {
     auto offsetIndex = nSolver->getSolverMode().offsetIndex;
 
@@ -1329,7 +1329,7 @@ void gridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
     updateSolver(sMode);
 }
 
-solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
+solverMode GridDynSimulation::getSolverMode(std::string_view solverType)
 {
     solverMode sMode(kInvalidCount);
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
@@ -1392,7 +1392,7 @@ solverMode gridDynSimulation::getSolverMode(std::string_view solverType)
     return sMode;
 }
 
-solverMode gridDynSimulation::getCurrentMode(const solverMode& sMode) const
+solverMode GridDynSimulation::getCurrentMode(const solverMode& sMode) const
 {
     if (sMode.offsetIndex != kNullLocation) {
         return sMode;
@@ -1424,7 +1424,7 @@ solverMode gridDynSimulation::getCurrentMode(const solverMode& sMode) const
     }
 }
 
-const solverMode& gridDynSimulation::getSolverMode(index_t index) const
+const solverMode& GridDynSimulation::getSolverMode(index_t index) const
 {
     if (isValidIndex(index, solverInterfaces)) {
         return (solverInterfaces[index]) ? solverInterfaces[index]->getSolverMode() :
@@ -1433,7 +1433,7 @@ const solverMode& gridDynSimulation::getSolverMode(index_t index) const
     return cEmptySolverMode;
 }
 
-const solverMode* gridDynSimulation::getSolverModePtr(std::string_view solverType) const
+const solverMode* GridDynSimulation::getSolverModePtr(std::string_view solverType) const
 {
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
         (solverType == "powerflow")) {
@@ -1457,7 +1457,7 @@ const solverMode* gridDynSimulation::getSolverModePtr(std::string_view solverTyp
     return nullptr;
 }
 
-const solverMode* gridDynSimulation::getSolverModePtr(index_t index) const
+const solverMode* GridDynSimulation::getSolverModePtr(index_t index) const
 {
     if (isValidIndex(index, solverInterfaces)) {
         return (solverInterfaces[index]) ? &(solverInterfaces[index]->getSolverMode()) : nullptr;
@@ -1465,17 +1465,17 @@ const solverMode* gridDynSimulation::getSolverModePtr(index_t index) const
     return nullptr;
 }
 
-std::shared_ptr<const SolverInterface> gridDynSimulation::getSolverInterface(index_t index) const
+std::shared_ptr<const SolverInterface> GridDynSimulation::getSolverInterface(index_t index) const
 {
     return (isValidIndex(index, solverInterfaces)) ? solverInterfaces[index] : nullptr;
 }
 
-std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(index_t index)
+std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(index_t index)
 {
     return (isValidIndex(index, solverInterfaces)) ? solverInterfaces[index] : nullptr;
 }
 
-std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(std::string_view solverName)
+std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(std::string_view solverName)
 {
     // just run through the list of SolverInterface objects and find the first one that matches the
     // name
@@ -1505,7 +1505,7 @@ std::shared_ptr<SolverInterface> gridDynSimulation::getSolverInterface(std::stri
     return nullptr;
 }
 
-std::shared_ptr<SolverInterface> gridDynSimulation::updateSolver(const solverMode& sMode)
+std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMode& sMode)
 {
     auto kIndex = sMode.offsetIndex;
     solverMode solverModeValue = sMode;
@@ -1549,7 +1549,7 @@ std::shared_ptr<SolverInterface> gridDynSimulation::updateSolver(const solverMod
     return solverData;
 }
 
-void gridDynSimulation::parameterDerivatives(coreTime time,
+void GridDynSimulation::parameterDerivatives(coreTime time,
                                              parameterSet& parameterOperators,
                                              const index_t indices[],
                                              const double values[],
@@ -1605,14 +1605,14 @@ void gridDynSimulation::parameterDerivatives(coreTime time,
     }
 }
 
-void gridDynSimulation::checkOffsets(const solverMode& sMode)
+void GridDynSimulation::checkOffsets(const solverMode& sMode)
 {
     if (offsets.getAlgOffset(sMode) == kNullLocation) {
         updateOffsets(sMode);
     }
 }
 
-void gridDynSimulation::getSolverReady(std::shared_ptr<SolverInterface>& solver)
+void GridDynSimulation::getSolverReady(std::shared_ptr<SolverInterface>& solver)
 {
     const auto stateCount = stateSize(solver->getSolverMode());
     if (stateCount != solver->size()) {
@@ -1621,13 +1621,13 @@ void gridDynSimulation::getSolverReady(std::shared_ptr<SolverInterface>& solver)
         checkOffsets(solver->getSolverMode());
     }
 }
-void gridDynSimulation::addInitOperation(std::function<int()> fptr)
+void GridDynSimulation::addInitOperation(std::function<int()> fptr)
 {
     if (fptr) {
         additionalPowerflowSetupFunctions.push_back(std::move(fptr));
     }
 }
-void gridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const
+void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const
 {
     if ((!isDAE(sMode)) && (isDynamic(sMode))) {
         if (sMode.pairedOffsetIndex != kNullLocation) {
@@ -1657,7 +1657,7 @@ void gridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solver
     }
 }
 
-bool gridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverMode& sMode)
+bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverMode& sMode)
 {
     if (EvQ->getNextTime() < cTime) {
         auto eventReturn = EvQ->executeEvents(cTime);
@@ -1686,7 +1686,7 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
         }
         return cnt;
     }
-    const auto* area = dynamic_cast<const Area*>(obj);
+    const auto* area = dynamic_cast<const GridArea*>(obj);
     if (area != nullptr) {
         index_t areaIndex = 0;
         bus = area->getBus(areaIndex);
@@ -1696,11 +1696,11 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
             bus = area->getBus(areaIndex);
         }
         areaIndex = 0;
-        const Area* subArea = area->getArea(areaIndex);
-        while (subArea != nullptr) {
-            cnt += searchForGridlabDobject(subArea);
+        const GridArea* subGridArea = area->getGridArea(areaIndex);
+        while (subGridArea != nullptr) {
+            cnt += searchForGridlabDobject(subGridArea);
             ++areaIndex;
-            subArea = area->getArea(areaIndex);
+            subGridArea = area->getGridArea(areaIndex);
         }
         return cnt;
     }

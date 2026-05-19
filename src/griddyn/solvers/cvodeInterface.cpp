@@ -50,7 +50,7 @@ cvodeInterface::cvodeInterface(const std::string& objName): sundialsInterface(ob
     max_iterations = 1500;
 }
 
-cvodeInterface::cvodeInterface(gridDynSimulation* gds, const solverMode& sMode):
+cvodeInterface::cvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
     sundialsInterface(gds, sMode)
 {
     mode.dynamic = true;

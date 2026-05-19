@@ -33,7 +33,7 @@ CoreObject* commSource::clone(CoreObject* obj) const
 
 void commSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    rootSim = dynamic_cast<gridSimulation*>(getRoot());
+    rootSim = dynamic_cast<GridSimulation*>(getRoot());
     commLink = cManager.build();
 
     if (commLink) {

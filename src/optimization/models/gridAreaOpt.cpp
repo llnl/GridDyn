@@ -15,7 +15,7 @@
 #include "gridBusOpt.h"
 #include "gridLinkOpt.h"
 #include "gridRelayOpt.h"
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/gridBus.h"
 #include "utilities/vectData.hpp"
@@ -27,13 +27,13 @@ namespace griddyn {
 using units::unit;
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static OptObjectFactory<GridAreaOpt, Area> opa("basic", "area");
+static OptObjectFactory<GridAreaOpt, GridArea> opa("basic", "area");
 // NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
 
 GridAreaOpt::GridAreaOpt(CoreObject* obj, const std::string& objName):
-    GridOptObject(objName), area(dynamic_cast<Area*>(obj))
+    GridOptObject(objName), area(dynamic_cast<GridArea*>(obj))
 {
     if (area != nullptr) {
         if (getName().empty()) {
@@ -95,7 +95,7 @@ CoreObject* GridAreaOpt::clone(CoreObject* obj) const
 
 void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
 {
-    // first do a check to make sure all gridDyn areas are represented by gridDynOpt Area
+    // first do a check to make sure all gridDyn areas are represented by gridDynOpt GridArea
     Link* linkObject = nullptr;
     auto coreOptFactory = CoreOptObjectFactory::instance();
     bool found;
@@ -105,12 +105,12 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     index_t areaIndex = 0;
 
     // make sure all areas have an opt object
-    auto* areaObj = area->getArea(areaIndex);
+    auto* areaObj = area->getGridArea(areaIndex);
 
     while (areaObj != nullptr) {
         found = false;
-        for (auto* existingArea : areaList) {
-            if (areaObj->getID() == existingArea->getID()) {
+        for (auto* existingGridArea : areaList) {
+            if (areaObj->getID() == existingGridArea->getID()) {
                 found = true;
                 break;
             }
@@ -120,7 +120,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
             newObj.push_back(optObject);
         }
         ++areaIndex;
-        areaObj = area->getArea(areaIndex);
+        areaObj = area->getGridArea(areaIndex);
     }
     for (auto* newObject : newObj) {
         add(newObject);
@@ -378,8 +378,8 @@ void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const Opti
 
 void GridAreaOpt::add(CoreObject* obj)
 {
-    if (dynamic_cast<Area*>(obj) != nullptr) {
-        area = static_cast<Area*>(obj);
+    if (dynamic_cast<GridArea*>(obj) != nullptr) {
+        area = static_cast<GridArea*>(obj);
         if (getName().empty()) {
             setName(area->getName());
         }
@@ -438,7 +438,7 @@ void GridAreaOpt::remove(CoreObject* obj)
     throw(unrecognizedObjectException(this));
 }
 
-// TODO(phlpt): Make this work like Area.
+// TODO(phlpt): Make this work like GridArea.
 void GridAreaOpt::add(GridBusOpt* bus)
 {
     if (!isMember(bus)) {
@@ -751,7 +751,7 @@ double GridAreaOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }
 
-GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec)
+GridAreaOpt* getMatchingGridArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec)
 {
     if (area->isRoot()) {
         return nullptr;
@@ -759,7 +759,7 @@ GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObjec
 
     if (isSameObject(area->getParent(), src))  // if this is true then things are easy
     {
-        return static_cast<GridAreaOpt*>(sec->getArea(area->locIndex));
+        return static_cast<GridAreaOpt*>(sec->getGridArea(area->locIndex));
     }
 
     std::vector<int> lkind;
@@ -778,9 +778,9 @@ GridAreaOpt* getMatchingArea(GridAreaOpt* area, GridOptObject* src, GridOptObjec
     // now work our way backwards through the secondary
     par = sec;
     for (auto kk = lkind.size() - 1; kk > 0; --kk) {
-        par = static_cast<GridOptObject*>(par->getArea(lkind[kk]));
+        par = static_cast<GridOptObject*>(par->getGridArea(lkind[kk]));
     }
-    return static_cast<GridAreaOpt*>(par->getArea(lkind[0]));
+    return static_cast<GridAreaOpt*>(par->getGridArea(lkind[0]));
 }
 
 }  // namespace griddyn

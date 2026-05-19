@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../gridBus.h"
 #include "../measurement/objectGrabbers.h"
 #include "../simulation/contingency.h"
@@ -42,34 +42,26 @@ static typeFactory<Link> blf("link",
 static childTypeFactory<AcLine, Link> glf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
-    "ac");  // NOLINT(bugprone-throwing-static-initialization)
+    "ac");
 
 namespace links {
     static childTypeFactory<adjustableTransformer, Link>
         gfad("link",
-             std::to_array<std::string_view>(
-                 {"adjust",
-                  "adjustable",
-                  "adjustabletransformer"}));  // NOLINT(bugprone-throwing-static-initialization)
+             std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link>
         dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcrect("link",
                std::to_array<std::string_view>({"rectifier", "rect"}),
-               acdcConverter::Mode::RECTIFIER);  // NOLINT(bugprone-throwing-static-initialization)
+               acdcConverter::Mode::RECTIFIER);
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcinv("link",
               std::to_array<std::string_view>({"inverter", "inv"}),
-              acdcConverter::Mode::INVERTER);  // NOLINT(bugprone-throwing-static-initialization)
+              acdcConverter::Mode::INVERTER);
     static childTypeFactory<acdcConverter, Link>
-        acdc("link",
-             std::to_array<std::string_view>(
-                 {"acdc",
-                  "acdcconverter",
-                  "dcconverter"}));  // NOLINT(bugprone-throwing-static-initialization)
+        acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense
@@ -837,7 +829,7 @@ Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
         // now work our way backwards through the secondary
         par = sec;
         for (size_t kk = lkind.size() - 1; kk > 0; --kk) {
-            par = dynamic_cast<gridPrimary*>(par->getArea(lkind[kk]));
+            par = dynamic_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
         }
         matchingLink = par->getLink(lkind[0]);
     }

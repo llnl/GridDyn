@@ -6,8 +6,8 @@
 
 #include "acBus.h"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../blocks/derivativeBlock.h"
@@ -481,7 +481,7 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn0:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                double nAngle = static_cast<Area*>(getParent())
+                double nAngle = static_cast<GridArea*>(getParent())
                                     ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (nAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
@@ -493,7 +493,7 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn1:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                double nAngle = static_cast<Area*>(getParent())
+                double nAngle = static_cast<GridArea*>(getParent())
                                     ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (nAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
@@ -507,7 +507,7 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn2:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                double nAngle = static_cast<Area*>(getParent())
+                double nAngle = static_cast<GridArea*>(getParent())
                                     ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (nAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
@@ -2640,7 +2640,7 @@ change_code AcBus::rootCheck(const IOdata& inputs,
             if (dynType == dynBusType::normal) {
                 if (vcurr < 0.001) {
                     prevDynType = dynBusType::normal;
-                    refAngle = static_cast<Area*>(getParent())
+                    refAngle = static_cast<GridArea*>(getParent())
                                    ->getMasterAngle(emptyStateData, cLocalSolverMode);
 
                     dynType = dynBusType::fixAngle;
@@ -2651,7 +2651,7 @@ change_code AcBus::rootCheck(const IOdata& inputs,
                 if (prevDynType == dynBusType::normal) {
                     if (vcurr > 0.1) {
                         dynType = dynBusType::normal;
-                        double nAngle = static_cast<Area*>(getParent())
+                        double nAngle = static_cast<GridArea*>(getParent())
                                             ->getMasterAngle(emptyStateData, cLocalSolverMode);
                         angle = angle + (nAngle - refAngle);
                         alert(this, JAC_COUNT_INCREASE);

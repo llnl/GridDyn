@@ -15,12 +15,12 @@
 #include <vector>
 
 // A bunch of includes to load these kinds of objects
-#include "griddyn/Area.h"
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
 #include "griddyn/Source.h"
@@ -101,7 +101,7 @@ namespace {
 
     CoreObject* loadArea(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
     {
-        return readAreaElement(currentElement, readerInf, nullptr);
+        return readGridAreaElement(currentElement, readerInf, nullptr);
     }
 
     CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement, readerInfo& readerInf)
@@ -161,18 +161,15 @@ namespace {
 void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
     auto riScope = readerInf.newScope();
-    // readerInfo xm2;
     element->bookmark();
 
     loadDefines(element, readerInf);
     loadDirectories(element, readerInf);
-    // loop through the other children
     element->moveToFirstChild();
 
     while (element->isValid()) {
         CoreObject* obj = nullptr;
         const std::string fieldName = gmlc::utilities::convertToLowerCase(element->getName());
-        // std::cout<<"library model :"<<fieldName<<":\n";
         if ((fieldName == "define") || (fieldName == "recorder") || (fieldName == "event")) {
         } else {
             auto translatedName = readerInf.objectNameTranslate(fieldName);
@@ -217,7 +214,6 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
     std::string def;
     std::string rep;
 
-    // loop through all define elements
     element->moveToFirstChild(defineString);
     while (element->isValid()) {
         if (element->hasAttribute("name")) {
@@ -226,7 +222,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
             def = element->getAttributeText("string");
         } else {
             WARNPRINT(READER_WARN_ALL, "define element with no name or string attribute");
-            element->moveToNextSibling(defineString);  // next define
+            element->moveToNextSibling(defineString);
             continue;
         }
         if (element->hasAttribute("value")) {
@@ -246,10 +242,9 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
         if (def == kcheck) {
             WARNPRINT(READER_WARN_ALL,
                       "illegal recursive definition " << def << " name and value are equivalent");
-            element->moveToNextSibling("define");  // next define
+            element->moveToNextSibling(defineString);
             continue;
         }
-        // check for overloading
         if (element->hasAttribute("eval")) {
             const double val = interpretString(rep, readerInf);
             if (std::isnormal(val)) {
@@ -267,7 +262,7 @@ void loadDefines(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
             readerInf.addDefinition(def, rep);
         }
 
-        element->moveToNextSibling(defineString);  // next define
+        element->moveToNextSibling(defineString);
     }
     element->moveToParent();
 }
@@ -276,7 +271,6 @@ static const char directoryString[] = "directory";
 
 void loadDirectories(std::shared_ptr<readerElement>& element, readerInfo& readerInf)
 {
-    // loop through all directory elements
     if (!element->hasElement(directoryString)) {
         return;
     }
@@ -309,7 +303,7 @@ void loadCustomSections(std::shared_ptr<readerElement>& element, readerInfo& rea
         auto args = element->getAttributeValue("args");
         const int nargs = (args != kNullVal) ? static_cast<int>(args) : 0;
         readerInf.addCustomElement(name, element, nargs);
-        element->moveToNextSibling(directoryString);
+        element->moveToNextSibling(customString);
     }
     element->moveToParent();
 }
@@ -320,7 +314,6 @@ void loadTranslations(std::shared_ptr<readerElement>& element, readerInfo& reade
     if (!element->hasElement(translateString)) {
         return;
     }
-    // loop through all define elements
     element->moveToFirstChild(translateString);
     while (element->isValid()) {
         std::string def;

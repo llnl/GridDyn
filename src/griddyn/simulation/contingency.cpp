@@ -111,7 +111,7 @@ Contingency::Contingency(): future_ret(promise_val.get_future())
     name = "contingency_" + std::to_string(id);
 }
 
-Contingency::Contingency(gridDynSimulation* sim, std::shared_ptr<Event> gridEvent):
+Contingency::Contingency(GridDynSimulation* sim, std::shared_ptr<Event> gridEvent):
     gds(sim), future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
@@ -123,7 +123,7 @@ Contingency::Contingency(gridDynSimulation* sim, std::shared_ptr<Event> gridEven
 void Contingency::execute()
 {
     auto contSim =
-        std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
+        std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     contSim->set("printlevel", 0);
     int res = FUNCTION_EXECUTION_SUCCESS;
     preEventLoad = contSim->getLoadReal();
@@ -186,7 +186,7 @@ bool Contingency::isFinished() const
     return completed.load(std::memory_order_acquire);
 }
 
-void Contingency::setContingencyRoot(gridDynSimulation* gdSim)
+void Contingency::setContingencyRoot(GridDynSimulation* gdSim)
 {
     if (gds != gdSim) {
         gds = gdSim;
@@ -366,8 +366,8 @@ void Contingency::updateObject(CoreObject* newObj, object_update_mode mode)
     }
     // update the simulation if appropriate
     if (mode == object_update_mode::match) {
-        if (dynamic_cast<gridDynSimulation*>(newObj) != nullptr) {
-            gds = static_cast<gridDynSimulation*>(newObj);
+        if (dynamic_cast<GridDynSimulation*>(newObj) != nullptr) {
+            gds = static_cast<GridDynSimulation*>(newObj);
         }
     }
 }

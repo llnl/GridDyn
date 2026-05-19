@@ -13,12 +13,12 @@
 #include <string>
 
 // A bunch of includes to load these kinds of objects
-#include "griddyn/Area.h"
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
 #include "griddyn/Source.h"
@@ -153,11 +153,11 @@ namespace {
         return readRelayElement(currentElement, readerInf, parentObject);
     }
 
-    CoreObject* loadArea(std::shared_ptr<readerElement>& currentElement,
-                         readerInfo& readerInf,
-                         CoreObject* parentObject)
+    CoreObject* loadGridArea(std::shared_ptr<readerElement>& currentElement,
+                             readerInfo& readerInf,
+                             CoreObject* parentObject)
     {
-        return readAreaElement(currentElement, readerInf, parentObject);
+        return readGridAreaElement(currentElement, readerInf, parentObject);
     }
 
     CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
@@ -206,7 +206,7 @@ namespace {
          {.name = "extra", .loader = &loadExtra},
          {.name = "bus", .loader = &loadBus},
          {.name = "relay", .loader = &loadRelay},
-         {.name = "area", .loader = &loadArea},
+         {.name = "area", .loader = &loadGridArea},
          {.name = "link", .loader = &loadLink},
          {.name = "econ", .loader = &loadEcon},
          {.name = "array", .loader = &loadArray},
@@ -234,7 +234,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
     if (element->hasElement("area")) {
         element->moveToFirstChild("area");
         while (element->isValid()) {
-            readAreaElement(element, readerInformation, parentObject);
+            readGridAreaElement(element, readerInformation, parentObject);
             element->moveToNextSibling("area");  // next area
         }
         element->moveToParent();

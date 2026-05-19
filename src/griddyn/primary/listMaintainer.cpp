@@ -6,7 +6,7 @@
 
 #include "listMaintainer.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
 #include <vector>
 

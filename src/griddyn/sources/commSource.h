@@ -13,13 +13,13 @@
 
 namespace griddyn {
 class Communicator;
-class gridSimulation;
+class GridSimulation;
 namespace sources {
     /** defining a source that can be connected to a communicator*/
     class commSource: public rampSource {
       protected:
         std::shared_ptr<Communicator> commLink;  //!< communicator link
-        gridSimulation* rootSim = nullptr;  //!< pointer to the root simulation
+        GridSimulation* rootSim = nullptr;  //!< pointer to the root simulation
         comms::commManager cManager;  //!< comm manager object to build and manage the comm link
         model_parameter maxRamp = kBigNum;  //!< the maximum rate of change of the source
       public:

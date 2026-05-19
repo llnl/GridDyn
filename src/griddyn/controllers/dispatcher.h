@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace griddyn {
-class Area;
+class GridArea;
 class scheduler;
 
 class dispatcher: public CoreObject {

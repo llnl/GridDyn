@@ -7,7 +7,7 @@
 #pragma once
 
 // header files
-#include "../Area.h"
+#include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
 #include <functional>
 #include <memory>
@@ -48,7 +48,7 @@ like logging, errors,  recording, and a few other topics.  Doesn't really do any
 simulating goes the class isn't abstract but it is intended to be built upon for more usable
 simulation objects
 */
-class gridSimulation: public Area {
+class GridSimulation: public GridArea {
   public:
     std::string sourceFile;  //!< main source file name
     /** @brief enumeration describing the state of the GridDyn simulation*/
@@ -123,11 +123,11 @@ class gridSimulation: public Area {
 
   public:
     /** @brief constructor*/
-    explicit gridSimulation(const std::string& objName = "sim_#");
+    explicit GridSimulation(const std::string& objName = "sim_#");
 
     /** @brief destructor
      */
-    ~gridSimulation();
+    ~GridSimulation();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     /** @brief get the current state of the simulation
@@ -144,7 +144,7 @@ class gridSimulation: public Area {
     int getErrorCode() const { return errorCode; }
 
     // add components
-    using Area::add;  // use the add function of Area
+    using GridArea::add;  // use the add function of GridArea
     /** @brief function to add collectors to the system
     @param[in] col the collector to add into the simulation
     */
@@ -251,5 +251,7 @@ tree given by sec
 @return the located object or nullptr
 */
 CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec);
+
+using gridSimulation = GridSimulation;
 
 }  // namespace griddyn

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Relay.h"
 #include "../gridBus.h"
@@ -276,13 +276,13 @@ static const std::map<std::string, objJacFunction> busJacFunctions{
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> areaFunctions{
-  {"avgfreq", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getAvgFreq ();}, puHz}},
-{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getGenerationReal ();}, puMW}},
-{"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getGenerationReactive ();}, puMW}},
-{"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getLoadReal ();}, puMW}},
-{"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getLoadReactive ();}, puMW}},
-{"loss", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getLoss ();}, puMW}},
-{"tieflow", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Area *> (obj)->getTieFlowReal ();}, puMW}},
+  {"avgfreq", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getAvgFreq ();}, puHz}},
+{"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getGenerationReal ();}, puMW}},
+{"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getGenerationReactive ();}, puMW}},
+{"loadreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getLoadReal ();}, puMW}},
+{"loadreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getLoadReactive ();}, puMW}},
+{"loss", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getLoss ();}, puMW}},
+{"tieflow", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getTieFlowReal ();}, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)

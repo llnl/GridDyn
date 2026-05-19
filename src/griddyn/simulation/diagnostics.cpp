@@ -23,19 +23,19 @@
 
 // NOLINTBEGIN
 namespace griddyn {
-std::pair<double, int> checkResid(gridDynSimulation* gds, coreTime time, const solverMode& sMode)
+std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const solverMode& sMode)
 {
     return checkResid(gds, time, gds->getSolverInterface(sMode));
 }
 
-std::pair<double, int> checkResid(gridDynSimulation* gds,
+std::pair<double, int> checkResid(GridDynSimulation* gds,
                                   const std::shared_ptr<SolverInterface>& sd)
 {
     return checkResid(gds, gds->getSimulationTime(), sd);
 }
 
 std::pair<double, int>
-    checkResid(gridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd)
+    checkResid(GridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd)
 {
     const solverMode& sMode = sd->getSolverMode();
     std::vector<double> resid;
@@ -43,7 +43,7 @@ std::pair<double, int>
     auto kSize = sd->size();
     resid.resize(kSize, 0);
     double* state = sd->state_data();
-    assert(kSize == const_cast<const gridDynSimulation*>(gds)->stateSize(sMode));
+    assert(kSize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (!isAlgebraicOnly(sMode)) {
         dstate_dt = sd->deriv_data();
     }
@@ -66,16 +66,16 @@ std::pair<double, int>
     return gmlc::utilities::absMaxLoc(resid);
 }
 
-int JacobianCheck(gridDynSimulation* gds,
+int JacobianCheck(GridDynSimulation* gds,
                   const solverMode& queryMode,
                   double jacTol,
                   bool useStateNames)
 {
     if (isDynamic(queryMode)) {
-        if (gds->currentProcessState() < gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
+        if (gds->currentProcessState() < GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
             return -1;
         }
-    } else if (gds->currentProcessState() < gridDynSimulation::gridState_t::INITIALIZED) {
+    } else if (gds->currentProcessState() < GridDynSimulation::gridState_t::INITIALIZED) {
         return -1;
     }
     int errors = 0;
@@ -91,7 +91,7 @@ int JacobianCheck(gridDynSimulation* gds,
     double* dstate = sd->deriv_data();
 
     coreTime timeCurr = gds->getSimulationTime();
-    if ((gds->currentProcessState() <= gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) &&
+    if ((gds->currentProcessState() <= GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) &&
         (timeCurr <= gds->getStartTime())) {
         gds->guessState(timeCurr, state, dstate, sd->getSolverMode());
     }
@@ -294,7 +294,7 @@ int JacobianCheck(gridDynSimulation* gds,
     return errors;
 }
 
-int residualCheck(gridDynSimulation* gds,
+int residualCheck(GridDynSimulation* gds,
                   const solverMode& sMode,
                   double residTol,
                   bool useStateNames)
@@ -302,17 +302,17 @@ int residualCheck(gridDynSimulation* gds,
     return residualCheck(gds, gds->getSimulationTime(), sMode, residTol, useStateNames);
 }
 
-int residualCheck(gridDynSimulation* gds,
+int residualCheck(GridDynSimulation* gds,
                   coreTime time,
                   const solverMode& sMode,
                   double residTol,
                   bool useStateNames)
 {
     if (isDynamic(sMode)) {
-        if (gds->currentProcessState() < gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
+        if (gds->currentProcessState() < GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
             return -1;
         }
-    } else if (gds->currentProcessState() < gridDynSimulation::gridState_t::INITIALIZED) {
+    } else if (gds->currentProcessState() < GridDynSimulation::gridState_t::INITIALIZED) {
         return -1;
     }
     stringVec stv;
@@ -323,8 +323,8 @@ int residualCheck(gridDynSimulation* gds,
     auto sd = gds->getSolverInterface(sMode);
     double* state = sd->state_data();
     auto nsize = static_cast<count_t>(sd->size());
-    assert(nsize == const_cast<const gridDynSimulation*>(gds)->stateSize(sMode));
-    if (gds->currentProcessState() == gridDynSimulation::gridState_t::INITIALIZED) {
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    if (gds->currentProcessState() == GridDynSimulation::gridState_t::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     }
@@ -355,17 +355,17 @@ int residualCheck(gridDynSimulation* gds,
     return errors;
 }
 
-int algebraicCheck(gridDynSimulation* gds,
+int algebraicCheck(GridDynSimulation* gds,
                    coreTime time,
                    const solverMode& sMode,
                    double algTol,
                    bool useStateNames)
 {
     if (isDynamic(sMode)) {
-        if (gds->currentProcessState() < gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
+        if (gds->currentProcessState() < GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
             return -1;
         }
-    } else if (gds->currentProcessState() < gridDynSimulation::gridState_t::INITIALIZED) {
+    } else if (gds->currentProcessState() < GridDynSimulation::gridState_t::INITIALIZED) {
         return -1;
     }
     stringVec stv;
@@ -376,8 +376,8 @@ int algebraicCheck(gridDynSimulation* gds,
     auto sd = gds->getSolverInterface(sMode);
     auto state = sd->state_data();
     auto nsize = static_cast<count_t>(sd->size());
-    assert(nsize == const_cast<const gridDynSimulation*>(gds)->stateSize(sMode));
-    if (gds->currentProcessState() == gridDynSimulation::gridState_t::INITIALIZED) {
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    if (gds->currentProcessState() == GridDynSimulation::gridState_t::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
@@ -420,17 +420,17 @@ int algebraicCheck(gridDynSimulation* gds,
     return errors;
 }
 
-int derivativeCheck(gridDynSimulation* gds,
+int derivativeCheck(GridDynSimulation* gds,
                     coreTime time,
                     const solverMode& sMode,
                     double derivTol,
                     bool useStateNames)
 {
     if (hasDifferential(sMode)) {
-        if (gds->currentProcessState() < gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
+        if (gds->currentProcessState() < GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
             return -1;
         }
-    } else if (gds->currentProcessState() < gridDynSimulation::gridState_t::INITIALIZED) {
+    } else if (gds->currentProcessState() < GridDynSimulation::gridState_t::INITIALIZED) {
         return -1;
     }
     stringVec stv;
@@ -441,8 +441,8 @@ int derivativeCheck(gridDynSimulation* gds,
     auto sd = gds->getSolverInterface(sMode);
     double* state = sd->state_data();
     auto nsize = static_cast<count_t>(sd->size());
-    assert(nsize == const_cast<const gridDynSimulation*>(gds)->stateSize(sMode));
-    if (gds->currentProcessState() == gridDynSimulation::gridState_t::INITIALIZED) {
+    assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
+    if (gds->currentProcessState() == GridDynSimulation::gridState_t::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
@@ -479,7 +479,7 @@ int derivativeCheck(gridDynSimulation* gds,
     return errors;
 }
 
-void dynamicSolverConvergenceTest(gridDynSimulation* gds,
+void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                   const solverMode& sMode,
                                   const std::string& file,
                                   count_t pts,
@@ -724,7 +724,7 @@ void printObjCountInfo(const objectCountInfo& oi, int clevel, int maxLevel)
 }
 
 void jacobianAnalysis(matrixData<double>& md,
-                      gridDynSimulation* gds,
+                      GridDynSimulation* gds,
                       const solverMode& sMode,
                       int level)
 {

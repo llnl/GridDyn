@@ -33,7 +33,7 @@ class cvodeInterface: public sundialsInterface {
 @param[in] gds  the gridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
-    cvodeInterface(gridDynSimulation* gds, const solverMode& sMode);
+    cvodeInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor*/
     virtual ~cvodeInterface();
 

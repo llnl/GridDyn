@@ -5,7 +5,7 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <cstdio>
@@ -21,20 +21,23 @@ namespace {
     }
 }  // namespace
 static const char areaComponentName[] = "area";
-Area* readAreaElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
-                      CoreObject* searchObject)
+GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
+                              readerInfo& readerInformation,
+                              CoreObject* searchObject)
 {
     auto riScope = readerInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
-    Area* areaObject = ElementReaderSetup(
-        element, static_cast<Area*>(nullptr), areaComponentName, readerInformation, searchObject);
+    GridArea* areaObject = ElementReaderSetup(element,
+                                              static_cast<GridArea*>(nullptr),
+                                              areaComponentName,
+                                              readerInformation,
+                                              searchObject);
 
     loadElementInformation(
         areaObject, element, areaComponentName, readerInformation, areaIgnoreElements());
 
-    LEVELPRINT(READER_NORMAL_PRINT, "loaded Area " << areaObject->getName());
+    LEVELPRINT(READER_NORMAL_PRINT, "loaded GridArea " << areaObject->getName());
 
     readerInformation.closeScope(riScope);
     return areaObject;

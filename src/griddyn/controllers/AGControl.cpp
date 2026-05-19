@@ -6,8 +6,8 @@
 
 #include "AGControl.h"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../blocks/blockLibrary.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
@@ -25,7 +25,7 @@ class AGControl
 {
 public:
         char name[32];
-        Area *Parent;
+        GridArea *Parent;
 
 protected:
         double KI;
@@ -118,6 +118,7 @@ double AGControl::getOutput(index_t /*outNum*/) const
 {
     return reg;
 }
+
 void AGControl::dynObjectInitializeB(const IOdata& inputs,
                                      const IOdata& desiredOutput,
                                      IOdata& fieldSet)
@@ -131,8 +132,6 @@ void AGControl::dynObjectInitializeB(const IOdata& inputs,
     filt1->dynInitializeB({0}, {ACE}, iSet);
     fACE = ACE;
     pid->dynInitializeB({0}, {fACE}, iSet);
-    // freg=filt2->dynInitializeB(time0,reg);
-    // freg=db->updateA(time0,freg);
     fieldSet[0] = pid->getOutput();
 }
 
@@ -183,7 +182,6 @@ void AGControl::add(schedulerReg* sched)
 {
     schedCount++;
     schedList.push_back(sched);
-    // sched->AGClink(this);
     upRat.resize(schedCount);
     downRat.resize(schedCount);
     regChange();

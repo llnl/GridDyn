@@ -6,8 +6,8 @@
 
 #include "objectGrabbers.h"
 
-#include "../Area.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../Relay.h"
@@ -191,126 +191,128 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> areaFunctions{
-    {"avgfreq", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getAvgFreq(); }, puHz}},
+    {"avgfreq", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getAvgFreq(); }, puHz}},
     {"general",
-     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getGenerationReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
-     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getGenerationReactive(); }, puMW}},
-    {"loadreal", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoadReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getGenerationReactive(); }, puMW}},
+    {"loadreal",
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoadReal(); }, puMW}},
     {"loadreactive",
-     {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoadReactive(); }, puMW}},
-    {"loss", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getLoss(); }, puMW}},
-    {"tieflow", {[](CoreObject* obj) { return static_cast<Area*>(obj)->getTieFlowReal(); }, puMW}},
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoadReactive(); }, puMW}},
+    {"loss", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoss(); }, puMW}},
+    {"tieflow",
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fvecPair, std::less<std::string_view>> areaVecFunctions{
     {"voltage",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getVoltage(data);
+          return static_cast<GridArea*>(obj)->getVoltage(data);
       },
       puV}},
     {"angle",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getAngle(data);
+          return static_cast<GridArea*>(obj)->getAngle(data);
       },
       rad}},
     {"freq",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getFreq(data);
+          return static_cast<GridArea*>(obj)->getFreq(data);
       },
       puHz}},
     {"busfreq",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getFreq(data);
+          return static_cast<GridArea*>(obj)->getFreq(data);
       },
       puHz}},
     {"busgenreal",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getBusGenerationReal(data);
+          return static_cast<GridArea*>(obj)->getBusGenerationReal(data);
       },
       puMW}},
     {"busgenreactive",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getBusGenerationReactive(data);
+          return static_cast<GridArea*>(obj)->getBusGenerationReactive(data);
       },
       puMW}},
     {"busloadreal",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getBusLoadReal(data);
+          return static_cast<GridArea*>(obj)->getBusLoadReal(data);
       },
       puMW}},
     {"busloadreactive",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getBusLoadReactive(data);
+          return static_cast<GridArea*>(obj)->getBusLoadReactive(data);
       },
       puMW}},
     {"linkreal",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getLinkRealPower(data);
+          return static_cast<GridArea*>(obj)->getLinkRealPower(data);
       },
       puMW}},
     {"linkreactive",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getLinkReactivePower(data);
+          return static_cast<GridArea*>(obj)->getLinkReactivePower(data);
       },
       puMW}},
     {"linkloss",
      {[](CoreObject* obj, std::vector<double>& data) {
-          return static_cast<Area*>(obj)->getLinkLoss(data);
+          return static_cast<GridArea*>(obj)->getLinkLoss(data);
       },
       puMW}},
 
 };
 
 namespace {
-    const auto& getAreaVecDescFunctions()
+    const auto& getGridAreaVecDescFunctions()
     {
         static const std::map<std::string_view, descVecFunc, std::less<std::string_view>>
             areaVecDescFunctions{
                 {"voltage",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"angle",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"freq",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"busfreq",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"busgenreal",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"busgenreactive",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"busloadreal",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"busloadreactive",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getBusName(desc);
+                     return static_cast<GridArea*>(obj)->getBusName(desc);
                  }},
                 {"linkreal",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getLinkName(desc);
+                     return static_cast<GridArea*>(obj)->getLinkName(desc);
                  }},
                 {"linkreactive",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getLinkName(desc);
+                     return static_cast<GridArea*>(obj)->getLinkName(desc);
                  }},
                 {"linkloss",
                  [](CoreObject* obj, stringVec& desc) {
-                     return static_cast<Area*>(obj)->getLinkName(desc);
+                     return static_cast<GridArea*>(obj)->getLinkName(desc);
                  }},
             };
         return areaVecDescFunctions;
@@ -540,7 +542,7 @@ fobjectPair getObjectFunction(const Generator* gen, const std::string& field)
     return getObjectFunction(static_cast<const GridComponent*>(gen), field);
 }
 
-fobjectPair getObjectFunction(const Area* area, const std::string& field)
+fobjectPair getObjectFunction(const GridArea* area, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
     auto funcfind = areaFunctions.find(nfstr);
@@ -651,7 +653,7 @@ fvecPair getObjectVectorFunction(const GridComponent* /*comp*/, const std::strin
     return kNullObjectVectorPair;
 }
 
-fvecPair getObjectVectorFunction(const Area* area, const std::string& field)
+fvecPair getObjectVectorFunction(const GridArea* area, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
     auto funcfind = areaVecFunctions.find(nfstr);
@@ -667,10 +669,10 @@ descVecFunc getObjectVectorDescFunction(const GridComponent* comp, const std::st
     return nullptr;
 }
 
-descVecFunc getObjectVectorDescFunction(const Area* /*area*/, const std::string& field)
+descVecFunc getObjectVectorDescFunction(const GridArea* /*area*/, const std::string& field)
 {
     const std::string_view nfstr = translateField(field);
-    const auto& areaVecDescFunctions = getAreaVecDescFunctions();
+    const auto& areaVecDescFunctions = getGridAreaVecDescFunctions();
     auto funcfind = areaVecDescFunctions.find(nfstr);
     if (funcfind != areaVecDescFunctions.end()) {
         return funcfind->second;

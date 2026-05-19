@@ -26,7 +26,7 @@ namespace {
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
                        readerInfo& readerInformation,
-                       gridDynSimulation* parentObject)
+                       GridDynSimulation* parentObject)
 {
     std::shared_ptr<SolverInterface> solverDefinition;
     const std::string type = getElementField(element, "type", defMatchType);

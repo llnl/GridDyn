@@ -28,7 +28,8 @@ using gmlc::utilities::signn;
 using gmlc::utilities::sum;
 using units::unit;
 
-static typeFactory<subsystem> gf("link", std::to_array<std::string_view>({"subsystem", "simple"}));
+static typeFactory<subsystem>
+    subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
 subsystem::subsystem(const std::string& objName): Link(objName)
 {
@@ -57,7 +58,7 @@ subsystem::subsystem(count_t terminals, const std::string& objName): Link(objNam
 
 CoreObject* subsystem::clone(CoreObject* obj) const
 {
-    auto sub = cloneBase<subsystem, Link>(this, obj);
+    auto* sub = cloneBase<subsystem, Link>(this, obj);
     if (sub == nullptr) {
         return obj;
     }
@@ -92,9 +93,14 @@ Relay* subsystem::getRelay(index_t num) const
 {
     return subarea.getRelay(num);
 }
-Area* subsystem::getArea(index_t num) const
+GridArea* subsystem::getArea(index_t num) const
 {
-    return (num == 0) ? static_cast<Area*>(getSubObjects()[0]) : subarea.getArea(num - 1);
+    return (num == 0) ? static_cast<GridArea*>(getSubObjects()[0]) : subarea.getArea(num - 1);
+}
+
+GridArea* subsystem::getGridArea(index_t num) const
+{
+    return getArea(num);
 }
 
 CoreObject* subsystem::find(std::string_view objName) const
@@ -137,16 +143,18 @@ void subsystem::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         }
     }
 
-    return subarea.pFlowInitializeA(time0, flags);
+    subarea.pFlowInitializeA(time0, flags);
 }
 
 void subsystem::updateLocalCache()
 {
     subarea.updateLocalCache();
 }
-void subsystem::updateLocalCache(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void subsystem::updateLocalCache(const IOdata& inputs,
+                                 const stateData& stateData,
+                                 const solverMode& sMode)
 {
-    subarea.updateLocalCache(inputs, sD, sMode);
+    subarea.updateLocalCache(inputs, stateData, sMode);
 }
 
 change_code
@@ -162,7 +170,7 @@ void subsystem::pFlowCheck(std::vector<Violation>& Violation_vector)
 // dynInitializeB states for dynamic solution
 void subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    return subarea.dynInitializeA(time0, flags);
+    subarea.dynInitializeA(time0, flags);
 }
 
 void subsystem::converge(coreTime time,
@@ -192,7 +200,7 @@ void subsystem::set(std::string_view param, std::string_view val)
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
     if (iparam == "bus") {
-        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             if (num > static_cast<int>(m_terminals)) {
                 resize(num);
@@ -212,14 +220,14 @@ void subsystem::set(std::string_view param, std::string_view val)
             throw(invalidParameterValue(param));
         }
     } else if (param == "from") {
-        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
             throw(invalidParameterValue(param));
         }
     } else if (param == "to") {
-        auto bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
+        auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
@@ -231,7 +239,7 @@ void subsystem::set(std::string_view param, std::string_view val)
         if (pos1 != std::string::npos) {
             term1 = numeric_conversion<index_t>(std::string{val.substr(pos1 + 1)}, 0);
         }
-        auto lnk = dynamic_cast<Link*>(locateObject(std::string{val}, this, false));
+        auto* lnk = dynamic_cast<Link*>(locateObject(std::string{val}, this, false));
         if (lnk != nullptr) {
             if (num > static_cast<int>(m_terminals)) {
                 resize(num);
@@ -424,16 +432,16 @@ double subsystem::remainingCapacity() const
 }
 double subsystem::getAngle() const
 {
-    const double t1 = terminalBus[0]->getAngle();
-    double t2 = terminalBus[m_terminals - 1]->getAngle();
-    return t1 - t2;
+    const double angleTerminal1 = terminalBus[0]->getAngle();
+    const double angleTerminal2 = terminalBus[m_terminals - 1]->getAngle();
+    return angleTerminal1 - angleTerminal2;
 }
 
 double subsystem::getAngle(const double state[], const solverMode& sMode) const
 {
-    double t1 = terminalBus[0]->getAngle(state, sMode);
-    double t2 = terminalBus[m_terminals - 1]->getAngle(state, sMode);
-    return t1 - t2;
+    const double angleTerminal1 = terminalBus[0]->getAngle(state, sMode);
+    const double angleTerminal2 = terminalBus[m_terminals - 1]->getAngle(state, sMode);
+    return angleTerminal1 - angleTerminal2;
 }
 
 double subsystem::getRealImpedance(id_type_t busId) const
@@ -443,9 +451,10 @@ double subsystem::getRealImpedance(id_type_t busId) const
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (busId == terminalBus[kk]->getID())) {
-            double vb = terminalBus[kk]->getVoltage();
-            std::complex<double> Z = (vb * vb) / std::complex<double>(Pout[kk], Qout[kk]);
-            return std::isnormal(Z.real()) ? Z.real() : kBigNum;
+            const double busVoltage = terminalBus[kk]->getVoltage();
+            const std::complex<double> impedance =
+                (busVoltage * busVoltage) / std::complex<double>(Pout[kk], Qout[kk]);
+            return std::isnormal(impedance.real()) ? impedance.real() : kBigNum;
         }
     }
     return kBigNum;
@@ -458,9 +467,10 @@ double subsystem::getImagImpedance(id_type_t busId) const
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (busId == terminalBus[kk]->getID())) {
-            double vb = terminalBus[kk]->getVoltage();
-            std::complex<double> Z = (vb * vb) / std::complex<double>(Pout[kk], Qout[kk]);
-            return std::isnormal(Z.imag()) ? Z.imag() : kBigNum;
+            const double busVoltage = terminalBus[kk]->getVoltage();
+            const std::complex<double> impedance =
+                (busVoltage * busVoltage) / std::complex<double>(Pout[kk], Qout[kk]);
+            return std::isnormal(impedance.imag()) ? impedance.imag() : kBigNum;
         }
     }
     return kBigNum;
@@ -472,11 +482,12 @@ double subsystem::getTotalImpedance(id_type_t busId) const
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (busId == terminalBus[kk]->getID())) {
-            double vp = terminalBus[kk]->getVoltage();
+            const double busVoltage = terminalBus[kk]->getVoltage();
             // printf("id1 impedance=%f\n", signn(linkInfo.P1 +
             // linkInfo.Q1)*(linkInfo.v1*linkInfo.v1) / std::hypot(linkInfo.P1, linkInfo.Q1));
-            double val = signn(Pout[kk] + Qout[kk]) * (vp * vp) / std::hypot(Pout[kk], Qout[kk]);
-            return (std::isnormal(val) ? val : kBigNum);
+            const double impedanceMagnitude = signn(Pout[kk] + Qout[kk]) *
+                (busVoltage * busVoltage) / std::hypot(Pout[kk], Qout[kk]);
+            return std::isnormal(impedanceMagnitude) ? impedanceMagnitude : kBigNum;
         }
     }
     return kBigNum;
@@ -556,8 +567,8 @@ double subsystem::getMaxTransfer() const
 
 // for computing all the Jacobian elements at once
 void subsystem::ioPartialDerivatives(id_type_t busId,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateData,
+                                     matrixData<double>& jacobian,
                                      const IOlocs& inputLocs,
                                      const solverMode& sMode)
 {
@@ -566,15 +577,16 @@ void subsystem::ioPartialDerivatives(id_type_t busId,
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (isSameObject(busId, terminalBus[kk]))) {
-            terminalLink[kk]->ioPartialDerivatives(cterm[kk], sD, md, inputLocs, sMode);
+            terminalLink[kk]->ioPartialDerivatives(
+                cterm[kk], stateData, jacobian, inputLocs, sMode);
             break;
         }
     }
 }
 
 void subsystem::outputPartialDerivatives(id_type_t busId,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+                                         const stateData& stateData,
+                                         matrixData<double>& jacobian,
                                          const solverMode& sMode)
 {
     if (busId <= 0) {
@@ -582,21 +594,21 @@ void subsystem::outputPartialDerivatives(id_type_t busId,
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (isSameObject(busId, terminalBus[kk]))) {
-            terminalLink[kk]->outputPartialDerivatives(cterm[kk], sD, md, sMode);
+            terminalLink[kk]->outputPartialDerivatives(cterm[kk], stateData, jacobian, sMode);
             break;
         }
     }
 }
 
 IOdata subsystem::getOutputs(const IOdata& /*inputs*/,
-                             const stateData& sD,
+                             const stateData& stateData,
                              const solverMode& sMode) const
 {
-    return getOutputs(1, sD, sMode);
+    return getOutputs(1, stateData, sMode);
 }
 
 IOdata subsystem::getOutputs(id_type_t busId,
-                             const stateData& /*sD*/,
+                             const stateData& /*stateData*/,
                              const solverMode& /*sMode*/) const
 {
     IOdata out{Pout[0], Qout[0]};

@@ -14,8 +14,8 @@
 #include <utility>
 #include <vector>
 
-using griddyn::Area;
 using griddyn::getObjectVectorFunction;
+using griddyn::GridArea;
 using griddyn::GriddynRunner;
 
 static constexpr char invalidSimulation[] = "the simulation object is not valid";
@@ -81,7 +81,7 @@ void gridDynSimulationGetResults(GridDynSimulation sim,
         return;
     }
     std::vector<double> dataVec;
-    auto fvecfunc = getObjectVectorFunction(static_cast<const Area*>(nullptr), dataType);
+    auto fvecfunc = getObjectVectorFunction(static_cast<const GridArea*>(nullptr), dataType);
     if (!fvecfunc.first) {
         return;
     }

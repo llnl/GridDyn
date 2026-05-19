@@ -39,7 +39,7 @@ class reserveDispatcher: public CoreObject {
 
     virtual double dynInitializeA(coreTime time0, double dispatchSet);
 
-    void moveSchedulers(reserveDispatcher* rD);
+    void moveSchedulers(reserveDispatcher* dispatcherToMove);
 
     virtual double updateP(coreTime time, double pShort);
     virtual double testP(coreTime time, double pShort);

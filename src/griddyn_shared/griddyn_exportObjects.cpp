@@ -38,7 +38,6 @@ using griddyn::GridArea;
 using griddyn::GridBlock;
 using griddyn::GridBus;
 using griddyn::GridComponent;
-using griddyn::GridDynSimulation;
 using griddyn::GridLoad;
 using griddyn::GridSubModel;
 using griddyn::kNullVal;
@@ -423,7 +422,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const Link*>(comp) != nullptr) {
         return link_str;
     }
-    if (dynamic_cast<const GridDynSimulation*>(comp) != nullptr) {
+    if (dynamic_cast<const griddyn::GridDynSimulation*>(comp) != nullptr) {
         return sim_str;
     }
     if (dynamic_cast<const GridArea*>(comp) != nullptr) {

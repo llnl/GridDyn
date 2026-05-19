@@ -25,7 +25,7 @@ IntegralBlock::IntegralBlock(double gain, const std::string& objName): GridBlock
 
 CoreObject* IntegralBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<IntegralBlock, GridBlock>(this, obj);
+    auto* nobj = cloneBase<IntegralBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -38,7 +38,7 @@ void IntegralBlock::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
-    index_t loc = limiter_diff;
+    const index_t loc = limiter_diff;
     if (desiredOutput.empty()) {
         m_state[loc] = iv;
         if (limiter_diff > 0) {
@@ -53,58 +53,60 @@ void IntegralBlock::dynObjectInitializeB(const IOdata& inputs,
 // residual
 void IntegralBlock::blockResidual(double input,
                                   double didt,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   double resid[],
                                   const solverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
-        GridBlock::blockResidual(input, didt, sD, resid, sMode);
+        GridBlock::blockResidual(input, didt, stateDataValue, resid, sMode);
         return;
     }
     auto offset = offsets.getDiffOffset(sMode);
-    resid[offset] = (K * (input + bias) - sD.dstate_dt[offset]);
-    GridBlock::blockResidual(input, didt, sD, resid, sMode);
+    resid[offset] = ((K * (input + bias)) - stateDataValue.dstate_dt[offset]);
+    GridBlock::blockResidual(input, didt, stateDataValue, resid, sMode);
 }
 
 void IntegralBlock::blockDerivative(double input,
                                     double didt,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     double deriv[],
                                     const solverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     deriv[offset + limiter_diff] = K * (input + bias);
     if (opFlags[use_ramp_limits]) {
-        GridBlock::blockDerivative(input, didt, sD, deriv, sMode);
+        GridBlock::blockDerivative(input, didt, stateDataValue, deriv, sMode);
     }
 }
 
 void IntegralBlock::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& sD,
-                                          matrixData<double>& md,
+                                          const stateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const solverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
-        GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        GridBlock::blockJacobianElements(
+            input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
     auto offset = offsets.getDiffOffset(sMode);
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    md.assignCheck(offset, argLoc, K);
-    md.assign(offset, offset, -sD.cj);
-    GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+    matrixDataValue.assignCheck(offset, argLoc, K);
+    matrixDataValue.assign(offset, offset, -stateDataValue.cj);
+    GridBlock::blockJacobianElements(
+        input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
 }
 
 double IntegralBlock::step(coreTime time, double inputA)
 {
-    double dt = time - prevTime;
+    const double timeDelta = time - prevTime;
     double out;
-    double input = inputA + bias;
-    index_t loc = limiter_diff + limiter_alg;
-    m_state[loc] = m_state[loc] + K * (input + prevInput) / 2.0 * dt;
-    prevInput = input;
+    const double inputValue = inputA + bias;
+    const index_t loc = limiter_diff + limiter_alg;
+    m_state[loc] = m_state[loc] + ((K * (inputValue + prevInput) / 2.0) * timeDelta);
+    prevInput = inputValue;
     if (loc > 0) {
         out = GridBlock::step(time, inputA);
     } else {

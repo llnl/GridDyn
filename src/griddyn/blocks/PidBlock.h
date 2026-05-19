@@ -27,11 +27,14 @@ class PidBlock: public GridBlock {
     /** @brief default constructor*/
     explicit PidBlock(const std::string& objName = "pidBlock_#");
     /** @brief alternate constructor
-@param[in] P the proportional gain
-@param[in] I the integral gain
-@param[in] D the derivative gain
+@param[in] proportionalGain the proportional gain
+@param[in] integralGain the integral gain
+@param[in] derivativeGain the derivative gain
 */
-    PidBlock(double P, double I, double D, const std::string& objName = "pidBlock_#");
+    PidBlock(double proportionalGain,
+             double integralGain,
+             double derivativeGain,
+             const std::string& objName = "pidBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -45,14 +48,14 @@ class PidBlock: public GridBlock {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double deriv[],
                                  const solverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const solverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;

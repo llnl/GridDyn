@@ -85,22 +85,21 @@ CoreObject* reserveDispatcher::clone(CoreObject* obj) const
 
 reserveDispatcher::~reserveDispatcher()
 {
-    index_t kk;
-    for (kk = 0; kk < schedCount; kk++) {
+    for (index_t schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
         // schedList[kk]->reserveDispatcherUnlink();
     }
 }
 
-void reserveDispatcher::moveSchedulers(reserveDispatcher* rD)
+void reserveDispatcher::moveSchedulers(reserveDispatcher* dispatcherToMove)
 {
-    index_t kk;
-    schedList.resize(this->schedCount + rD->schedCount);
-    reserveUsed.resize(this->schedCount + rD->schedCount);
-    resAvailable.resize(this->schedCount + rD->schedCount);
+    schedList.resize(this->schedCount + dispatcherToMove->schedCount);
+    reserveUsed.resize(this->schedCount + dispatcherToMove->schedCount);
+    resAvailable.resize(this->schedCount + dispatcherToMove->schedCount);
 
-    for (kk = 0; kk < rD->schedCount; kk++) {
+    for (index_t schedIndex = 0; schedIndex < dispatcherToMove->schedCount; ++schedIndex) {
         //    rD->schedList[kk]->reserveDispatcherUnlink();
-        this->schedList[this->schedCount + kk] = rD->schedList[kk];
+        this->schedList[this->schedCount + schedIndex] =
+            dispatcherToMove->schedList[schedIndex];
         //    rD->schedList[kk]->reserveDispatcherLink(this);
     }
     schedCount = static_cast<count_t>(schedList.size());
@@ -229,11 +228,11 @@ void reserveDispatcher::schedChange()
 void reserveDispatcher::checkGen()
 {
     reserveAvailable = 0;
-    for (decltype(schedCount) kk = 0; kk < schedCount; kk++) {
-        resAvailable[kk] = schedList[kk]->getReserveTarget();
-        reserveAvailable += resAvailable[kk];
+    for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
+        resAvailable[schedIndex] = schedList[schedIndex]->getReserveTarget();
+        reserveAvailable += resAvailable[schedIndex];
 
-        reserveUsed[kk] = schedList[kk]->getReserveTarget();
+        reserveUsed[schedIndex] = schedList[schedIndex]->getReserveTarget();
     }
 }
 
@@ -243,10 +242,10 @@ void reserveDispatcher::dispatch(double level)
     int ind = -1;
     // if the dispatch is too low
     while (currDispatch < level) {
-        for (decltype(schedCount) kk = 0; kk < schedCount; kk++) {
-            auto tempAvail = resAvailable[kk] - reserveUsed[kk];
+        for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
+            auto tempAvail = resAvailable[schedIndex] - reserveUsed[schedIndex];
             if (tempAvail > avail) {
-                ind = kk;
+                ind = schedIndex;
                 avail = tempAvail;
             }
         }
@@ -267,10 +266,10 @@ void reserveDispatcher::dispatch(double level)
 
     // if the dispatch is too high
     while (currDispatch > level) {
-        for (decltype(schedCount) kk = 0; kk < schedCount; kk++) {
-            auto tempAvail = reserveUsed[kk];
+        for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
+            auto tempAvail = reserveUsed[schedIndex];
             if (tempAvail > avail) {
-                ind = kk;
+                ind = schedIndex;
                 avail = tempAvail;
             }
         }

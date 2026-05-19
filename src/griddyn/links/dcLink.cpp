@@ -26,7 +26,10 @@ dcLink::dcLink(const std::string& objName): Link(objName)
     opFlags.set(network_connected);
 }
 
-dcLink::dcLink(double rP, double Lp, const std::string& objName): Link(objName), r(rP), x(Lp)
+dcLink::dcLink(double resistancePu, double reactancePu, const std::string& objName):
+    Link(objName),
+    r(resistancePu),
+    x(reactancePu)
 {
     opFlags.set(dc_only);
     opFlags.set(network_connected);
@@ -86,7 +89,7 @@ double dcLink::getMaxTransfer() const
 // set properties
 void dcLink::set(std::string_view param, std::string_view val)
 {
-    return Link::set(param, val);
+    Link::set(param, val);
 }
 void dcLink::set(std::string_view param, double val, unit unitType)
 {
@@ -163,39 +166,40 @@ count_t dcLink::LocalJacobianCount(const solverMode& sMode) const
 }
 
 void dcLink::ioPartialDerivatives(id_type_t busId,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateData,
+                                  matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const solverMode& sMode)
 {
     // check if line is enabled
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateData, sMode);
     if (!(isEnabled())) {
         return;
     }
 
     if ((busId == 2) || (busId == B2->getID())) {
-        md.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], -Idc);
+        jacobian.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], -Idc);
     } else {
-        md.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], Idc);
+        jacobian.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], Idc);
     }
 }
 
 void dcLink::outputPartialDerivatives(id_type_t busId,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateData,
+                                      matrixData<double>& jacobian,
                                       const solverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
     }
-    updateLocalCache(noInputs, sD, sMode);
+    updateLocalCache(noInputs, stateData, sMode);
 
-    double P1V2 = 0.0, P2V1 = 0.0;
+    double p1v2 = 0.0;
+    double p2v1 = 0.0;
     if (!isDynamic(sMode)) {
         if (r > 0.0) {
-            P1V2 = -linkInfo.v1 / r;
-            P2V1 = -linkInfo.v1 / r;
+            p1v2 = -linkInfo.v1 / r;
+            p2v1 = -linkInfo.v1 / r;
         } else {
         }
     } else {  // in some other mode
@@ -208,19 +212,19 @@ void dcLink::outputPartialDerivatives(id_type_t busId,
         if (stateSize(sMode) > 0) {
             auto offset =
                 isDynamic(sMode) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-            md.assign(PoutLocation, offset, -linkInfo.v2);
+            jacobian.assign(PoutLocation, offset, -linkInfo.v2);
         } else {
-            int B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-            md.assignCheckCol(PoutLocation, B1Voffset, P2V1);
+            const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
+            jacobian.assignCheckCol(PoutLocation, bus1VoltageOffset, p2v1);
         }
     } else {
         if (stateSize(sMode) > 0) {
             auto offset =
                 isDynamic(sMode) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-            md.assign(PoutLocation, offset, linkInfo.v1);
+            jacobian.assign(PoutLocation, offset, linkInfo.v1);
         } else {
-            int B2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
-            md.assignCheckCol(PoutLocation, B2Voffset, P1V2);
+            const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+            jacobian.assignCheckCol(PoutLocation, bus2VoltageOffset, p1v2);
         }
     }
 }
@@ -231,47 +235,50 @@ count_t dcLink::outputDependencyCount(index_t num, const solverMode& /*sMode*/) 
 }
 
 void dcLink::jacobianElements(const IOdata& /*inputs*/,
-                              const stateData& sD,
-                              matrixData<double>& md,
+                              const stateData& stateData,
+                              matrixData<double>& jacobian,
                               const IOlocs& /*inputLocs*/,
                               const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
-        int B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-        int B2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
-        updateLocalCache(noInputs, sD, sMode);
+        const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
+        const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+        updateLocalCache(noInputs, stateData, sMode);
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
-            md.assignCheckCol(offset, B1Voffset, 1.0 / x);
-            md.assignCheckCol(offset, B2Voffset, -1.0 / x);
-            md.assign(offset, offset, -r / x - sD.cj);
+            jacobian.assignCheckCol(offset, bus1VoltageOffset, 1.0 / x);
+            jacobian.assignCheckCol(offset, bus2VoltageOffset, -1.0 / x);
+            jacobian.assign(offset, offset, (-(r / x)) - stateData.cj);
         } else {
             auto offset = offsets.getAlgOffset(sMode);
-            md.assignCheckCol(offset, B1Voffset, 1.0);
-            md.assignCheckCol(offset, B2Voffset, -1.0);
+            jacobian.assignCheckCol(offset, bus1VoltageOffset, 1.0);
+            jacobian.assignCheckCol(offset, bus2VoltageOffset, -1.0);
             if (opFlags[fixed_target_power]) {
-                md.assignCheckCol(offset, B1Voffset, -Pset / (linkInfo.v1 * linkInfo.v1));
-                md.assign(offset, offset, -1.0);
+                jacobian.assignCheckCol(
+                    offset, bus1VoltageOffset, -Pset / (linkInfo.v1 * linkInfo.v1));
+                jacobian.assign(offset, offset, -1.0);
             }
         }
     }
 }
 
 void dcLink::residual(const IOdata& inputs,
-                      const stateData& sD,
+                      const stateData& stateData,
                       double resid[],
                       const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
-        updateLocalCache(inputs, sD, sMode);
+        updateLocalCache(inputs, stateData, sMode);
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             resid[offset] =
-                (linkInfo.v1 - linkInfo.v2 - r * sD.state[offset]) / x - sD.dstate_dt[offset];
+                ((linkInfo.v1 - linkInfo.v2 - (r * stateData.state[offset])) / x) -
+                stateData.dstate_dt[offset];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
             if (opFlags[fixed_target_power]) {
-                resid[offset] = (linkInfo.v1 - linkInfo.v2) + Pset / linkInfo.v1 - sD.state[offset];
+                resid[offset] =
+                    (linkInfo.v1 - linkInfo.v2) + (Pset / linkInfo.v1) - stateData.state[offset];
             } else {
                 resid[offset] = linkInfo.v1 - linkInfo.v2;
             }
@@ -320,7 +327,7 @@ void dcLink::getStateName(stringVec& stNames,
                           const std::string& prefix) const
 {
     if (stateSize(sMode) > 0) {
-        std::string prefix2 = prefix + getName() + ':';
+        const std::string prefix2 = prefix + getName() + ':';
         auto offset =
             (isDynamic(sMode)) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
         stNames[offset] = prefix2 + "idc";
@@ -328,10 +335,10 @@ void dcLink::getStateName(stringVec& stNames,
 }
 
 void dcLink::updateLocalCache(const IOdata& /*inputs*/,
-                              const stateData& sD,
+                              const stateData& stateData,
                               const solverMode& sMode)
 {
-    if (!sD.updateRequired(linkInfo.seqID)) {
+    if (!stateData.updateRequired(linkInfo.seqID)) {
         return;
     }
 
@@ -340,12 +347,12 @@ void dcLink::updateLocalCache(const IOdata& /*inputs*/,
     }
     linkInfo = {};
 
-    linkInfo.v1 = B1->getVoltage(sD.state, sMode);
-    linkInfo.v2 = B2->getVoltage(sD.state, sMode);
+    linkInfo.v1 = B1->getVoltage(stateData.state, sMode);
+    linkInfo.v2 = B2->getVoltage(stateData.state, sMode);
     if (stateSize(sMode) > 0) {
         auto offset =
             (isDynamic(sMode)) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-        Idc = sD.state[offset];
+        Idc = stateData.state[offset];
     } else {
         if (r > 0) {
             Idc = (linkInfo.v1 - linkInfo.v2) / r;
@@ -386,32 +393,36 @@ int dcLink::fixRealPower(double power,
         if (B2->getType() == GridBus::busType::SLK) {
             linkInfo.v2 = B2->getVoltage();
             Idc = power / linkInfo.v2;
-            double v1 = linkInfo.v2 - Idc * r;
-            B1->setVoltageAngle(v1, 0);
+            const double bus1Voltage = linkInfo.v2 - (Idc * r);
+            B1->setVoltageAngle(bus1Voltage, 0);
             updateLocalCache();
             return B1->propogatePower(true);
         }
         if (B1->getType() == GridBus::busType::SLK) {
             linkInfo.v1 = B1->getVoltage();
             if (r > 0) {
-                double temp = linkInfo.v1 / r;
-                Idc = 0.5 * (-temp + std::sqrt(temp * temp + 4 * power / r));
+                const double temp = linkInfo.v1 / r;
+                Idc = 0.5 * (-temp + std::sqrt((temp * temp) + ((4 * power) / r)));
             } else {
                 Idc = power / linkInfo.v1;
             }
-            double v2 = power / Idc;
-            B2->setVoltageAngle(v2, 0);
+            const double bus2Voltage = power / Idc;
+            B2->setVoltageAngle(bus2Voltage, 0);
             updateLocalCache();
             ret = B2->propogatePower(true);
         } else {
-            double v1 = B1->getVoltage();
-            double v2 = B2->getVoltage();
-            double delta = (r > 0) ? (power * r - v2 * v2 + v2 * v1) / (v1 + v2) : (v1 - v2) / 2;
-            v1 = v1 - delta;
-            v2 = v2 + delta;
-            B1->setVoltageAngle(v1, 0);
-            B2->setVoltageAngle(v2, 0);
-            Idc = (r > 0) ? (v1 - v2) / r : power / v1;
+            double bus1Voltage = B1->getVoltage();
+            double bus2Voltage = B2->getVoltage();
+            const double delta =
+                (r > 0) ? (((power * r) - (bus2Voltage * bus2Voltage) +
+                            (bus2Voltage * bus1Voltage)) /
+                           (bus1Voltage + bus2Voltage)) :
+                          ((bus1Voltage - bus2Voltage) / 2);
+            bus1Voltage = bus1Voltage - delta;
+            bus2Voltage = bus2Voltage + delta;
+            B1->setVoltageAngle(bus1Voltage, 0);
+            B2->setVoltageAngle(bus2Voltage, 0);
+            Idc = (r > 0) ? ((bus1Voltage - bus2Voltage) / r) : (power / bus1Voltage);
             updateLocalCache();
             B1->propogatePower(false);
             B2->propogatePower(false);
@@ -421,33 +432,37 @@ int dcLink::fixRealPower(double power,
         if (B1->getType() == GridBus::busType::SLK) {
             linkInfo.v1 = B1->getVoltage();
             Idc = power / linkInfo.v1;
-            double v2 = linkInfo.v1 - Idc * r;
-            B2->setVoltageAngle(v2, 0);
+            const double bus2Voltage = linkInfo.v1 - (Idc * r);
+            B2->setVoltageAngle(bus2Voltage, 0);
             updateLocalCache();
             return B2->propogatePower(true);
         }
         if (B2->getType() == GridBus::busType::SLK) {
             linkInfo.v2 = B2->getVoltage();
             if (r > 0) {
-                double temp = linkInfo.v2 / r;
-                Idc = 0.5 * (-temp + std::sqrt(temp * temp + 4 * power / r));
+                const double temp = linkInfo.v2 / r;
+                Idc = 0.5 * (-temp + std::sqrt((temp * temp) + ((4 * power) / r)));
             } else {
                 Idc = -power / linkInfo.v2;
             }
 
-            double v1 = power / Idc;
-            B1->setVoltageAngle(v1, 0);
+            const double bus1Voltage = power / Idc;
+            B1->setVoltageAngle(bus1Voltage, 0);
             updateLocalCache();
             ret = B1->propogatePower(true);
         } else {
-            double v1 = B1->getVoltage();
-            double v2 = B2->getVoltage();
-            double delta = (r > 0) ? (power * r - v1 * v1 + v2 * v1) / (v1 + v2) : (v2 - v1) / 2;
-            v1 = v1 + delta;
-            v2 = v2 - delta;
-            B1->setVoltageAngle(v1, 0);
-            B2->setVoltageAngle(v2, 0);
-            Idc = (r > 0) ? (v1 - v2) / r : power / v1;
+            double bus1Voltage = B1->getVoltage();
+            double bus2Voltage = B2->getVoltage();
+            const double delta =
+                (r > 0) ? (((power * r) - (bus1Voltage * bus1Voltage) +
+                            (bus2Voltage * bus1Voltage)) /
+                           (bus1Voltage + bus2Voltage)) :
+                          ((bus2Voltage - bus1Voltage) / 2);
+            bus1Voltage = bus1Voltage + delta;
+            bus2Voltage = bus2Voltage - delta;
+            B1->setVoltageAngle(bus1Voltage, 0);
+            B2->setVoltageAngle(bus2Voltage, 0);
+            Idc = (r > 0) ? ((bus1Voltage - bus2Voltage) / r) : (power / bus1Voltage);
             updateLocalCache();
             B1->propogatePower(false);
             B2->propogatePower(false);

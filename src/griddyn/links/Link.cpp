@@ -39,37 +39,37 @@ using units::unit;
 static typeFactory<Link> blf("link",
                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static childTypeFactory<AcLine, Link> glf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
-    "ac");  // NOLINT(bugprone-throwing-static-initialization)
+    "ac");
 
 namespace links {
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<adjustableTransformer, Link>
         gfad("link",
              std::to_array<std::string_view>(
-                 {"adjust",
-                  "adjustable",
-                  "adjustabletransformer"}));  // NOLINT(bugprone-throwing-static-initialization)
+                 {"adjust", "adjustable", "adjustabletransformer"}));
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link>
         dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcrect("link",
                std::to_array<std::string_view>({"rectifier", "rect"}),
-               acdcConverter::Mode::RECTIFIER);  // NOLINT(bugprone-throwing-static-initialization)
+               acdcConverter::Mode::RECTIFIER);
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static typeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcinv("link",
               std::to_array<std::string_view>({"inverter", "inv"}),
-              acdcConverter::Mode::INVERTER);  // NOLINT(bugprone-throwing-static-initialization)
+              acdcConverter::Mode::INVERTER);
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<acdcConverter, Link>
         acdc("link",
-             std::to_array<std::string_view>(
-                 {"acdc",
-                  "acdcconverter",
-                  "dcconverter"}));  // NOLINT(bugprone-throwing-static-initialization)
+             std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

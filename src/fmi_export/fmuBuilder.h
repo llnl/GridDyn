@@ -18,7 +18,6 @@ class readerInfo;
 namespace fmi {
     class FmiCoordinator;
 
-    // class gridDynSimulation;
     /** object to build an FMI object from a gridDyn simulation file*/
     class FmuBuilder: public GriddynRunner {
       private:
@@ -36,7 +35,7 @@ namespace fmi {
 
       public:
         FmuBuilder();
-        FmuBuilder(std::shared_ptr<gridDynSimulation> gds);
+        FmuBuilder(std::shared_ptr<GridDynSimulation> gds);
         virtual ~FmuBuilder();
 
       public:

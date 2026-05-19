@@ -46,7 +46,7 @@ FmuBuilder::FmuBuilder()
     loadComponents();
 }
 
-FmuBuilder::FmuBuilder(std::shared_ptr<gridDynSimulation> gds): GriddynRunner(std::move(gds))
+FmuBuilder::FmuBuilder(std::shared_ptr<GridDynSimulation> gds): GriddynRunner(std::move(gds))
 {
     loadComponents();
 }

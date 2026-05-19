@@ -95,8 +95,7 @@ void IntegralBlock::blockJacobianElements(double input,
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
     matrixDataValue.assignCheck(offset, argLoc, K);
     matrixDataValue.assign(offset, offset, -stateDataValue.cj);
-    GridBlock::blockJacobianElements(
-        input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
+    GridBlock::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
 }
 
 double IntegralBlock::step(coreTime time, double inputA)

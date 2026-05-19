@@ -6,7 +6,7 @@
 
 #include "dcBus.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../Generator.h"
 #include "../Link.h"
 #include "../Load.h"

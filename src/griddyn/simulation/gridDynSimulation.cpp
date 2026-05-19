@@ -20,7 +20,7 @@
 #include "core/objectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "GridDynSimulationFileOps.h"
+#include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 #include <cassert>
 #include <compare>

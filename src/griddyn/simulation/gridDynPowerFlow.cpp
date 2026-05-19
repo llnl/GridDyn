@@ -12,7 +12,7 @@
 #include "../solvers/solverInterface.h"
 #include "continuation.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "GridDynSimulationFileOps.h"
+#include "gridDynSimulationFileOps.h"
 #include "powerFlowErrorRecovery.h"
 // system headers
 #include <cmath>

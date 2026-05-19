@@ -6,7 +6,7 @@
 
 #include "acdcConverter.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../blocks/delayBlock.h"
 #include "../blocks/pidBlock.h"
 #include "../primary/dcBus.h"

@@ -5,7 +5,7 @@
  */
 
 #include "../gtestHelper.h"
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Block.h"
 #include "griddyn/Source.h"
 #include "griddyn/events/Event.h"

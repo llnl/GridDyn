@@ -6,7 +6,7 @@
 
 #include "dcLink.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../gridBus.h"
 #include "../primary/dcBus.h"
 #include "core/coreExceptions.h"

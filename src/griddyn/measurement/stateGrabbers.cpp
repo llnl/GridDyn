@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../Generator.h"
 #include "../Link.h"
 #include "../Relay.h"

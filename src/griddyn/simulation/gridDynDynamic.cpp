@@ -13,7 +13,7 @@
 #include "dynamicInitialConditionRecovery.h"
 #include "faultResetRecovery.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "GridDynSimulationFileOps.h"
+#include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 // system libraries
 #include <algorithm>

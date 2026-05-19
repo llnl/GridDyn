@@ -7,7 +7,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreOwningPtr.hpp"
 #include "core/objectFactory.hpp"
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"

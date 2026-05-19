@@ -7,7 +7,7 @@
 // headers
 #include "../gridBus.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../Generator.h"
 #include "../Link.h"
 #include "../loads/zipLoad.h"

@@ -7,7 +7,7 @@
 #pragma once
 
 // header files
-#include "../Area.h"
+#include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
 #include <functional>
 #include <memory>

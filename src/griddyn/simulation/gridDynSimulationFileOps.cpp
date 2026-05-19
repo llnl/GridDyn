@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "GridDynSimulationFileOps.h"
+#include "gridDynSimulationFileOps.h"
 
 #include "../gridBus.h"
 #include "../gridDynSimulation.h"

@@ -319,7 +319,7 @@ set(core_sources
 
 set(primary_headers
     gridBus.h
-    Area.h
+    GridArea.h
     primary/dcBus.h
     allGridDynObjects.h
     primary/BusControls.h
@@ -332,7 +332,7 @@ set(primary_headers
 set(primary_sources
     ${primary_headers}
     primary/gridBus.cpp
-    primary/Area.cpp
+    primary/GridArea.cpp
     primary/dcBus.cpp
     primary/infiniteBus.cpp
     primary/BusControls.cpp

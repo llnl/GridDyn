@@ -5,7 +5,7 @@
  */
 
 // headers
-#include "../Area.h"
+#include "../GridArea.h"
 
 #include "../Link.h"
 #include "../Relay.h"

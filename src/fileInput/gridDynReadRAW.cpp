@@ -565,7 +565,7 @@ static void rawReadLoad(GridLoad* loadObject, const std::string& line, basicRead
 {
     // version 32:
     //  0,  1,      2,    3,    4,    5,    6,      7,   8,  9, 10,   11
-    // Bus, Id, Status, GridArea, Zone, PL(MW), QL (MW), IP, IQ, YP, YQ, OWNER
+    // Bus, Id, Status, Area, Zone, PL(MW), QL (MW), IP, IQ, YP, YQ, OWNER
 
     auto strvec = splitline(line);
 

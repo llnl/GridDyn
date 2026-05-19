@@ -7,7 +7,7 @@
 // headers
 #include "acLine.h"
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../gridBus.h"
 #include "../simulation/contingency.h"
 #include "core/coreExceptions.h"

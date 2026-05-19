@@ -13,7 +13,7 @@
 #include <string>
 
 // A bunch of includes to load these kinds of objects
-#include "griddyn/Area.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../Area.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include <queue>
 #include <string>

@@ -27,9 +27,7 @@ dcLink::dcLink(const std::string& objName): Link(objName)
 }
 
 dcLink::dcLink(double resistancePu, double reactancePu, const std::string& objName):
-    Link(objName),
-    r(resistancePu),
-    x(reactancePu)
+    Link(objName), r(resistancePu), x(reactancePu)
 {
     opFlags.set(dc_only);
     opFlags.set(network_connected);
@@ -254,8 +252,9 @@ void dcLink::jacobianElements(const IOdata& /*inputs*/,
             jacobian.assignCheckCol(offset, bus1VoltageOffset, 1.0);
             jacobian.assignCheckCol(offset, bus2VoltageOffset, -1.0);
             if (opFlags[fixed_target_power]) {
-                jacobian.assignCheckCol(
-                    offset, bus1VoltageOffset, -Pset / (linkInfo.v1 * linkInfo.v1));
+                jacobian.assignCheckCol(offset,
+                                        bus1VoltageOffset,
+                                        -Pset / (linkInfo.v1 * linkInfo.v1));
                 jacobian.assign(offset, offset, -1.0);
             }
         }
@@ -271,8 +270,7 @@ void dcLink::residual(const IOdata& inputs,
         updateLocalCache(inputs, stateData, sMode);
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
-            resid[offset] =
-                ((linkInfo.v1 - linkInfo.v2 - (r * stateData.state[offset])) / x) -
+            resid[offset] = ((linkInfo.v1 - linkInfo.v2 - (r * stateData.state[offset])) / x) -
                 stateData.dstate_dt[offset];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
@@ -413,11 +411,10 @@ int dcLink::fixRealPower(double power,
         } else {
             double bus1Voltage = B1->getVoltage();
             double bus2Voltage = B2->getVoltage();
-            const double delta =
-                (r > 0) ? (((power * r) - (bus2Voltage * bus2Voltage) +
-                            (bus2Voltage * bus1Voltage)) /
-                           (bus1Voltage + bus2Voltage)) :
-                          ((bus1Voltage - bus2Voltage) / 2);
+            const double delta = (r > 0) ?
+                (((power * r) - (bus2Voltage * bus2Voltage) + (bus2Voltage * bus1Voltage)) /
+                 (bus1Voltage + bus2Voltage)) :
+                ((bus1Voltage - bus2Voltage) / 2);
             bus1Voltage = bus1Voltage - delta;
             bus2Voltage = bus2Voltage + delta;
             B1->setVoltageAngle(bus1Voltage, 0);
@@ -453,11 +450,10 @@ int dcLink::fixRealPower(double power,
         } else {
             double bus1Voltage = B1->getVoltage();
             double bus2Voltage = B2->getVoltage();
-            const double delta =
-                (r > 0) ? (((power * r) - (bus1Voltage * bus1Voltage) +
-                            (bus2Voltage * bus1Voltage)) /
-                           (bus1Voltage + bus2Voltage)) :
-                          ((bus2Voltage - bus1Voltage) / 2);
+            const double delta = (r > 0) ?
+                (((power * r) - (bus1Voltage * bus1Voltage) + (bus2Voltage * bus1Voltage)) /
+                 (bus1Voltage + bus2Voltage)) :
+                ((bus2Voltage - bus1Voltage) / 2);
             bus1Voltage = bus1Voltage + delta;
             bus2Voltage = bus2Voltage - delta;
             B1->setVoltageAngle(bus1Voltage, 0);

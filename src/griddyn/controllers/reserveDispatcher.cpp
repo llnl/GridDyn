@@ -98,8 +98,7 @@ void reserveDispatcher::moveSchedulers(reserveDispatcher* dispatcherToMove)
 
     for (index_t schedIndex = 0; schedIndex < dispatcherToMove->schedCount; ++schedIndex) {
         //    rD->schedList[kk]->reserveDispatcherUnlink();
-        this->schedList[this->schedCount + schedIndex] =
-            dispatcherToMove->schedList[schedIndex];
+        this->schedList[this->schedCount + schedIndex] = dispatcherToMove->schedList[schedIndex];
         //    rD->schedList[kk]->reserveDispatcherLink(this);
     }
     schedCount = static_cast<count_t>(schedList.size());

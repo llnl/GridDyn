@@ -185,9 +185,9 @@ class subsystem: public Link {
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateData,
                               const solverMode& sMode) const override;
-    virtual IOdata
-        getOutputs(id_type_t busId, const stateData& stateData, const solverMode& sMode) const
-        override;
+    virtual IOdata getOutputs(id_type_t busId,
+                              const stateData& stateData,
+                              const solverMode& sMode) const override;
     // TODO(phlpt): Add the other getOutput functions.
   protected:
     /** @brief get a vector with pointers to all the buses

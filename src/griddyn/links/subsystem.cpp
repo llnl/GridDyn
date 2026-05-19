@@ -29,8 +29,8 @@ using gmlc::utilities::sum;
 using units::unit;
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static typeFactory<subsystem> subsystemFactory(
-    "link", std::to_array<std::string_view>({"subsystem", "simple"}));
+static typeFactory<subsystem>
+    subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
 subsystem::subsystem(const std::string& objName): Link(objName)
 {
@@ -486,9 +486,8 @@ double subsystem::getTotalImpedance(id_type_t busId) const
             const double busVoltage = terminalBus[kk]->getVoltage();
             // printf("id1 impedance=%f\n", signn(linkInfo.P1 +
             // linkInfo.Q1)*(linkInfo.v1*linkInfo.v1) / std::hypot(linkInfo.P1, linkInfo.Q1));
-            const double impedanceMagnitude =
-                signn(Pout[kk] + Qout[kk]) * (busVoltage * busVoltage) /
-                std::hypot(Pout[kk], Qout[kk]);
+            const double impedanceMagnitude = signn(Pout[kk] + Qout[kk]) *
+                (busVoltage * busVoltage) / std::hypot(Pout[kk], Qout[kk]);
             return std::isnormal(impedanceMagnitude) ? impedanceMagnitude : kBigNum;
         }
     }

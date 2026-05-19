@@ -49,8 +49,7 @@ namespace links {
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<adjustableTransformer, Link>
         gfad("link",
-             std::to_array<std::string_view>(
-                 {"adjust", "adjustable", "adjustabletransformer"}));
+             std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<dcLink, Link>
@@ -68,8 +67,7 @@ namespace links {
               acdcConverter::Mode::INVERTER);
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     static childTypeFactory<acdcConverter, Link>
-        acdc("link",
-             std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
+        acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

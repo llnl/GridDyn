@@ -28,7 +28,6 @@ using gmlc::utilities::signn;
 using gmlc::utilities::sum;
 using units::unit;
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static typeFactory<subsystem>
     subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 

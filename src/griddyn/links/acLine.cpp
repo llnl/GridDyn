@@ -29,7 +29,7 @@ using units::km;
 using units::puMW;
 using units::rad;
 using units::unit;
-// NOLINTBEGIN(bugprone-branch-clone,bugprone-throwing-static-initialization,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
+// NOLINTBEGIN(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 // make the object factory types
 
 // helper defines to have things make more sense
@@ -1630,5 +1630,5 @@ void AcLine::loadApproxFunctions()
     derivCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearDeriv;
 }
 
-// NOLINTEND(bugprone-branch-clone,bugprone-throwing-static-initialization,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
+// NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn

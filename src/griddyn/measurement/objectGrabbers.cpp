@@ -196,11 +196,13 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
      {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getGenerationReal(); }, puMW}},
     {"genreactive",
      {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getGenerationReactive(); }, puMW}},
-    {"loadreal", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoadReal(); }, puMW}},
+    {"loadreal",
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoadReal(); }, puMW}},
     {"loadreactive",
      {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoadReactive(); }, puMW}},
     {"loss", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getLoss(); }, puMW}},
-    {"tieflow", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getTieFlowReal(); }, puMW}},
+    {"tieflow",
+     {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
 // NOLINTNEXTLINE(bugprone-throwing-static-initialization)

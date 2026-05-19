@@ -26,7 +26,8 @@
 #include <vector>
 
 namespace griddyn {
-GridSimulation::GridSimulation(const std::string& objName): GridArea(objName), simulationTime(timeZero)
+GridSimulation::GridSimulation(const std::string& objName):
+    GridArea(objName), simulationTime(timeZero)
 {
     EvQ = std::make_unique<eventQueue>();
 #ifdef ENABLE_MULTITHREADING

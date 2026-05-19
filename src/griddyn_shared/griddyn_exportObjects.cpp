@@ -27,7 +27,6 @@
 #include <cstring>
 #include <map>
 
-using griddyn::GridArea;
 using griddyn::CoreObject;
 using griddyn::coreObjectFactory;
 using griddyn::coreOwningPtr;
@@ -35,6 +34,7 @@ using griddyn::Exciter;
 using griddyn::Generator;
 using griddyn::GenModel;
 using griddyn::Governor;
+using griddyn::GridArea;
 using griddyn::GridBlock;
 using griddyn::GridBus;
 using griddyn::GridComponent;

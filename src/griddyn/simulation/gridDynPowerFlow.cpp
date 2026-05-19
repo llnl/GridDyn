@@ -10,6 +10,7 @@
 #include "../gridDynSimulation.h"
 #include "../simulation/diagnostics.h"
 #include "../solvers/solverInterface.h"
+
 #include "continuation.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridDynSimulationFileOps.h"

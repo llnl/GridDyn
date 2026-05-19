@@ -6,8 +6,8 @@
 
 #include "grabberInterpreter.hpp"
 
-#include "../GridArea.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../gridBus.h"

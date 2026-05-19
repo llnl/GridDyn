@@ -6,8 +6,8 @@
 
 #include "gridSimulation.h"
 
-#include "../GridArea.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Relay.h"
 #include "../events/Event.h"

@@ -6,8 +6,8 @@
 
 #include "AGControl.h"
 
-#include "../GridArea.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../blocks/blockLibrary.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"

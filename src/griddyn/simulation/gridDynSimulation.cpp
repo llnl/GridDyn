@@ -13,7 +13,6 @@
 #include "../gridBus.h"
 #include "../loads/gridLabDLoad.h"
 #include "../solvers/solverInterface.h"
-
 #include "contingency.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"

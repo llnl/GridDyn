@@ -6,8 +6,8 @@
 
 #include "gridGrabbers.h"
 
-#include "../GridArea.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../Relay.h"

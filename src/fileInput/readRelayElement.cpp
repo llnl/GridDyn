@@ -5,8 +5,8 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "griddyn/GridArea.h"
 #include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Relay.h"
 #include "griddyn/gridBus.h"
 #include "griddyn/loads/zipLoad.h"

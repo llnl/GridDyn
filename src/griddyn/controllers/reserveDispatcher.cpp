@@ -6,8 +6,8 @@
 
 #include "reserveDispatcher.h"
 
-#include "../GridArea.h"
 #include "../Generator.h"
+#include "../GridArea.h"
 #include "AGControl.h"
 #include "core/coreExceptions.h"
 #include "scheduler.h"

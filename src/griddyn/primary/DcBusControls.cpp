@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../gridSecondary.h"
-#include "../links/dcLink.h"
+#include "../GridSecondary.h"
+#include "../links/DcLink.h"
 #include "BusControls.h"
-#include "dcBus.h"
+#include "DcBus.h"
 #include "gmlc/utilities/vectorOps.hpp"
 
 namespace griddyn {

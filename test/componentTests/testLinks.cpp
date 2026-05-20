@@ -8,10 +8,10 @@
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/events/Event.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>

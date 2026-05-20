@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gmlc/networking/TcpConnection.h"
-#include "griddyn/measurement/collector.h"
+#include "griddyn/measurement/Collector.h"
 #include <memory>
 #include <string>
 

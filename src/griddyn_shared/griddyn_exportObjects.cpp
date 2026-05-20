@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/coreOwningPtr.hpp"
-#include "core/objectFactory.hpp"
+#include "core/CoreExceptions.h"
+#include "core/CoreOwningPtr.hpp"
+#include "core/ObjectFactory.hpp"
 #include "griddyn/Block.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
@@ -17,11 +17,11 @@
 #include "griddyn/Load.h"
 #include "griddyn/Relay.h"
 #include "griddyn/Source.h"
-#include "griddyn/controllers/scheduler.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/gridSubModel.h"
-#include "griddyn/relays/sensor.h"
+#include "griddyn/controllers/Scheduler.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/GridSubModel.h"
+#include "griddyn/relays/Sensor.h"
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include <cstring>

@@ -7,11 +7,11 @@
 #include "fmiMELoad3phase.h"
 
 #include "../fmi_import/fmiObjects.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "fmiMESubModel.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "utilities/ThreePhaseFunctions.h"
 #include <string>
 #include <vector>

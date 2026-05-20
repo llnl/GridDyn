@@ -10,7 +10,7 @@
 
 #include "fskit/fskitRunner.h"
 #include <fskit/discrete-event-federated-simulator.h>
-#include <fskit/granted-time-window-scheduler.h>
+#include <fskit/granted-time-window-Scheduler.h>
 #include <fskit/time.h>
 #include <fskit/variable-step-size-federated-simulator.h>
 #include <iostream>

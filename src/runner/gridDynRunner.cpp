@@ -7,15 +7,15 @@
 #include "gridDynRunner.h"
 
 #include "CLI11/CLI11.hpp"
-#include "core/coreExceptions.h"
-#include "core/objectInterpreter.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectInterpreter.h"
 #include "coupling/GhostSwingBusManager.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/events/Event.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/measurement/Recorder.h"
-#include "griddyn/simulation/gridDynSimulationFileOps.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "utilities/GlobalWorkQueue.hpp"
 #include <chrono>
 #include <cstdio>

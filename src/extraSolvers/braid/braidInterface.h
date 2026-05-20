@@ -10,7 +10,7 @@
 #include "../paradae/equations/Equation.h"
 #include "../paradae/math/paradaeArrayData.h"
 #include "../paradae/problems/ODEProblem.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <memory>
 #include <string>
 #include <vector>

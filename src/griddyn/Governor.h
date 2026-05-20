@@ -9,7 +9,7 @@
 #include "blocks/ControlBlock.h"
 #include "blocks/DeadbandBlock.h"
 #include "blocks/DelayBlock.h"
-#include "gridSubModel.h"
+#include "GridSubModel.h"
 #include <string>
 #include <vector>
 

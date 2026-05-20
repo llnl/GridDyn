@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "core/coreOwningPtr.hpp"
-#include "griddyn/gridSubModel.h"
+#include "core/CoreOwningPtr.hpp"
+#include "griddyn/GridSubModel.h"
 #include <memory>
 #include <string>
 #include <vector>

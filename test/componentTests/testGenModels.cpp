@@ -5,7 +5,7 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include <cmath>

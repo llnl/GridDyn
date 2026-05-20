@@ -7,13 +7,13 @@
 #include "ExciterSEXS.h"
 
 #include "../Exciter.h"
-#include "../gridComponentHelperClasses.h"
+#include "../GridComponentHelperClasses.h"
 #include "../gridDynDefinitions.hpp"
-#include "../gridPrimary.h"
+#include "../GridPrimary.h"
 #include "core/coreDefinitions.hpp"
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include "core/coreObjectTemplates.hpp"
-#include "solvers/solverMode.hpp"
+#include "solvers/SolverMode.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <cstdint>

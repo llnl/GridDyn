@@ -20,7 +20,7 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 */
 #include "fmiGDinfo.h"
 
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "fmi_importGD.h"
 #include "fmi_models/CymeDistLoad.h"
 #include "fmi_models/fmiCoSimLoad.h"

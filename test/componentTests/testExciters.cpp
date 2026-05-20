@@ -6,11 +6,11 @@
 
 #include "../gtestHelper.h"
 #include "core/coreDefinitions.hpp"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
-#include "solvers/solverMode.hpp"
+#include "solvers/SolverMode.hpp"
 #include <gtest/gtest.h>
 #include <map>
 #include <string>

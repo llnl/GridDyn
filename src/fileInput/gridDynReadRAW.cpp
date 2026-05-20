@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Load.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/links/ThreeWindingTransformer.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/links/adjustableTransformer.h"
-#include "griddyn/loads/svd.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/loads/Svd.h"
 #include "readerHelper.h"
 #include <algorithm>
 #include <array>

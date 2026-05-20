@@ -5,22 +5,22 @@
  */
 
 // headers
-#include "../gridBus.h"
+#include "../GridBus.h"
 
 #include "../Generator.h"
 #include "../GridArea.h"
 #include "../Link.h"
-#include "../loads/zipLoad.h"
-#include "../measurement/objectGrabbers.h"
-#include "acBus.h"
-#include "core/coreExceptions.h"
+#include "../loads/ZipLoad.h"
+#include "../measurement/ObjectGrabbers.h"
+#include "AcBus.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
-#include "dcBus.h"
+#include "core/ObjectFactoryTemplates.hpp"
+#include "DcBus.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
-#include "infiniteBus.h"
+#include "InfiniteBus.h"
 #include <cassert>
 #include <cmath>
 #include <cstdio>

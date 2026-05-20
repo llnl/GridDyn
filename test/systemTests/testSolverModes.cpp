@@ -5,8 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include "griddyn/simulation/diagnostics.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>

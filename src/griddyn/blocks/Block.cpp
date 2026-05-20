@@ -6,13 +6,13 @@
 
 #include "blockLibrary.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "rampLimiter.h"
+#include "RampLimiter.h"
 #include "utilities/matrixData.hpp"
-#include "valueLimiter.h"
+#include "ValueLimiter.h"
 #include <memory>
 #include <string>
 #include <vector>

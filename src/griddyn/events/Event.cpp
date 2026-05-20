@@ -6,16 +6,16 @@
 
 #include "Event.h"
 
-#include "../gridDynSimulation.h"
+#include "../GridDynSimulation.h"
 #include "Player.h"
-#include "compoundEvent.h"
-#include "compoundEventPlayer.h"
-#include "core/coreExceptions.h"
-#include "core/factoryTemplates.hpp"
-#include "core/objectInterpreter.h"
+#include "CompoundEvent.h"
+#include "CompoundEventPlayer.h"
+#include "core/CoreExceptions.h"
+#include "core/FactoryTemplates.hpp"
+#include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
-#include "interpolatingPlayer.h"
-#include "reversibleEvent.h"
+#include "InterpolatingPlayer.h"
+#include "ReversibleEvent.h"
 #include <memory>
 #include <sstream>
 #include <string>

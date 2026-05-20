@@ -5,15 +5,15 @@
  */
 
 #include "../events/Event.h"
-#include "../events/eventQueue.h"
-#include "../gridBus.h"
-#include "../gridDynSimulation.h"
-#include "../simulation/diagnostics.h"
-#include "../solvers/solverInterface.h"
-#include "continuation.h"
+#include "../events/EventQueue.h"
+#include "../GridBus.h"
+#include "../GridDynSimulation.h"
+#include "../simulation/Diagnostics.h"
+#include "../solvers/SolverInterface.h"
+#include "Continuation.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "gridDynSimulationFileOps.h"
-#include "powerFlowErrorRecovery.h"
+#include "GridDynSimulationFileOps.h"
+#include "PowerFlowErrorRecovery.h"
 // system headers
 #include <cmath>
 #include <cstdio>

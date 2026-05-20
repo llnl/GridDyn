@@ -5,10 +5,10 @@
  */
 
 #include "../Generator.h"
-#include "../gridBus.h"
-#include "core/coreExceptions.h"
+#include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
 #include "utilities/matrixData.hpp"

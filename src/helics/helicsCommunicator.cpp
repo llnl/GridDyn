@@ -6,11 +6,11 @@
 
 #include "helicsCommunicator.h"
 
-#include "core/coreExceptions.h"
-#include "griddyn/comms/commMessage.h"
-#include "griddyn/comms/controlMessage.h"
-#include "griddyn/comms/schedulerMessage.h"
-#include "griddyn/gridDynSimulation.h"
+#include "core/CoreExceptions.h"
+#include "griddyn/comms/CommMessage.h"
+#include "griddyn/comms/ControlMessage.h"
+#include "griddyn/comms/SchedulerMessage.h"
+#include "griddyn/GridDynSimulation.h"
 #include "helicsCoordinator.h"
 #include <iostream>
 #include <memory>

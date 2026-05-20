@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "collector.h"
+#include "Collector.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include <memory>
 #include <string>

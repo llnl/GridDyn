@@ -7,9 +7,9 @@
 #include "GovernorReheat.h"
 
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../GridBus.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "utilities/matrixData.hpp"
 #include <string>
 

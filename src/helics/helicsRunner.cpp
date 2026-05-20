@@ -13,7 +13,7 @@
 #include "coupling/GhostSwingBusManager.h"
 #include "fileInput/fileInput.h"
 #include "gridDynLoader/libraryLoader.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "helics/helics.hpp"
 #include "helicsCoordinator.h"
 #include "helicsLibrary.h"

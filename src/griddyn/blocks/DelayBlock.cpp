@@ -6,7 +6,7 @@
 
 #include "DelayBlock.h"
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>

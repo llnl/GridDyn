@@ -7,8 +7,8 @@
 #include "GenModelInverter.h"
 
 #include "../Generator.h"
-#include "../gridBus.h"
-#include "core/coreExceptions.h"
+#include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../griddyn/gridBus.h"
+#include "../griddyn/GridBus.h"
 #include <string>
 namespace griddyn::helicsLib {
 class HelicsCoordinator;

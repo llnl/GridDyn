@@ -5,9 +5,9 @@
  */
 #include "Communicator.h"
 
-#include "commMessage.h"
-#include "communicationsCore.h"
-#include "core/factoryTemplates.hpp"
+#include "CommMessage.h"
+#include "CommunicationsCore.h"
+#include "core/FactoryTemplates.hpp"
 #include "griddyn/griddyn-config.h"
 #include <memory>
 #include <string>

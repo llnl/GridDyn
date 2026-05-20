@@ -6,9 +6,9 @@
 
 #include "helicsCollector.h"
 
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/measurement/gridGrabbers.h"
+#include "griddyn/measurement/GridGrabbers.h"
 #include "helicsCoordinator.h"
 #include "helicsLibrary.h"
 #include "helicsSupport.h"

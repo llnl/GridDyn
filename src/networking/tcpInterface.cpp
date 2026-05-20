@@ -6,8 +6,8 @@
 
 #include "tcpInterface.h"
 
-#include "core/factoryTemplates.hpp"
-#include "core/objectFactory.hpp"
+#include "core/FactoryTemplates.hpp"
+#include "core/ObjectFactory.hpp"
 #include "tcpCollector.h"
 #include "tcpCommunicator.h"
 #include <string>

@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "core/coreExceptions.h"
-#include "core/objectFactory.hpp"
-#include "core/objectInterpreter.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactory.hpp"
+#include "core/ObjectInterpreter.h"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
 #include "gmlc/utilities/stringOps.h"

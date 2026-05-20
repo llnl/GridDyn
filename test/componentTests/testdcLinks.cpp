@@ -7,7 +7,7 @@
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeries.hpp"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <string>

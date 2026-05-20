@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/objectInterpreter.h"
+#include "core/ObjectInterpreter.h"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
 #include "gmlc/utilities/stringOps.h"

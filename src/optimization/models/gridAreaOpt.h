@@ -9,7 +9,7 @@
 // headers
 
 #include "../gridOptObjects.h"
-#include "core/coreObjectList.h"
+#include "core/CoreObjectList.h"
 #include <string>
 #include <vector>
 // forward classes

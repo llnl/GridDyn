@@ -45,9 +45,9 @@ not match the project style guide adapted from HELICS.
    convention
 
    Examples:
-   - `gridSimulation.h` containing `gridSimulation`
-   - `coreObject.h` containing `coreObject`
-   - `commMessage.h` containing `commMessage`
+   - `GridSimulation.h` containing `gridSimulation`
+   - `CoreObject.h` containing `coreObject`
+   - `CommMessage.h` containing `commMessage`
 
 ## Recommended Migration Order
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gridSubModel.h"
+#include "GridSubModel.h"
 #include <memory>
 #include <string>
 #include <vector>

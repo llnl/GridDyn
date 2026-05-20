@@ -6,7 +6,7 @@
 
 #include "CymeDistLoad.h"
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "nlohmann/json.hpp"

@@ -10,8 +10,8 @@
 #include "coupling/GhostSwingBus.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/gridDynDefinitions.hpp"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/simulation/gridSimulation.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/simulation/GridSimulation.h"
 #include "runner/gridDynRunner.h"
 #include <cmath>
 #include <iostream>

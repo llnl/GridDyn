@@ -7,7 +7,7 @@
 #include "../Source.h"
 
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "otherSources.h"
 #include "sourceTypes.h"
 #include <string>

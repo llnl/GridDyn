@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "comms/commManager.h"
-#include "core/objectOperatorInterface.hpp"
-#include "gridPrimary.h"
+#include "comms/CommManager.h"
+#include "core/ObjectOperatorInterface.hpp"
+#include "GridPrimary.h"
 #include <memory>
 #include <string>
 #include <vector>

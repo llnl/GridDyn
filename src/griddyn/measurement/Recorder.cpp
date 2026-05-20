@@ -6,8 +6,8 @@
 
 #include "Recorder.h"
 
-#include "core/coreExceptions.h"
-#include "core/objectInterpreter.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include <filesystem>
 #include <memory>

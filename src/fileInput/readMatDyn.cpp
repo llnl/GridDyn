@@ -12,9 +12,9 @@
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModel4.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/loads/ZipLoad.h"
 #include "readerHelper.h"
 #include <cstdlib>
 #include <iostream>

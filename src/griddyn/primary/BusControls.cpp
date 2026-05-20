@@ -7,8 +7,8 @@
 #include "BusControls.h"
 
 #include "../Link.h"
-#include "../gridSecondary.h"
-#include "acBus.h"
+#include "../GridSecondary.h"
+#include "AcBus.h"
 #include "gmlc/utilities/vectorOps.hpp"
 
 namespace griddyn {

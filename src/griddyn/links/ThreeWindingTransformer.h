@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "acLine.h"
-#include "subsystem.h"
+#include "AcLine.h"
+#include "Subsystem.h"
 #include <string>
 
 namespace griddyn::links {

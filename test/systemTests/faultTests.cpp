@@ -5,18 +5,18 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/relays/breaker.h"
-#include "griddyn/relays/fuse.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/relays/Breaker.h"
+#include "griddyn/relays/Fuse.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <string>

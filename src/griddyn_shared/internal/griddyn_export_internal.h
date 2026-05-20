@@ -10,8 +10,8 @@
 #    define ___W_GRIDDYN_GRIDDYN_SRC_GRIDDYN_SHARED_INTERNAL_GRIDDYN_EXPORT_INTERNAL_H_
 #    include "gmlc/concurrency/TripWire.hpp"
 #    include "gmlc/libguarded/guarded.hpp"
-#    include "griddyn/gridComponent.h"
-#    include "griddyn/solvers/solverMode.hpp"
+#    include "griddyn/GridComponent.h"
+#    include "griddyn/solvers/SolverMode.hpp"
 #    include <deque>
 #    include <memory>
 #    include <string>

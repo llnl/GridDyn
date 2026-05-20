@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/objectFactory.hpp"
-#include "core/objectInterpreter.h"
+#include "core/ObjectFactory.hpp"
+#include "core/ObjectInterpreter.h"
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <string>

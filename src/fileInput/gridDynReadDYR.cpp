@@ -5,8 +5,8 @@
  */
 
 #include "core/coreDefinitions.hpp"
-#include "core/coreObject.h"
-#include "core/objectFactory.hpp"
+#include "core/CoreObject.h"
+#include "core/ObjectFactory.hpp"
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
@@ -14,7 +14,7 @@
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "readerInfo.h"
 #include <fstream>
 #include <iostream>

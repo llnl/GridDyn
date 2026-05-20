@@ -6,10 +6,10 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
-#include "griddyn/simulation/diagnostics.h"
-#include "griddyn/simulation/gridDynSimulationFileOps.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <chrono>
 #include <gtest/gtest.h>
 #include <iostream>

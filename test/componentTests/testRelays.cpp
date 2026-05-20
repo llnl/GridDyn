@@ -6,11 +6,11 @@
 
 #include "../gtestHelper.h"
 #include "griddyn/comms/Communicator.h"
-#include "griddyn/comms/controlMessage.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/relays/controlRelay.h"
-#include "griddyn/relays/pmu.h"
-#include "griddyn/relays/zonalRelay.h"
+#include "griddyn/comms/ControlMessage.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/relays/ControlRelay.h"
+#include "griddyn/relays/Pmu.h"
+#include "griddyn/relays/ZonalRelay.h"
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>

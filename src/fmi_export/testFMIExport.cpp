@@ -5,7 +5,7 @@
  */
 
 #include "../../test/gtestHelper.h"
-#include "core/coreOwningPtr.hpp"
+#include "core/CoreOwningPtr.hpp"
 #include "fileInput/readerInfo.h"
 #include "fmi/fmi_import/fmiImport.h"
 #include "fmi/fmi_import/fmiObjects.h"
@@ -16,9 +16,9 @@
 #include "fmi_export/fmuBuilder.h"
 #include "fmi_export/loadFMIExportObjects.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <memory>

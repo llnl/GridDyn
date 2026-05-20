@@ -6,11 +6,11 @@
 
 #include "fmiGovernor.h"
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "fmiMESubModel.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include <string>
 
 namespace griddyn::fmi {

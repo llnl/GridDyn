@@ -19,5 +19,5 @@
 #include "LutBlock.h"
 #include "NullBlock.h"
 #include "PidBlock.h"
-#include "blockSequence.h"
-#include "transferFunctionBlock.h"
+#include "BlockSequence.h"
+#include "TransferFunctionBlock.h"

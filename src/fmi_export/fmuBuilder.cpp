@@ -12,7 +12,7 @@
 #include "fmiCoordinator.h"
 #include "fmiEvent.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 #include "utilities/zipUtilities.h"
 #include <filesystem>

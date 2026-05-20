@@ -5,10 +5,10 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Link.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>

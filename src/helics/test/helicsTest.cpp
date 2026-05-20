@@ -7,10 +7,10 @@
 
 #include "../../../test/exeTestHelper.h"
 #include "../../../test/gtestHelper.h"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/string_viewOps.h"
 #include "griddyn/Generator.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "helics/apps/BrokerApp.hpp"
 #include "helics/apps/Player.hpp"
 #include "helics/apps/Recorder.hpp"

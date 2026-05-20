@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "commMessage.h"
+#include "CommMessage.h"
 #include <string>
 
 #define BASE_RELAY_MESSAGE_NUMBER 400

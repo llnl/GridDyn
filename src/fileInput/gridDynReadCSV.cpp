@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/objectFactory.hpp"
-#include "core/objectInterpreter.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactory.hpp"
+#include "core/ObjectInterpreter.h"
 #include "fileInput.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "readerHelper.h"
 #include <cstdlib>
 #include <fstream>

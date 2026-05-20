@@ -10,10 +10,10 @@
 convenience header file to load up all the other types of sources
 */
 
-#include "blockSource.h"
-#include "commSource.h"
-#include "fileSource.h"
-#include "functionSource.h"
-#include "grabberSource.h"
-#include "randomSource.h"
-#include "sineSource.h"  //this will also load pulse source
+#include "BlockSource.h"
+#include "CommSource.h"
+#include "FileSource.h"
+#include "FunctionSource.h"
+#include "GrabberSource.h"
+#include "RandomSource.h"
+#include "SineSource.h"  //this will also load pulse source

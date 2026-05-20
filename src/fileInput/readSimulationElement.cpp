@@ -5,8 +5,8 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/measurement/collector.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/measurement/Collector.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <string>

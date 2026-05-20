@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/coreOwningPtr.hpp"
-#include "core/objectFactory.hpp"
-#include "griddyn/gridComponentHelperClasses.h"
-#include "griddyn/gridDynSimulation.h"
+#include "core/CoreExceptions.h"
+#include "core/CoreOwningPtr.hpp"
+#include "core/ObjectFactory.hpp"
+#include "griddyn/GridComponentHelperClasses.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn_export_advanced.h"
 #include "internal/griddyn_export_internal.h"
 #include "utilities/matrixDataCustomWriteOnly.hpp"

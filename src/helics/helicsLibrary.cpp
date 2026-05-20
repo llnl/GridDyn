@@ -6,8 +6,8 @@
 
 #include "helicsLibrary.h"
 
-#include "core/factoryTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/FactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "fileInput/readerInfo.h"
 #include "griddyn/griddyn-config.h"
 #include "helicsCollector.h"

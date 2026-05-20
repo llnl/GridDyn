@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "griddyn/relays/sensor.h"
+#include "griddyn/relays/Sensor.h"
 #include <string>
 
 namespace griddyn::extra {

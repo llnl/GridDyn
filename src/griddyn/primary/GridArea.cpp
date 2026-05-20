@@ -9,16 +9,16 @@
 
 #include "../Link.h"
 #include "../Relay.h"
-#include "../gridBus.h"
-#include "../gridDynSimulation.h"
-#include "../measurement/objectGrabbers.h"
-#include "core/coreExceptions.h"
-#include "core/coreObjectList.h"
+#include "../GridBus.h"
+#include "../GridDynSimulation.h"
+#include "../measurement/ObjectGrabbers.h"
+#include "core/CoreExceptions.h"
+#include "core/CoreObjectList.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
-#include "core/objectInterpreter.h"
+#include "core/ObjectFactoryTemplates.hpp"
+#include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "listMaintainer.h"
+#include "ListMaintainer.h"
 #include <algorithm>
 #include <cstdio>
 #include <memory>

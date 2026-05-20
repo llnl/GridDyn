@@ -9,7 +9,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "helics/helicsCoordinator.h"
 #include "helicsLibrary.h"
 #include "helicsSupport.h"

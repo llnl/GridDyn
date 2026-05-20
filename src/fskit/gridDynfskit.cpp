@@ -8,7 +8,7 @@
 
 #include "gridDynfskit.h"
 
-#include "core/factoryTemplates.hpp"
+#include "core/FactoryTemplates.hpp"
 #include "fskitCommunicator.h"
 #include "fskitRunner.h"
 #include "griddyn-tracer.h"

@@ -5,9 +5,9 @@
  */
 
 // headers
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gridDynLoader/libraryLoader.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/griddyn-config.h"
 #include "runner/gridDynRunner.h"
 #include <cstdint>

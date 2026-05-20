@@ -6,9 +6,9 @@
 
 #include "FilteredDerivativeBlock.h"
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <cmath>

@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include "formatInterpreters/readerElement.h"
-#include "griddyn/simulation/gridSimulation.h"
+#include "griddyn/simulation/GridSimulation.h"
 #include "readElement.h"
 #include <filesystem>
 #include <memory>

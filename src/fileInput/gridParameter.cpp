@@ -5,7 +5,7 @@
  */
 #include "gridParameter.h"
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/gridDynDefinitions.hpp"
 #include <string>

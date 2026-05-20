@@ -1,0 +1,581 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "SolverInterface.h"
+
+#include "../GridDynSimulation.h"
+#include "BasicOdeSolver.h"
+#include "BasicSolver.h"
+#include "core/CoreExceptions.h"
+#include "core/FactoryTemplates.hpp"
+#include "gmlc/containers/mapOps.hpp"
+#include "gmlc/utilities/stringConversion.h"
+#include "IdaInterface.h"
+#include "KinsolInterface.h"
+#include <algorithm>
+#include <charconv>
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <new>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+namespace griddyn {
+namespace {
+    std::vector<int> parseMaskElements(std::string_view text)
+    {
+        std::vector<int> values;
+        std::size_t start = 0;
+        while (start < text.size()) {
+            const auto end = text.find_first_of(",;", start);
+            const auto tokenEnd = (end == std::string_view::npos) ? text.size() : end;
+            auto token = text.substr(start, tokenEnd - start);
+
+            const auto first = token.find_first_not_of(" \t");
+            if (first != std::string_view::npos) {
+                const auto last = token.find_last_not_of(" \t");
+                token = token.substr(first, last - first + 1);
+
+                int parsed = 0;
+                const auto result =
+                    std::from_chars(token.data(), token.data() + token.size(), parsed);
+                if (result.ec == std::errc{} && result.ptr == token.data() + token.size()) {
+                    values.push_back(parsed);
+                }
+            }
+
+            if (end == std::string_view::npos) {
+                break;
+            }
+            start = end + 1;
+        }
+        return values;
+    }
+}  // namespace
+
+static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::mode_t::gauss);
+static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::mode_t::gauss_seidel);
+#ifdef GRIDYN_ENABLE_CVODE
+static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    basicOdeFactory(stringVec{"basicode", "euler"});
+#else
+// if cvode is not available this becomes the default differential solver
+static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+    basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
+
+#endif
+
+SolverInterface::SolverInterface(const std::string& objName): HelperObject(objName) {}
+SolverInterface::SolverInterface(GridDynSimulation* gds, const solverMode& sMode):
+    mode(sMode), m_gds(gds)
+{
+}
+
+std::unique_ptr<SolverInterface> SolverInterface::clone(bool fullCopy) const
+{
+    auto si = std::make_unique<SolverInterface>();
+    SolverInterface::cloneTo(si.get(), fullCopy);
+    return si;
+}
+
+void SolverInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+{
+    si->setName(getName());
+    si->solverLogFile = solverLogFile;
+    si->printLevel = printLevel;
+    si->max_iterations = max_iterations;
+    auto ind = si->mode.offsetIndex;
+    si->mode = mode;
+    if (ind != kNullLocation) {
+        si->mode.offsetIndex = ind;
+    }
+    si->tolerance = tolerance;
+    si->flags = flags;
+    si->solverPrintLevel = solverPrintLevel;
+    if (fullCopy) {
+        si->maskElements = maskElements;
+        si->m_gds = m_gds;
+        si->allocate(svsize, rootCount);
+        if (flags[initialized_flag]) {
+            si->initialize(0.0);
+        }
+        // copy the state data
+        const double* sd = state_data();
+        double* statecopy = si->state_data();
+        if ((sd != nullptr) && (statecopy != nullptr)) {
+            std::copy(sd, sd + svsize, statecopy);
+        }
+
+        // copy the derivative data
+        const double* deriv = deriv_data();
+        double* derivcopy = si->deriv_data();
+        if ((deriv != nullptr) && (derivcopy != nullptr)) {
+            std::copy(deriv, deriv + svsize, derivcopy);
+        }
+        // copy the type data
+        const double* td = type_data();
+        double* tcopy = si->type_data();
+        if ((td != nullptr) && (tcopy != nullptr)) {
+            std::copy(td, td + svsize, tcopy);
+        }
+        si->jacFile = jacFile;
+        si->stateFile = stateFile;
+    }
+}
+
+double* SolverInterface::state_data() noexcept
+{
+    return nullptr;
+}
+double* SolverInterface::deriv_data() noexcept
+{
+    return nullptr;
+}
+double* SolverInterface::type_data() noexcept
+{
+    return nullptr;
+}
+const double* SolverInterface::state_data() const noexcept
+{
+    return nullptr;
+}
+const double* SolverInterface::deriv_data() const noexcept
+{
+    return nullptr;
+}
+const double* SolverInterface::type_data() const noexcept
+{
+    return nullptr;
+}
+void SolverInterface::allocate(count_t /*stateSize*/, count_t numRoots)
+{
+    rootsfound.resize(numRoots);
+}
+void SolverInterface::initialize(coreTime t0)
+{
+    solveTime = t0;
+}
+void SolverInterface::sparseReInit(SparseReinitMode /*mode*/) {}
+void SolverInterface::setConstraints() {}
+int SolverInterface::calcIC(coreTime /*t0*/,
+                            coreTime /*tstep0*/,
+                            ic_modes /*mode*/,
+                            bool /*constraints*/)
+{
+    return -101;
+}
+void SolverInterface::getCurrentData() {}
+void SolverInterface::getRoots() {}
+void SolverInterface::setRootFinding(index_t /*numRoots*/) {}
+void SolverInterface::setSimulationData(const solverMode& sMode)
+{
+    mode = sMode;
+}
+void SolverInterface::setSimulationData(GridDynSimulation* gds, const solverMode& sMode)
+{
+    mode = sMode;
+    if (gds != nullptr) {
+        m_gds = gds;
+    }
+}
+
+void SolverInterface::setSimulationData(GridDynSimulation* gds)
+{
+    if (gds != nullptr) {
+        m_gds = gds;
+    }
+}
+
+double SolverInterface::get(std::string_view param) const
+{
+    double res;
+    if (param == "solvercount") {
+        res = static_cast<double>(solverCallCount);
+    } else if (param == "jaccallcount") {
+        res = static_cast<double>(jacCallCount);
+    } else if ((param == "rootcallcount") || (param == "roottestcount")) {
+        res = static_cast<double>(rootCallCount);
+    } else if (param == "funccallcount") {
+        res = static_cast<double>(funcCallCount);
+    } else if (param == "approx") {
+        res = static_cast<double>(getLinkApprox(mode));
+    } else if (param == "printlevel") {
+        res = static_cast<double>(printLevel);
+    } else if (param == "tolerance") {
+        res = tolerance;
+    } else {
+        return HelperObject::get(param);
+    }
+    return res;
+}
+
+void SolverInterface::set(std::string_view param, std::string_view val)
+{
+    using gmlc::utilities::convertToLowerCase;
+
+    if ((param == "approx") || (param == "approximation")) {
+        setApproximation(convertToLowerCase(val));
+    } else if (param == "printlevel") {
+        auto plevel = convertToLowerCase(val);
+        if (plevel == "debug") {
+            printLevel = SolverPrintLevel::DEBUG_PRINT;
+        } else if ((plevel == "none") || (plevel == "trap")) {
+            printLevel = SolverPrintLevel::ERROR_TRAP;
+        } else if (plevel == "error") {
+            printLevel = SolverPrintLevel::ERROR_LOG;
+        } else {
+            throw(invalidParameterValue(plevel));
+        }
+    } else if (param == "solverprintlevel") {
+        auto plevel = convertToLowerCase(val);
+        if (plevel == "trace") {
+            solverPrintLevel = 3;
+        } else if (plevel == "debug") {
+            solverPrintLevel = 2;
+        } else if (plevel == "log") {
+            solverPrintLevel = 1;
+        } else if (plevel == "none") {
+            solverPrintLevel = 0;
+        } else {
+            throw(invalidParameterValue(plevel));
+        }
+    } else if ((param == "pair") || (param == "pairedmode")) {
+        if (m_gds != nullptr) {
+            auto nsmode = m_gds->getSolverMode(std::string{val});
+            mode.pairedOffsetIndex = nsmode.offsetIndex;
+        }
+    } else if (param == "mask") {
+        maskElements = parseMaskElements(val);
+    } else if (param == "mode") {
+        setMultipleFlags(this, val);
+    } else if ((param == "file") || (param == "logfile")) {
+        solverLogFile = std::string{val};
+    } else if (param == "jacfile") {
+        jacFile = std::string{val};
+    } else if (param == "statefile") {
+        stateFile = std::string{val};
+    } else if (param == "capturefile") {
+        jacFile = std::string{val};
+        stateFile = std::string{val};
+    } else {
+        HelperObject::set(param, val);
+    }
+}
+
+void SolverInterface::set(std::string_view param, double val)
+{
+    if ((param == "pair") || (param == "pairedmode")) {
+        mode.pairedOffsetIndex = static_cast<index_t>(val);
+    } else if (param == "tolerance") {
+        tolerance = val;
+    } else if (param == "printlevel") {
+        switch (static_cast<int>(val)) {
+            case 0:
+                printLevel = SolverPrintLevel::ERROR_TRAP;
+                break;
+            case 1:
+                printLevel = SolverPrintLevel::ERROR_LOG;
+                break;
+            case 2:
+                printLevel = SolverPrintLevel::DEBUG_PRINT;
+                break;
+            default:
+                throw(invalidParameterValue(param));
+        }
+    } else if (param == "solverprintlevel") {
+        auto lv = static_cast<int>(val);
+        if ((lv >= 0) && (lv <= 3)) {
+            solverPrintLevel = lv;
+        } else {
+            throw(invalidParameterValue(param));
+        }
+    } else if (param == "maskElement") {
+        addMaskElement(static_cast<index_t>(val));
+    } else if (param == "index") {
+        mode.offsetIndex = static_cast<index_t>(val);
+    } else if (param == "maxiterations") {
+        max_iterations = static_cast<index_t>(val);
+    } else {
+        HelperObject::set(param, val);
+    }
+}
+
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
+static const std::map<std::string_view, int, std::less<std::string_view>> solverFlagMap{
+    {"filecapture", fileCapture_flag},
+    {"directlogging", directLogging_flag},
+    {"solver_log", directLogging_flag},
+    {"dense", dense_flag},
+    {"sparse", -dense_flag},
+    {"parallel", parallel_flag},
+    {"serial", -parallel_flag},
+    {"mask", useMask_flag},
+    {"constantjacobian", constantJacobian_flag},
+    {"omp", use_omp_flag},
+    {"useomp", use_omp_flag},
+    {"bdf", use_bdf_flag},
+    {"adams", -use_bdf_flag},
+    {"functional", -use_newton_flag},
+    {"newton", use_newton_flag},
+    {"print_resid", print_residuals},
+    {"print_residuals", print_residuals},
+    {"block_mode_only", block_mode_only}};
+
+void SolverInterface::setFlag(std::string_view flag, bool val)
+{
+    const auto foundFlag = solverFlagMap.find(flag);
+    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    if (flgInd > -32) {
+        if (flgInd > 0) {
+            flags.set(flgInd, val);
+        } else {
+            flags.set(-flgInd, !val);
+        }
+        return;
+    }
+
+    if (flag == "dc") {
+        mode.approx.set(dc, val);
+    } else if (flag == "ac") {
+        mode.approx.set(dc, !val);
+    } else if (flag == "dynamic") {
+        mode.dynamic = val;
+    } else if (flag == "powerflow") {
+        mode.dynamic = false;
+        mode.differential = false;
+        mode.dynamic = false;
+        mode.algebraic = true;
+    } else if (flag == "differential") {
+        if (val) {
+            mode.differential = true;
+            mode.dynamic = true;
+        } else {
+            mode.differential = false;
+        }
+    } else if (flag == "algebraic") {
+        mode.algebraic = val;
+    } else if (flag == "local") {
+        mode.local = val;
+    } else if (flag == "dae") {
+        if (val) {
+            mode.differential = true;
+            mode.dynamic = true;
+            mode.algebraic = true;
+        } else {
+            // PT:: what does dae false mean?  probably not do anything
+        }
+    } else if (flag == "extended") {
+        mode.extended_state = val;
+    } else if (flag == "primary") {
+        mode.extended_state = !val;
+    } else if (flag == "debug") {
+        printLevel = SolverPrintLevel::DEBUG_PRINT;
+    } else if (flag == "trap") {
+        printLevel = SolverPrintLevel::ERROR_TRAP;
+    } else if (flag == "error") {
+        printLevel = SolverPrintLevel::ERROR_LOG;
+    } else {
+        if (val) {
+            setApproximation(flag);
+        } else {
+            throw(unrecognizedParameter(flag));
+        }
+    }
+}
+
+void SolverInterface::setApproximation(std::string_view approx)
+{
+    if ((approx == "normal") || (approx == "none")) {
+        setLinkApprox(mode, approxKeyMask::none);
+    } else if ((approx == "simple") || (approx == "simplified")) {
+        setLinkApprox(mode, approxKeyMask::simplified);
+    } else if (approx == "small_angle") {
+        setLinkApprox(mode, approxKeyMask::sm_angle);
+    } else if (approx == "small_angle_decoupled") {
+        setLinkApprox(mode, approxKeyMask::sm_angle_decoupled);
+    } else if (approx == "simplified_decoupled") {
+        setLinkApprox(mode, approxKeyMask::simplified_decoupled);
+    } else if ((approx == "small_angle_simplified") || (approx == "simplified_small_angle")) {
+        setLinkApprox(mode, approxKeyMask::simplified_sm_angle);
+    } else if ((approx == "r") || (approx == "small_r")) {
+        setLinkApprox(mode, linear, false);
+        setLinkApprox(mode, small_r);
+    } else if (approx == "angle") {
+        setLinkApprox(mode, linear, false);
+        setLinkApprox(mode, small_angle);
+    } else if (approx == "coupling") {
+        setLinkApprox(mode, linear, false);
+        setLinkApprox(mode, decoupled);
+    } else if (approx == "decoupled") {
+        setLinkApprox(mode, approxKeyMask::decoupled);
+    } else if (approx == "linear") {
+        setLinkApprox(mode, approxKeyMask::linear);
+    } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
+        setLinkApprox(mode, approxKeyMask::fast_decoupled);
+    } else {
+        throw(invalidParameterValue(approx));
+    }
+}
+
+bool SolverInterface::getFlag(std::string_view flag) const
+{
+    const auto foundFlag = solverFlagMap.find(flag);
+    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    if (flgInd > -32) {
+        if (flgInd > 0) {
+            return flags[flgInd];
+        }
+        return !flags[-flgInd];
+    }
+    return false;
+}
+void SolverInterface::setMaskElements(std::vector<index_t> msk)
+{
+    maskElements = std::move(msk);
+}
+void SolverInterface::addMaskElement(index_t newMaskElement)
+{
+    maskElements.push_back(newMaskElement);
+}
+void SolverInterface::addMaskElements(const std::vector<index_t>& newMsk)
+{
+    for (auto& nme : newMsk) {
+        maskElements.push_back(nme);
+    }
+}
+
+void SolverInterface::printStates(bool getNames)
+{
+    auto* state = state_data();
+    auto* dstate = deriv_data();
+    auto* type = type_data();
+    stringVec stName;
+    if (getNames) {
+        m_gds->getStateName(stName, mode);
+    }
+    for (index_t ii = 0; ii < svsize; ++ii) {
+        if (type != nullptr) {
+            std::cout << ((type[ii] == 1) ? 'D' : 'A') << '-';
+        }
+        if (getNames) {
+            std::cout << '[' << ii << "]:" << stName[ii] << '=';
+        } else {
+            std::cout << "state[" << ii << "]=";
+        }
+        std::cout << state[ii];
+        if (dstate != nullptr) {
+            std::cout << "               ds/dt=" << dstate[ii];
+        }
+        std::cout << '\n';
+    }
+}
+
+void SolverInterface::check_flag(void* flagvalue,
+                                 std::string_view funcname,
+                                 int opt,
+                                 bool printError) const
+{
+    // TODO(phlpt): Delete either this or optimizerInterface::check_flag.
+    // Check if SUNDIALS function returned nullptr pointer - no memory allocated
+    if (opt == 0 && flagvalue == nullptr) {
+        if (printError) {
+            logging::log_to(
+                m_gds, m_gds, print_level::error, "{} failed - returned nullptr pointer", funcname);
+        }
+        throw(std::bad_alloc());
+    }
+    if (opt == 1) {
+        // Check if flag < 0
+        auto* errflag = reinterpret_cast<int*>(flagvalue);
+        if (*errflag < 0) {
+            if (printError) {
+                logging::log_to(m_gds,
+                                m_gds,
+                                print_level::error,
+                                "{} failed with flag = {}",
+                                funcname,
+                                *errflag);
+            }
+            throw(solverException(*errflag));
+        }
+    }
+    // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.
+}
+
+int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, StepMode /* stepMode */)
+{
+    return -101;
+}
+void SolverInterface::logSolverStats(print_level /*logLevel*/, bool /*iconly*/) const {}
+void SolverInterface::logErrorWeights(print_level /*logLevel*/) const {}
+void SolverInterface::logMessage(int errorCode, std::string_view message)
+{
+    if ((errorCode > 0) && (printLevel == SolverPrintLevel::DEBUG_PRINT)) {
+        logging::log_to(m_gds, m_gds, print_level::debug, message);
+    }
+    if (errorCode != 0) {
+        lastErrorCode = errorCode;
+        lastErrorString = message;
+        if (printLevel == SolverPrintLevel::ERROR_LOG) {
+            logging::log_to(m_gds, m_gds, print_level::warning, message);
+        }
+    }
+}
+
+void SolverInterface::setMaxNonZeros(count_t nonZeroCount)
+{
+    nnz = nonZeroCount;
+}
+
+// TODO(phlpt): Change this so the defaults can be something other than sundials solvers.
+std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solverMode& sMode)
+{
+    std::unique_ptr<SolverInterface> sd = nullptr;
+    if (isLocal(sMode)) {
+        sd = std::make_unique<SolverInterface>(gds, sMode);
+    } else if ((isAlgebraicOnly(sMode)) || (!isDynamic(sMode))) {
+        sd = std::make_unique<solvers::kinsolInterface>(gds, sMode);
+        if (sMode.offsetIndex == power_flow) {
+            sd->setName("powerflow");
+        } else if (sMode.offsetIndex == dynamic_algebraic) {
+            sd->setName("algebraic");
+        }
+    } else if (isDAE(sMode)) {
+        sd = std::make_unique<solvers::idaInterface>(gds, sMode);
+        if (sMode.offsetIndex == dae) {
+            sd->setName("dynamic");
+        }
+    } else if (isDifferentialOnly(sMode)) {
+        sd = coreClassFactory<SolverInterface>::instance()->createObject("differential");
+        sd->setSimulationData(gds, sMode);
+        if (sMode.offsetIndex == dynamic_differential) {
+            sd->setName("differential");
+        }
+    }
+
+    return sd;
+}
+
+std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name)
+{
+    if (name.empty()) {
+        return coreClassFactory<SolverInterface>::instance()->createObject(type);
+    }
+
+    return coreClassFactory<SolverInterface>::instance()->createObject(type, name);
+}
+
+}  // namespace griddyn

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../gridComponent.h"
-#include "core/objectOperatorInterface.hpp"
+#include "../GridComponent.h"
+#include "core/ObjectOperatorInterface.hpp"
 #include <functional>
 #include <memory>
 #include <string>

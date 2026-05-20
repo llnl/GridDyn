@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "fileInput.h"
 #include "griddyn/Generator.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/griddyn-config.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/loads/ZipLoad.h"
 #include "readerHelper.h"
 
 #ifdef ENABLE_OPTIMIZATION_LIBRARY
@@ -18,7 +18,7 @@
 #    include "optimization/models/gridGenOpt.h"
 #    include "optimization/optObjectFactory.h"
 #else
-#    include "griddyn/simulation/gridSimulation.h"
+#    include "griddyn/simulation/GridSimulation.h"
 #endif
 
 #include "gmlc/utilities/stringConversion.h"

@@ -15,7 +15,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreOwningPtr.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 // #include "matrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"

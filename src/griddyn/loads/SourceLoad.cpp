@@ -8,7 +8,7 @@
 #include "../Source.h"
 #include "../sources/sourceTypes.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cmath>
 #include <functional>
 #include <map>

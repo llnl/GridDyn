@@ -6,7 +6,7 @@
 
 #include "GridPrimary.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <iostream>

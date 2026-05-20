@@ -8,7 +8,7 @@
 
 #include "../primary/AcBus.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cmath>
 #include <string>
 

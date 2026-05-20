@@ -8,7 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>

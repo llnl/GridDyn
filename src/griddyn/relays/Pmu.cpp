@@ -17,7 +17,7 @@
 #include "../measurement/GrabberSet.h"
 #include "../measurement/GridGrabbers.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cmath>
 #include <limits>
 #include <memory>

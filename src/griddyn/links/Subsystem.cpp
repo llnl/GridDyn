@@ -13,7 +13,7 @@
 #include "core/CoreExceptions.h"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>

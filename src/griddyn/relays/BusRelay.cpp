@@ -9,7 +9,7 @@
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../measurement/Condition.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <memory>
 #include <string>
 #include <utility>

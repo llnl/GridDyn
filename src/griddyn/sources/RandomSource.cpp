@@ -7,7 +7,7 @@
 #include "RandomSource.h"
 
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/gridRandom.h"
 #include <cassert>

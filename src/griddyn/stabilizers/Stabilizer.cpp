@@ -9,7 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cmath>
 #include <string>
 

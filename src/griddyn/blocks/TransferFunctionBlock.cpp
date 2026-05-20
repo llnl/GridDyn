@@ -7,7 +7,7 @@
 #include "TransferFunctionBlock.h"
 
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"

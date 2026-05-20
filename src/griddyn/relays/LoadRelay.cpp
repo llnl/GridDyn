@@ -8,7 +8,7 @@
 
 #include "../events/Event.h"
 #include "../measurement/Condition.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <format>
 #include <memory>
 #include <string>

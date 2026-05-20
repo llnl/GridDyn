@@ -10,7 +10,7 @@
 #include "../comms/Communicator.h"
 #include "../comms/ControlMessage.h"
 #include "../events/EventQueue.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cassert>
 #include <memory>
 #include <string>

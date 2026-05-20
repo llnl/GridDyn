@@ -9,7 +9,7 @@
 #include "GridBus.h"
 #include "GridSubModel.h"
 #include "core/ObjectInterpreter.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 #include <vector>

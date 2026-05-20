@@ -6,7 +6,7 @@
 
 #include "FunctionSource.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <string>
 #include <utility>
 

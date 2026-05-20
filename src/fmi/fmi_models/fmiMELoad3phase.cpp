@@ -8,7 +8,7 @@
 
 #include "../fmi_import/fmiObjects.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "fmiMESubModel.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/GridBus.h"

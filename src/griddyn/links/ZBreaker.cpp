@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 

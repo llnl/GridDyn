@@ -7,7 +7,7 @@
 #include "txLifeSpan.h"
 
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "griddyn/Link.h"
 #include "griddyn/blocks/IntegralBlock.h"
 #include "griddyn/events/Event.h"

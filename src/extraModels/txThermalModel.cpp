@@ -7,7 +7,7 @@
 #include "txThermalModel.h"
 
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/Link.h"
 #include "griddyn/blocks/DelayBlock.h"

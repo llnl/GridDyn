@@ -17,7 +17,7 @@
 #include "core/CoreObjectList.h"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <cstdio>

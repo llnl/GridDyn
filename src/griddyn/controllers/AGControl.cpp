@@ -12,7 +12,7 @@
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <string>
 
 namespace griddyn {

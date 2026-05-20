@@ -6,7 +6,7 @@
 
 #include "helicsSource.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"

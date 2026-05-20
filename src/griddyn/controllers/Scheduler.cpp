@@ -9,7 +9,7 @@
 #include "../comms/Communicator.h"
 #include "../comms/SchedulerMessage.h"
 #include "Dispatcher.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/griddyn-config.h"
 #include <algorithm>

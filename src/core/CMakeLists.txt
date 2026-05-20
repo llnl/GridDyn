@@ -11,7 +11,7 @@ set(coreObject_headers
     CoreExceptions.h
     CoreObject.h
     CoreObjectList.h
-    coreObjectTemplates.hpp
+    CoreObjectTemplates.hpp
     CoreOwningPtr.hpp
     CoreProperties.hpp
     FactoryTemplates.hpp

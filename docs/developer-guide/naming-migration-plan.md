@@ -419,18 +419,32 @@ Goal: align filenames with the final compliant type names.
 This phase should usually follow the relevant type renames so filenames only
 move once.
 
-- [ ] Rename filenames for core types
-- [ ] Rename filenames for subsystem types
-- [ ] Update include directives
-- [ ] Update build system references
-- [ ] Update code generators or wrapper configs where applicable
-- [ ] Verify case-sensitive path correctness for all platforms
+- [x] Rename filenames for core types
+- [x] Rename filenames for subsystem types
+- [x] Update include directives
+- [x] Update build system references
+- [x] Update code generators or wrapper configs where applicable
+- [x] Verify case-sensitive path correctness for all platforms
 
-### Known Filename Mismatch Examples
+### Historical Filename Mismatch Examples
 
 - `GridSimulation.h` with `gridSimulation`
 - `CoreObject.h` with `coreObject`
 - `CommMessage.h` with `commMessage`
+
+### Phase 7 Closeout
+
+Phase 7 is complete for the planned filename and include-path cleanup scope.
+
+Completed Phase 7 work covered:
+
+- first-party core and main griddyn filename normalization after the Phase 6
+  type-family renames
+- dependent include-path and CMake source-list updates
+- follow-through in the first-party autogen/support configuration surface where
+  renamed headers were referenced
+- case-collision verification against tracked repository paths, with no
+  duplicate paths that differ only by case detected
 
 ## Phase 8: Interfaces, Tests, Docs, And User Surface
 
@@ -502,6 +516,7 @@ Use this table to log each naming migration PR as it lands.
 
 | PR / Branch | Area                                                                                                                    | Phase   | Summary                                                                                                                                                                                                                                                  | Compatibility Needed | Tests Run                               | Status   |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | --------------------------------------- | -------- |
+| merged      | `src/core` + `src/griddyn`                                                                                              | Phase 7 | Filename and include-path cleanup covering the remaining core and main griddyn source/header renames, dependent include updates, and corresponding CMake source-list normalization for the first-party simulation codebase                               | No                   | Targeted build and reference sweep      | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/links` + `src/griddyn/sources` + `test/libraryTests`              | Phase 4 | Internal enum/type cleanup covering function-interpreter and sparse-ordering renames, block and source enum normalization, selected link-side control enum fallout, and the associated `clang-tidy` cleanup                                              | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                                                                | No                   | Inventory script run                    | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/relays` + `src/griddyn/sources` + `src/extraModels`               | Phase 4 | Internal enum/type cleanup covering `DistributionType`, `SaturationType`, relay and block enum normalization, source-side communication enum fallout, and the dependent `txThermalModel` output-mode update                                              | No                   | CI compile and `clang-tidy` run         | Complete |

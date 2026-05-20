@@ -8,7 +8,7 @@
 #include "AGControl.h"
 #include "ReserveDispatcher.h"
 #include "Scheduler.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <memory>

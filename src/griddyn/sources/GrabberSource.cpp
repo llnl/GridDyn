@@ -7,8 +7,8 @@
 #include "GrabberSource.h"
 
 #include "../measurement/GrabberSet.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "core/coreObjectTemplates.hpp"
 #include <memory>
 #include <string>
 

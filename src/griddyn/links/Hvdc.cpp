@@ -12,8 +12,8 @@
 #include "../primary/DcBus.h"
 #include "AcdcConverter.h"
 #include "DcLink.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <string>

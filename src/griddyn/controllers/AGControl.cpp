@@ -11,8 +11,8 @@
 #include "../blocks/blockLibrary.h"
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
 #include <string>
 
 namespace griddyn {

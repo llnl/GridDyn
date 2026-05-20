@@ -11,7 +11,7 @@
 #include "../events/Event.h"
 #include "../measurement/Condition.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>

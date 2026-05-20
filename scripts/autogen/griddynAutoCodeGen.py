@@ -377,7 +377,7 @@ class createFile:
         tab = self.tab
         print(COPYRIGHT)
         print(tab * " ", '#include "' + allClass[0] + '.h"')
-        print(tab * " ", '#include "core/coreObjectTemplates.hpp"')
+        print(tab * " ", '#include "core/CoreObjectTemplates.hpp"')
         print(tab * " ", "#include <map>")
         custom = False
         namespaceStringVec = False

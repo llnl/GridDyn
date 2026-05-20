@@ -242,7 +242,7 @@ set(simulation_headers
 set(simulation_sources
     ${simulation_headers}
     simulation/gridDynContinuation.cpp
-    simulation/gridDynSimulation.cpp
+    simulation/GridDynSimulation.cpp
     simulation/Contingency.cpp
     simulation/gridDynPowerFlow.cpp
     simulation/gridDynDynamic.cpp
@@ -331,7 +331,7 @@ set(primary_headers
 
 set(primary_sources
     ${primary_headers}
-    primary/gridBus.cpp
+    primary/GridBus.cpp
     primary/GridArea.cpp
     primary/DcBus.cpp
     primary/InfiniteBus.cpp

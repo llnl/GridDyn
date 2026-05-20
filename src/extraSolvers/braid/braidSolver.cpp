@@ -14,7 +14,7 @@
 #include "../paradae/timeintegrators/TimeIntegrator.h"
 #include "braidInterface.h"
 #include "braid_driver.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridDynSimulation.h"

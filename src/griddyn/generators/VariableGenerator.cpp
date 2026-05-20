@@ -9,7 +9,7 @@
 #include "../Block.h"
 #include "../GridBus.h"
 #include "../Source.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <string>
 
 namespace griddyn {

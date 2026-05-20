@@ -8,8 +8,8 @@
 
 #include "GridBus.h"
 #include "GridSubModel.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 #include <vector>

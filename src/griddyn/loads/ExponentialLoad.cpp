@@ -7,7 +7,7 @@
 #include "ExponentialLoad.h"
 
 #include "../GridBus.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/matrixData.hpp"
 #include <cmath>

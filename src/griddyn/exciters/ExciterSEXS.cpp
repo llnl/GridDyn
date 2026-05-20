@@ -11,8 +11,8 @@
 #include "../GridPrimary.h"
 #include "../gridDynDefinitions.hpp"
 #include "core/CoreObject.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/coreDefinitions.hpp"
-#include "core/coreObjectTemplates.hpp"
 #include "solvers/SolverMode.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>

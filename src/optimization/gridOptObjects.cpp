@@ -6,7 +6,7 @@
 
 #include "gridOptObjects.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cstdio>
 #include <iostream>

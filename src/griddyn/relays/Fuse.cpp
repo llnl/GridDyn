@@ -16,7 +16,7 @@
 #include "../measurement/GridGrabbers.h"
 #include "../measurement/StateGrabber.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <algorithm>
 #include <cmath>

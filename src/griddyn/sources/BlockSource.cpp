@@ -8,7 +8,7 @@
 
 #include "../Block.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>

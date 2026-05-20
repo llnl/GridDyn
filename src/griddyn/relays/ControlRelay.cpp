@@ -14,7 +14,7 @@
 #include "../events/EventQueue.h"
 #include "../measurement/GridGrabbers.h"
 #include "../simulation/GridSimulation.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <format>
 #include <memory>

@@ -7,8 +7,8 @@
 
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
 #include <string>

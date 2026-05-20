@@ -14,7 +14,7 @@
 #include "../measurement/GrabberSet.h"
 #include "../measurement/GridGrabbers.h"
 #include "../measurement/StateGrabber.h"
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <cmath>
 #include <memory>

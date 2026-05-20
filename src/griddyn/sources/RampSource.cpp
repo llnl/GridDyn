@@ -6,7 +6,7 @@
 
 #include "RampSource.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <ctime>
 #include <string>

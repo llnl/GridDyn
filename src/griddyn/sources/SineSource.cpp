@@ -6,7 +6,7 @@
 
 #include "SineSource.h"
 
-#include "core/coreObjectTemplates.hpp"
+#include "core/CoreObjectTemplates.hpp"
 #include <cmath>
 #include <string>
 

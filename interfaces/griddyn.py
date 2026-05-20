@@ -282,241 +282,41 @@ GRIDDYN_PENDING = _griddyn.GRIDDYN_PENDING
 GRIDDYN_COMPLETE = _griddyn.GRIDDYN_COMPLETE
 
 
-def gridDynObjectCreate(componentType, objectType):
-    return _griddyn.gridDynObjectCreate(componentType, objectType)
-
-
 gridDynObjectCreate = _griddyn.gridDynObjectCreate
-
-
-def gridDynObjectClone(obj):
-    return _griddyn.gridDynObjectClone(obj)
-
-
 gridDynObjectClone = _griddyn.gridDynObjectClone
-
-
-def gridDynObjectFree(obj):
-    return _griddyn.gridDynObjectFree(obj)
-
-
 gridDynObjectFree = _griddyn.gridDynObjectFree
-
-
-def gridDynObjectAdd(parentObject, objectToAdd):
-    return _griddyn.gridDynObjectAdd(parentObject, objectToAdd)
-
-
 gridDynObjectAdd = _griddyn.gridDynObjectAdd
-
-
-def gridDynObjectRemove(parentObject, objectToRemove):
-    return _griddyn.gridDynObjectRemove(parentObject, objectToRemove)
-
-
 gridDynObjectRemove = _griddyn.gridDynObjectRemove
-
-
-def gridDynObjectSetString(obj, parameter, value):
-    return _griddyn.gridDynObjectSetString(obj, parameter, value)
-
-
 gridDynObjectSetString = _griddyn.gridDynObjectSetString
-
-
-def gridDynObjectSetValue(obj, parameter, value, units):
-    return _griddyn.gridDynObjectSetValue(obj, parameter, value, units)
-
-
 gridDynObjectSetValue = _griddyn.gridDynObjectSetValue
-
-
-def gridDynObjectSetFlag(obj, flag, val):
-    return _griddyn.gridDynObjectSetFlag(obj, flag, val)
-
-
 gridDynObjectSetFlag = _griddyn.gridDynObjectSetFlag
-
-
-def gridDynObjectGetString(*args):
-    return _griddyn.gridDynObjectGetString(*args)
-
-
 gridDynObjectGetString = _griddyn.gridDynObjectGetString
-
-
-def gridDynObjectGetValue(obj, parameter, units, result):
-    return _griddyn.gridDynObjectGetValue(obj, parameter, units, result)
-
-
 gridDynObjectGetValue = _griddyn.gridDynObjectGetValue
-
-
-def gridDynObjectGetFlag(obj, flag, result):
-    return _griddyn.gridDynObjectGetFlag(obj, flag, result)
-
-
 gridDynObjectGetFlag = _griddyn.gridDynObjectGetFlag
-
-
-def gridDynObjectFind(obj, objectToFind):
-    return _griddyn.gridDynObjectFind(obj, objectToFind)
-
-
 gridDynObjectFind = _griddyn.gridDynObjectFind
-
-
-def gridDynObjectGetSubObject(obj, componentType, N):
-    return _griddyn.gridDynObjectGetSubObject(obj, componentType, N)
-
-
 gridDynObjectGetSubObject = _griddyn.gridDynObjectGetSubObject
-
-
-def gridDynObjectFindByUserId(obj, componentType, ID):
-    return _griddyn.gridDynObjectFindByUserId(obj, componentType, ID)
-
-
 gridDynObjectFindByUserId = _griddyn.gridDynObjectFindByUserId
-
-
-def gridDynObjectGetParent(obj):
-    return _griddyn.gridDynObjectGetParent(obj)
-
-
 gridDynObjectGetParent = _griddyn.gridDynObjectGetParent
-
-
-def gridDynObjectGetType(obj):
-    return _griddyn.gridDynObjectGetType(obj)
-
-
 gridDynObjectGetType = _griddyn.gridDynObjectGetType
 
 
-def gridDynSimulationCreate(type, name):
-    return _griddyn.gridDynSimulationCreate(type, name)
-
-
 gridDynSimulationCreate = _griddyn.gridDynSimulationCreate
-
-
-def gridDynSimulationFree(sim):
-    return _griddyn.gridDynSimulationFree(sim)
-
-
 gridDynSimulationFree = _griddyn.gridDynSimulationFree
-
-
-def gridDynSimulationInitializeFromString(sim, initializationString):
-    return _griddyn.gridDynSimulationInitializeFromString(sim, initializationString)
-
-
 gridDynSimulationInitializeFromString = _griddyn.gridDynSimulationInitializeFromString
-
-
-def gridDynSimulationInitializeFromArgs(sim, argc, argv, ignoreUnrecognized):
-    return _griddyn.gridDynSimulationInitializeFromArgs(sim, argc, argv, ignoreUnrecognized)
-
-
 gridDynSimulationInitializeFromArgs = _griddyn.gridDynSimulationInitializeFromArgs
-
-
-def gridDynSimulationLoadfile(sim, fileName, fileType):
-    return _griddyn.gridDynSimulationLoadfile(sim, fileName, fileType)
-
-
 gridDynSimulationLoadfile = _griddyn.gridDynSimulationLoadfile
-
-
-def gridDynSimulationAddCommand(sim, command):
-    return _griddyn.gridDynSimulationAddCommand(sim, command)
-
-
 gridDynSimulationAddCommand = _griddyn.gridDynSimulationAddCommand
-
-
-def gridDynSimulationPowerflowInitialize(sim):
-    return _griddyn.gridDynSimulationPowerflowInitialize(sim)
-
-
 gridDynSimulationPowerflowInitialize = _griddyn.gridDynSimulationPowerflowInitialize
-
-
-def gridDynSimulationPowerflow(sim):
-    return _griddyn.gridDynSimulationPowerflow(sim)
-
-
 gridDynSimulationPowerflow = _griddyn.gridDynSimulationPowerflow
-
-
-def gridDynSimulationDynamicInitialize(sim):
-    return _griddyn.gridDynSimulationDynamicInitialize(sim)
-
-
 gridDynSimulationDynamicInitialize = _griddyn.gridDynSimulationDynamicInitialize
-
-
-def gridDynSimulationReset(sim):
-    return _griddyn.gridDynSimulationReset(sim)
-
-
 gridDynSimulationReset = _griddyn.gridDynSimulationReset
-
-
-def gridDynSimulationGetCurrentTime(sim):
-    return _griddyn.gridDynSimulationGetCurrentTime(sim)
-
-
 gridDynSimulationGetCurrentTime = _griddyn.gridDynSimulationGetCurrentTime
-
-
-def gridDynSimulationRun(sim):
-    return _griddyn.gridDynSimulationRun(sim)
-
-
 gridDynSimulationRun = _griddyn.gridDynSimulationRun
-
-
-def gridDynSimulationRunTo(sim, runToTime):
-    return _griddyn.gridDynSimulationRunTo(sim, runToTime)
-
-
 gridDynSimulationRunTo = _griddyn.gridDynSimulationRunTo
-
-
-def gridDynSimulationStep(sim):
-    return _griddyn.gridDynSimulationStep(sim)
-
-
 gridDynSimulationStep = _griddyn.gridDynSimulationStep
-
-
-def gridDynSimulationRunAsync(sim):
-    return _griddyn.gridDynSimulationRunAsync(sim)
-
-
 gridDynSimulationRunAsync = _griddyn.gridDynSimulationRunAsync
-
-
-def gridDynSimulationRunToAsync(sim, runToTime):
-    return _griddyn.gridDynSimulationRunToAsync(sim, runToTime)
-
-
 gridDynSimulationRunToAsync = _griddyn.gridDynSimulationRunToAsync
-
-
-def gridDynSimulationStepAsync(sim):
-    return _griddyn.gridDynSimulationStepAsync(sim)
-
-
 gridDynSimulationStepAsync = _griddyn.gridDynSimulationStepAsync
-
-
-def gridDynSimulationGetStatus(sim):
-    return _griddyn.gridDynSimulationGetStatus(sim)
-
-
 gridDynSimulationGetStatus = _griddyn.gridDynSimulationGetStatus
 
 
@@ -527,282 +327,44 @@ def getSimulationObject(sim):
 getSimulationObject = _griddyn.getSimulationObject
 
 
-def gridDynSimulationGetSolverKey(sim, solverType):
-    return _griddyn.gridDynSimulationGetSolverKey(sim, solverType)
-
-
 gridDynSimulationGetSolverKey = _griddyn.gridDynSimulationGetSolverKey
-
-
-def gridDynSolverKeyFree(key):
-    return _griddyn.gridDynSolverKeyFree(key)
-
-
 gridDynSolverKeyFree = _griddyn.gridDynSolverKeyFree
-
-
-def gridDynSimulationStateSize(sim, key):
-    return _griddyn.gridDynSimulationStateSize(sim, key)
-
-
 gridDynSimulationStateSize = _griddyn.gridDynSimulationStateSize
-
-
-def gridDynSimulationBusCount(sim):
-    return _griddyn.gridDynSimulationBusCount(sim)
-
-
 gridDynSimulationBusCount = _griddyn.gridDynSimulationBusCount
-
-
-def gridDynSimulationLineCount(sim):
-    return _griddyn.gridDynSimulationLineCount(sim)
-
-
 gridDynSimulationLineCount = _griddyn.gridDynSimulationLineCount
-
-
-def gridDynSimulationGetResults(*args):
-    return _griddyn.gridDynSimulationGetResults(*args)
-
-
 gridDynSimulationGetResults = _griddyn.gridDynSimulationGetResults
-
-
-def gridDynSimulationGuessState(sim, time, states, dstate_dt, key):
-    return _griddyn.gridDynSimulationGuessState(sim, time, states, dstate_dt, key)
-
-
 gridDynSimulationGuessState = _griddyn.gridDynSimulationGuessState
-
-
-def gridDynSimulationSetState(sim, time, states, dstate_dt, key):
-    return _griddyn.gridDynSimulationSetState(sim, time, states, dstate_dt, key)
-
-
 gridDynSimulationSetState = _griddyn.gridDynSimulationSetState
-
-
-def gridDynSimulationGetStateVariableTypes(sim, types, key):
-    return _griddyn.gridDynSimulationGetStateVariableTypes(sim, types, key)
-
-
 gridDynSimulationGetStateVariableTypes = _griddyn.gridDynSimulationGetStateVariableTypes
-
-
-def gridDynSimulationResidual(sim, time, resid, states, dstate_dt, key):
-    return _griddyn.gridDynSimulationResidual(sim, time, resid, states, dstate_dt, key)
-
-
 gridDynSimulationResidual = _griddyn.gridDynSimulationResidual
-
-
-def gridDynSimulationDerivative(sim, time, deriv, states, key):
-    return _griddyn.gridDynSimulationDerivative(sim, time, deriv, states, key)
-
-
 gridDynSimulationDerivative = _griddyn.gridDynSimulationDerivative
-
-
-def gridDynSimulationAlgebraicUpdate(sim, time, update, states, alpha, key):
-    return _griddyn.gridDynSimulationAlgebraicUpdate(sim, time, update, states, alpha, key)
-
-
 gridDynSimulationAlgebraicUpdate = _griddyn.gridDynSimulationAlgebraicUpdate
-
-
-def gridDynSimulationJacobian(sim, time, states, dstate_dt, cj, key, insert):
-    return _griddyn.gridDynSimulationJacobian(sim, time, states, dstate_dt, cj, key, insert)
-
-
 gridDynSimulationJacobian = _griddyn.gridDynSimulationJacobian
-
-
-def gridDynSingleQueryCreate(obj, queryString):
-    return _griddyn.gridDynSingleQueryCreate(obj, queryString)
-
-
 gridDynSingleQueryCreate = _griddyn.gridDynSingleQueryCreate
-
-
-def gridDynVectorQueryCreate(obj, queryString):
-    return _griddyn.gridDynVectorQueryCreate(obj, queryString)
-
-
 gridDynVectorQueryCreate = _griddyn.gridDynVectorQueryCreate
-
-
-def gridDynSingleQueryFree(query):
-    return _griddyn.gridDynSingleQueryFree(query)
-
-
 gridDynSingleQueryFree = _griddyn.gridDynSingleQueryFree
-
-
-def gridDynVectorQueryFree(query):
-    return _griddyn.gridDynVectorQueryFree(query)
-
-
 gridDynVectorQueryFree = _griddyn.gridDynVectorQueryFree
-
-
-def gridDynSingleQueryRun(query):
-    return _griddyn.gridDynSingleQueryRun(query)
-
-
 gridDynSingleQueryRun = _griddyn.gridDynSingleQueryRun
-
-
-def gridDynVectorQueryRun(query, data, N):
-    return _griddyn.gridDynVectorQueryRun(query, data, N)
-
-
 gridDynVectorQueryRun = _griddyn.gridDynVectorQueryRun
-
-
-def gridDynVectorQueryAppend(query, obj, queryString):
-    return _griddyn.gridDynVectorQueryAppend(query, obj, queryString)
-
-
 gridDynVectorQueryAppend = _griddyn.gridDynVectorQueryAppend
-
-
-def gridDynSingleQueryUpdate(query, obj, queryString):
-    return _griddyn.gridDynSingleQueryUpdate(query, obj, queryString)
-
-
 gridDynSingleQueryUpdate = _griddyn.gridDynSingleQueryUpdate
-
-
-def gridDynVectorQueryUpdate(query, obj, queryString):
-    return _griddyn.gridDynVectorQueryUpdate(query, obj, queryString)
-
-
 gridDynVectorQueryUpdate = _griddyn.gridDynVectorQueryUpdate
-
-
-def gridDynEventCreate(eventString, obj):
-    return _griddyn.gridDynEventCreate(eventString, obj)
-
-
 gridDynEventCreate = _griddyn.gridDynEventCreate
-
-
-def gridDynEventFree(evnt):
-    return _griddyn.gridDynEventFree(evnt)
-
-
 gridDynEventFree = _griddyn.gridDynEventFree
-
-
-def gridDynEventTrigger(evnt):
-    return _griddyn.gridDynEventTrigger(evnt)
-
-
 gridDynEventTrigger = _griddyn.gridDynEventTrigger
-
-
-def gridDynEventSchedule(evnt, sim):
-    return _griddyn.gridDynEventSchedule(evnt, sim)
-
-
 gridDynEventSchedule = _griddyn.gridDynEventSchedule
-
-
-def gridDynEventSetValue(evnt, parameter, value):
-    return _griddyn.gridDynEventSetValue(evnt, parameter, value)
-
-
 gridDynEventSetValue = _griddyn.gridDynEventSetValue
-
-
-def gridDynEventSetString(evnt, parameter, value):
-    return _griddyn.gridDynEventSetString(evnt, parameter, value)
-
-
 gridDynEventSetString = _griddyn.gridDynEventSetString
-
-
-def gridDynEventSetFlag(evnt, flag, val):
-    return _griddyn.gridDynEventSetFlag(evnt, flag, val)
-
-
 gridDynEventSetFlag = _griddyn.gridDynEventSetFlag
-
-
-def gridDynEventSetTarget(evnt, obj):
-    return _griddyn.gridDynEventSetTarget(evnt, obj)
-
-
 gridDynEventSetTarget = _griddyn.gridDynEventSetTarget
-
-
-def gridDynObjectStateSize(obj, key):
-    return _griddyn.gridDynObjectStateSize(obj, key)
-
-
 gridDynObjectStateSize = _griddyn.gridDynObjectStateSize
-
-
-def gridDynObjectGuessState(obj, time, states, dstate_dt, key):
-    return _griddyn.gridDynObjectGuessState(obj, time, states, dstate_dt, key)
-
-
 gridDynObjectGuessState = _griddyn.gridDynObjectGuessState
-
-
-def gridDynObjectSetState(obj, time, states, dstate_dt, key):
-    return _griddyn.gridDynObjectSetState(obj, time, states, dstate_dt, key)
-
-
 gridDynObjectSetState = _griddyn.gridDynObjectSetState
-
-
-def gridDynObjectGetStateVariableTypes(obj, types, key):
-    return _griddyn.gridDynObjectGetStateVariableTypes(obj, types, key)
-
-
 gridDynObjectGetStateVariableTypes = _griddyn.gridDynObjectGetStateVariableTypes
-
-
-def gridDynObjectResidual(obj, inputs, inputSize, resid, key):
-    return _griddyn.gridDynObjectResidual(obj, inputs, inputSize, resid, key)
-
-
 gridDynObjectResidual = _griddyn.gridDynObjectResidual
-
-
-def gridDynObjectDerivative(obj, inputs, inputSize, deriv, key):
-    return _griddyn.gridDynObjectDerivative(obj, inputs, inputSize, deriv, key)
-
-
 gridDynObjectDerivative = _griddyn.gridDynObjectDerivative
-
-
-def gridDynObjectAlgebraicUpdate(obj, inputs, inputSize, update, alpha, key):
-    return _griddyn.gridDynObjectAlgebraicUpdate(obj, inputs, inputSize, update, alpha, key)
-
-
 gridDynObjectAlgebraicUpdate = _griddyn.gridDynObjectAlgebraicUpdate
-
-
-def gridDynObjectJacobian(obj, inputs, inputSize, cj, insert, key):
-    return _griddyn.gridDynObjectJacobian(obj, inputs, inputSize, cj, insert, key)
-
-
 gridDynObjectJacobian = _griddyn.gridDynObjectJacobian
-
-
-def gridDynObjectIoPartialDerivatives(obj, inputs, inputSize, insert, key):
-    return _griddyn.gridDynObjectIoPartialDerivatives(obj, inputs, inputSize, insert, key)
-
-
 gridDynObjectIoPartialDerivatives = _griddyn.gridDynObjectIoPartialDerivatives
-
-
-def gridDynObjectOutputPartialDerivatives(obj, inputs, inputSize, insert, key):
-    return _griddyn.gridDynObjectOutputPartialDerivatives(obj, inputs, inputSize, insert, key)
-
-
 gridDynObjectOutputPartialDerivatives = _griddyn.gridDynObjectOutputPartialDerivatives
 # This file is compatible with both classic and new-style classes.

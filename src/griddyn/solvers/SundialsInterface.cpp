@@ -6,9 +6,9 @@
 
 #include "SundialsInterface.h"
 
-#include "griddyn/griddyn-config.h"
 #include "IdaInterface.h"
 #include "KinsolInterface.h"
+#include "griddyn/griddyn-config.h"
 #ifdef GRIDDYN_ENABLE_CVODE
 #    include "CvodeInterface.h"
 #endif
@@ -23,9 +23,9 @@
 #include "../GridDynSimulation.h"
 #include "../simulation/Diagnostics.h"
 #include "../simulation/GridDynSimulationFileOps.h"
+#include "SundialsMatrixData.h"
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "SundialsMatrixData.h"
 #include "utilities/matrixCreation.h"
 #include "utilities/matrixDataFilter.hpp"
 #include <algorithm>

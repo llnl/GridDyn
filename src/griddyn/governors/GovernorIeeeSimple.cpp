@@ -8,8 +8,8 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
+#include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <string>

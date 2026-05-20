@@ -8,10 +8,10 @@
 
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/comms/CommMessage.h"
 #include "griddyn/comms/CommunicationsCore.h"
 #include "griddyn/events/EventAdapters.h"
-#include "griddyn/GridDynSimulation.h"
 #include "helics/application_api.hpp"
 #include "helics/application_api/typeOperations.hpp"
 #include "helics/helicsEvent.h"

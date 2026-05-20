@@ -9,8 +9,8 @@
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "griddyn/loads/ZipLoad.h"
 #include <algorithm>
 #include <gtest/gtest.h>

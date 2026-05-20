@@ -7,8 +7,8 @@
 #include "VariableGenerator.h"
 
 #include "../Block.h"
-#include "../Source.h"
 #include "../GridBus.h"
+#include "../Source.h"
 #include "core/coreObjectTemplates.hpp"
 #include <string>
 

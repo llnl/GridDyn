@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreDefinitions.hpp"
 #include "core/CoreObject.h"
 #include "core/ObjectFactory.hpp"
+#include "core/coreDefinitions.hpp"
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"

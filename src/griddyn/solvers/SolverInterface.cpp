@@ -9,12 +9,12 @@
 #include "../GridDynSimulation.h"
 #include "BasicOdeSolver.h"
 #include "BasicSolver.h"
+#include "IdaInterface.h"
+#include "KinsolInterface.h"
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringConversion.h"
-#include "IdaInterface.h"
-#include "KinsolInterface.h"
 #include <algorithm>
 #include <charconv>
 #include <functional>

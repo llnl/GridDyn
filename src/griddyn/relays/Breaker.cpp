@@ -6,10 +6,10 @@
 
 #include "Breaker.h"
 
-#include "../Link.h"
-#include "../events/Event.h"
 #include "../GridBus.h"
 #include "../GridSecondary.h"
+#include "../Link.h"
+#include "../events/Event.h"
 #include "../measurement/Condition.h"
 #include "../measurement/GrabberSet.h"
 #include "../measurement/GridGrabbers.h"

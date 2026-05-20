@@ -7,9 +7,9 @@
 #pragma once
 
 #include "../solvers/SolverMode.hpp"
+#include "GridGrabbers.h"
 #include "core/CoreExceptions.h"
 #include "core/ObjectInterpreter.h"
-#include "GridGrabbers.h"
 #include <memory>
 #include <string>
 #include <string_view>

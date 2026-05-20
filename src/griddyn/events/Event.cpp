@@ -7,15 +7,15 @@
 #include "Event.h"
 
 #include "../GridDynSimulation.h"
-#include "Player.h"
 #include "CompoundEvent.h"
 #include "CompoundEventPlayer.h"
+#include "InterpolatingPlayer.h"
+#include "Player.h"
+#include "ReversibleEvent.h"
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
-#include "InterpolatingPlayer.h"
-#include "ReversibleEvent.h"
 #include <memory>
 #include <sstream>
 #include <string>

@@ -16,8 +16,8 @@
 #include "gridLinkOpt.h"
 #include "gridRelayOpt.h"
 #include "griddyn/GridArea.h"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "utilities/vectData.hpp"
 #include <string>
 #include <utility>

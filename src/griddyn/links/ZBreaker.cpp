@@ -9,8 +9,8 @@
 
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <string>
 

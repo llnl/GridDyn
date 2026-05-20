@@ -6,14 +6,14 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../Relay.h"
-#include "../GridBus.h"
 #include "../relays/Sensor.h"
 #include "Condition.h"
-#include "gmlc/containers/mapOps.hpp"
 #include "GrabberInterpreter.hpp"
 #include "StateGrabber.h"
+#include "gmlc/containers/mapOps.hpp"
 #include "utilities/matrixDataScale.hpp"
 #include "utilities/matrixDataTranslate.hpp"
 #include <algorithm>

@@ -7,9 +7,9 @@
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/events/Event.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/events/Event.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <gtest/gtest.h>

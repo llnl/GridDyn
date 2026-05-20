@@ -6,8 +6,8 @@
 
 #include "Contingency.h"
 
-#include "../events/Event.h"
 #include "../GridDynSimulation.h"
+#include "../events/Event.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>

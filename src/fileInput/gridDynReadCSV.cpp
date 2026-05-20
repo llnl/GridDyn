@@ -11,9 +11,9 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
-#include "griddyn/GridBus.h"
 #include "readerHelper.h"
 #include <cstdlib>
 #include <fstream>

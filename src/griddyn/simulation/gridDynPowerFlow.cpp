@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../events/Event.h"
-#include "../events/EventQueue.h"
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
+#include "../events/Event.h"
+#include "../events/EventQueue.h"
 #include "../simulation/Diagnostics.h"
 #include "../solvers/SolverInterface.h"
 #include "Continuation.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "GridDynSimulationFileOps.h"
 #include "PowerFlowErrorRecovery.h"
+#include "gmlc/utilities/vectorOps.hpp"
 // system headers
 #include <cmath>
 #include <cstdio>

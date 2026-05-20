@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../controllers/Scheduler.h"
 #include "../GridBus.h"
+#include "../controllers/Scheduler.h"
 #include "../measurement/ObjectGrabbers.h"
+#include "VariableGenerator.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/OperatingBoundary.h"
 #include "utilities/matrixData.hpp"
-#include "VariableGenerator.h"
 #include <memory>
 #include <string>
 #include <vector>

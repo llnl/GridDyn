@@ -5,8 +5,8 @@
  */
 
 #include "core/CoreExceptions.h"
-#include "griddyn/events/Event.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/events/Event.h"
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include "runner/gridDynRunner.h"

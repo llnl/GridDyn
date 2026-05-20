@@ -6,13 +6,13 @@
 
 #include "Pmu.h"
 
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../blocks/DelayBlock.h"
 #include "../blocks/FilteredDerivativeBlock.h"
 #include "../comms/Communicator.h"
 #include "../comms/ControlMessage.h"
 #include "../events/Event.h"
-#include "../GridBus.h"
 #include "../measurement/Condition.h"
 #include "../measurement/GrabberSet.h"
 #include "../measurement/GridGrabbers.h"

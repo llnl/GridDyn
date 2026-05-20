@@ -5,15 +5,15 @@
  */
 
 #include "../Generator.h"
-#include "../Link.h"
-#include "../events/Event.h"
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
+#include "../Link.h"
+#include "../events/Event.h"
 #include "../loads/ZipLoad.h"
 #include "../simulation/Diagnostics.h"
 #include "Contingency.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "GridDynSimulationFileOps.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/GlobalWorkQueue.hpp"
 #include <algorithm>
 #include <memory>

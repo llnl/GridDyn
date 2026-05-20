@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "gmlc/utilities/TimeSeries.hpp"
 #include "RampSource.h"
+#include "gmlc/utilities/TimeSeries.hpp"
 #include <string>
 
 namespace griddyn::sources {

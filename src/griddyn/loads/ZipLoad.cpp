@@ -7,16 +7,16 @@
 #include "ZipLoad.h"
 
 #include "../GridBus.h"
-#include "ThreePhaseLoad.h"
 #include "ApproximatingLoad.h"
-#include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "ExponentialLoad.h"
 #include "FDepLoad.h"
 #include "FileLoad.h"
 #include "RampLoad.h"
 #include "SourceLoad.h"
+#include "ThreePhaseLoad.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactoryTemplates.hpp"
+#include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <complex>

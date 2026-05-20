@@ -7,13 +7,13 @@
 // headers
 #include "Subsystem.h"
 
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../Relay.h"
-#include "../GridBus.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>

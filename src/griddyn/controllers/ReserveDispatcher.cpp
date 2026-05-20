@@ -9,8 +9,8 @@
 #include "../Generator.h"
 #include "../GridArea.h"
 #include "AGControl.h"
-#include "core/CoreExceptions.h"
 #include "Scheduler.h"
+#include "core/CoreExceptions.h"
 #include <algorithm>
 #include <string>
 

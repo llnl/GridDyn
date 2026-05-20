@@ -9,8 +9,8 @@
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <string>

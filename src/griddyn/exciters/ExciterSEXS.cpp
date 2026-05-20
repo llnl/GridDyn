@@ -8,10 +8,10 @@
 
 #include "../Exciter.h"
 #include "../GridComponentHelperClasses.h"
-#include "../gridDynDefinitions.hpp"
 #include "../GridPrimary.h"
-#include "core/coreDefinitions.hpp"
+#include "../gridDynDefinitions.hpp"
 #include "core/CoreObject.h"
+#include "core/coreDefinitions.hpp"
 #include "core/coreObjectTemplates.hpp"
 #include "solvers/SolverMode.hpp"
 #include "utilities/matrixData.hpp"

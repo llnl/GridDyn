@@ -6,8 +6,8 @@
 
 #include "../comms/SchedulerMessage.h"
 #include "AGControl.h"
-#include "core/coreObjectTemplates.hpp"
 #include "Scheduler.h"
+#include "core/coreObjectTemplates.hpp"
 #include <cstdio>
 #include <memory>
 #include <string>

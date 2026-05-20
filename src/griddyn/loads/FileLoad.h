@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "RampLoad.h"
+#include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include <string>
 #include <vector>
 

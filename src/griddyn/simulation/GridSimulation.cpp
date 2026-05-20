@@ -8,11 +8,11 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../Relay.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
-#include "../GridBus.h"
 #include "../loads/ZipLoad.h"
 #include "../measurement/Collector.h"
 #include "core/CoreExceptions.h"

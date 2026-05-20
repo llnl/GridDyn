@@ -8,11 +8,11 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
+#include "../GridSubModel.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../Relay.h"
-#include "../GridBus.h"
-#include "../GridSubModel.h"
 #include "../relays/ControlRelay.h"
 #include "../relays/Sensor.h"
 #include "../solvers/SolverMode.hpp"

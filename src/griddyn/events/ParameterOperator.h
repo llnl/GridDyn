@@ -9,9 +9,9 @@
 // headers
 // #include "GridDynSimulation.h"
 
-#include "core/coreDefinitions.hpp"
 #include "core/HelperObject.h"
 #include "core/ObjectOperatorInterface.hpp"
+#include "core/coreDefinitions.hpp"
 #include <memory>
 #include <string>
 #include <vector>

@@ -7,9 +7,9 @@
 #include "CoreObject.h"
 
 #include "CoreExceptions.h"
+#include "NullObject.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewOps.h"
-#include "NullObject.h"
 #include "utilities/dataDictionary.h"
 #include <array>
 #include <cassert>

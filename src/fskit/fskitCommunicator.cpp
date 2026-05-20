@@ -7,12 +7,12 @@
 #include "fskitCommunicator.h"
 
 #include "gridDynFederatedScheduler.h"
+#include "griddyn/GridDynSimulation.h"  // for gridDynSimulation
 #include "griddyn/comms/CommMessage.h"
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/comms/relayMessage.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/events/EventQueue.h"
-#include "griddyn/GridDynSimulation.h"  // for gridDynSimulation
 #include "griddyn/griddyn-config.h"
 #include <fskit/granted-time-window-Scheduler.h>
 #include <iostream>

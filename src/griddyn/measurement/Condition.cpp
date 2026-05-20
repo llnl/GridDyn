@@ -6,9 +6,9 @@
 
 #include "Condition.h"
 
-#include "gmlc/containers/mapOps.hpp"
 #include "GrabberInterpreter.hpp"
 #include "GrabberSet.h"
+#include "gmlc/containers/mapOps.hpp"
 #include <functional>
 #include <map>
 #include <memory>

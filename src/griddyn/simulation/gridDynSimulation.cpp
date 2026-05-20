@@ -6,21 +6,21 @@
 
 #include "../GridDynSimulation.h"
 
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../events/ParameterOperator.h"
-#include "../GridBus.h"
 #include "../loads/GridLabDLoad.h"
 #include "../solvers/SolverInterface.h"
 #include "Contingency.h"
+#include "GridDynSimulationFileOps.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "GridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 #include <cassert>
 #include <compare>

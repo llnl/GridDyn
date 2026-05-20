@@ -8,17 +8,17 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
+#include "../GridSubModel.h"
 #include "../Link.h"
 #include "../Load.h"
 #include "../Relay.h"
-#include "../GridBus.h"
-#include "../GridSubModel.h"
 #include "../relays/Sensor.h"
 #include "../simulation/GridSimulation.h"
-#include "core/CoreExceptions.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "GrabberInterpreter.hpp"
 #include "ObjectGrabbers.h"
+#include "core/CoreExceptions.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/functionInterpreter.h"
 #include <algorithm>
 #include <cmath>

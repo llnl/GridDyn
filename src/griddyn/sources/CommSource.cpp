@@ -6,10 +6,10 @@
 
 #include "CommSource.h"
 
+#include "../GridDynSimulation.h"
 #include "../comms/Communicator.h"
 #include "../comms/ControlMessage.h"
 #include "../events/EventQueue.h"
-#include "../GridDynSimulation.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cassert>
 #include <memory>

@@ -6,8 +6,8 @@
 
 #include "BusControls.h"
 
-#include "../Link.h"
 #include "../GridSecondary.h"
+#include "../Link.h"
 #include "AcBus.h"
 #include "gmlc/utilities/vectorOps.hpp"
 

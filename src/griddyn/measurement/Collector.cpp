@@ -7,14 +7,14 @@
 #include "Collector.h"
 
 #include "../events/Event.h"
+#include "GridGrabbers.h"
 #include "Recorder.h"
+#include "StateGrabber.h"
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "GridGrabbers.h"
-#include "StateGrabber.h"
 #include <algorithm>
 #include <cmath>
 #include <memory>

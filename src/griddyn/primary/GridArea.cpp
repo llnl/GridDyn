@@ -7,18 +7,18 @@
 // headers
 #include "../GridArea.h"
 
-#include "../Link.h"
-#include "../Relay.h"
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
+#include "../Link.h"
+#include "../Relay.h"
 #include "../measurement/ObjectGrabbers.h"
+#include "ListMaintainer.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectList.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "ListMaintainer.h"
 #include <algorithm>
 #include <cstdio>
 #include <memory>

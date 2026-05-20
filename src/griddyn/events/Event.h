@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "EventInterface.hpp"
 #include "core/CoreObject.h"
 #include "core/HelperObject.h"
 #include "core/ObjectOperatorInterface.hpp"
-#include "EventInterface.hpp"
 #include "units/units.hpp"
 #include <memory>
 #include <string>

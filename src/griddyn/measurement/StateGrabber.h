@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../events/EventInterface.hpp"
 #include "../GridComponent.h"
+#include "../events/EventInterface.hpp"
 #include "core/ObjectOperatorInterface.hpp"
 #include "utilities/functionInterpreter.h"
 #include <functional>

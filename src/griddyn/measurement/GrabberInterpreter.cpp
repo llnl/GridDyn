@@ -8,13 +8,13 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../Load.h"
-#include "../GridBus.h"
 #include "../simulation/GridSimulation.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "GridGrabbers.h"
 #include "ObjectGrabbers.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include <string>
 #include <string_view>
 #include <utility>

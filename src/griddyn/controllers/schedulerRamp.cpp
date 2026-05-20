@@ -6,11 +6,11 @@
 
 #include "../comms/SchedulerMessage.h"
 #include "AGControl.h"
+#include "ReserveDispatcher.h"
+#include "Scheduler.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "ReserveDispatcher.h"
-#include "Scheduler.h"
 #include <memory>
 #include <string>
 

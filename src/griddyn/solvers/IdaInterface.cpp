@@ -8,8 +8,8 @@
 
 #include "../GridDynSimulation.h"
 #include "../simulation/GridDynSimulationFileOps.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "SundialsMatrixData.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixCreation.h"
 #include "utilities/matrixDataFilter.hpp"
 #include <ida/ida.h>

@@ -7,13 +7,13 @@
 // headers
 #include "Hvdc.h"
 
-#include "../Link.h"
 #include "../GridBus.h"
+#include "../Link.h"
 #include "../primary/DcBus.h"
 #include "AcdcConverter.h"
-#include "core/coreObjectTemplates.hpp"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "DcLink.h"
+#include "core/ObjectFactoryTemplates.hpp"
+#include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <string>

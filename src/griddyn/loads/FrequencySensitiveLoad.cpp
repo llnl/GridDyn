@@ -8,8 +8,8 @@
 
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
-#include "core/coreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
+#include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <complex>

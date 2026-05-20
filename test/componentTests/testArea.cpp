@@ -7,8 +7,8 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>

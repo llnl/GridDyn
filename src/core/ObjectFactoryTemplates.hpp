@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "ObjectFactory.hpp"
 #include "core/CoreExceptions.h"
 #include "core/CoreOwningPtr.hpp"
-#include "ObjectFactory.hpp"
 #include <array>
 #include <memory>
 #include <string>

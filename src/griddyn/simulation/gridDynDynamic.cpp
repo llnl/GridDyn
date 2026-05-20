@@ -3,17 +3,17 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "../events/Event.h"
-#include "../events/EventQueue.h"
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
+#include "../events/Event.h"
+#include "../events/EventQueue.h"
 #include "../solvers/SolverInterface.h"
-#include "core/CoreExceptions.h"
 #include "Diagnostics.h"
 #include "DynamicInitialConditionRecovery.h"
 #include "FaultResetRecovery.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "GridDynSimulationFileOps.h"
+#include "core/CoreExceptions.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixData.hpp"
 // system libraries
 #include <algorithm>

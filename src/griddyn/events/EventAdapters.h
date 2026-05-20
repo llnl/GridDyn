@@ -7,10 +7,10 @@
 #pragma once
 
 #include "../gridDynDefinitions.hpp"
+#include "EventInterface.hpp"
 #include "core/CoreObject.h"
 #include "core/ObjectInterpreter.h"
 #include "core/ObjectOperatorInterface.hpp"
-#include "EventInterface.hpp"
 #include <algorithm>
 #include <functional>
 #include <iostream>

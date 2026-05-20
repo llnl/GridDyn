@@ -6,12 +6,12 @@
 
 #include "DifferentialRelay.h"
 
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../comms/Communicator.h"
 #include "../comms/relayMessage.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
-#include "../GridBus.h"
 #include "../measurement/Condition.h"
 #include "core/coreObjectTemplates.hpp"
 #include <memory>

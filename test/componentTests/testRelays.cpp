@@ -5,9 +5,9 @@
  */
 
 #include "../gtestHelper.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/comms/Communicator.h"
 #include "griddyn/comms/ControlMessage.h"
-#include "griddyn/GridBus.h"
 #include "griddyn/relays/ControlRelay.h"
 #include "griddyn/relays/Pmu.h"
 #include "griddyn/relays/ZonalRelay.h"

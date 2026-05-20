@@ -3970,9 +3970,9 @@ SWIGINTERN PyObject *doubleArray_swigregister(PyObject *SWIGUNUSEDPARM(self), Py
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetResults__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   double *arg3 ;
   int arg4 ;
@@ -3990,27 +3990,27 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults__SWIG_0(PyObject *SWIGUN
   PyObject * obj3 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulation_getResults",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulationGetResults",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getResults" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetResults" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_getResults" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationGetResults" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_getResults" "', argument " "3"" of type '" "double [0]""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationGetResults" "', argument " "3"" of type '" "double [0]""'");
   }
   arg3 = (double *)(argp3);
   ecode4 = SWIG_AsVal_int(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulation_getResults" "', argument " "4"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulationGetResults" "', argument " "4"" of type '" "int""'");
   }
   arg4 = (int)(val4);
-  result = (int)gridDynSimulation_getResults(arg1,(char const *)arg2,arg3,arg4);
+  result = (int)gridDynSimulationGetResults(arg1,(char const *)arg2,arg3,arg4);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4020,7 +4020,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -4032,20 +4032,20 @@ SWIGINTERN PyObject *_wrap_gridDynObject_create(PyObject *SWIGUNUSEDPARM(self), 
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynObject result;
+  GridDynObject result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynObject_create",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynObjectCreate",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_create" "', argument " "1"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectCreate" "', argument " "1"" of type '" "char const *""'");
   }
   arg1 = (char *)(buf1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_create" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectCreate" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (gridDynObject)gridDynObject_create((char const *)arg1,(char const *)arg2);
+  result = (GridDynObject)GridDynObjectCreate((char const *)arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -4057,19 +4057,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_clone(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_clone(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
-  gridDynObject result;
+  GridDynObject result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynObject_clone",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynObjectClone",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_clone" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectClone" "', argument " "1"" of type '" "GridDynObject const""'");
   }
-  result = (gridDynObject)gridDynObject_clone(arg1);
+  result = (GridDynObject)GridDynObjectClone(arg1);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   return resultobj;
 fail:
@@ -4077,18 +4077,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynObject_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynObjectFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_free" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectFree" "', argument " "1"" of type '" "GridDynObject""'");
   }
-  gridDynObject_free(arg1);
+  GridDynObjectFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4096,26 +4096,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_add(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_add(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynObject_add",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynObjectAdd",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_add" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectAdd" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_add" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectAdd" "', argument " "2"" of type '" "GridDynObject""'");
   }
-  result = (griddyn_status)gridDynObject_add(arg1,arg2);
+  result = (griddyn_status)GridDynObjectAdd(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4123,26 +4123,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_remove(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_remove(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynObject_remove",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynObjectRemove",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_remove" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectRemove" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_remove" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectRemove" "', argument " "2"" of type '" "GridDynObject""'");
   }
-  result = (griddyn_status)gridDynObject_remove(arg1,arg2);
+  result = (griddyn_status)GridDynObjectRemove(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4150,9 +4150,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_setString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_setString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
@@ -4167,22 +4167,22 @@ SWIGINTERN PyObject *_wrap_gridDynObject_setString(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_setString",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectSetString",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_setString" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectSetString" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_setString" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectSetString" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_setString" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectSetString" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynObject_setString(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)GridDynObjectSetString(arg1,(char const *)arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
@@ -4194,9 +4194,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_setValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_setValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   int res1 ;
@@ -4210,22 +4210,22 @@ SWIGINTERN PyObject *_wrap_gridDynObject_setValue(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_setValue",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectSetValue",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_setValue" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectSetValue" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_setValue" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectSetValue" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_setValue" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectSetValue" "', argument " "3"" of type '" "double""'");
   }
   arg3 = (double)(val3);
-  result = (griddyn_status)gridDynObject_setValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynObjectSetValue(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4235,9 +4235,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_setValueUnits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_setValueUnits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   char *arg4 = (char *) 0 ;
@@ -4256,27 +4256,27 @@ SWIGINTERN PyObject *_wrap_gridDynObject_setValueUnits(PyObject *SWIGUNUSEDPARM(
   PyObject * obj3 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynObject_setValueUnits",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:GridDynObjectSetValueUnits",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_setValueUnits" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectSetValueUnits" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_setValueUnits" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectSetValueUnits" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_setValueUnits" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectSetValueUnits" "', argument " "3"" of type '" "double""'");
   }
   arg3 = (double)(val3);
   res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_setValueUnits" "', argument " "4"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectSetValueUnits" "', argument " "4"" of type '" "char const *""'");
   }
   arg4 = (char *)(buf4);
-  result = (griddyn_status)gridDynObject_setValueUnits(arg1,(char const *)arg2,arg3,(char const *)arg4);
+  result = (griddyn_status)GridDynObjectSetValueUnits(arg1,(char const *)arg2,arg3,(char const *)arg4);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc4 == SWIG_NEWOBJ) free((char*)buf4);
@@ -4288,9 +4288,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_setFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_setFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
   int res1 ;
@@ -4304,22 +4304,22 @@ SWIGINTERN PyObject *_wrap_gridDynObject_setFlag(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_setFlag",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectSetFlag",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_setFlag" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectSetFlag" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_setFlag" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectSetFlag" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_setFlag" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectSetFlag" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
-  result = (griddyn_status)gridDynObject_setFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynObjectSetFlag(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4329,9 +4329,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   int arg4 ;
@@ -4347,24 +4347,24 @@ SWIGINTERN PyObject *_wrap_gridDynObject_getString(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_getString",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectGetString",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getString" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetString" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getString" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetString" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_AsVal_size_t (obj2, &size3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_getString" "', argument " "3"" of type '" "(char *value, int N)""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGetString" "', argument " "3"" of type '" "(char *value, int N)""'");
   }
   buff3= (char *)calloc(size3+1, sizeof(char));
   arg4 = (int)(size3);
   arg3 = (char *)(buff3);
-  result = (griddyn_status)gridDynObject_getString(arg1,(char const *)arg2,arg3,arg4);
+  result = (griddyn_status)GridDynObjectGetString(arg1,(char const *)arg2,arg3,arg4);
   resultobj = SWIG_From_int((int)(result));
   resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_FromCharPtr(arg3));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -4377,9 +4377,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   double *arg3 = (double *) 0 ;
   int res1 ;
@@ -4393,22 +4393,22 @@ SWIGINTERN PyObject *_wrap_gridDynObject_getValue(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_getValue",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectGetValue",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getValue" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetValue" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getValue" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetValue" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_getValue" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGetValue" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
-  result = (griddyn_status)gridDynObject_getValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynObjectGetValue(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4418,9 +4418,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getValueUnits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getValueUnits(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   double *arg4 = (double *) 0 ;
@@ -4439,27 +4439,27 @@ SWIGINTERN PyObject *_wrap_gridDynObject_getValueUnits(PyObject *SWIGUNUSEDPARM(
   PyObject * obj3 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynObject_getValueUnits",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:GridDynObjectGetValueUnits",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getValueUnits" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetValueUnits" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getValueUnits" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetValueUnits" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_getValueUnits" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGetValueUnits" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_getValueUnits" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectGetValueUnits" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
-  result = (griddyn_status)gridDynObject_getValueUnits(arg1,(char const *)arg2,(char const *)arg3,arg4);
+  result = (griddyn_status)GridDynObjectGetValueUnits(arg1,(char const *)arg2,(char const *)arg3,arg4);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
@@ -4471,9 +4471,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int *arg3 = (int *) 0 ;
   int res1 ;
@@ -4487,22 +4487,22 @@ SWIGINTERN PyObject *_wrap_gridDynObject_getFlag(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_getFlag",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectGetFlag",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getFlag" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetFlag" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getFlag" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetFlag" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_int, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_getFlag" "', argument " "3"" of type '" "int *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGetFlag" "', argument " "3"" of type '" "int *""'");
   }
   arg3 = (int *)(argp3);
-  result = (griddyn_status)gridDynObject_getFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynObjectGetFlag(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4512,9 +4512,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_find(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_find(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -4522,19 +4522,19 @@ SWIGINTERN PyObject *_wrap_gridDynObject_find(PyObject *SWIGUNUSEDPARM(self), Py
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynObject result;
+  GridDynObject result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynObject_find",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynObjectFind",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_find" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectFind" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_find" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectFind" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (gridDynObject)gridDynObject_find(arg1,(char const *)arg2);
+  result = (GridDynObject)GridDynObjectFind(arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4544,50 +4544,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getSubObject(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getSubObject(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
-  char *arg2 = (char *) 0 ;
-  int arg3 ;
-  int res1 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  gridDynObject result;
-
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_getSubObject",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getSubObject" "', argument " "1"" of type '" "gridDynObject const""'");
-  }
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getSubObject" "', argument " "2"" of type '" "char const *""'");
-  }
-  arg2 = (char *)(buf2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_getSubObject" "', argument " "3"" of type '" "int""'");
-  }
-  arg3 = (int)(val3);
-  result = (gridDynObject)gridDynObject_getSubObject(arg1,(char const *)arg2,arg3);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_gridDynObject_findByUserId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
   int res1 ;
@@ -4599,24 +4558,24 @@ SWIGINTERN PyObject *_wrap_gridDynObject_findByUserId(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  gridDynObject result;
+  GridDynObject result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_findByUserId",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectGetSubObject",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_findByUserId" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetSubObject" "', argument " "1"" of type '" "GridDynObject const""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_findByUserId" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetSubObject" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_findByUserId" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectGetSubObject" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
-  result = (gridDynObject)gridDynObject_findByUserId(arg1,(char const *)arg2,arg3);
+  result = (GridDynObject)GridDynObjectGetSubObject(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4626,19 +4585,60 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getParent(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_findByUserId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
   int res1 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
-  gridDynObject result;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  GridDynObject result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynObject_getParent",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectFindByUserId",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getParent" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectFindByUserId" "', argument " "1"" of type '" "GridDynObject const""'");
   }
-  result = (gridDynObject)gridDynObject_getParent(arg1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectFindByUserId" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = (char *)(buf2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectFindByUserId" "', argument " "3"" of type '" "int""'");
+  }
+  arg3 = (int)(val3);
+  result = (GridDynObject)GridDynObjectFindByUserId(arg1,(char const *)arg2,arg3);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GridDynObject_getParent(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
+  int res1 ;
+  PyObject * obj0 = 0 ;
+  GridDynObject result;
+
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynObjectGetParent",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetParent" "', argument " "1"" of type '" "GridDynObject const""'");
+  }
+  result = (GridDynObject)GridDynObjectGetParent(arg1);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   return resultobj;
 fail:
@@ -4646,19 +4646,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   char *result = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynObject_getType",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynObjectGetType",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getType" "', argument " "1"" of type '" "gridDynObject const""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetType" "', argument " "1"" of type '" "GridDynObject const""'");
   }
-  result = (char *)gridDynObject_getType(arg1);
+  result = (char *)GridDynObjectGetType(arg1);
   resultobj = SWIG_FromCharPtr((const char *)result);
   return resultobj;
 fail:
@@ -4666,7 +4666,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationCreate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -4678,20 +4678,20 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_create(PyObject *SWIGUNUSEDPARM(sel
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynSimReference result;
+  GridDynSimulation result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_create",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationCreate",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_create" "', argument " "1"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationCreate" "', argument " "1"" of type '" "char const *""'");
   }
   arg1 = (char *)(buf1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_create" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationCreate" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (gridDynSimReference)gridDynSimulation_create((char const *)arg1,(char const *)arg2);
+  result = (GridDynSimulation)gridDynSimulationCreate((char const *)arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -4703,18 +4703,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationFree(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_free" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationFree" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  gridDynSimulation_free(arg1);
+  gridDynSimulationFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4722,9 +4722,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_initializeFromString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationInitializeFromString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -4734,17 +4734,17 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_initializeFromString(PyObject *SWIG
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_initializeFromString",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationInitializeFromString",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_initializeFromString" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationInitializeFromString" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_initializeFromString" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationInitializeFromString" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (griddyn_status)gridDynSimulation_initializeFromString(arg1,(char const *)arg2);
+  result = (griddyn_status)gridDynSimulationInitializeFromString(arg1,(char const *)arg2);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4754,9 +4754,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_initializeFromArgs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationInitializeFromArgs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int arg2 ;
   char **arg3 ;
   int arg4 ;
@@ -4773,27 +4773,27 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_initializeFromArgs(PyObject *SWIGUN
   PyObject * obj3 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulation_initializeFromArgs",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulationInitializeFromArgs",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_initializeFromArgs" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationInitializeFromArgs" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_initializeFromArgs" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationInitializeFromArgs" "', argument " "2"" of type '" "int""'");
   }
   arg2 = (int)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_p_char, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_initializeFromArgs" "', argument " "3"" of type '" "char *[]""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationInitializeFromArgs" "', argument " "3"" of type '" "char *[]""'");
   }
   arg3 = (char **)(argp3);
   ecode4 = SWIG_AsVal_int(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulation_initializeFromArgs" "', argument " "4"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulationInitializeFromArgs" "', argument " "4"" of type '" "int""'");
   }
   arg4 = (int)(val4);
-  result = (griddyn_status)gridDynSimulation_initializeFromArgs(arg1,arg2,arg3,arg4);
+  result = (griddyn_status)gridDynSimulationInitializeFromArgs(arg1,arg2,arg3,arg4);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4801,9 +4801,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_loadfile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationLoadfile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
@@ -4818,22 +4818,22 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_loadfile(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynSimulation_loadfile",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynSimulationLoadfile",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_loadfile" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationLoadfile" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_loadfile" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationLoadfile" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_loadfile" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationLoadfile" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynSimulation_loadfile(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynSimulationLoadfile(arg1,(char const *)arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
@@ -4845,9 +4845,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_addCommand(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationAddCommand(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -4857,17 +4857,17 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_addCommand(PyObject *SWIGUNUSEDPARM
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_addCommand",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationAddCommand",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_addCommand" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationAddCommand" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_addCommand" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationAddCommand" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (griddyn_status)gridDynSimulation_addCommand(arg1,(char const *)arg2);
+  result = (griddyn_status)gridDynSimulationAddCommand(arg1,(char const *)arg2);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -4877,19 +4877,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_powerflowInitialize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationPowerflowInitialize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_powerflowInitialize",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationPowerflowInitialize",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_powerflowInitialize" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationPowerflowInitialize" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_powerflowInitialize(arg1);
+  result = (griddyn_status)gridDynSimulationPowerflowInitialize(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4897,19 +4897,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_powerflow(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationPowerflow(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_powerflow",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationPowerflow",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_powerflow" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationPowerflow" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_powerflow(arg1);
+  result = (griddyn_status)gridDynSimulationPowerflow(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4917,19 +4917,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_dynamicInitialize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationDynamicInitialize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_dynamicInitialize",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationDynamicInitialize",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_dynamicInitialize" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationDynamicInitialize" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_dynamicInitialize(arg1);
+  result = (griddyn_status)gridDynSimulationDynamicInitialize(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4937,19 +4937,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_reset(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationReset(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_reset",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationReset",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_reset" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationReset" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_reset(arg1);
+  result = (griddyn_status)gridDynSimulationReset(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4957,19 +4957,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getCurrentTime(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetCurrentTime(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   double result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_getCurrentTime",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationGetCurrentTime",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getCurrentTime" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetCurrentTime" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (double)gridDynSimulation_getCurrentTime(arg1);
+  result = (double)gridDynSimulationGetCurrentTime(arg1);
   resultobj = SWIG_From_double((double)(result));
   return resultobj;
 fail:
@@ -4977,19 +4977,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_run(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationRun(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_run",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationRun",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_run" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationRun" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_run(arg1);
+  result = (griddyn_status)gridDynSimulationRun(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -4997,9 +4997,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_runTo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationRunTo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   int res1 ;
   double val2 ;
@@ -5008,17 +5008,17 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_runTo(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_runTo",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationRunTo",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_runTo" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationRunTo" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_runTo" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationRunTo" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
-  result = (griddyn_status)gridDynSimulation_runTo(arg1,arg2);
+  result = (griddyn_status)gridDynSimulationRunTo(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5026,19 +5026,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_Step(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationStep(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_Step",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationStep",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_Step" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationStep" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_Step(arg1);
+  result = (griddyn_status)gridDynSimulationStep(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5046,19 +5046,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_runAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationRunAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_runAsync",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationRunAsync",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_runAsync" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationRunAsync" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_runAsync(arg1);
+  result = (griddyn_status)gridDynSimulationRunAsync(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5066,9 +5066,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_runToAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationRunToAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   int res1 ;
   double val2 ;
@@ -5077,17 +5077,17 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_runToAsync(PyObject *SWIGUNUSEDPARM
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_runToAsync",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationRunToAsync",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_runToAsync" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationRunToAsync" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_runToAsync" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationRunToAsync" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
-  result = (griddyn_status)gridDynSimulation_runToAsync(arg1,arg2);
+  result = (griddyn_status)gridDynSimulationRunToAsync(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5095,19 +5095,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_StepAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationStepAsync(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_StepAsync",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationStepAsync",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_StepAsync" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationStepAsync" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynSimulation_StepAsync(arg1);
+  result = (griddyn_status)gridDynSimulationStepAsync(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5115,19 +5115,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getStatus(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetStatus(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_getStatus",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationGetStatus",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getStatus" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetStatus" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (int)gridDynSimulation_getStatus(arg1);
+  result = (int)gridDynSimulationGetStatus(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5137,17 +5137,17 @@ fail:
 
 SWIGINTERN PyObject *_wrap_getSimulationObject(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
-  gridDynObject result;
+  GridDynObject result;
 
   if (!PyArg_ParseTuple(args,(char *)"O:getSimulationObject",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getSimulationObject" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getSimulationObject" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (gridDynObject)getSimulationObject(arg1);
+  result = (GridDynObject)getSimulationObject(arg1);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   return resultobj;
 fail:
@@ -5155,9 +5155,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getSolverKey(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetSolverKey(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -5165,19 +5165,19 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getSolverKey(PyObject *SWIGUNUSEDPA
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  solverKey result;
+  SolverKey result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_getSolverKey",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationGetSolverKey",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getSolverKey" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetSolverKey" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_getSolverKey" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationGetSolverKey" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (solverKey)gridDynSimulation_getSolverKey(arg1,(char const *)arg2);
+  result = (SolverKey)gridDynSimulationGetSolverKey(arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -5187,18 +5187,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSolverKey_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSolverKeyFree(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  solverKey arg1 = (solverKey) 0 ;
+  SolverKey arg1 = (SolverKey) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSolverKey_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSolverKeyFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSolverKey_free" "', argument " "1"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSolverKeyFree" "', argument " "1"" of type '" "SolverKey""'");
   }
-  gridDynSolverKey_free(arg1);
+  gridDynSolverKeyFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5206,26 +5206,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_stateSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationStateSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
-  solverKey arg2 = (solverKey) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
+  SolverKey arg2 = (SolverKey) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulation_stateSize",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSimulationStateSize",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_stateSize" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationStateSize" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_stateSize" "', argument " "2"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationStateSize" "', argument " "2"" of type '" "SolverKey""'");
   }
-  result = (int)gridDynSimulation_stateSize(arg1,arg2);
+  result = (int)gridDynSimulationStateSize(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5233,19 +5233,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_busCount(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationBusCount(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_busCount",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationBusCount",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_busCount" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationBusCount" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (int)gridDynSimulation_busCount(arg1);
+  result = (int)gridDynSimulationBusCount(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5253,19 +5253,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_lineCount(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationLineCount(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulation_lineCount",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSimulationLineCount",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_lineCount" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationLineCount" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
-  result = (int)gridDynSimulation_lineCount(arg1);
+  result = (int)gridDynSimulationLineCount(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5273,9 +5273,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetResults__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   double *arg3 = (double *) 0 ;
   int arg4 ;
@@ -5293,27 +5293,27 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults__SWIG_1(PyObject *SWIGUN
   PyObject * obj3 = 0 ;
   int result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulation_getResults",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:gridDynSimulationGetResults",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getResults" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetResults" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_getResults" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationGetResults" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_getResults" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationGetResults" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   ecode4 = SWIG_AsVal_int(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulation_getResults" "', argument " "4"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynSimulationGetResults" "', argument " "4"" of type '" "int""'");
   }
   arg4 = (int)(val4);
-  result = (int)gridDynSimulation_getResults(arg1,(char const *)arg2,arg3,arg4);
+  result = (int)gridDynSimulationGetResults(arg1,(char const *)arg2,arg3,arg4);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -5323,7 +5323,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetResults(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
   PyObject *argv[5] = {
     0
@@ -5353,7 +5353,7 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults(PyObject *self, PyObject
             _v = SWIG_CheckState(res);
           }
           if (_v) {
-            return _wrap_gridDynSimulation_getResults__SWIG_0(self, args);
+            return _wrap_gridDynSimulationGetResults__SWIG_0(self, args);
           }
         }
       }
@@ -5377,7 +5377,7 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults(PyObject *self, PyObject
             _v = SWIG_CheckState(res);
           }
           if (_v) {
-            return _wrap_gridDynSimulation_getResults__SWIG_1(self, args);
+            return _wrap_gridDynSimulationGetResults__SWIG_1(self, args);
           }
         }
       }
@@ -5385,21 +5385,21 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getResults(PyObject *self, PyObject
   }
 
 fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'gridDynSimulation_getResults'.\n"
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'gridDynSimulationGetResults'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    gridDynSimulation_getResults(gridDynSimReference,char const *,double [0],int)\n"
-    "    gridDynSimulation_getResults(gridDynSimReference,char const *,double *,int)\n");
+    "    gridDynSimulationGetResults(GridDynSimulation,char const *,double [0],int)\n"
+    "    gridDynSimulationGetResults(GridDynSimulation,char const *,double *,int)\n");
   return 0;
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_guessState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGuessState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -5415,31 +5415,31 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_guessState(PyObject *SWIGUNUSEDPARM
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulation_guessState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulationGuessState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_guessState" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGuessState" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_guessState" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationGuessState" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_guessState" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationGuessState" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_guessState" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationGuessState" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulation_guessState" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulationGuessState" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_guessState(arg1,arg2,arg3,arg4,arg5);
+  result = (griddyn_status)gridDynSimulationGuessState(arg1,arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5447,13 +5447,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_setState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationSetState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -5469,31 +5469,31 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_setState(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulation_setState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulationSetState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_setState" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationSetState" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_setState" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationSetState" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_setState" "', argument " "3"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationSetState" "', argument " "3"" of type '" "double const *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_setState" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationSetState" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulation_setState" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulationSetState" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_setState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
+  result = (griddyn_status)gridDynSimulationSetState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5501,11 +5501,11 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_getStateVariableTypes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationGetStateVariableTypes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double *arg2 = (double *) 0 ;
-  solverKey arg3 = (solverKey) 0 ;
+  SolverKey arg3 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -5515,21 +5515,21 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_getStateVariableTypes(PyObject *SWI
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynSimulation_getStateVariableTypes",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynSimulationGetStateVariableTypes",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_getStateVariableTypes" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationGetStateVariableTypes" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulation_getStateVariableTypes" "', argument " "2"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSimulationGetStateVariableTypes" "', argument " "2"" of type '" "double *""'");
   }
   arg2 = (double *)(argp2);
   res3 = SWIG_ConvertPtr(obj2,SWIG_as_voidptrptr(&arg3), 0, 0);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_getStateVariableTypes" "', argument " "3"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationGetStateVariableTypes" "', argument " "3"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_getStateVariableTypes(arg1,arg2,arg3);
+  result = (griddyn_status)gridDynSimulationGetStateVariableTypes(arg1,arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5537,14 +5537,14 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_residual(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationResidual(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double *arg5 = (double *) 0 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -5563,36 +5563,36 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_residual(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj5 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynSimulation_residual",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynSimulationResidual",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_residual" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationResidual" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_residual" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationResidual" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_residual" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationResidual" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_residual" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationResidual" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4, &argp5,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulation_residual" "', argument " "5"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulationResidual" "', argument " "5"" of type '" "double const *""'");
   }
   arg5 = (double *)(argp5);
   res6 = SWIG_ConvertPtr(obj5,SWIG_as_voidptrptr(&arg6), 0, 0);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulation_residual" "', argument " "6"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulationResidual" "', argument " "6"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_residual(arg1,arg2,arg3,(double const *)arg4,(double const *)arg5,arg6);
+  result = (griddyn_status)gridDynSimulationResidual(arg1,arg2,arg3,(double const *)arg4,(double const *)arg5,arg6);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5600,13 +5600,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_derivative(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationDerivative(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -5622,31 +5622,31 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_derivative(PyObject *SWIGUNUSEDPARM
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulation_derivative",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynSimulationDerivative",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_derivative" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationDerivative" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_derivative" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationDerivative" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_derivative" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationDerivative" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_derivative" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationDerivative" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulation_derivative" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynSimulationDerivative" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_derivative(arg1,arg2,arg3,(double const *)arg4,arg5);
+  result = (griddyn_status)gridDynSimulationDerivative(arg1,arg2,arg3,(double const *)arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5654,14 +5654,14 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_algebraicUpdate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationAlgebraicUpdate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -5680,36 +5680,36 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_algebraicUpdate(PyObject *SWIGUNUSE
   PyObject * obj5 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynSimulation_algebraicUpdate",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynSimulationAlgebraicUpdate",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   ecode5 = SWIG_AsVal_double(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "5"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "5"" of type '" "double""'");
   }
   arg5 = (double)(val5);
   res6 = SWIG_ConvertPtr(obj5,SWIG_as_voidptrptr(&arg6), 0, 0);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulation_algebraicUpdate" "', argument " "6"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulationAlgebraicUpdate" "', argument " "6"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynSimulation_algebraicUpdate(arg1,arg2,arg3,(double const *)arg4,arg5,arg6);
+  result = (griddyn_status)gridDynSimulationAlgebraicUpdate(arg1,arg2,arg3,(double const *)arg4,arg5,arg6);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5717,14 +5717,14 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSimulation_jacobian(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_gridDynSimulationJacobian(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   void (*arg7)(int,int,double) = (void (*)(int,int,double)) 0 ;
   int res1 ;
   double val2 ;
@@ -5745,42 +5745,42 @@ SWIGINTERN PyObject *_wrap_gridDynSimulation_jacobian(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj6 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:gridDynSimulation_jacobian",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:gridDynSimulationJacobian",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulation_jacobian" "', argument " "1"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSimulationJacobian" "', argument " "1"" of type '" "GridDynSimulation""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulation_jacobian" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynSimulationJacobian" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulation_jacobian" "', argument " "3"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSimulationJacobian" "', argument " "3"" of type '" "double const *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulation_jacobian" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynSimulationJacobian" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   ecode5 = SWIG_AsVal_double(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "gridDynSimulation_jacobian" "', argument " "5"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "gridDynSimulationJacobian" "', argument " "5"" of type '" "double""'");
   }
   arg5 = (double)(val5);
   res6 = SWIG_ConvertPtr(obj5,SWIG_as_voidptrptr(&arg6), 0, 0);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulation_jacobian" "', argument " "6"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynSimulationJacobian" "', argument " "6"" of type '" "SolverKey""'");
   }
   {
     int res = SWIG_ConvertFunctionPtr(obj6, (void**)(&arg7), SWIGTYPE_p_f_int_int_double__void);
     if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "gridDynSimulation_jacobian" "', argument " "7"" of type '" "void (*)(int,int,double)""'");
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "gridDynSimulationJacobian" "', argument " "7"" of type '" "void (*)(int,int,double)""'");
     }
   }
-  result = (griddyn_status)gridDynSimulation_jacobian(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5,arg6,arg7);
+  result = (griddyn_status)gridDynSimulationJacobian(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5,arg6,arg7);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5788,9 +5788,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSingleQuery_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynSingleQuery_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -5798,19 +5798,19 @@ SWIGINTERN PyObject *_wrap_gridDynSingleQuery_create(PyObject *SWIGUNUSEDPARM(se
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynSingleQuery result;
+  GridDynSingleQuery result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynSingleQuery_create",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynSingleQueryCreate",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSingleQuery_create" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynSingleQueryCreate" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSingleQuery_create" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynSingleQueryCreate" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (gridDynSingleQuery)gridDynSingleQuery_create(arg1,(char const *)arg2);
+  result = (GridDynSingleQuery)GridDynSingleQueryCreate(arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -5820,9 +5820,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynVectorQuery_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynVectorQuery_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -5830,19 +5830,19 @@ SWIGINTERN PyObject *_wrap_gridDynVectorQuery_create(PyObject *SWIGUNUSEDPARM(se
   int alloc2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynVectorQuery result;
+  GridDynVectorQuery result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynVectorQuery_create",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynVectorQueryCreate",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynVectorQuery_create" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynVectorQueryCreate" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynVectorQuery_create" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynVectorQueryCreate" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
-  result = (gridDynVectorQuery)gridDynVectorQuery_create(arg1,(char const *)arg2);
+  result = (GridDynVectorQuery)GridDynVectorQueryCreate(arg1,(char const *)arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -5852,18 +5852,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSingleQuery_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynSingleQuery_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSingleQuery_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynSingleQueryFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSingleQuery_free" "', argument " "1"" of type '" "gridDynSingleQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynSingleQueryFree" "', argument " "1"" of type '" "GridDynSingleQuery""'");
   }
-  gridDynSingleQuery_free(arg1);
+  GridDynSingleQueryFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5871,18 +5871,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynVectorQuery_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynVectorQuery_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynVectorQuery_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynVectorQueryFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynVectorQuery_free" "', argument " "1"" of type '" "gridDynVectorQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynVectorQueryFree" "', argument " "1"" of type '" "GridDynVectorQuery""'");
   }
-  gridDynVectorQuery_free(arg1);
+  GridDynVectorQueryFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5890,19 +5890,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSingleQuery_run(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynSingleQuery_run(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   double result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynSingleQuery_run",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynSingleQueryRun",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSingleQuery_run" "', argument " "1"" of type '" "gridDynSingleQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynSingleQueryRun" "', argument " "1"" of type '" "GridDynSingleQuery""'");
   }
-  result = (double)gridDynSingleQuery_run(arg1);
+  result = (double)GridDynSingleQueryRun(arg1);
   resultobj = SWIG_From_double((double)(result));
   return resultobj;
 fail:
@@ -5910,9 +5910,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynVectorQuery_run(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynVectorQuery_run(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   int res1 ;
@@ -5925,22 +5925,22 @@ SWIGINTERN PyObject *_wrap_gridDynVectorQuery_run(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynVectorQuery_run",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynVectorQueryRun",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynVectorQuery_run" "', argument " "1"" of type '" "gridDynVectorQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynVectorQueryRun" "', argument " "1"" of type '" "GridDynVectorQuery""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynVectorQuery_run" "', argument " "2"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynVectorQueryRun" "', argument " "2"" of type '" "double *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynVectorQuery_run" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynVectorQueryRun" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
-  result = (griddyn_status)gridDynVectorQuery_run(arg1,arg2,arg3);
+  result = (griddyn_status)GridDynVectorQueryRun(arg1,arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -5948,10 +5948,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynVectorQuery_append(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynVectorQuery_append(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -5963,21 +5963,21 @@ SWIGINTERN PyObject *_wrap_gridDynVectorQuery_append(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynVectorQuery_append",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynVectorQueryAppend",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynVectorQuery_append" "', argument " "1"" of type '" "gridDynVectorQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynVectorQueryAppend" "', argument " "1"" of type '" "GridDynVectorQuery""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynVectorQuery_append" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynVectorQueryAppend" "', argument " "2"" of type '" "GridDynObject""'");
   }
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynVectorQuery_append" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynVectorQueryAppend" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynVectorQuery_append(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)GridDynVectorQueryAppend(arg1,arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   return resultobj;
@@ -5987,10 +5987,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynSingleQuery_update(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynSingleQuery_update(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -6002,21 +6002,21 @@ SWIGINTERN PyObject *_wrap_gridDynSingleQuery_update(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynSingleQuery_update",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynSingleQueryUpdate",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynSingleQuery_update" "', argument " "1"" of type '" "gridDynSingleQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynSingleQueryUpdate" "', argument " "1"" of type '" "GridDynSingleQuery""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynSingleQuery_update" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynSingleQueryUpdate" "', argument " "2"" of type '" "GridDynObject""'");
   }
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynSingleQuery_update" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynSingleQueryUpdate" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynSingleQuery_update(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)GridDynSingleQueryUpdate(arg1,arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   return resultobj;
@@ -6026,10 +6026,10 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynVectorQuery_update(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynVectorQuery_update(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
   int res2 ;
@@ -6041,21 +6041,21 @@ SWIGINTERN PyObject *_wrap_gridDynVectorQuery_update(PyObject *SWIGUNUSEDPARM(se
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynVectorQuery_update",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynVectorQueryUpdate",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynVectorQuery_update" "', argument " "1"" of type '" "gridDynVectorQuery""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynVectorQueryUpdate" "', argument " "1"" of type '" "GridDynVectorQuery""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynVectorQuery_update" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynVectorQueryUpdate" "', argument " "2"" of type '" "GridDynObject""'");
   }
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynVectorQuery_update" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynVectorQueryUpdate" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynVectorQuery_update(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)GridDynVectorQueryUpdate(arg1,arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
   return resultobj;
@@ -6065,29 +6065,29 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_create(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   int res1 ;
   char *buf1 = 0 ;
   int alloc1 = 0 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  gridDynEvent result;
+  GridDynEvent result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynEvent_create",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynEventCreate",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_create" "', argument " "1"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventCreate" "', argument " "1"" of type '" "char const *""'");
   }
   arg1 = (char *)(buf1);
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_create" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventCreate" "', argument " "2"" of type '" "GridDynObject""'");
   }
-  result = (gridDynEvent)gridDynEvent_create((char const *)arg1,arg2);
+  result = (GridDynEvent)GridDynEventCreate((char const *)arg1,arg2);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
   return resultobj;
@@ -6097,18 +6097,18 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_free(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynEvent_free",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynEventFree",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_free" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventFree" "', argument " "1"" of type '" "GridDynEvent""'");
   }
-  gridDynEvent_free(arg1);
+  GridDynEventFree(arg1);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6116,19 +6116,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_trigger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_trigger(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   int res1 ;
   PyObject * obj0 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"O:gridDynEvent_trigger",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:GridDynEventTrigger",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_trigger" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventTrigger" "', argument " "1"" of type '" "GridDynEvent""'");
   }
-  result = (griddyn_status)gridDynEvent_trigger(arg1);
+  result = (griddyn_status)GridDynEventTrigger(arg1);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6136,26 +6136,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_schedule(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_schedule(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
-  gridDynSimReference arg2 = (gridDynSimReference) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
+  GridDynSimulation arg2 = (GridDynSimulation) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynEvent_schedule",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynEventSchedule",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_schedule" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventSchedule" "', argument " "1"" of type '" "GridDynEvent""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_schedule" "', argument " "2"" of type '" "gridDynSimReference""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventSchedule" "', argument " "2"" of type '" "GridDynSimulation""'");
   }
-  result = (griddyn_status)gridDynEvent_schedule(arg1,arg2);
+  result = (griddyn_status)GridDynEventSchedule(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6163,9 +6163,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_setValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_setValue(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   int res1 ;
@@ -6179,22 +6179,22 @@ SWIGINTERN PyObject *_wrap_gridDynEvent_setValue(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynEvent_setValue",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynEventSetValue",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_setValue" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventSetValue" "', argument " "1"" of type '" "GridDynEvent""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_setValue" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventSetValue" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynEvent_setValue" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynEventSetValue" "', argument " "3"" of type '" "double""'");
   }
   arg3 = (double)(val3);
-  result = (griddyn_status)gridDynEvent_setValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynEventSetValue(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -6204,9 +6204,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_setString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_setString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   int res1 ;
@@ -6221,22 +6221,22 @@ SWIGINTERN PyObject *_wrap_gridDynEvent_setString(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynEvent_setString",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynEventSetString",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_setString" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventSetString" "', argument " "1"" of type '" "GridDynEvent""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_setString" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventSetString" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynEvent_setString" "', argument " "3"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynEventSetString" "', argument " "3"" of type '" "char const *""'");
   }
   arg3 = (char *)(buf3);
-  result = (griddyn_status)gridDynEvent_setString(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)GridDynEventSetString(arg1,(char const *)arg2,(char const *)arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
@@ -6248,9 +6248,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_setFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_setFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
   int res1 ;
@@ -6264,22 +6264,22 @@ SWIGINTERN PyObject *_wrap_gridDynEvent_setFlag(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynEvent_setFlag",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynEventSetFlag",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_setFlag" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventSetFlag" "', argument " "1"" of type '" "GridDynEvent""'");
   }
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_setFlag" "', argument " "2"" of type '" "char const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventSetFlag" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = (char *)(buf2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynEvent_setFlag" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynEventSetFlag" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
-  result = (griddyn_status)gridDynEvent_setFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)GridDynEventSetFlag(arg1,(char const *)arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
   return resultobj;
@@ -6289,26 +6289,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynEvent_setTarget(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynEvent_setTarget(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynEvent_setTarget",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynEventSetTarget",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynEvent_setTarget" "', argument " "1"" of type '" "gridDynEvent""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynEventSetTarget" "', argument " "1"" of type '" "GridDynEvent""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynEvent_setTarget" "', argument " "2"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynEventSetTarget" "', argument " "2"" of type '" "GridDynObject""'");
   }
-  result = (griddyn_status)gridDynEvent_setTarget(arg1,arg2);
+  result = (griddyn_status)GridDynEventSetTarget(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6316,26 +6316,26 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_stateSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_stateSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  solverKey arg2 = (solverKey) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  SolverKey arg2 = (SolverKey) 0 ;
   int res1 ;
   int res2 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OO:gridDynObject_stateSize",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:GridDynObjectStateSize",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_stateSize" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectStateSize" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, 0);
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_stateSize" "', argument " "2"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectStateSize" "', argument " "2"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_stateSize(arg1,arg2);
+  result = (griddyn_status)GridDynObjectStateSize(arg1,arg2);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6343,13 +6343,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_guessState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_guessState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -6365,31 +6365,31 @@ SWIGINTERN PyObject *_wrap_gridDynObject_guessState(PyObject *SWIGUNUSEDPARM(sel
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_guessState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectGuessState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_guessState" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGuessState" "', argument " "1"" of type '" "GridDynObject""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynObject_guessState" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GridDynObjectGuessState" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_guessState" "', argument " "3"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGuessState" "', argument " "3"" of type '" "double *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_guessState" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectGuessState" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_guessState" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectGuessState" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_guessState(arg1,arg2,arg3,arg4,arg5);
+  result = (griddyn_status)GridDynObjectGuessState(arg1,arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6397,13 +6397,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_setState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_setState(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   double val2 ;
   int ecode2 = 0 ;
@@ -6419,31 +6419,31 @@ SWIGINTERN PyObject *_wrap_gridDynObject_setState(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_setState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectSetState",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_setState" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectSetState" "', argument " "1"" of type '" "GridDynObject""'");
   }
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "gridDynObject_setState" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GridDynObjectSetState" "', argument " "2"" of type '" "double""'");
   }
   arg2 = (double)(val2);
   res3 = SWIG_ConvertPtr(obj2, &argp3,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_setState" "', argument " "3"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectSetState" "', argument " "3"" of type '" "double const *""'");
   }
   arg3 = (double *)(argp3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_setState" "', argument " "4"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectSetState" "', argument " "4"" of type '" "double const *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_setState" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectSetState" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_setState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
+  result = (griddyn_status)GridDynObjectSetState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6451,11 +6451,11 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_getStateVariableTypes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_getStateVariableTypes(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
-  solverKey arg3 = (solverKey) 0 ;
+  SolverKey arg3 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6465,21 +6465,21 @@ SWIGINTERN PyObject *_wrap_gridDynObject_getStateVariableTypes(PyObject *SWIGUNU
   PyObject * obj2 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOO:gridDynObject_getStateVariableTypes",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GridDynObjectGetStateVariableTypes",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_getStateVariableTypes" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectGetStateVariableTypes" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_getStateVariableTypes" "', argument " "2"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectGetStateVariableTypes" "', argument " "2"" of type '" "double *""'");
   }
   arg2 = (double *)(argp2);
   res3 = SWIG_ConvertPtr(obj2,SWIG_as_voidptrptr(&arg3), 0, 0);
   if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "gridDynObject_getStateVariableTypes" "', argument " "3"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "GridDynObjectGetStateVariableTypes" "', argument " "3"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_getStateVariableTypes(arg1,arg2,arg3);
+  result = (griddyn_status)GridDynObjectGetStateVariableTypes(arg1,arg2,arg3);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6487,13 +6487,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_residual(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_residual(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6509,31 +6509,31 @@ SWIGINTERN PyObject *_wrap_gridDynObject_residual(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_residual",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectResidual",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_residual" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectResidual" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_residual" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectResidual" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_residual" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectResidual" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_residual" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectResidual" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_residual" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectResidual" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_residual(arg1,(double const *)arg2,arg3,arg4,arg5);
+  result = (griddyn_status)GridDynObjectResidual(arg1,(double const *)arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6541,13 +6541,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_derivative(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_derivative(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6563,31 +6563,31 @@ SWIGINTERN PyObject *_wrap_gridDynObject_derivative(PyObject *SWIGUNUSEDPARM(sel
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_derivative",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectDerivative",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_derivative" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectDerivative" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_derivative" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectDerivative" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_derivative" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectDerivative" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_derivative" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectDerivative" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_derivative" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectDerivative" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_derivative(arg1,(double const *)arg2,arg3,arg4,arg5);
+  result = (griddyn_status)GridDynObjectDerivative(arg1,(double const *)arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6595,14 +6595,14 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_algebraicUpdate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_algebraicUpdate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6621,36 +6621,36 @@ SWIGINTERN PyObject *_wrap_gridDynObject_algebraicUpdate(PyObject *SWIGUNUSEDPAR
   PyObject * obj5 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynObject_algebraicUpdate",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:GridDynObjectAlgebraicUpdate",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_algebraicUpdate" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_algebraicUpdate" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_algebraicUpdate" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   res4 = SWIG_ConvertPtr(obj3, &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "gridDynObject_algebraicUpdate" "', argument " "4"" of type '" "double *""'");
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "4"" of type '" "double *""'");
   }
   arg4 = (double *)(argp4);
   ecode5 = SWIG_AsVal_double(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "gridDynObject_algebraicUpdate" "', argument " "5"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "5"" of type '" "double""'");
   }
   arg5 = (double)(val5);
   res6 = SWIG_ConvertPtr(obj5,SWIG_as_voidptrptr(&arg6), 0, 0);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynObject_algebraicUpdate" "', argument " "6"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "GridDynObjectAlgebraicUpdate" "', argument " "6"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_algebraicUpdate(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
+  result = (griddyn_status)GridDynObjectAlgebraicUpdate(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6658,14 +6658,14 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_jacobian(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_jacobian(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double arg4 ;
   void (*arg5)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6682,37 +6682,37 @@ SWIGINTERN PyObject *_wrap_gridDynObject_jacobian(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj5 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:gridDynObject_jacobian",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:GridDynObjectJacobian",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_jacobian" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectJacobian" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_jacobian" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectJacobian" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_jacobian" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectJacobian" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   ecode4 = SWIG_AsVal_double(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "gridDynObject_jacobian" "', argument " "4"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "GridDynObjectJacobian" "', argument " "4"" of type '" "double""'");
   }
   arg4 = (double)(val4);
   {
     int res = SWIG_ConvertFunctionPtr(obj4, (void**)(&arg5), SWIGTYPE_p_f_int_int_double__void);
     if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "gridDynObject_jacobian" "', argument " "5"" of type '" "void (*)(int,int,double)""'");
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "GridDynObjectJacobian" "', argument " "5"" of type '" "void (*)(int,int,double)""'");
     }
   }
   res6 = SWIG_ConvertPtr(obj5,SWIG_as_voidptrptr(&arg6), 0, 0);
   if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "gridDynObject_jacobian" "', argument " "6"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "GridDynObjectJacobian" "', argument " "6"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_jacobian(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
+  result = (griddyn_status)GridDynObjectJacobian(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6720,13 +6720,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_ioPartialDerivatives(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_ioPartialDerivatives(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   void (*arg4)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6740,32 +6740,32 @@ SWIGINTERN PyObject *_wrap_gridDynObject_ioPartialDerivatives(PyObject *SWIGUNUS
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_ioPartialDerivatives",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectIoPartialDerivatives",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_ioPartialDerivatives" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectIoPartialDerivatives" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_ioPartialDerivatives" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectIoPartialDerivatives" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_ioPartialDerivatives" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectIoPartialDerivatives" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   {
     int res = SWIG_ConvertFunctionPtr(obj3, (void**)(&arg4), SWIGTYPE_p_f_int_int_double__void);
     if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "gridDynObject_ioPartialDerivatives" "', argument " "4"" of type '" "void (*)(int,int,double)""'");
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "GridDynObjectIoPartialDerivatives" "', argument " "4"" of type '" "void (*)(int,int,double)""'");
     }
   }
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_ioPartialDerivatives" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectIoPartialDerivatives" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_ioPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
+  result = (griddyn_status)GridDynObjectIoPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6773,13 +6773,13 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_gridDynObject_outputPartialDerivatives(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_GridDynObject_outputPartialDerivatives(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   void (*arg4)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   int res1 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
@@ -6793,32 +6793,32 @@ SWIGINTERN PyObject *_wrap_gridDynObject_outputPartialDerivatives(PyObject *SWIG
   PyObject * obj4 = 0 ;
   griddyn_status result;
 
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:gridDynObject_outputPartialDerivatives",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:GridDynObjectOutputPartialDerivatives",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0,SWIG_as_voidptrptr(&arg1), 0, 0);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "gridDynObject_outputPartialDerivatives" "', argument " "1"" of type '" "gridDynObject""'");
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GridDynObjectOutputPartialDerivatives" "', argument " "1"" of type '" "GridDynObject""'");
   }
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "gridDynObject_outputPartialDerivatives" "', argument " "2"" of type '" "double const *""'");
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GridDynObjectOutputPartialDerivatives" "', argument " "2"" of type '" "double const *""'");
   }
   arg2 = (double *)(argp2);
   ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "gridDynObject_outputPartialDerivatives" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GridDynObjectOutputPartialDerivatives" "', argument " "3"" of type '" "int""'");
   }
   arg3 = (int)(val3);
   {
     int res = SWIG_ConvertFunctionPtr(obj3, (void**)(&arg4), SWIGTYPE_p_f_int_int_double__void);
     if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "gridDynObject_outputPartialDerivatives" "', argument " "4"" of type '" "void (*)(int,int,double)""'");
+      SWIG_exception_fail(SWIG_ArgError(res), "in method '" "GridDynObjectOutputPartialDerivatives" "', argument " "4"" of type '" "void (*)(int,int,double)""'");
     }
   }
   res5 = SWIG_ConvertPtr(obj4,SWIG_as_voidptrptr(&arg5), 0, 0);
   if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "gridDynObject_outputPartialDerivatives" "', argument " "5"" of type '" "solverKey""'");
+    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "GridDynObjectOutputPartialDerivatives" "', argument " "5"" of type '" "SolverKey""'");
   }
-  result = (griddyn_status)gridDynObject_outputPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
+  result = (griddyn_status)GridDynObjectOutputPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
   resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
@@ -6845,83 +6845,83 @@ static PyMethodDef SwigMethods[] = {
      { (char *)"doubleArray_cast", _wrap_doubleArray_cast, METH_VARARGS, NULL},
      { (char *)"doubleArray_frompointer", _wrap_doubleArray_frompointer, METH_VARARGS, NULL},
      { (char *)"doubleArray_swigregister", doubleArray_swigregister, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_create", _wrap_gridDynObject_create, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_clone", _wrap_gridDynObject_clone, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_free", _wrap_gridDynObject_free, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_add", _wrap_gridDynObject_add, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_remove", _wrap_gridDynObject_remove, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_setString", _wrap_gridDynObject_setString, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_setValue", _wrap_gridDynObject_setValue, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_setValueUnits", _wrap_gridDynObject_setValueUnits, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_setFlag", _wrap_gridDynObject_setFlag, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getString", _wrap_gridDynObject_getString, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getValue", _wrap_gridDynObject_getValue, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getValueUnits", _wrap_gridDynObject_getValueUnits, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getFlag", _wrap_gridDynObject_getFlag, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_find", _wrap_gridDynObject_find, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getSubObject", _wrap_gridDynObject_getSubObject, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_findByUserId", _wrap_gridDynObject_findByUserId, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getParent", _wrap_gridDynObject_getParent, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getType", _wrap_gridDynObject_getType, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_create", _wrap_gridDynSimulation_create, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_free", _wrap_gridDynSimulation_free, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_initializeFromString", _wrap_gridDynSimulation_initializeFromString, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_initializeFromArgs", _wrap_gridDynSimulation_initializeFromArgs, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_loadfile", _wrap_gridDynSimulation_loadfile, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_addCommand", _wrap_gridDynSimulation_addCommand, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_powerflowInitialize", _wrap_gridDynSimulation_powerflowInitialize, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_powerflow", _wrap_gridDynSimulation_powerflow, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_dynamicInitialize", _wrap_gridDynSimulation_dynamicInitialize, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_reset", _wrap_gridDynSimulation_reset, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_getCurrentTime", _wrap_gridDynSimulation_getCurrentTime, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_run", _wrap_gridDynSimulation_run, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_runTo", _wrap_gridDynSimulation_runTo, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_Step", _wrap_gridDynSimulation_Step, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_runAsync", _wrap_gridDynSimulation_runAsync, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_runToAsync", _wrap_gridDynSimulation_runToAsync, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_StepAsync", _wrap_gridDynSimulation_StepAsync, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_getStatus", _wrap_gridDynSimulation_getStatus, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectCreate", _wrap_GridDynObject_create, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectClone", _wrap_GridDynObject_clone, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectFree", _wrap_GridDynObject_free, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectAdd", _wrap_GridDynObject_add, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectRemove", _wrap_GridDynObject_remove, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectSetString", _wrap_GridDynObject_setString, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectSetValue", _wrap_GridDynObject_setValue, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectSetValueUnits", _wrap_GridDynObject_setValueUnits, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectSetFlag", _wrap_GridDynObject_setFlag, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetString", _wrap_GridDynObject_getString, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetValue", _wrap_GridDynObject_getValue, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetValueUnits", _wrap_GridDynObject_getValueUnits, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetFlag", _wrap_GridDynObject_getFlag, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectFind", _wrap_GridDynObject_find, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetSubObject", _wrap_GridDynObject_getSubObject, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectFindByUserId", _wrap_GridDynObject_findByUserId, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetParent", _wrap_GridDynObject_getParent, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetType", _wrap_GridDynObject_getType, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationCreate", _wrap_gridDynSimulationCreate, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationFree", _wrap_gridDynSimulationFree, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationInitializeFromString", _wrap_gridDynSimulationInitializeFromString, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationInitializeFromArgs", _wrap_gridDynSimulationInitializeFromArgs, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationLoadfile", _wrap_gridDynSimulationLoadfile, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationAddCommand", _wrap_gridDynSimulationAddCommand, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationPowerflowInitialize", _wrap_gridDynSimulationPowerflowInitialize, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationPowerflow", _wrap_gridDynSimulationPowerflow, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationDynamicInitialize", _wrap_gridDynSimulationDynamicInitialize, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationReset", _wrap_gridDynSimulationReset, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGetCurrentTime", _wrap_gridDynSimulationGetCurrentTime, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationRun", _wrap_gridDynSimulationRun, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationRunTo", _wrap_gridDynSimulationRunTo, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationStep", _wrap_gridDynSimulationStep, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationRunAsync", _wrap_gridDynSimulationRunAsync, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationRunToAsync", _wrap_gridDynSimulationRunToAsync, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationStepAsync", _wrap_gridDynSimulationStepAsync, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGetStatus", _wrap_gridDynSimulationGetStatus, METH_VARARGS, NULL},
      { (char *)"getSimulationObject", _wrap_getSimulationObject, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_getSolverKey", _wrap_gridDynSimulation_getSolverKey, METH_VARARGS, NULL},
-     { (char *)"gridDynSolverKey_free", _wrap_gridDynSolverKey_free, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_stateSize", _wrap_gridDynSimulation_stateSize, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_busCount", _wrap_gridDynSimulation_busCount, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_lineCount", _wrap_gridDynSimulation_lineCount, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_getResults", _wrap_gridDynSimulation_getResults, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_guessState", _wrap_gridDynSimulation_guessState, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_setState", _wrap_gridDynSimulation_setState, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_getStateVariableTypes", _wrap_gridDynSimulation_getStateVariableTypes, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_residual", _wrap_gridDynSimulation_residual, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_derivative", _wrap_gridDynSimulation_derivative, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_algebraicUpdate", _wrap_gridDynSimulation_algebraicUpdate, METH_VARARGS, NULL},
-     { (char *)"gridDynSimulation_jacobian", _wrap_gridDynSimulation_jacobian, METH_VARARGS, NULL},
-     { (char *)"gridDynSingleQuery_create", _wrap_gridDynSingleQuery_create, METH_VARARGS, NULL},
-     { (char *)"gridDynVectorQuery_create", _wrap_gridDynVectorQuery_create, METH_VARARGS, NULL},
-     { (char *)"gridDynSingleQuery_free", _wrap_gridDynSingleQuery_free, METH_VARARGS, NULL},
-     { (char *)"gridDynVectorQuery_free", _wrap_gridDynVectorQuery_free, METH_VARARGS, NULL},
-     { (char *)"gridDynSingleQuery_run", _wrap_gridDynSingleQuery_run, METH_VARARGS, NULL},
-     { (char *)"gridDynVectorQuery_run", _wrap_gridDynVectorQuery_run, METH_VARARGS, NULL},
-     { (char *)"gridDynVectorQuery_append", _wrap_gridDynVectorQuery_append, METH_VARARGS, NULL},
-     { (char *)"gridDynSingleQuery_update", _wrap_gridDynSingleQuery_update, METH_VARARGS, NULL},
-     { (char *)"gridDynVectorQuery_update", _wrap_gridDynVectorQuery_update, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_create", _wrap_gridDynEvent_create, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_free", _wrap_gridDynEvent_free, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_trigger", _wrap_gridDynEvent_trigger, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_schedule", _wrap_gridDynEvent_schedule, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_setValue", _wrap_gridDynEvent_setValue, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_setString", _wrap_gridDynEvent_setString, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_setFlag", _wrap_gridDynEvent_setFlag, METH_VARARGS, NULL},
-     { (char *)"gridDynEvent_setTarget", _wrap_gridDynEvent_setTarget, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_stateSize", _wrap_gridDynObject_stateSize, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_guessState", _wrap_gridDynObject_guessState, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_setState", _wrap_gridDynObject_setState, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_getStateVariableTypes", _wrap_gridDynObject_getStateVariableTypes, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_residual", _wrap_gridDynObject_residual, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_derivative", _wrap_gridDynObject_derivative, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_algebraicUpdate", _wrap_gridDynObject_algebraicUpdate, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_jacobian", _wrap_gridDynObject_jacobian, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_ioPartialDerivatives", _wrap_gridDynObject_ioPartialDerivatives, METH_VARARGS, NULL},
-     { (char *)"gridDynObject_outputPartialDerivatives", _wrap_gridDynObject_outputPartialDerivatives, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGetSolverKey", _wrap_gridDynSimulationGetSolverKey, METH_VARARGS, NULL},
+     { (char *)"gridDynSolverKeyFree", _wrap_gridDynSolverKeyFree, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationStateSize", _wrap_gridDynSimulationStateSize, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationBusCount", _wrap_gridDynSimulationBusCount, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationLineCount", _wrap_gridDynSimulationLineCount, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGetResults", _wrap_gridDynSimulationGetResults, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGuessState", _wrap_gridDynSimulationGuessState, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationSetState", _wrap_gridDynSimulationSetState, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationGetStateVariableTypes", _wrap_gridDynSimulationGetStateVariableTypes, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationResidual", _wrap_gridDynSimulationResidual, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationDerivative", _wrap_gridDynSimulationDerivative, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationAlgebraicUpdate", _wrap_gridDynSimulationAlgebraicUpdate, METH_VARARGS, NULL},
+     { (char *)"gridDynSimulationJacobian", _wrap_gridDynSimulationJacobian, METH_VARARGS, NULL},
+     { (char *)"GridDynSingleQueryCreate", _wrap_GridDynSingleQuery_create, METH_VARARGS, NULL},
+     { (char *)"GridDynVectorQueryCreate", _wrap_GridDynVectorQuery_create, METH_VARARGS, NULL},
+     { (char *)"GridDynSingleQueryFree", _wrap_GridDynSingleQuery_free, METH_VARARGS, NULL},
+     { (char *)"GridDynVectorQueryFree", _wrap_GridDynVectorQuery_free, METH_VARARGS, NULL},
+     { (char *)"GridDynSingleQueryRun", _wrap_GridDynSingleQuery_run, METH_VARARGS, NULL},
+     { (char *)"GridDynVectorQueryRun", _wrap_GridDynVectorQuery_run, METH_VARARGS, NULL},
+     { (char *)"GridDynVectorQueryAppend", _wrap_GridDynVectorQuery_append, METH_VARARGS, NULL},
+     { (char *)"GridDynSingleQueryUpdate", _wrap_GridDynSingleQuery_update, METH_VARARGS, NULL},
+     { (char *)"GridDynVectorQueryUpdate", _wrap_GridDynVectorQuery_update, METH_VARARGS, NULL},
+     { (char *)"GridDynEventCreate", _wrap_GridDynEvent_create, METH_VARARGS, NULL},
+     { (char *)"GridDynEventFree", _wrap_GridDynEvent_free, METH_VARARGS, NULL},
+     { (char *)"GridDynEventTrigger", _wrap_GridDynEvent_trigger, METH_VARARGS, NULL},
+     { (char *)"GridDynEventSchedule", _wrap_GridDynEvent_schedule, METH_VARARGS, NULL},
+     { (char *)"GridDynEventSetValue", _wrap_GridDynEvent_setValue, METH_VARARGS, NULL},
+     { (char *)"GridDynEventSetString", _wrap_GridDynEvent_setString, METH_VARARGS, NULL},
+     { (char *)"GridDynEventSetFlag", _wrap_GridDynEvent_setFlag, METH_VARARGS, NULL},
+     { (char *)"GridDynEventSetTarget", _wrap_GridDynEvent_setTarget, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectStateSize", _wrap_GridDynObject_stateSize, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGuessState", _wrap_GridDynObject_guessState, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectSetState", _wrap_GridDynObject_setState, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectGetStateVariableTypes", _wrap_GridDynObject_getStateVariableTypes, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectResidual", _wrap_GridDynObject_residual, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectDerivative", _wrap_GridDynObject_derivative, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectAlgebraicUpdate", _wrap_GridDynObject_algebraicUpdate, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectJacobian", _wrap_GridDynObject_jacobian, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectIoPartialDerivatives", _wrap_GridDynObject_ioPartialDerivatives, METH_VARARGS, NULL},
+     { (char *)"GridDynObjectOutputPartialDerivatives", _wrap_GridDynObject_outputPartialDerivatives, METH_VARARGS, NULL},
      { NULL, NULL, 0, NULL }
 };
 
@@ -6938,7 +6938,7 @@ static swig_type_info _swigt__p_f_int_int_double__void = {"_p_f_int_int_double__
 static swig_type_info _swigt__p_griddyn_status_enum = {"_p_griddyn_status_enum", "enum griddyn_status_enum *|griddyn_status_enum *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *|griddyn_status *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_void = {"_p_void", "gridDynObject|gridDynVectorQuery|gridDynSimReference|gridDynEvent|void *|solverKey|gridDynSingleQuery", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_void = {"_p_void", "GridDynObject|GridDynVectorQuery|GridDynSimulation|GridDynEvent|void *|SolverKey|GridDynSingleQuery", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,

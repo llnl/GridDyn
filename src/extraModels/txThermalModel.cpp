@@ -10,7 +10,7 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/Link.h"
-#include "griddyn/blocks/delayBlock.h"
+#include "griddyn/blocks/DelayBlock.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Condition.h"
 #include "griddyn/measurement/grabberSet.h"

@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "blocks/controlBlock.h"
-#include "blocks/deadbandBlock.h"
-#include "blocks/delayBlock.h"
+#include "blocks/ControlBlock.h"
+#include "blocks/DeadbandBlock.h"
+#include "blocks/DelayBlock.h"
 #include "gridSubModel.h"
 #include <string>
 #include <vector>

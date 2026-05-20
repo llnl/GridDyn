@@ -7,9 +7,9 @@
 #pragma once
 
 #include "../Governor.h"
-#include "../blocks/controlBlock.h"
-#include "../blocks/deadbandBlock.h"
-#include "../blocks/delayBlock.h"
+#include "../blocks/ControlBlock.h"
+#include "../blocks/DeadbandBlock.h"
+#include "../blocks/DelayBlock.h"
 #include <string>
 #include <vector>
 

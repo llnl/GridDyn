@@ -9,7 +9,7 @@
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "griddyn/Link.h"
-#include "griddyn/blocks/integralBlock.h"
+#include "griddyn/blocks/IntegralBlock.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Condition.h"
 #include "griddyn/measurement/grabberSet.h"

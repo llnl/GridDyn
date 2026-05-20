@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "lutBlock.h"
+#include "LutBlock.h"
 
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
@@ -22,7 +22,7 @@ LutBlock::LutBlock(const std::string& objName): GridBlock(objName)
 }
 CoreObject* LutBlock::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<LutBlock, GridBlock>(this, obj);
+    auto* nobj = cloneBase<LutBlock, GridBlock>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -50,31 +50,33 @@ void LutBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void LutBlock::blockAlgebraicUpdate(double input,
-                                    const stateData& sD,
+                                    const stateData& stateDataValue,
                                     double update[],
                                     const solverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     update[offset] = K * computeValue(input + bias);
     if (limiter_alg > 0) {
-        return GridBlock::blockAlgebraicUpdate(input, sD, update, sMode);
+        GridBlock::blockAlgebraicUpdate(input, stateDataValue, update, sMode);
+        return;
     }
 }
 
 void LutBlock::blockJacobianElements(double input,
                                      double didt,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateDataValue,
+                                     matrixData<double>& matrixDataValue,
                                      index_t argLoc,
                                      const solverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    md.assignCheckCol(offset, argLoc, K * m);
-    md.assign(offset, offset, -1);
+    matrixDataValue.assignCheckCol(offset, argLoc, K * m);
+    matrixDataValue.assign(offset, offset, -1);
     if (limiter_alg > 0) {
-        GridBlock::blockJacobianElements(input, didt, sD, md, argLoc, sMode);
+        GridBlock::blockJacobianElements(
+            input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
     }
 }
 
@@ -83,32 +85,33 @@ void LutBlock::set(std::string_view param, std::string_view val)
 {
     using gmlc::utilities::str2vector;
     if (param == "lut") {
-        auto v2 = str2vector(std::string{val}, -kBigNum, ";,:");
+        const auto vectorData = str2vector(std::string{val}, -kBigNum, ";,:");
         lut.clear();
         lut.emplace_back(-kBigNum, 0.0);
         lut.emplace_back(kBigNum, 0.0);
-        for (size_t mm = 0; mm < v2.size(); mm += 2) {
-            lut.emplace_back(v2[mm], v2[mm + 1]);
+        for (size_t mm = 0; mm < vectorData.size(); mm += 2) {
+            lut.emplace_back(vectorData[mm], vectorData[mm + 1]);
         }
         std::sort(lut.begin(), lut.end());
         lut[0].second = lut[1].second;
         (*lut.end()).second = (*(lut.end() - 1)).second;
     } else if (param == "element") {
-        auto v2 = str2vector(std::string{val}, -kBigNum, ";,:");
-        for (size_t mm = 0; mm < v2.size(); mm += 2) {
-            lut.emplace_back(v2[mm], v2[mm + 1]);
+        const auto vectorData = str2vector(std::string{val}, -kBigNum, ";,:");
+        for (size_t mm = 0; mm < vectorData.size(); mm += 2) {
+            lut.emplace_back(vectorData[mm], vectorData[mm + 1]);
         }
         std::sort(lut.begin(), lut.end());
         lut[0].second = lut[1].second;
         (*lut.end()).second = (*(lut.end() - 1)).second;
     } else if (param == "file") {
-        gmlc::utilities::TimeSeries<double, double> ts(std::string{val});
+        const gmlc::utilities::TimeSeries<double, double> timeSeries(std::string{val});
 
         lut.clear();
         lut.emplace_back(-kBigNum, 0.0);
         lut.emplace_back(kBigNum, 0.0);
-        for (index_t pp = 0; pp < static_cast<index_t>(ts.size()); ++pp) {
-            lut.emplace_back(ts.time(pp), ts.data(pp));
+        for (gmlc::utilities::fsize_t pointIndex = 0; pointIndex < timeSeries.size();
+             ++pointIndex) {
+            lut.emplace_back(timeSeries.time(pointIndex), timeSeries.data(pointIndex));
         }
         std::sort(lut.begin(), lut.end());
         lut[0].second = lut[1].second;
@@ -162,7 +165,7 @@ double LutBlock::computeValue(double input)
         m = (lut[lindex].second - lut[lindex - 1].second) / (vupper - vlower);
         b = lut[lindex - 1].second;
     }
-    return (input - vlower) * m + b;
+    return (((input - vlower) * m) + b);
 }
 
 }  // namespace griddyn::blocks

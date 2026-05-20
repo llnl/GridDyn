@@ -7,8 +7,8 @@
 #include "acdcConverter.h"
 
 #include "../GridArea.h"
-#include "../blocks/delayBlock.h"
-#include "../blocks/pidBlock.h"
+#include "../blocks/DelayBlock.h"
+#include "../blocks/PidBlock.h"
 #include "../primary/dcBus.h"
 #include "core/coreExceptions.h"
 #include "core/coreObjectTemplates.hpp"

@@ -25,9 +25,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
-#include <algorithm>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 // factory is for the cloning function
@@ -43,25 +42,25 @@ using units::s;
 using units::unit;
 
 namespace {
-double checkVoltageDelta(double voltageDelta,
-                         double currentVoltage,
-                         double dropFraction = 0.75,
-                         double maxRise = 0.2,
-                         double riseCheck = 0.0)
+    double checkVoltageDelta(double voltageDelta,
+                             double currentVoltage,
+                             double dropFraction = 0.75,
+                             double maxRise = 0.2,
+                             double riseCheck = 0.0)
     {
-    if ((currentVoltage - voltageDelta) > riseCheck) {
-        voltageDelta = std::max(voltageDelta, -maxRise);
-    }
-    voltageDelta = std::min(voltageDelta, dropFraction * currentVoltage);
-    return voltageDelta;
+        if ((currentVoltage - voltageDelta) > riseCheck) {
+            voltageDelta = std::max(voltageDelta, -maxRise);
+        }
+        voltageDelta = std::min(voltageDelta, dropFraction * currentVoltage);
+        return voltageDelta;
     }
 
-double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxChange = kPI / 8.0)
-{
-    if (std::abs(angleDelta) > maxChange) {
-        angleDelta = std::copysign(maxChange, angleDelta);
-    }
-    return angleDelta;
+    double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxChange = kPI / 8.0)
+    {
+        if (std::abs(angleDelta) > maxChange) {
+            angleDelta = std::copysign(maxChange, angleDelta);
+        }
+        return angleDelta;
     }
 }  // namespace
 
@@ -412,7 +411,7 @@ void AcBus::unmergeBus(GridBus* mbus)
     auto* currentMaster = opFlags[slave_bus] ? dynamic_cast<AcBus*>(busController.masterBus) : this;
     auto* targetMaster = targetBus->checkFlag(slave_bus) ?
         dynamic_cast<AcBus*>(targetBus->busController.masterBus) :
-                                          targetBus;
+        targetBus;
     if ((currentMaster == nullptr) || (targetMaster == nullptr) ||
         (currentMaster != targetMaster)) {
         return;
@@ -1205,8 +1204,8 @@ void AcBus::setVoltageAngle(double Vnew, double Anew)
 static const IOdata kNullVec;
 
 IOdata AcBus::getOutputs(const IOdata& /*inputs*/,
-                      const stateData& stateDataValue,
-                      const solverMode& sMode) const
+                         const stateData& stateDataValue,
+                         const solverMode& sMode) const
 {
     if (isLocal(sMode) || stateDataValue.empty()) {
         return {voltage, angle, freq};
@@ -1668,8 +1667,8 @@ void AcBus::jacobianElements(const IOdata& inputs,
             matrixDataValue.assign(Voffset, Voffset, partDeriv.at(QoutLocation, voltageInLocation));
             if (opFlags[uses_bus_frequency]) {
                 matrixDataValue.assignCheckCol(Voffset,
-                    outLocs[frequencyInLocation],
-                    partDeriv.at(QoutLocation, frequencyInLocation));
+                                               outLocs[frequencyInLocation],
+                                               partDeriv.at(QoutLocation, frequencyInLocation));
             }
         } else {
             matrixDataValue.assign(Voffset, Voffset, 1);
@@ -1683,8 +1682,8 @@ void AcBus::jacobianElements(const IOdata& inputs,
                                            partDeriv.at(PoutLocation, voltageInLocation));
             if (opFlags[uses_bus_frequency]) {
                 matrixDataValue.assignCheckCol(Aoffset,
-                    outLocs[frequencyInLocation],
-                    partDeriv.at(PoutLocation, frequencyInLocation));
+                                               outLocs[frequencyInLocation],
+                                               partDeriv.at(PoutLocation, frequencyInLocation));
             }
         } else {
             matrixDataValue.assign(Aoffset, Aoffset, 1);
@@ -2102,11 +2101,11 @@ bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
                     voltageDelta = (reactivePowerDelta / reactivePowerByVoltage) +
                         (realPowerDelta / realPowerByVoltage);
                     if ((!std::isfinite(voltageDelta)) ||
-                        ((minimumVoltage > 0.35) && ((voltageValue - voltageDelta) < minimumVoltage))) {
+                        ((minimumVoltage > 0.35) &&
+                         ((voltageValue - voltageDelta) < minimumVoltage))) {
                         voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
                     }
-                                    voltageDelta = checkVoltageDelta(
-                                        voltageDelta, voltageValue, 0.75, 0.15, 1.05);
+                    voltageDelta = checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
                 }
             } else {
                 if ((previousCorrectedError < 0) && forceVoltageUp) {

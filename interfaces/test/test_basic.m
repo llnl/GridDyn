@@ -44,13 +44,13 @@ global other_test_directory
 
     import griddyn.*
 
-    sim = gridDynSimulation_create('', 'sim1')
+    sim = gridDynSimulationCreate('', 'sim1')
     file = char(ieee_test_directory + "ieee14.cdf")
-    res = gridDynSimulation_loadfile(sim, file, '')
+    res = gridDynSimulationLoadfile(sim, file, '')
     assert(isequal(res, griddyn.EXECUTION_SUCCESS))
-    res = gridDynSimulation_run(sim)
+    res = gridDynSimulationRun(sim)
     assert(isequal(res, griddyn.EXECUTION_SUCCESS))
-    time = gridDynSimulation_getCurrentTime(sim)
+    time = gridDynSimulationGetCurrentTime(sim)
     assert(isAlmostEqual(time,30.0, 0.0001))
 end
 
@@ -58,21 +58,21 @@ function testGetResults(testCase)
    global ieee_test_directory
 
    import griddyn.*
-   sim = gridDynSimulation_create('', 'sim2')
+   sim = gridDynSimulationCreate('', 'sim2')
    if isequal(sim,0) == false
       file = char(ieee_test_directory + "ieee14.cdf")
-      res = gridDynSimulation_loadfile(sim, file, '')
+      res = gridDynSimulationLoadfile(sim, file, '')
       assert(isequal(res, EXECUTION_SUCCESS))
-      res = gridDynSimulation_powerflow(sim)
+      res = gridDynSimulationPowerflow(sim)
 %      voltages = griddyn.doubleArray(cnt)
-%      act = griddyn.gridDynSimulation_getResults(sim, "voltage" ,voltages, cnt);
+%      act = griddyn.gridDynSimulationGetResults(sim, "voltage" ,voltages, cnt);
 
    end
 end
 
 %        angles = griddyn.doubleArray(cnt)
 %        self.assertEqual(cnt,act)
-%        act = griddyn.gridDynSimulation_getResults(sim, "angles" ,angles, cnt);
+%        act = griddyn.gridDynSimulationGetResults(sim, "angles" ,angles, cnt);
 
 %            for i in range(cnt):
 %                print i,voltages[i]

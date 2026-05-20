@@ -24,36 +24,36 @@ class gridDyn(unittest.TestCase):
         """
         Just a check that in the simple case we do actually get the time back we requested
         """
-        sim = griddyn.gridDynSimulation_create("", "sim1")
+        sim = griddyn.gridDynSimulationCreate("", "sim1")
         if sim is not None:
             file = self.ieee_test_directory + "ieee14.cdf"
-            res = griddyn.gridDynSimulation_loadfile(sim, file, "")
+            res = griddyn.gridDynSimulationLoadfile(sim, file, "")
             self.assertEqual(res, griddyn.EXECUTION_SUCCESS)
-            res = griddyn.gridDynSimulation_run(sim)
+            res = griddyn.gridDynSimulationRun(sim)
             self.assertEqual(res, griddyn.EXECUTION_SUCCESS)
-            time = griddyn.gridDynSimulation_getCurrentTime(sim)
+            time = griddyn.gridDynSimulationGetCurrentTime(sim)
             self.assertAlmostEqual(time, 30.0, delta=0.0001)
             obj = griddyn.getSimulationObject(sim)
-            griddyn.gridDynObject_free(obj)
-            griddyn.gridDynSimulation_free(sim)
+            griddyn.gridDynObjectFree(obj)
+            griddyn.gridDynSimulationFree(sim)
 
     def test_getResult_test(self):
-        sim = griddyn.gridDynSimulation_create("", "sim1")
+        sim = griddyn.gridDynSimulationCreate("", "sim1")
         if sim is not None:
             file = self.ieee_test_directory + "ieee14.cdf"
-            res = griddyn.gridDynSimulation_loadfile(sim, file, "")
+            res = griddyn.gridDynSimulationLoadfile(sim, file, "")
             self.assertEqual(res, griddyn.EXECUTION_SUCCESS)
 
-            res = griddyn.gridDynSimulation_powerflow(sim)
-            cnt = griddyn.gridDynSimulation_busCount(sim)
+            res = griddyn.gridDynSimulationPowerflow(sim)
+            cnt = griddyn.gridDynSimulationBusCount(sim)
             self.assertEqual(cnt, 14)
 
             voltages = griddyn.doubleArray(cnt)
-            act = griddyn.gridDynSimulation_getResults(sim, "voltage", voltages, cnt)
+            act = griddyn.gridDynSimulationGetResults(sim, "voltage", voltages, cnt)
 
             angles = griddyn.doubleArray(cnt)
             self.assertEqual(cnt, act)
-            act = griddyn.gridDynSimulation_getResults(sim, "angles", angles, cnt)
+            act = griddyn.gridDynSimulationGetResults(sim, "angles", angles, cnt)
 
             #            for i in range(cnt):
             #                print i,voltages[i]
@@ -72,34 +72,34 @@ class gridDyn(unittest.TestCase):
             del angles
 
     def test_getResult_test(self):
-        sim = griddyn.gridDynSimulation_create("", "sim1")
+        sim = griddyn.gridDynSimulationCreate("", "sim1")
         if sim is not None:
             file = self.ieee_test_directory + "ieee14.cdf"
-            res = griddyn.gridDynSimulation_loadfile(sim, file, "")
+            res = griddyn.gridDynSimulationLoadfile(sim, file, "")
             self.assertEqual(res, griddyn.EXECUTION_SUCCESS)
 
-            res = griddyn.gridDynSimulation_powerflow(sim)
+            res = griddyn.gridDynSimulationPowerflow(sim)
             obj = griddyn.getSimulationObject(sim)
 
-            bus2 = griddyn.gridDynObject_getSubObject(obj, "bus", 8)
+            bus2 = griddyn.gridDynObjectGetSubObject(obj, "bus", 8)
 
-            griddyn.gridDynObject_free(
+            griddyn.gridDynObjectFree(
                 obj
             )  # just making sure the bus object is disconnected from obj
             self.assertNotEqual(bus2, None)
 
             result = griddyn.new_doublep()
-            status = griddyn.gridDynObject_getValue(bus2, "voltage", "", result)
+            status = griddyn.gridDynObjectGetValue(bus2, "voltage", "", result)
 
             self.assertEqual(status, griddyn.EXECUTION_SUCCESS)
             self.assertAlmostEqual(griddyn.doublep_value(result), 1.056, delta=0.001)
             name = griddyn.charArray(50)
-            count = griddyn.gridDynObject_getString(bus2, "name", name, 50)
+            count = griddyn.gridDynObjectGetString(bus2, "name", name, 50)
             name = name.cast()
             self.assertEqual(count, len(name))
             self.assertEqual(name[0:5], "Bus 9")
-            griddyn.gridDynObject_free(bus2)
-            griddyn.gridDynSimulation_free(sim)
+            griddyn.gridDynObjectFree(bus2)
+            griddyn.gridDynSimulationFree(sim)
 
 
 if __name__ == "__main__":

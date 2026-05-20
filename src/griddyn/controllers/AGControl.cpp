@@ -9,10 +9,10 @@
 #include "../Generator.h"
 #include "../GridArea.h"
 #include "../blocks/blockLibrary.h"
-#include "core/coreExceptions.h"
+#include "Scheduler.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
-#include "scheduler.h"
 #include <string>
 
 namespace griddyn {

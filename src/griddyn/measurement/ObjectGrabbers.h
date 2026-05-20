@@ -1,0 +1,280 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#pragma once
+
+#include "../solvers/SolverMode.hpp"
+#include "GridGrabbers.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectInterpreter.h"
+#include <memory>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+namespace griddyn {
+class GridSubModel;
+class GridComponent;
+class GridBus;
+class GridLoad;
+class Link;
+class Generator;
+class GridArea;
+class Relay;
+class GridSubModel;
+
+using fobjectPair = std::pair<std::function<double(CoreObject*)>, units::unit>;
+
+fobjectPair getObjectFunction(const GridComponent* comp, const std::string& field);
+fobjectPair getObjectFunction(const GridBus* bus, const std::string& field);
+fobjectPair getObjectFunction(const GridLoad* loadObject, const std::string& field);
+fobjectPair getObjectFunction(const Link* lnk, const std::string& field);
+fobjectPair getObjectFunction(const Generator* gen, const std::string& field);
+fobjectPair getObjectFunction(const GridArea* area, const std::string& field);
+fobjectPair getObjectFunction(const Relay* rel, const std::string& field);
+fobjectPair getObjectFunction(const GridSubModel* sub, const std::string& field);
+
+using fvecPair = std::pair<std::function<void(CoreObject*, std::vector<double>&)>, units::unit>;
+
+fvecPair getObjectVectorFunction(const GridComponent* comp, const std::string& field);
+
+fvecPair getObjectVectorFunction(const GridArea* area, const std::string& field);
+
+using descVecFunc = std::function<void(CoreObject*, stringVec&)>;
+
+descVecFunc getObjectVectorDescFunction(const GridComponent* comp, const std::string& field);
+descVecFunc getObjectVectorDescFunction(const GridArea* area, const std::string& field);
+
+const char objEmptyString[] = "";
+
+template<class X>
+class objectGrabber: public gridGrabber {
+  protected:
+    X* mTypedObject;  //!< a class specific object pointer
+  public:
+    objectGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
+    {
+        if (newObj) {
+            updateObject(newObj);
+        }
+        if (!fld.empty()) {
+            objectGrabber<X>::updateField(fld);
+        }
+    }
+    std::unique_ptr<gridGrabber> clone() const override
+    {
+        std::unique_ptr<gridGrabber> ggb = std::make_unique<objectGrabber>();
+        cloneTo(ggb.get());
+        return ggb;
+    }
+
+    void cloneTo(gridGrabber* ggb) const override
+    {
+        gridGrabber::cloneTo(ggb);
+        auto ngb = dynamic_cast<objectGrabber*>(ggb);
+        if (ngb == nullptr) {
+            return;
+        }
+
+        ngb->mTypedObject = mTypedObject;
+    }
+
+    void updateField(std::string_view fld) override
+    {
+        field = fld;
+        const std::string fldString{fld};
+        auto fret = getObjectFunction(mTypedObject, fldString);
+        if (fret.first) {
+            mGrabberFunction = fret.first;
+            inputUnits = fret.second;
+            loaded = checkIfLoaded();
+            return;
+        }
+        auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
+        if (fvecret.first) {
+            mVectorGrabberFunction = fvecret.first;
+            inputUnits = fvecret.second;
+            vectorGrab = true;
+            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
+            loaded = checkIfLoaded();
+            return;
+        }
+        gridGrabber::updateField(fld);
+    }
+
+    void updateObject(CoreObject* obj,
+                      object_update_mode mode = object_update_mode::direct) override
+    {
+        CoreObject* newObject =
+            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
+        if (dynamic_cast<X*>(newObject)) {
+            mTypedObject = static_cast<X*>(newObject);
+            gridGrabber::updateObject(newObject);
+        } else {
+            throw(objectUpdateFailException());
+        }
+    }
+};
+
+template<class X>
+class objectOffsetGrabber: public gridGrabber {
+  protected:
+    X* mTypedObject;
+    index_t mOffset = kInvalidLocation;
+
+  public:
+    objectOffsetGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
+    {
+        if (newObj) {
+            updateObject(newObj);
+        }
+        if (!fld.empty()) {
+            objectOffsetGrabber<X>::updateField(fld);
+        }
+    }
+    objectOffsetGrabber(index_t newOffset, X* newObj = nullptr)
+    {
+        if (newObj) {
+            updateObject(newObj);
+        }
+
+        updateOffset(newOffset);
+    }
+
+    std::unique_ptr<gridGrabber> clone() const override
+    {
+        std::unique_ptr<gridGrabber> ggb = std::make_unique<objectOffsetGrabber>();
+        objectOffsetGrabber::cloneTo(ggb.get());
+        return ggb;
+    }
+
+    void cloneTo(gridGrabber* ggb) const override
+    {
+        gridGrabber::cloneTo(ggb);
+        auto ngb = dynamic_cast<objectOffsetGrabber*>(ggb);
+        if (ngb == nullptr) {
+            return;
+        }
+        ngb->mOffset = mOffset;
+        ngb->mTypedObject = mTypedObject;
+    }
+
+    void updateField(std::string_view fld) override
+    {
+        field = fld;
+        const std::string fldString{fld};
+        auto fret = getObjectFunction(mTypedObject, fldString);
+        if (fret.first) {
+            mGrabberFunction = fret.first;
+            inputUnits = fret.second;
+            loaded = gridGrabber::checkIfLoaded();
+            return;
+        }
+        auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
+        if (fvecret.first) {
+            mVectorGrabberFunction = fvecret.first;
+            inputUnits = fvecret.second;
+            vectorGrab = true;
+            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
+            loaded = gridGrabber::checkIfLoaded();
+            return;
+        }
+        mOffset = mTypedObject->findIndex(fldString, cLocalSolverMode);
+
+        if (mOffset == kInvalidLocation) {
+            gridGrabber::updateField(fld);
+        } else {
+            loaded = true;
+            makeDescription();
+            inputUnits = units::defunit;
+        }
+    }
+
+    void updateObject(CoreObject* obj,
+                      object_update_mode mode = object_update_mode::direct) override
+    {
+        CoreObject* newObject =
+            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
+        if (dynamic_cast<X*>(newObject)) {
+            mTypedObject = static_cast<X*>(newObject);
+            if (mOffset == kInvalidLocation) {
+                gridGrabber::updateObject(newObject);
+            } else {
+                mOffset = mTypedObject->findIndex(field, cLocalSolverMode);
+
+                if (mOffset == kInvalidLocation) {
+                    gridGrabber::updateField(field);
+                } else {
+                    loaded = true;
+                    makeDescription();
+                    inputUnits = units::defunit;
+                }
+            }
+        } else {
+            throw(objectUpdateFailException());
+        }
+    }
+
+    void updateOffset(index_t nOffset)
+    {
+        mOffset = nOffset;
+        if (mTypedObject) {
+            if (mOffset < mTypedObject->stateSize(cLocalSolverMode)) {
+                loaded = true;
+                if (!customDesc) {
+                    mDescription = mTypedObject->getName() + ':' + std::to_string(nOffset);
+                }
+
+                return;
+            }
+        }
+        loaded = false;
+    }
+
+    double grabData() override
+    {
+        double val = kNullVal;
+        if (loaded) {
+            if (mOffset != kInvalidLocation) {
+                if (mOffset == kNullLocation) {
+                    mOffset = mTypedObject->findIndex(field, cLocalSolverMode);
+                }
+                if (mOffset != kNullLocation) {
+                    val = mTypedObject->getState(mOffset);
+                } else {
+                    val = kNullVal;
+                }
+                val = val * gain + bias;
+            } else {
+                val = gridGrabber::grabData();
+            }
+        }
+        return val;
+    }
+
+    void makeDescription() const override
+    {
+        if (!customDesc) {
+            if ((loaded) && (field.empty())) {
+                mDescription = mTypedObject->getName() + ':' + std::to_string(mOffset);
+            } else {
+                gridGrabber::makeDescription();
+            }
+        }
+    }
+
+    bool checkIfLoaded() override
+    {
+        // check for the offset, otherwise just use the regular check
+        if (mOffset != kInvalidLocation) {
+            return (mObject != nullptr);
+        }
+        return gridGrabber::checkIfLoaded();
+    }
+};
+
+}  // namespace griddyn

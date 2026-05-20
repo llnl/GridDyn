@@ -7,9 +7,9 @@
 #include "../Stabilizer.h"
 
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../GridBus.h"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
 #include <cmath>
 #include <string>
 

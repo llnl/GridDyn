@@ -428,9 +428,9 @@ move once.
 
 ### Known Filename Mismatch Examples
 
-- `gridSimulation.h` with `gridSimulation`
-- `coreObject.h` with `coreObject`
-- `commMessage.h` with `commMessage`
+- `GridSimulation.h` with `gridSimulation`
+- `CoreObject.h` with `coreObject`
+- `CommMessage.h` with `commMessage`
 
 ## Phase 8: Interfaces, Tests, Docs, And User Surface
 

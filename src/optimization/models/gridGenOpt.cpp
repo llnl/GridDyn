@@ -8,7 +8,7 @@
 #include "gridGenOpt.h"
 
 #include "../optObjectFactory.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridBusOpt.h"

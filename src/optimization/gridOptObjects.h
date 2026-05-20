@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include "optHelperClasses.h"
 #include <array>
 #include <bitset>

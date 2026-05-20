@@ -9,7 +9,7 @@
 #include "../gridDynDefinitions.hpp"
 #include "Exciter.h"
 #include "core/coreDefinitions.hpp"
-#include "solvers/solverMode.hpp"
+#include "solvers/SolverMode.hpp"
 #include <string>
 #include <vector>
 

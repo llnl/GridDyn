@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "sundialsMatrixData.h"
+#include "SundialsMatrixData.h"
 #include <algorithm>
 #include <cstring>
 

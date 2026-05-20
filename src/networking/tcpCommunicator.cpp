@@ -6,7 +6,7 @@
 
 #include "tcpCommunicator.h"
 
-#include "griddyn/comms/commMessage.h"
+#include "griddyn/comms/CommMessage.h"
 #include <memory>
 #include <string>
 

@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../comms/schedulerMessage.h"
+#include "../comms/SchedulerMessage.h"
 #include "AGControl.h"
+#include "Scheduler.h"
 #include "core/coreObjectTemplates.hpp"
-#include "scheduler.h"
 #include <cstdio>
 #include <memory>
 #include <string>

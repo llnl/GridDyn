@@ -6,9 +6,9 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
-#include "griddyn/primary/infiniteBus.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/primary/InfiniteBus.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>

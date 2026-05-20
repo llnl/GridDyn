@@ -39,41 +39,41 @@ set(genmodel_sources
     genmodels/GenModelInverter.cpp
 )
 
-set(generator_headers Generator.h generators/variableGenerator.h generators/isocController.h
+set(generator_headers Generator.h generators/VariableGenerator.h generators/IsocController.h
                       generators/DynamicGenerator.h
 )
 
 set(generator_sources
-    ${generator_headers} generators/Generator.cpp generators/variableGenerator.cpp
-    generators/isocController.cpp generators/DynamicGenerator.cpp
+    ${generator_headers} generators/Generator.cpp generators/VariableGenerator.cpp
+    generators/IsocController.cpp generators/DynamicGenerator.cpp
 )
 
 set(gridSource_headers
     Source.h
     sources/sourceTypes.h
-    sources/rampSource.h
-    sources/fileSource.h
-    sources/randomSource.h
-    sources/pulseSource.h
-    sources/sineSource.h
-    sources/functionSource.h
-    sources/commSource.h
-    sources/blockSource.h
-    sources/grabberSource.h
+    sources/RampSource.h
+    sources/FileSource.h
+    sources/RandomSource.h
+    sources/PulseSource.h
+    sources/SineSource.h
+    sources/FunctionSource.h
+    sources/CommSource.h
+    sources/BlockSource.h
+    sources/GrabberSource.h
 )
 
 set(gridSource_sources
     ${gridSource_headers}
     sources/Source.cpp
-    sources/rampSource.cpp
-    sources/fileSource.cpp
-    sources/randomSource.cpp
-    sources/pulseSource.cpp
-    sources/sineSource.cpp
-    sources/functionSource.cpp
-    sources/commSource.cpp
-    sources/blockSource.cpp
-    sources/grabberSource.cpp
+    sources/RampSource.cpp
+    sources/FileSource.cpp
+    sources/RandomSource.cpp
+    sources/PulseSource.cpp
+    sources/SineSource.cpp
+    sources/FunctionSource.cpp
+    sources/CommSource.cpp
+    sources/BlockSource.cpp
+    sources/GrabberSource.cpp
 )
 
 set(exciter_headers
@@ -130,11 +130,11 @@ set(block_headers
     blocks/DerivativeBlock.h
     blocks/FunctionBlock.h
     blocks/LutBlock.h
-    blocks/transferFunctionBlock.h
-    blocks/blockSequence.h
+    blocks/TransferFunctionBlock.h
+    blocks/BlockSequence.h
     blocks/FilteredDerivativeBlock.h
-    blocks/valueLimiter.h
-    blocks/rampLimiter.h
+    blocks/ValueLimiter.h
+    blocks/RampLimiter.h
     blocks/blockLibrary.h
 )
 
@@ -150,11 +150,11 @@ set(block_sources
     blocks/DerivativeBlock.cpp
     blocks/FunctionBlock.cpp
     blocks/LutBlock.cpp
-    blocks/transferFunctionBlock.cpp
+    blocks/TransferFunctionBlock.cpp
     blocks/FilteredDerivativeBlock.cpp
-    blocks/blockSequence.cpp
-    blocks/valueLimiter.cpp
-    blocks/rampLimiter.cpp
+    blocks/BlockSequence.cpp
+    blocks/ValueLimiter.cpp
+    blocks/RampLimiter.cpp
 )
 
 set(submodel_sources ${genmodel_sources} ${exciter_sources} ${gov_sources} ${gridSource_sources}
@@ -163,169 +163,169 @@ set(submodel_sources ${genmodel_sources} ${exciter_sources} ${gov_sources} ${gri
 
 set(load_headers
     Load.h
-    loads/rampLoad.h
-    loads/exponentialLoad.h
-    loads/sourceLoad.h
-    loads/fileLoad.h
-    loads/fDepLoad.h
-    loads/motorLoad.h
-    loads/motorLoad3.h
-    loads/motorLoad5.h
-    loads/gridLabDLoad.h
-    loads/svd.h
-    loads/aggregateLoad.h
-    loads/zipLoad.h
-    loads/frequencySensitiveLoad.h
+    loads/RampLoad.h
+    loads/ExponentialLoad.h
+    loads/SourceLoad.h
+    loads/FileLoad.h
+    loads/FDepLoad.h
+    loads/MotorLoad.h
+    loads/MotorLoad3.h
+    loads/MotorLoad5.h
+    loads/GridLabDLoad.h
+    loads/Svd.h
+    loads/AggregateLoad.h
+    loads/ZipLoad.h
+    loads/FrequencySensitiveLoad.h
     loads/ThreePhaseLoad.h
 )
 
 set(load_sources
     ${load_headers}
     loads/Load.cpp
-    loads/rampLoad.cpp
-    loads/fileLoad.cpp
-    loads/motorLoad.cpp
-    loads/motorLoad3.cpp
-    loads/motorLoad5.cpp
-    loads/approximatingLoad.cpp
-    loads/exponentialLoad.cpp
-    loads/fDepLoad.cpp
-    loads/aggregateLoad.cpp
-    loads/sourceLoad.cpp
-    loads/zipLoad.cpp
-    loads/svd.cpp
+    loads/RampLoad.cpp
+    loads/FileLoad.cpp
+    loads/MotorLoad.cpp
+    loads/MotorLoad3.cpp
+    loads/MotorLoad5.cpp
+    loads/ApproximatingLoad.cpp
+    loads/ExponentialLoad.cpp
+    loads/FDepLoad.cpp
+    loads/AggregateLoad.cpp
+    loads/SourceLoad.cpp
+    loads/ZipLoad.cpp
+    loads/Svd.cpp
     loads/ThreePhaseLoad.cpp
-    loads/frequencySensitiveLoad.cpp
-    loads/gridLabDLoad.cpp
+    loads/FrequencySensitiveLoad.cpp
+    loads/GridLabDLoad.cpp
 )
 
 set(link_headers
-    links/dcLink.h
-    links/acdcConverter.h
-    links/adjustableTransformer.h
+    links/DcLink.h
+    links/AcdcConverter.h
+    links/AdjustableTransformer.h
     Link.h
-    links/subsystem.h
-    links/hvdc.h
-    links/zBreaker.h
-    links/longLine.h
-    links/acLine.h
+    links/Subsystem.h
+    links/Hvdc.h
+    links/ZBreaker.h
+    links/LongLine.h
+    links/AcLine.h
     links/ThreeWindingTransformer.h
 )
 
 set(link_sources
     ${link_headers}
     links/Link.cpp
-    links/adjustableTransformer.cpp
-    links/dcLink.cpp
-    links/acdcConverter.cpp
-    links/subsystem.cpp
-    links/hvdc.cpp
-    links/zBreaker.cpp
-    links/longLine.cpp
-    links/acLine.cpp
+    links/AdjustableTransformer.cpp
+    links/DcLink.cpp
+    links/AcdcConverter.cpp
+    links/Subsystem.cpp
+    links/Hvdc.cpp
+    links/ZBreaker.cpp
+    links/LongLine.cpp
+    links/AcLine.cpp
     links/ThreeWindingTransformer.cpp
 )
 
 set(simulation_headers
-    simulation/contingency.h
-    simulation/continuation.h
-    gridDynSimulation.h
-    simulation/gridSimulation.h
-    simulation/diagnostics.h
-    simulation/powerFlowErrorRecovery.h
-    simulation/dynamicInitialConditionRecovery.h
-    simulation/faultResetRecovery.h
-    simulation/gridDynActions.h
-    simulation/gridDynSimulationFileOps.h
+    simulation/Contingency.h
+    simulation/Continuation.h
+    GridDynSimulation.h
+    simulation/GridSimulation.h
+    simulation/Diagnostics.h
+    simulation/PowerFlowErrorRecovery.h
+    simulation/DynamicInitialConditionRecovery.h
+    simulation/FaultResetRecovery.h
+    simulation/GridDynActions.h
+    simulation/GridDynSimulationFileOps.h
 )
 
 set(simulation_sources
     ${simulation_headers}
     simulation/gridDynContinuation.cpp
     simulation/gridDynSimulation.cpp
-    simulation/contingency.cpp
+    simulation/Contingency.cpp
     simulation/gridDynPowerFlow.cpp
     simulation/gridDynDynamic.cpp
-    simulation/gridSimulation.cpp
-    simulation/gridDynActions.cpp
-    simulation/gridDynSimulationFileOps.cpp
-    simulation/diagnostics.cpp
-    simulation/powerFlowErrorRecovery.cpp
-    simulation/dynamicInitialConditionRecovery.cpp
-    simulation/faultResetRecovery.cpp
+    simulation/GridSimulation.cpp
+    simulation/GridDynActions.cpp
+    simulation/GridDynSimulationFileOps.cpp
+    simulation/Diagnostics.cpp
+    simulation/PowerFlowErrorRecovery.cpp
+    simulation/DynamicInitialConditionRecovery.cpp
+    simulation/FaultResetRecovery.cpp
     simulation/gridDynContingency.cpp
 )
 
 set(solver_headers
-    solvers/solverInterface.h
-    solvers/sundialsInterface.h
-    solvers/idaInterface.h
-    solvers/kinsolInterface.h
-    solvers/basicSolver.h
-    solvers/sundialsMatrixData.h
-    solvers/basicOdeSolver.h
-    solvers/solverMode.hpp
+    solvers/SolverInterface.h
+    solvers/SundialsInterface.h
+    solvers/IdaInterface.h
+    solvers/KinsolInterface.h
+    solvers/BasicSolver.h
+    solvers/SundialsMatrixData.h
+    solvers/BasicOdeSolver.h
+    solvers/SolverMode.hpp
 )
 
 set(solver_sources
     ${solver_headers}
-    solvers/idaInterface.cpp
-    solvers/kinsolInterface.cpp
-    solvers/solverInterface.cpp
-    solvers/basicSolver.cpp
-    solvers/sundialsMatrixData.cpp
+    solvers/IdaInterface.cpp
+    solvers/KinsolInterface.cpp
+    solvers/SolverInterface.cpp
+    solvers/BasicSolver.cpp
+    solvers/SundialsMatrixData.cpp
     solvers/sundialsMatrixDataDense.cpp
     solvers/sundialsMatrixDataSparseRow.cpp
     solvers/sundialsMatrixDataSparseColumn.cpp
-    solvers/sundialsInterface.cpp
-    solvers/basicOdeSolver.cpp
+    solvers/SundialsInterface.cpp
+    solvers/BasicOdeSolver.cpp
 )
 
 if(GRIDDYN_ENABLE_CVODE)
-    list(APPEND solver_sources solvers/cvodeInterface.cpp solvers/cvodeInterface.h)
+    list(APPEND solver_sources solvers/CvodeInterface.cpp solvers/CvodeInterface.h)
 
-    list(APPEND solver_headers solvers/cvodeInterface.h)
+    list(APPEND solver_headers solvers/CvodeInterface.h)
 
 endif(GRIDDYN_ENABLE_CVODE)
 
 if(GRIDDYN_ENABLE_ARKODE)
-    list(APPEND solver_sources solvers/arkodeInterface.cpp solvers/arkodeInterface.h)
+    list(APPEND solver_sources solvers/ArkodeInterface.cpp solvers/ArkodeInterface.h)
 
-    list(APPEND solver_headers solvers/arkodeInterface.h)
+    list(APPEND solver_headers solvers/ArkodeInterface.h)
 endif(GRIDDYN_ENABLE_ARKODE)
 
 set(core_headers
-    gridComponent.h
-    gridPrimary.h
-    gridSecondary.h
-    gridSubModel.h
-    gridComponentHelperClasses.h
-    numericEstimationFunctions.h
+    GridComponent.h
+    GridPrimary.h
+    GridSecondary.h
+    GridSubModel.h
+    GridComponentHelperClasses.h
+    NumericEstimationFunctions.h
     gridDynDefinitions.hpp
-    offsetTable.h
+    OffsetTable.h
     gridDynVersion.hpp
 )
 
 set(core_sources
     ${core_headers}
-    gridComponent.cpp
-    gridPrimary.cpp
-    gridSecondary.cpp
-    gridSubModel.cpp
-    gridComponentHelperClasses.cpp
-    numericEstimationFunctions.cpp
-    offsetTable.cpp
+    GridComponent.cpp
+    GridPrimary.cpp
+    GridSecondary.cpp
+    GridSubModel.cpp
+    GridComponentHelperClasses.cpp
+    NumericEstimationFunctions.cpp
+    OffsetTable.cpp
 )
 
 set(primary_headers
-    gridBus.h
+    GridBus.h
     GridArea.h
-    primary/dcBus.h
+    primary/DcBus.h
     allGridDynObjects.h
     primary/BusControls.h
-    primary/listMaintainer.h
-    primary/infiniteBus.h
-    primary/acBus.h
+    primary/ListMaintainer.h
+    primary/InfiniteBus.h
+    primary/AcBus.h
     primary/DcBusControls.h
 )
 
@@ -333,127 +333,127 @@ set(primary_sources
     ${primary_headers}
     primary/gridBus.cpp
     primary/GridArea.cpp
-    primary/dcBus.cpp
-    primary/infiniteBus.cpp
+    primary/DcBus.cpp
+    primary/InfiniteBus.cpp
     primary/BusControls.cpp
     primary/DcBusControls.cpp
-    primary/acBus.cpp
-    primary/listMaintainer.cpp
+    primary/AcBus.cpp
+    primary/ListMaintainer.cpp
 )
 
 set(event_headers
     events/Event.h
-    events/eventAdapters.h
-    events/eventQueue.h
-    events/eventInterface.hpp
-    events/reversibleEvent.h
-    events/parameterOperator.h
+    events/EventAdapters.h
+    events/EventQueue.h
+    events/EventInterface.hpp
+    events/ReversibleEvent.h
+    events/ParameterOperator.h
     events/Player.h
-    events/interpolatingPlayer.h
-    events/compoundEvent.h
-    events/compoundEventPlayer.h
+    events/InterpolatingPlayer.h
+    events/CompoundEvent.h
+    events/CompoundEventPlayer.h
 )
 
 set(event_sources
     ${event_headers}
     events/Event.cpp
-    events/eventAdapters.cpp
-    events/eventQueue.cpp
+    events/EventAdapters.cpp
+    events/EventQueue.cpp
     events/Player.cpp
-    events/interpolatingPlayer.cpp
-    events/compoundEvent.cpp
-    events/compoundEventPlayer.cpp
-    events/reversibleEvent.cpp
-    events/parameterOperator.cpp
+    events/InterpolatingPlayer.cpp
+    events/CompoundEvent.cpp
+    events/CompoundEventPlayer.cpp
+    events/ReversibleEvent.cpp
+    events/ParameterOperator.cpp
 )
 set(measurement_headers
-    measurement/gridGrabbers.h
-    measurement/objectGrabbers.h
-    measurement/collector.h
+    measurement/GridGrabbers.h
+    measurement/ObjectGrabbers.h
+    measurement/Collector.h
     measurement/Recorder.h
-    measurement/stateGrabber.h
+    measurement/StateGrabber.h
     measurement/Condition.h
-    measurement/grabberSet.h
-    measurement/grabberInterpreter.hpp
+    measurement/GrabberSet.h
+    measurement/GrabberInterpreter.hpp
 )
 
 set(measurement_sources
     ${measurement_headers}
     measurement/Recorder.cpp
-    measurement/gridGrabbers.cpp
-    measurement/grabberInterpreter.cpp
+    measurement/GridGrabbers.cpp
+    measurement/GrabberInterpreter.cpp
     measurement/stateGrabbers.cpp
     measurement/Condition.cpp
-    measurement/objectGrabbers.cpp
+    measurement/ObjectGrabbers.cpp
     measurement/compoundCondition.cpp
-    measurement/collector.cpp
-    measurement/grabberSet.cpp
+    measurement/Collector.cpp
+    measurement/GrabberSet.cpp
 )
 
 set(comm_headers
-    comms/commMessage.h
+    comms/CommMessage.h
     comms/Communicator.h
-    comms/communicationsCore.h
-    comms/schedulerMessage.h
-    comms/controlMessage.h
-    comms/commManager.h
+    comms/CommunicationsCore.h
+    comms/SchedulerMessage.h
+    comms/ControlMessage.h
+    comms/CommManager.h
 )
 
 set(comm_sources
     ${comm_headers}
-    comms/commMessage.cpp
+    comms/CommMessage.cpp
     comms/Communicator.cpp
-    comms/communicationsCore.cpp
-    comms/schedulerMessage.cpp
-    comms/controlMessage.cpp
-    comms/commManager.cpp
+    comms/CommunicationsCore.cpp
+    comms/SchedulerMessage.cpp
+    comms/ControlMessage.cpp
+    comms/CommManager.cpp
 )
 
 set(relay_headers
     Relay.h
-    relays/zonalRelay.h
-    relays/loadRelay.h
-    relays/busRelay.h
-    relays/fuse.h
-    relays/breaker.h
-    relays/sensor.h
-    relays/differentialRelay.h
-    relays/controlRelay.h
-    relays/pmu.h
+    relays/ZonalRelay.h
+    relays/LoadRelay.h
+    relays/BusRelay.h
+    relays/Fuse.h
+    relays/Breaker.h
+    relays/Sensor.h
+    relays/DifferentialRelay.h
+    relays/ControlRelay.h
+    relays/Pmu.h
 )
 
 set(relay_sources
     ${relay_headers}
     relays/Relay.cpp
-    relays/zonalRelay.cpp
-    relays/loadRelay.cpp
-    relays/busRelay.cpp
-    relays/fuse.cpp
-    relays/breaker.cpp
-    relays/sensor.cpp
-    relays/differentialRelay.cpp
-    relays/controlRelay.cpp
-    relays/pmu.cpp
+    relays/ZonalRelay.cpp
+    relays/LoadRelay.cpp
+    relays/BusRelay.cpp
+    relays/Fuse.cpp
+    relays/Breaker.cpp
+    relays/Sensor.cpp
+    relays/DifferentialRelay.cpp
+    relays/ControlRelay.cpp
+    relays/Pmu.cpp
 )
 
 set(controller_headers
-    controllers/schedulerInfo.h
-    controllers/scheduler.h
-    controllers/reserveDispatcher.h
+    controllers/SchedulerInfo.h
+    controllers/Scheduler.h
+    controllers/ReserveDispatcher.h
     controllers/AGControl.h
-    controllers/controlSystem.h
-    controllers/dispatcher.h
+    controllers/ControlSystem.h
+    controllers/Dispatcher.h
 )
 
 set(controller_sources
     ${controller_headers}
-    controllers/scheduler.cpp
+    controllers/Scheduler.cpp
     controllers/schedulerRamp.cpp
     controllers/schedulerReg.cpp
-    controllers/reserveDispatcher.cpp
-    controllers/controlSystem.cpp
+    controllers/ReserveDispatcher.cpp
+    controllers/ControlSystem.cpp
     controllers/AGControl.cpp
-    controllers/dispatcher.cpp
+    controllers/Dispatcher.cpp
 )
 
 set(sublibrary_files

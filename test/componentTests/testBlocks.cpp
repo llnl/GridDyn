@@ -5,12 +5,12 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Relay.h"
 #include "griddyn/blocks/blockLibrary.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <map>

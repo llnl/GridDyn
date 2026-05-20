@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../comms/commManager.h"
+#include "../comms/CommManager.h"
 #include "sourceTypes.h"
 #include <functional>
 

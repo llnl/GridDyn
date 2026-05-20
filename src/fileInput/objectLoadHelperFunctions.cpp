@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/coreObject.h"
+#include "core/CoreExceptions.h"
+#include "core/CoreObject.h"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
 #include "gmlc/utilities/stringOps.h"

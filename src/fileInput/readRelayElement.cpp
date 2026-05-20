@@ -7,9 +7,9 @@
 #include "elementReaderTemplates.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/Relay.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/loads/ZipLoad.h"
 #include "readElement.h"
 #include <string>
 

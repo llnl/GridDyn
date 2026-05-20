@@ -6,7 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "coupling/GhostSwingBusManager.h"
-#include "griddyn/loads/approximatingLoad.h"
+#include "griddyn/loads/ApproximatingLoad.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <string>

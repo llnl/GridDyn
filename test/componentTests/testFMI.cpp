@@ -8,8 +8,8 @@
 #include "fmi/fmi_import/fmiImport.h"
 #include "fmi/fmi_import/fmiObjects.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <algorithm>
 #include <cstdio>
 #include <filesystem>
@@ -21,7 +21,7 @@
 
 #include "../gtestHelper.h"
 #include "fmi/fmi_models/fmiMELoad3phase.h"
-#include "griddyn/loads/approximatingLoad.h"
+#include "griddyn/loads/ApproximatingLoad.h"
 
 static constexpr std::string_view fmi_test_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/";
 static constexpr std::string_view fmu_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_fmus/";

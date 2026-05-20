@@ -4,23 +4,23 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "../gridDynSimulation.h"
+#include "../GridDynSimulation.h"
 
+#include "../GridBus.h"
 #include "../Link.h"
 #include "../events/Event.h"
-#include "../events/eventQueue.h"
-#include "../events/parameterOperator.h"
-#include "../gridBus.h"
-#include "../loads/gridLabDLoad.h"
-#include "../solvers/solverInterface.h"
-#include "contingency.h"
-#include "core/coreExceptions.h"
+#include "../events/EventQueue.h"
+#include "../events/ParameterOperator.h"
+#include "../loads/GridLabDLoad.h"
+#include "../solvers/SolverInterface.h"
+#include "Contingency.h"
+#include "GridDynSimulationFileOps.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactoryTemplates.hpp"
+#include "core/ObjectInterpreter.h"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
-#include "core/objectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "gridDynSimulationFileOps.h"
 #include "utilities/matrixData.hpp"
 #include <cassert>
 #include <compare>

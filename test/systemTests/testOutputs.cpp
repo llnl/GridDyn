@@ -8,7 +8,7 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/simulation/gridDynSimulationFileOps.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include <cstdlib>
 #include <filesystem>
 #include <gtest/gtest.h>

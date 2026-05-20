@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gridSecondary.h"
+#include "GridSecondary.h"
 #include <memory>
 #include <string>
 #include <vector>

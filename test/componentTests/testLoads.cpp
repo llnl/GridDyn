@@ -6,16 +6,16 @@
 
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/loads/ApproximatingLoad.h"
+#include "griddyn/loads/FDepLoad.h"
+#include "griddyn/loads/FileLoad.h"
+#include "griddyn/loads/GridLabDLoad.h"
+#include "griddyn/loads/MotorLoad5.h"
+#include "griddyn/loads/SourceLoad.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
-#include "griddyn/loads/approximatingLoad.h"
-#include "griddyn/loads/fDepLoad.h"
-#include "griddyn/loads/fileLoad.h"
-#include "griddyn/loads/gridLabDLoad.h"
-#include "griddyn/loads/motorLoad5.h"
-#include "griddyn/loads/sourceLoad.h"
-#include "griddyn/loads/zipLoad.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/loads/ZipLoad.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>

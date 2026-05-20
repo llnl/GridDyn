@@ -7,7 +7,7 @@
 #include "zmqCommunicator.h"
 
 #include "cppzmq/zmq_addon.hpp"
-#include "griddyn/comms/commMessage.h"
+#include "griddyn/comms/CommMessage.h"
 #include "zmqLibrary/zmqContextManager.h"
 #include "zmqLibrary/zmqHelper.h"
 #include "zmqLibrary/zmqProxyHub.h"

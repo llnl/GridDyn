@@ -7,11 +7,11 @@
 #include "fmiRunner.h"
 
 #include "FMI2/fmi2Functions.h"
-#include "core/coreOwningPtr.hpp"
+#include "core/CoreOwningPtr.hpp"
 #include "fileInput/fileInput.h"
 #include "fmiCoordinator.h"
 #include "gridDynLoader/libraryLoader.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "loadFMIExportObjects.h"
 #include <filesystem>
 #include <memory>

@@ -5,11 +5,11 @@
  */
 
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../GridBus.h"
 #include "GovernorTypes.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "core/coreObjectTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <string>
 #include <vector>

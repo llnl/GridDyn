@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "core/coreOwningPtr.hpp"
+#include "core/CoreOwningPtr.hpp"
 #include "runner/gridDynRunner.h"
 #include <memory>
 

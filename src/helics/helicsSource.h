@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../griddyn/sources/rampSource.h"
+#include "../griddyn/sources/RampSource.h"
 #include "helicsSupport.h"
 #include <string>
 namespace griddyn::helicsLib {

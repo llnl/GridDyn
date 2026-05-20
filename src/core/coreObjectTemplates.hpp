@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "coreObject.h"
+#include "CoreObject.h"
 #include <type_traits>
 namespace griddyn {
 /**

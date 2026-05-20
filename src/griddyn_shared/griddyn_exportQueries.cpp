@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "griddyn/measurement/collector.h"
-#include "griddyn/measurement/gridGrabbers.h"
+#include "griddyn/measurement/Collector.h"
+#include "griddyn/measurement/GridGrabbers.h"
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include <memory>

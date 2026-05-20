@@ -7,7 +7,7 @@
 #pragma once
 
 #include "fmiSupport.h"
-#include "griddyn/gridSubModel.h"
+#include "griddyn/GridSubModel.h"
 #include <map>
 #include <memory>
 #include <string>

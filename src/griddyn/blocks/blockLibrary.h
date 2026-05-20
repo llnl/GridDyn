@@ -9,6 +9,7 @@
 /** @file
 @brief helper header file defining all the different block types
 */
+#include "BlockSequence.h"
 #include "ControlBlock.h"
 #include "DeadbandBlock.h"
 #include "DelayBlock.h"
@@ -19,5 +20,4 @@
 #include "LutBlock.h"
 #include "NullBlock.h"
 #include "PidBlock.h"
-#include "blockSequence.h"
-#include "transferFunctionBlock.h"
+#include "TransferFunctionBlock.h"

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../griddyn/measurement/collector.h"
+#include "../griddyn/measurement/Collector.h"
 #include <memory>
 #include <string>
 #include <utility>

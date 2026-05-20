@@ -6,7 +6,7 @@
 #pragma once
 
 #include "fileInput/fileInput.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include <iosfwd>
 #include <memory>
 #include <string>

@@ -8,11 +8,11 @@
 
 #include "fskitRunner.h"
 
-#include "core/factoryTemplates.hpp"
+#include "core/FactoryTemplates.hpp"
 #include "fskitCommunicator.h"
 #include "gridDynFederatedScheduler.h"
 #include "griddyn-tracer.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include <memory>
 #include <string>
 

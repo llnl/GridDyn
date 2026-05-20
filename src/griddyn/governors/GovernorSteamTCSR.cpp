@@ -7,7 +7,7 @@
 #include "GovernorSteamTCSR.h"
 
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../GridBus.h"
 #include "utilities/matrixData.hpp"
 #include <string>
 namespace griddyn::governors {

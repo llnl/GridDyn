@@ -6,9 +6,9 @@
 
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/links/adjustableTransformer.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>

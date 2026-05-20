@@ -6,8 +6,8 @@
 
 #include "extraSolvers.h"
 
-#include "core/factoryTemplates.hpp"
-#include "griddyn/solvers/solverInterface.h"
+#include "core/FactoryTemplates.hpp"
+#include "griddyn/solvers/SolverInterface.h"
 #ifdef ENABLE_BRAID
 #    include "braid/braidInterface.h"
 #endif

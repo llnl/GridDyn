@@ -7,7 +7,7 @@
 #include "../gtestHelper.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "griddyn/Generator.h"
-#include "griddyn/gridBus.h"
+#include "griddyn/GridBus.h"
 #include <gtest/gtest.h>
 #include <string>
 

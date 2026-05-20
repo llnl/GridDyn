@@ -9,19 +9,19 @@
 #include "griddyn/Generator.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/griddyn-config.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/links/adjustableTransformer.h"
-#include "griddyn/loads/motorLoad.h"
-#include "griddyn/loads/zipLoad.h"
-#include "griddyn/primary/acBus.h"
-#include "griddyn/relays/pmu.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/loads/MotorLoad.h"
+#include "griddyn/loads/ZipLoad.h"
+#include "griddyn/primary/AcBus.h"
+#include "griddyn/relays/Pmu.h"
 #include "readerHelper.h"
 
 #ifdef ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
 #    include "optimization/models/gridGenOpt.h"
 #else
-#    include "griddyn/simulation/gridSimulation.h"
+#    include "griddyn/simulation/GridSimulation.h"
 #endif
 
 #include "griddyn/Exciter.h"

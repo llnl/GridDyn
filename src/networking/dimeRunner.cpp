@@ -12,7 +12,7 @@
 #include "CLI11/CLI11.hpp"
 #include "dimeInterface.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include <chrono>
 #include <cstdio>
 #include <exception>

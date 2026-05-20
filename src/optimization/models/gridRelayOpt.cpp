@@ -8,7 +8,7 @@
 #include "gridRelayOpt.h"
 
 #include "../optObjectFactory.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
 #include "griddyn/Relay.h"

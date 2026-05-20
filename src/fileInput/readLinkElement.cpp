@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
-#include "core/objectInterpreter.h"
+#include "core/CoreExceptions.h"
+#include "core/ObjectInterpreter.h"
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
-#include "griddyn/gridBus.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <string>

@@ -17,8 +17,8 @@
 #include "core/coreObjectTemplates.hpp"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include "mpi.h"
 #include <algorithm>
 #include <cmath>

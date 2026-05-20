@@ -7,7 +7,7 @@
 #include "fmiCollector.h"
 
 #include "fmiCoordinator.h"
-#include "griddyn/measurement/gridGrabbers.h"
+#include "griddyn/measurement/GridGrabbers.h"
 #include <memory>
 #include <string>
 

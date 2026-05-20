@@ -6,7 +6,7 @@
 
 #include "extraModels.h"
 
-#include "core/objectFactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "txLifeSpan.h"
 #include "txThermalModel.h"
 #include <memory>

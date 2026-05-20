@@ -6,8 +6,8 @@
 
 #include "ThreeWindingTransformer.h"
 
-#include "../primary/acBus.h"
-#include "core/coreExceptions.h"
+#include "../primary/AcBus.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include <cmath>
 #include <string>

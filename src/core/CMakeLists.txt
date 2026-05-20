@@ -8,31 +8,31 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set(coreObject_headers
     coreDefinitions.hpp
-    coreExceptions.h
-    coreObject.h
-    coreObjectList.h
+    CoreExceptions.h
+    CoreObject.h
+    CoreObjectList.h
     coreObjectTemplates.hpp
-    coreOwningPtr.hpp
-    coreProperties.hpp
-    factoryTemplates.hpp
-    helperObject.h
-    nullObject.h
-    objectFactory.hpp
-    objectFactoryTemplates.hpp
-    objectInterpreter.h
-    objectOperatorInterface.hpp
-    propertyBuffer.h
+    CoreOwningPtr.hpp
+    CoreProperties.hpp
+    FactoryTemplates.hpp
+    HelperObject.h
+    NullObject.h
+    ObjectFactory.hpp
+    ObjectFactoryTemplates.hpp
+    ObjectInterpreter.h
+    ObjectOperatorInterface.hpp
+    PropertyBuffer.h
 )
 
 set(coreObject_sources
-    coreExceptions.cpp
-    coreObject.cpp
-    coreObjectList.cpp
-    helperObject.cpp
-    nullObject.cpp
-    objectFactory.cpp
-    objectInterpreter.cpp
-    propertyBuffer.cpp
+    CoreExceptions.cpp
+    CoreObject.cpp
+    CoreObjectList.cpp
+    HelperObject.cpp
+    NullObject.cpp
+    ObjectFactory.cpp
+    ObjectInterpreter.cpp
+    PropertyBuffer.cpp
 )
 
 add_library(coreObjects STATIC ${coreObject_headers} ${coreObject_sources})

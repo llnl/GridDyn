@@ -6,8 +6,8 @@
 
 #include "loadFMIExportObjects.h"
 
-#include "core/factoryTemplates.hpp"
-#include "core/objectFactoryTemplates.hpp"
+#include "core/FactoryTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "fileInput/readerInfo.h"
 #include "fmiCollector.h"
 #include "fmiCoordinator.h"

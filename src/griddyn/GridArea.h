@@ -7,7 +7,7 @@
 #pragma once
 
 // headers
-#include "gridPrimary.h"
+#include "GridPrimary.h"
 #include <memory>
 #include <string>
 #include <utility>

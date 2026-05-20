@@ -7,8 +7,8 @@
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
-#include "griddyn/gridDynSimulation.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/GridDynSimulation.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include "readElement.h"
 #include <memory>
 #include <string>

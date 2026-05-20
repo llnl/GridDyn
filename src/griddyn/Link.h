@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gridPrimary.h"
+#include "GridPrimary.h"
 #include <queue>
 #include <string>
 

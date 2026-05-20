@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "griddyn/gridBus.h"
-#include "griddyn/links/acLine.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/links/AcLine.h"
 #include "griddyn/measurement/Condition.h"
 #include <gtest/gtest.h>
 // test case for CoreObject object

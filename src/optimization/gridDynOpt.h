@@ -10,7 +10,7 @@
 // #define DEBUG_IDA
 
 // header files
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "optimizerInterface.h"
 // libraries
 #include <array>

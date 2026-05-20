@@ -6,10 +6,10 @@
 
 #include "readerInfo.h"
 
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include "fileInput.h"
 #include "formatInterpreters/readerElement.h"
-#include "griddyn/measurement/collector.h"
+#include "griddyn/measurement/Collector.h"
 #include "readerHelper.h"
 #include <chrono>
 #include <cmath>

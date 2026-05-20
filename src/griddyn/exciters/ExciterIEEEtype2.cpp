@@ -7,7 +7,7 @@
 #include "ExciterIEEEtype2.h"
 
 #include "../Generator.h"
-#include "../gridBus.h"
+#include "../GridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <algorithm>

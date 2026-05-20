@@ -6,7 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "gridDynLoader/libraryLoader.h"
-#include "griddyn/measurement/collector.h"
+#include "griddyn/measurement/Collector.h"
 #include <gtest/gtest.h>
 #include <string>
 

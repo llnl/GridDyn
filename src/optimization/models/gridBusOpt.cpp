@@ -8,7 +8,7 @@
 #include "gridBusOpt.h"
 
 #include "../optObjectFactory.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
@@ -16,8 +16,8 @@
 #include "gridLinkOpt.h"
 #include "gridLoadOpt.h"
 #include "griddyn/Generator.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/loads/ZipLoad.h"
 #include "utilities/vectData.hpp"
 #include <cmath>
 #include <string>

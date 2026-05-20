@@ -7,10 +7,10 @@
 #include "../gtestHelper.h"
 #include "fmi/fmi_models/fmiMELoad3phase.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
-#include "griddyn/simulation/diagnostics.h"
-#include "griddyn/simulation/gridDynSimulationFileOps.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <chrono>
 #include <cstdio>
 #include <gtest/gtest.h>

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "core/coreObject.h"
+#include "core/CoreObject.h"
 #include <map>
 #include <mutex>
 #include <string>

@@ -6,10 +6,10 @@
 
 #include "readElementFile.h"
 
-#include "core/helperObject.h"
+#include "core/HelperObject.h"
 #include "elementReaderTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "readerHelper.h"
 #include "utilities/gridRandom.h"
 #include <filesystem>

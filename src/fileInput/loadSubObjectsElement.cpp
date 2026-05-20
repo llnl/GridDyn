@@ -19,15 +19,15 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
 #include "griddyn/Source.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/controllers/AGControl.h"
-#include "griddyn/controllers/reserveDispatcher.h"
-#include "griddyn/controllers/scheduler.h"
-#include "griddyn/gridBus.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/controllers/ReserveDispatcher.h"
+#include "griddyn/controllers/Scheduler.h"
+#include "griddyn/loads/ZipLoad.h"
 
 namespace griddyn {
 namespace {

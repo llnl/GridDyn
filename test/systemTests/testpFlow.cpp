@@ -5,9 +5,9 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <array>
 #include <gtest/gtest.h>
 #include <iostream>

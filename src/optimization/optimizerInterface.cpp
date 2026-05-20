@@ -6,7 +6,7 @@
 
 #include "optimizerInterface.h"
 
-#include "core/factoryTemplates.hpp"
+#include "core/FactoryTemplates.hpp"
 #include "gridDynOpt.h"
 #include <memory>
 #include <string>

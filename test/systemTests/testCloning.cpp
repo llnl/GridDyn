@@ -6,7 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <memory>

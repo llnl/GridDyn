@@ -5,12 +5,12 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
-#include "core/objectFactory.hpp"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
-#include "solvers/solverMode.hpp"
+#include "solvers/SolverMode.hpp"
 #include <gtest/gtest.h>
 #include <map>
 #include <string>

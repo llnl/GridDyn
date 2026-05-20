@@ -5,14 +5,14 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/coreExceptions.h"
-#include "core/objectFactory.hpp"
+#include "core/CoreExceptions.h"
+#include "core/ObjectFactory.hpp"
 #include "griddyn/Governor.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/genmodels/GenModel4.h"
-#include "griddyn/loads/fileLoad.h"
-#include "griddyn/loads/sourceLoad.h"
-#include "griddyn/loads/zipLoad.h"
+#include "griddyn/loads/FileLoad.h"
+#include "griddyn/loads/SourceLoad.h"
+#include "griddyn/loads/ZipLoad.h"
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>

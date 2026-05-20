@@ -5,9 +5,9 @@
  */
 
 #include "FMI2/fmi2Functions.h"
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "fmiRunner.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include <bitset>
 #include <cstdio>
 #include <memory>

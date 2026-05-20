@@ -7,9 +7,9 @@
 #pragma once
 
 #include "../fmi_import/fmiInfo.h"
-#include "core/propertyBuffer.h"
+#include "core/PropertyBuffer.h"
 #include "fmiSupport.h"
-#include "griddyn/gridSubModel.h"
+#include "griddyn/GridSubModel.h"
 #include <map>
 #include <memory>
 #include <string>

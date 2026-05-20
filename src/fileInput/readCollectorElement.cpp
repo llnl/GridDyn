@@ -3,11 +3,11 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "core/factoryTemplates.hpp"
-#include "core/objectInterpreter.h"
+#include "core/FactoryTemplates.hpp"
+#include "core/ObjectInterpreter.h"
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
-#include "griddyn/measurement/collector.h"
+#include "griddyn/measurement/Collector.h"
 #include "readElement.h"
 #include "readerHelper.h"
 #include <string>

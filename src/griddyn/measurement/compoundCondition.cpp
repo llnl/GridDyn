@@ -5,7 +5,7 @@
  */
 
 #include "Condition.h"
-#include "grabberInterpreter.hpp"
+#include "GrabberInterpreter.hpp"
 #include <utility>
 
 namespace griddyn {

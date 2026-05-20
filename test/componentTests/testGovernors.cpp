@@ -5,9 +5,9 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/objectFactory.hpp"
+#include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
 #include <cstdio>
 #include <gtest/gtest.h>

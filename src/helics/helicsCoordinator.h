@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../core/coreExceptions.h"
-#include "../core/coreObject.h"
+#include "../core/CoreExceptions.h"
+#include "../core/CoreObject.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "helics/helics.hpp"
 #include "helicsSupport.h"

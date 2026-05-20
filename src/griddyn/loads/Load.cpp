@@ -6,9 +6,9 @@
 
 #include "../Load.h"
 
-#include "../gridBus.h"
-#include "../measurement/objectGrabbers.h"
-#include "core/coreExceptions.h"
+#include "../GridBus.h"
+#include "../measurement/ObjectGrabbers.h"
+#include "core/CoreExceptions.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>

@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "core/HelperObject.h"
 #include "core/coreDefinitions.hpp"
-#include "core/helperObject.h"
 #include "gmlc/containers/SimpleQueue.hpp"
 #include <cstdint>
 #include <functional>

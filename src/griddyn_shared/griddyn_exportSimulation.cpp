@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "core/coreExceptions.h"
+#include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/gridDynSimulation.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/gridDynVersion.hpp"
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"

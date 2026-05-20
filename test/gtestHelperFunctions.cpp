@@ -5,7 +5,7 @@
  */
 
 #include "griddyn/Load.h"
-#include "griddyn/simulation/diagnostics.h"
+#include "griddyn/simulation/Diagnostics.h"
 #include "gtestHelper.h"
 #include <cmath>
 #include <gtest/gtest.h>

@@ -165,10 +165,10 @@ Affected areas include:
 
 - `src/extraSolvers/paradae`
 - `src/griddyn/gridComponent.*`
-- `src/griddyn/gridDynSimulation.h`
+- `src/griddyn/GridDynSimulation.h`
 - `src/griddyn/primary/Area.cpp`
 - `src/griddyn/primary/gridBus.cpp`
-- `src/griddyn/sources/blockSource.cpp`
+- `src/griddyn/sources/BlockSource.cpp`
 - `src/griddyn/exciters/ExciterIEEEtype1.*`
 
 Assessment:
@@ -195,7 +195,7 @@ Assessment:
 
 Example:
 
-- `1405ba43` `HACK to work around lastCycle update` in `src/griddyn/sources/sineSource.cpp`
+- `1405ba43` `HACK to work around lastCycle update` in `src/griddyn/sources/SineSource.cpp`
 
 Assessment:
 
@@ -234,10 +234,10 @@ The next best follow-up is a second pass focused only on the remaining semantic 
 
 - `src/griddyn/exciters/ExciterIEEEtype1.*`
 - `src/griddyn/gridComponent.*`
-- `src/griddyn/gridDynSimulation.h`
+- `src/griddyn/GridDynSimulation.h`
 - `src/griddyn/primary/Area.cpp`
 - `src/griddyn/primary/gridBus.cpp`
-- `src/griddyn/sources/blockSource.cpp`
+- `src/griddyn/sources/BlockSource.cpp`
 - `src/extraSolvers/CMakeLists.txt`
 
 That pass should end with one of two outcomes for each item:

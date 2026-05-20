@@ -6,9 +6,9 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/gridBus.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/links/adjustableTransformer.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
 #include <array>
 #include <cstdio>
 #include <filesystem>

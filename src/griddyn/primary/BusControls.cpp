@@ -6,9 +6,9 @@
 
 #include "BusControls.h"
 
+#include "../GridSecondary.h"
 #include "../Link.h"
-#include "../gridSecondary.h"
-#include "acBus.h"
+#include "AcBus.h"
 #include "gmlc/utilities/vectorOps.hpp"
 
 namespace griddyn {

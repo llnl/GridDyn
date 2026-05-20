@@ -7,16 +7,16 @@
 #include "../gtestHelper.h"
 #include "griddyn/Block.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridSubModel.h"
 #include "griddyn/Source.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/generators/DynamicGenerator.h"
-#include "griddyn/gridSubModel.h"
-#include "griddyn/links/acLine.h"
-#include "griddyn/loads/zipLoad.h"
-#include "griddyn/primary/acBus.h"
-#include "griddyn/simulation/diagnostics.h"
-#include "griddyn/simulation/gridDynSimulationFileOps.h"
-#include "griddyn/solvers/solverInterface.h"
+#include "griddyn/links/AcLine.h"
+#include "griddyn/loads/ZipLoad.h"
+#include "griddyn/primary/AcBus.h"
+#include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <gtest/gtest.h>
 #include <iostream>
 

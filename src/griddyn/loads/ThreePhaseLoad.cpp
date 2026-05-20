@@ -6,7 +6,7 @@
 
 #include "ThreePhaseLoad.h"
 
-#include "../gridBus.h"
+#include "../GridBus.h"
 #include "core/coreObjectTemplates.hpp"
 #include "utilities/ThreePhaseFunctions.h"
 #include "utilities/matrixData.hpp"

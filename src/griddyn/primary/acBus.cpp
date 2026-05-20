@@ -19,11 +19,15 @@
 #include "gmlc/utilities/vectorOps.hpp"
 // #include "matrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <utility>
 
 namespace griddyn {
 // factory is for the cloning function
@@ -39,11 +43,11 @@ using units::s;
 using units::unit;
 
 namespace {
-static double checkVoltageDelta(double voltageDelta,
-                                double currentVoltage,
-                                double dropFraction = 0.75,
-                                double maxRise = 0.2,
-                                double riseCheck = 0.0)
+double checkVoltageDelta(double voltageDelta,
+                         double currentVoltage,
+                         double dropFraction = 0.75,
+                         double maxRise = 0.2,
+                         double riseCheck = 0.0)
 {
     if ((currentVoltage - voltageDelta) > riseCheck) {
         voltageDelta = std::max(voltageDelta, -maxRise);
@@ -52,7 +56,7 @@ static double checkVoltageDelta(double voltageDelta,
     return voltageDelta;
 }
 
-static double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxChange = kPI / 8.0)
+double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxChange = kPI / 8.0)
 {
     if (std::abs(angleDelta) > maxChange) {
         angleDelta = std::copysign(maxChange, angleDelta);
@@ -1977,6 +1981,188 @@ void AcBus::localConverge(const solverMode& sMode, int mode, double tol)
     }
 }
 
+void AcBus::convergeHighErrorOnly(const stateData& stateDataValue,
+                                  double state[],
+                                  const solverMode& sMode,
+                                  double& err,
+                                  double tol)
+{
+    if (err <= 0.5) {
+        return;
+    }
+
+    if (err > 2.0) {
+        algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
+        err = computeError(stateDataValue, sMode);
+        int loopCount = 0;
+        while ((err > tol) && (loopCount < 6)) {
+            voltageUpdate(stateDataValue, state, sMode, 1.0);
+            err = computeError(stateDataValue, sMode);
+            ++loopCount;
+        }
+        return;
+    }
+
+    algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
+    algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
+}
+
+bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
+                                    double state[],
+                                    const solverMode& sMode,
+                                    converge_mode& mode,
+                                    double& err,
+                                    double& voltageValue,
+                                    double& angleValue,
+                                    bool useVoltageState,
+                                    bool useAngleState,
+                                    index_t voltageOffset,
+                                    index_t angleOffset,
+                                    double currentModeVoltageLimit,
+                                    double tol,
+                                    int& iteration)
+{
+    while (err > tol) {
+        voltageValue = useVoltageState ? state[voltageOffset] : voltage;
+        angleValue = useAngleState ? state[angleOffset] : angle;
+        if ((voltageValue < currentModeVoltageLimit) &&
+            (mode != converge_mode::force_strong_iteration)) {
+            mode = converge_mode::force_voltage_only;
+            return true;
+        }
+
+        algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
+        const double nextVoltageValue = useVoltageState ? state[voltageOffset] : voltage;
+        const double nextAngleValue = useAngleState ? state[angleOffset] : angle;
+        if ((std::abs(nextVoltageValue - voltageValue) < 1e-9) &&
+            (std::abs(nextAngleValue - angleValue) < 1e-9)) {
+            break;
+        }
+        err = computeError(stateDataValue, sMode);
+        if (++iteration > 10) {
+            break;
+        }
+    }
+    return false;
+}
+
+bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
+                                double state[],
+                                const solverMode& sMode,
+                                converge_mode& mode,
+                                double& voltageValue,
+                                double angleValue,
+                                double frequencyValue,
+                                bool useVoltageState,
+                                index_t voltageOffset,
+                                double tol,
+                                bool& forceVoltageUp,
+                                int& iteration)
+{
+    bool notConverged = voltageValue <= 0.6;
+    double minimumVoltage = -kBigNum;
+    double previousCorrectedError = 120000;
+    int forceCount{0};
+
+    while (notConverged) {
+        if (iteration > 1) {
+            voltageValue = useVoltageState ? state[voltageOffset] : voltage;
+            if ((voltageValue > vTarget * 1.1) && (mode != converge_mode::force_voltage_only)) {
+                mode = converge_mode::force_strong_iteration;
+                return true;
+            }
+        }
+        updateLocalCache(noInputs, stateDataValue, sMode);
+        computeDerivatives(stateDataValue, sMode);
+        const double realPowerDelta = S.sumP();
+        const double reactivePowerDelta = S.sumQ();
+        if ((voltageValue <= 0.0) && (iteration == 6)) {
+            break;
+        }
+        const double correctedRealError = realPowerDelta / voltageValue;
+        const double correctedReactiveError = reactivePowerDelta / voltageValue;
+
+        if (iteration == 1) {
+            previousCorrectedError = correctedReactiveError;
+        }
+        const double realPowerByVoltage = partDeriv.at(PoutLocation, voltageInLocation);
+        const double reactivePowerByVoltage = partDeriv.at(QoutLocation, voltageInLocation);
+        double voltageDelta = 0.0;
+        if ((std::abs(correctedRealError) + std::abs(correctedReactiveError)) <= tol) {
+            notConverged = false;
+            continue;
+        }
+
+        if (std::abs(correctedReactiveError) > tol) {
+            if (correctedReactiveError < 0) {
+                if (forceVoltageUp || (iteration == 1)) {
+                    voltageDelta = -0.1;
+                    forceVoltageUp = true;
+                    ++forceCount;
+                    if (forceCount < 8) {
+                        iteration = (iteration > 5) ? 5 : iteration;
+                    }
+                } else {
+                    voltageDelta = (reactivePowerDelta / reactivePowerByVoltage) +
+                        (realPowerDelta / realPowerByVoltage);
+                    if ((!std::isfinite(voltageDelta)) ||
+                        ((minimumVoltage > 0.35) && ((voltageValue - voltageDelta) < minimumVoltage))) {
+                        voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
+                    }
+                    voltageDelta =
+                        checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
+                }
+            } else {
+                if ((previousCorrectedError < 0) && forceVoltageUp) {
+                    minimumVoltage = voltageValue - 0.1;
+                }
+                forceVoltageUp = false;
+                voltageDelta = (reactivePowerDelta / reactivePowerByVoltage) +
+                    (realPowerDelta / realPowerByVoltage);
+                if ((!std::isfinite(voltageDelta)) ||
+                    ((minimumVoltage > 0.35) && ((voltageValue - voltageDelta) < minimumVoltage))) {
+                    voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
+                }
+                voltageDelta = checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
+            }
+        } else if (std::abs(correctedRealError) > tol) {
+            voltageDelta = (reactivePowerDelta / reactivePowerByVoltage) +
+                (realPowerDelta / realPowerByVoltage);
+            if ((!std::isfinite(voltageDelta)) ||
+                ((minimumVoltage > 0.35) && ((voltageValue - voltageDelta) < minimumVoltage))) {
+                voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
+                notConverged = false;
+            }
+            voltageDelta = checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
+        } else {
+            notConverged = false;
+        }
+
+        if (useVoltageState) {
+            assert(std::isfinite(voltageDelta));
+            assert(voltageValue - voltageDelta > 0);
+            state[voltageOffset] = voltageValue - voltageDelta;
+        }
+
+        if (isDynamic(sMode)) {
+            for (auto& gen : attachedGens) {
+                stateData generatorState;
+                generatorState.state = state;
+                gen->algebraicUpdate({voltageValue - voltageDelta, angleValue, frequencyValue},
+                                     generatorState,
+                                     state,
+                                     sMode,
+                                     1.0);
+            }
+        }
+        if (++iteration > 10) {
+            notConverged = false;
+        }
+    }
+
+    return false;
+}
+
 void AcBus::converge(coreTime time,
                      double state[],
                      double dstate_dt[],
@@ -1993,11 +2179,9 @@ void AcBus::converge(coreTime time,
 
     const bool useVoltageState = useVoltage(sMode) && (Voffset != kNullLocation);
     const bool useAngleState = useAngle(sMode) && (Aoffset != kNullLocation);
-    stateData stateDataValue(time, state, dstate_dt);
+    const stateData stateDataValue(time, state, dstate_dt);
     double voltageValue = useVoltageState ? state[Voffset] : voltage;
     double angleValue = useAngleState ? state[Aoffset] : angle;
-    double nextVoltageValue;
-    double nextAngleValue;
     const double frequencyValue = getFreq(stateDataValue, sMode);
     if (voltageValue <= 0.0) {
         voltageValue = std::abs(voltageValue - 0.001);
@@ -2029,21 +2213,7 @@ void AcBus::converge(coreTime time,
         restartConvergence = false;
         switch (mode) {
             case converge_mode::high_error_only:
-                if (err > 0.5) {
-                    if (err > 2.0) {
-                        algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
-                        err = computeError(stateDataValue, sMode);
-                        int loopCount = 0;
-                        while ((err > tol) && (loopCount < 6)) {
-                            voltageUpdate(stateDataValue, state, sMode, 1.0);
-                            err = computeError(stateDataValue, sMode);
-                            ++loopCount;
-                        }
-                    } else {
-                        algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
-                        algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
-                    }
-                }
+                convergeHighErrorOnly(stateDataValue, state, sMode, err, tol);
                 break;
             case converge_mode::single_iteration:
             case converge_mode::block_iteration:
@@ -2052,141 +2222,36 @@ void AcBus::converge(coreTime time,
             case converge_mode::local_iteration:
             case converge_mode::strong_iteration:
             case converge_mode::force_strong_iteration:
-                while (err > tol) {
-                    voltageValue = useVoltageState ? state[Voffset] : voltage;
-                    angleValue = useAngleState ? state[Aoffset] : angle;
-                    if ((voltageValue < currentModeVlimit) &&
-                        (mode != converge_mode::force_strong_iteration)) {
-                        mode = converge_mode::force_voltage_only;
-                        restartConvergence = true;
-                        break;
-                    }
-                    algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
-                    nextVoltageValue = useVoltageState ? state[Voffset] : voltage;
-                    nextAngleValue = useAngleState ? state[Aoffset] : angle;
-                    if ((std::abs(nextVoltageValue - voltageValue) < 1e-9) &&
-                        (std::abs(nextAngleValue - angleValue) < 1e-9)) {
-                        break;
-                    }
-                    err = computeError(stateDataValue, sMode);
-                    if (++iteration > 10) {
-                        break;
-                    }
-                }
+                restartConvergence = convergeStrongIteration(stateDataValue,
+                                                             state,
+                                                             sMode,
+                                                             mode,
+                                                             err,
+                                                             voltageValue,
+                                                             angleValue,
+                                                             useVoltageState,
+                                                             useAngleState,
+                                                             Voffset,
+                                                             Aoffset,
+                                                             currentModeVlimit,
+                                                             tol,
+                                                             iteration);
                 break;
             case converge_mode::voltage_only:
-            case converge_mode::force_voltage_only: {
-                bool notConverged = voltageValue <= 0.6;
-                double minimumVoltage = -kBigNum;
-                double previousCorrectedError = 120000;
-                int forceCount{0};
-                while (notConverged) {
-                    if (iteration > 1) {
-                        voltageValue = useVoltageState ? state[Voffset] : voltage;
-                        if ((voltageValue > vTarget * 1.1) &&
-                            (mode != converge_mode::force_voltage_only)) {
-                            mode = converge_mode::force_strong_iteration;
-                            restartConvergence = true;
-                            break;
-                        }
-                    }
-                    updateLocalCache(noInputs, stateDataValue, sMode);
-                    computeDerivatives(stateDataValue, sMode);
-                    const double realPowerDelta = S.sumP();
-                    const double reactivePowerDelta = S.sumQ();
-                    if ((voltageValue <= 0.0) && (iteration == 6)) {
-                        break;
-                    }
-                    const double correctedRealError = realPowerDelta / voltageValue;
-                    const double correctedReactiveError = reactivePowerDelta / voltageValue;
-
-                    if (iteration == 1) {
-                        previousCorrectedError = correctedReactiveError;
-                    }
-                    const double realPowerByVoltage = partDeriv.at(PoutLocation, voltageInLocation);
-                    const double reactivePowerByVoltage =
-                        partDeriv.at(QoutLocation, voltageInLocation);
-                    double voltageDelta = 0.0;
-                    if ((std::abs(correctedRealError) + std::abs(correctedReactiveError)) > tol) {
-                        if (std::abs(correctedReactiveError) > tol) {
-                            if (correctedReactiveError < 0) {
-                                if (forceVoltageUp || (iteration == 1)) {
-                                    voltageDelta = -0.1;
-                                    forceVoltageUp = true;
-                                    ++forceCount;
-                                    if (forceCount < 8) {
-                                        iteration = (iteration > 5) ? 5 : iteration;
-                                    }
-                                } else {
-                                    voltageDelta =
-                                        (reactivePowerDelta / reactivePowerByVoltage) +
-                                        (realPowerDelta / realPowerByVoltage);
-                                    if ((!std::isfinite(voltageDelta)) ||
-                                        ((minimumVoltage > 0.35) &&
-                                         ((voltageValue - voltageDelta) < minimumVoltage))) {
-                                        voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
-                                    }
-                                    voltageDelta =
-                                        checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
-                                }
-                            } else {
-                                if ((previousCorrectedError < 0) && forceVoltageUp) {
-                                    minimumVoltage = voltageValue - 0.1;
-                                }
-                                forceVoltageUp = false;
-                                voltageDelta =
-                                    (reactivePowerDelta / reactivePowerByVoltage) +
-                                    (realPowerDelta / realPowerByVoltage);
-                                if ((!std::isfinite(voltageDelta)) ||
-                                    ((minimumVoltage > 0.35) &&
-                                     ((voltageValue - voltageDelta) < minimumVoltage))) {
-                                    voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
-                                }
-                                voltageDelta =
-                                    checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
-                            }
-                        } else if (std::abs(correctedRealError) > tol) {
-                            voltageDelta = (reactivePowerDelta / reactivePowerByVoltage) +
-                                (realPowerDelta / realPowerByVoltage);
-                            if ((!std::isfinite(voltageDelta)) ||
-                                ((minimumVoltage > 0.35) &&
-                                 ((voltageValue - voltageDelta) < minimumVoltage))) {
-                                voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
-                                notConverged = false;
-                            }
-                            voltageDelta =
-                                checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
-                        } else {
-                            notConverged = false;
-                        }
-                        if (useVoltageState) {
-                            assert(std::isfinite(voltageDelta));
-                            assert(voltageValue - voltageDelta > 0);
-                            state[Voffset] = voltageValue - voltageDelta;
-                        }
-
-                        if (isDynamic(sMode)) {
-                            for (auto& gen : attachedGens) {
-                                stateData generatorState;
-                                generatorState.state = state;
-                                gen->algebraicUpdate({voltageValue - voltageDelta,
-                                                      angleValue,
-                                                      frequencyValue},
-                                                     generatorState,
-                                                     state,
-                                                     sMode,
-                                                     1.0);
-                            }
-                        }
-                        if (++iteration > 10) {
-                            notConverged = false;
-                        }
-                    } else {
-                        notConverged = false;
-                    }
-                }
+            case converge_mode::force_voltage_only:
+                restartConvergence = convergeVoltageOnly(stateDataValue,
+                                                         state,
+                                                         sMode,
+                                                         mode,
+                                                         voltageValue,
+                                                         angleValue,
+                                                         frequencyValue,
+                                                         useVoltageState,
+                                                         Voffset,
+                                                         tol,
+                                                         forceVoltageUp,
+                                                         iteration);
                 break;
-            }
             default:
                 break;
         }
@@ -2700,9 +2765,7 @@ change_code AcBus::rootCheck(const IOdata& inputs,
     }
     // make sure we are not in a fault condition
     const auto iret = GridBus::rootCheck(inputs, stateDataValue, sMode, level);
-    if (iret > ret) {
-        ret = iret;
-    }
+    ret = std::max(ret, iret);
 
     return ret;
 }

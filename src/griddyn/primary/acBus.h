@@ -381,6 +381,37 @@ class AcBus: public GridBus {
                                 const solverMode& sMode) override;
 
   private:
+    void convergeHighErrorOnly(const stateData& stateDataValue,
+                               double state[],
+                               const solverMode& sMode,
+                               double& err,
+                               double tol);
+    bool convergeStrongIteration(const stateData& stateDataValue,
+                                 double state[],
+                                 const solverMode& sMode,
+                                 converge_mode& mode,
+                                 double& err,
+                                 double& voltageValue,
+                                 double& angleValue,
+                                 bool useVoltageState,
+                                 bool useAngleState,
+                                 index_t voltageOffset,
+                                 index_t angleOffset,
+                                 double currentModeVoltageLimit,
+                                 double tol,
+                                 int& iteration);
+    bool convergeVoltageOnly(const stateData& stateDataValue,
+                             double state[],
+                             const solverMode& sMode,
+                             converge_mode& mode,
+                             double& voltageValue,
+                             double angleValue,
+                             double frequencyValue,
+                             bool useVoltageState,
+                             index_t voltageOffset,
+                             double tol,
+                             bool& forceVoltageUp,
+                             int& iteration);
     double getAverageAngle() const;
     count_t getDependencyCount(const solverMode& sMode) const;
     Generator* keyGen = nullptr;

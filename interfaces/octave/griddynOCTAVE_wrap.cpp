@@ -3264,7 +3264,7 @@ static swig_octave_class _wrap_class_doubleArray = {"doubleArray",
                                                     swig_doubleArray_base};
 
 static octave_value_list _wrap_gridDynSimulationGetResults__SWIG_0(const octave_value_list& args,
-                                                                    int nargout)
+                                                                   int nargout)
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
@@ -5308,7 +5308,7 @@ fail:
 }
 
 static octave_value_list _wrap_gridDynSimulationGetResults__SWIG_1(const octave_value_list& args,
-                                                                    int nargout)
+                                                                   int nargout)
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
@@ -5784,8 +5784,8 @@ SWIG_DEFUN(gridDynSimulationResidual, _wrap_gridDynSimulationResidual, std::stri
                             "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulationResidual(
-        arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
+    result = (griddyn_status)
+        gridDynSimulationResidual(arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5883,9 +5883,7 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulationAlgebraicUpdate,
-           _wrap_gridDynSimulationAlgebraicUpdate,
-           std::string())
+SWIG_DEFUN(gridDynSimulationAlgebraicUpdate, _wrap_gridDynSimulationAlgebraicUpdate, std::string())
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
@@ -7838,12 +7836,7 @@ static const struct swig_octave_member swig_globals[] = {
      0,
      2,
      0},
-    {"gridDynSimulationInitializeFromArgs",
-     _wrap_gridDynSimulationInitializeFromArgs,
-     0,
-     0,
-     2,
-     0},
+    {"gridDynSimulationInitializeFromArgs", _wrap_gridDynSimulationInitializeFromArgs, 0, 0, 2, 0},
     {"gridDynSimulationLoadfile", _wrap_gridDynSimulationLoadfile, 0, 0, 2, 0},
     {"gridDynSimulationAddCommand", _wrap_gridDynSimulationAddCommand, 0, 0, 2, 0},
     {"gridDynSimulationPowerflowInitialize",

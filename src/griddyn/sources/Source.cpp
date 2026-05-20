@@ -6,8 +6,8 @@
 
 #include "../Source.h"
 
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "otherSources.h"
 #include "sourceTypes.h"
 #include <string>

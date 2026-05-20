@@ -8,8 +8,8 @@
 
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "coupling/GhostSwingBusManager.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"

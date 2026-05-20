@@ -7,8 +7,8 @@
 #include "DerivativeBlock.h"
 
 #include "core/CoreExceptions.h"
-#include "core/ObjectFactory.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactory.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <string>

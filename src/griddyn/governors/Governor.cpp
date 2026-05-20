@@ -8,8 +8,8 @@
 #include "../GridBus.h"
 #include "GovernorTypes.h"
 #include "core/CoreExceptions.h"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/matrixDataSparse.hpp"
 #include <string>
 #include <vector>

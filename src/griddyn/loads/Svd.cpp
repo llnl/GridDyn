@@ -6,8 +6,8 @@
 
 #include "Svd.h"
 
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <cmath>
 #include <string>

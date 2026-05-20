@@ -21,9 +21,9 @@
 #include "Pmu.h"
 #include "ZonalRelay.h"
 #include "core/CoreExceptions.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/PropertyBuffer.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
 #include <format>

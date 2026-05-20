@@ -15,8 +15,8 @@
 #include "SourceLoad.h"
 #include "ThreePhaseLoad.h"
 #include "core/CoreExceptions.h"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/matrixData.hpp"
 #include <cmath>
 #include <complex>

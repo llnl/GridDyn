@@ -15,9 +15,9 @@
 #include "ListMaintainer.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectList.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <cstdio>

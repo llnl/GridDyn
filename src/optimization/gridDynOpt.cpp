@@ -7,8 +7,8 @@
 #include "gridDynOpt.h"
 
 #include "core/CoreExceptions.h"
-#include "core/ObjectFactoryTemplates.hpp"
 #include "core/CoreObjectTemplates.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
 #include "models/gridAreaOpt.h"

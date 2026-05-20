@@ -3336,9 +3336,9 @@ fail:
 }
 
 int _wrap_gridDynSimulationInitializeFromString(int resc,
-                                                 mxArray* resv[],
-                                                 int argc,
-                                                 mxArray* argv[])
+                                                mxArray* resv[],
+                                                int argc,
+                                                mxArray* argv[])
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
@@ -3571,10 +3571,7 @@ fail:
     return 1;
 }
 
-int _wrap_gridDynSimulationPowerflowInitialize(int resc,
-                                                mxArray* resv[],
-                                                int argc,
-                                                mxArray* argv[])
+int _wrap_gridDynSimulationPowerflowInitialize(int resc, mxArray* resv[], int argc, mxArray* argv[])
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
@@ -4468,9 +4465,9 @@ fail:
 }
 
 int _wrap_gridDynSimulationGetStateVariableTypes(int resc,
-                                                  mxArray* resv[],
-                                                  int argc,
-                                                  mxArray* argv[])
+                                                 mxArray* resv[],
+                                                 int argc,
+                                                 mxArray* argv[])
 {
     GridDynSimulation arg1 = (GridDynSimulation)0;
     double* arg2 = (double*)0;
@@ -4621,8 +4618,8 @@ int _wrap_gridDynSimulationResidual(int resc, mxArray* resv[], int argc, mxArray
                             "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulationResidual(
-        arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
+    result = (griddyn_status)
+        gridDynSimulationResidual(arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
     _out = SWIG_From_int(static_cast<int>(result));
     if (_out) --resc, *resv++ = _out;
     return 0;
@@ -7438,8 +7435,7 @@ extern "C" void mexFunction(int resc, mxArray* resv[], int argc, const mxArray* 
             flag = _wrap_gridDynSimulationFree(resc, resv, argc, (mxArray**)(argv));
             break;
         case 41:
-            flag =
-                _wrap_gridDynSimulationInitializeFromString(resc, resv, argc, (mxArray**)(argv));
+            flag = _wrap_gridDynSimulationInitializeFromString(resc, resv, argc, (mxArray**)(argv));
             break;
         case 42:
             flag = _wrap_gridDynSimulationInitializeFromArgs(resc, resv, argc, (mxArray**)(argv));

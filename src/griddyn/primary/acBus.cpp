@@ -48,13 +48,13 @@ double checkVoltageDelta(double voltageDelta,
                          double dropFraction = 0.75,
                          double maxRise = 0.2,
                          double riseCheck = 0.0)
-{
+    {
     if ((currentVoltage - voltageDelta) > riseCheck) {
         voltageDelta = std::max(voltageDelta, -maxRise);
     }
     voltageDelta = std::min(voltageDelta, dropFraction * currentVoltage);
     return voltageDelta;
-}
+    }
 
 double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxChange = kPI / 8.0)
 {
@@ -62,7 +62,7 @@ double checkAngleDelta(double angleDelta, double /*currentAngle*/, double maxCha
         angleDelta = std::copysign(maxChange, angleDelta);
     }
     return angleDelta;
-}
+    }
 }  // namespace
 
 AcBus::AcBus(const std::string& objName): GridBus(objName), busController(this)
@@ -410,10 +410,11 @@ void AcBus::unmergeBus(GridBus* mbus)
         return;
     }
     auto* currentMaster = opFlags[slave_bus] ? dynamic_cast<AcBus*>(busController.masterBus) : this;
-    auto* targetMaster =
-        targetBus->checkFlag(slave_bus) ? dynamic_cast<AcBus*>(targetBus->busController.masterBus) :
+    auto* targetMaster = targetBus->checkFlag(slave_bus) ?
+        dynamic_cast<AcBus*>(targetBus->busController.masterBus) :
                                           targetBus;
-    if ((currentMaster == nullptr) || (targetMaster == nullptr) || (currentMaster != targetMaster)) {
+    if ((currentMaster == nullptr) || (targetMaster == nullptr) ||
+        (currentMaster != targetMaster)) {
         return;
     }
 
@@ -488,9 +489,8 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn0:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                const double newAngle =
-                    static_cast<GridArea*>(getParent())->getMasterAngle(emptyStateData,
-                                                                        cLocalSolverMode);
+                const double newAngle = static_cast<GridArea*>(getParent())
+                                            ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (newAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
             } else if (voltage < 0.1) {
@@ -501,9 +501,8 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn1:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                const double newAngle =
-                    static_cast<GridArea*>(getParent())->getMasterAngle(emptyStateData,
-                                                                        cLocalSolverMode);
+                const double newAngle = static_cast<GridArea*>(getParent())
+                                            ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (newAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
             }
@@ -516,9 +515,8 @@ void AcBus::reset(reset_levels level)
         case reset_levels::low_voltage_dyn2:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
-                const double newAngle =
-                    static_cast<GridArea*>(getParent())->getMasterAngle(emptyStateData,
-                                                                        cLocalSolverMode);
+                const double newAngle = static_cast<GridArea*>(getParent())
+                                            ->getMasterAngle(emptyStateData, cLocalSolverMode);
                 angle = angle + (newAngle - refAngle);
                 alert(this, JAC_COUNT_CHANGE);
             }
@@ -1206,8 +1204,7 @@ void AcBus::setVoltageAngle(double Vnew, double Anew)
 
 static const IOdata kNullVec;
 
-IOdata
-    AcBus::getOutputs(const IOdata& /*inputs*/,
+IOdata AcBus::getOutputs(const IOdata& /*inputs*/,
                       const stateData& stateDataValue,
                       const solverMode& sMode) const
 {
@@ -1335,13 +1332,11 @@ double AcBus::getAngle(const stateData& stateDataValue, const solverMode& sMode)
         return (angleOffset != kNullLocation) ? stateDataValue.state[angleOffset] : angle;
     }
     if (stateDataValue.algState != nullptr) {
-        const auto angleOffset =
-            offsets.getAOffset(offsets.getSolverMode(sMode.pairedOffsetIndex));
+        const auto angleOffset = offsets.getAOffset(offsets.getSolverMode(sMode.pairedOffsetIndex));
         return (angleOffset != kNullLocation) ? stateDataValue.algState[angleOffset] : angle;
     }
     if (stateDataValue.fullState != nullptr) {
-        const auto angleOffset =
-            offsets.getAOffset(offsets.getSolverMode(sMode.pairedOffsetIndex));
+        const auto angleOffset = offsets.getAOffset(offsets.getSolverMode(sMode.pairedOffsetIndex));
         return (angleOffset != kNullLocation) ? stateDataValue.fullState[angleOffset] : angle;
     }
     return angle;
@@ -1667,12 +1662,12 @@ void AcBus::jacobianElements(const IOdata& inputs,
 
     if (Voffset != kNullLocation) {
         if (useVoltage(sMode)) {
-            matrixDataValue.assignCheckCol(
-                Voffset, Aoffset, partDeriv.at(QoutLocation, angleInLocation));
+            matrixDataValue.assignCheckCol(Voffset,
+                                           Aoffset,
+                                           partDeriv.at(QoutLocation, angleInLocation));
             matrixDataValue.assign(Voffset, Voffset, partDeriv.at(QoutLocation, voltageInLocation));
             if (opFlags[uses_bus_frequency]) {
-                matrixDataValue.assignCheckCol(
-                    Voffset,
+                matrixDataValue.assignCheckCol(Voffset,
                     outLocs[frequencyInLocation],
                     partDeriv.at(QoutLocation, frequencyInLocation));
             }
@@ -1683,11 +1678,11 @@ void AcBus::jacobianElements(const IOdata& inputs,
     if (Aoffset != kNullLocation) {
         if (useAngle(sMode)) {
             matrixDataValue.assign(Aoffset, Aoffset, partDeriv.at(PoutLocation, angleInLocation));
-            matrixDataValue.assignCheckCol(
-                Aoffset, Voffset, partDeriv.at(PoutLocation, voltageInLocation));
+            matrixDataValue.assignCheckCol(Aoffset,
+                                           Voffset,
+                                           partDeriv.at(PoutLocation, voltageInLocation));
             if (opFlags[uses_bus_frequency]) {
-                matrixDataValue.assignCheckCol(
-                    Aoffset,
+                matrixDataValue.assignCheckCol(Aoffset,
                     outLocs[frequencyInLocation],
                     partDeriv.at(PoutLocation, frequencyInLocation));
             }
@@ -1824,7 +1819,8 @@ void AcBus::algebraicUpdate(const IOdata& inputs,
         const double realPowerDelta = S.sumP();
         const double realPowerByAngle = partDeriv.at(PoutLocation, angleInLocation);
         if (realPowerByAngle != 0) {
-            const double angleDelta = checkAngleDelta(realPowerDelta / realPowerByAngle, angleValue);
+            const double angleDelta =
+                checkAngleDelta(realPowerDelta / realPowerByAngle, angleValue);
             assert(std::isfinite(angleDelta));
             update[Aoffset] = angleValue - (angleDelta * alpha);
         } else {
@@ -2109,8 +2105,8 @@ bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
                         ((minimumVoltage > 0.35) && ((voltageValue - voltageDelta) < minimumVoltage))) {
                         voltageDelta = reactivePowerDelta / reactivePowerByVoltage;
                     }
-                    voltageDelta =
-                        checkVoltageDelta(voltageDelta, voltageValue, 0.75, 0.15, 1.05);
+                                    voltageDelta = checkVoltageDelta(
+                                        voltageDelta, voltageValue, 0.75, 0.15, 1.05);
                 }
             } else {
                 if ((previousCorrectedError < 0) && forceVoltageUp) {
@@ -2752,9 +2748,9 @@ change_code AcBus::rootCheck(const IOdata& inputs,
                 if (prevDynType == dynBusType::normal) {
                     if (currentVoltage > 0.1) {
                         dynType = dynBusType::normal;
-                        const double newAngle = static_cast<GridArea*>(getParent())
-                                                    ->getMasterAngle(emptyStateData,
-                                                                     cLocalSolverMode);
+                        const double newAngle =
+                            static_cast<GridArea*>(getParent())
+                                ->getMasterAngle(emptyStateData, cLocalSolverMode);
                         angle = angle + (newAngle - refAngle);
                         alert(this, JAC_COUNT_INCREASE);
                         ret = change_code::jacobian_change;

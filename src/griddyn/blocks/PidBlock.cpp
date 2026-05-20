@@ -23,10 +23,7 @@ PidBlock::PidBlock(double proportionalGain,
                    double integralGain,
                    double derivativeGain,
                    const std::string& objName):
-    GridBlock(objName),
-    m_P(proportionalGain),
-    m_I(integralGain),
-    m_D(derivativeGain),
+    GridBlock(objName), m_P(proportionalGain), m_I(integralGain), m_D(derivativeGain),
     no_D(extra_bool)
 {
     opFlags.set(use_state);
@@ -112,13 +109,12 @@ void PidBlock::blockDerivative(double input,
     auto Loc = offsets.getLocations(stateDataValue, deriv, sMode, this);
     Loc.destDiffLoc[limiter_diff + 2] = m_I * (input + bias);
     Loc.destDiffLoc[limiter_diff + 1] =
-        (no_D) ? 0 :
-                 ((m_D * (input + bias)) - Loc.diffStateLoc[limiter_diff + 1]) / m_T1;
+        (no_D) ? 0 : ((m_D * (input + bias)) - Loc.diffStateLoc[limiter_diff + 1]) / m_T1;
 
-    Loc.destDiffLoc[limiter_diff] =
-        ((K * ((m_P * (input + bias)) + Loc.dstateLoc[limiter_diff + 1] +
-               Loc.diffStateLoc[limiter_diff + 2])) -
-         Loc.diffStateLoc[limiter_diff]) /
+    Loc.destDiffLoc[limiter_diff] = ((K *
+                                      ((m_P * (input + bias)) + Loc.dstateLoc[limiter_diff + 1] +
+                                       Loc.diffStateLoc[limiter_diff + 2])) -
+                                     Loc.diffStateLoc[limiter_diff]) /
         m_Td;
     if (limiter_diff > 0) {
         GridBlock::blockDerivative(input, didt, stateDataValue, deriv, sMode);
@@ -144,10 +140,8 @@ void PidBlock::blockJacobianElements(double input,
                 input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
         }
 
-        matrixDataValue.assign(
-            Loc.diffOffset, Loc.diffOffset, ((-1.0 / m_Td) - stateDataValue.cj));
-        matrixDataValue.assign(
-            Loc.diffOffset, Loc.diffOffset + 1, K * stateDataValue.cj / m_Td);
+        matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset, ((-1.0 / m_Td) - stateDataValue.cj));
+        matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset + 1, K * stateDataValue.cj / m_Td);
 
         matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset + 2, K / m_Td);
         matrixDataValue.assignCheckCol(Loc.diffOffset, argLoc, K * m_P / m_Td);
@@ -155,8 +149,9 @@ void PidBlock::blockJacobianElements(double input,
             matrixDataValue.assign(Loc.diffOffset + 1, Loc.diffOffset + 1, -stateDataValue.cj);
         } else {
             matrixDataValue.assignCheckCol(Loc.diffOffset + 1, argLoc, m_D / m_T1);
-            matrixDataValue.assign(
-                Loc.diffOffset + 1, Loc.diffOffset + 1, ((-1.0 / m_T1) - stateDataValue.cj));
+            matrixDataValue.assign(Loc.diffOffset + 1,
+                                   Loc.diffOffset + 1,
+                                   ((-1.0 / m_T1) - stateDataValue.cj));
         }
 
         matrixDataValue.assignCheckCol(Loc.diffOffset + 2, argLoc, m_I);
@@ -189,9 +184,9 @@ double PidBlock::step(coreTime time, double inputA)
         while (currentTime < time) {
             intermediateInput = intermediateInput + (inputRate * timeStep);
             ival_int += (m_I * (intermediateInput + priorInput) / 2) * timeStep;
-            der = (no_D) ? 0 :
-                           (1.0 / m_T1) * (((m_D * (priorInput + intermediateInput)) / 2.0) -
-                                           ival_der);
+            der = (no_D) ?
+                0 :
+                (1.0 / m_T1) * (((m_D * (priorInput + intermediateInput)) / 2.0) - ival_der);
             ival_der += der * timeStep;
             ival_out +=
                 ((K * ((m_P * intermediateInput) + der + ival_int)) - ival_out) / m_Td * timeStep;
@@ -201,8 +196,7 @@ double PidBlock::step(coreTime time, double inputA)
         const double remainingTime = time - currentTime + timeStep;
         m_state[limiter_diff + 2] =
             ival_int + ((m_I * (priorInput + inputValue) / 2.0) * remainingTime);
-        der = (no_D) ? 0 :
-                       (1.0 / m_T1) * (((m_D * (priorInput + inputValue)) / 2.0) - ival_der);
+        der = (no_D) ? 0 : (1.0 / m_T1) * (((m_D * (priorInput + inputValue)) / 2.0) - ival_der);
         m_state[limiter_diff + 1] = ival_der + (der * remainingTime);
         m_state[limiter_diff] = ival_out +
             ((((K * ((m_P * inputValue) + der + m_state[limiter_diff + 2])) - ival_out) / m_Td) *

@@ -327,8 +327,7 @@ class AcBus: public GridBus {
     @param[in] sMode the corresponding solverMode to the state
     @return the bus frequency
     **/
-    virtual double getFreq(const stateData& stateDataValue,
-                           const solverMode& sMode) const override;
+    virtual double getFreq(const stateData& stateDataValue, const solverMode& sMode) const override;
 
     virtual change_code rootCheck(const IOdata& inputs,
                                   const stateData& stateDataValue,
@@ -377,8 +376,7 @@ class AcBus: public GridBus {
     @param[in] sMode the solverMode corresponding to the stateData
     @return the error in the power balance equations
     */
-    virtual double computeError(const stateData& stateDataValue,
-                                const solverMode& sMode) override;
+    virtual double computeError(const stateData& stateDataValue, const solverMode& sMode) override;
 
   private:
     void convergeHighErrorOnly(const stateData& stateDataValue,

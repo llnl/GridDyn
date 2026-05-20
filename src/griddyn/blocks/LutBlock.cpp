@@ -109,7 +109,8 @@ void LutBlock::set(std::string_view param, std::string_view val)
         lut.clear();
         lut.emplace_back(-kBigNum, 0.0);
         lut.emplace_back(kBigNum, 0.0);
-        for (gmlc::utilities::fsize_t pointIndex = 0; pointIndex < timeSeries.size(); ++pointIndex) {
+        for (gmlc::utilities::fsize_t pointIndex = 0; pointIndex < timeSeries.size();
+             ++pointIndex) {
             lut.emplace_back(timeSeries.time(pointIndex), timeSeries.data(pointIndex));
         }
         std::sort(lut.begin(), lut.end());

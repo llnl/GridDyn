@@ -120,8 +120,8 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-static const char paramString[] = "params";
-static const char inputString[] = "inputs";
+static const char PARAM_STRING[] = "params";
+static const char INPUT_STRING[] = "inputs";
 
 void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
@@ -130,7 +130,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
     auto vcnt = info->getCounts("variables");
     switch (pstype) {
         case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
                          m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -156,7 +156,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::LOCAL_NUM:
-            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -167,7 +167,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_STR:
-            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -178,7 +178,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_FLAGS:
-            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -189,7 +189,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -201,7 +201,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
         case ParamStringType::STR:
-            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -213,7 +213,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::FLAGS:
-            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -255,7 +255,7 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
         trim(ssep);
         cs->setOutputVariables(ssep);
         m_outputSize = cs->outputSize();
-    } else if (param == inputString) {
+    } else if (param == INPUT_STRING) {
         auto ssep = splitline(val);
         trim(ssep);
         cs->setInputVariables(ssep);
@@ -272,10 +272,10 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
         }
     }
 }
-static const char localIntegrationtimeString[] = "localintegrationtime";
+static const char LOCAL_INTEGRATIONTIME_STRING[] = "localintegrationtime";
 void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "timestep") || (param == localIntegrationtimeString)) {
+    if ((param == "timestep") || (param == LOCAL_INTEGRATIONTIME_STRING)) {
         localIntegrationTime = val;
     } else {
         const bool isparam = cs->isParameter(std::string{param}, FmiVariableType::numeric);
@@ -291,7 +291,7 @@ void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
 
 double FmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 {
-    if (param == localIntegrationtimeString) {
+    if (param == LOCAL_INTEGRATIONTIME_STRING) {
         return localIntegrationTime;
     }
     if (cs->isVariable(std::string{param}, FmiVariableType::numeric)) {

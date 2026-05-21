@@ -10,21 +10,21 @@
 #include <string>
 
 namespace griddyn {
-ObjInfo::ObjInfo(std::string_view Istring, const CoreObject* obj)
+ObjInfo::ObjInfo(std::string_view istring, const CoreObject* obj)
 {
-    LoadInfo(Istring, obj);
+    LoadInfo(istring, obj);
 }
-void ObjInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
+void ObjInfo::LoadInfo(std::string_view istring, const CoreObject* obj)
 {
     // get the object which to grab from
-    size_t rlc = Istring.find_last_of(":?");
+    size_t rlc = istring.find_last_of(":?");
     if (rlc != std::string::npos) {
-        m_obj = locateObject(Istring.substr(0, rlc), obj);
+        m_obj = locateObject(istring.substr(0, rlc), obj);
 
-        m_field = std::string{Istring.substr(rlc + 1, std::string::npos)};
+        m_field = std::string{istring.substr(rlc + 1, std::string::npos)};
     } else {
         m_obj = const_cast<CoreObject*>(obj);
-        m_field = std::string{Istring};
+        m_field = std::string{istring};
     }
 
     rlc = m_field.find_first_of('(');
@@ -41,21 +41,21 @@ void ObjInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-CoreObject* locateObject(std::string_view Istring,
+CoreObject* locateObject(std::string_view istring,
                          const CoreObject* rootObj,
                          bool rootSearch,
                          bool directFind)
 {
     CoreObject* obj = nullptr;
-    std::string_view mname = Istring;
+    std::string_view mname = istring;
     std::string secName = "_";
     // get the object which to grab from
-    auto rlc = Istring.find_first_of(":/?");
+    auto rlc = istring.find_first_of(":/?");
     char sep = ' ';
     if (rlc != std::string::npos) {
-        mname = Istring.substr(0, rlc);
-        secName = std::string{Istring.substr(rlc + 1)};
-        sep = Istring[rlc];
+        mname = istring.substr(0, rlc);
+        secName = std::string{istring.substr(rlc + 1)};
+        sep = istring[rlc];
     }
 
     if (mname == rootObj->getName()) {
@@ -68,7 +68,7 @@ CoreObject* locateObject(std::string_view Istring,
             obj = rootObj->getParent()->find(mname);
         }
     } else {
-        if ((mname != Istring) || directFind) {
+        if ((mname != istring) || directFind) {
             obj = rootObj->find(mname);
         }
         if (obj == nullptr) {

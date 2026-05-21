@@ -35,7 +35,7 @@ class FmiMELoad: public FmiMEWrapper<GridLoad> {
                                   const solverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode) override;
 
   protected:

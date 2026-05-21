@@ -94,14 +94,14 @@ namespace {
 }  // namespace
 
 // get the basic busFactory
-static typeFactory<GridBus>* busfactory = nullptr;
+static typeFactory<GridBus>* gBusfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<GridLoad>* ldfactory = nullptr;
+static typeFactory<GridLoad>* gLdfactory = nullptr;
 // get the basic Link Factory
-static childTypeFactory<AcLine, Link>* linkfactory = nullptr;
+static childTypeFactory<AcLine, Link>* gLinkfactory = nullptr;
 // get the basic Generator Factory
-static typeFactory<Generator>* genfactory = nullptr;
+static typeFactory<Generator>* gGenfactory = nullptr;
 
 static SectionType findSectionType(const std::string& line);
 
@@ -145,20 +145,20 @@ void loadRaw(CoreObject* parentObject,
     size_t pos;
 
     /*load up the factories*/
-    if (busfactory == nullptr) {
+    if (gBusfactory == nullptr) {
         // get the basic busFactory
-        busfactory = static_cast<decltype(busfactory)>(
+        gBusfactory = static_cast<decltype(gBusfactory)>(
             coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
 
         // get the basic load Factory
-        ldfactory = static_cast<decltype(ldfactory)>(
+        gLdfactory = static_cast<decltype(gLdfactory)>(
             coreObjectFactory::instance()->getFactory("load")->getFactory(""));
 
         // get the basic load Factory
-        genfactory = static_cast<decltype(genfactory)>(
+        gGenfactory = static_cast<decltype(gGenfactory)>(
             coreObjectFactory::instance()->getFactory("generator")->getFactory(""));
         // get the basic link Factory
-        linkfactory = static_cast<decltype(linkfactory)>(
+        gLinkfactory = static_cast<decltype(gLinkfactory)>(
             coreObjectFactory::instance()->getFactory("link")->getFactory(""));
     }
     /* Process the first line
@@ -231,7 +231,7 @@ void loadRaw(CoreObject* parentObject,
                 }
             }
             if (busList[index] == nullptr) {
-                busList[index] = busfactory->makeTypeObject();
+                busList[index] = gBusfactory->makeTypeObject();
                 busList[index]->set("basepower", opt.base);
                 busList[index]->setUserID(index);
 
@@ -274,7 +274,7 @@ void loadRaw(CoreObject* parentObject,
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            loadObject = ldfactory->makeTypeObject();
+                            loadObject = gLdfactory->makeTypeObject();
                             bus->add(loadObject);
                             rawReadLoad(loadObject, line, opt);
                         } else {
@@ -291,7 +291,7 @@ void loadRaw(CoreObject* parentObject,
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            gen = genfactory->makeTypeObject();
+                            gen = gGenfactory->makeTypeObject();
                             bus->add(gen);
                             rawReadGen(gen, line, opt);
                         } else {
@@ -317,7 +317,7 @@ void loadRaw(CoreObject* parentObject,
                     if (checkNextLine(file, line)) {
                         bus = findBus(busList, line);
                         if (bus != nullptr) {
-                            loadObject = ldfactory->makeTypeObject();
+                            loadObject = gLdfactory->makeTypeObject();
                             bus->add(loadObject);
                             rawReadFixedShunt(loadObject, line, opt);
                         } else {
@@ -542,7 +542,7 @@ static void rawReadBus(GridBus* bus, const std::string& line, basicReaderInfo& o
         const auto realAdmittance = numeric_conversion<double>(strvec[4], 0.0);
         const auto reactiveAdmittance = numeric_conversion<double>(strvec[5], 0.0);
         if ((realAdmittance != 0) || (reactiveAdmittance != 0)) {
-            auto* fixedLoad = ldfactory->makeTypeObject();
+            auto* fixedLoad = gLdfactory->makeTypeObject();
             bus->add(fixedLoad);
             if (realAdmittance != 0.0) {
                 fixedLoad->set("yp", realAdmittance, MW);
@@ -680,16 +680,16 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
     if (qmin != 0.0) {
         gen->set("qmin", qmin, MVAR);
     }
-    auto Vtarget = numeric_conversion<double>(strvec[6], 0.0);
-    if (Vtarget > 0) {
+    auto vtarget = numeric_conversion<double>(strvec[6], 0.0);
+    if (vtarget > 0) {
         const double voltageParent = gen->getParent()->get("vtarget");
-        if (std::abs(voltageParent - Vtarget) > 0.0001) {
-            gen->set("vtarget", Vtarget);
+        if (std::abs(voltageParent - vtarget) > 0.0001) {
+            gen->set("vtarget", vtarget);
             // for raw files the bus doesn't necessarily set a control point it comes from the
             // generator, so we have to set it here.
             if (!opt.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
-                gen->getParent()->set("vtarget", Vtarget);
-                gen->getParent()->set("voltage", Vtarget);
+                gen->getParent()->set("vtarget", vtarget);
+                gen->getParent()->set("voltage", vtarget);
             }
         } else {
             gen->set("vtarget", voltageParent);
@@ -715,7 +715,7 @@ static void rawReadGen(Generator* gen, const std::string& line, basicReaderInfo&
         if ((resistance != 0) || (reactance != 0))  // need to add a step up transformer
         {
             auto* oBus = static_cast<GridBus*>(gen->find("bus"));
-            GridBus* nBus = busfactory->makeTypeObject();
+            GridBus* nBus = gBusfactory->makeTypeObject();
             auto* lnk = new AcLine(resistance * opt.base / machineBase,
                                    reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as
@@ -818,7 +818,7 @@ static void rawReadBranch(CoreObject* parentObject,
     int ind2;
     std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
 
-    AcLine* lnk = linkfactory->makeDirectObject(name);
+    AcLine* lnk = gLinkfactory->makeDirectObject(name);
     // set the base power to that used this model
     lnk->set("basepower", opt.base);
 
@@ -1096,7 +1096,7 @@ static int rawReadTxV33(CoreObject* parentObject,
     switch (abs(code)) {
         case 0:
         default:
-            lnk = linkfactory->makeDirectObject(name);
+            lnk = gLinkfactory->makeDirectObject(name);
             break;
         case 1:
             if (opt.prefix.empty()) {
@@ -1340,7 +1340,7 @@ static int rawReadTX(CoreObject* parentObject,
     switch (abs(code)) {
         case 0:
         default:
-            lnk = linkfactory->makeDirectObject(name);
+            lnk = gLinkfactory->makeDirectObject(name);
             break;
         case 1:
             lnk = new links::adjustableTransformer(name);

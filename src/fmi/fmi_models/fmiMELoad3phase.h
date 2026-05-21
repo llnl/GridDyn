@@ -34,7 +34,7 @@ class FmiMELoad3phase: public FmiMEWrapper<loads::ThreePhaseLoad> {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode) override;
 
     virtual void updateLocalCache(const IOdata& inputs,

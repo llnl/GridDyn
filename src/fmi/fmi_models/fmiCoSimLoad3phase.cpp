@@ -67,10 +67,10 @@ void FmiCoSimLoad3phase::set(std::string_view param, double val, units::unit uni
 
 void FmiCoSimLoad3phase::setState(coreTime time,
                                   const double state[],
-                                  const double dstate_dt[],
+                                  const double dstateDt[],
                                   const solverMode& sMode)
 {
-    fmisub->setState(time, state, dstate_dt, sMode);
+    fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
     setP(out[PoutLocation]);
     setQ(out[QoutLocation]);

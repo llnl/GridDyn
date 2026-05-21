@@ -25,17 +25,17 @@ class ObjInfo {
     ObjInfo() = default;
     /** @brief constructor with the string to interpret and a base object to begin the search
     process for
-    @param[in] Istring the input string containing the object and field reference
+    @param[in] istring the input string containing the object and field reference
     @param[in] obj the object used as the basis for the search if needed
     */
-    ObjInfo(std::string_view Istring, const CoreObject* obj);
+    ObjInfo(std::string_view istring, const CoreObject* obj);
 
     /** @brief load a string similar to the constructor except with an existing object
      the string should be of the form objA::subObject:field(units) const
-    @param[in] Istring the input string containing the object and field reference
+    @param[in] istring the input string containing the object and field reference
             @param[in] obj the object used as the basis for the search if needed
             */
-    void LoadInfo(std::string_view Istring, const CoreObject* obj);
+    void LoadInfo(std::string_view istring, const CoreObject* obj);
 };
 
 using objInfo = ObjInfo;  // NOLINT(readability-identifier-naming)
@@ -46,14 +46,14 @@ using objInfo = ObjInfo;  // NOLINT(readability-identifier-naming)
 take a number of forms either the name or specific description if a parent can only contain 1 of
 that type of object or type#N  where type is the type of subObject and N is the index number
 starting from 0 or type$ID  where type is the type of subObject and ID is the user ID of the object
-@param[in] Istring the string containing the object name
+@param[in] istring the string containing the object name
 @param[in] rootObj the object where the search is started
 @param[in] rootSearch is set to true and the object can't be located from rootObj then the function
 will attempt to locate a root object and start the search over from there.
 @param[in] directFind if direct find is set to false then the find function is not called unless the
 search string was modified to prevent recursion in some find calls
 */
-CoreObject* locateObject(std::string_view Istring,
+CoreObject* locateObject(std::string_view istring,
                          const CoreObject* rootObj,
                          bool rootSearch = true,
                          bool directFind = true);

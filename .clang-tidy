@@ -257,7 +257,7 @@ CheckOptions:
   - key:             readability-identifier-naming.ConstexprMethodSuffix
     value:           ''
   - key:             readability-identifier-naming.ConstexprVariableCase
-    value:           UPPER_CASE
+    value:           camelBack
   - key:             readability-identifier-naming.ConstexprVariablePrefix
     value:           ''
   - key:             readability-identifier-naming.ConstexprVariableSuffix
@@ -307,7 +307,7 @@ CheckOptions:
   - key:             readability-identifier-naming.InlineNamespaceSuffix
     value:           ''
   - key:             readability-identifier-naming.LocalConstantCase
-    value:           UPPER_CASE
+    value:           camelBack
   - key:             readability-identifier-naming.LocalConstantIgnoredRegexp
     value:           '^(ii|jj|kk|nn)$'
   - key:             readability-identifier-naming.LocalConstantPrefix
@@ -393,13 +393,13 @@ CheckOptions:
   - key:             readability-identifier-naming.PublicMethodSuffix
     value:           ''
   - key:             readability-identifier-naming.StaticConstantCase
-    value:           UPPER_CASE
+    value:           camelBack
   - key:             readability-identifier-naming.StaticConstantPrefix
     value:           ''
   - key:             readability-identifier-naming.StaticConstantSuffix
     value:           ''
   - key:             readability-identifier-naming.StaticVariableCase
-    value:           CamelCase
+    value:           camelBack
   - key:             readability-identifier-naming.StaticVariablePrefix
     value:           ''
   - key:             readability-identifier-naming.StaticVariableSuffix

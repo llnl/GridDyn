@@ -40,14 +40,14 @@ CoreObject::CoreObject(id_type_t coid): m_refCount(0), m_oid(coid)
 }
 CoreObject::~CoreObject() = default;
 
-static dataDictionary<id_type_t, std::string> descriptionDictionary;
+static dataDictionary<id_type_t, std::string> gDescriptionDictionary;
 
 // inherited copy construction method
 CoreObject* CoreObject::clone(CoreObject* obj) const
 {
     if (obj == nullptr) {
         obj = new CoreObject(name);
-        descriptionDictionary.copy(m_oid, obj->m_oid);
+        gDescriptionDictionary.copy(m_oid, obj->m_oid);
     }
     obj->enabled = enabled;
     obj->id = id;
@@ -184,12 +184,12 @@ void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(mi
 
 void CoreObject::setDescription(std::string_view description)  // NOLINT
 {
-    descriptionDictionary.update(m_oid, std::string{description});
+    gDescriptionDictionary.update(m_oid, std::string{description});
 }
 
 std::string CoreObject::getDescription() const
 {
-    return descriptionDictionary.query(m_oid);
+    return gDescriptionDictionary.query(m_oid);
 }
 void CoreObject::nameUpdate()
 {
@@ -215,12 +215,12 @@ static bool parentReferenceLoop(CoreObject* pobj, CoreObject* test)
     }
     return false;
 }
-static nullObject nullObjectEp(0);
+static nullObject gNullObjectEp(0);
 
 void CoreObject::setParent(CoreObject* parentObj)
 {
     if (parentObj == nullptr) {
-        parent = &nullObjectEp;
+        parent = &gNullObjectEp;
         return;
     }
     if (parentReferenceLoop(parentObj, this)) {
@@ -453,7 +453,7 @@ void removeReference(CoreObject* objToDelete, const CoreObject* parent)
             // don't do a write on an atomic unless we absolutely need to
             delete objToDelete;
         } else if (parent == objToDelete->parent) {
-            objToDelete->parent = &nullObjectEp;
+            objToDelete->parent = &gNullObjectEp;
         }
     }
 }

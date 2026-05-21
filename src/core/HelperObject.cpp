@@ -15,7 +15,7 @@
 #include <utility>
 namespace griddyn {
 namespace {
-    dataDictionary<std::uint64_t, std::string> descriptionDictionary;
+    dataDictionary<std::uint64_t, std::string> gDescriptionDictionary;
 }
 
 // start at 100 since there are some objects that use low numbers as a check for interface number
@@ -48,12 +48,12 @@ void HelperObject::set(std::string_view param, double val)
 }
 void HelperObject::setDescription(std::string_view description)  // NOLINT
 {
-    descriptionDictionary.update(m_oid, std::string{description});
+    gDescriptionDictionary.update(m_oid, std::string{description});
 }
 
 std::string HelperObject::getDescription() const
 {
-    return descriptionDictionary.query(m_oid);
+    return gDescriptionDictionary.query(m_oid);
 }
 void HelperObject::setFlag(std::string_view flag, bool /*val*/)
 {

@@ -66,10 +66,10 @@ void FmiMELoad::set(std::string_view param, double val, units::unit unitType)
 
 void FmiMELoad::setState(coreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          const solverMode& sMode)
 {
-    FmiMEWrapper<GridLoad>::setState(time, state, dstate_dt, sMode);
+    FmiMEWrapper<GridLoad>::setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
     const IOdata voltageState = {bus->getVoltage(state, sMode), bus->getAngle(state, sMode)};

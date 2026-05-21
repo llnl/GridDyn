@@ -44,14 +44,14 @@ int ptiReadTX(CoreObject* parentObject,
 
 // static variables with the factories
 // get the basic busFactory
-static typeFactory<GridBus>* busfactory = nullptr;
+static typeFactory<GridBus>* gBusfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<GridLoad>* ldfactory = nullptr;
+static typeFactory<GridLoad>* gLdfactory = nullptr;
 // get the basic Link Factory
-static typeFactory<Link>* linkfactory = nullptr;
+static typeFactory<Link>* gLinkfactory = nullptr;
 // get the basic Generator Factory
-static typeFactory<Generator>* genfactory = nullptr;
+static typeFactory<Generator>* gGenfactory = nullptr;
 
 void loadPti(CoreObject* parentObject,
              const std::string& fileName,
@@ -70,20 +70,20 @@ void loadPti(CoreObject* parentObject,
     auto& opt = readerOptionsCopy;
 
     /*load up the factories*/
-    if (busfactory == nullptr) {
+    if (gBusfactory == nullptr) {
         // get the basic busFactory
-        busfactory = static_cast<decltype(busfactory)>(
+        gBusfactory = static_cast<decltype(gBusfactory)>(
             coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
 
         // get the basic load Factory
-        ldfactory = static_cast<decltype(ldfactory)>(
+        gLdfactory = static_cast<decltype(gLdfactory)>(
             coreObjectFactory::instance()->getFactory("load")->getFactory(""));
 
         // get the basic load Factory
-        genfactory = static_cast<decltype(genfactory)>(
+        gGenfactory = static_cast<decltype(gGenfactory)>(
             coreObjectFactory::instance()->getFactory("generator")->getFactory(""));
         // get the basic link Factory
-        linkfactory = static_cast<decltype(linkfactory)>(
+        gLinkfactory = static_cast<decltype(gLinkfactory)>(
             coreObjectFactory::instance()->getFactory("link")->getFactory(""));
     }
     /* Process the first line
@@ -137,7 +137,7 @@ void loadPti(CoreObject* parentObject,
                 }
             }
             if (busList[index] == nullptr) {
-                busList[index] = busfactory->makeTypeObject();
+                busList[index] = gBusfactory->makeTypeObject();
                 busList[index]->setUserID(index);
                 ptiReadBus(busList[index], line, readerOptionsCopy);
                 try {
@@ -172,7 +172,7 @@ void loadPti(CoreObject* parentObject,
             if (busList[index] == nullptr) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             } else {
-                ld = ldfactory->makeTypeObject();
+                ld = gLdfactory->makeTypeObject();
                 busList[index]->add(ld);
                 ptiReadLoad(ld, line, readerOptionsCopy);
             }
@@ -199,7 +199,7 @@ void loadPti(CoreObject* parentObject,
             if (busList[index] == nullptr) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             } else {
-                ld = ldfactory->makeTypeObject();
+                ld = gLdfactory->makeTypeObject();
                 busList[index]->add(ld);
                 ptiReadFixedShunt(ld, line, readerOptionsCopy);
             }
@@ -226,7 +226,7 @@ void loadPti(CoreObject* parentObject,
             if (busList[index] == nullptr) {
                 std::cerr << "Invalid bus number for generator " << index << '\n';
             } else {
-                gen = genfactory->makeTypeObject();
+                gen = gGenfactory->makeTypeObject();
                 busList[index]->add(gen);
                 ptiReadGen(gen, line, opt);
             }
@@ -497,7 +497,7 @@ void ptiReadBranch(CoreObject* parentObject,
     GridBus *bus1, *bus2;
     Link* lnk;
     int ind1, ind2;
-    double R, X;
+    double resistance, reactance;
     double val;
     int status;
 
@@ -518,7 +518,7 @@ void ptiReadBranch(CoreObject* parentObject,
     bus1 = busList[ind1];
     bus2 = busList[ind2];
 
-    lnk = linkfactory->makeTypeObject();
+    lnk = gLinkfactory->makeTypeObject();
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
     lnk->setName(temp2);
@@ -534,11 +534,11 @@ void ptiReadBranch(CoreObject* parentObject,
 
     // get the branch impedance
 
-    R = numeric_conversion<double>(strvec[3], 0.0);
-    X = numeric_conversion<double>(strvec[4], 0.0);
+    resistance = numeric_conversion<double>(strvec[3], 0.0);
+    reactance = numeric_conversion<double>(strvec[4], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", resistance);
+    lnk->set("x", reactance);
     // get line capacitance
     val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
@@ -558,7 +558,7 @@ int ptiReadTX(CoreObject* parentObject,
     Link* lnk;
     int code;
     int ind1, ind2, ind3;
-    double R, X;
+    double resistance, reactance;
     double val;
     int status;
 
@@ -596,7 +596,7 @@ int ptiReadTX(CoreObject* parentObject,
     code = std::stoi(strvec3[6]);
     switch (code) {
         case 0:
-            lnk = linkfactory->makeTypeObject();
+            lnk = gLinkfactory->makeTypeObject();
             lnk->set("type", "transformer");
             break;
         case 1:
@@ -615,7 +615,7 @@ int ptiReadTX(CoreObject* parentObject,
             parentObject->log(parentObject,
                               PrintLevel::WARNING,
                               "Unrecognized link code assuming transformer" + std::to_string(code));
-            lnk = linkfactory->makeTypeObject();
+            lnk = gLinkfactory->makeTypeObject();
             lnk->set("type", "transformer");
             break;
     }
@@ -630,11 +630,11 @@ int ptiReadTX(CoreObject* parentObject,
 
     // get the branch impedance
 
-    R = numeric_conversion<double>(strvec2[0], 0.0);
-    X = numeric_conversion<double>(strvec2[1], 0.0);
+    resistance = numeric_conversion<double>(strvec2[0], 0.0);
+    reactance = numeric_conversion<double>(strvec2[1], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", resistance);
+    lnk->set("x", reactance);
     // get line capacitance
     val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);

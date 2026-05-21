@@ -405,8 +405,8 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 
 ### Epic G: Communication Core Types
 
-- [ ] Audit all references to `commMessage`
-- [ ] Audit all references to related communication core types
+- [x] Audit all references to `commMessage`
+- [x] Audit all references to related communication core types
 - [ ] Rename types and API surface
 - [ ] Update dependents
 - [ ] Update tests
@@ -458,6 +458,17 @@ names.
 - [ ] Update Doxygen comments to match renamed identifiers
 - [ ] Normalize user-facing option names to one canonical spelling where naming
       drift exists
+
+### Phase 8 Notes
+
+- A first-party communication-surface sweep across `interfaces/`, `test/`,
+  `python/`, `matlab/`, and `scripts/` found one live `commMessage` usage in
+  `test/componentTests/testRelays.cpp`,
+  which was updated to match the current communication message type.
+- The same sweep found no live communication-core references to
+  `commMessage`, `CommMessage`, `Communicator.h`, `CommMessage.h`,
+  `communicationsCore`, or `commManager` in the first-party interface and
+  support-code surface outside that test file.
 
 ## Phase 9: Final Enforcement
 
@@ -518,6 +529,7 @@ Use this table to log each naming migration PR as it lands.
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | --------------------------------------- | -------- |
 | merged      | `src/core` + `src/griddyn`                                                                                              | Phase 7 | Filename and include-path cleanup covering the remaining core and main griddyn source/header renames, dependent include updates, and corresponding CMake source-list normalization for the first-party simulation codebase                               | No                   | Targeted build and reference sweep      | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/links` + `src/griddyn/sources` + `test/libraryTests`              | Phase 4 | Internal enum/type cleanup covering function-interpreter and sparse-ordering renames, block and source enum normalization, selected link-side control enum fallout, and the associated `clang-tidy` cleanup                                              | No                   | CI compile and `clang-tidy` run         | Complete |
+| working     | `test/componentTests` + docs                                                                                             | Phase 8 | Communication-core user-surface sweep covering first-party interfaces/support-code reference checks, the remaining `testRelays.cpp` message-type fix, and migration-plan note updates for the verified Phase 8 fallout                                      | No                   | `EventComponentTests` targeted rebuild  | Complete |
 | merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                                                                | No                   | Inventory script run                    | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/relays` + `src/griddyn/sources` + `src/extraModels`               | Phase 4 | Internal enum/type cleanup covering `DistributionType`, `SaturationType`, relay and block enum normalization, source-side communication enum fallout, and the dependent `txThermalModel` output-mode update                                              | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/networking` + `src/griddyn/measurement`                                                                            | Phase 4 | Internal enum/type cleanup covering networking loop/reactor/socket operation enums plus measurement comparison, compound-condition, and Jacobian-mode enums                                                                                              | No                   | CI compile and `clang-tidy` run         | Complete |

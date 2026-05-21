@@ -130,8 +130,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
     auto vcnt = info->getCounts("variables");
     switch (pstype) {
         case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
+                         info->getCounts(INPUT_STRING) - m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (info->getVariableInformation(kk).type == FmiVariableType::string) {
@@ -156,7 +156,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::LOCAL_NUM:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
+                         m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -167,7 +168,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_STR:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
+                         m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -178,7 +180,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_FLAGS:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
+                         m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -189,8 +192,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
+                         info->getCounts(INPUT_STRING) - m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::numeric,
@@ -201,8 +204,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
         case ParamStringType::STR:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
+                         info->getCounts(INPUT_STRING) - m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::string,
@@ -213,8 +216,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::FLAGS:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
+                         info->getCounts(INPUT_STRING) - m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::boolean,

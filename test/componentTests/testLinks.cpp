@@ -57,6 +57,7 @@ TEST_F(LinkTests, LinkTestSwitches)
     auto reactivePowerTwo = line->getReactivePower(2);
     EXPECT_GT(realPowerOne, realPowerTwo);
     EXPECT_GT(std::abs(realPowerOne), std::abs(realPowerTwo));
+    EXPECT_NE(reactivePowerOne, reactivePowerTwo);
     line->set("fault", 0.5);
     line->updateLocalCache();
     realPowerOne = line->getRealPower(1);

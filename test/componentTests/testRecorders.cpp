@@ -490,7 +490,7 @@ TEST_F(RecorderTests, RecorderTestBadInput)
 {
     std::string fileName =
         std::string(collector_test_directory) + "recorder_test_invalid_field1.xml";
-    std::fputs("NOTE:  this should produce some warning messages\n", stdout);
+    static_cast<void>(std::fputs("NOTE:  this should produce some warning messages\n", stdout));
     gds = readSimXMLFile(fileName);
 
     EXPECT_GT(readerConfig::warnCount, 0);

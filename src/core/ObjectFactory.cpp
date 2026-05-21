@@ -264,4 +264,3 @@ coreObjectFactory::coreObjectFactory() = default;
 coreObjectFactory::~coreObjectFactory() = default;
 
 }  // namespace griddyn
-

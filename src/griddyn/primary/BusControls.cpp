@@ -405,4 +405,3 @@ void BusControls::checkMerge()
 }
 
 }  // namespace griddyn
-

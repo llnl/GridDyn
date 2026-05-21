@@ -196,4 +196,3 @@ class stateOpGrabber: public stateGrabber {
 };
 
 }  // namespace griddyn
-

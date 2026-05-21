@@ -367,4 +367,3 @@ provided with the default to the regular call
     }
 };
 }  // namespace griddyn::fmi
-

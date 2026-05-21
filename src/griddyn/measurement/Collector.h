@@ -188,4 +188,3 @@ class collector: public HelperObject, public eventInterface, public ObjectOperat
 std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
-

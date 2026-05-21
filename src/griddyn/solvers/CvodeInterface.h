@@ -75,4 +75,3 @@ class cvodeInterface: public sundialsInterface {
 };
 
 }  // namespace griddyn::solvers
-

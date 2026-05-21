@@ -106,8 +106,7 @@ class objectGrabber: public gridGrabber {
         gridGrabber::updateField(fld);
     }
 
-    void updateObject(CoreObject* obj,
-                      ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
+    void updateObject(CoreObject* obj, ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
     {
         CoreObject* newObject =
             (mode == ObjectUpdateMode::DIRECT) ? obj : findMatchingObject(mObject, obj);
@@ -194,8 +193,7 @@ class objectOffsetGrabber: public gridGrabber {
         }
     }
 
-    void updateObject(CoreObject* obj,
-                      ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
+    void updateObject(CoreObject* obj, ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
     {
         CoreObject* newObject =
             (mode == ObjectUpdateMode::DIRECT) ? obj : findMatchingObject(mObject, obj);
@@ -278,4 +276,3 @@ class objectOffsetGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
-

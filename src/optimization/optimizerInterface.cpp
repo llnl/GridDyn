@@ -130,4 +130,3 @@ std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type)
 }
 
 }  // namespace griddyn
-

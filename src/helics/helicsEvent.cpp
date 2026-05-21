@@ -178,4 +178,3 @@ void HelicsEvent::findCoordinator()
 }
 
 }  // namespace griddyn::helicsLib
-

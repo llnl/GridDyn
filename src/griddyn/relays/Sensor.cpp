@@ -927,4 +927,3 @@ change_code sensor::rootCheck(const IOdata& inputs,
 }
 }  // namespace griddyn
 // NOLINTEND
-

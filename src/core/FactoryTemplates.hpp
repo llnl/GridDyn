@@ -228,4 +228,3 @@ class childClassFactoryArg: public classFactory<parentClass> {
 };
 
 }  // namespace griddyn
-

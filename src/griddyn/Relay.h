@@ -418,4 +418,3 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
 };
 
 }  // namespace griddyn
-

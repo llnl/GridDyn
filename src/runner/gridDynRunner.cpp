@@ -570,4 +570,3 @@ std::shared_ptr<CLI::App>
 }
 
 }  // namespace griddyn
-

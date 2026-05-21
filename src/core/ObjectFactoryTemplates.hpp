@@ -415,4 +415,3 @@ A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
 }
 
 }  // namespace griddyn
-

@@ -344,4 +344,3 @@ void allGrabbers(std::string_view mode,
 }
 
 }  // namespace griddyn
-

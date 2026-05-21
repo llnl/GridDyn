@@ -105,16 +105,12 @@ using coreObjectException = CoreObjectException;  // NOLINT(readability-identifi
 using unrecognizedObjectException =
     UnrecognizedObjectException;  // NOLINT(readability-identifier-naming)
 using objectAddFailure = ObjectAddFailure;  // NOLINT(readability-identifier-naming)
-using objectRemoveFailure =
-    ObjectRemoveFailure;  // NOLINT(readability-identifier-naming)
-using unrecognizedParameter =
-    UnrecognizedParameter;  // NOLINT(readability-identifier-naming)
-using invalidParameterValue =
-    InvalidParameterValue;  // NOLINT(readability-identifier-naming)
+using objectRemoveFailure = ObjectRemoveFailure;  // NOLINT(readability-identifier-naming)
+using unrecognizedParameter = UnrecognizedParameter;  // NOLINT(readability-identifier-naming)
+using invalidParameterValue = InvalidParameterValue;  // NOLINT(readability-identifier-naming)
 using executionFailure = ExecutionFailure;  // NOLINT(readability-identifier-naming)
 using cloneFailure = CloneFailure;  // NOLINT(readability-identifier-naming)
-using fileOperationError =
-    FileOperationError;  // NOLINT(readability-identifier-naming)
+using fileOperationError = FileOperationError;  // NOLINT(readability-identifier-naming)
 using invalidFileName = InvalidFileName;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

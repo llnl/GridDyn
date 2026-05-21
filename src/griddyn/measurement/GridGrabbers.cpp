@@ -627,4 +627,3 @@ void opGrabber::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
-

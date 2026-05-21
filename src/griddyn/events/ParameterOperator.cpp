@@ -32,9 +32,9 @@ void parameterOperator::setTarget(GridComponent* target, const std::string& fiel
     checkField();
 }
 
-void parameterOperator::updateObject(CoreObject* target, object_update_mode mode)
+void parameterOperator::updateObject(CoreObject* target, ObjectUpdateMode mode)
 {
-    if (mode == object_update_mode::direct) {
+    if (mode == ObjectUpdateMode::DIRECT) {
         auto* nobj = dynamic_cast<GridComponent*>(target);
         if (nobj != nullptr) {
             comp = nobj;
@@ -44,7 +44,7 @@ void parameterOperator::updateObject(CoreObject* target, object_update_mode mode
         if (newTarget != nullptr) {
             setTarget(newTarget);
         } else {
-            throw(objectUpdateFailException());
+            throw(ObjectUpdateFailException());
         }
     }
 }
@@ -90,7 +90,7 @@ std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param
         rname = trim(paramS.substr(renameloc + 4));
         paramS = paramS.substr(0, renameloc);
     }
-    const objInfo objI(std::string{paramS}, rootObject);
+    const ObjInfo objI(std::string{paramS}, rootObject);
 
     auto pop =
         std::make_unique<parameterOperator>(dynamic_cast<GridComponent*>(objI.m_obj), objI.m_field);
@@ -111,3 +111,4 @@ parameterOperator* parameterSet::operator[](index_t index)
 }
 
 }  // namespace griddyn
+

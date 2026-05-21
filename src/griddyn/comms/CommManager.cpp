@@ -28,7 +28,7 @@ commManager::commManager(const commManager& other)
         commLink = other.commLink->clone();
     }
     if (other.commPropBuffer) {
-        commPropBuffer = std::make_unique<griddyn::propertyBuffer>(*other.commPropBuffer);
+        commPropBuffer = std::make_unique<griddyn::PropertyBuffer>(*other.commPropBuffer);
     }
 }
 
@@ -53,7 +53,7 @@ commManager& commManager::operator=(const commManager& other)
     }
 
     if (other.commPropBuffer) {
-        commPropBuffer = std::make_unique<griddyn::propertyBuffer>(*(other.commPropBuffer));
+        commPropBuffer = std::make_unique<griddyn::PropertyBuffer>(*(other.commPropBuffer));
     } else {
         commPropBuffer = nullptr;
     }
@@ -89,7 +89,7 @@ bool commManager::set(std::string_view param, std::string_view val)
             commLink->set(std::string{param.substr(6)}, std::string{val});
         } else {
             if (!commPropBuffer) {
-                commPropBuffer = std::make_unique<griddyn::propertyBuffer>();
+                commPropBuffer = std::make_unique<griddyn::PropertyBuffer>();
             }
             commPropBuffer->set(param.substr(6), val);
         }
@@ -109,7 +109,7 @@ bool commManager::set(std::string_view param, double val)
             commLink->set(std::string{param.substr(6)}, val);
         } else {
             if (!commPropBuffer) {
-                commPropBuffer = std::make_unique<propertyBuffer>();
+                commPropBuffer = std::make_unique<PropertyBuffer>();
             }
             commPropBuffer->set(param.substr(6), val);
         }
@@ -127,7 +127,7 @@ bool commManager::setFlag(std::string_view flag, bool val)
             commLink->setFlag(std::string{flag.substr(6)}, val);
         } else {
             if (!commPropBuffer) {
-                commPropBuffer = std::make_unique<griddyn::propertyBuffer>();
+                commPropBuffer = std::make_unique<griddyn::PropertyBuffer>();
             }
             commPropBuffer->setFlag(flag.substr(6), val);
         }

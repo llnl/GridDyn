@@ -127,7 +127,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             return (voltageValue < 0.7);
         })) {
         if (!sim->opFlags[prev_setall_pqvlimit]) {
-            logging::log_to(sim, sim, print_level::debug, "setting all load to PQ at V=0.9");
+            logging::log_to(sim, sim, PrintLevel::DEBUG, "setting all load to PQ at V=0.9");
             sim->opFlags.set(disable_flag_updates);
             sim->setAll("load", "pqlowvlimit", 0.9);
             sim->controlFlags.set(voltage_constraints_flag);
@@ -209,7 +209,7 @@ int dynamicInitialConditionRecovery::dynamicFix3()
     /*if (retval == 4)
     {
             double cr = checkResid(sim, timeCurr + 0.001, solver->getSolverMode());
-            sim->log(sim, print_level::debug, "algebraic solver attempted");
+            sim->log(sim, PrintLevel::DEBUG, "algebraic solver attempted");
             retval = sim->algebraicSolve(timeCurr + 0.001);
             if (retval == 0)
             {
@@ -278,3 +278,4 @@ int dynamicInitialConditionRecovery::dynamicFix5()
 }
 
 }  // namespace griddyn
+

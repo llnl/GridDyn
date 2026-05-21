@@ -28,7 +28,7 @@ Recorder::~Recorder()
         }
         catch (const std::exception& e)  // no exceptions in a destructor
         {
-            collector::getObject()->log(collector::getObject(), print_level::error, e.what());
+            collector::getObject()->log(collector::getObject(), PrintLevel::ERROR, e.what());
         }
     }
 }
@@ -124,7 +124,7 @@ void Recorder::saveFile(const std::string& fileName)
         }
         mLastSaveTime = mTriggerTime;
     } else {
-        throw(invalidFileName());
+        throw(InvalidFileName());
     }
 }
 
@@ -173,3 +173,4 @@ const std::string& Recorder::getSinkName() const
     return getFileName();
 }
 }  // namespace griddyn
+

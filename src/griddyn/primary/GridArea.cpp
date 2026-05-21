@@ -49,7 +49,7 @@ GridArea::GridArea(const std::string& objName): gridPrimary(objName)
     setUserID(++areaCounter);
     updateName();
     opFlags.set(multipart_calculation_capable);
-    obList = std::make_unique<coreObjectList>();
+    obList = std::make_unique<CoreObjectList>();
     opObjectLists = std::make_unique<listMaintainer>();
 }
 
@@ -122,7 +122,7 @@ CoreObject* GridArea::clone(CoreObject* obj) const
     }
 
     for (auto& rel : area->m_Relays) {
-        rel->updateObject(area, object_update_mode::match);
+        rel->updateObject(area, ObjectUpdateMode::MATCH);
     }
     return area;
 }
@@ -177,7 +177,7 @@ void addObject(GridArea* area, X* obj, std::vector<X*>& objVector)
     if (!area->isMember(obj)) {
         auto insertRes = area->obList->insert(obj);
         if (!insertRes) {
-            throw(objectAddFailure(area));
+            throw(ObjectAddFailure(area));
         }
         objVector.push_back(obj);
         obj->setParent(area);
@@ -237,7 +237,7 @@ void GridArea::remove(CoreObject* obj)
     // try removing from the objectHolder List
     if ((!isValidIndex(obj->locIndex, objectHolder)) ||
         (!isSameObject(objectHolder[obj->locIndex], obj))) {
-        throw(objectRemoveFailure(this));
+        throw(ObjectRemoveFailure(this));
     }
 
     objectHolder[obj->locIndex]->setParent(nullptr);
@@ -258,7 +258,7 @@ void removeObject(GridArea* area, X* obj, std::vector<X*>& objVector)
 {
     if ((!isValidIndex(obj->locIndex, objVector)) ||
         (!isSameObject(objVector[obj->locIndex], obj))) {
-        throw(objectRemoveFailure(area));
+        throw(ObjectRemoveFailure(area));
     }
 
     objVector[obj->locIndex]->setParent(nullptr);
@@ -425,7 +425,7 @@ void GridArea::setAll(std::string_view type,
             try {
                 obj->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -434,7 +434,7 @@ void GridArea::setAll(std::string_view type,
         try {
             set(param, val, unitType);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             // we ignore this exception in this function
         }
         for (auto& area : m_GridAreas) {
@@ -445,7 +445,7 @@ void GridArea::setAll(std::string_view type,
             try {
                 bus->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -454,7 +454,7 @@ void GridArea::setAll(std::string_view type,
             try {
                 lnk->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -463,7 +463,7 @@ void GridArea::setAll(std::string_view type,
             try {
                 rel->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -824,7 +824,7 @@ static stringVec locNumStrings{};
 static const stringVec locStrStrings{};
 static const stringVec flagStrings{};
 
-void GridArea::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridArea, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
@@ -1936,3 +1936,4 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
 }
 
 }  // namespace griddyn
+

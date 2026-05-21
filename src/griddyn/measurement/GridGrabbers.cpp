@@ -157,15 +157,15 @@ coreTime gridGrabber::getTime() const
     return negTime;
 }
 
-void gridGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void gridGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (obj != nullptr) {
-        if (mode == object_update_mode::direct) {
+        if (mode == ObjectUpdateMode::DIRECT) {
             mObject = obj;
         } else {
             mObject = findMatchingObject(mObject, obj);
             if (mObject == nullptr) {
-                throw(objectUpdateFailException());
+                throw(ObjectUpdateFailException());
             }
         }
     } else {
@@ -206,7 +206,7 @@ bool gridGrabber::checkIfLoaded()
                     return true;
                 }
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 return false;
             }
         } else {
@@ -418,7 +418,7 @@ coreTime functionGrabber::getTime() const
     return negTime;
 }
 
-void functionGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void functionGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (mBaseGrabber) {
         mBaseGrabber->updateObject(obj, mode);
@@ -574,7 +574,7 @@ void opGrabber::grabVectorData(std::vector<double>& vdata)
     }
 }
 
-void opGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void opGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (mBaseGrabber1) {
         mBaseGrabber1->updateObject(obj, mode);
@@ -627,3 +627,4 @@ void opGrabber::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
+

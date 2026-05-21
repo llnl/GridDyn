@@ -40,7 +40,7 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
         // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
         // ();
     }
-    m_gds->log(nullptr, print_level::summary, "GridDyn version:" GRIDDYN_VERSION_STRING);
+    m_gds->log(nullptr, PrintLevel::SUMMARY, "GridDyn version:" GRIDDYN_VERSION_STRING);
 
     mArgValues = nullptr;
     mArgcValue = 0;
@@ -76,7 +76,7 @@ int GriddynRunner::Initialize(int argc,
         // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
         // ();
     }
-    m_gds->log(nullptr, print_level::summary, "GridDyn version:" GRIDDYN_VERSION_STRING);
+    m_gds->log(nullptr, PrintLevel::SUMMARY, "GridDyn version:" GRIDDYN_VERSION_STRING);
     // TODO(phlpt): Do something different with this.
     GhostSwingBusManager::initialize(&argc, &argv);
 
@@ -121,7 +121,7 @@ void GriddynRunner::simInitialize()
 int GriddynRunner::Reset()
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     readerInfo readerInformation;
     return Reset(readerInformation);
@@ -130,7 +130,7 @@ int GriddynRunner::Reset()
 int GriddynRunner::Reset(readerInfo& readerInformation)
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     // make a new simulation object
     m_gds = std::make_shared<GridDynSimulation>();
@@ -140,7 +140,7 @@ int GriddynRunner::Reset(readerInfo& readerInformation)
         return returnCode;
     }
     m_gds->log(m_gds.get(),
-               print_level::normal,
+               PrintLevel::NORMAL,
                std::string("\nsystem reset of ") + m_gds->getName());
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -148,7 +148,7 @@ int GriddynRunner::Reset(readerInfo& readerInformation)
 coreTime GriddynRunner::Run()
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
 
     m_startTime = std::chrono::high_resolution_clock::now();
@@ -156,7 +156,7 @@ coreTime GriddynRunner::Run()
     m_stopTime = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
-               print_level::summary,
+               PrintLevel::SUMMARY,
                m_gds->getName() + " executed in " + std::to_string(elapsed_t.count()) + " seconds");
     return m_gds->getSimulationTime();
 }
@@ -164,7 +164,7 @@ coreTime GriddynRunner::Run()
 void GriddynRunner::RunAsync()
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     mAsyncReturn = std::async(std::launch::async, [this] { return Run(); });
 }
@@ -172,7 +172,7 @@ void GriddynRunner::RunAsync()
 coreTime GriddynRunner::Step(coreTime nextStep)
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     coreTime actual = nextStep;
     if (m_gds) {
@@ -200,7 +200,7 @@ coreTime GriddynRunner::Step(coreTime nextStep)
 void GriddynRunner::StepAsync(coreTime time)
 {
     if (!isReady()) {
-        throw(executionFailure(m_gds.get(), "asynchronous operation ongoing"));
+        throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
     mAsyncReturn = std::async(std::launch::async, [this, time] { return Step(time); });
 }
@@ -232,12 +232,12 @@ coreTime GriddynRunner::getNextEvent() const
 }
 void GriddynRunner::StopRecording()
 {
-    m_gds->log(m_gds.get(), print_level::normal, "Saving recorders...");
+    m_gds->log(m_gds.get(), PrintLevel::NORMAL, "Saving recorders...");
     m_gds->saveRecorders();
     m_stopTime = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
-               print_level::normal,
+               PrintLevel::NORMAL,
                std::string("\nSimulation ") + m_gds->getName() + " executed in " +
                    std::to_string(elapsed_t.count()) + " seconds");
 }
@@ -283,7 +283,7 @@ int GriddynRunner::loadCommandArgument(readerInfo& readerInformation, bool allow
 
     const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
-               print_level::normal,
+               PrintLevel::NORMAL,
                std::string("\nInitialization ") + m_gds->getName() + " executed in " +
                    std::to_string(elapsed_t.count()) + " seconds");
     return FUNCTION_EXECUTION_SUCCESS;
@@ -301,7 +301,7 @@ std::shared_ptr<CLI::App>
         for (const auto& str : results) {
             const gridParameter parameterDefinition(str);
             if (parameterDefinition.valid) {
-                objInfo objectInformation(parameterDefinition.field, m_gds.get());
+                ObjInfo objectInformation(parameterDefinition.field, m_gds.get());
                 try {
                     if (parameterDefinition.stringType) {
                         objectInformation.m_obj->set(objectInformation.m_field,
@@ -312,7 +312,7 @@ std::shared_ptr<CLI::App>
                                                      parameterDefinition.paramUnits);
                     }
                 }
-                catch (const unrecognizedParameter&) {
+                catch (const UnrecognizedParameter&) {
                     return false;
                 }
             }
@@ -438,7 +438,7 @@ std::shared_ptr<CLI::App>
             try {
                 setMultipleFlags(m_gds.get(), val);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 throw CLI::ValidationError("flag " + val + " not recognized");
             }
         });
@@ -570,3 +570,4 @@ std::shared_ptr<CLI::App>
 }
 
 }  // namespace griddyn
+

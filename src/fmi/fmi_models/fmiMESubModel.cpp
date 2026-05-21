@@ -125,13 +125,13 @@ void FmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void FmiMESubModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     int strpcnt{0};
     const auto* info = me->getFmiInformation();
     auto vcnt = info->getCounts("variables");
     switch (pstype) {
-        case paramStringType::all:
+        case ParamStringType::ALL:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
 
@@ -145,7 +145,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
 
-            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             pstr.reserve(pstr.size() + strpcnt + 1);
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -155,9 +155,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::localnum:
+        case ParamStringType::LOCAL_NUM:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -168,7 +168,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::localstr:
+        case ParamStringType::LOCAL_STR:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -179,7 +179,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::localflags:
+        case ParamStringType::LOCAL_FLAGS:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -190,7 +190,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::numeric:
+        case ParamStringType::NUMERIC:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -200,9 +200,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
-        case paramStringType::str:
+        case ParamStringType::STR:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -212,9 +212,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::flags:
+        case ParamStringType::FLAGS:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -224,7 +224,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::flags);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::FLAGS);
             break;
     }
 }
@@ -263,7 +263,7 @@ void FmiMESubModel::set(std::string_view param, std::string_view val)
                 paramBuffer.apply(me);
             }
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "outputs") {
         auto ssep = splitline(val);
@@ -290,7 +290,7 @@ void FmiMESubModel::set(std::string_view param, std::string_view val)
             try {
                 GridSubModel::set(param, val);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, std::string{val});
             }
         }
@@ -315,7 +315,7 @@ void FmiMESubModel::set(std::string_view param, double val, units::unit unitType
             try {
                 GridSubModel::set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, val, unitType);
             }
         }
@@ -1080,3 +1080,4 @@ void FmiMESubModel::loadOutputJac(int index)
 
 // NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi
+

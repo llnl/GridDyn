@@ -237,7 +237,7 @@ void SolverInterface::set(std::string_view param, std::string_view val)
         } else if (plevel == "error") {
             printLevel = SolverPrintLevel::ERROR_LOG;
         } else {
-            throw(invalidParameterValue(plevel));
+            throw(InvalidParameterValue(plevel));
         }
     } else if (param == "solverprintlevel") {
         auto plevel = convertToLowerCase(val);
@@ -250,7 +250,7 @@ void SolverInterface::set(std::string_view param, std::string_view val)
         } else if (plevel == "none") {
             solverPrintLevel = 0;
         } else {
-            throw(invalidParameterValue(plevel));
+            throw(InvalidParameterValue(plevel));
         }
     } else if ((param == "pair") || (param == "pairedmode")) {
         if (m_gds != nullptr) {
@@ -293,14 +293,14 @@ void SolverInterface::set(std::string_view param, double val)
                 printLevel = SolverPrintLevel::DEBUG_PRINT;
                 break;
             default:
-                throw(invalidParameterValue(param));
+                throw(InvalidParameterValue(param));
         }
     } else if (param == "solverprintlevel") {
         auto lv = static_cast<int>(val);
         if ((lv >= 0) && (lv <= 3)) {
             solverPrintLevel = lv;
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "maskElement") {
         addMaskElement(static_cast<index_t>(val));
@@ -391,7 +391,7 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
         if (val) {
             setApproximation(flag);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(UnrecognizedParameter(flag));
         }
     }
 }
@@ -426,7 +426,7 @@ void SolverInterface::setApproximation(std::string_view approx)
     } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
         setLinkApprox(mode, approxKeyMask::fast_decoupled);
     } else {
-        throw(invalidParameterValue(approx));
+        throw(InvalidParameterValue(approx));
     }
 }
 
@@ -493,7 +493,7 @@ void SolverInterface::check_flag(void* flagvalue,
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
             logging::log_to(
-                m_gds, m_gds, print_level::error, "{} failed - returned nullptr pointer", funcname);
+                m_gds, m_gds, PrintLevel::ERROR, "{} failed - returned nullptr pointer", funcname);
         }
         throw(std::bad_alloc());
     }
@@ -504,7 +504,7 @@ void SolverInterface::check_flag(void* flagvalue,
             if (printError) {
                 logging::log_to(m_gds,
                                 m_gds,
-                                print_level::error,
+                                PrintLevel::ERROR,
                                 "{} failed with flag = {}",
                                 funcname,
                                 *errflag);
@@ -519,18 +519,18 @@ int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, StepMode /
 {
     return -101;
 }
-void SolverInterface::logSolverStats(print_level /*logLevel*/, bool /*iconly*/) const {}
-void SolverInterface::logErrorWeights(print_level /*logLevel*/) const {}
+void SolverInterface::logSolverStats(PrintLevel /*logLevel*/, bool /*iconly*/) const {}
+void SolverInterface::logErrorWeights(PrintLevel /*logLevel*/) const {}
 void SolverInterface::logMessage(int errorCode, std::string_view message)
 {
     if ((errorCode > 0) && (printLevel == SolverPrintLevel::DEBUG_PRINT)) {
-        logging::log_to(m_gds, m_gds, print_level::debug, message);
+        logging::log_to(m_gds, m_gds, PrintLevel::DEBUG, message);
     }
     if (errorCode != 0) {
         lastErrorCode = errorCode;
         lastErrorString = message;
         if (printLevel == SolverPrintLevel::ERROR_LOG) {
-            logging::log_to(m_gds, m_gds, print_level::warning, message);
+            logging::log_to(m_gds, m_gds, PrintLevel::WARNING, message);
         }
     }
 }
@@ -579,3 +579,4 @@ std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::st
 }
 
 }  // namespace griddyn
+

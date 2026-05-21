@@ -15,20 +15,20 @@ namespace griddyn {
  generally used for interpreting an object string with object and field references and possibly
  units as well
 */
-class objInfo {
+class ObjInfo {
   public:
     CoreObject* m_obj = nullptr;  //!< pointer to the object being referenced
     std::string m_field;  //!< the field referenced
     units::unit m_unitType = units::defunit;  //!< the units corresponding to the reference
 
     /** @brief default constructor*/
-    objInfo() = default;
+    ObjInfo() = default;
     /** @brief constructor with the string to interpret and a base object to begin the search
     process for
     @param[in] Istring the input string containing the object and field reference
     @param[in] obj the object used as the basis for the search if needed
     */
-    objInfo(std::string_view Istring, const CoreObject* obj);
+    ObjInfo(std::string_view Istring, const CoreObject* obj);
 
     /** @brief load a string similar to the constructor except with an existing object
      the string should be of the form objA::subObject:field(units) const
@@ -37,6 +37,8 @@ class objInfo {
             */
     void LoadInfo(std::string_view Istring, const CoreObject* obj);
 };
+
+using objInfo = ObjInfo;  // NOLINT(readability-identifier-naming)
 
 /** @brief locate a specific object by name
  the string should be of the form obj::subobj:field, or /obj/subobj?field,  field is optional but

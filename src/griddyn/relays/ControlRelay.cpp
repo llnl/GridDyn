@@ -319,7 +319,7 @@ change_code controlRelay::executeAction(index_t actionNum)
     return change_code::not_triggered;
 }
 
-void controlRelay::updateObject(CoreObject* obj, object_update_mode mode)
+void controlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     Relay::updateObject(obj, mode);
     if (opFlags[dyn_initialized]) {
@@ -400,3 +400,4 @@ index_t controlRelay::getFreeAction()
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

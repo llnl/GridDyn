@@ -87,21 +87,21 @@ void CoreObject::updateName()
 void CoreObject::add(CoreObject* obj)
 {
     if (obj != nullptr) {
-        throw(objectAddFailure(this));
+        throw(ObjectAddFailure(this));
     }
 }
 
 void CoreObject::remove(CoreObject* obj)
 {
     if (obj != nullptr) {
-        throw(objectRemoveFailure(this));
+        throw(ObjectRemoveFailure(this));
     }
 }
 
 void CoreObject::addHelper(std::shared_ptr<HelperObject> obj)  // NOLINT
 {
     if (obj) {
-        throw(objectAddFailure(this));
+        throw(ObjectAddFailure(this));
     }
 }
 
@@ -119,10 +119,10 @@ static constexpr std::array<std::string_view, 6> locNumStrings{"updateperiod",
                                                                "id"};
 static constexpr std::array<std::string_view, 2> locStrStrings{"name", "description"};
 
-void CoreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void CoreObject::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     switch (pstype) {
-        case paramStringType::all:
+        case ParamStringType::ALL:
             pstr.reserve(pstr.size() + locNumStrings.size() + locStrStrings.size() + 1);
             for (const auto paramName : locNumStrings) {
                 pstr.emplace_back(paramName);
@@ -132,26 +132,26 @@ void CoreObject::getParameterStrings(stringVec& pstr, paramStringType pstype) co
                 pstr.emplace_back(paramName);
             }
             break;
-        case paramStringType::localnum:
+        case ParamStringType::LOCAL_NUM:
             pstr.assign(locNumStrings.begin(), locNumStrings.end());
             break;
-        case paramStringType::localstr:
+        case ParamStringType::LOCAL_STR:
             pstr.assign(locStrStrings.begin(), locStrStrings.end());
             break;
-        case paramStringType::numeric:
+        case ParamStringType::NUMERIC:
             pstr.reserve(pstr.size() + locNumStrings.size());
             for (const auto paramName : locNumStrings) {
                 pstr.emplace_back(paramName);
             }
             break;
-        case paramStringType::str:
+        case ParamStringType::STR:
             pstr.reserve(pstr.size() + locStrStrings.size());
             for (const auto paramName : locStrStrings) {
                 pstr.emplace_back(paramName);
             }
             break;
-        case paramStringType::localflags:
-        case paramStringType::flags:
+        case ParamStringType::LOCAL_FLAGS:
+        case ParamStringType::FLAGS:
             break;
     }
 }
@@ -176,7 +176,7 @@ void CoreObject::set(std::string_view param, std::string_view val)  // NOLINT(mi
                 logging::warning(this, "parameters should be lower case \"{}\" is not", param);
             } else {
                 logging::warning(this, "parameter {} not found", param);
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
             }
         }
     }
@@ -224,7 +224,7 @@ void CoreObject::setParent(CoreObject* parentObj)
         return;
     }
     if (parentReferenceLoop(parentObj, this)) {
-        throw(griddyn::objectAddFailure(this));
+        throw(griddyn::ObjectAddFailure(this));
     }
     parent = parentObj;
 }
@@ -262,7 +262,7 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
             setFlag(lower, val);
             logging::warning(this, "flags should be lower case \"{}\" is not", flag);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(UnrecognizedParameter(flag));
         }
     }
 }
@@ -318,7 +318,7 @@ void CoreObject::set(std::string_view param, double val, units::unit unitType)
         try {
             setFlag(param, (val > 0.1));
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             auto lower = gmlc::utilities::convertToLowerCase(param);
             if (lower != param) {
                 set(lower, val, unitType);
@@ -395,12 +395,12 @@ void CoreObject::alert(CoreObject* object, int code)  // NOLINT(misc-no-recursio
 }
 // Parent-chain forwarding terminates at nullObject.
 // NOLINTNEXTLINE(misc-no-recursion)
-void CoreObject::log(CoreObject* object, print_level level, const std::string& message)
+void CoreObject::log(CoreObject* object, PrintLevel level, const std::string& message)
 {
     parent->log(object, level, message);
 }
 
-bool CoreObject::shouldLog(print_level level) const  // NOLINT(misc-no-recursion)
+bool CoreObject::shouldLog(PrintLevel level) const  // NOLINT(misc-no-recursion)
 {
     return (parent != nullptr) ? parent->shouldLog(level) : true;
 }
@@ -475,31 +475,31 @@ void setMultipleFlags(CoreObject* obj, std::string_view flags)
     }
 }
 
-static constexpr std::array<std::pair<std::string_view, print_level>, 14> printLevelsMap{{
-    {"none", print_level::no_print},
-    {"error", print_level::error},
-    {"warning", print_level::warning},
-    {"normal", print_level::normal},
-    {"summary", print_level::summary},
-    {"debug", print_level::debug},
-    {"trace", print_level::trace},
-    {"no_print", print_level::no_print},
-    {"error_print", print_level::error},
-    {"warning_print", print_level::warning},
-    {"normal_print", print_level::normal},
-    {"summary_print", print_level::summary},
-    {"debug_print", print_level::debug},
-    {"trace_print", print_level::trace},
+static constexpr std::array<std::pair<std::string_view, PrintLevel>, 14> printLevelsMap{{
+    {"none", PrintLevel::NO_PRINT},
+    {"error", PrintLevel::ERROR},
+    {"warning", PrintLevel::WARNING},
+    {"normal", PrintLevel::NORMAL},
+    {"summary", PrintLevel::SUMMARY},
+    {"debug", PrintLevel::DEBUG},
+    {"trace", PrintLevel::TRACE},
+    {"no_print", PrintLevel::NO_PRINT},
+    {"error_print", PrintLevel::ERROR},
+    {"warning_print", PrintLevel::WARNING},
+    {"normal_print", PrintLevel::NORMAL},
+    {"summary_print", PrintLevel::SUMMARY},
+    {"debug_print", PrintLevel::DEBUG},
+    {"trace_print", PrintLevel::TRACE},
 }};
 
-print_level stringToPrintLevel(const std::string& level)
+PrintLevel stringToPrintLevel(const std::string& level)
 {
     for (const auto& [name, value] : printLevelsMap) {
         if (name == level) {
             return value;
         }
     }
-    throw(invalidParameterValue(level));
+    throw(InvalidParameterValue(level));
 }
 
 }  // namespace griddyn

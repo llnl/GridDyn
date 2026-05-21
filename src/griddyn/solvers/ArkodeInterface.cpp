@@ -181,7 +181,7 @@ double arkodeInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void arkodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) const
+void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
     if (!flags[initialized_flag]) {
         return;
@@ -240,7 +240,7 @@ void arkodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) cons
     }
 }
 
-void arkodeInterface::logErrorWeights(print_level logLevel) const
+void arkodeInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -500,3 +500,4 @@ int arkodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

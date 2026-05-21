@@ -24,7 +24,7 @@ class gridCore;
 @details there is a target object and a functional object that actually can extract data from that
 object it also includes a gain and bias to do a linear shift and scale on the object
 */
-class gridGrabber: public objectOperatorInterface {
+class gridGrabber: public ObjectOperatorInterface {
   public:
     std::string field;  //!< the target field that is being grabbed
     // TODO(phlpt): Convert this flag group to a bitset.
@@ -85,7 +85,7 @@ class gridGrabber: public objectOperatorInterface {
         customDesc = true;
     }
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
@@ -138,7 +138,7 @@ class functionGrabber: public gridGrabber {
     virtual double grabData() override;
     virtual void grabVectorData(std::vector<double>& vdata) override;
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     virtual void updateField(std::string_view fld) override;
@@ -168,7 +168,7 @@ class opGrabber: public gridGrabber {
     virtual double grabData() override;
     virtual void grabVectorData(std::vector<double>& vdata) override;
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     /** update a specific object
      *@param[in] obj  the new object
      *@param[in] num  1 for updating bgrabber 1 2 for bgrabber 2
@@ -187,3 +187,4 @@ class opGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
+

@@ -561,11 +561,11 @@ double stateGrabber::grabData(const stateData& stateDataValue, const solverMode&
     return kNullVal;
 }
 
-void stateGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void stateGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
-    if (mode == object_update_mode::direct) {
+    if (mode == ObjectUpdateMode::DIRECT) {
         cobj = dynamic_cast<GridComponent*>(obj);
-    } else if (mode == object_update_mode::match) {
+    } else if (mode == ObjectUpdateMode::MATCH) {
         cobj = dynamic_cast<GridComponent*>(findMatchingObject(cobj, obj));
     }
 }
@@ -687,7 +687,7 @@ double stateFunctionGrabber::grabData(const stateData& stateDataValue, const sol
     return val;
 }
 
-void stateFunctionGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void stateFunctionGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (bgrabber) {
         bgrabber->updateObject(obj, mode);
@@ -790,7 +790,7 @@ double stateOpGrabber::grabData(const stateData& stateDataValue, const solverMod
     return val;
 }
 
-void stateOpGrabber::updateObject(CoreObject* obj, object_update_mode mode)
+void stateOpGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (bgrabber1) {
         bgrabber1->updateObject(obj, mode);
@@ -850,3 +850,4 @@ void stateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
+

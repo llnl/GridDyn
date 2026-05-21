@@ -20,7 +20,7 @@ namespace griddyn {
 class GridComponent;
 /** a class defining a parameter to change as part of a sequence or other operation
  */
-class parameterOperator: public HelperObject, public objectOperatorInterface {
+class parameterOperator: public HelperObject, public ObjectOperatorInterface {
   protected:
     std::string m_field;  //!< field to trigger
     GridComponent* comp = nullptr;  //!< the object to operator on
@@ -32,7 +32,7 @@ class parameterOperator: public HelperObject, public objectOperatorInterface {
     virtual void setTarget(GridComponent* target, const std::string& field = "");
 
     virtual void updateObject(CoreObject* target,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual void setParameter(double val);
     virtual double getParameter() const;
     virtual CoreObject* getObject() const override;
@@ -59,3 +59,4 @@ class parameterSet {
 };
 
 }  // namespace griddyn
+

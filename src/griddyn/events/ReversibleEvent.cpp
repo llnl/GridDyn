@@ -123,7 +123,7 @@ void reversibleEvent::updateStringValue(const std::string& newStr)
     newStringValue = newStr;
 }
 
-void reversibleEvent::updateObject(CoreObject* gco, object_update_mode mode)
+void reversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     Event::updateObject(gco, mode);
     if (ggrab) {
@@ -147,3 +147,4 @@ double reversibleEvent::query()
 }
 
 }  // namespace griddyn::events
+

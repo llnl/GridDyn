@@ -31,8 +31,8 @@ class nullObject final: public CoreObject {
     /**
      * log just absorbs all log messages and does nothing
      */
-    virtual void log(CoreObject* object, print_level level, const std::string& message) override;
-    virtual bool shouldLog(print_level level) const override;
+    virtual void log(CoreObject* object, PrintLevel level, const std::string& message) override;
+    virtual bool shouldLog(PrintLevel level) const override;
 
     /** return a nullptr*/
     virtual CoreObject* find(std::string_view object) const override;
@@ -47,3 +47,4 @@ class nullObject final: public CoreObject {
     virtual void setParent(CoreObject* parentObj) override;
 };
 }  // namespace griddyn
+

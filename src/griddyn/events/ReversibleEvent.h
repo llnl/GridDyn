@@ -42,9 +42,10 @@ namespace events {
         virtual void updateStringValue(const std::string& newStr);
 
         virtual void updateObject(CoreObject* gco,
-                                  object_update_mode mode = object_update_mode::direct) override;
+                                  ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
         virtual change_code undo();
         virtual double query();
     };
 }  // namespace events
 }  // namespace griddyn
+

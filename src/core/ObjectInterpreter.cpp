@@ -10,11 +10,11 @@
 #include <string>
 
 namespace griddyn {
-objInfo::objInfo(std::string_view Istring, const CoreObject* obj)
+ObjInfo::ObjInfo(std::string_view Istring, const CoreObject* obj)
 {
     LoadInfo(Istring, obj);
 }
-void objInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
+void ObjInfo::LoadInfo(std::string_view Istring, const CoreObject* obj)
 {
     // get the object which to grab from
     size_t rlc = Istring.find_last_of(":?");

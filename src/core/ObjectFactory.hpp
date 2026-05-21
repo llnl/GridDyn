@@ -84,7 +84,7 @@ class componentFactory {
 
   protected:
     cMap m_factoryMap;
-    std::string m_defaultType;
+    std::string mDefaultType;
 };
 
 // create a high level object factory for the CoreObject class
@@ -176,3 +176,4 @@ class coreObjectFactory {
     fMap m_factoryMap;  //!< the main map from string to the typeFactory
 };
 }  // namespace griddyn
+

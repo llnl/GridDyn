@@ -246,7 +246,7 @@ void loadRaw(CoreObject* parentObject,
                     try {
                         parentObject->add(busList[index]);
                     }
-                    catch (const objectAddFailure&) {
+                    catch (const ObjectAddFailure&) {
                         busList[index]->setName(prevName);
                         addToParentWithRename(busList[index], parentObject);
                     }
@@ -830,7 +830,7 @@ static void rawReadBranch(CoreObject* parentObject,
     try {
         parentObject->add(lnk);
     }
-    catch (const objectAddFailure&) {
+    catch (const ObjectAddFailure&) {
         // must be a parallel branch
         const std::string sub = lnk->getName();
         char parallel = 'a';
@@ -840,7 +840,7 @@ static void rawReadBranch(CoreObject* parentObject,
             try {
                 parentObject->add(lnk);
             }
-            catch (const objectAddFailure& e) {
+            catch (const ObjectAddFailure& e) {
                 if (parallel > 'z') {
                     throw e;
                 }
@@ -920,7 +920,7 @@ static void rawReadTXadj(CoreObject* parentObject,
     auto* lnk = static_cast<AcLine*>(parentObject->find(name));
 
     if (lnk == nullptr) {
-        parentObject->log(parentObject, print_level::error, "unable to locate link " + name);
+        parentObject->log(parentObject, PrintLevel::ERROR, "unable to locate link " + name);
         return;
     }
 
@@ -1026,7 +1026,7 @@ static void rawReadTXadj(CoreObject* parentObject,
     auto cind = numeric_conversion<int>(strvec[9], 0);
     if (cind != 0) {
         parentObject->log(parentObject,
-                          print_level::warning,
+                          PrintLevel::WARNING,
                           "transformer impedance tables not implemented yet ");
     }
     cind = numeric_conversion<int>(strvec[10], 0);
@@ -1039,7 +1039,7 @@ static void rawReadTXadj(CoreObject* parentObject,
     minTap = numeric_conversion<double>(strvec[12], 0.0);
     if ((maxTap != 0) || (minTap != 0)) {
         parentObject->log(parentObject,
-                          print_level::warning,
+                          PrintLevel::WARNING,
                           "load drop compensation not implemented yet ");
     }
 }
@@ -1131,7 +1131,7 @@ static int rawReadTxV33(CoreObject* parentObject,
     try {
         parentObject->add(lnk);
     }
-    catch (const objectAddFailure&) {
+    catch (const ObjectAddFailure&) {
         // must be a parallel branch
         const auto& sub = lnk->getName();
         char suffix = 'a';
@@ -1141,7 +1141,7 @@ static int rawReadTxV33(CoreObject* parentObject,
             try {
                 parentObject->add(lnk);
             }
-            catch (const objectAddFailure& e) {
+            catch (const ObjectAddFailure& e) {
                 if (suffix > 'z') {
                     throw e;
                 }
@@ -1366,7 +1366,7 @@ static int rawReadTX(CoreObject* parentObject,
     try {
         parentObject->add(lnk);
     }
-    catch (const objectAddFailure&) {
+    catch (const ObjectAddFailure&) {
         // must be a parallel branch
         const auto& sub = lnk->getName();
         char suffix = 'a';
@@ -1376,7 +1376,7 @@ static int rawReadTX(CoreObject* parentObject,
             try {
                 parentObject->add(lnk);
             }
-            catch (const objectAddFailure& e) {
+            catch (const ObjectAddFailure& e) {
                 if (suffix > 'z') {
                     throw e;
                 }
@@ -1592,3 +1592,4 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
 }
 
 }  // namespace griddyn
+

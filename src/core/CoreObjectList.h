@@ -21,24 +21,24 @@ namespace griddyn {
  * a list class that stores a list of the objects contained in an unordered map to facilitate
  * searching for objects
  */
-class coreObjectList {
+class CoreObjectList {
   private:
-    struct objectRecord {
+    struct ObjectRecord {
         CoreObject* object = nullptr;
         std::string name;
         index_t userID = 0;
     };
 
-    std::unordered_map<id_type_t, objectRecord> m_objectsById;  //!< primary object storage
+    std::unordered_map<id_type_t, ObjectRecord> m_objectsById;  //!< primary object storage
     std::unordered_map<std::string, id_type_t> m_idsByName;  //!< name lookup index
     std::unordered_multimap<index_t, id_type_t> m_idsByUserId;  //!< user id lookup index
 
-    void addIndexes(id_type_t objectID, const objectRecord& record);
-    void removeIndexes(id_type_t objectID, const objectRecord& record);
+    void addIndexes(id_type_t objectID, const ObjectRecord& record);
+    void removeIndexes(id_type_t objectID, const ObjectRecord& record);
 
   public:
     /** @brief default constructor*/
-    coreObjectList() = default;
+    CoreObjectList() = default;
     /**
      * @brief function to insert an object into the class
      * @param[in] obj the object to insert
@@ -98,5 +98,7 @@ class coreObjectList {
     */
     void updateObject(CoreObject* obj);
 };
+
+using coreObjectList = CoreObjectList;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

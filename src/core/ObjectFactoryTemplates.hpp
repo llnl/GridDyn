@@ -101,7 +101,7 @@ class objectPrepper {
                 obptr = make_owningPtr<gridObjectHolder<Ntype>>(targetprepped);
                 if (root != nullptr) {
                     if (!obptr) {
-                        root->log(root, print_level::warning, "unable to create container object");
+                        root->log(root, PrintLevel::WARNING, "unable to create container object");
                         useBlock = false;
                     } else {
                         root->add(obptr.get());
@@ -130,7 +130,7 @@ class objectPrepper {
                     if (!obptr) {
                         if (root != nullptr) {
                             root->log(root,
-                                      print_level::warning,
+                                      PrintLevel::WARNING,
                                       "unable to create container object");
                         }
                         useBlock = false;
@@ -400,7 +400,7 @@ A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
         if (nobj == nullptr) {
             // well this is just confusing what to do here
             delete cobj;
-            throw(cloneFailure(bobj));
+            throw(CloneFailure(bobj));
         }
     } else {
         nobj = dynamic_cast<A*>(obj);
@@ -415,3 +415,4 @@ A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
 }
 
 }  // namespace griddyn
+

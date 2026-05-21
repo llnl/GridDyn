@@ -107,15 +107,15 @@ class objectGrabber: public gridGrabber {
     }
 
     void updateObject(CoreObject* obj,
-                      object_update_mode mode = object_update_mode::direct) override
+                      ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
     {
         CoreObject* newObject =
-            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
+            (mode == ObjectUpdateMode::DIRECT) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
             mTypedObject = static_cast<X*>(newObject);
             gridGrabber::updateObject(newObject);
         } else {
-            throw(objectUpdateFailException());
+            throw(ObjectUpdateFailException());
         }
     }
 };
@@ -195,10 +195,10 @@ class objectOffsetGrabber: public gridGrabber {
     }
 
     void updateObject(CoreObject* obj,
-                      object_update_mode mode = object_update_mode::direct) override
+                      ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override
     {
         CoreObject* newObject =
-            (mode == object_update_mode::direct) ? obj : findMatchingObject(mObject, obj);
+            (mode == ObjectUpdateMode::DIRECT) ? obj : findMatchingObject(mObject, obj);
         if (dynamic_cast<X*>(newObject)) {
             mTypedObject = static_cast<X*>(newObject);
             if (mOffset == kInvalidLocation) {
@@ -215,7 +215,7 @@ class objectOffsetGrabber: public gridGrabber {
                 }
             }
         } else {
-            throw(objectUpdateFailException());
+            throw(ObjectUpdateFailException());
         }
     }
 
@@ -278,3 +278,4 @@ class objectOffsetGrabber: public gridGrabber {
 };
 
 }  // namespace griddyn
+

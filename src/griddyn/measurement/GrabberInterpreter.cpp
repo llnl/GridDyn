@@ -79,7 +79,7 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command,
                     v.push_back(std::move(ggb));
                 } else {
                     obj->log(obj,
-                             print_level::warning,
+                             PrintLevel::WARNING,
                              std::string{"Unable to load recorder "} + std::string{command});
                 }
             }
@@ -344,3 +344,4 @@ void allGrabbers(std::string_view mode,
 }
 
 }  // namespace griddyn
+

@@ -40,9 +40,9 @@ class EventInfo {
 };
 
 /** basic event class enabling a property change in an object
-eventInterface, objectOperatorInterface are pure virtual interfaces
+eventInterface, ObjectOperatorInterface are pure virtual interfaces
 */
-class Event: public HelperObject, public eventInterface, public objectOperatorInterface {
+class Event: public HelperObject, public eventInterface, public ObjectOperatorInterface {
   protected:
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value
@@ -113,7 +113,7 @@ class Event: public HelperObject, public eventInterface, public objectOperatorIn
     virtual bool setTarget(CoreObject* gdo, std::string_view var = {});
 
     virtual void updateObject(CoreObject* gco,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
 
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
@@ -155,3 +155,4 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
+

@@ -134,10 +134,10 @@ void Contingency::execute()
             if (!eventPtr) {
                 continue;
             }
-            eventPtr->updateObject(contSim.get(), object_update_mode::match);
+            eventPtr->updateObject(contSim.get(), ObjectUpdateMode::MATCH);
             eventPtr->trigger();
             eventPtr->updateObject(
-                gds, object_update_mode::match);  // map the event back to the original simulation
+                gds, ObjectUpdateMode::MATCH);  // map the event back to the original simulation
         }
         contSim->pFlowInitialize();
         if (stage == 0) {
@@ -354,7 +354,7 @@ void Contingency::getObjects(std::vector<CoreObject*>& objects) const
     }
 }
 
-void Contingency::updateObject(CoreObject* newObj, object_update_mode mode)
+void Contingency::updateObject(CoreObject* newObj, ObjectUpdateMode mode)
 {
     // update all the events
     for (auto& stageEvents : eventList) {
@@ -365,7 +365,7 @@ void Contingency::updateObject(CoreObject* newObj, object_update_mode mode)
         }
     }
     // update the simulation if appropriate
-    if (mode == object_update_mode::match) {
+    if (mode == ObjectUpdateMode::MATCH) {
         if (dynamic_cast<GridDynSimulation*>(newObj) != nullptr) {
             gds = static_cast<GridDynSimulation*>(newObj);
         }
@@ -392,3 +392,4 @@ std::shared_ptr<Contingency>
 }
 
 }  // namespace griddyn
+

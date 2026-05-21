@@ -180,7 +180,7 @@ double cvodeInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void cvodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) const
+void cvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
     if (!flags[initialized_flag]) {
         return;
@@ -248,7 +248,7 @@ void cvodeInterface::logSolverStats(print_level logLevel, bool /*iconly*/) const
     }
 }
 
-void cvodeInterface::logErrorWeights(print_level logLevel) const
+void cvodeInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -486,3 +486,4 @@ int cvodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

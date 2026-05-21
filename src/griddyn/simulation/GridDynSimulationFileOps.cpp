@@ -43,7 +43,7 @@ namespace {
     {
         std::ofstream output(fileName);
         if (!output.is_open()) {
-            throw(fileOperationError("unable to open file " + fileName));
+            throw(FileOperationError("unable to open file " + fileName));
         }
         return output;
     }
@@ -183,7 +183,7 @@ void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName)
         ++busIndex;
         bus = gds->getBus(busIndex);
     }
-    gds->log(gds, print_level::normal, "saving csv powerflow to " + fileName);
+    gds->log(gds, PrintLevel::NORMAL, "saving csv powerflow to " + fileName);
 }
 
 void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName)
@@ -270,7 +270,7 @@ void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName)
                                       gds->getLoadReactive() * basePower,
                                       gds->getLoss() * basePower)
            << '\n';
-    gds->log(gds, print_level::normal, "saving txt powerflow to " + fileName);
+    gds->log(gds, PrintLevel::NORMAL, "saving txt powerflow to " + fileName);
 }
 
 // static const double deflim2 = -99999.99;
@@ -613,7 +613,7 @@ void savePowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
         link = gds->getLink(linkIndex);
     }
     if (!doc.save_file(fileName.c_str())) {
-        throw(fileOperationError("unable to open file " + fileName));
+        throw(FileOperationError("unable to open file " + fileName));
     }
 }
 
@@ -772,7 +772,7 @@ void writeVector(coreTime time,
         bFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
     }
     if (!bFile.is_open()) {
-        throw(fileOperationError("unable to open file " + fileName));
+        throw(FileOperationError("unable to open file " + fileName));
     }
     code &= 0x0000FFFFU;  // make sure we don't change the data type
     bFile.write(reinterpret_cast<char*>(&time), sizeof(double));
@@ -798,7 +798,7 @@ void writeArray(coreTime time,
         bFile.open(fileName.c_str(), std::ios::out | std::ios::binary);
     }
     if (!bFile.is_open()) {
-        throw(fileOperationError("unable to open file " + fileName));
+        throw(FileOperationError("unable to open file " + fileName));
     }
     code &= 0x0000FFFFU;
     code |= 0x00010000U;
@@ -822,16 +822,16 @@ void loadState(GridDynSimulation* gds, const std::string& fileName, const solver
         auto stateFile = gds->getString("statefile");
         if (stateFile.empty()) {
             std::cerr << "no file specified\n";
-            gds->log(gds, print_level::error, "no state file specified");
-            throw(invalidFileName());
+            gds->log(gds, PrintLevel::ERROR, "no state file specified");
+            throw(InvalidFileName());
         }
         loadStateBinary(gds, stateFile, sMode);
         return;
     }
 
     if (!std::filesystem::exists(filePath)) {
-        gds->log(gds, print_level::error, "file does not exist");
-        throw(invalidFileName());
+        gds->log(gds, PrintLevel::ERROR, "file does not exist");
+        throw(InvalidFileName());
     }
 
     const std::string ext = convertToLowerCase(filePath.extension().string());
@@ -860,8 +860,8 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
         bFile.open(fileName.c_str(), std::ios::in | std::ios::binary);
     }
     if (!bFile.is_open()) {
-        gds->log(gds, print_level::error, "Unable to open file for writing:" + fileName);
-        throw(fileOperationError("unable to open file " + fileName));
+        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
+        throw(FileOperationError("unable to open file " + fileName));
     }
     count_t dsize;
     bFile.read(reinterpret_cast<char*>(&dsize), sizeof(int));
@@ -869,7 +869,7 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
         if (!solverInterface->isInitialized()) {
             solverInterface->allocate(dsize);
         } else {
-            gds->log(gds, print_level::error, "statefile does not match solverMode in size");
+            gds->log(gds, PrintLevel::ERROR, "statefile does not match solverMode in size");
             return;
         }
     }
@@ -919,7 +919,7 @@ void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
     pugi::xml_document doc;
     auto res = doc.load_file(fileName.c_str());
     if (!res) {
-        throw(fileOperationError("unable to open file " + fileName));
+        throw(FileOperationError("unable to open file " + fileName));
     }
     auto flow = doc.child("PowerFlow");
     auto buses = flow.child("buses");
@@ -952,8 +952,8 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {
-        gds->log(gds, print_level::error, "Unable to open file for writing:" + fileName);
-        throw(fileOperationError("unable to open file " + fileName));
+        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
+        throw(FileOperationError("unable to open file " + fileName));
     }
     // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
@@ -999,8 +999,8 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const sol
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {
-        gds->log(gds, print_level::error, "Unable to open file for writing:" + fileName);
-        throw(fileOperationError("unable to open file " + fileName));
+        gds->log(gds, PrintLevel::ERROR, "Unable to open file for writing:" + fileName);
+        throw(FileOperationError("unable to open file " + fileName));
     }
     // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
@@ -1108,3 +1108,4 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
 }
 
 }  // namespace griddyn
+

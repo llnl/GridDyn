@@ -34,7 +34,7 @@ std::string to_string(ComparisonType comp);
 /**
  *condition class:  sets up a comparison operator for both states and regular grabbers
  **/
-class Condition: public objectOperatorInterface {
+class Condition: public ObjectOperatorInterface {
   protected:
     double m_constant = 0.0;  //!< right hand side constant
     double m_margin = 0.0;  //!< the margin around the conditions
@@ -94,7 +94,7 @@ class Condition: public objectOperatorInterface {
     double getVal(int side) const;
 
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
 
     /** evaluation the condition based on object data
     @return true if the condition evaluates true
@@ -221,3 +221,4 @@ class compoundCondition: public Condition {
 };
 
 }  // namespace griddyn
+

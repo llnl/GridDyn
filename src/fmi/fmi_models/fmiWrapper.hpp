@@ -111,7 +111,7 @@ provided with the default to the regular call
                         inputNames_actual[ii] = istrings[ind];
                     } else {
                         BaseObj::log(this,
-                                     print_level::warning,
+                                     PrintLevel::WARNING,
                                      "unable to match inputs for input#" + std::to_string(ii) +
                                          "(" + iNames[ii][0] + ")");
                     }
@@ -131,7 +131,7 @@ provided with the default to the regular call
                         inputNames_actual[ii] = istrings[ind];
                     } else {
                         BaseObj::log(this,
-                                     print_level::warning,
+                                     PrintLevel::WARNING,
                                      "unable to match inputs for input#" + std::to_string(ii) +
                                          "(" + inputNames_specified[ii] + ")");
                     }
@@ -158,7 +158,7 @@ provided with the default to the regular call
                         outputNames_actual[ii] = ostrings[ind];
                     } else {
                         BaseObj::log(this,
-                                     print_level::warning,
+                                     PrintLevel::WARNING,
                                      "unable to match inputs for input" + std::to_string(ii));
                     }
                 }
@@ -177,7 +177,7 @@ provided with the default to the regular call
                         outputNames_actual[ii] = ostrings[ind];
                     } else {
                         BaseObj::log(this,
-                                     print_level::warning,
+                                     PrintLevel::WARNING,
                                      "unable to match inputs for output" + std::to_string(ii));
                     }
                 }
@@ -295,7 +295,7 @@ provided with the default to the regular call
                     fmisub->set(param, val);
                     return;
                 }
-                catch (const unrecognizedParameter&) {
+                catch (const UnrecognizedParameter&) {
                 }
             }
             BaseObj::set(param, val);
@@ -308,7 +308,7 @@ provided with the default to the regular call
             BaseObj::set(param, val, unitType);
             valid = true;
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
         }
 
         if (fmisub != nullptr) {
@@ -316,45 +316,45 @@ provided with the default to the regular call
                 fmisub->set(param, val, unitType);
                 valid = true;
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
             }
         }
 
         if (!valid) {
-            throw(unrecognizedParameter(param));
+            throw(UnrecognizedParameter(param));
         }
     }
 
-    void getParameterStrings(stringVec& pstr, paramStringType pstype) const override
+    void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override
     {
         switch (pstype) {
-            case paramStringType::all:
-                fmisub->getParameterStrings(pstr, paramStringType::localnum);
-                BaseObj::getParameterStrings(pstr, paramStringType::numeric);
+            case ParamStringType::ALL:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_NUM);
+                BaseObj::getParameterStrings(pstr, ParamStringType::NUMERIC);
                 pstr.push_back("#");
-                fmisub->getParameterStrings(pstr, paramStringType::localstr);
-                BaseObj::getParameterStrings(pstr, paramStringType::str);
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_STR);
+                BaseObj::getParameterStrings(pstr, ParamStringType::STR);
                 break;
-            case paramStringType::localnum:
-                fmisub->getParameterStrings(pstr, paramStringType::localnum);
+            case ParamStringType::LOCAL_NUM:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_NUM);
                 break;
-            case paramStringType::localstr:
-                fmisub->getParameterStrings(pstr, paramStringType::localstr);
+            case ParamStringType::LOCAL_STR:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_STR);
                 break;
-            case paramStringType::localflags:
-                fmisub->getParameterStrings(pstr, paramStringType::localflags);
+            case ParamStringType::LOCAL_FLAGS:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_FLAGS);
                 break;
-            case paramStringType::numeric:
-                fmisub->getParameterStrings(pstr, paramStringType::localnum);
-                BaseObj::getParameterStrings(pstr, paramStringType::numeric);
+            case ParamStringType::NUMERIC:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_NUM);
+                BaseObj::getParameterStrings(pstr, ParamStringType::NUMERIC);
                 break;
-            case paramStringType::str:
-                fmisub->getParameterStrings(pstr, paramStringType::localstr);
-                BaseObj::getParameterStrings(pstr, paramStringType::str);
+            case ParamStringType::STR:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_STR);
+                BaseObj::getParameterStrings(pstr, ParamStringType::STR);
                 break;
-            case paramStringType::flags:
-                fmisub->getParameterStrings(pstr, paramStringType::localflags);
-                BaseObj::getParameterStrings(pstr, paramStringType::flags);
+            case ParamStringType::FLAGS:
+                fmisub->getParameterStrings(pstr, ParamStringType::LOCAL_FLAGS);
+                BaseObj::getParameterStrings(pstr, ParamStringType::FLAGS);
                 break;
         }
     }
@@ -367,3 +367,4 @@ provided with the default to the regular call
     }
 };
 }  // namespace griddyn::fmi
+

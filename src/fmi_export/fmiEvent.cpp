@@ -84,7 +84,7 @@ CoreObject* FmiEvent::getOwner() const
     return mCoordinator;
 }
 
-void FmiEvent::updateObject(CoreObject* gco, object_update_mode mode)
+void FmiEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     reversibleEvent::updateObject(gco, mode);
     findCoordinator();
@@ -111,3 +111,4 @@ void FmiEvent::findCoordinator()
 }
 
 }  // namespace griddyn::fmi
+

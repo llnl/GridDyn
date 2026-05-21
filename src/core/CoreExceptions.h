@@ -14,11 +14,11 @@
 
 namespace griddyn {
 /** exception class for use in griddyn*/
-class coreObjectException: public std::exception {
+class CoreObjectException: public std::exception {
   protected:
     const CoreObject* throwingObject;  ///< the object that threw the exception
   public:
-    explicit coreObjectException(const CoreObject* obj) noexcept;
+    explicit CoreObjectException(const CoreObject* obj) noexcept;
     virtual const char* what() const noexcept override { return "core object exception"; }
     /** return the full name of the object that threw the exception*/
     std::string who() const noexcept;
@@ -29,76 +29,92 @@ class coreObjectException: public std::exception {
 /** exception for use when an object is added to another object but the object
 is not of a type that can be added
 */
-class unrecognizedObjectException: public coreObjectException {
+class UnrecognizedObjectException: public CoreObjectException {
   public:
-    explicit unrecognizedObjectException(CoreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit UnrecognizedObjectException(CoreObject* obj) noexcept: CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "unrecognized object"; }
 };
 
-class objectAddFailure: public coreObjectException {
+class ObjectAddFailure: public CoreObjectException {
   public:
-    explicit objectAddFailure(CoreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit ObjectAddFailure(CoreObject* obj) noexcept: CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to add object"; }
 };
 
-class objectRemoveFailure: public coreObjectException {
+class ObjectRemoveFailure: public CoreObjectException {
   public:
-    explicit objectRemoveFailure(CoreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit ObjectRemoveFailure(CoreObject* obj) noexcept: CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "failure to remove object"; }
 };
 
-class unrecognizedParameter: public std::invalid_argument {
+class UnrecognizedParameter: public std::invalid_argument {
   public:
-    unrecognizedParameter() noexcept: std::invalid_argument("unrecognized parameter") {}
-    explicit unrecognizedParameter(std::string_view param):
+    UnrecognizedParameter() noexcept: std::invalid_argument("unrecognized parameter") {}
+    explicit UnrecognizedParameter(std::string_view param):
         std::invalid_argument(std::string("unrecognized Parameter:") + std::string(param))
     {
     }
 };
 
-class invalidParameterValue: public std::invalid_argument {
+class InvalidParameterValue: public std::invalid_argument {
   public:
-    invalidParameterValue() noexcept: std::invalid_argument("invalid parameter entry") {}
-    explicit invalidParameterValue(std::string_view param):
+    InvalidParameterValue() noexcept: std::invalid_argument("invalid parameter entry") {}
+    explicit InvalidParameterValue(std::string_view param):
         std::invalid_argument(std::string("invalid parameter value for ") + std::string(param))
     {
     }
 };
 
-class executionFailure: public coreObjectException {
+class ExecutionFailure: public CoreObjectException {
   private:
     std::string message;
 
   public:
-    explicit executionFailure(const CoreObject* obj, std::string_view error_message):
-        coreObjectException(obj), message(error_message)
+    explicit ExecutionFailure(const CoreObject* obj, std::string_view error_message):
+        CoreObjectException(obj), message(error_message)
     {
     }
     virtual const char* what() const noexcept override { return message.c_str(); }
 };
-class cloneFailure: public coreObjectException {
+class CloneFailure: public CoreObjectException {
   public:
-    explicit cloneFailure(const CoreObject* obj) noexcept: coreObjectException(obj) {}
+    explicit CloneFailure(const CoreObject* obj) noexcept: CoreObjectException(obj) {}
     virtual const char* what() const noexcept override { return "clone failure"; }
 };
 
-class fileOperationError: public std::exception {
+class FileOperationError: public std::exception {
   private:
     std::string message;
 
   public:
-    explicit fileOperationError(std::string_view error_message = "file operation error"):
+    explicit FileOperationError(std::string_view error_message = "file operation error"):
         message(error_message)
     {
     }
     virtual const char* what() const noexcept override { return message.c_str(); }
 };
-class invalidFileName: public fileOperationError {
+class InvalidFileName: public FileOperationError {
   public:
-    explicit invalidFileName(std::string_view error_message = "file name is invalid"):
-        fileOperationError(error_message)
+    explicit InvalidFileName(std::string_view error_message = "file name is invalid"):
+        FileOperationError(error_message)
     {
     }
 };
+
+using coreObjectException = CoreObjectException;  // NOLINT(readability-identifier-naming)
+using unrecognizedObjectException =
+    UnrecognizedObjectException;  // NOLINT(readability-identifier-naming)
+using objectAddFailure = ObjectAddFailure;  // NOLINT(readability-identifier-naming)
+using objectRemoveFailure =
+    ObjectRemoveFailure;  // NOLINT(readability-identifier-naming)
+using unrecognizedParameter =
+    UnrecognizedParameter;  // NOLINT(readability-identifier-naming)
+using invalidParameterValue =
+    InvalidParameterValue;  // NOLINT(readability-identifier-naming)
+using executionFailure = ExecutionFailure;  // NOLINT(readability-identifier-naming)
+using cloneFailure = CloneFailure;  // NOLINT(readability-identifier-naming)
+using fileOperationError =
+    FileOperationError;  // NOLINT(readability-identifier-naming)
+using invalidFileName = InvalidFileName;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

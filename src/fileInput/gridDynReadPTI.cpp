@@ -143,7 +143,7 @@ void loadPti(CoreObject* parentObject,
                 try {
                     parentObject->add(busList[index]);
                 }
-                catch (const objectAddFailure&) {
+                catch (const ObjectAddFailure&) {
                     addToParentWithRename(busList[index], parentObject);
                 }
             } else {
@@ -613,7 +613,7 @@ int ptiReadTX(CoreObject* parentObject,
             break;
         default:
             parentObject->log(parentObject,
-                              print_level::warning,
+                              PrintLevel::WARNING,
                               "Unrecognized link code assuming transformer" + std::to_string(code));
             lnk = linkfactory->makeTypeObject();
             lnk->set("type", "transformer");
@@ -664,3 +664,4 @@ int ptiReadTX(CoreObject* parentObject,
 
 // NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 }  // namespace griddyn
+

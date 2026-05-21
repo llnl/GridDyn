@@ -43,8 +43,8 @@ class TimedElem {
 
   public:
     TimedElem(): name(""), is_started(false), start_time(0), cumul_time(0) {};
-    TimedElem(std::string name_): name(name_), is_started(false), start_time(0), cumul_time(0) {};
-    void Start(std::string name_ = "");
+    TimedElem(std::string mName): name(mName), is_started(false), start_time(0), cumul_time(0) {};
+    void Start(std::string mName = "");
     void Stop();
     Real GetTime() { return cumul_time + ((is_started) ? MPI_Wtime() - start_time : 0); };
     std::string GetName() { return name; };
@@ -78,3 +78,4 @@ class Timer: public std::map<std::string, int> {
 extern Timer global_timer;
 
 }  // namespace griddyn::paradae
+

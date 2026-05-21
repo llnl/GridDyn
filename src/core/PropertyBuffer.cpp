@@ -14,28 +14,28 @@
 #include <utility>
 #include <variant>
 namespace griddyn {
-void propertyBuffer::set(std::string_view param, std::string_view val)
+void PropertyBuffer::set(std::string_view param, std::string_view val)
 {
     properties.emplace_back(std::string{param}, property_type(std::string{val}));
 }
-void propertyBuffer::set(std::string_view param, double val)
+void PropertyBuffer::set(std::string_view param, double val)
 {
     properties.emplace_back(std::string{param}, property_type(val));
 }
-void propertyBuffer::set(std::string_view param, double val, units::unit unitType)
+void PropertyBuffer::set(std::string_view param, double val, units::unit unitType)
 {
     properties.emplace_back(std::string{param}, property_type(std::make_pair(val, unitType)));
 }
-void propertyBuffer::set(std::string_view param, int val)
+void PropertyBuffer::set(std::string_view param, int val)
 {
     properties.emplace_back(std::string{param}, property_type(val));
 }
-void propertyBuffer::setFlag(std::string_view flag, bool val)
+void PropertyBuffer::setFlag(std::string_view flag, bool val)
 {
     properties.emplace_back(std::string{flag}, property_type(val));
 }
 
-void propertyBuffer::remove(std::string_view param)
+void PropertyBuffer::remove(std::string_view param)
 {
     auto checkMatch = [param](const auto& input) { return (std::get<0>(input) == param); };
 
@@ -43,11 +43,11 @@ void propertyBuffer::remove(std::string_view param)
     properties.erase(strend, properties.end());
 }
 
-void propertyBuffer::clear()
+void PropertyBuffer::clear()
 {
     properties.clear();
 }
-void propertyBuffer::apply(CoreObject* obj) const
+void PropertyBuffer::apply(CoreObject* obj) const
 {
     for (const auto& prop : properties) {
         switch (prop.second.index()) {

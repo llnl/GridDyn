@@ -21,7 +21,7 @@ class Link;
 class GridBus;
 class Generator;
 class Source;
-class coreObjectList;
+class CoreObjectList;
 class listMaintainer;
 
 /** @brief class implementing a power system area
@@ -51,7 +51,7 @@ class GridArea: public gridPrimary {
 
     std::vector<gridPrimary*> primaryObjects;  //!< list of all the primary objects in the area
     // this is done to break apart the headers
-    std::unique_ptr<coreObjectList> obList;  // a search index for object names
+    std::unique_ptr<CoreObjectList> obList;  // a search index for object names
 
     std::vector<gridPrimary*> rootObjects;  //!< list of objects with roots
     std::vector<gridPrimary*> pFlowAdjustObjects;  //!< list of objects with power flow checks

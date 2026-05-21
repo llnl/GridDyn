@@ -30,8 +30,8 @@ CoreObject* nullObject::clone(CoreObject* obj) const
 }
 
 void nullObject::alert(CoreObject* /*obj*/, int /*code*/) {}
-void nullObject::log(CoreObject* /*obj*/, print_level /*level*/, const std::string& /*message*/) {}
-bool nullObject::shouldLog(print_level /*level*/) const
+void nullObject::log(CoreObject* /*obj*/, PrintLevel /*level*/, const std::string& /*message*/) {}
+bool nullObject::shouldLog(PrintLevel /*level*/) const
 {
     return false;
 }
@@ -50,3 +50,4 @@ void nullObject::setParent(CoreObject* /*parentObj*/)
 }
 
 }  // namespace griddyn
+

@@ -152,7 +152,7 @@ void HelicsEvent::initialize()
     initRequired = false;
 }
 
-void HelicsEvent::updateObject(CoreObject* gco, object_update_mode mode)
+void HelicsEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     reversibleEvent::updateObject(gco, mode);
     findCoordinator();
@@ -178,3 +178,4 @@ void HelicsEvent::findCoordinator()
 }
 
 }  // namespace griddyn::helicsLib
+

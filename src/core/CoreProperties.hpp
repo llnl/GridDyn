@@ -14,17 +14,21 @@
 common definition such as position information, metadata, etc
 */
 template<class PropertyType>
-class coreObjectProperty {
+class CoreObjectProperty {
   private:
-    std::string name_;
+    std::string mName;
     utilities::dataDictionary<id_type_t, PropertyType> dictionary;
 
   public:
-    coreObjectProperty(const std::string& name): name_(name) {}
+    CoreObjectProperty(const std::string& name): mName(name) {}
     void set(CoreObject* obj, PropertyType data) { dictionary.update(obj->getID(), data); }
     PropertyType query(CoreObject* obj) { return dictionary.query(obj->getID()); }
     void clearProperty(CoreObject* obj) { dictionary.erase(obj->getID()); }
 };
+
+template<class PropertyType>
+using coreObjectProperty =
+    CoreObjectProperty<PropertyType>;  // NOLINT(readability-identifier-naming)
 /** @brief loads a position object
 *@details I don't know what a grid Position object looks like yet
 @param[in] npos a gridPositionObject

@@ -47,17 +47,17 @@ void compoundEvent::cloneTo(Event* gE) const
     nE->targetObjects = targetObjects;
 }
 
-void compoundEvent::updateObject(CoreObject* gco, object_update_mode mode)
+void compoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     // TODO(pt): more thinking on exception safety
-    if (mode == object_update_mode::direct) {
+    if (mode == ObjectUpdateMode::DIRECT) {
         setTarget(gco);
-    } else if (mode == object_update_mode::match) {
+    } else if (mode == ObjectUpdateMode::MATCH) {
         for (auto& obj : targetObjects) {
             if (obj != nullptr) {
                 auto tempobj = findMatchingObject(obj, gco);
                 if (tempobj == nullptr) {
-                    throw(objectUpdateFailException());
+                    throw(ObjectUpdateFailException());
                 }
                 obj = tempobj;
             }
@@ -191,3 +191,4 @@ bool compoundEvent::setTarget(CoreObject* gdo, std::string_view var)
     return armed;
 }
 }  // namespace griddyn::events
+

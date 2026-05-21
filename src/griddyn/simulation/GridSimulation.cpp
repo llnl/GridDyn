@@ -204,23 +204,23 @@ void GridSimulation::set(std::string_view param, double val, units::unit unitTyp
     } else if ((param == "stoptime") || (param == "stop") || (param == "timestop")) {
         stopTime = units::convert(val, unitType, units::second);
     } else if (param == "printlevel") {
-        auto testLevel = static_cast<print_level>(static_cast<int>(val));
-        if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+        auto testLevel = static_cast<PrintLevel>(static_cast<int>(val));
+        if ((testLevel > PrintLevel::TRACE) || (testLevel < PrintLevel::NO_PRINT)) {
+            throw(InvalidParameterValue(param));
         }
         consolePrintLevel = testLevel;
         logPrintLevel = testLevel;
     } else if (param == consoleprint) {
-        auto testLevel = static_cast<print_level>(static_cast<int>(val));
-        if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+        auto testLevel = static_cast<PrintLevel>(static_cast<int>(val));
+        if ((testLevel > PrintLevel::TRACE) || (testLevel < PrintLevel::NO_PRINT)) {
+            throw(InvalidParameterValue(param));
         }
         consolePrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
     } else if (param == "logprintlevel") {
-        auto testLevel = static_cast<print_level>(static_cast<int>(val));
-        if ((testLevel > print_level::trace) || (testLevel < print_level::no_print)) {
-            throw(invalidParameterValue(param));
+        auto testLevel = static_cast<PrintLevel>(static_cast<int>(val));
+        if ((testLevel > PrintLevel::TRACE) || (testLevel < PrintLevel::NO_PRINT)) {
+            throw(InvalidParameterValue(param));
         }
         logPrintLevel = testLevel;
         gridLog->changeLevels(static_cast<int>(consolePrintLevel), static_cast<int>(logPrintLevel));
@@ -262,7 +262,7 @@ std::shared_ptr<collector> GridSimulation::findCollector(const std::string& coll
     return nullptr;
 }
 
-void GridSimulation::log(CoreObject* object, print_level level, const std::string& message)
+void GridSimulation::log(CoreObject* object, PrintLevel level, const std::string& message)
 {
     if ((level > consolePrintLevel) && (level > logPrintLevel)) {
         return;
@@ -285,15 +285,15 @@ void GridSimulation::log(CoreObject* object, print_level level, const std::strin
     std::string simtime = ((currentTime > negTime) ? '(' + std::to_string(currentTime) + ')' :
                                                      std::string("(PRESTART)"));
     std::string key;
-    if (level == print_level::warning) {
+    if (level == PrintLevel::WARNING) {
         key = "||WARNING||";
         ++warnCount;
-    } else if (level == print_level::error) {
+    } else if (level == PrintLevel::ERROR) {
         key = "||ERROR||";
         ++errorCount;
     }
     // drop the preliminary information in a certain circumstance
-    if (level == print_level::summary) {
+    if (level == PrintLevel::SUMMARY) {
         if (isSameObject(object, this)) {
             if (currentTime == timeZero) {
                 if (!customLogger) {
@@ -313,7 +313,7 @@ void GridSimulation::log(CoreObject* object, print_level level, const std::strin
     }
 }
 
-bool GridSimulation::shouldLog(print_level level) const
+bool GridSimulation::shouldLog(PrintLevel level) const
 {
     return !((level > consolePrintLevel) && (level > logPrintLevel));
 }
@@ -380,10 +380,10 @@ void GridSimulation::alert(CoreObject* object, int code)
         auto res = alertStrings.find(code);
         if (res != alertStrings.end()) {
             astr = res->second;
-            log(object, print_level::summary, astr);
+            log(object, PrintLevel::SUMMARY, astr);
         } else {
             std::string message = "Unrecognized alert code (" + std::to_string(code) + ')';
-            log(object, print_level::summary, message);
+            log(object, PrintLevel::SUMMARY, message);
         }
     }
 }
@@ -489,3 +489,4 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
     return obj2;
 }
 }  // namespace griddyn
+

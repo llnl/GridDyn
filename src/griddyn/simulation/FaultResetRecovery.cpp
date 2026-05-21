@@ -60,7 +60,7 @@ int faultResetRecovery::attemptFix()
             solver->getCurrentData();
             sim->getVoltage(nVolts, solver->state_data(), solver->getSolverMode());
             if (!checkResetVoltages(initVolts, nVolts)) {
-                sim->log(sim, print_level::summary, "bad voltage reset");
+                sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
             }
         }
@@ -154,7 +154,7 @@ int faultResetRecovery::faultResetFix3()
     for (int vv = 1; vv < 10; ++vv) {
         double rv1 = static_cast<double>(vv) * 0.1;
         int kk = 0;
-        logging::log_to(sim, sim, print_level::debug, "increment voltage by {}", rv1);
+        logging::log_to(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", rv1);
         for (index_t pp = 0; pp < solver->size(); ++pp) {
             if (vstates[pp] != 0.0) {
                 states[pp] = rv1 + (1.0 - rv1) * initVolts[kk];
@@ -171,7 +171,7 @@ int faultResetRecovery::faultResetFix3()
             solver->getCurrentData();
             sim->getVoltage(nVolts, solver->state_data(), solver->getSolverMode());
             if (!checkResetVoltages(initVolts, nVolts)) {
-                sim->log(sim, print_level::summary, "bad voltage reset");
+                sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
             }
         } else {
@@ -194,7 +194,7 @@ int faultResetRecovery::faultResetFix3()
                               solver->getSolverMode());
                 sim->getVoltage(nVolts);
                 if (!checkResetVoltages(initVolts, nVolts)) {
-                    sim->log(sim, print_level::normal, "bad voltage reset");
+                    sim->log(sim, PrintLevel::NORMAL, "bad voltage reset");
                     retval = -47;
                 } else {
                     return 0;
@@ -233,3 +233,4 @@ bool checkResetVoltages(const std::vector<double>& prev, const std::vector<doubl
 }
 
 }  // namespace griddyn
+

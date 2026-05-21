@@ -140,7 +140,7 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
         return condition;
     }
     catch (const std::invalid_argument& ia) {
-        rootObject->log(rootObject, print_level::warning, ia.what());
+        rootObject->log(rootObject, PrintLevel::WARNING, ia.what());
         return nullptr;
     }
 }
@@ -197,7 +197,7 @@ void Condition::setConditionRHS(std::shared_ptr<grabberSet> valGrabber)
     }
 }
 
-void Condition::updateObject(CoreObject* obj, object_update_mode mode)
+void Condition::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     // Update object may throw an error if it does everything is fine
     // if it doesn't then B update may throw an error in which case we need to rollback A for
@@ -212,10 +212,10 @@ void Condition::updateObject(CoreObject* obj, object_update_mode mode)
         try {
             mConditionRHS->updateObject(obj, mode);
         }
-        catch (objectUpdateFailException& oe) {
+        catch (ObjectUpdateFailException& oe) {
             if ((mConditionLHS) && (keyObject != nullptr)) {
                 // now rollback A
-                mConditionLHS->updateObject(keyObject->getRoot(), object_update_mode::match);
+                mConditionLHS->updateObject(keyObject->getRoot(), ObjectUpdateMode::MATCH);
             }
             throw oe;
         }
@@ -339,3 +339,4 @@ void Condition::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
+

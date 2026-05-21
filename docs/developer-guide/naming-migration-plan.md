@@ -451,12 +451,12 @@ Completed Phase 7 work covered:
 Goal: ensure the entire first-party repository surface reflects the compliant
 names.
 
-- [ ] Update first-party maintained interface code in `interfaces/`
-- [ ] Update tests in `test/`
-- [ ] Update first-party support code in `python/`, `matlab/`, and `scripts/`
-- [ ] Update docs and examples
-- [ ] Update Doxygen comments to match renamed identifiers
-- [ ] Normalize user-facing option names to one canonical spelling where naming
+- [x] Update first-party maintained interface code in `interfaces/`
+- [x] Update tests in `test/`
+- [x] Update first-party support code in `python/`, `matlab/`, and `scripts/`
+- [x] Update docs and examples
+- [x] Update Doxygen comments to match renamed identifiers
+- [x] Normalize user-facing option names to one canonical spelling where naming
       drift exists
 
 ### Phase 8 Notes
@@ -464,11 +464,23 @@ names.
 - A first-party communication-surface sweep across `interfaces/`, `test/`,
   `python/`, `matlab/`, and `scripts/` found one live `commMessage` usage in
   `test/componentTests/testRelays.cpp`,
-  which was updated to match the current communication message type.
+  which was updated to match the current communication message type before the
+  Phase 8 closeout merged.
 - The same sweep found no live communication-core references to
   `commMessage`, `CommMessage`, `Communicator.h`, `CommMessage.h`,
   `communicationsCore`, or `commManager` in the first-party interface and
   support-code surface outside that test file.
+
+### Phase 8 Closeout
+
+Completed Phase 8 work covered:
+
+- first-party communication-surface verification across `interfaces/`,
+  `test/`, `python/`, `matlab/`, and `scripts/`
+- the remaining relay-test message-type cleanup in
+  `test/componentTests/testRelays.cpp`
+- supporting docs and migration-plan updates for the verified user-surface
+  fallout
 
 ## Phase 9: Final Enforcement
 
@@ -529,7 +541,7 @@ Use this table to log each naming migration PR as it lands.
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | --------------------------------------- | -------- |
 | merged      | `src/core` + `src/griddyn`                                                                                              | Phase 7 | Filename and include-path cleanup covering the remaining core and main griddyn source/header renames, dependent include updates, and corresponding CMake source-list normalization for the first-party simulation codebase                               | No                   | Targeted build and reference sweep      | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/links` + `src/griddyn/sources` + `test/libraryTests`              | Phase 4 | Internal enum/type cleanup covering function-interpreter and sparse-ordering renames, block and source enum normalization, selected link-side control enum fallout, and the associated `clang-tidy` cleanup                                              | No                   | CI compile and `clang-tidy` run         | Complete |
-| working     | `test/componentTests` + docs                                                                                            | Phase 8 | Communication-core user-surface sweep covering first-party interfaces/support-code reference checks, the remaining `testRelays.cpp` message-type fix, and migration-plan note updates for the verified Phase 8 fallout                                   | No                   | `EventComponentTests` targeted rebuild  | Complete |
+| merged      | `test/componentTests` + docs                                                                                            | Phase 8 | Communication-core user-surface sweep covering first-party interfaces/support-code reference checks, the remaining `testRelays.cpp` message-type fix, and migration-plan note updates for the verified Phase 8 fallout                                   | No                   | `EventComponentTests` targeted rebuild  | Complete |
 | merged      | `src/networking`                                                                                                        | Phase 3 | DIME client naming cleanup and baseline inventory tooling                                                                                                                                                                                                | No                   | Inventory script run                    | Complete |
 | merged      | `src/utilities` + `src/griddyn/blocks` + `src/griddyn/relays` + `src/griddyn/sources` + `src/extraModels`               | Phase 4 | Internal enum/type cleanup covering `DistributionType`, `SaturationType`, relay and block enum normalization, source-side communication enum fallout, and the dependent `txThermalModel` output-mode update                                              | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/networking` + `src/griddyn/measurement`                                                                            | Phase 4 | Internal enum/type cleanup covering networking loop/reactor/socket operation enums plus measurement comparison, compound-condition, and Jacobian-mode enums                                                                                              | No                   | CI compile and `clang-tidy` run         | Complete |

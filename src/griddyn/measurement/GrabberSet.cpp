@@ -142,7 +142,7 @@ void grabberSet::setDescription(const std::string& newDesc)
 {
     mGrabber->setDescription(newDesc);
 }
-void grabberSet::updateObject(CoreObject* obj, object_update_mode mode)
+void grabberSet::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (mGrabber) {
         mGrabber->updateObject(obj, mode);
@@ -195,3 +195,4 @@ bool grabberSet::hasJacobian() const
 }
 
 }  // namespace griddyn
+

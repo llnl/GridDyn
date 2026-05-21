@@ -29,7 +29,7 @@ class solverMode;
 
 /** class pairing up basicGrabbers and state grabbers in a single interface
  */
-class grabberSet: public objectOperatorInterface {
+class grabberSet: public ObjectOperatorInterface {
   private:
     std::shared_ptr<gridGrabber> mGrabber;  //!< the non state grabber
     std::shared_ptr<stateGrabber> mStateGrabber;  //!< the state grabber
@@ -93,7 +93,7 @@ class grabberSet: public objectOperatorInterface {
     /** set the grabber description*/
     void setDescription(const std::string& newDesc);
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** set the gain of the grabbers*/
@@ -105,3 +105,4 @@ class grabberSet: public objectOperatorInterface {
 };
 
 }  // namespace griddyn
+

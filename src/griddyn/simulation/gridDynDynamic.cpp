@@ -319,9 +319,9 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
         }
         nextStopTime = EvQ->getNextTime();
     }
-    if ((consolePrintLevel >= print_level::trace) || (logPrintLevel >= print_level::trace)) {
-        dynData->logSolverStats(print_level::trace);
-        dynData->logErrorWeights(print_level::trace);
+    if ((consolePrintLevel >= PrintLevel::TRACE) || (logPrintLevel >= PrintLevel::TRACE)) {
+        dynData->logSolverStats(PrintLevel::TRACE);
+        dynData->logErrorWeights(PrintLevel::TRACE);
     }
 
     // store the results to the buses
@@ -337,7 +337,7 @@ void GridDynSimulation::setupDynamicPartitioned()
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         logging::error(this, "Unable to prepare simulation for dynamic solution");
         setErrorCode(retval);
-        throw(executionFailure(this, "Unable to prepare simulation for dynamic solution"));
+        throw(ExecutionFailure(this, "Unable to prepare simulation for dynamic solution"));
     }
     auto dynDataAlg = getSolverInterface(sModeAlg);
     auto dynDataDiff = getSolverInterface(sModeDiff);
@@ -498,9 +498,9 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
             nextEventTime = EvQ->getNextTime();
         }
     }
-    if ((consolePrintLevel >= print_level::trace) || (logPrintLevel >= print_level::trace)) {
-        dynDataDiff->logSolverStats(print_level::trace);
-        dynDataDiff->logErrorWeights(print_level::trace);
+    if ((consolePrintLevel >= PrintLevel::TRACE) || (logPrintLevel >= PrintLevel::TRACE)) {
+        dynDataDiff->logSolverStats(PrintLevel::TRACE);
+        dynDataDiff->logErrorWeights(PrintLevel::TRACE);
     }
 
     // store the results to the buses
@@ -748,7 +748,7 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
     auto maxResid = checkResid(this, dynData);
     // double cr2;
     if (std::abs(maxResid.first) > 0.5) {
-        if ((logPrintLevel >= print_level::debug) || (consolePrintLevel >= print_level::debug)) {
+        if ((logPrintLevel >= PrintLevel::DEBUG) || (consolePrintLevel >= PrintLevel::DEBUG)) {
             stringVec snames;
             getStateName(snames, sMode);
             logging::debug(this,
@@ -797,8 +797,8 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         }
     }
 
-    if ((consolePrintLevel >= print_level::trace) || (logPrintLevel >= print_level::trace)) {
-        dynData->logSolverStats(print_level::trace, true);
+    if ((consolePrintLevel >= PrintLevel::TRACE) || (logPrintLevel >= PrintLevel::TRACE)) {
+        dynData->logSolverStats(PrintLevel::TRACE, true);
     }
     return retval;
 }
@@ -1227,3 +1227,4 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
 }
 
 }  // namespace griddyn
+

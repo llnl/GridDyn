@@ -13,7 +13,7 @@
 
 namespace griddyn {
 class Communicator;
-class propertyBuffer;
+class PropertyBuffer;
 class commMessage;
 
 namespace comms {
@@ -27,7 +27,7 @@ namespace comms {
         std::uint64_t commDestId = 0;  //!< the default communication destination id
 
         std::shared_ptr<Communicator> commLink;  //!< communicator link
-        std::unique_ptr<propertyBuffer> commPropBuffer;  //!< a property buffer for the communicator
+        std::unique_ptr<PropertyBuffer> commPropBuffer;  //!< a property buffer for the communicator
 
       public:
         commManager();

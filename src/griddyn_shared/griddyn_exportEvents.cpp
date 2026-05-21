@@ -17,7 +17,7 @@ using griddyn::change_code;
 using griddyn::Event;
 using griddyn::GriddynRunner;
 using griddyn::make_event;
-using griddyn::object_update_mode;
+using griddyn::ObjectUpdateMode;
 
 static constexpr char invalidEvent[] = "the Event object is not valid";
 
@@ -145,9 +145,10 @@ void gridDynEventSetTarget(GridDynEvent evnt, GridDynObject obj, GridDynError* e
         return;
     }
     try {
-        shr_event->operator->()->updateObject(comp, object_update_mode::match);
+        shr_event->operator->()->updateObject(comp, ObjectUpdateMode::MATCH);
     }
     catch (...) {
         griddynErrorHandler(err);
     }
 }
+

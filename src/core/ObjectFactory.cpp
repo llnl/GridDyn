@@ -62,8 +62,8 @@ stringVec componentFactory::getTypeNames()
 
 CoreObject* componentFactory::makeObject()
 {
-    if (!m_defaultType.empty()) {
-        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject();
+    if (!mDefaultType.empty()) {
+        CoreObject* obj = m_factoryMap[mDefaultType]->makeObject();
         return obj;
     }
     return nullptr;
@@ -83,8 +83,8 @@ CoreObject* componentFactory::makeObject(std::string_view type)
         return obj;
     }
 
-    if (!m_defaultType.empty()) {
-        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject();
+    if (!mDefaultType.empty()) {
+        CoreObject* obj = m_factoryMap[mDefaultType]->makeObject();
         return obj;
     }
 
@@ -99,8 +99,8 @@ CoreObject* componentFactory::makeObject(std::string_view type, std::string_view
         return obj;
     }
 
-    if (!m_defaultType.empty()) {
-        CoreObject* obj = m_factoryMap[m_defaultType]->makeObject(objectName);
+    if (!mDefaultType.empty()) {
+        CoreObject* obj = m_factoryMap[mDefaultType]->makeObject(objectName);
         return obj;
     }
 
@@ -110,19 +110,19 @@ CoreObject* componentFactory::makeObject(std::string_view type, std::string_view
 void componentFactory::setDefault(std::string_view type)
 {
     if (type.empty()) {
-        m_defaultType.clear();
+        mDefaultType.clear();
         return;
     }
     auto mfind = m_factoryMap.find(type);
     if (mfind != m_factoryMap.end()) {
-        m_defaultType = mfind->first;
+        mDefaultType = mfind->first;
     }
 }
 
 objectFactory* componentFactory::getFactory(std::string_view typeName)
 {
     if (typeName.empty()) {
-        return m_factoryMap[m_defaultType];
+        return m_factoryMap[mDefaultType];
     }
 
     auto mfind = m_factoryMap.find(typeName);

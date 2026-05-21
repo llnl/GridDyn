@@ -78,7 +78,7 @@ class eventAdapter {
     @param[in] mode update_mode direct or match
     */
     virtual void updateObject(CoreObject* newObject,
-                              object_update_mode mode = object_update_mode::direct);
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT);
     /** @brief get a list of all referenced objects*/
     virtual void getObjects(std::vector<CoreObject*>& objects) const;
     /** initialize the event if needed*/
@@ -136,7 +136,7 @@ class eventTypeAdapter: public eventAdapter {
         return newAdapter;
     }
 
-    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, ObjectUpdateMode mode) override
     {
         m_eventObj->updateObject(newObject, mode);
         updateTime();
@@ -219,7 +219,7 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
         return newAdapter;
     }
 
-    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, ObjectUpdateMode mode) override
     {
         m_eventObj->updateObject(newObject, mode);
         updateTime();
@@ -274,16 +274,16 @@ class eventTypeAdapter<CoreObject>: public eventAdapter {
         evCode_ = gco->getInt("eventcode");
     }
 
-    virtual void updateObject(CoreObject* newObject, object_update_mode mode) override
+    virtual void updateObject(CoreObject* newObject, ObjectUpdateMode mode) override
     {
-        if (mode == object_update_mode::direct) {
+        if (mode == ObjectUpdateMode::DIRECT) {
             targetObject = newObject;
-        } else if (mode == object_update_mode::match) {
+        } else if (mode == ObjectUpdateMode::MATCH) {
             auto searchRes = findMatchingObject(targetObject, newObject);
             if (searchRes) {
                 targetObject = searchRes;
             } else {
-                throw(objectUpdateFailException());
+                throw(ObjectUpdateFailException());
             }
         }
         m_nextTime = (targetObject) ? targetObject->getNextUpdateTime() : maxTime;

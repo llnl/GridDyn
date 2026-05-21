@@ -11,13 +11,13 @@
 #include <vector>
 
 namespace griddyn {
-void coreObjectList::addIndexes(id_type_t objectID, const objectRecord& record)
+void CoreObjectList::addIndexes(id_type_t objectID, const ObjectRecord& record)
 {
     m_idsByName.emplace(record.name, objectID);
     m_idsByUserId.emplace(record.userID, objectID);
 }
 
-void coreObjectList::removeIndexes(id_type_t objectID, const objectRecord& record)
+void CoreObjectList::removeIndexes(id_type_t objectID, const ObjectRecord& record)
 {
     auto nameIndex = m_idsByName.find(record.name);
     if (nameIndex != m_idsByName.end() && nameIndex->second == objectID) {
@@ -33,7 +33,7 @@ void coreObjectList::removeIndexes(id_type_t objectID, const objectRecord& recor
     }
 }
 
-bool coreObjectList::insert(CoreObject* obj, bool replace)
+bool CoreObjectList::insert(CoreObject* obj, bool replace)
 {
     if (obj == nullptr) {
         return false;
@@ -66,13 +66,13 @@ bool coreObjectList::insert(CoreObject* obj, bool replace)
         }
     }
 
-    objectRecord record{.object = obj, .name = objectName, .userID = obj->getUserID()};
+    ObjectRecord record{.object = obj, .name = objectName, .userID = obj->getUserID()};
     m_objectsById.emplace(objectID, record);
     addIndexes(objectID, record);
     return true;
 }
 
-CoreObject* coreObjectList::find(std::string_view objName) const
+CoreObject* CoreObjectList::find(std::string_view objName) const
 {
     auto foundObject = m_idsByName.find(std::string{objName});
     if (foundObject != m_idsByName.end()) {
@@ -84,7 +84,7 @@ CoreObject* coreObjectList::find(std::string_view objName) const
     return nullptr;
 }
 
-std::vector<CoreObject*> coreObjectList::find(index_t searchID) const
+std::vector<CoreObject*> CoreObjectList::find(index_t searchID) const
 {
     std::vector<CoreObject*> out;
     auto userRange = m_idsByUserId.equal_range(searchID);
@@ -97,7 +97,7 @@ std::vector<CoreObject*> coreObjectList::find(index_t searchID) const
     return out;
 }
 
-bool coreObjectList::remove(CoreObject* obj)
+bool CoreObjectList::remove(CoreObject* obj)
 {
     if (obj == nullptr) {
         return false;
@@ -113,7 +113,7 @@ bool coreObjectList::remove(CoreObject* obj)
     return true;
 }
 
-bool coreObjectList::remove(std::string_view objName)
+bool CoreObjectList::remove(std::string_view objName)
 {
     auto foundObject = m_idsByName.find(std::string{objName});
     if (foundObject == m_idsByName.end()) {
@@ -131,12 +131,12 @@ bool coreObjectList::remove(std::string_view objName)
     return true;
 }
 
-bool coreObjectList::isMember(const CoreObject* obj) const
+bool CoreObjectList::isMember(const CoreObject* obj) const
 {
     return (obj != nullptr) && m_objectsById.contains(obj->getID());
 }
 
-void coreObjectList::deleteAll(CoreObject* parent)
+void CoreObjectList::deleteAll(CoreObject* parent)
 {
     for (const auto& [objectID, record] : m_objectsById) {
         static_cast<void>(objectID);
@@ -144,7 +144,7 @@ void coreObjectList::deleteAll(CoreObject* parent)
     }
 }
 
-void coreObjectList::updateObject(CoreObject* obj)
+void CoreObjectList::updateObject(CoreObject* obj)
 {
     if (obj == nullptr) {
         return;

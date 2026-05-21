@@ -58,7 +58,7 @@ void getParamString(const A* cobj,
                     const stringVec& numStr,
                     const stringVec& strStr,
                     const stringVec& flagStr,
-                    paramStringType pstype)
+                    ParamStringType pstype)
 {
     static_assert(std::is_base_of<B, A>::value,
                   "classes A and B must have parent child relationship");
@@ -67,38 +67,38 @@ void getParamString(const A* cobj,
     static_assert(std::is_base_of<CoreObject, A>::value,
                   "classes must be inherited from CoreObject");
     switch (pstype) {
-        case paramStringType::all:
+        case ParamStringType::ALL:
             pstr.reserve(pstr.size() + numStr.size());
             pstr.insert(pstr.end(), numStr.begin(), numStr.end());
-            cobj->B::getParameterStrings(pstr, paramStringType::numeric);
+            cobj->B::getParameterStrings(pstr, ParamStringType::NUMERIC);
             pstr.reserve(pstr.size() + strStr.size() + 1);
             pstr.emplace_back("#");
             pstr.insert(pstr.end(), strStr.begin(), strStr.end());
-            cobj->B::getParameterStrings(pstr, paramStringType::str);
+            cobj->B::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::localnum:
+        case ParamStringType::LOCAL_NUM:
             pstr = numStr;
             break;
-        case paramStringType::localstr:
+        case ParamStringType::LOCAL_STR:
             pstr = strStr;
             break;
-        case paramStringType::localflags:
+        case ParamStringType::LOCAL_FLAGS:
             pstr = flagStr;
             break;
-        case paramStringType::numeric:
+        case ParamStringType::NUMERIC:
             pstr.reserve(pstr.size() + numStr.size());
             pstr.insert(pstr.end(), numStr.begin(), numStr.end());
-            cobj->B::getParameterStrings(pstr, paramStringType::numeric);
+            cobj->B::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
-        case paramStringType::str:
+        case ParamStringType::STR:
             pstr.reserve(pstr.size() + strStr.size());
             pstr.insert(pstr.end(), strStr.begin(), strStr.end());
-            cobj->B::getParameterStrings(pstr, paramStringType::str);
+            cobj->B::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::flags:
+        case ParamStringType::FLAGS:
             pstr.reserve(pstr.size() + flagStr.size());
             pstr.insert(pstr.end(), flagStr.begin(), flagStr.end());
-            cobj->B::getParameterStrings(pstr, paramStringType::flags);
+            cobj->B::getParameterStrings(pstr, ParamStringType::FLAGS);
             break;
     }
 }

@@ -67,10 +67,10 @@ class GridSimulation: public GridArea {
         DYNAMIC_PARTIAL = 5,  //!< the system has completed a dynamic system calculation but has not
                               //!< reached the desired time
     };
-    print_level consolePrintLevel =
-        print_level::summary;  //!< logging level for printing to the console
-    print_level logPrintLevel =
-        print_level::summary;  //!< logging level for saving to a file (if a file was specified)
+    PrintLevel consolePrintLevel =
+        PrintLevel::SUMMARY;  //!< logging level for printing to the console
+    PrintLevel logPrintLevel =
+        PrintLevel::SUMMARY;  //!< logging level for saving to a file (if a file was specified)
   protected:
     std::string logFile;  //!< log file name
 
@@ -193,8 +193,8 @@ class GridSimulation: public GridArea {
                        units::unit unitType = units::defunit) const override;
 
     void alert(CoreObject* object, int code) override;
-    virtual void log(CoreObject* object, print_level level, const std::string& message) override;
-    virtual bool shouldLog(print_level level) const override;
+    virtual void log(CoreObject* object, PrintLevel level, const std::string& message) override;
+    virtual bool shouldLog(PrintLevel level) const override;
 
     /** @brief save all the recorder data to files
      all the recorders have files associated with them that get automatically saved at certain

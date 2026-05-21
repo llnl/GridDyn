@@ -21,7 +21,7 @@ class Communicator;
 class eventAdapter;
 class Event;
 class commMessage;
-class propertyBuffer;
+class PropertyBuffer;
 
 enum class change_code;  // forward declare change_code enumeration
 
@@ -30,7 +30,7 @@ enum class change_code;  // forward declare change_code enumeration
  relay's are sensors and actuators.  They can read data from griddyn and then take actions on other
 * objects on a regular schedule or on a functional basis.
 **/
-class Relay: public gridPrimary, objectOperatorInterface {
+class Relay: public gridPrimary, ObjectOperatorInterface {
   public:
     static std::atomic<count_t>
         relayCount;  //!< static counter for the number of relays to generate an id number
@@ -287,7 +287,7 @@ class Relay: public gridPrimary, objectOperatorInterface {
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 

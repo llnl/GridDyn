@@ -76,7 +76,7 @@ void eventQueue::cloneTo(eventQueue* eQ) const
 void eventQueue::mapObjectsOnto(CoreObject* newRootObject)
 {
     for (auto& ev : events) {
-        ev->updateObject(newRootObject, object_update_mode::match);
+        ev->updateObject(newRootObject, ObjectUpdateMode::MATCH);
     }
 }
 
@@ -250,7 +250,7 @@ void eventQueue::set(std::string_view param, double val)
         if (val > 0) {
             timeTols = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "nulleventperiod") {
         nullEvent->m_period = val;
@@ -258,7 +258,7 @@ void eventQueue::set(std::string_view param, double val)
         nullEvent->m_nextTime = val;
         sort();
     } else {
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     }
 }
 

@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 #ifdef ENABLE_FMI_EXPORT
             {
                 simulation->log(nullptr,
-                                griddyn::print_level::summary,
+                                griddyn::PrintLevel::SUMMARY,
                                 std::string("Building FMI through FMI builder"));
                 auto builder = std::make_unique<fmi::fmuBuilder>(simulation);
                 auto returnCode = builder->Initialize(argc, argv);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 #ifdef ENABLE_HELICS_EXECUTABLE
                 auto runner = std::make_unique<helicsLib::HelicsRunner>(simulation);
                 simulation->log(nullptr,
-                                griddyn::print_level::summary,
+                                griddyn::PrintLevel::SUMMARY,
                                 std::string("Executing through HELICS runner"));
                 auto returnCode = runner->Initialize(argc, argv);
                 if (returnCode > 0) {
@@ -141,8 +141,8 @@ int main(int argc, char* argv[])
                     runner->simInitialize();
                     runner->Run();
                 }
-                catch (const griddyn::executionFailure& e) {
-                    simulation->log(nullptr, griddyn::print_level::error, std::string(e.what()));
+                catch (const griddyn::ExecutionFailure& e) {
+                    simulation->log(nullptr, griddyn::PrintLevel::ERROR, std::string(e.what()));
                 }
 #endif
             } break;
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 #ifdef ENABLE_DIME
                 auto runner = std::make_unique<dimeLib::DimeRunner>(simulation);
                 simulation->log(nullptr,
-                                griddyn::print_level::summary,
+                                griddyn::PrintLevel::SUMMARY,
                                 std::string("Executing through DIME runner"));
                 auto returnCode = runner->Initialize(argc, argv);
                 if (returnCode > 0) {
@@ -165,12 +165,12 @@ int main(int argc, char* argv[])
             }
             case ExecMode::BUILDGDZ:
                 simulation->log(nullptr,
-                                griddyn::print_level::error,
+                                griddyn::PrintLevel::ERROR,
                                 std::string("GDZ builder not implemented yet"));
                 return (-4);
             default:
                 simulation->log(nullptr,
-                                griddyn::print_level::error,
+                                griddyn::PrintLevel::ERROR,
                                 std::string("unknown execution mode"));
                 return (-4);
                 break;
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
                 simulation->getInt("algcount"),
                 simulation->getInt("diffcount"),
                 jacobianSize);
-            simulation->log(nullptr, griddyn::print_level::summary, summaryMessage);
+            simulation->log(nullptr, griddyn::PrintLevel::SUMMARY, summaryMessage);
         } else {
             auto stateSize = simulation->getInt("pflowstatesize");
             auto jacobianSize = simulation->getInt("pflownonzeros");
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
                 simulation->getInt("vcount"),
                 simulation->getInt("account"),
                 jacobianSize);
-            simulation->log(nullptr, griddyn::print_level::summary, summaryMessage);
+            simulation->log(nullptr, griddyn::PrintLevel::SUMMARY, summaryMessage);
         }
 
         return 0;

@@ -24,7 +24,7 @@ class classFactory;
 template<class parentClass>
 class coreClassFactory {
     using fMap = std::map<std::string, classFactory<parentClass>*, std::less<>>;
-    std::string m_defaultType;
+    std::string mDefaultType;
 
   public:
     /** @brief get a shared pointer to the core object factory*/
@@ -58,7 +58,7 @@ class coreClassFactory {
         }
         auto mfind = m_factoryMap.find(type);
         if (mfind != m_factoryMap.end()) {
-            m_defaultType = mfind->first;
+            mDefaultType = mfind->first;
         }
     }
 
@@ -82,8 +82,8 @@ class coreClassFactory {
         if (mfind != m_factoryMap.end()) {
             return mfind->second->makeObject();
         }
-        if (!m_defaultType.empty()) {
-            return m_factoryMap[m_defaultType]->makeObject();
+        if (!mDefaultType.empty()) {
+            return m_factoryMap[mDefaultType]->makeObject();
         }
         return nullptr;
     }
@@ -98,8 +98,8 @@ class coreClassFactory {
         if (mfind != m_factoryMap.end()) {
             return mfind->second->makeObject(objName);
         }
-        if (!m_defaultType.empty()) {
-            return m_factoryMap[m_defaultType]->makeObject(objName);
+        if (!mDefaultType.empty()) {
+            return m_factoryMap[mDefaultType]->makeObject(objName);
         }
         return nullptr;
     }
@@ -111,7 +111,7 @@ class coreClassFactory {
     classFactory<parentClass>* getFactory(std::string_view typeName)
     {
         if (typeName.empty()) {
-            return m_factoryMap[m_defaultType];
+            return m_factoryMap[mDefaultType];
         }
         auto mfind = m_factoryMap.find(typeName);
         if (mfind != m_factoryMap.end()) {

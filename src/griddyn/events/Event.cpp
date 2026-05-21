@@ -102,12 +102,12 @@ void Event::loadField(CoreObject* searchObj, std::string_view newField)
     auto renameloc = newField.find(" as ");  // spaces are important
                                              // extract out a rename
 
-    objInfo fdata;
+    ObjInfo fdata;
     if (renameloc != std::string::npos) {
         setName(trim(std::string{newField.substr(renameloc + 4)}));
-        fdata = objInfo(newField.substr(0, renameloc), searchObj);
+        fdata = ObjInfo(newField.substr(0, renameloc), searchObj);
     } else {
-        fdata = objInfo(newField, searchObj);
+        fdata = ObjInfo(newField, searchObj);
     }
 
     field = fdata.m_field;
@@ -171,7 +171,7 @@ void Event::set(std::string_view param, std::string_view val)
     } else if (param == "units") {
         units::unit newUnits = unit_cast(units::unit_from_string(std::string{val}));
         if (!is_valid(newUnits)) {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         unitType = newUnits;
     } else {
@@ -251,9 +251,9 @@ change_code Event::trigger(coreTime time)
     return ret;
 }
 
-void Event::updateObject(CoreObject* gco, object_update_mode mode)
+void Event::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
-    if (mode == object_update_mode::direct) {
+    if (mode == ObjectUpdateMode::DIRECT) {
         setTarget(gco);
     } else {
         if (m_obj != nullptr) {
@@ -261,7 +261,7 @@ void Event::updateObject(CoreObject* gco, object_update_mode mode)
             if (newTarget != nullptr) {
                 setTarget(newTarget);
             } else {
-                throw(objectUpdateFailException());
+                throw(ObjectUpdateFailException());
             }
         } else {
             setTarget(gco);
@@ -398,7 +398,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
     trimString(vstring);
     objString = objString.substr(0, posE);
     // break down the object specification
-    objInfo fdata(objString, rootObj);
+    ObjInfo fdata(objString, rootObj);
 
     targetObjs.push_back(fdata.m_obj);
     units.push_back(fdata.m_unitType);
@@ -429,7 +429,7 @@ std::unique_ptr<Event>
     make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
 {
     auto ev = std::make_unique<Event>(eventTime);
-    objInfo fdata(std::string{field}, rootObject);
+    ObjInfo fdata(std::string{field}, rootObject);
     ev->setTarget(fdata.m_obj, fdata.m_field);
     ev->setValue(val, fdata.m_unitType);
     return ev;

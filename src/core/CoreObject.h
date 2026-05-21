@@ -28,7 +28,24 @@
 #endif
 
 namespace griddyn {
-enum class paramStringType { all, localstr, localnum, str, numeric, localflags, flags };
+enum class ParamStringType {
+    ALL,
+    all = ALL,  // NOLINT(readability-identifier-naming)
+    LOCAL_STR,
+    localstr = LOCAL_STR,  // NOLINT(readability-identifier-naming)
+    LOCAL_NUM,
+    localnum = LOCAL_NUM,  // NOLINT(readability-identifier-naming)
+    STR,
+    str = STR,  // NOLINT(readability-identifier-naming)
+    NUMERIC,
+    numeric = NUMERIC,  // NOLINT(readability-identifier-naming)
+    LOCAL_FLAGS,
+    localflags = LOCAL_FLAGS,  // NOLINT(readability-identifier-naming)
+    FLAGS,
+    flags = FLAGS,  // NOLINT(readability-identifier-naming)
+};
+
+using paramStringType = ParamStringType;  // NOLINT(readability-identifier-naming)
 
 typedef void gridPositionInfo;
 
@@ -110,14 +127,14 @@ class CoreObject {
      * @param[in] level the level of the log message
      * @param[in] message the log message
      */
-    virtual void log(CoreObject* object, print_level level, const std::string& message);
+    virtual void log(CoreObject* object, PrintLevel level, const std::string& message);
     /**
      * @brief checks whether a particular log level is currently enabled for this object's logger
      * chain.
      * @param[in] level the requested log level
      * @return true if a message at this level would be emitted
      */
-    virtual bool shouldLog(print_level level) const;
+    virtual bool shouldLog(PrintLevel level) const;
 
     /**
      * @brief increment the reference counter for the object
@@ -211,7 +228,7 @@ class CoreObject {
      * @param[in] pstype the type of parameters to get the strings for
      */
     virtual void getParameterStrings(stringVec& pstr,
-                                     paramStringType pstype = paramStringType::all) const;
+                                     ParamStringType pstype = ParamStringType::ALL) const;
     /**
     * @brief update the object at a specific time
   @ details if the object requires and A and B parts this is the A part the B part gets executed at
@@ -413,18 +430,16 @@ inline bool isSameObject(const CoreObject* o1, id_type_t id)
 * @param[in] level the level name as a string
 @throw invalidParameterValue() if level is not recognized
 */
-print_level stringToPrintLevel(const std::string& level);
+PrintLevel stringToPrintLevel(const std::string& level);
 
 namespace logging {
-    [[nodiscard]] inline bool should_log(const CoreObject* logger, print_level level)
+    [[nodiscard]] inline bool should_log(const CoreObject* logger, PrintLevel level)
     {
         return (logger != nullptr) && logger->shouldLog(level);
     }
 
-    inline void log_to(CoreObject* logger,
-                       CoreObject* object,
-                       print_level level,
-                       const std::string& message)
+    inline void
+        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, const std::string& message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -433,7 +448,7 @@ namespace logging {
     }
 
     inline void
-        log_to(CoreObject* logger, CoreObject* object, print_level level, std::string_view message)
+        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, std::string_view message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -442,7 +457,7 @@ namespace logging {
     }
 
     inline void
-        log_to(CoreObject* logger, CoreObject* object, print_level level, const char* message)
+        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, const char* message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -453,7 +468,7 @@ namespace logging {
     template<class... Args>
     inline void log_to(CoreObject* logger,
                        CoreObject* object,
-                       print_level level,
+                       PrintLevel level,
                        std::string_view formatText,
                        Args&&... args)
     {
@@ -471,7 +486,7 @@ namespace logging {
     }
 
     template<class... Args>
-    inline void log_self(CoreObject* logger, print_level level, Args&&... args)
+    inline void log_self(CoreObject* logger, PrintLevel level, Args&&... args)
     {
         log_to(logger, logger, level, std::forward<Args>(args)...);
     }
@@ -479,37 +494,37 @@ namespace logging {
     template<class... Args>
     inline void error(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::error, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::ERROR, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void warning(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::warning, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::WARNING, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void summary(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::summary, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::SUMMARY, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void normal(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::normal, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::NORMAL, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void debug(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::debug, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::DEBUG, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void trace(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, print_level::trace, std::forward<Args>(args)...);
+        log_self(logger, PrintLevel::TRACE, std::forward<Args>(args)...);
     }
 }  // namespace logging
 

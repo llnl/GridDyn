@@ -125,13 +125,13 @@ void FmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void FmiMESubModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     int strpcnt{0};
     const auto* info = me->getFmiInformation();
     auto vcnt = info->getCounts("variables");
     switch (pstype) {
-        case paramStringType::all:
+        case ParamStringType::ALL:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
 
@@ -145,7 +145,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
 
-            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             pstr.reserve(pstr.size() + strpcnt + 1);
             pstr.emplace_back("#");
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -155,9 +155,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::localnum:
+        case ParamStringType::LOCAL_NUM:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -168,7 +168,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::localstr:
+        case ParamStringType::LOCAL_STR:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -179,7 +179,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::localflags:
+        case ParamStringType::LOCAL_FLAGS:
             pstr.reserve(info->getCounts("params") + info->getCounts("inputs") - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -190,7 +190,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                 }
             }
             break;
-        case paramStringType::numeric:
+        case ParamStringType::NUMERIC:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -200,9 +200,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::numeric);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
-        case paramStringType::str:
+        case ParamStringType::STR:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -212,9 +212,9 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::str);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
-        case paramStringType::flags:
+        case ParamStringType::FLAGS:
             pstr.reserve(pstr.size() + info->getCounts("params") + info->getCounts("inputs") -
                          m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
@@ -224,7 +224,7 @@ void FmiMESubModel::getParameterStrings(stringVec& pstr, paramStringType pstype)
                     pstr.push_back(info->getVariableInformation(kk).name);
                 }
             }
-            GridSubModel::getParameterStrings(pstr, paramStringType::flags);
+            GridSubModel::getParameterStrings(pstr, ParamStringType::FLAGS);
             break;
     }
 }
@@ -263,7 +263,7 @@ void FmiMESubModel::set(std::string_view param, std::string_view val)
                 paramBuffer.apply(me);
             }
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "outputs") {
         auto ssep = splitline(val);
@@ -290,7 +290,7 @@ void FmiMESubModel::set(std::string_view param, std::string_view val)
             try {
                 GridSubModel::set(param, val);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, std::string{val});
             }
         }
@@ -315,7 +315,7 @@ void FmiMESubModel::set(std::string_view param, double val, units::unit unitType
             try {
                 GridSubModel::set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 paramBuffer.set(std::string{param}, val, unitType);
             }
         }
@@ -360,7 +360,7 @@ std::pair<count_t, count_t> FmiMESubModel::LocalRootCount(const solverMode& /* s
 
 void FmiMESubModel::setState(coreTime time,
                              const double state[],
-                             const double dstate_dt[],
+                             const double dstateDt[],
                              const solverMode& sMode)
 {
     if (hasDifferential(sMode)) {
@@ -368,7 +368,7 @@ void FmiMESubModel::setState(coreTime time,
         if (m_stateSize > 0) {
             me->setStates(state + loc);
             m_state.assign(state + loc, state + loc + m_stateSize);
-            m_dstate_dt.assign(dstate_dt + loc, dstate_dt + loc + m_stateSize);
+            m_dstate_dt.assign(dstateDt + loc, dstateDt + loc + m_stateSize);
         }
 
         me->setTime(time);
@@ -408,7 +408,7 @@ void FmiMESubModel::setState(coreTime time,
 // for saving the state
 void FmiMESubModel::guessState(coreTime /*time*/,
                                double state[],
-                               double dstate_dt[],
+                               double dstateDt[],
                                const solverMode& sMode)
 {
     if (m_stateSize == 0) {
@@ -417,7 +417,7 @@ void FmiMESubModel::guessState(coreTime /*time*/,
     if (hasDifferential(sMode)) {
         auto loc = offsets.getDiffOffset(sMode);
         me->getStates(state + loc);
-        me->getDerivatives(dstate_dt + loc);
+        me->getDerivatives(dstateDt + loc);
     } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
         auto loc = offsets.getAlgOffset(sMode);
         me->getStates(state + loc);
@@ -475,10 +475,10 @@ void FmiMESubModel::residual(const IOdata& inputs,
                              const solverMode& sMode)
 {
     if (hasDifferential(sMode)) {
-        auto Loc = offsets.getLocations(sD, resid, sMode, this);
+        auto loc = offsets.getLocations(sD, resid, sMode, this);
         derivative(inputs, sD, resid, sMode);
-        for (index_t ii = 0; ii < Loc.diffSize; ++ii) {
-            Loc.destDiffLoc[ii] -= Loc.dstateLoc[ii];
+        for (index_t ii = 0; ii < loc.diffSize; ++ii) {
+            loc.destDiffLoc[ii] -= loc.dstateLoc[ii];
         }
     } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
         derivative(inputs, sD, resid, sMode);
@@ -490,22 +490,22 @@ void FmiMESubModel::derivative(const IOdata& inputs,
                                double deriv[],
                                const solverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
+    auto loc = offsets.getLocations(sD, deriv, sMode, this);
     updateLocalCache(inputs, sD, sMode);
     if (isDynamic(sMode)) {
-        me->getDerivatives(Loc.destDiffLoc);
+        me->getDerivatives(loc.destDiffLoc);
         /*     printf("tt=%f,I=%f, state=%f deriv=%e\n",
                     static_cast<double>(sD.time),
                     inputs[0],
-                    Loc.diffStateLoc[0],
-                    Loc.destDiffLoc[0]);*/
+                    loc.diffStateLoc[0],
+                    loc.destDiffLoc[0]);*/
     } else {
-        me->getDerivatives(Loc.destLoc);
+        me->getDerivatives(loc.destLoc);
         /*      printf("tt=%f,I=%f, state=%f,deriv=%e\n",
                      static_cast<double>(sD.time),
                      inputs[0],
-                     Loc.algStateLoc[0],
-                     Loc.destLoc[0]);*/
+                     loc.algStateLoc[0],
+                     loc.destLoc[0]);*/
     }
 }
 
@@ -605,25 +605,25 @@ void FmiMESubModel::jacobianElements(const IOdata& inputs,
                                      const solverMode& sMode)
 {
     if (hasDifferential(sMode)) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto loc = offsets.getLocations(sD, sMode, this);
         updateLocalCache(inputs, sD, sMode);
         // for all the inputs
-        for (index_t kk = 0; kk < Loc.diffSize; ++kk) {
+        for (index_t kk = 0; kk < loc.diffSize; ++kk) {
             int vu = stateInformation[kk].varIndex;
             for (int vk : stateInformation[kk].inputDep) {
                 double res = getPartial(vu, inputVarIndices[vk], stateInformation[kk].refMode);
                 if (res != 0.0) {
-                    md.assign(Loc.diffOffset + kk, inputLocs[vk], res);
+                    md.assign(loc.diffOffset + kk, inputLocs[vk], res);
                 }
             }
             for (int vk : stateInformation[kk].stateDep) {
                 double res =
                     getPartial(vu, stateInformation[vk].varIndex, stateInformation[kk].refMode);
                 if (res != 0.0) {
-                    md.assign(Loc.diffOffset + kk, Loc.diffOffset + vk, res);
+                    md.assign(loc.diffOffset + kk, loc.diffOffset + vk, res);
                 }
             }
-            md.assign(Loc.diffOffset + kk, Loc.diffOffset + kk, -sD.cj);
+            md.assign(loc.diffOffset + kk, loc.diffOffset + kk, -sD.cj);
             /* this is not allowed in fmus
         for (auto &sR : varInfo[vu].derivDep)
         {
@@ -637,7 +637,7 @@ void FmiMESubModel::jacobianElements(const IOdata& inputs,
         */
         }
     } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
-        auto Loc = offsets.getLocations(sD, sMode, this);
+        auto loc = offsets.getLocations(sD, sMode, this);
         updateLocalCache(inputs, sD, sMode);
         // for all the inputs
         for (index_t kk = 0; kk < m_stateSize; ++kk) {
@@ -645,14 +645,14 @@ void FmiMESubModel::jacobianElements(const IOdata& inputs,
             for (int vk : stateInformation[kk].inputDep) {
                 double res = getPartial(vu, inputVarIndices[vk], stateInformation[kk].refMode);
                 if (res != 0.0) {
-                    md.assign(Loc.algOffset + kk, inputLocs[vk], res);
+                    md.assign(loc.algOffset + kk, inputLocs[vk], res);
                 }
             }
             for (int vk : stateInformation[kk].stateDep) {
                 double res =
                     getPartial(vu, stateInformation[vk].varIndex, stateInformation[kk].refMode);
                 if (res != 0.0) {
-                    md.assign(Loc.algOffset + kk, Loc.algOffset + kk, res);
+                    md.assign(loc.algOffset + kk, loc.algOffset + kk, res);
                 }
             }
         }
@@ -668,9 +668,9 @@ void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMo
     coreTime curTime = prevTime;
     fmi2Boolean eventMode;
     fmi2Boolean terminateSim;
-    coreTime Tend = time;
-    std::vector<double> der_x(m_stateSize);
-    std::vector<double> der_x2(m_stateSize);
+    coreTime tend = time;
+    std::vector<double> derX(m_stateSize);
+    std::vector<double> derX2(m_stateSize);
     std::vector<double> prevInput(m_inputSize);
     std::vector<double> inputSlope(m_inputSize);
     // get the previous inputs
@@ -682,9 +682,9 @@ void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMo
     for (index_t kk = 0; kk < m_inputSize; ++kk) {
         inputSlope[kk] = (inputs[kk] - prevInput[kk]) * h2;
     }
-    while (curTime < Tend) {
+    while (curTime < tend) {
         // compute derivatives
-        me->getDerivatives(der_x.data());
+        me->getDerivatives(derX.data());
         // advance time
 
         curTime += h;
@@ -692,13 +692,13 @@ void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const solverMo
         me->setInputs(prevInput.data());
         me->setTime(curTime);
         // set states at t = time and perform one step
-        vectorMultAdd(m_state, der_x, static_cast<double>(h), m_state);
+        vectorMultAdd(m_state, derX, static_cast<double>(h), m_state);
         me->setStates(m_state.data());
 
         // get event indicators at t = time
         me->completedIntegratorStep(fmi2False, &eventMode, &terminateSim);
 
-        h = (curTime + h > Tend) ? (Tend - curTime) : localIntegrationTime;
+        h = (curTime + h > tend) ? (tend - curTime) : localIntegrationTime;
     }
     prevTime = time;
 }
@@ -738,9 +738,9 @@ void FmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
                                              matrixData<double>& md,
                                              const solverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, sMode, this);
+    auto loc = offsets.getLocations(sD, sMode, this);
     updateLocalCache(inputs, sD, sMode);
-    auto offsetLoc = isDynamic(sMode) ? Loc.diffOffset : Loc.algOffset;
+    auto offsetLoc = isDynamic(sMode) ? loc.diffOffset : loc.algOffset;
 
     for (index_t kk = 0; kk < m_outputSize; ++kk) {
         int vu = outputInformation[kk].varIndex;
@@ -865,13 +865,13 @@ void FmiMESubModel::updateLocalCache(const IOdata& inputs,
     }
     if (!sD.empty()) {
         if (sD.updateRequired(lastSeqID)) {
-            auto Loc = offsets.getLocations(sD, sMode, this);
+            auto loc = offsets.getLocations(sD, sMode, this);
             me->setTime(sD.time);
             if (m_stateSize > 0) {
                 if (isDynamic(sMode)) {
-                    me->setStates(Loc.diffStateLoc);
+                    me->setStates(loc.diffStateLoc);
                 } else {
-                    me->setStates(Loc.algStateLoc);
+                    me->setStates(loc.algStateLoc);
                 }
             }
             me->setInputs(inputs.data());

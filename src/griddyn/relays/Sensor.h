@@ -185,7 +185,7 @@ class sensor: public Relay {
                                 std::shared_ptr<commMessage> message) override;
 
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
 
     virtual const std::vector<stringVec>& outputNames() const override;

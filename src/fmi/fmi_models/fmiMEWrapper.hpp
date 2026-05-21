@@ -129,13 +129,13 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
         }
-        FmiWrapper<FmiMESubModel, BaseObj>::fmisub->setState(time, state, dstate_dt, sMode);
+        FmiWrapper<FmiMESubModel, BaseObj>::fmisub->setState(time, state, dstateDt, sMode);
     }
 
     virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override

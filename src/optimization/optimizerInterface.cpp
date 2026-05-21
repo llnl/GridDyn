@@ -48,7 +48,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
             mGridDynOptimization->log(mGridDynOptimization,
-                                      print_level::error,
+                                      PrintLevel::ERROR,
                                       std::string{funcname} + " failed - returned nullptr pointer");
         }
         return (1);
@@ -59,7 +59,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
         if (*errflag < 0) {
             if (printError) {
                 mGridDynOptimization->log(mGridDynOptimization,
-                                          print_level::error,
+                                          PrintLevel::ERROR,
                                           std::string{funcname} +
                                               " failed with flag = " + std::to_string(*errflag));
             }
@@ -69,7 +69,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
         // Check if function returned nullptr pointer - no memory allocated
         if (printError) {
             mGridDynOptimization->log(mGridDynOptimization,
-                                      print_level::error,
+                                      PrintLevel::ERROR,
                                       std::string{funcname} +
                                           " failed MEMORY_ERROR- returned nullptr pointer");
         }

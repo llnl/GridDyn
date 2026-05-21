@@ -35,15 +35,61 @@ constexpr double kNullVal(-1.456e47);  //!< a very large negative number used fo
 
 /** enumeration of print levels for logging
  */
-enum class print_level : int {
-    no_print = 0,  //!< never print
-    error = 1,  //!< only print errors
-    warning = 2,  //!< print/log warning and errors
-    summary = 3,  //!< print a summary
-    normal = 4,  //!< default print level
-    debug = 5,  //!< debug level prints
-    trace = 6,  //!< trace level printing
+#ifdef ERROR
+#    pragma push_macro("ERROR")
+#    undef ERROR
+#    define GRIDDYN_RESTORE_ERROR_MACRO
+#endif
+#ifdef WARNING
+#    pragma push_macro("WARNING")
+#    undef WARNING
+#    define GRIDDYN_RESTORE_WARNING_MACRO
+#endif
+#ifdef DEBUG
+#    pragma push_macro("DEBUG")
+#    undef DEBUG
+#    define GRIDDYN_RESTORE_DEBUG_MACRO
+#endif
+#ifdef TRACE
+#    pragma push_macro("TRACE")
+#    undef TRACE
+#    define GRIDDYN_RESTORE_TRACE_MACRO
+#endif
+enum class PrintLevel : int {
+    NO_PRINT = 0,  //!< never print
+    no_print = NO_PRINT,  // NOLINT(readability-identifier-naming)
+    ERROR = 1,  //!< only print errors
+    error = ERROR,  // NOLINT(readability-identifier-naming)
+    WARNING = 2,  //!< print/log warning and errors
+    warning = WARNING,  // NOLINT(readability-identifier-naming)
+    SUMMARY = 3,  //!< print a summary
+    summary = SUMMARY,  // NOLINT(readability-identifier-naming)
+    NORMAL = 4,  //!< default print level
+    normal = NORMAL,  // NOLINT(readability-identifier-naming)
+    DEBUG = 5,  //!< debug level prints
+    debug = DEBUG,  // NOLINT(readability-identifier-naming)
+    TRACE = 6,  //!< trace level printing
+    trace = TRACE,  // NOLINT(readability-identifier-naming)
 };
+
+#ifdef GRIDDYN_RESTORE_TRACE_MACRO
+#    pragma pop_macro("TRACE")
+#    undef GRIDDYN_RESTORE_TRACE_MACRO
+#endif
+#ifdef GRIDDYN_RESTORE_DEBUG_MACRO
+#    pragma pop_macro("DEBUG")
+#    undef GRIDDYN_RESTORE_DEBUG_MACRO
+#endif
+#ifdef GRIDDYN_RESTORE_WARNING_MACRO
+#    pragma pop_macro("WARNING")
+#    undef GRIDDYN_RESTORE_WARNING_MACRO
+#endif
+#ifdef GRIDDYN_RESTORE_ERROR_MACRO
+#    pragma pop_macro("ERROR")
+#    undef GRIDDYN_RESTORE_ERROR_MACRO
+#endif
+
+using print_level = PrintLevel;  // NOLINT(readability-identifier-naming)
 
 /// a type used for an id code of an object
 using id_type_t = std::int64_t;

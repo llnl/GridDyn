@@ -118,7 +118,7 @@ class SolverInterface: public HelperObject {
 
     std::vector<index_t> maskElements;  //!< vector of constant states in any problem
     std::string solverLogFile;  //!< file name and location of log file reference
-    SolverPrintLevel printLevel = SolverPrintLevel::ERROR_TRAP;  //!< print_level for solver
+    SolverPrintLevel printLevel = SolverPrintLevel::ERROR_TRAP;  //!< PrintLevel for solver
     int solverPrintLevel = 1;  //!< print level for internal solver logging
     count_t rootCount = 0;  //!< the number of root finding functions
     count_t solverCallCount = 0;  //!< the number of times the solver has been called
@@ -276,11 +276,11 @@ class SolverInterface: public HelperObject {
     @param[in] iconly  flag indicating that the logging should be for the initial condition
     calculation only
     */
-    virtual void logSolverStats(print_level logLevel, bool iconly = false) const;
+    virtual void logSolverStats(PrintLevel logLevel, bool iconly = false) const;
     /** @brief helper function to log error weight information
     @param[in] logLevel  the level of logging to display
     */
-    virtual void logErrorWeights(print_level logLevel) const;
+    virtual void logErrorWeights(PrintLevel logLevel) const;
 
     /** @brief get the state size
     @return the state size

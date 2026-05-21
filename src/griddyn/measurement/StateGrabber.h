@@ -37,7 +37,7 @@ enum class JacobianMode {
 /**class for grabbing a subset of fields directly from the state vector for performing certain
  * calculations
  */
-class stateGrabber: public objectOperatorInterface {
+class stateGrabber: public ObjectOperatorInterface {
   public:
     std::string field;  //!< name of the field to capture
 
@@ -86,7 +86,7 @@ class stateGrabber: public objectOperatorInterface {
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode);
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** get the Jacobian abilities of a grabber*/
@@ -158,7 +158,7 @@ class stateFunctionGrabber: public stateGrabber {
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
     virtual void updateField(std::string_view fld) override;
 };
@@ -185,7 +185,7 @@ class stateOpGrabber: public stateGrabber {
                                           matrixData<double>& matrixDataValue,
                                           const solverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     /** overload for updating an object to a specific number of the underlying stateGrabbers
     @param[in] obj the new targetObject
     @param[in] num the index of the underlying state grabber to update

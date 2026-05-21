@@ -267,7 +267,7 @@ void BusControls::updatePowerControls()
                 }
             } else {
                 controlledBus->log(controlledBus,
-                                   print_level::warning,
+                                   PrintLevel::WARNING,
                                    "Generator " + pco->getName() +
                                        " on indirect path for power control to bus " +
                                        controlledBus->getName());

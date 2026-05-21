@@ -85,7 +85,7 @@ class extraContingencyInfo {
 const extraContingencyInfo emptyExtraInfo{};
 /** class that encapsulated the information about a contingency
  */
-class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterface {
+class Contingency: public gmlc::containers::BasicWorkBlock, ObjectOperatorInterface {
   private:
     static std::atomic_int
         contingencyCount;  //!< static variable counting the number of created contingencies
@@ -179,8 +179,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, objectOperatorInterf
 
     void getObjects(std::vector<CoreObject*>& objects) const override;
 
-    void updateObject(CoreObject* newObj,
-                      object_update_mode mode = object_update_mode::match) override;
+    void updateObject(CoreObject* newObj, ObjectUpdateMode mode = ObjectUpdateMode::MATCH) override;
 
     std::shared_ptr<Contingency>
         clone(const std::shared_ptr<Contingency>& existingContingency = nullptr) const;

@@ -24,7 +24,7 @@ something to that effect
 @details includes storage for string, double, integer, and binary properties,  targeted at griddyn
 and helper objects It should be able to handle setting via regular pointer or shared pointer only
 coreObjects are meant to make use of gridUnits*/
-class propertyBuffer {
+class PropertyBuffer {
   private:
     std::vector<std::pair<std::string, property_type>> properties;  //!< storage for the properties
   public:
@@ -87,5 +87,7 @@ class propertyBuffer {
     /** clear all properties from the buffer*/
     void clear();
 };
+
+using propertyBuffer = PropertyBuffer;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

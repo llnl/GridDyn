@@ -110,7 +110,7 @@ CoreObject* Relay::clone(CoreObject* obj) const
 
 void Relay::updateObjectLinkages(CoreObject* newRoot)
 {
-    updateObject(newRoot, object_update_mode::match);
+    updateObject(newRoot, ObjectUpdateMode::MATCH);
     GridComponent::updateObjectLinkages(newRoot);
 }
 
@@ -306,7 +306,7 @@ void Relay::updateAction(std::shared_ptr<Event> ge, index_t actionNumber)
         actions[actionNumber] =
             std::make_shared<eventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge));
     } else {
-        throw(invalidParameterValue("actionNumber"));
+        throw(InvalidParameterValue("actionNumber"));
     }
 }
 
@@ -315,14 +315,14 @@ void Relay::updateAction(std::shared_ptr<eventAdapter> geA, index_t actionNumber
     if (isValidIndex(actionNumber, actions)) {
         actions[actionNumber] = std::move(geA);
     } else {
-        throw(invalidParameterValue("actionNumber"));
+        throw(InvalidParameterValue("actionNumber"));
     }
 }
 
 void Relay::updateCondition(std::shared_ptr<Condition> gc, index_t conditionNumber)
 {
     if (!isValidIndex(conditionNumber, conditions)) {
-        throw(invalidParameterValue("conditionNumber"));
+        throw(InvalidParameterValue("conditionNumber"));
     }
     conditions[conditionNumber] = std::move(gc);
     cStates[conditionNumber] = condition_status_t::active;
@@ -710,7 +710,7 @@ std::unique_ptr<eventAdapter> Relay::make_alarm(const std::string& val)
                 sendAlarm(code);
                 return change_code::no_change;
             }
-            catch (const executionFailure&) {
+            catch (const ExecutionFailure&) {
                 return change_code::execution_failure;
             }
         });
@@ -729,7 +729,7 @@ void Relay::sendAlarm(std::uint32_t code)
         cManager.send(std::move(message));
         return;
     }
-    throw(executionFailure(this, "no communication link"));
+    throw(ExecutionFailure(this, "no communication link"));
 }
 
 change_code Relay::triggerCondition(index_t conditionNum,
@@ -912,16 +912,16 @@ void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)
     }
 }
 
-void Relay::updateObject(CoreObject* obj, object_update_mode mode)
+void Relay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
-    if (mode == object_update_mode::direct) {
+    if (mode == ObjectUpdateMode::DIRECT) {
         if (m_sourceObject != nullptr) {
             setSource(obj);
         }
         if (m_sinkObject != nullptr) {
             setSink(obj);
         }
-    } else if (mode == object_update_mode::match) {
+    } else if (mode == ObjectUpdateMode::MATCH) {
         if (m_sourceObject != nullptr) {
             setSource(findMatchingObject(m_sourceObject, obj));
         }

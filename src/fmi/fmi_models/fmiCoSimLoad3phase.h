@@ -34,7 +34,7 @@ class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode) override;
 
     virtual const std::vector<stringVec>& getFmiInputNames() const override;

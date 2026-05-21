@@ -149,7 +149,7 @@ double idaInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void idaInterface::logSolverStats(print_level logLevel, bool iconly) const
+void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
 {
     if (!flags[initialized_flag]) {
         return;
@@ -232,7 +232,7 @@ void idaInterface::logSolverStats(print_level logLevel, bool iconly) const
     }
 }
 
-void idaInterface::logErrorWeights(print_level logLevel) const
+void idaInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);

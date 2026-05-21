@@ -48,8 +48,8 @@ class idaInterface: public sundialsInterface {
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 
-    void logSolverStats(print_level logLevel, bool iconly = false) const override;
-    void logErrorWeights(print_level logLevel) const override;
+    void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
+    void logErrorWeights(PrintLevel logLevel) const override;
     virtual void set(std::string_view param, double val) override;
     virtual double get(std::string_view param) const override;
 

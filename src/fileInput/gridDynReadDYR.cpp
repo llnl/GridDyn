@@ -38,7 +38,7 @@ void loadDyr(CoreObject* parentObject,
     std::string continuedLine;
 
     if (!(file.is_open())) {
-        parentObject->log(parentObject, print_level::error, "Unable to open file " + fileName);
+        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
         //    return;
     }
     while (std::getline(file, line)) {

@@ -8,8 +8,8 @@
 
 #include <string>
 namespace griddyn {
-coreObjectException::coreObjectException(const CoreObject* obj) noexcept: throwingObject(obj) {}
-std::string coreObjectException::who() const noexcept
+CoreObjectException::CoreObjectException(const CoreObject* obj) noexcept: throwingObject(obj) {}
+std::string CoreObjectException::who() const noexcept
 {
     return fullObjectName(throwingObject);
 }

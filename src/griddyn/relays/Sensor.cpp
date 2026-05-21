@@ -207,7 +207,7 @@ void sensor::set(std::string_view param, std::string_view val)
             }
             add(blk.release());
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if ((iparam == "outputname") || (param == "outputnames") || (param == "outputstring")) {
         if (num >= 0) {
@@ -233,7 +233,7 @@ void sensor::set(std::string_view param, std::string_view val)
                 ensureSizeAtLeast(blockInputs, static_cast<size_t>(seq[1]) + 1, -1);
                 blockInputs[seq[1]] = seq[0];
             } else {
-                throw(invalidParameterValue(param));
+                throw(InvalidParameterValue(param));
             }
         } else {
             ensureSizeAtLeast(blockInputs, seq.size(), -1);
@@ -307,7 +307,7 @@ void sensor::set(std::string_view param, double val, units::unit unitType)
         opFlags.set(DIRECT_IO, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         if (num < 0) {
             outputs.push_back(static_cast<int>(val));
@@ -334,7 +334,7 @@ double sensor::get(std::string_view param, units::unit unitType) const
     return Relay::get(param, unitType);
 }
 
-void sensor::updateObject(CoreObject* obj, object_update_mode mode)
+void sensor::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     for (auto& ds : dataSources) {
         if (ds) {

@@ -36,8 +36,8 @@ class kinsolInterface: public sundialsInterface {
     int solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     void setConstraints() override;
 
-    void logSolverStats(print_level logLevel, bool iconly = false) const override;
-    void logErrorWeights(print_level /*logLevel*/) const override {}
+    void logSolverStats(PrintLevel logLevel, bool iconly = false) const override;
+    void logErrorWeights(PrintLevel /*logLevel*/) const override {}
     virtual double get(std::string_view param) const override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;

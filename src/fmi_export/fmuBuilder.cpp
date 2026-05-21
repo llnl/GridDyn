@@ -134,9 +134,9 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
         newFile /= "simulation.json";
     } else {
         if (sourcefile.empty()) {
-            getSim()->log(nullptr, print_level::error, "no input file specified");
+            getSim()->log(nullptr, PrintLevel::ERROR, "no input file specified");
         } else {
-            getSim()->log(nullptr, print_level::error, "for fmu's input file must be xml or json");
+            getSim()->log(nullptr, PrintLevel::ERROR, "for fmu's input file must be xml or json");
         }
 
         return;
@@ -157,10 +157,10 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
         // now zip the fmu
         const int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
         if (status == 0) {
-            getSim()->log(nullptr, print_level::summary, "fmu created at " + fmupath.string());
+            getSim()->log(nullptr, PrintLevel::SUMMARY, "fmu created at " + fmupath.string());
         } else {
             getSim()->log(nullptr,
-                          print_level::error,
+                          PrintLevel::ERROR,
                           "zip status failure creating " + fmupath.string() +
                               "returned with error code " + std::to_string(status));
         }
@@ -168,10 +168,10 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
         auto path2 = current_path() / fmupath;
         const int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
         if (status == 0) {
-            getSim()->log(nullptr, print_level::summary, "fmu created at " + path2.string());
+            getSim()->log(nullptr, PrintLevel::SUMMARY, "fmu created at " + path2.string());
         } else {
             getSim()->log(nullptr,
-                          print_level::error,
+                          PrintLevel::ERROR,
                           "zip status failure creating " + fmupath.string() +
                               "returned with error code " + std::to_string(status));
         }

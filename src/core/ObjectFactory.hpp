@@ -84,7 +84,7 @@ class componentFactory {
 
   protected:
     cMap m_factoryMap;
-    std::string m_defaultType;
+    std::string mDefaultType;
 };
 
 // create a high level object factory for the CoreObject class

@@ -77,7 +77,7 @@ namespace relays {
 
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void updateObject(CoreObject* obj,
-                                  object_update_mode mode = object_update_mode::direct) override;
+                                  ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
         /** add a measurement point to the relay
     @param[in] measure a string representing the measurement
     */

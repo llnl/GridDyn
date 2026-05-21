@@ -87,7 +87,7 @@ void collector::cloneTo(collector* col) const
     col->mData.resize(mData.size());
 }
 
-void collector::updateObject(CoreObject* gco, object_update_mode mode)
+void collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     for (const auto& dataPoint : mPoints) {
         if (dataPoint.mDataGrabber) {
@@ -385,10 +385,10 @@ void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
                 add(std::shared_ptr<gridGrabber>(std::move(ggb)), gdRI.column);
                 return;
             }
-            throw(addFailureException());
+            throw(AddFailureException());
         }
         obj->log(obj,
-                 print_level::warning,
+                 PrintLevel::WARNING,
                  "unable to create collector no field or offset specified");
         addWarning("unable to create collector no field or offset specified");
         return;
@@ -438,9 +438,9 @@ void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
         }
     }
     if (fldGrabbers.empty()) {
-        obj->log(obj, print_level::warning, "no grabbers created from " + gdRI.field);
+        obj->log(obj, PrintLevel::WARNING, "no grabbers created from " + gdRI.field);
         addWarning("no grabbers created from " + gdRI.field);
-        throw(addFailureException());
+        throw(AddFailureException());
     }
 }
 
@@ -461,10 +461,10 @@ void collector::add(std::string_view field, CoreObject* obj)
         }
         if (fldGrabbers.empty()) {
             obj->log(obj,
-                     print_level::warning,
+                     PrintLevel::WARNING,
                      std::string{"no grabbers created from "} + std::string{field});
             addWarning(std::string{"no grabbers created from "} + std::string{field});
-            throw(addFailureException());
+            throw(AddFailureException());
         }
     }
 }

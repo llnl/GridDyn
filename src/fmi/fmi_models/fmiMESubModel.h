@@ -135,12 +135,12 @@ class FmiMESubModel: public GridSubModel {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode) override;
     // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const solverMode& sMode) override;
 
     virtual void getTols(double tols[], const solverMode& sMode) override;

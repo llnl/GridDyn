@@ -44,7 +44,7 @@ class HelicsEvent: public events::reversibleEvent {
     virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
     virtual void updateObject(CoreObject* gco,
-                              object_update_mode mode = object_update_mode::direct) override;
+                              ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getOwner() const override;
 
     virtual void initialize() override;

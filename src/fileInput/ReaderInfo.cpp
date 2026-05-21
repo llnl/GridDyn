@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "readerInfo.h"
+#include "ReaderInfo.h"
 
 #include "core/CoreObject.h"
 #include "fileInput.h"
@@ -57,26 +57,26 @@ namespace {
     }
 }  // namespace
 
-void basicReaderInfo::setFlag(uint32_t flagID)
+void BasicReaderInfo::setFlag(uint32_t flagID)
 {
     if (flagID < 32) {
         flags |= (std::uint32_t{1} << flagID);
     }
 }
 
-readerInfo::readerInfo()
+ReaderInfo::ReaderInfo()
 {
     loadDefaultDefines();
 }
-readerInfo::readerInfo(basicReaderInfo const& bri): basicReaderInfo(bri) {}
-readerInfo::~readerInfo()
+ReaderInfo::ReaderInfo(BasicReaderInfo const& bri): BasicReaderInfo(bri) {}
+ReaderInfo::~ReaderInfo()
 {
     for (auto& libObj : library) {
         delete libObj.second.first;
     }
 }
 
-readerInfo::scopeID readerInfo::newScope()
+ReaderInfo::scopeID ReaderInfo::newScope()
 {
     if (keepdefines) {
         return 0;
@@ -85,7 +85,7 @@ readerInfo::scopeID readerInfo::newScope()
     return currentScope;
 }
 
-void readerInfo::closeScope(scopeID scopeToClose)
+void ReaderInfo::closeScope(scopeID scopeToClose)
 {
     if (scopeToClose == 0) {
         if (currentScope > 0) {
@@ -120,7 +120,7 @@ void readerInfo::closeScope(scopeID scopeToClose)
     }
 }
 
-void readerInfo::addDefinition(const std::string& def, const std::string& replacement)
+void ReaderInfo::addDefinition(const std::string& def, const std::string& replacement)
 {
     auto search = lockDefines.find(def);
     if (search == lockDefines.end()) {
@@ -136,13 +136,13 @@ void readerInfo::addDefinition(const std::string& def, const std::string& replac
     }
 }
 
-void readerInfo::addTranslate(const std::string& def, const std::string& component)
+void ReaderInfo::addTranslate(const std::string& def, const std::string& component)
 {
     objectTranslations[def] = component;
     parameterIgnoreStrings.insert(def);
 }
 
-void readerInfo::addTranslate(const std::string& def,
+void ReaderInfo::addTranslate(const std::string& def,
                               const std::string& component,
                               const std::string& type)
 {
@@ -151,12 +151,12 @@ void readerInfo::addTranslate(const std::string& def,
     parameterIgnoreStrings.insert(def);
 }
 
-void readerInfo::addTranslateType(const std::string& def, const std::string& type)
+void ReaderInfo::addTranslateType(const std::string& def, const std::string& type)
 {
     objectTranslationsType[def] = type;
 }
 
-void readerInfo::addLockedDefinition(const std::string& def, const std::string& replacement)
+void ReaderInfo::addLockedDefinition(const std::string& def, const std::string& replacement)
 {
     auto search = lockDefines.find(def);
     if (search == lockDefines.end()) {
@@ -165,13 +165,13 @@ void readerInfo::addLockedDefinition(const std::string& def, const std::string& 
     }
 }
 
-void readerInfo::replaceLockedDefinition(const std::string& def, const std::string& replacement)
+void ReaderInfo::replaceLockedDefinition(const std::string& def, const std::string& replacement)
 {
     defines[def] = replacement;
     lockDefines[def] = replacement;
 }
 
-std::string readerInfo::checkDefines(const std::string& input)
+std::string ReaderInfo::checkDefines(const std::string& input)
 {
     std::string out = input;
     int replacementCount = 0;
@@ -232,7 +232,7 @@ std::string readerInfo::checkDefines(const std::string& input)
     return out;
 }
 
-std::string readerInfo::objectNameTranslate(const std::string& input)
+std::string ReaderInfo::objectNameTranslate(const std::string& input)
 {
     std::string out = input;
     int replacementCount = 0;
@@ -254,7 +254,7 @@ std::string readerInfo::objectNameTranslate(const std::string& input)
     return out;
 }
 
-bool readerInfo::addLibraryObject(CoreObject* obj, std::vector<gridParameter>& pobjs)
+bool ReaderInfo::addLibraryObject(CoreObject* obj, std::vector<GridParameter>& pobjs)
 {
     auto retval = library.find(obj->getName());
     if (retval == library.end()) {
@@ -265,7 +265,7 @@ bool readerInfo::addLibraryObject(CoreObject* obj, std::vector<gridParameter>& p
     return false;
 }
 
-CoreObject* readerInfo::findLibraryObject(std::string_view objName) const
+CoreObject* ReaderInfo::findLibraryObject(std::string_view objName) const
 {
     auto retval = library.find(std::string{objName});
     if (retval != library.end()) {
@@ -275,7 +275,7 @@ CoreObject* readerInfo::findLibraryObject(std::string_view objName) const
 }
 
 const char libraryLabel[] = "library";
-CoreObject* readerInfo::makeLibraryObject(std::string_view objName, CoreObject* mobj)
+CoreObject* ReaderInfo::makeLibraryObject(std::string_view objName, CoreObject* mobj)
 {
     auto objloc = library.find(std::string{objName});
     if (objloc == library.end()) {
@@ -292,7 +292,7 @@ CoreObject* readerInfo::makeLibraryObject(std::string_view objName, CoreObject* 
     return obj;
 }
 
-void readerInfo::loadDefaultDefines()
+void ReaderInfo::loadDefaultDefines()
 {
     std::ostringstream ss1;
     std::ostringstream ss2;
@@ -321,7 +321,7 @@ void readerInfo::loadDefaultDefines()
     addDefinition("inf", std::to_string(kBigNum));
 }
 
-void readerInfo::addDirectory(const std::string& directory)
+void ReaderInfo::addDirectory(const std::string& directory)
 {
     directories.push_back(directory);
     if (currentScope > 0) {
@@ -329,7 +329,7 @@ void readerInfo::addDirectory(const std::string& directory)
     }
 }
 
-std::shared_ptr<collector> readerInfo::findCollector(std::string_view name,
+std::shared_ptr<collector> ReaderInfo::findCollector(std::string_view name,
                                                      std::string_view fileName)
 {
     for (auto& col : collectors) {
@@ -343,7 +343,7 @@ std::shared_ptr<collector> readerInfo::findCollector(std::string_view name,
     return nullptr;
 }
 
-bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
+bool ReaderInfo::checkFileParam(std::string& strVal, bool extra_find)
 {
     if (strVal.back() == '_')  // escape hatch to skip the file checking
     {
@@ -409,7 +409,7 @@ bool readerInfo::checkFileParam(std::string& strVal, bool extra_find)
     return foundPath;
 }
 
-bool readerInfo::checkDirectoryParam(std::string& strVal)
+bool ReaderInfo::checkDirectoryParam(std::string& strVal)
 {
     strVal = checkDefines(strVal);
     std::filesystem::path sourcePath(strVal);
@@ -437,7 +437,7 @@ bool readerInfo::checkDirectoryParam(std::string& strVal)
 }
 
 // a reader info thing that requires element class information
-void readerInfo::addCustomElement(const std::string& name,
+void ReaderInfo::addCustomElement(const std::string& name,
                                   const std::shared_ptr<readerElement>& element,
                                   int nargs)
 {
@@ -445,20 +445,20 @@ void readerInfo::addCustomElement(const std::string& name,
     parameterIgnoreStrings.insert(name);
 }
 
-bool readerInfo::isCustomElement(const std::string& name) const
+bool ReaderInfo::isCustomElement(const std::string& name) const
 {
     auto retval = customElements.find(name);
     return (retval != customElements.end());
 }
 
 std::pair<std::shared_ptr<readerElement>, int>
-    readerInfo::getCustomElement(const std::string& name) const
+    ReaderInfo::getCustomElement(const std::string& name) const
 {
     auto retval = customElements.find(name);
     return retval->second;
 }
 
-const ignoreListType& readerInfo::getIgnoreList() const
+const ignoreListType& ReaderInfo::getIgnoreList() const
 {
     return parameterIgnoreStrings;
 }

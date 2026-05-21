@@ -24,7 +24,7 @@ class App;
 
 namespace griddyn {
 class GridDynSimulation;
-class readerInfo;
+class ReaderInfo;
 /**
  * Build and run a GridDyn simulation.
  */
@@ -47,16 +47,16 @@ class GriddynRunner {
      */
     virtual int Initialize(int argc, char* argv[], bool allowUnrecognized = false);
     /**
-    * initialize a simulation run from command line arguments using a given readerInfo structure
+    * initialize a simulation run from command line arguments using a given ReaderInfo structure
     @param[in] argc the number of console arguments
     @param[in] argv the actual console arguments
-    @param[in] readerInformation the readerInfo structure that contains any additional reader
+    @param[in] readerInformation the ReaderInfo structure that contains any additional reader
     information
     @return >0 normal stop,  0 normal, <0 error
     */
     int Initialize(int argc,
                    char* argv[],
-                   readerInfo& readerInformation,
+                   ReaderInfo& readerInformation,
                    bool allowUnrecognized = false);
     /** initialization the simulation object so it is ready to run*/
     virtual void simInitialize();
@@ -103,7 +103,7 @@ class GriddynRunner {
 
     virtual void Finalize();
     virtual int Reset();
-    virtual int Reset(readerInfo& readerInformation);
+    virtual int Reset(ReaderInfo& readerInformation);
     /** reset the underlying simulation of a runner*/
     void resetSim(std::shared_ptr<GridDynSimulation> sim) { m_gds = std::move(sim); }
     /** get a pointer to the simulation object*/
@@ -125,12 +125,12 @@ class GriddynRunner {
     decltype(std::chrono::high_resolution_clock::now()) m_stopTime;
     bool mEventMode = false;
 
-    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(readerInfo& readerInformation);
+    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(ReaderInfo& readerInformation);
 
-    std::shared_ptr<CLI::App> generateBaseCommandLineParser(readerInfo& readerInformation);
+    std::shared_ptr<CLI::App> generateBaseCommandLineParser(ReaderInfo& readerInformation);
 
     /** actually load the command line arguments*/
-    int loadCommandArgument(readerInfo& readerInformation, bool allowUnrecognized);
+    int loadCommandArgument(ReaderInfo& readerInformation, bool allowUnrecognized);
 
   protected:
     std::string mExecutablePath;  //!< the executable path from command line arguments

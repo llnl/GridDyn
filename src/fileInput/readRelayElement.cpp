@@ -65,7 +65,7 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
             }
         }
     }
-    relay = ElementReaderSetup(element, relay, relayComponentName, readerInformation, searchObject);
+    relay = elementReaderSetup(element, relay, relayComponentName, readerInformation, searchObject);
 
     CoreObject* targetObj = nullptr;
     std::string objectName = getElementField(element, "target", defMatchType);

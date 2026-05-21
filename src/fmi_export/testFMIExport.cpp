@@ -6,7 +6,7 @@
 
 #include "../../test/gtestHelper.h"
 #include "core/CoreOwningPtr.hpp"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include "fmi/fmi_import/fmiImport.h"
 #include "fmi/fmi_import/fmiObjects.h"
 #include "fmi_export/fmiCollector.h"

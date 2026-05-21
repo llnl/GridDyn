@@ -10,7 +10,7 @@
 #include "core/ObjectFactory.hpp"
 #include "dimeCollector.h"
 #include "dimeCommunicator.h"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include <string>
 #include <vector>
 
@@ -27,7 +27,7 @@ void loadDimeLibrary()
     (void)loaded;
 }
 
-void loadDimeReaderInfoDefinitions(readerInfo& readerInformation)
+void loadDimeReaderInfoDefinitions(ReaderInfo& readerInformation)
 {
     readerInformation.addTranslate("dime", "extra");
 }

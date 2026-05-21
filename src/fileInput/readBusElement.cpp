@@ -34,7 +34,7 @@ GridBus* readBusElement(std::shared_ptr<readerElement>& element,
     // boiler plate code to setup the object from references or new object
     // check for the area field
 
-    GridBus* bus = ElementReaderSetup(
+    GridBus* bus = elementReaderSetup(
         element, static_cast<GridBus*>(nullptr), busComponentName, readerInformation, searchObject);
 
     std::string valType = getElementField(element, "type", readerConfig::defMatchType);

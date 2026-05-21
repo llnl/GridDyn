@@ -49,7 +49,7 @@ HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunne
 HelicsRunner::~HelicsRunner() = default;
 
 std::shared_ptr<CLI::App>
-    HelicsRunner::generateLocalCommandLineParser(readerInfo& readerInformation)
+    HelicsRunner::generateLocalCommandLineParser(ReaderInfo& readerInformation)
 {
     loadHelicsReaderInfoDefinitions(readerInformation);
 

@@ -15,7 +15,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
-#include "readerInfo.h"
+#include "ReaderInfo.h"
 #include <fstream>
 #include <iostream>
 #include <string>

@@ -14,7 +14,7 @@
 #include <string>
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 namespace fmi {
     class FmiCoordinator;
 

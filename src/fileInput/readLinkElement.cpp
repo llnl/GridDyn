@@ -33,7 +33,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     auto riScope = readerInformation.newScope();
 
     // run the boilerplate code to setup the object
-    Link* linkObject = ElementReaderSetup(
+    Link* linkObject = elementReaderSetup(
         element, static_cast<Link*>(nullptr), linkComponentName, readerInformation, searchObject);
 
     // from bus

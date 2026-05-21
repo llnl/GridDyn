@@ -28,7 +28,7 @@ GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
     auto riScope = readerInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
-    GridArea* areaObject = ElementReaderSetup(element,
+    GridArea* areaObject = elementReaderSetup(element,
                                               static_cast<GridArea*>(nullptr),
                                               areaComponentName,
                                               readerInformation,

@@ -7,9 +7,9 @@
 #pragma once
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 
 void loadDimeLibrary();
 
-void loadDimeReaderInfoDefinitions(readerInfo& readerInformation);
+void loadDimeReaderInfoDefinitions(ReaderInfo& readerInformation);
 }  // namespace griddyn

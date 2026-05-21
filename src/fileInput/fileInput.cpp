@@ -86,7 +86,7 @@ namespace readerConfig {
 
 }  // namespace readerConfig
 
-int setObjectParameter(const std::string& label, CoreObject* obj, gridParameter& param) noexcept
+int setObjectParameter(const std::string& label, CoreObject* obj, GridParameter& param) noexcept
 {
     try {
         if (param.stringType) {
@@ -129,7 +129,7 @@ static constexpr std::array<std::pair<std::string_view, int>, 4> flagStringMap{{
     {"no_generator_bus_voltage_reset", NO_GENERATOR_BUS_VOLTAGE_RESET},
 }};
 
-void addFlags(basicReaderInfo& bri, const std::string& flags)
+void addFlags(BasicReaderInfo& bri, const std::string& flags)
 {
     auto flagStrings = gmlc::utilities::stringOps::splitline(flags);
     gmlc::utilities::stringOps::trim(flagStrings);
@@ -146,14 +146,14 @@ void addFlags(basicReaderInfo& bri, const std::string& flags)
 
 void loadFile(std::unique_ptr<GridDynSimulation>& gds,
               const std::string& fileName,
-              readerInfo* readerInf,
+              ReaderInfo* readerInf,
               const std::string& ext)
 {
     loadFile(gds.get(), fileName, readerInf, ext);
 }
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  readerInfo* readerInfoPtr)
+                                                  ReaderInfo* readerInfoPtr)
 {
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
@@ -164,7 +164,7 @@ std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
 
 void loadFile(CoreObject* parentObject,
               const std::string& fileName,
-              readerInfo* readerInf,
+              ReaderInfo* readerInf,
               std::string ext)
 {
     if (ext.empty()) {
@@ -175,8 +175,8 @@ void loadFile(CoreObject* parentObject,
         }
     }
 
-    const std::unique_ptr<readerInfo> uniqueReaderInfo =
-        (readerInf != nullptr) ? nullptr : std::make_unique<readerInfo>();
+    const std::unique_ptr<ReaderInfo> uniqueReaderInfo =
+        (readerInf != nullptr) ? nullptr : std::make_unique<ReaderInfo>();
     if (readerInf == nullptr) {
         readerInf = uniqueReaderInfo.get();
     }

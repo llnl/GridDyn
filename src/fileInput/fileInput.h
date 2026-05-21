@@ -10,7 +10,7 @@
 define some functions and operations for configuring file reader operations and loading files
 */
 #include "../griddyn/gridDynDefinitions.hpp"
-#include "readerInfo.h"
+#include "ReaderInfo.h"
 #include <memory>
 #include <string>
 
@@ -63,7 +63,7 @@ namespace readerConfig {
     extern MatchType defMatchType;  //!< control for how names are matches in the xm
 }  // namespace readerConfig
 
-/** @brief defined flags for the readerInfo*/
+/** @brief defined flags for the ReaderInfo*/
 enum ReaderFlags {
     IGNORE_STEP_UP_TRANSFORMER = 1,  //!< ignore any step up transformer definitions
     ASSUME_POWERFLOW_ONLY =
@@ -74,61 +74,61 @@ enum ReaderFlags {
 };
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  readerInfo* readerInfoPtr = nullptr);
+                                                  ReaderInfo* readerInfoPtr = nullptr);
 
-void addFlags(basicReaderInfo& bri, const std::string& flags);
+void addFlags(BasicReaderInfo& bri, const std::string& flags);
 
 void loadFile(std::unique_ptr<GridDynSimulation>& gds,
               const std::string& fileName,
-              readerInfo* readerInf = nullptr,
+              ReaderInfo* readerInf = nullptr,
               const std::string& ext = "");
 
 void loadFile(CoreObject* parentObject,
               const std::string& fileName,
-              readerInfo* readerInf = nullptr,
+              ReaderInfo* readerInf = nullptr,
               std::string ext = "");
 
-void loadGdz(CoreObject* parentObject, const std::string& fileName, readerInfo& readerInformation);
+void loadGdz(CoreObject* parentObject, const std::string& fileName, ReaderInfo& readerInformation);
 
 void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 
 void loadPsp(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 void loadPti(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 
 void loadDyr(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions = defInfo);
+             const BasicReaderInfo& readerOptions = defInfo);
 
 // wrapper function to detect m file format for matpower or PSAT
 void loadMatlabFile(CoreObject* parentObject,
                     const std::string& fileName,
-                    const basicReaderInfo& readerOptions = defInfo);
+                    const BasicReaderInfo& readerOptions = defInfo);
 
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
-             readerInfo& readerInformation,
+             ReaderInfo& readerInformation,
              const std::string& objectName = "");
 
 /** function sets a parameter in an object
 @param[in] label the name to be printed if there is a problem
 @param[in] obj  the object to change the parameter of
-@param[in] param a gridParameter definition
+@param[in] param a GridParameter definition
 @return 0 if successful (-1) if the setting failed
 */
-int setObjectParameter(const std::string& label, CoreObject* obj, gridParameter& param) noexcept;
+int setObjectParameter(const std::string& label, CoreObject* obj, GridParameter& param) noexcept;
 
 void addToParent(CoreObject* objectToAdd, CoreObject* parentObject);
 /** @brief attempt to add to a parent object with renaming sequence*/

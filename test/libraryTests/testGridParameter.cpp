@@ -6,7 +6,7 @@
 
 // test case for CoreObject object
 
-#include "fileInput/gridParameter.h"
+#include "fileInput/GridParameter.h"
 #include "griddyn/gridDynDefinitions.hpp"
 #include <gtest/gtest.h>
 #include <string>

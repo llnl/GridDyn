@@ -42,7 +42,7 @@ int FmiRunner::Reset()
     // store the coordinator as a support object so everything can find it
     m_gds->add(mCoordinator.get());
 
-    readerInfo readerInformation;
+    ReaderInfo readerInformation;
     loadFmiExportReaderInfoDefinitions(readerInformation);
 
     readerInformation.addDirectory(mResourceLocation);

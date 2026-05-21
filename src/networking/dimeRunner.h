@@ -11,7 +11,7 @@
 #include <memory>
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 namespace dimeLib {
     /** DimeRunner is the execution object for executing in coordination with the Dime co-simulation
 environment it inherits from gridDynRunner and adds some extra features necessary for executing with
@@ -28,7 +28,7 @@ dime
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(readerInfo& readerInformation) override;
+            generateLocalCommandLineParser(ReaderInfo& readerInformation) override;
 
         virtual coreTime Run(void) override;
 

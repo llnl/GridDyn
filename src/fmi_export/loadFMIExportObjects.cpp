@@ -8,7 +8,7 @@
 
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include "fmiCollector.h"
 #include "fmiCoordinator.h"
 #include "fmiEvent.h"
@@ -45,7 +45,7 @@ void loadFmiExportObjects()
     registerFmiExportFactories();
 }
 
-void loadFmiExportReaderInfoDefinitions(readerInfo& readerInformation)
+void loadFmiExportReaderInfoDefinitions(ReaderInfo& readerInformation)
 {
     registerFmiExportFactories();
     readerInformation.addTranslate("fmi", "extra");

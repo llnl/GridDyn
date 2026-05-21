@@ -45,7 +45,7 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
     mArgValues = nullptr;
     mArgcValue = 0;
     mArgumentString = cmdargs;
-    readerInfo readerInformation;
+    ReaderInfo readerInformation;
     auto returnCode = loadCommandArgument(readerInformation, false);
     if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
         return returnCode;
@@ -68,7 +68,7 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
 
 int GriddynRunner::Initialize(int argc,
                               char* argv[],
-                              readerInfo& readerInformation,
+                              ReaderInfo& readerInformation,
                               bool allowUnrecognized)
 {
     if (!m_gds) {
@@ -105,7 +105,7 @@ int GriddynRunner::Initialize(int argc,
 
 int GriddynRunner::Initialize(int argc, char* argv[], bool allowUnrecognized)
 {
-    readerInfo readerInformation;
+    ReaderInfo readerInformation;
     return Initialize(argc, argv, readerInformation, allowUnrecognized);
 }
 
@@ -123,11 +123,11 @@ int GriddynRunner::Reset()
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    readerInfo readerInformation;
+    ReaderInfo readerInformation;
     return Reset(readerInformation);
 }
 
-int GriddynRunner::Reset(readerInfo& readerInformation)
+int GriddynRunner::Reset(ReaderInfo& readerInformation)
 {
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
@@ -248,7 +248,7 @@ void GriddynRunner::Finalize()
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-int GriddynRunner::loadCommandArgument(readerInfo& readerInformation, bool allowUnrecognized)
+int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allowUnrecognized)
 {
     m_startTime = std::chrono::high_resolution_clock::now();
     auto app = generateBaseCommandLineParser(readerInformation);
@@ -290,7 +290,7 @@ int GriddynRunner::loadCommandArgument(readerInfo& readerInformation, bool allow
 }
 
 std::shared_ptr<CLI::App>
-    GriddynRunner::generateBaseCommandLineParser(readerInfo& readerInformation)
+    GriddynRunner::generateBaseCommandLineParser(ReaderInfo& readerInformation)
 {
     auto defineTransform = [&readerInformation](const std::string& input) {
         return readerInformation.checkDefines(input);
@@ -299,7 +299,7 @@ std::shared_ptr<CLI::App>
     // function for loading parameters from strings
     const CLI::callback_t loadParamString = [this](const CLI::results_t& results) {
         for (const auto& str : results) {
-            const gridParameter parameterDefinition(str);
+            const GridParameter parameterDefinition(str);
             if (parameterDefinition.valid) {
                 ObjInfo objectInformation(parameterDefinition.field, m_gds.get());
                 try {
@@ -564,7 +564,7 @@ std::shared_ptr<CLI::App>
 }
 
 std::shared_ptr<CLI::App>
-    GriddynRunner::generateLocalCommandLineParser(readerInfo& /*readerInformation*/)
+    GriddynRunner::generateLocalCommandLineParser(ReaderInfo& /*readerInformation*/)
 {
     return nullptr;
 }

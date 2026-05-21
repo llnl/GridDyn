@@ -15,14 +15,15 @@
 #include <unordered_set>
 
 // forward declarations
+// NOLINTNEXTLINE(readability-identifier-naming)
 class readerElement;
 
 namespace griddyn {
-class gridParameter;
+class GridParameter;
 class HelperObject;
 
 // struct for holding and passing the information in Element reader files
-class readerInfo;
+class ReaderInfo;
 
 class CoreObject;
 
@@ -35,63 +36,65 @@ class GridSimulation;
 class GridDynSimulation;
 class Relay;
 class GridBus;
+// NOLINTNEXTLINE(readability-identifier-naming)
 class gridPrimary;
+// NOLINTNEXTLINE(readability-identifier-naming)
 class gridSecondary;
 class GridSubModel;
 
 GridBus* readBusElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& readerInformation,
+                        ReaderInfo& readerInformation,
                         CoreObject* searchObject = nullptr);
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& readerInformation,
+                        ReaderInfo& readerInformation,
                         CoreObject* searchObject = nullptr);
 
 // ZipLoad * readLoadElement (std::shared_ptr<readerElement> &element, readerInfo &ri, CoreObject
 // *searchObject = nullptr); Generator * readGeneratorElement (std::shared_ptr<readerElement>
 // &element, readerInfo *ri, CoreObject *searchObject = nullptr);
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
+                      ReaderInfo& readerInformation,
                       CoreObject* searchObject = nullptr,
                       bool warnlink = true);
 GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
-                              readerInfo& readerInformation,
+                              ReaderInfo& readerInformation,
                               CoreObject* searchObject = nullptr);
 GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
-                                      readerInfo& readerInformation,
+                                      ReaderInfo& readerInformation,
                                       CoreObject* searchObject = nullptr,
                                       GridSimulation* simulationObject = nullptr);
 
 CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
-                            readerInfo& readerInformation,
+                            ReaderInfo& readerInformation,
                             CoreObject* searchObject = nullptr);
 void readArrayElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
+                      ReaderInfo& readerInformation,
                       CoreObject* parentObject);
 void loadConditionElement(std::shared_ptr<readerElement>& element,
-                          readerInfo& readerInformation,
+                          ReaderInfo& readerInformation,
                           CoreObject* parentObject);
 void loadSubObjects(std::shared_ptr<readerElement>& element,
-                    readerInfo& readerInformation,
+                    ReaderInfo& readerInformation,
                     CoreObject* parentObject);
 
 void readImports(std::shared_ptr<readerElement>& element,
-                 readerInfo& readerInformation,
+                 ReaderInfo& readerInformation,
                  CoreObject* parentObject,
                  bool finalFlag);
 
 void loadDefines(std::shared_ptr<readerElement>& element,
-                 readerInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
+                 ReaderInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
 void loadDirectories(std::shared_ptr<readerElement>& element,
-                     readerInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
+                     ReaderInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
 void loadTranslations(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
+                      ReaderInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
 void loadCustomSections(std::shared_ptr<readerElement>& element,
-                        readerInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
+                        ReaderInfo& readerInformation);  // NOTE: defined in readLibraryElement.cpp
 
 void loadSolverElement(std::shared_ptr<readerElement>& element,
-                       readerInfo& readerInformation,
+                       ReaderInfo& readerInformation,
                        GridDynSimulation* parentObject);
-void readLibraryElement(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
+void readLibraryElement(std::shared_ptr<readerElement>& element, ReaderInfo& readerInformation);
 
 using IgnoreListType = std::unordered_set<std::string>;
 // using IgnoreListType = boost::container::flat_set<std::string>;
@@ -99,41 +102,41 @@ using IgnoreListType = std::unordered_set<std::string>;
 void loadElementInformation(CoreObject* obj,
                             std::shared_ptr<readerElement>& element,
                             const std::string& objectName,
-                            readerInfo& readerInfoRef,
+                            ReaderInfo& readerInfoRef,
                             const IgnoreListType& ignoreList);
 
 void objSetAttributes(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& readerInfoRef,
+                      ReaderInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
 void paramLoopElement(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& readerInfoRef,
+                      ReaderInfo& readerInfoRef,
                       const IgnoreListType& ignoreList);
 
 void setParams(HelperObject* obj,
                std::shared_ptr<readerElement>& element,
                const std::string& component,
-               readerInfo& readerInfoRef,
+               ReaderInfo& readerInfoRef,
                const IgnoreListType& ignoreList);
 void setAttributes(HelperObject* obj,
                    std::shared_ptr<readerElement>& element,
                    const std::string& component,
-                   readerInfo& readerInfoRef,
+                   ReaderInfo& readerInfoRef,
                    const IgnoreListType& ignoreList);
 
 int loadEventElement(std::shared_ptr<readerElement>& element,
                      CoreObject* obj,
-                     readerInfo& readerInformation);
+                     ReaderInfo& readerInformation);
 int loadCollectorElement(std::shared_ptr<readerElement>& element,
                          CoreObject* obj,
-                         readerInfo& readerInformation);
+                         ReaderInfo& readerInformation);
 
-gridParameter getElementParam(const std::shared_ptr<readerElement>& element);
-void getElementParam(const std::shared_ptr<readerElement>& element, gridParameter& param);
+GridParameter getElementParam(const std::shared_ptr<readerElement>& element);
+void getElementParam(const std::shared_ptr<readerElement>& element, GridParameter& param);
 
 std::string
     findElementName(std::shared_ptr<readerElement>& element,
@@ -159,11 +162,11 @@ stringVec getElementFieldMultiple(
 
 void setIndex(std::shared_ptr<readerElement>& element,
               CoreObject* mainObject,
-              readerInfo& readerInformation);
-std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation);
+              ReaderInfo& readerInformation);
+std::string getObjectName(std::shared_ptr<readerElement>& element, ReaderInfo& readerInformation);
 
 CoreObject* getParent(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
+                      ReaderInfo& readerInformation,
                       CoreObject* parentObject,
                       const std::string& alternateName = "");
 

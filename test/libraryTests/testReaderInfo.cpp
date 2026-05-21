@@ -7,7 +7,7 @@
 // test case for CoreObject object
 
 #include "../gtestHelper.h"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include "griddyn/gridDynDefinitions.hpp"
 #include <gtest/gtest.h>
 #include <string>

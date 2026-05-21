@@ -60,14 +60,14 @@ void FmuBuilder::loadComponents()
         gds = getSim();
     }
     gds->add(mCoordinator.get());
-    mReaderInfo = std::make_unique<readerInfo>();
+    mReaderInfo = std::make_unique<ReaderInfo>();
     loadFmiExportReaderInfoDefinitions(*mReaderInfo);
     mReaderInfo->captureFiles = true;
 }
 
 FmuBuilder::~FmuBuilder() = default;
 
-std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
+std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(ReaderInfo& readerInformation)
 {
     const std::vector<std::string> validPlatforms{
         "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};

@@ -47,7 +47,7 @@ GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
     }
     loadTranslations(element, readerInformation);
     loadCustomSections(element, readerInformation);
-    GridSimulation* simulation = ElementReaderSetup(
+    GridSimulation* simulation = elementReaderSetup(
         element, simulationObject, "simulation", readerInformation, searchObject);
 
     // load the simulation name and id

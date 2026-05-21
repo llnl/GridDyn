@@ -172,9 +172,9 @@ TEST_F(LinkTests, LinkTestFaultPowerflow)
 
     std::vector<double> recoveredVoltages;
     gds->getVoltage(recoveredVoltages);
-    EXPECT_TRUE(std::all_of(originalVoltages.begin(),
-                            originalVoltages.end(),
-                            [](double value) { return (value > 0.95); }));
+    EXPECT_TRUE(std::all_of(originalVoltages.begin(), originalVoltages.end(), [](double value) {
+        return (value > 0.95);
+    }));
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto mismatchCount = gmlc::utilities::countDiffs(recoveredVoltages, originalVoltages, 0.0001);
@@ -203,9 +203,9 @@ TEST_F(LinkTests, LinkTestFaultPowerflow2)
 
     std::vector<double> faultVoltages;
     gds->getVoltage(faultVoltages);
-    EXPECT_TRUE(std::all_of(faultVoltages.begin(),
-                            faultVoltages.end(),
-                            [](double value) { return (value > -1e-8); }));
+    EXPECT_TRUE(std::all_of(faultVoltages.begin(), faultVoltages.end(), [](double value) {
+        return (value > -1e-8);
+    }));
 
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
@@ -216,9 +216,9 @@ TEST_F(LinkTests, LinkTestFaultPowerflow2)
 
     std::vector<double> recoveredVoltages;
     gds->getVoltage(recoveredVoltages);
-    EXPECT_TRUE(std::all_of(originalVoltages.begin(),
-                            originalVoltages.end(),
-                            [](double value) { return (value > 0.95); }));
+    EXPECT_TRUE(std::all_of(originalVoltages.begin(), originalVoltages.end(), [](double value) {
+        return (value > 0.95);
+    }));
     requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto mismatchCount = gmlc::utilities::countDiffs(recoveredVoltages, originalVoltages, 0.0001);

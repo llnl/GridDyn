@@ -51,7 +51,9 @@ TEST_F(RecorderTests, TsMultiTests)
     ts3.addData(val, 3);
     ts3.updateData(3, 4, 6.5);
 
-    EXPECT_NEAR(compare(ts2, ts3, 0, 3), 2.0, (std::abs(2.0) * 1e-6) + 1e-12);  // NOLINT(readability-suspicious-call-argument)
+    EXPECT_NEAR(compare(ts2, ts3, 0, 3),
+                2.0,
+                (std::abs(2.0) * 1e-6) + 1e-12);  // NOLINT(readability-suspicious-call-argument)
 }
 
 TEST_F(RecorderTests, FileSaveTests)
@@ -394,8 +396,7 @@ TEST_F(RecorderTests, RecorderTest9)
     EXPECT_EQ(ts2.columns(), 4U);
     int ret = remove(recname.c_str());
     EXPECT_EQ(ret, 0);
-    EXPECT_NEAR(
-        ts2.data(1, 2) - 1.0, ts2.data(3, 2), (std::abs(ts2.data(3, 2)) * 1e-6) + 1e-12);
+    EXPECT_NEAR(ts2.data(1, 2) - 1.0, ts2.data(3, 2), (std::abs(ts2.data(3, 2)) * 1e-6) + 1e-12);
 }
 
 // testing multiple grabber calculations

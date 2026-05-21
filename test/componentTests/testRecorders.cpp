@@ -7,7 +7,6 @@
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
-#include "griddyn/GridDynSimulation.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Collector.h"
 #include <cmath>

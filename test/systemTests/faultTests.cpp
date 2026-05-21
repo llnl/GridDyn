@@ -12,7 +12,6 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
-#include "griddyn/GridDynSimulation.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/relays/Breaker.h"
 #include "griddyn/relays/Fuse.h"

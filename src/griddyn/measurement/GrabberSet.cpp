@@ -195,4 +195,3 @@ bool grabberSet::hasJacobian() const
 }
 
 }  // namespace griddyn
-

@@ -372,4 +372,3 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solver
 std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
-

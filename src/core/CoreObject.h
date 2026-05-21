@@ -438,10 +438,8 @@ namespace logging {
         return (logger != nullptr) && logger->shouldLog(level);
     }
 
-    inline void log_to(CoreObject* logger,
-                       CoreObject* object,
-                       PrintLevel level,
-                       const std::string& message)
+    inline void
+        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, const std::string& message)
     {
         if (!should_log(logger, level)) {
             return;
@@ -449,10 +447,8 @@ namespace logging {
         logger->log(object, level, message);
     }
 
-    inline void log_to(CoreObject* logger,
-                       CoreObject* object,
-                       PrintLevel level,
-                       std::string_view message)
+    inline void
+        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, std::string_view message)
     {
         if (!should_log(logger, level)) {
             return;

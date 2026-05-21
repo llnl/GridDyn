@@ -67,13 +67,10 @@ class ObjectOperatorInterface {
     virtual void getObjects(std::vector<CoreObject*>& objects) const = 0;
 };
 
-using object_update_mode =
-    ObjectUpdateMode;  // NOLINT(readability-identifier-naming)
+using object_update_mode = ObjectUpdateMode;  // NOLINT(readability-identifier-naming)
 using objectUpdateFailException =
     ObjectUpdateFailException;  // NOLINT(readability-identifier-naming)
-using addFailureException =
-    AddFailureException;  // NOLINT(readability-identifier-naming)
-using objectOperatorInterface =
-    ObjectOperatorInterface;  // NOLINT(readability-identifier-naming)
+using addFailureException = AddFailureException;  // NOLINT(readability-identifier-naming)
+using objectOperatorInterface = ObjectOperatorInterface;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

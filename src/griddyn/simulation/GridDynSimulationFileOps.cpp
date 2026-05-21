@@ -1108,4 +1108,3 @@ void saveContingencyOutput(const std::vector<std::shared_ptr<Contingency>>& cont
 }
 
 }  // namespace griddyn
-

@@ -78,4 +78,3 @@ class Timer: public std::map<std::string, int> {
 extern Timer global_timer;
 
 }  // namespace griddyn::paradae
-

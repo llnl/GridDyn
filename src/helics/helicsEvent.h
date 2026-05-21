@@ -56,4 +56,3 @@ class HelicsEvent: public events::reversibleEvent {
 };
 
 }  // namespace griddyn::helicsLib
-

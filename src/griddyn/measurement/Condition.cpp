@@ -339,4 +339,3 @@ void Condition::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
-

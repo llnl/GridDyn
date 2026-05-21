@@ -486,4 +486,3 @@ int cvodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
-

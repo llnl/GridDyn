@@ -1936,4 +1936,3 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
 }
 
 }  // namespace griddyn
-

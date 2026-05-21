@@ -50,4 +50,3 @@ void nullObject::setParent(CoreObject* /*parentObj*/)
 }
 
 }  // namespace griddyn
-

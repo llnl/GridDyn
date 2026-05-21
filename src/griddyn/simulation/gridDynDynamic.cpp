@@ -1227,4 +1227,3 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
 }
 
 }  // namespace griddyn
-

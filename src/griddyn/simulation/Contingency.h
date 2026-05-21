@@ -179,8 +179,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, ObjectOperatorInterf
 
     void getObjects(std::vector<CoreObject*>& objects) const override;
 
-    void updateObject(CoreObject* newObj,
-                      ObjectUpdateMode mode = ObjectUpdateMode::MATCH) override;
+    void updateObject(CoreObject* newObj, ObjectUpdateMode mode = ObjectUpdateMode::MATCH) override;
 
     std::shared_ptr<Contingency>
         clone(const std::shared_ptr<Contingency>& existingContingency = nullptr) const;
@@ -223,4 +222,3 @@ void runContingencyAnalysis(std::vector<std::shared_ptr<Contingency>>& contList,
                             int count2 = 0);
 
 }  // namespace griddyn
-

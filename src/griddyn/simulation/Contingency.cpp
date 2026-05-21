@@ -392,4 +392,3 @@ std::shared_ptr<Contingency>
 }
 
 }  // namespace griddyn
-

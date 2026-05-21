@@ -255,4 +255,3 @@ CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* 
 using gridSimulation = GridSimulation;
 
 }  // namespace griddyn
-

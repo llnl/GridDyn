@@ -151,4 +151,3 @@ void gridDynEventSetTarget(GridDynEvent evnt, GridDynObject obj, GridDynError* e
         griddynErrorHandler(err);
     }
 }
-

@@ -84,4 +84,3 @@ class idaInterface: public sundialsInterface {
 };
 
 }  // namespace griddyn::solvers
-

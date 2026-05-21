@@ -176,4 +176,3 @@ class coreObjectFactory {
     fMap m_factoryMap;  //!< the main map from string to the typeFactory
 };
 }  // namespace griddyn
-

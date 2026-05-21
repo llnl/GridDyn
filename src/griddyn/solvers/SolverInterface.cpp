@@ -579,4 +579,3 @@ std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::st
 }
 
 }  // namespace griddyn
-

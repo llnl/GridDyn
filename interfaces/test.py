@@ -1,4 +1,4 @@
 import griddyn
 
-gds = griddyn.gridDynSimulation_create("FMI", "testSym")
+gds = griddyn.gridDynSimulationCreate("FMI", "testSym")
 print(gds)

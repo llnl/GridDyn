@@ -51,159 +51,159 @@ public class griddyn implements griddynConstants {
     return griddynJNI.charp_value(obj);
   }
 
-  public static int gridDynSimulation_getResults(SWIGTYPE_p_void sim, String datatype, SWIGTYPE_p_double data, int maxSize) {
-    return griddynJNI.gridDynSimulation_getResults__SWIG_0(SWIGTYPE_p_void.getCPtr(sim), datatype, SWIGTYPE_p_double.getCPtr(data), maxSize);
+  public static int gridDynSimulationGetResults(SWIGTYPE_p_void sim, String datatype, SWIGTYPE_p_double data, int maxSize) {
+    return griddynJNI.gridDynSimulationGetResults__SWIG_0(SWIGTYPE_p_void.getCPtr(sim), datatype, SWIGTYPE_p_double.getCPtr(data), maxSize);
   }
 
-  public static SWIGTYPE_p_void gridDynObject_create(String componentType, String objectType) {
-    long cPtr = griddynJNI.gridDynObject_create(componentType, objectType);
+  public static SWIGTYPE_p_void gridDynObjectCreate(String componentType, String objectType) {
+    long cPtr = griddynJNI.gridDynObjectCreate(componentType, objectType);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynObject_clone(SWIGTYPE_p_void obj) {
-    long cPtr = griddynJNI.gridDynObject_clone(SWIGTYPE_p_void.getCPtr(obj));
+  public static SWIGTYPE_p_void gridDynObjectClone(SWIGTYPE_p_void obj) {
+    long cPtr = griddynJNI.gridDynObjectClone(SWIGTYPE_p_void.getCPtr(obj));
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static void gridDynObject_free(SWIGTYPE_p_void obj) {
-    griddynJNI.gridDynObject_free(SWIGTYPE_p_void.getCPtr(obj));
+  public static void gridDynObjectFree(SWIGTYPE_p_void obj) {
+    griddynJNI.gridDynObjectFree(SWIGTYPE_p_void.getCPtr(obj));
   }
 
-  public static int gridDynObject_add(SWIGTYPE_p_void parentObject, SWIGTYPE_p_void objectToAdd) {
-    return griddynJNI.gridDynObject_add(SWIGTYPE_p_void.getCPtr(parentObject), SWIGTYPE_p_void.getCPtr(objectToAdd));
+  public static int gridDynObjectAdd(SWIGTYPE_p_void parentObject, SWIGTYPE_p_void objectToAdd) {
+    return griddynJNI.gridDynObjectAdd(SWIGTYPE_p_void.getCPtr(parentObject), SWIGTYPE_p_void.getCPtr(objectToAdd));
   }
 
-  public static int gridDynObject_remove(SWIGTYPE_p_void parentObject, SWIGTYPE_p_void objectToRemove) {
-    return griddynJNI.gridDynObject_remove(SWIGTYPE_p_void.getCPtr(parentObject), SWIGTYPE_p_void.getCPtr(objectToRemove));
+  public static int gridDynObjectRemove(SWIGTYPE_p_void parentObject, SWIGTYPE_p_void objectToRemove) {
+    return griddynJNI.gridDynObjectRemove(SWIGTYPE_p_void.getCPtr(parentObject), SWIGTYPE_p_void.getCPtr(objectToRemove));
   }
 
-  public static int gridDynObject_setString(SWIGTYPE_p_void obj, String parameter, String value) {
-    return griddynJNI.gridDynObject_setString(SWIGTYPE_p_void.getCPtr(obj), parameter, value);
+  public static int gridDynObjectSetString(SWIGTYPE_p_void obj, String parameter, String value) {
+    return griddynJNI.gridDynObjectSetString(SWIGTYPE_p_void.getCPtr(obj), parameter, value);
   }
 
-  public static int gridDynObject_setValue(SWIGTYPE_p_void obj, String parameter, double value) {
-    return griddynJNI.gridDynObject_setValue(SWIGTYPE_p_void.getCPtr(obj), parameter, value);
+  public static int gridDynObjectSetValue(SWIGTYPE_p_void obj, String parameter, double value) {
+    return griddynJNI.gridDynObjectSetValue(SWIGTYPE_p_void.getCPtr(obj), parameter, value);
   }
 
-  public static int gridDynObject_setValueUnits(SWIGTYPE_p_void obj, String parameter, double value, String units) {
-    return griddynJNI.gridDynObject_setValueUnits(SWIGTYPE_p_void.getCPtr(obj), parameter, value, units);
+  public static int gridDynObjectSetValueUnits(SWIGTYPE_p_void obj, String parameter, double value, String units) {
+    return griddynJNI.gridDynObjectSetValueUnits(SWIGTYPE_p_void.getCPtr(obj), parameter, value, units);
   }
 
-  public static int gridDynObject_setFlag(SWIGTYPE_p_void obj, String flag, int val) {
-    return griddynJNI.gridDynObject_setFlag(SWIGTYPE_p_void.getCPtr(obj), flag, val);
+  public static int gridDynObjectSetFlag(SWIGTYPE_p_void obj, String flag, int val) {
+    return griddynJNI.gridDynObjectSetFlag(SWIGTYPE_p_void.getCPtr(obj), flag, val);
   }
 
-  public static int gridDynObject_getString(SWIGTYPE_p_void obj, String parameter, String value, int N) {
-    return griddynJNI.gridDynObject_getString(SWIGTYPE_p_void.getCPtr(obj), parameter, value, N);
+  public static int gridDynObjectGetString(SWIGTYPE_p_void obj, String parameter, String value, int N) {
+    return griddynJNI.gridDynObjectGetString(SWIGTYPE_p_void.getCPtr(obj), parameter, value, N);
   }
 
-  public static int gridDynObject_getValue(SWIGTYPE_p_void obj, String parameter, SWIGTYPE_p_double result) {
-    return griddynJNI.gridDynObject_getValue(SWIGTYPE_p_void.getCPtr(obj), parameter, SWIGTYPE_p_double.getCPtr(result));
+  public static int gridDynObjectGetValue(SWIGTYPE_p_void obj, String parameter, SWIGTYPE_p_double result) {
+    return griddynJNI.gridDynObjectGetValue(SWIGTYPE_p_void.getCPtr(obj), parameter, SWIGTYPE_p_double.getCPtr(result));
   }
 
-  public static int gridDynObject_getValueUnits(SWIGTYPE_p_void obj, String parameter, String units, SWIGTYPE_p_double result) {
-    return griddynJNI.gridDynObject_getValueUnits(SWIGTYPE_p_void.getCPtr(obj), parameter, units, SWIGTYPE_p_double.getCPtr(result));
+  public static int gridDynObjectGetValueUnits(SWIGTYPE_p_void obj, String parameter, String units, SWIGTYPE_p_double result) {
+    return griddynJNI.gridDynObjectGetValueUnits(SWIGTYPE_p_void.getCPtr(obj), parameter, units, SWIGTYPE_p_double.getCPtr(result));
   }
 
-  public static int gridDynObject_getFlag(SWIGTYPE_p_void obj, String flag, SWIGTYPE_p_int result) {
-    return griddynJNI.gridDynObject_getFlag(SWIGTYPE_p_void.getCPtr(obj), flag, SWIGTYPE_p_int.getCPtr(result));
+  public static int gridDynObjectGetFlag(SWIGTYPE_p_void obj, String flag, SWIGTYPE_p_int result) {
+    return griddynJNI.gridDynObjectGetFlag(SWIGTYPE_p_void.getCPtr(obj), flag, SWIGTYPE_p_int.getCPtr(result));
   }
 
-  public static SWIGTYPE_p_void gridDynObject_find(SWIGTYPE_p_void obj, String objectToFind) {
-    long cPtr = griddynJNI.gridDynObject_find(SWIGTYPE_p_void.getCPtr(obj), objectToFind);
+  public static SWIGTYPE_p_void gridDynObjectFind(SWIGTYPE_p_void obj, String objectToFind) {
+    long cPtr = griddynJNI.gridDynObjectFind(SWIGTYPE_p_void.getCPtr(obj), objectToFind);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynObject_getSubObject(SWIGTYPE_p_void obj, String componentType, int N) {
-    long cPtr = griddynJNI.gridDynObject_getSubObject(SWIGTYPE_p_void.getCPtr(obj), componentType, N);
+  public static SWIGTYPE_p_void gridDynObjectGetSubObject(SWIGTYPE_p_void obj, String componentType, int N) {
+    long cPtr = griddynJNI.gridDynObjectGetSubObject(SWIGTYPE_p_void.getCPtr(obj), componentType, N);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynObject_findByUserId(SWIGTYPE_p_void obj, String componentType, int ID) {
-    long cPtr = griddynJNI.gridDynObject_findByUserId(SWIGTYPE_p_void.getCPtr(obj), componentType, ID);
+  public static SWIGTYPE_p_void gridDynObjectFindByUserId(SWIGTYPE_p_void obj, String componentType, int ID) {
+    long cPtr = griddynJNI.gridDynObjectFindByUserId(SWIGTYPE_p_void.getCPtr(obj), componentType, ID);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynObject_getParent(SWIGTYPE_p_void obj) {
-    long cPtr = griddynJNI.gridDynObject_getParent(SWIGTYPE_p_void.getCPtr(obj));
+  public static SWIGTYPE_p_void gridDynObjectGetParent(SWIGTYPE_p_void obj) {
+    long cPtr = griddynJNI.gridDynObjectGetParent(SWIGTYPE_p_void.getCPtr(obj));
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static String gridDynObject_getType(SWIGTYPE_p_void obj) {
-    return griddynJNI.gridDynObject_getType(SWIGTYPE_p_void.getCPtr(obj));
+  public static String gridDynObjectGetType(SWIGTYPE_p_void obj) {
+    return griddynJNI.gridDynObjectGetType(SWIGTYPE_p_void.getCPtr(obj));
   }
 
-  public static SWIGTYPE_p_void gridDynSimulation_create(String type, String name) {
-    long cPtr = griddynJNI.gridDynSimulation_create(type, name);
+  public static SWIGTYPE_p_void gridDynSimulationCreate(String type, String name) {
+    long cPtr = griddynJNI.gridDynSimulationCreate(type, name);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static void gridDynSimulation_free(SWIGTYPE_p_void sim) {
-    griddynJNI.gridDynSimulation_free(SWIGTYPE_p_void.getCPtr(sim));
+  public static void gridDynSimulationFree(SWIGTYPE_p_void sim) {
+    griddynJNI.gridDynSimulationFree(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_initializeFromString(SWIGTYPE_p_void sim, String initializationString) {
-    return griddynJNI.gridDynSimulation_initializeFromString(SWIGTYPE_p_void.getCPtr(sim), initializationString);
+  public static int gridDynSimulationInitializeFromString(SWIGTYPE_p_void sim, String initializationString) {
+    return griddynJNI.gridDynSimulationInitializeFromString(SWIGTYPE_p_void.getCPtr(sim), initializationString);
   }
 
-  public static int gridDynSimulation_initializeFromArgs(SWIGTYPE_p_void sim, int argc, SWIGTYPE_p_p_char argv, int ignoreUnrecognized) {
-    return griddynJNI.gridDynSimulation_initializeFromArgs(SWIGTYPE_p_void.getCPtr(sim), argc, SWIGTYPE_p_p_char.getCPtr(argv), ignoreUnrecognized);
+  public static int gridDynSimulationInitializeFromArgs(SWIGTYPE_p_void sim, int argc, SWIGTYPE_p_p_char argv, int ignoreUnrecognized) {
+    return griddynJNI.gridDynSimulationInitializeFromArgs(SWIGTYPE_p_void.getCPtr(sim), argc, SWIGTYPE_p_p_char.getCPtr(argv), ignoreUnrecognized);
   }
 
-  public static int gridDynSimulation_loadfile(SWIGTYPE_p_void sim, String fileName, String fileType) {
-    return griddynJNI.gridDynSimulation_loadfile(SWIGTYPE_p_void.getCPtr(sim), fileName, fileType);
+  public static int gridDynSimulationLoadfile(SWIGTYPE_p_void sim, String fileName, String fileType) {
+    return griddynJNI.gridDynSimulationLoadfile(SWIGTYPE_p_void.getCPtr(sim), fileName, fileType);
   }
 
-  public static int gridDynSimulation_addCommand(SWIGTYPE_p_void sim, String command) {
-    return griddynJNI.gridDynSimulation_addCommand(SWIGTYPE_p_void.getCPtr(sim), command);
+  public static int gridDynSimulationAddCommand(SWIGTYPE_p_void sim, String command) {
+    return griddynJNI.gridDynSimulationAddCommand(SWIGTYPE_p_void.getCPtr(sim), command);
   }
 
-  public static int gridDynSimulation_powerflowInitialize(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_powerflowInitialize(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationPowerflowInitialize(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationPowerflowInitialize(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_powerflow(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_powerflow(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationPowerflow(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationPowerflow(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_dynamicInitialize(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_dynamicInitialize(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationDynamicInitialize(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationDynamicInitialize(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_reset(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_reset(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationReset(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationReset(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static double gridDynSimulation_getCurrentTime(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_getCurrentTime(SWIGTYPE_p_void.getCPtr(sim));
+  public static double gridDynSimulationGetCurrentTime(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationGetCurrentTime(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_run(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_run(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationRun(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationRun(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_runTo(SWIGTYPE_p_void sim, double runToTime) {
-    return griddynJNI.gridDynSimulation_runTo(SWIGTYPE_p_void.getCPtr(sim), runToTime);
+  public static int gridDynSimulationRunTo(SWIGTYPE_p_void sim, double runToTime) {
+    return griddynJNI.gridDynSimulationRunTo(SWIGTYPE_p_void.getCPtr(sim), runToTime);
   }
 
-  public static int gridDynSimulation_Step(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_Step(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationStep(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationStep(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_runAsync(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_runAsync(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationRunAsync(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationRunAsync(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_runToAsync(SWIGTYPE_p_void sim, double runToTime) {
-    return griddynJNI.gridDynSimulation_runToAsync(SWIGTYPE_p_void.getCPtr(sim), runToTime);
+  public static int gridDynSimulationRunToAsync(SWIGTYPE_p_void sim, double runToTime) {
+    return griddynJNI.gridDynSimulationRunToAsync(SWIGTYPE_p_void.getCPtr(sim), runToTime);
   }
 
-  public static int gridDynSimulation_StepAsync(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_StepAsync(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationStepAsync(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationStepAsync(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_getStatus(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_getStatus(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationGetStatus(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationGetStatus(SWIGTYPE_p_void.getCPtr(sim));
   }
 
   public static SWIGTYPE_p_void getSimulationObject(SWIGTYPE_p_void sim) {
@@ -211,164 +211,164 @@ public class griddyn implements griddynConstants {
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynSimulation_getSolverKey(SWIGTYPE_p_void sim, String solverType) {
-    long cPtr = griddynJNI.gridDynSimulation_getSolverKey(SWIGTYPE_p_void.getCPtr(sim), solverType);
+  public static SWIGTYPE_p_void gridDynSimulationGetSolverKey(SWIGTYPE_p_void sim, String solverType) {
+    long cPtr = griddynJNI.gridDynSimulationGetSolverKey(SWIGTYPE_p_void.getCPtr(sim), solverType);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static void gridDynSolverKey_free(SWIGTYPE_p_void key) {
-    griddynJNI.gridDynSolverKey_free(SWIGTYPE_p_void.getCPtr(key));
+  public static void gridDynSolverKeyFree(SWIGTYPE_p_void key) {
+    griddynJNI.gridDynSolverKeyFree(SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_stateSize(SWIGTYPE_p_void sim, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_stateSize(SWIGTYPE_p_void.getCPtr(sim), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationStateSize(SWIGTYPE_p_void sim, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationStateSize(SWIGTYPE_p_void.getCPtr(sim), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_busCount(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_busCount(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationBusCount(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationBusCount(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_lineCount(SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynSimulation_lineCount(SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynSimulationLineCount(SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynSimulationLineCount(SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynSimulation_guessState(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_guessState(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationGuessState(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationGuessState(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_setState(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_setState(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationSetState(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationSetState(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_getStateVariableTypes(SWIGTYPE_p_void sim, SWIGTYPE_p_double types, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_getStateVariableTypes(SWIGTYPE_p_void.getCPtr(sim), SWIGTYPE_p_double.getCPtr(types), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationGetStateVariableTypes(SWIGTYPE_p_void sim, SWIGTYPE_p_double types, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationGetStateVariableTypes(SWIGTYPE_p_void.getCPtr(sim), SWIGTYPE_p_double.getCPtr(types), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_residual(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double resid, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_residual(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(resid), SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationResidual(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double resid, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationResidual(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(resid), SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_derivative(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double deriv, SWIGTYPE_p_double states, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_derivative(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(deriv), SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationDerivative(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double deriv, SWIGTYPE_p_double states, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationDerivative(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(deriv), SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_algebraicUpdate(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double update, SWIGTYPE_p_double states, double alpha, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynSimulation_algebraicUpdate(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(update), SWIGTYPE_p_double.getCPtr(states), alpha, SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynSimulationAlgebraicUpdate(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double update, SWIGTYPE_p_double states, double alpha, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynSimulationAlgebraicUpdate(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(update), SWIGTYPE_p_double.getCPtr(states), alpha, SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynSimulation_jacobian(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, double cj, SWIGTYPE_p_void key, SWIGTYPE_p_f_int_int_double__void insert) {
-    return griddynJNI.gridDynSimulation_jacobian(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), cj, SWIGTYPE_p_void.getCPtr(key), SWIGTYPE_p_f_int_int_double__void.getCPtr(insert));
+  public static int gridDynSimulationJacobian(SWIGTYPE_p_void sim, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, double cj, SWIGTYPE_p_void key, SWIGTYPE_p_f_int_int_double__void insert) {
+    return griddynJNI.gridDynSimulationJacobian(SWIGTYPE_p_void.getCPtr(sim), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), cj, SWIGTYPE_p_void.getCPtr(key), SWIGTYPE_p_f_int_int_double__void.getCPtr(insert));
   }
 
-  public static SWIGTYPE_p_void gridDynSingleQuery_create(SWIGTYPE_p_void obj, String queryString) {
-    long cPtr = griddynJNI.gridDynSingleQuery_create(SWIGTYPE_p_void.getCPtr(obj), queryString);
+  public static SWIGTYPE_p_void gridDynSingleQueryCreate(SWIGTYPE_p_void obj, String queryString) {
+    long cPtr = griddynJNI.gridDynSingleQueryCreate(SWIGTYPE_p_void.getCPtr(obj), queryString);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static SWIGTYPE_p_void gridDynVectorQuery_create(SWIGTYPE_p_void obj, String queryString) {
-    long cPtr = griddynJNI.gridDynVectorQuery_create(SWIGTYPE_p_void.getCPtr(obj), queryString);
+  public static SWIGTYPE_p_void gridDynVectorQueryCreate(SWIGTYPE_p_void obj, String queryString) {
+    long cPtr = griddynJNI.gridDynVectorQueryCreate(SWIGTYPE_p_void.getCPtr(obj), queryString);
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static void gridDynSingleQuery_free(SWIGTYPE_p_void query) {
-    griddynJNI.gridDynSingleQuery_free(SWIGTYPE_p_void.getCPtr(query));
+  public static void gridDynSingleQueryFree(SWIGTYPE_p_void query) {
+    griddynJNI.gridDynSingleQueryFree(SWIGTYPE_p_void.getCPtr(query));
   }
 
-  public static void gridDynVectorQuery_free(SWIGTYPE_p_void query) {
-    griddynJNI.gridDynVectorQuery_free(SWIGTYPE_p_void.getCPtr(query));
+  public static void gridDynVectorQueryFree(SWIGTYPE_p_void query) {
+    griddynJNI.gridDynVectorQueryFree(SWIGTYPE_p_void.getCPtr(query));
   }
 
-  public static double gridDynSingleQuery_run(SWIGTYPE_p_void query) {
-    return griddynJNI.gridDynSingleQuery_run(SWIGTYPE_p_void.getCPtr(query));
+  public static double gridDynSingleQueryRun(SWIGTYPE_p_void query) {
+    return griddynJNI.gridDynSingleQueryRun(SWIGTYPE_p_void.getCPtr(query));
   }
 
-  public static int gridDynVectorQuery_run(SWIGTYPE_p_void query, SWIGTYPE_p_double data, int N) {
-    return griddynJNI.gridDynVectorQuery_run(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_double.getCPtr(data), N);
+  public static int gridDynVectorQueryRun(SWIGTYPE_p_void query, SWIGTYPE_p_double data, int N) {
+    return griddynJNI.gridDynVectorQueryRun(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_double.getCPtr(data), N);
   }
 
-  public static int gridDynVectorQuery_append(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
-    return griddynJNI.gridDynVectorQuery_append(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
+  public static int gridDynVectorQueryAppend(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
+    return griddynJNI.gridDynVectorQueryAppend(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
   }
 
-  public static int gridDynSingleQuery_update(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
-    return griddynJNI.gridDynSingleQuery_update(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
+  public static int gridDynSingleQueryUpdate(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
+    return griddynJNI.gridDynSingleQueryUpdate(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
   }
 
-  public static int gridDynVectorQuery_update(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
-    return griddynJNI.gridDynVectorQuery_update(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
+  public static int gridDynVectorQueryUpdate(SWIGTYPE_p_void query, SWIGTYPE_p_void obj, String queryString) {
+    return griddynJNI.gridDynVectorQueryUpdate(SWIGTYPE_p_void.getCPtr(query), SWIGTYPE_p_void.getCPtr(obj), queryString);
   }
 
-  public static SWIGTYPE_p_void gridDynEvent_create(String eventString, SWIGTYPE_p_void obj) {
-    long cPtr = griddynJNI.gridDynEvent_create(eventString, SWIGTYPE_p_void.getCPtr(obj));
+  public static SWIGTYPE_p_void gridDynEventCreate(String eventString, SWIGTYPE_p_void obj) {
+    long cPtr = griddynJNI.gridDynEventCreate(eventString, SWIGTYPE_p_void.getCPtr(obj));
     return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static void gridDynEvent_free(SWIGTYPE_p_void evnt) {
-    griddynJNI.gridDynEvent_free(SWIGTYPE_p_void.getCPtr(evnt));
+  public static void gridDynEventFree(SWIGTYPE_p_void evnt) {
+    griddynJNI.gridDynEventFree(SWIGTYPE_p_void.getCPtr(evnt));
   }
 
-  public static int gridDynEvent_trigger(SWIGTYPE_p_void evnt) {
-    return griddynJNI.gridDynEvent_trigger(SWIGTYPE_p_void.getCPtr(evnt));
+  public static int gridDynEventTrigger(SWIGTYPE_p_void evnt) {
+    return griddynJNI.gridDynEventTrigger(SWIGTYPE_p_void.getCPtr(evnt));
   }
 
-  public static int gridDynEvent_schedule(SWIGTYPE_p_void evnt, SWIGTYPE_p_void sim) {
-    return griddynJNI.gridDynEvent_schedule(SWIGTYPE_p_void.getCPtr(evnt), SWIGTYPE_p_void.getCPtr(sim));
+  public static int gridDynEventSchedule(SWIGTYPE_p_void evnt, SWIGTYPE_p_void sim) {
+    return griddynJNI.gridDynEventSchedule(SWIGTYPE_p_void.getCPtr(evnt), SWIGTYPE_p_void.getCPtr(sim));
   }
 
-  public static int gridDynEvent_setValue(SWIGTYPE_p_void evnt, String parameter, double value) {
-    return griddynJNI.gridDynEvent_setValue(SWIGTYPE_p_void.getCPtr(evnt), parameter, value);
+  public static int gridDynEventSetValue(SWIGTYPE_p_void evnt, String parameter, double value) {
+    return griddynJNI.gridDynEventSetValue(SWIGTYPE_p_void.getCPtr(evnt), parameter, value);
   }
 
-  public static int gridDynEvent_setString(SWIGTYPE_p_void evnt, String parameter, String value) {
-    return griddynJNI.gridDynEvent_setString(SWIGTYPE_p_void.getCPtr(evnt), parameter, value);
+  public static int gridDynEventSetString(SWIGTYPE_p_void evnt, String parameter, String value) {
+    return griddynJNI.gridDynEventSetString(SWIGTYPE_p_void.getCPtr(evnt), parameter, value);
   }
 
-  public static int gridDynEvent_setFlag(SWIGTYPE_p_void evnt, String flag, int val) {
-    return griddynJNI.gridDynEvent_setFlag(SWIGTYPE_p_void.getCPtr(evnt), flag, val);
+  public static int gridDynEventSetFlag(SWIGTYPE_p_void evnt, String flag, int val) {
+    return griddynJNI.gridDynEventSetFlag(SWIGTYPE_p_void.getCPtr(evnt), flag, val);
   }
 
-  public static int gridDynEvent_setTarget(SWIGTYPE_p_void evnt, SWIGTYPE_p_void obj) {
-    return griddynJNI.gridDynEvent_setTarget(SWIGTYPE_p_void.getCPtr(evnt), SWIGTYPE_p_void.getCPtr(obj));
+  public static int gridDynEventSetTarget(SWIGTYPE_p_void evnt, SWIGTYPE_p_void obj) {
+    return griddynJNI.gridDynEventSetTarget(SWIGTYPE_p_void.getCPtr(evnt), SWIGTYPE_p_void.getCPtr(obj));
   }
 
-  public static int gridDynObject_stateSize(SWIGTYPE_p_void obj, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_stateSize(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectStateSize(SWIGTYPE_p_void obj, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectStateSize(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_guessState(SWIGTYPE_p_void obj, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_guessState(SWIGTYPE_p_void.getCPtr(obj), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectGuessState(SWIGTYPE_p_void obj, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectGuessState(SWIGTYPE_p_void.getCPtr(obj), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_setState(SWIGTYPE_p_void obj, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_setState(SWIGTYPE_p_void.getCPtr(obj), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectSetState(SWIGTYPE_p_void obj, double time, SWIGTYPE_p_double states, SWIGTYPE_p_double dstate_dt, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectSetState(SWIGTYPE_p_void.getCPtr(obj), time, SWIGTYPE_p_double.getCPtr(states), SWIGTYPE_p_double.getCPtr(dstate_dt), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_getStateVariableTypes(SWIGTYPE_p_void obj, SWIGTYPE_p_double types, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_getStateVariableTypes(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(types), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectGetStateVariableTypes(SWIGTYPE_p_void obj, SWIGTYPE_p_double types, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectGetStateVariableTypes(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(types), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_residual(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double resid, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_residual(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(resid), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectResidual(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double resid, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectResidual(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(resid), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_derivative(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double deriv, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_derivative(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(deriv), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectDerivative(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double deriv, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectDerivative(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(deriv), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_algebraicUpdate(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double update, double alpha, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_algebraicUpdate(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(update), alpha, SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectAlgebraicUpdate(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_double update, double alpha, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectAlgebraicUpdate(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_double.getCPtr(update), alpha, SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_jacobian(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, double cj, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_jacobian(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, cj, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectJacobian(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, double cj, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectJacobian(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, cj, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_ioPartialDerivatives(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_ioPartialDerivatives(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectIoPartialDerivatives(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectIoPartialDerivatives(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
   }
 
-  public static int gridDynObject_outputPartialDerivatives(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
-    return griddynJNI.gridDynObject_outputPartialDerivatives(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
+  public static int gridDynObjectOutputPartialDerivatives(SWIGTYPE_p_void obj, SWIGTYPE_p_double inputs, int inputSize, SWIGTYPE_p_f_int_int_double__void insert, SWIGTYPE_p_void key) {
+    return griddynJNI.gridDynObjectOutputPartialDerivatives(SWIGTYPE_p_void.getCPtr(obj), SWIGTYPE_p_double.getCPtr(inputs), inputSize, SWIGTYPE_p_f_int_int_double__void.getCPtr(insert), SWIGTYPE_p_void.getCPtr(key));
   }
 
 }

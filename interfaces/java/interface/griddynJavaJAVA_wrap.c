@@ -505,9 +505,9 @@ SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_doubleArray_1frompoint
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getResults_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3, jint jarg4) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGetResults_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3, jint jarg4) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   double *arg3 ;
   int arg4 ;
@@ -515,7 +515,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getR
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -523,7 +523,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getR
   }
   arg3 = *(double **)&jarg3; 
   arg4 = (int)jarg4; 
-  result = (int)gridDynSimulation_getResults(arg1,(char const *)arg2,arg3,arg4);
+  result = (int)gridDynSimulationGetResults(arg1,(char const *)arg2,arg3,arg4);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   
@@ -699,11 +699,11 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_GRIDDYN_1COMPLETE_1get(
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1create(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectCreate(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  gridDynObject result;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
@@ -717,80 +717,80 @@ SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1create(
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (gridDynObject)gridDynObject_create((char const *)arg1,(char const *)arg2);
-  *(gridDynObject *)&jresult = result; 
+  result = (GridDynObject)gridDynObjectCreate((char const *)arg1,(char const *)arg2);
+  *(GridDynObject *)&jresult = result; 
   if (arg1) (*jenv)->ReleaseStringUTFChars(jenv, jarg1, (const char *)arg1);
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1clone(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectClone(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
-  gridDynObject result;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  result = (gridDynObject)gridDynObject_clone(arg1);
-  *(gridDynObject *)&jresult = result; 
+  arg1 = *(GridDynObject *)&jarg1; 
+  result = (GridDynObject)gridDynObjectClone(arg1);
+  *(GridDynObject *)&jresult = result; 
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  gridDynObject arg1 = (gridDynObject) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  GridDynObject arg1 = (GridDynObject) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  gridDynObject_free(arg1);
+  arg1 = *(GridDynObject *)&jarg1; 
+  gridDynObjectFree(arg1);
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1add(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectAdd(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
-  result = (griddyn_status)gridDynObject_add(arg1,arg2);
+  arg1 = *(GridDynObject *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
+  result = (griddyn_status)gridDynObjectAdd(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1remove(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectRemove(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
-  result = (griddyn_status)gridDynObject_remove(arg1,arg2);
+  arg1 = *(GridDynObject *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
+  result = (griddyn_status)gridDynObjectRemove(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectSetString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -801,7 +801,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setStrin
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynObject_setString(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynObjectSetString(arg1,(char const *)arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
@@ -809,32 +809,32 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setStrin
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectSetValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (double)jarg3; 
-  result = (griddyn_status)gridDynObject_setValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynObjectSetValue(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setValueUnits(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3, jstring jarg4) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectSetValueUnits(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3, jstring jarg4) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   char *arg4 = (char *) 0 ;
@@ -842,7 +842,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setValue
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -854,7 +854,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setValue
     arg4 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg4, 0);
     if (!arg4) return 0;
   }
-  result = (griddyn_status)gridDynObject_setValueUnits(arg1,(char const *)arg2,arg3,(char const *)arg4);
+  result = (griddyn_status)gridDynObjectSetValueUnits(arg1,(char const *)arg2,arg3,(char const *)arg4);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg4) (*jenv)->ReleaseStringUTFChars(jenv, jarg4, (const char *)arg4);
@@ -862,32 +862,32 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setValue
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectSetFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (int)jarg3; 
-  result = (griddyn_status)gridDynObject_setFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynObjectSetFlag(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3, jint jarg4) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3, jint jarg4) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   int arg4 ;
@@ -895,7 +895,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getStrin
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -907,7 +907,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getStrin
     if (!arg3) return 0;
   }
   arg4 = (int)jarg4; 
-  result = (griddyn_status)gridDynObject_getString(arg1,(char const *)arg2,arg3,arg4);
+  result = (griddyn_status)gridDynObjectGetString(arg1,(char const *)arg2,arg3,arg4);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
@@ -915,32 +915,32 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getStrin
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   double *arg3 = (double *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = *(double **)&jarg3; 
-  result = (griddyn_status)gridDynObject_getValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynObjectGetValue(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getValueUnits(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3, jlong jarg4) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetValueUnits(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3, jlong jarg4) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   double *arg4 = (double *) 0 ;
@@ -948,7 +948,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getValue
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -960,7 +960,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getValue
     if (!arg3) return 0;
   }
   arg4 = *(double **)&jarg4; 
-  result = (griddyn_status)gridDynObject_getValueUnits(arg1,(char const *)arg2,(char const *)arg3,arg4);
+  result = (griddyn_status)gridDynObjectGetValueUnits(arg1,(char const *)arg2,(char const *)arg3,arg4);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
@@ -968,129 +968,129 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getValue
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jlong jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int *arg3 = (int *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = *(int **)&jarg3; 
-  result = (griddyn_status)gridDynObject_getFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynObjectGetFlag(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1find(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectFind(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
-  gridDynObject result;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (gridDynObject)gridDynObject_find(arg1,(char const *)arg2);
-  *(gridDynObject *)&jresult = result; 
+  result = (GridDynObject)gridDynObjectFind(arg1,(char const *)arg2);
+  *(GridDynObject *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getSubObject(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetSubObject(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
-  gridDynObject result;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (int)jarg3; 
-  result = (gridDynObject)gridDynObject_getSubObject(arg1,(char const *)arg2,arg3);
-  *(gridDynObject *)&jresult = result; 
+  result = (GridDynObject)gridDynObjectGetSubObject(arg1,(char const *)arg2,arg3);
+  *(GridDynObject *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1findByUserId(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectFindByUserId(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
-  gridDynObject result;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (int)jarg3; 
-  result = (gridDynObject)gridDynObject_findByUserId(arg1,(char const *)arg2,arg3);
-  *(gridDynObject *)&jresult = result; 
+  result = (GridDynObject)gridDynObjectFindByUserId(arg1,(char const *)arg2,arg3);
+  *(GridDynObject *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getParent(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetParent(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
-  gridDynObject result;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  result = (gridDynObject)gridDynObject_getParent(arg1);
-  *(gridDynObject *)&jresult = result; 
+  arg1 = *(GridDynObject *)&jarg1; 
+  result = (GridDynObject)gridDynObjectGetParent(arg1);
+  *(GridDynObject *)&jresult = result; 
   return jresult;
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getType(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jstring JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetType(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jstring jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) (gridDynObject)0 ;
+  GridDynObject arg1 = (GridDynObject) (GridDynObject)0 ;
   char *result = 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  result = (char *)gridDynObject_getType(arg1);
+  arg1 = *(GridDynObject *)&jarg1; 
+  result = (char *)gridDynObjectGetType(arg1);
   if (result) jresult = (*jenv)->NewStringUTF(jenv, (const char *)result);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1create(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationCreate(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  gridDynSimReference result;
+  GridDynSimulation result;
   
   (void)jenv;
   (void)jcls;
@@ -1104,48 +1104,48 @@ SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1cre
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (gridDynSimReference)gridDynSimulation_create((char const *)arg1,(char const *)arg2);
-  *(gridDynSimReference *)&jresult = result; 
+  result = (GridDynSimulation)gridDynSimulationCreate((char const *)arg1,(char const *)arg2);
+  *(GridDynSimulation *)&jresult = result; 
   if (arg1) (*jenv)->ReleaseStringUTFChars(jenv, jarg1, (const char *)arg1);
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  gridDynSimulation_free(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  gridDynSimulationFree(arg1);
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1initializeFromString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationInitializeFromString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (griddyn_status)gridDynSimulation_initializeFromString(arg1,(char const *)arg2);
+  result = (griddyn_status)gridDynSimulationInitializeFromString(arg1,(char const *)arg2);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1initializeFromArgs(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jlong jarg3, jint jarg4) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationInitializeFromArgs(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jlong jarg3, jint jarg4) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int arg2 ;
   char **arg3 ;
   int arg4 ;
@@ -1153,27 +1153,27 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1init
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (int)jarg2; 
   arg3 = *(char ***)&jarg3; 
   arg4 = (int)jarg4; 
-  result = (griddyn_status)gridDynSimulation_initializeFromArgs(arg1,arg2,arg3,arg4);
+  result = (griddyn_status)gridDynSimulationInitializeFromArgs(arg1,arg2,arg3,arg4);
   jresult = (jint)result; 
   
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1loadfile(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationLoadfile(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -1184,7 +1184,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1load
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynSimulation_loadfile(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynSimulationLoadfile(arg1,(char const *)arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
@@ -1192,194 +1192,194 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1load
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1addCommand(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationAddCommand(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (griddyn_status)gridDynSimulation_addCommand(arg1,(char const *)arg2);
+  result = (griddyn_status)gridDynSimulationAddCommand(arg1,(char const *)arg2);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1powerflowInitialize(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationPowerflowInitialize(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_powerflowInitialize(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationPowerflowInitialize(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1powerflow(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationPowerflow(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_powerflow(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationPowerflow(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1dynamicInitialize(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationDynamicInitialize(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_dynamicInitialize(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationDynamicInitialize(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1reset(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationReset(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_reset(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationReset(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jdouble JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getCurrentTime(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jdouble JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGetCurrentTime(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jdouble jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (double)gridDynSimulation_getCurrentTime(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (double)gridDynSimulationGetCurrentTime(arg1);
   jresult = (jdouble)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1run(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationRun(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_run(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationRun(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1runTo(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationRunTo(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
-  result = (griddyn_status)gridDynSimulation_runTo(arg1,arg2);
+  result = (griddyn_status)gridDynSimulationRunTo(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1Step(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationStep(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_Step(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationStep(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1runAsync(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationRunAsync(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_runAsync(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationRunAsync(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1runToAsync(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationRunToAsync(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
-  result = (griddyn_status)gridDynSimulation_runToAsync(arg1,arg2);
+  result = (griddyn_status)gridDynSimulationRunToAsync(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1StepAsync(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationStepAsync(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (griddyn_status)gridDynSimulation_StepAsync(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (griddyn_status)gridDynSimulationStepAsync(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getStatus(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGetStatus(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (int)gridDynSimulation_getStatus(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (int)gridDynSimulationGetStatus(arg1);
   jresult = (jint)result; 
   return jresult;
 }
@@ -1387,419 +1387,419 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getS
 
 SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_getSimulationObject(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jlong jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
-  gridDynObject result;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
+  GridDynObject result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (gridDynObject)getSimulationObject(arg1);
-  *(gridDynObject *)&jresult = result; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (GridDynObject)getSimulationObject(arg1);
+  *(GridDynObject *)&jresult = result; 
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getSolverKey(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGetSolverKey(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jlong jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   char *arg2 = (char *) 0 ;
-  solverKey result;
+  SolverKey result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (solverKey)gridDynSimulation_getSolverKey(arg1,(char const *)arg2);
-  *(solverKey *)&jresult = result; 
+  result = (SolverKey)gridDynSimulationGetSolverKey(arg1,(char const *)arg2);
+  *(SolverKey *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSolverKey_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  solverKey arg1 = (solverKey) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSolverKeyFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  SolverKey arg1 = (SolverKey) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(solverKey *)&jarg1; 
-  gridDynSolverKey_free(arg1);
+  arg1 = *(SolverKey *)&jarg1; 
+  gridDynSolverKeyFree(arg1);
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1stateSize(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationStateSize(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
-  solverKey arg2 = (solverKey) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
+  SolverKey arg2 = (SolverKey) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  arg2 = *(solverKey *)&jarg2; 
-  result = (int)gridDynSimulation_stateSize(arg1,arg2);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  arg2 = *(SolverKey *)&jarg2; 
+  result = (int)gridDynSimulationStateSize(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1busCount(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationBusCount(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (int)gridDynSimulation_busCount(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (int)gridDynSimulationBusCount(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1lineCount(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationLineCount(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
-  result = (int)gridDynSimulation_lineCount(arg1);
+  arg1 = *(GridDynSimulation *)&jarg1; 
+  result = (int)gridDynSimulationLineCount(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1guessState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGuessState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynSimulation_guessState(arg1,arg2,arg3,arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynSimulationGuessState(arg1,arg2,arg3,arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1setState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationSetState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynSimulation_setState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynSimulationSetState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1getStateVariableTypes(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationGetStateVariableTypes(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double *arg2 = (double *) 0 ;
-  solverKey arg3 = (solverKey) 0 ;
+  SolverKey arg3 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = *(double **)&jarg2; 
-  arg3 = *(solverKey *)&jarg3; 
-  result = (griddyn_status)gridDynSimulation_getStateVariableTypes(arg1,arg2,arg3);
+  arg3 = *(SolverKey *)&jarg3; 
+  result = (griddyn_status)gridDynSimulationGetStateVariableTypes(arg1,arg2,arg3);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1residual(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5, jlong jarg6) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationResidual(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5, jlong jarg6) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double *arg5 = (double *) 0 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
   arg5 = *(double **)&jarg5; 
-  arg6 = *(solverKey *)&jarg6; 
-  result = (griddyn_status)gridDynSimulation_residual(arg1,arg2,arg3,(double const *)arg4,(double const *)arg5,arg6);
+  arg6 = *(SolverKey *)&jarg6; 
+  result = (griddyn_status)gridDynSimulationResidual(arg1,arg2,arg3,(double const *)arg4,(double const *)arg5,arg6);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1derivative(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationDerivative(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynSimulation_derivative(arg1,arg2,arg3,(double const *)arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynSimulationDerivative(arg1,arg2,arg3,(double const *)arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1algebraicUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jdouble jarg5, jlong jarg6) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationAlgebraicUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jdouble jarg5, jlong jarg6) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
   arg5 = (double)jarg5; 
-  arg6 = *(solverKey *)&jarg6; 
-  result = (griddyn_status)gridDynSimulation_algebraicUpdate(arg1,arg2,arg3,(double const *)arg4,arg5,arg6);
+  arg6 = *(SolverKey *)&jarg6; 
+  result = (griddyn_status)gridDynSimulationAlgebraicUpdate(arg1,arg2,arg3,(double const *)arg4,arg5,arg6);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulation_1jacobian(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jdouble jarg5, jlong jarg6, jlong jarg7) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSimulationJacobian(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jdouble jarg5, jlong jarg6, jlong jarg7) {
   jint jresult = 0 ;
-  gridDynSimReference arg1 = (gridDynSimReference) 0 ;
+  GridDynSimulation arg1 = (GridDynSimulation) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   void (*arg7)(int,int,double) = (void (*)(int,int,double)) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSimReference *)&jarg1; 
+  arg1 = *(GridDynSimulation *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
   arg5 = (double)jarg5; 
-  arg6 = *(solverKey *)&jarg6; 
+  arg6 = *(SolverKey *)&jarg6; 
   arg7 = *(void (**)(int,int,double))&jarg7; 
-  result = (griddyn_status)gridDynSimulation_jacobian(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5,arg6,arg7);
+  result = (griddyn_status)gridDynSimulationJacobian(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5,arg6,arg7);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQuery_1create(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQueryCreate(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
-  gridDynSingleQuery result;
+  GridDynSingleQuery result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (gridDynSingleQuery)gridDynSingleQuery_create(arg1,(char const *)arg2);
-  *(gridDynSingleQuery *)&jresult = result; 
+  result = (GridDynSingleQuery)gridDynSingleQueryCreate(arg1,(char const *)arg2);
+  *(GridDynSingleQuery *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQuery_1create(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQueryCreate(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jlong jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   char *arg2 = (char *) 0 ;
-  gridDynVectorQuery result;
+  GridDynVectorQuery result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
-  result = (gridDynVectorQuery)gridDynVectorQuery_create(arg1,(char const *)arg2);
-  *(gridDynVectorQuery *)&jresult = result; 
+  result = (GridDynVectorQuery)gridDynVectorQueryCreate(arg1,(char const *)arg2);
+  *(GridDynVectorQuery *)&jresult = result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQuery_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQueryFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSingleQuery *)&jarg1; 
-  gridDynSingleQuery_free(arg1);
+  arg1 = *(GridDynSingleQuery *)&jarg1; 
+  gridDynSingleQueryFree(arg1);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQuery_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQueryFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynVectorQuery *)&jarg1; 
-  gridDynVectorQuery_free(arg1);
+  arg1 = *(GridDynVectorQuery *)&jarg1; 
+  gridDynVectorQueryFree(arg1);
 }
 
 
-SWIGEXPORT jdouble JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQuery_1run(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jdouble JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQueryRun(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jdouble jresult = 0 ;
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
   double result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSingleQuery *)&jarg1; 
-  result = (double)gridDynSingleQuery_run(arg1);
+  arg1 = *(GridDynSingleQuery *)&jarg1; 
+  result = (double)gridDynSingleQueryRun(arg1);
   jresult = (jdouble)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQuery_1run(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQueryRun(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3) {
   jint jresult = 0 ;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynVectorQuery *)&jarg1; 
+  arg1 = *(GridDynVectorQuery *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
-  result = (griddyn_status)gridDynVectorQuery_run(arg1,arg2,arg3);
+  result = (griddyn_status)gridDynVectorQueryRun(arg1,arg2,arg3);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQuery_1append(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQueryAppend(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynVectorQuery *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
+  arg1 = *(GridDynVectorQuery *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
   arg3 = 0;
   if (jarg3) {
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynVectorQuery_append(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynVectorQueryAppend(arg1,arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQuery_1update(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynSingleQueryUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynSingleQuery arg1 = (gridDynSingleQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynSingleQuery arg1 = (GridDynSingleQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynSingleQuery *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
+  arg1 = *(GridDynSingleQuery *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
   arg3 = 0;
   if (jarg3) {
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynSingleQuery_update(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynSingleQueryUpdate(arg1,arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQuery_1update(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynVectorQueryUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynVectorQuery arg1 = (gridDynVectorQuery) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynVectorQuery arg1 = (GridDynVectorQuery) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynVectorQuery *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
+  arg1 = *(GridDynVectorQuery *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
   arg3 = 0;
   if (jarg3) {
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynVectorQuery_update(arg1,arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynVectorQueryUpdate(arg1,arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
   return jresult;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1create(JNIEnv *jenv, jclass jcls, jstring jarg1, jlong jarg2) {
+SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventCreate(JNIEnv *jenv, jclass jcls, jstring jarg1, jlong jarg2) {
   jlong jresult = 0 ;
   char *arg1 = (char *) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
-  gridDynEvent result;
+  GridDynObject arg2 = (GridDynObject) 0 ;
+  GridDynEvent result;
   
   (void)jenv;
   (void)jcls;
@@ -1808,87 +1808,87 @@ SWIGEXPORT jlong JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1create(J
     arg1 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg1, 0);
     if (!arg1) return 0;
   }
-  arg2 = *(gridDynObject *)&jarg2; 
-  result = (gridDynEvent)gridDynEvent_create((char const *)arg1,arg2);
-  *(gridDynEvent *)&jresult = result; 
+  arg2 = *(GridDynObject *)&jarg2; 
+  result = (GridDynEvent)gridDynEventCreate((char const *)arg1,arg2);
+  *(GridDynEvent *)&jresult = result; 
   if (arg1) (*jenv)->ReleaseStringUTFChars(jenv, jarg1, (const char *)arg1);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1free(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+SWIGEXPORT void JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventFree(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
-  gridDynEvent_free(arg1);
+  arg1 = *(GridDynEvent *)&jarg1; 
+  gridDynEventFree(arg1);
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1trigger(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventTrigger(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
-  result = (griddyn_status)gridDynEvent_trigger(arg1);
+  arg1 = *(GridDynEvent *)&jarg1; 
+  result = (griddyn_status)gridDynEventTrigger(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1schedule(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventSchedule(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
-  gridDynSimReference arg2 = (gridDynSimReference) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
+  GridDynSimulation arg2 = (GridDynSimulation) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
-  arg2 = *(gridDynSimReference *)&jarg2; 
-  result = (griddyn_status)gridDynEvent_schedule(arg1,arg2);
+  arg1 = *(GridDynEvent *)&jarg1; 
+  arg2 = *(GridDynSimulation *)&jarg2; 
+  result = (griddyn_status)gridDynEventSchedule(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventSetValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jdouble jarg3) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   double arg3 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
+  arg1 = *(GridDynEvent *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (double)jarg3; 
-  result = (griddyn_status)gridDynEvent_setValue(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynEventSetValue(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventSetString(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jstring jarg3) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   char *arg3 = (char *) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
+  arg1 = *(GridDynEvent *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
@@ -1899,7 +1899,7 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setString
     arg3 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg3, 0);
     if (!arg3) return 0;
   }
-  result = (griddyn_status)gridDynEvent_setString(arg1,(char const *)arg2,(char const *)arg3);
+  result = (griddyn_status)gridDynEventSetString(arg1,(char const *)arg2,(char const *)arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   if (arg3) (*jenv)->ReleaseStringUTFChars(jenv, jarg3, (const char *)arg3);
@@ -1907,254 +1907,254 @@ SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setString
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventSetFlag(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
+  arg1 = *(GridDynEvent *)&jarg1; 
   arg2 = 0;
   if (jarg2) {
     arg2 = (char *)(*jenv)->GetStringUTFChars(jenv, jarg2, 0);
     if (!arg2) return 0;
   }
   arg3 = (int)jarg3; 
-  result = (griddyn_status)gridDynEvent_setFlag(arg1,(char const *)arg2,arg3);
+  result = (griddyn_status)gridDynEventSetFlag(arg1,(char const *)arg2,arg3);
   jresult = (jint)result; 
   if (arg2) (*jenv)->ReleaseStringUTFChars(jenv, jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEvent_1setTarget(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynEventSetTarget(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynEvent arg1 = (gridDynEvent) 0 ;
-  gridDynObject arg2 = (gridDynObject) 0 ;
+  GridDynEvent arg1 = (GridDynEvent) 0 ;
+  GridDynObject arg2 = (GridDynObject) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynEvent *)&jarg1; 
-  arg2 = *(gridDynObject *)&jarg2; 
-  result = (griddyn_status)gridDynEvent_setTarget(arg1,arg2);
+  arg1 = *(GridDynEvent *)&jarg1; 
+  arg2 = *(GridDynObject *)&jarg2; 
+  result = (griddyn_status)gridDynEventSetTarget(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1stateSize(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectStateSize(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  solverKey arg2 = (solverKey) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  SolverKey arg2 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  arg2 = *(solverKey *)&jarg2; 
-  result = (griddyn_status)gridDynObject_stateSize(arg1,arg2);
+  arg1 = *(GridDynObject *)&jarg1; 
+  arg2 = *(SolverKey *)&jarg2; 
+  result = (griddyn_status)gridDynObjectStateSize(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1guessState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGuessState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_guessState(arg1,arg2,arg3,arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectGuessState(arg1,arg2,arg3,arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1setState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectSetState(JNIEnv *jenv, jclass jcls, jlong jarg1, jdouble jarg2, jlong jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double arg2 ;
   double *arg3 = (double *) 0 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = (double)jarg2; 
   arg3 = *(double **)&jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_setState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectSetState(arg1,arg2,(double const *)arg3,(double const *)arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1getStateVariableTypes(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectGetStateVariableTypes(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jlong jarg3) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
-  solverKey arg3 = (solverKey) 0 ;
+  SolverKey arg3 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
-  arg3 = *(solverKey *)&jarg3; 
-  result = (griddyn_status)gridDynObject_getStateVariableTypes(arg1,arg2,arg3);
+  arg3 = *(SolverKey *)&jarg3; 
+  result = (griddyn_status)gridDynObjectGetStateVariableTypes(arg1,arg2,arg3);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1residual(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectResidual(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
-  double *arg2 = (double *) 0 ;
-  int arg3 ;
-  double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
-  griddyn_status result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
-  arg2 = *(double **)&jarg2; 
-  arg3 = (int)jarg3; 
-  arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_residual(arg1,(double const *)arg2,arg3,arg4,arg5);
-  jresult = (jint)result; 
-  return jresult;
-}
-
-
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1derivative(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
-  jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
   arg4 = *(double **)&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_derivative(arg1,(double const *)arg2,arg3,arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectResidual(arg1,(double const *)arg2,arg3,arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1algebraicUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jdouble jarg5, jlong jarg6) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectDerivative(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
+  double *arg2 = (double *) 0 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
+  griddyn_status result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(GridDynObject *)&jarg1; 
+  arg2 = *(double **)&jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = *(double **)&jarg4; 
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectDerivative(arg1,(double const *)arg2,arg3,arg4,arg5);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectAlgebraicUpdate(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jdouble jarg5, jlong jarg6) {
+  jint jresult = 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
   double arg5 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
   arg4 = *(double **)&jarg4; 
   arg5 = (double)jarg5; 
-  arg6 = *(solverKey *)&jarg6; 
-  result = (griddyn_status)gridDynObject_algebraicUpdate(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
+  arg6 = *(SolverKey *)&jarg6; 
+  result = (griddyn_status)gridDynObjectAlgebraicUpdate(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1jacobian(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jdouble jarg4, jlong jarg5, jlong jarg6) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectJacobian(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jdouble jarg4, jlong jarg5, jlong jarg6) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   double arg4 ;
   void (*arg5)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg6 = (solverKey) 0 ;
+  SolverKey arg6 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
   arg4 = (double)jarg4; 
   arg5 = *(void (**)(int,int,double))&jarg5; 
-  arg6 = *(solverKey *)&jarg6; 
-  result = (griddyn_status)gridDynObject_jacobian(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
+  arg6 = *(SolverKey *)&jarg6; 
+  result = (griddyn_status)gridDynObjectJacobian(arg1,(double const *)arg2,arg3,arg4,arg5,arg6);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1ioPartialDerivatives(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectIoPartialDerivatives(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   void (*arg4)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
   arg4 = *(void (**)(int,int,double))&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_ioPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectIoPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObject_1outputPartialDerivatives(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
+SWIGEXPORT jint JNICALL Java_com_java_griddyn_griddynJNI_gridDynObjectOutputPartialDerivatives(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2, jint jarg3, jlong jarg4, jlong jarg5) {
   jint jresult = 0 ;
-  gridDynObject arg1 = (gridDynObject) 0 ;
+  GridDynObject arg1 = (GridDynObject) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
   void (*arg4)(int,int,double) = (void (*)(int,int,double)) 0 ;
-  solverKey arg5 = (solverKey) 0 ;
+  SolverKey arg5 = (SolverKey) 0 ;
   griddyn_status result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = *(gridDynObject *)&jarg1; 
+  arg1 = *(GridDynObject *)&jarg1; 
   arg2 = *(double **)&jarg2; 
   arg3 = (int)jarg3; 
   arg4 = *(void (**)(int,int,double))&jarg4; 
-  arg5 = *(solverKey *)&jarg5; 
-  result = (griddyn_status)gridDynObject_outputPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
+  arg5 = *(SolverKey *)&jarg5; 
+  result = (griddyn_status)gridDynObjectOutputPartialDerivatives(arg1,(double const *)arg2,arg3,arg4,arg5);
   jresult = (jint)result; 
   return jresult;
 }

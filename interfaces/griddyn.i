@@ -14,7 +14,7 @@
 %cstring_output_maxsize(char *value, int N);
 %include carrays.i
 %array_class(double, doubleArray);
-int gridDynSimulation_getResults(gridDynSimReference sim, const char *datatype, double data[0], int maxSize);
+int gridDynSimulationGetResults(GridDynSimulation sim, const char *datatype, double data[0], int maxSize);
 
 %{
 #include "griddyn_export.h"

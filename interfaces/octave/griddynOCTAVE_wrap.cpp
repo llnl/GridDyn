@@ -3263,10 +3263,10 @@ static swig_octave_class _wrap_class_doubleArray = {"doubleArray",
                                                     swig_doubleArray_base_names,
                                                     swig_doubleArray_base};
 
-static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_0(const octave_value_list& args,
-                                                                    int nargout)
+static octave_value_list _wrap_gridDynSimulationGetResults__SWIG_0(const octave_value_list& args,
+                                                                   int nargout)
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     double* arg3;
     int arg4;
@@ -3283,25 +3283,25 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_0(const octave
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getResults", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetResults", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "2"
                             " of type '"
@@ -3313,7 +3313,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_0(const octave
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "3"
                             " of type '"
@@ -3325,7 +3325,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_0(const octave
     if (!SWIG_IsOK(ecode4)) {
         SWIG_exception_fail(SWIG_ArgError(ecode4),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "4"
                             " of type '"
@@ -3333,7 +3333,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_0(const octave
                             "'");
     }
     arg4 = static_cast<int>(val4);
-    result = (int)gridDynSimulation_getResults(arg1, (char const*)arg2, arg3, arg4);
+    result = (int)gridDynSimulationGetResults(arg1, (char const*)arg2, arg3, arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3343,7 +3343,7 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_create, _wrap_gridDynObject_create, std::string())
+SWIG_DEFUN(GridDynObjectCreate, _wrap_GridDynObject_create, std::string())
 {
     char* arg1 = (char*)0;
     char* arg2 = (char*)0;
@@ -3356,16 +3356,16 @@ SWIG_DEFUN(gridDynObject_create, _wrap_gridDynObject_create, std::string())
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
-    if (!SWIG_check_num_args("gridDynObject_create", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectCreate", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_AsCharPtrAndSize(args(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_create"
+                            "GridDynObjectCreate"
                             "', argument "
                             "1"
                             " of type '"
@@ -3377,7 +3377,7 @@ SWIG_DEFUN(gridDynObject_create, _wrap_gridDynObject_create, std::string())
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_create"
+                            "GridDynObjectCreate"
                             "', argument "
                             "2"
                             " of type '"
@@ -3385,7 +3385,7 @@ SWIG_DEFUN(gridDynObject_create, _wrap_gridDynObject_create, std::string())
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (gridDynObject)gridDynObject_create((char const*)arg1, (char const*)arg2);
+    result = (GridDynObject)GridDynObjectCreate((char const*)arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
@@ -3397,30 +3397,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_clone, _wrap_gridDynObject_clone, std::string())
+SWIG_DEFUN(GridDynObjectClone, _wrap_GridDynObject_clone, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
-    if (!SWIG_check_num_args("gridDynObject_clone", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectClone", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_clone"
+                            "GridDynObjectClone"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
-    result = (gridDynObject)gridDynObject_clone(arg1);
+    result = (GridDynObject)GridDynObjectClone(arg1);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -3428,29 +3428,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_free, _wrap_gridDynObject_free, std::string())
+SWIG_DEFUN(GridDynObjectFree, _wrap_GridDynObject_free, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynObject_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_free"
+                            "GridDynObjectFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
-    gridDynObject_free(arg1);
+    GridDynObjectFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -3458,10 +3458,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_add, _wrap_gridDynObject_add, std::string())
+SWIG_DEFUN(GridDynObjectAdd, _wrap_GridDynObject_add, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
+    GridDynObject arg2 = (GridDynObject)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -3469,32 +3469,32 @@ SWIG_DEFUN(gridDynObject_add, _wrap_gridDynObject_add, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_add", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectAdd", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_add"
+                            "GridDynObjectAdd"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_add"
+                            "GridDynObjectAdd"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_add(arg1, arg2);
+    result = (griddyn_status)GridDynObjectAdd(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -3502,10 +3502,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_remove, _wrap_gridDynObject_remove, std::string())
+SWIG_DEFUN(GridDynObjectRemove, _wrap_GridDynObject_remove, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
+    GridDynObject arg2 = (GridDynObject)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -3513,32 +3513,32 @@ SWIG_DEFUN(gridDynObject_remove, _wrap_gridDynObject_remove, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_remove", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectRemove", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_remove"
+                            "GridDynObjectRemove"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_remove"
+                            "GridDynObjectRemove"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_remove(arg1, arg2);
+    result = (griddyn_status)GridDynObjectRemove(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -3546,9 +3546,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_setString, _wrap_gridDynObject_setString, std::string())
+SWIG_DEFUN(GridDynObjectSetString, _wrap_GridDynObject_setString, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     char* arg3 = (char*)0;
     int res1;
@@ -3563,25 +3563,25 @@ SWIG_DEFUN(gridDynObject_setString, _wrap_gridDynObject_setString, std::string()
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_setString", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectSetString", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_setString"
+                            "GridDynObjectSetString"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_setString"
+                            "GridDynObjectSetString"
                             "', argument "
                             "2"
                             " of type '"
@@ -3593,7 +3593,7 @@ SWIG_DEFUN(gridDynObject_setString, _wrap_gridDynObject_setString, std::string()
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_setString"
+                            "GridDynObjectSetString"
                             "', argument "
                             "3"
                             " of type '"
@@ -3601,7 +3601,7 @@ SWIG_DEFUN(gridDynObject_setString, _wrap_gridDynObject_setString, std::string()
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynObject_setString(arg1, (char const*)arg2, (char const*)arg3);
+    result = (griddyn_status)GridDynObjectSetString(arg1, (char const*)arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3613,9 +3613,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_setValue, _wrap_gridDynObject_setValue, std::string())
+SWIG_DEFUN(GridDynObjectSetValue, _wrap_GridDynObject_setValue, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     double arg3;
     int res1;
@@ -3629,25 +3629,25 @@ SWIG_DEFUN(gridDynObject_setValue, _wrap_gridDynObject_setValue, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_setValue", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectSetValue", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_setValue"
+                            "GridDynObjectSetValue"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_setValue"
+                            "GridDynObjectSetValue"
                             "', argument "
                             "2"
                             " of type '"
@@ -3659,7 +3659,7 @@ SWIG_DEFUN(gridDynObject_setValue, _wrap_gridDynObject_setValue, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_setValue"
+                            "GridDynObjectSetValue"
                             "', argument "
                             "3"
                             " of type '"
@@ -3667,7 +3667,7 @@ SWIG_DEFUN(gridDynObject_setValue, _wrap_gridDynObject_setValue, std::string())
                             "'");
     }
     arg3 = static_cast<double>(val3);
-    result = (griddyn_status)gridDynObject_setValue(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynObjectSetValue(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3677,9 +3677,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_setValueUnits, _wrap_gridDynObject_setValueUnits, std::string())
+SWIG_DEFUN(GridDynObjectSetValueUnits, _wrap_GridDynObject_setValueUnits, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     double arg3;
     char* arg4 = (char*)0;
@@ -3697,25 +3697,25 @@ SWIG_DEFUN(gridDynObject_setValueUnits, _wrap_gridDynObject_setValueUnits, std::
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_setValueUnits", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectSetValueUnits", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_setValueUnits"
+                            "GridDynObjectSetValueUnits"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_setValueUnits"
+                            "GridDynObjectSetValueUnits"
                             "', argument "
                             "2"
                             " of type '"
@@ -3727,7 +3727,7 @@ SWIG_DEFUN(gridDynObject_setValueUnits, _wrap_gridDynObject_setValueUnits, std::
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_setValueUnits"
+                            "GridDynObjectSetValueUnits"
                             "', argument "
                             "3"
                             " of type '"
@@ -3739,7 +3739,7 @@ SWIG_DEFUN(gridDynObject_setValueUnits, _wrap_gridDynObject_setValueUnits, std::
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_setValueUnits"
+                            "GridDynObjectSetValueUnits"
                             "', argument "
                             "4"
                             " of type '"
@@ -3748,7 +3748,7 @@ SWIG_DEFUN(gridDynObject_setValueUnits, _wrap_gridDynObject_setValueUnits, std::
     }
     arg4 = reinterpret_cast<char*>(buf4);
     result = (griddyn_status)
-        gridDynObject_setValueUnits(arg1, (char const*)arg2, arg3, (char const*)arg4);
+        GridDynObjectSetValueUnits(arg1, (char const*)arg2, arg3, (char const*)arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3760,9 +3760,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_setFlag, _wrap_gridDynObject_setFlag, std::string())
+SWIG_DEFUN(GridDynObjectSetFlag, _wrap_GridDynObject_setFlag, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     int arg3;
     int res1;
@@ -3776,25 +3776,25 @@ SWIG_DEFUN(gridDynObject_setFlag, _wrap_gridDynObject_setFlag, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_setFlag", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectSetFlag", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_setFlag"
+                            "GridDynObjectSetFlag"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_setFlag"
+                            "GridDynObjectSetFlag"
                             "', argument "
                             "2"
                             " of type '"
@@ -3806,7 +3806,7 @@ SWIG_DEFUN(gridDynObject_setFlag, _wrap_gridDynObject_setFlag, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_setFlag"
+                            "GridDynObjectSetFlag"
                             "', argument "
                             "3"
                             " of type '"
@@ -3814,7 +3814,7 @@ SWIG_DEFUN(gridDynObject_setFlag, _wrap_gridDynObject_setFlag, std::string())
                             "'");
     }
     arg3 = static_cast<int>(val3);
-    result = (griddyn_status)gridDynObject_setFlag(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynObjectSetFlag(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3824,9 +3824,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getString, _wrap_gridDynObject_getString, std::string())
+SWIG_DEFUN(GridDynObjectGetString, _wrap_GridDynObject_getString, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     char* arg3 = (char*)0;
     int arg4;
@@ -3844,25 +3844,25 @@ SWIG_DEFUN(gridDynObject_getString, _wrap_gridDynObject_getString, std::string()
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_getString", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetString", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getString"
+                            "GridDynObjectGetString"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_getString"
+                            "GridDynObjectGetString"
                             "', argument "
                             "2"
                             " of type '"
@@ -3874,7 +3874,7 @@ SWIG_DEFUN(gridDynObject_getString, _wrap_gridDynObject_getString, std::string()
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_getString"
+                            "GridDynObjectGetString"
                             "', argument "
                             "3"
                             " of type '"
@@ -3886,7 +3886,7 @@ SWIG_DEFUN(gridDynObject_getString, _wrap_gridDynObject_getString, std::string()
     if (!SWIG_IsOK(ecode4)) {
         SWIG_exception_fail(SWIG_ArgError(ecode4),
                             "in method '"
-                            "gridDynObject_getString"
+                            "GridDynObjectGetString"
                             "', argument "
                             "4"
                             " of type '"
@@ -3894,7 +3894,7 @@ SWIG_DEFUN(gridDynObject_getString, _wrap_gridDynObject_getString, std::string()
                             "'");
     }
     arg4 = static_cast<int>(val4);
-    result = (griddyn_status)gridDynObject_getString(arg1, (char const*)arg2, arg3, arg4);
+    result = (griddyn_status)GridDynObjectGetString(arg1, (char const*)arg2, arg3, arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3906,9 +3906,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getValue, _wrap_gridDynObject_getValue, std::string())
+SWIG_DEFUN(GridDynObjectGetValue, _wrap_GridDynObject_getValue, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     double* arg3 = (double*)0;
     int res1;
@@ -3922,25 +3922,25 @@ SWIG_DEFUN(gridDynObject_getValue, _wrap_gridDynObject_getValue, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_getValue", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetValue", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getValue"
+                            "GridDynObjectGetValue"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_getValue"
+                            "GridDynObjectGetValue"
                             "', argument "
                             "2"
                             " of type '"
@@ -3952,7 +3952,7 @@ SWIG_DEFUN(gridDynObject_getValue, _wrap_gridDynObject_getValue, std::string())
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_getValue"
+                            "GridDynObjectGetValue"
                             "', argument "
                             "3"
                             " of type '"
@@ -3960,7 +3960,7 @@ SWIG_DEFUN(gridDynObject_getValue, _wrap_gridDynObject_getValue, std::string())
                             "'");
     }
     arg3 = reinterpret_cast<double*>(argp3);
-    result = (griddyn_status)gridDynObject_getValue(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynObjectGetValue(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3970,9 +3970,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getValueUnits, _wrap_gridDynObject_getValueUnits, std::string())
+SWIG_DEFUN(GridDynObjectGetValueUnits, _wrap_GridDynObject_getValueUnits, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     char* arg3 = (char*)0;
     double* arg4 = (double*)0;
@@ -3990,25 +3990,25 @@ SWIG_DEFUN(gridDynObject_getValueUnits, _wrap_gridDynObject_getValueUnits, std::
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_getValueUnits", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetValueUnits", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getValueUnits"
+                            "GridDynObjectGetValueUnits"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_getValueUnits"
+                            "GridDynObjectGetValueUnits"
                             "', argument "
                             "2"
                             " of type '"
@@ -4020,7 +4020,7 @@ SWIG_DEFUN(gridDynObject_getValueUnits, _wrap_gridDynObject_getValueUnits, std::
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_getValueUnits"
+                            "GridDynObjectGetValueUnits"
                             "', argument "
                             "3"
                             " of type '"
@@ -4032,7 +4032,7 @@ SWIG_DEFUN(gridDynObject_getValueUnits, _wrap_gridDynObject_getValueUnits, std::
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_getValueUnits"
+                            "GridDynObjectGetValueUnits"
                             "', argument "
                             "4"
                             " of type '"
@@ -4041,7 +4041,7 @@ SWIG_DEFUN(gridDynObject_getValueUnits, _wrap_gridDynObject_getValueUnits, std::
     }
     arg4 = reinterpret_cast<double*>(argp4);
     result = (griddyn_status)
-        gridDynObject_getValueUnits(arg1, (char const*)arg2, (char const*)arg3, arg4);
+        GridDynObjectGetValueUnits(arg1, (char const*)arg2, (char const*)arg3, arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4053,9 +4053,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getFlag, _wrap_gridDynObject_getFlag, std::string())
+SWIG_DEFUN(GridDynObjectGetFlag, _wrap_GridDynObject_getFlag, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     int* arg3 = (int*)0;
     int res1;
@@ -4069,25 +4069,25 @@ SWIG_DEFUN(gridDynObject_getFlag, _wrap_gridDynObject_getFlag, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_getFlag", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetFlag", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getFlag"
+                            "GridDynObjectGetFlag"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_getFlag"
+                            "GridDynObjectGetFlag"
                             "', argument "
                             "2"
                             " of type '"
@@ -4099,7 +4099,7 @@ SWIG_DEFUN(gridDynObject_getFlag, _wrap_gridDynObject_getFlag, std::string())
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_getFlag"
+                            "GridDynObjectGetFlag"
                             "', argument "
                             "3"
                             " of type '"
@@ -4107,7 +4107,7 @@ SWIG_DEFUN(gridDynObject_getFlag, _wrap_gridDynObject_getFlag, std::string())
                             "'");
     }
     arg3 = reinterpret_cast<int*>(argp3);
-    result = (griddyn_status)gridDynObject_getFlag(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynObjectGetFlag(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4117,9 +4117,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_find, _wrap_gridDynObject_find, std::string())
+SWIG_DEFUN(GridDynObjectFind, _wrap_GridDynObject_find, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -4128,27 +4128,27 @@ SWIG_DEFUN(gridDynObject_find, _wrap_gridDynObject_find, std::string())
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
-    if (!SWIG_check_num_args("gridDynObject_find", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectFind", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_find"
+                            "GridDynObjectFind"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_find"
+                            "GridDynObjectFind"
                             "', argument "
                             "2"
                             " of type '"
@@ -4156,7 +4156,7 @@ SWIG_DEFUN(gridDynObject_find, _wrap_gridDynObject_find, std::string())
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (gridDynObject)gridDynObject_find(arg1, (char const*)arg2);
+    result = (GridDynObject)GridDynObjectFind(arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4166,73 +4166,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getSubObject, _wrap_gridDynObject_getSubObject, std::string())
+SWIG_DEFUN(GridDynObjectGetSubObject, _wrap_GridDynObject_getSubObject, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
-    char* arg2 = (char*)0;
-    int arg3;
-    int res1;
-    int res2;
-    char* buf2 = 0;
-    int alloc2 = 0;
-    int val3;
-    int ecode3 = 0;
-    octave_value_list _out;
-    octave_value_list* _outp = &_out;
-    octave_value _outv;
-    gridDynObject result;
-
-    if (!SWIG_check_num_args("gridDynObject_getSubObject", args.length(), 3, 3, 0)) {
-        SWIG_fail;
-    }
-    res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
-    if (!SWIG_IsOK(res1)) {
-        SWIG_exception_fail(SWIG_ArgError(res1),
-                            "in method '"
-                            "gridDynObject_getSubObject"
-                            "', argument "
-                            "1"
-                            " of type '"
-                            "gridDynObject const"
-                            "'");
-    }
-    res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2),
-                            "in method '"
-                            "gridDynObject_getSubObject"
-                            "', argument "
-                            "2"
-                            " of type '"
-                            "char const *"
-                            "'");
-    }
-    arg2 = reinterpret_cast<char*>(buf2);
-    ecode3 = SWIG_AsVal_int(args(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode3),
-                            "in method '"
-                            "gridDynObject_getSubObject"
-                            "', argument "
-                            "3"
-                            " of type '"
-                            "int"
-                            "'");
-    }
-    arg3 = static_cast<int>(val3);
-    result = (gridDynObject)gridDynObject_getSubObject(arg1, (char const*)arg2, arg3);
-    _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
-    if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    return _out;
-fail:
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    return octave_value_list();
-}
-
-SWIG_DEFUN(gridDynObject_findByUserId, _wrap_gridDynObject_findByUserId, std::string())
-{
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     char* arg2 = (char*)0;
     int arg3;
     int res1;
@@ -4244,27 +4180,27 @@ SWIG_DEFUN(gridDynObject_findByUserId, _wrap_gridDynObject_findByUserId, std::st
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
-    if (!SWIG_check_num_args("gridDynObject_findByUserId", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetSubObject", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_findByUserId"
+                            "GridDynObjectGetSubObject"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_findByUserId"
+                            "GridDynObjectGetSubObject"
                             "', argument "
                             "2"
                             " of type '"
@@ -4276,7 +4212,7 @@ SWIG_DEFUN(gridDynObject_findByUserId, _wrap_gridDynObject_findByUserId, std::st
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_findByUserId"
+                            "GridDynObjectGetSubObject"
                             "', argument "
                             "3"
                             " of type '"
@@ -4284,7 +4220,7 @@ SWIG_DEFUN(gridDynObject_findByUserId, _wrap_gridDynObject_findByUserId, std::st
                             "'");
     }
     arg3 = static_cast<int>(val3);
-    result = (gridDynObject)gridDynObject_findByUserId(arg1, (char const*)arg2, arg3);
+    result = (GridDynObject)GridDynObjectGetSubObject(arg1, (char const*)arg2, arg3);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4294,30 +4230,94 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getParent, _wrap_gridDynObject_getParent, std::string())
+SWIG_DEFUN(GridDynObjectFindByUserId, _wrap_GridDynObject_findByUserId, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
+    char* arg2 = (char*)0;
+    int arg3;
     int res1;
+    int res2;
+    char* buf2 = 0;
+    int alloc2 = 0;
+    int val3;
+    int ecode3 = 0;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
-    if (!SWIG_check_num_args("gridDynObject_getParent", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectFindByUserId", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getParent"
+                            "GridDynObjectFindByUserId"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
-    result = (gridDynObject)gridDynObject_getParent(arg1);
+    res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2),
+                            "in method '"
+                            "GridDynObjectFindByUserId"
+                            "', argument "
+                            "2"
+                            " of type '"
+                            "char const *"
+                            "'");
+    }
+    arg2 = reinterpret_cast<char*>(buf2);
+    ecode3 = SWIG_AsVal_int(args(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3),
+                            "in method '"
+                            "GridDynObjectFindByUserId"
+                            "', argument "
+                            "3"
+                            " of type '"
+                            "int"
+                            "'");
+    }
+    arg3 = static_cast<int>(val3);
+    result = (GridDynObject)GridDynObjectFindByUserId(arg1, (char const*)arg2, arg3);
+    _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
+    if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    return _out;
+fail:
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    return octave_value_list();
+}
+
+SWIG_DEFUN(GridDynObjectGetParent, _wrap_GridDynObject_getParent, std::string())
+{
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
+    int res1;
+    octave_value_list _out;
+    octave_value_list* _outp = &_out;
+    octave_value _outv;
+    GridDynObject result;
+
+    if (!SWIG_check_num_args("GridDynObjectGetParent", args.length(), 1, 1, 0)) {
+        SWIG_fail;
+    }
+    res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
+    if (!SWIG_IsOK(res1)) {
+        SWIG_exception_fail(SWIG_ArgError(res1),
+                            "in method '"
+                            "GridDynObjectGetParent"
+                            "', argument "
+                            "1"
+                            " of type '"
+                            "GridDynObject const"
+                            "'");
+    }
+    result = (GridDynObject)GridDynObjectGetParent(arg1);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4325,30 +4325,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getType, _wrap_gridDynObject_getType, std::string())
+SWIG_DEFUN(GridDynObjectGetType, _wrap_GridDynObject_getType, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)(gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)(GridDynObject)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     char* result = 0;
 
-    if (!SWIG_check_num_args("gridDynObject_getType", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetType", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getType"
+                            "GridDynObjectGetType"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject const"
+                            "GridDynObject const"
                             "'");
     }
-    result = (char*)gridDynObject_getType(arg1);
+    result = (char*)GridDynObjectGetType(arg1);
     _outv = SWIG_FromCharPtr((const char*)result);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4356,7 +4356,7 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_create, _wrap_gridDynSimulation_create, std::string())
+SWIG_DEFUN(gridDynSimulationCreate, _wrap_gridDynSimulationCreate, std::string())
 {
     char* arg1 = (char*)0;
     char* arg2 = (char*)0;
@@ -4369,16 +4369,16 @@ SWIG_DEFUN(gridDynSimulation_create, _wrap_gridDynSimulation_create, std::string
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynSimReference result;
+    GridDynSimulation result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_create", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationCreate", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_AsCharPtrAndSize(args(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_create"
+                            "gridDynSimulationCreate"
                             "', argument "
                             "1"
                             " of type '"
@@ -4390,7 +4390,7 @@ SWIG_DEFUN(gridDynSimulation_create, _wrap_gridDynSimulation_create, std::string
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_create"
+                            "gridDynSimulationCreate"
                             "', argument "
                             "2"
                             " of type '"
@@ -4398,7 +4398,7 @@ SWIG_DEFUN(gridDynSimulation_create, _wrap_gridDynSimulation_create, std::string
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (gridDynSimReference)gridDynSimulation_create((char const*)arg1, (char const*)arg2);
+    result = (GridDynSimulation)gridDynSimulationCreate((char const*)arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
@@ -4410,29 +4410,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_free, _wrap_gridDynSimulation_free, std::string())
+SWIG_DEFUN(gridDynSimulationFree, _wrap_gridDynSimulationFree, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynSimulation_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_free"
+                            "gridDynSimulationFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    gridDynSimulation_free(arg1);
+    gridDynSimulationFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4440,11 +4440,11 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_initializeFromString,
-           _wrap_gridDynSimulation_initializeFromString,
+SWIG_DEFUN(gridDynSimulationInitializeFromString,
+           _wrap_gridDynSimulationInitializeFromString,
            std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -4455,25 +4455,25 @@ SWIG_DEFUN(gridDynSimulation_initializeFromString,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_initializeFromString", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationInitializeFromString", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_initializeFromString"
+                            "gridDynSimulationInitializeFromString"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_initializeFromString"
+                            "gridDynSimulationInitializeFromString"
                             "', argument "
                             "2"
                             " of type '"
@@ -4481,7 +4481,7 @@ SWIG_DEFUN(gridDynSimulation_initializeFromString,
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (griddyn_status)gridDynSimulation_initializeFromString(arg1, (char const*)arg2);
+    result = (griddyn_status)gridDynSimulationInitializeFromString(arg1, (char const*)arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4491,11 +4491,11 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_initializeFromArgs,
-           _wrap_gridDynSimulation_initializeFromArgs,
+SWIG_DEFUN(gridDynSimulationInitializeFromArgs,
+           _wrap_gridDynSimulationInitializeFromArgs,
            std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int arg2;
     char** arg3;
     int arg4;
@@ -4511,25 +4511,25 @@ SWIG_DEFUN(gridDynSimulation_initializeFromArgs,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_initializeFromArgs", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationInitializeFromArgs", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_initializeFromArgs"
+                            "gridDynSimulationInitializeFromArgs"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_int(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_initializeFromArgs"
+                            "gridDynSimulationInitializeFromArgs"
                             "', argument "
                             "2"
                             " of type '"
@@ -4541,7 +4541,7 @@ SWIG_DEFUN(gridDynSimulation_initializeFromArgs,
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_initializeFromArgs"
+                            "gridDynSimulationInitializeFromArgs"
                             "', argument "
                             "3"
                             " of type '"
@@ -4553,7 +4553,7 @@ SWIG_DEFUN(gridDynSimulation_initializeFromArgs,
     if (!SWIG_IsOK(ecode4)) {
         SWIG_exception_fail(SWIG_ArgError(ecode4),
                             "in method '"
-                            "gridDynSimulation_initializeFromArgs"
+                            "gridDynSimulationInitializeFromArgs"
                             "', argument "
                             "4"
                             " of type '"
@@ -4561,7 +4561,7 @@ SWIG_DEFUN(gridDynSimulation_initializeFromArgs,
                             "'");
     }
     arg4 = static_cast<int>(val4);
-    result = (griddyn_status)gridDynSimulation_initializeFromArgs(arg1, arg2, arg3, arg4);
+    result = (griddyn_status)gridDynSimulationInitializeFromArgs(arg1, arg2, arg3, arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4569,9 +4569,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_loadfile, _wrap_gridDynSimulation_loadfile, std::string())
+SWIG_DEFUN(gridDynSimulationLoadfile, _wrap_gridDynSimulationLoadfile, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     char* arg3 = (char*)0;
     int res1;
@@ -4586,25 +4586,25 @@ SWIG_DEFUN(gridDynSimulation_loadfile, _wrap_gridDynSimulation_loadfile, std::st
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_loadfile", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationLoadfile", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_loadfile"
+                            "gridDynSimulationLoadfile"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_loadfile"
+                            "gridDynSimulationLoadfile"
                             "', argument "
                             "2"
                             " of type '"
@@ -4616,7 +4616,7 @@ SWIG_DEFUN(gridDynSimulation_loadfile, _wrap_gridDynSimulation_loadfile, std::st
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_loadfile"
+                            "gridDynSimulationLoadfile"
                             "', argument "
                             "3"
                             " of type '"
@@ -4624,7 +4624,7 @@ SWIG_DEFUN(gridDynSimulation_loadfile, _wrap_gridDynSimulation_loadfile, std::st
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynSimulation_loadfile(arg1, (char const*)arg2, (char const*)arg3);
+    result = (griddyn_status)gridDynSimulationLoadfile(arg1, (char const*)arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4636,9 +4636,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_addCommand, _wrap_gridDynSimulation_addCommand, std::string())
+SWIG_DEFUN(gridDynSimulationAddCommand, _wrap_gridDynSimulationAddCommand, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -4649,25 +4649,25 @@ SWIG_DEFUN(gridDynSimulation_addCommand, _wrap_gridDynSimulation_addCommand, std
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_addCommand", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationAddCommand", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_addCommand"
+                            "gridDynSimulationAddCommand"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_addCommand"
+                            "gridDynSimulationAddCommand"
                             "', argument "
                             "2"
                             " of type '"
@@ -4675,7 +4675,7 @@ SWIG_DEFUN(gridDynSimulation_addCommand, _wrap_gridDynSimulation_addCommand, std
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (griddyn_status)gridDynSimulation_addCommand(arg1, (char const*)arg2);
+    result = (griddyn_status)gridDynSimulationAddCommand(arg1, (char const*)arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4685,32 +4685,32 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_powerflowInitialize,
-           _wrap_gridDynSimulation_powerflowInitialize,
+SWIG_DEFUN(gridDynSimulationPowerflowInitialize,
+           _wrap_gridDynSimulationPowerflowInitialize,
            std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_powerflowInitialize", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationPowerflowInitialize", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_powerflowInitialize"
+                            "gridDynSimulationPowerflowInitialize"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_powerflowInitialize(arg1);
+    result = (griddyn_status)gridDynSimulationPowerflowInitialize(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4718,30 +4718,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_powerflow, _wrap_gridDynSimulation_powerflow, std::string())
+SWIG_DEFUN(gridDynSimulationPowerflow, _wrap_gridDynSimulationPowerflow, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_powerflow", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationPowerflow", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_powerflow"
+                            "gridDynSimulationPowerflow"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_powerflow(arg1);
+    result = (griddyn_status)gridDynSimulationPowerflow(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4749,32 +4749,32 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_dynamicInitialize,
-           _wrap_gridDynSimulation_dynamicInitialize,
+SWIG_DEFUN(gridDynSimulationDynamicInitialize,
+           _wrap_gridDynSimulationDynamicInitialize,
            std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_dynamicInitialize", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationDynamicInitialize", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_dynamicInitialize"
+                            "gridDynSimulationDynamicInitialize"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_dynamicInitialize(arg1);
+    result = (griddyn_status)gridDynSimulationDynamicInitialize(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4782,30 +4782,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_reset, _wrap_gridDynSimulation_reset, std::string())
+SWIG_DEFUN(gridDynSimulationReset, _wrap_gridDynSimulationReset, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_reset", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationReset", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_reset"
+                            "gridDynSimulationReset"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_reset(arg1);
+    result = (griddyn_status)gridDynSimulationReset(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4813,30 +4813,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_getCurrentTime, _wrap_gridDynSimulation_getCurrentTime, std::string())
+SWIG_DEFUN(gridDynSimulationGetCurrentTime, _wrap_gridDynSimulationGetCurrentTime, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     double result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getCurrentTime", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetCurrentTime", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getCurrentTime"
+                            "gridDynSimulationGetCurrentTime"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (double)gridDynSimulation_getCurrentTime(arg1);
+    result = (double)gridDynSimulationGetCurrentTime(arg1);
     _outv = SWIG_From_double(static_cast<double>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4844,30 +4844,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_run, _wrap_gridDynSimulation_run, std::string())
+SWIG_DEFUN(gridDynSimulationRun, _wrap_gridDynSimulationRun, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_run", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationRun", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_run"
+                            "gridDynSimulationRun"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_run(arg1);
+    result = (griddyn_status)gridDynSimulationRun(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4875,9 +4875,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_runTo, _wrap_gridDynSimulation_runTo, std::string())
+SWIG_DEFUN(gridDynSimulationRunTo, _wrap_gridDynSimulationRunTo, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     int res1;
     double val2;
@@ -4887,25 +4887,25 @@ SWIG_DEFUN(gridDynSimulation_runTo, _wrap_gridDynSimulation_runTo, std::string()
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_runTo", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationRunTo", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_runTo"
+                            "gridDynSimulationRunTo"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_runTo"
+                            "gridDynSimulationRunTo"
                             "', argument "
                             "2"
                             " of type '"
@@ -4913,7 +4913,7 @@ SWIG_DEFUN(gridDynSimulation_runTo, _wrap_gridDynSimulation_runTo, std::string()
                             "'");
     }
     arg2 = static_cast<double>(val2);
-    result = (griddyn_status)gridDynSimulation_runTo(arg1, arg2);
+    result = (griddyn_status)gridDynSimulationRunTo(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4921,30 +4921,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_Step, _wrap_gridDynSimulation_Step, std::string())
+SWIG_DEFUN(gridDynSimulationStep, _wrap_gridDynSimulationStep, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_Step", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationStep", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_Step"
+                            "gridDynSimulationStep"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_Step(arg1);
+    result = (griddyn_status)gridDynSimulationStep(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4952,30 +4952,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_runAsync, _wrap_gridDynSimulation_runAsync, std::string())
+SWIG_DEFUN(gridDynSimulationRunAsync, _wrap_gridDynSimulationRunAsync, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_runAsync", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationRunAsync", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_runAsync"
+                            "gridDynSimulationRunAsync"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_runAsync(arg1);
+    result = (griddyn_status)gridDynSimulationRunAsync(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -4983,9 +4983,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_runToAsync, _wrap_gridDynSimulation_runToAsync, std::string())
+SWIG_DEFUN(gridDynSimulationRunToAsync, _wrap_gridDynSimulationRunToAsync, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     int res1;
     double val2;
@@ -4995,25 +4995,25 @@ SWIG_DEFUN(gridDynSimulation_runToAsync, _wrap_gridDynSimulation_runToAsync, std
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_runToAsync", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationRunToAsync", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_runToAsync"
+                            "gridDynSimulationRunToAsync"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_runToAsync"
+                            "gridDynSimulationRunToAsync"
                             "', argument "
                             "2"
                             " of type '"
@@ -5021,7 +5021,7 @@ SWIG_DEFUN(gridDynSimulation_runToAsync, _wrap_gridDynSimulation_runToAsync, std
                             "'");
     }
     arg2 = static_cast<double>(val2);
-    result = (griddyn_status)gridDynSimulation_runToAsync(arg1, arg2);
+    result = (griddyn_status)gridDynSimulationRunToAsync(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5029,30 +5029,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_StepAsync, _wrap_gridDynSimulation_StepAsync, std::string())
+SWIG_DEFUN(gridDynSimulationStepAsync, _wrap_gridDynSimulationStepAsync, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_StepAsync", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationStepAsync", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_StepAsync"
+                            "gridDynSimulationStepAsync"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_StepAsync(arg1);
+    result = (griddyn_status)gridDynSimulationStepAsync(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5060,30 +5060,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_getStatus, _wrap_gridDynSimulation_getStatus, std::string())
+SWIG_DEFUN(gridDynSimulationGetStatus, _wrap_gridDynSimulationGetStatus, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getStatus", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetStatus", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getStatus"
+                            "gridDynSimulationGetStatus"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (int)gridDynSimulation_getStatus(arg1);
+    result = (int)gridDynSimulationGetStatus(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5093,12 +5093,12 @@ fail:
 
 SWIG_DEFUN(getSimulationObject, _wrap_getSimulationObject, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynObject result;
+    GridDynObject result;
 
     if (!SWIG_check_num_args("getSimulationObject", args.length(), 1, 1, 0)) {
         SWIG_fail;
@@ -5111,10 +5111,10 @@ SWIG_DEFUN(getSimulationObject, _wrap_getSimulationObject, std::string())
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (gridDynObject)getSimulationObject(arg1);
+    result = (GridDynObject)getSimulationObject(arg1);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5122,9 +5122,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_getSolverKey, _wrap_gridDynSimulation_getSolverKey, std::string())
+SWIG_DEFUN(gridDynSimulationGetSolverKey, _wrap_gridDynSimulationGetSolverKey, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -5133,27 +5133,27 @@ SWIG_DEFUN(gridDynSimulation_getSolverKey, _wrap_gridDynSimulation_getSolverKey,
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    solverKey result;
+    SolverKey result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getSolverKey", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetSolverKey", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getSolverKey"
+                            "gridDynSimulationGetSolverKey"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_getSolverKey"
+                            "gridDynSimulationGetSolverKey"
                             "', argument "
                             "2"
                             " of type '"
@@ -5161,7 +5161,7 @@ SWIG_DEFUN(gridDynSimulation_getSolverKey, _wrap_gridDynSimulation_getSolverKey,
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (solverKey)gridDynSimulation_getSolverKey(arg1, (char const*)arg2);
+    result = (SolverKey)gridDynSimulationGetSolverKey(arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -5171,29 +5171,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSolverKey_free, _wrap_gridDynSolverKey_free, std::string())
+SWIG_DEFUN(gridDynSolverKeyFree, _wrap_gridDynSolverKeyFree, std::string())
 {
-    solverKey arg1 = (solverKey)0;
+    SolverKey arg1 = (SolverKey)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynSolverKey_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSolverKeyFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSolverKey_free"
+                            "gridDynSolverKeyFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    gridDynSolverKey_free(arg1);
+    gridDynSolverKeyFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5201,10 +5201,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_stateSize, _wrap_gridDynSimulation_stateSize, std::string())
+SWIG_DEFUN(gridDynSimulationStateSize, _wrap_gridDynSimulationStateSize, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
-    solverKey arg2 = (solverKey)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
+    SolverKey arg2 = (SolverKey)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -5212,32 +5212,32 @@ SWIG_DEFUN(gridDynSimulation_stateSize, _wrap_gridDynSimulation_stateSize, std::
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_stateSize", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationStateSize", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_stateSize"
+                            "gridDynSimulationStateSize"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_stateSize"
+                            "gridDynSimulationStateSize"
                             "', argument "
                             "2"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (int)gridDynSimulation_stateSize(arg1, arg2);
+    result = (int)gridDynSimulationStateSize(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5245,30 +5245,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_busCount, _wrap_gridDynSimulation_busCount, std::string())
+SWIG_DEFUN(gridDynSimulationBusCount, _wrap_gridDynSimulationBusCount, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_busCount", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationBusCount", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_busCount"
+                            "gridDynSimulationBusCount"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (int)gridDynSimulation_busCount(arg1);
+    result = (int)gridDynSimulationBusCount(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5276,30 +5276,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_lineCount, _wrap_gridDynSimulation_lineCount, std::string())
+SWIG_DEFUN(gridDynSimulationLineCount, _wrap_gridDynSimulationLineCount, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_lineCount", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationLineCount", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_lineCount"
+                            "gridDynSimulationLineCount"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (int)gridDynSimulation_lineCount(arg1);
+    result = (int)gridDynSimulationLineCount(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5307,10 +5307,10 @@ fail:
     return octave_value_list();
 }
 
-static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_1(const octave_value_list& args,
-                                                                    int nargout)
+static octave_value_list _wrap_gridDynSimulationGetResults__SWIG_1(const octave_value_list& args,
+                                                                   int nargout)
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     char* arg2 = (char*)0;
     double* arg3 = (double*)0;
     int arg4;
@@ -5327,25 +5327,25 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_1(const octave
     octave_value _outv;
     int result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getResults", args.length(), 4, 4, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetResults", args.length(), 4, 4, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "2"
                             " of type '"
@@ -5357,7 +5357,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_1(const octave
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "3"
                             " of type '"
@@ -5369,7 +5369,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_1(const octave
     if (!SWIG_IsOK(ecode4)) {
         SWIG_exception_fail(SWIG_ArgError(ecode4),
                             "in method '"
-                            "gridDynSimulation_getResults"
+                            "gridDynSimulationGetResults"
                             "', argument "
                             "4"
                             " of type '"
@@ -5377,7 +5377,7 @@ static octave_value_list _wrap_gridDynSimulation_getResults__SWIG_1(const octave
                             "'");
     }
     arg4 = static_cast<int>(val4);
-    result = (int)gridDynSimulation_getResults(arg1, (char const*)arg2, arg3, arg4);
+    result = (int)gridDynSimulationGetResults(arg1, (char const*)arg2, arg3, arg4);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -5387,7 +5387,7 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_getResults, _wrap_gridDynSimulation_getResults, std::string())
+SWIG_DEFUN(gridDynSimulationGetResults, _wrap_gridDynSimulationGetResults, std::string())
 {
     int argc = args.length();
     octave_value_ref argv[4] = {octave_value_ref(args, 0),
@@ -5413,7 +5413,7 @@ SWIG_DEFUN(gridDynSimulation_getResults, _wrap_gridDynSimulation_getResults, std
                         _v = SWIG_CheckState(res);
                     }
                     if (_v) {
-                        return _wrap_gridDynSimulation_getResults__SWIG_0(args, nargout);
+                        return _wrap_gridDynSimulationGetResults__SWIG_0(args, nargout);
                     }
                 }
             }
@@ -5437,7 +5437,7 @@ SWIG_DEFUN(gridDynSimulation_getResults, _wrap_gridDynSimulation_getResults, std
                         _v = SWIG_CheckState(res);
                     }
                     if (_v) {
-                        return _wrap_gridDynSimulation_getResults__SWIG_1(args, nargout);
+                        return _wrap_gridDynSimulationGetResults__SWIG_1(args, nargout);
                     }
                 }
             }
@@ -5448,13 +5448,13 @@ SWIG_DEFUN(gridDynSimulation_getResults, _wrap_gridDynSimulation_getResults, std
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_guessState, _wrap_gridDynSimulation_guessState, std::string())
+SWIG_DEFUN(gridDynSimulationGuessState, _wrap_gridDynSimulationGuessState, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -5468,25 +5468,25 @@ SWIG_DEFUN(gridDynSimulation_guessState, _wrap_gridDynSimulation_guessState, std
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_guessState", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGuessState", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_guessState"
+                            "gridDynSimulationGuessState"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_guessState"
+                            "gridDynSimulationGuessState"
                             "', argument "
                             "2"
                             " of type '"
@@ -5498,7 +5498,7 @@ SWIG_DEFUN(gridDynSimulation_guessState, _wrap_gridDynSimulation_guessState, std
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_guessState"
+                            "gridDynSimulationGuessState"
                             "', argument "
                             "3"
                             " of type '"
@@ -5510,7 +5510,7 @@ SWIG_DEFUN(gridDynSimulation_guessState, _wrap_gridDynSimulation_guessState, std
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_guessState"
+                            "gridDynSimulationGuessState"
                             "', argument "
                             "4"
                             " of type '"
@@ -5522,14 +5522,14 @@ SWIG_DEFUN(gridDynSimulation_guessState, _wrap_gridDynSimulation_guessState, std
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynSimulation_guessState"
+                            "gridDynSimulationGuessState"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_guessState(arg1, arg2, arg3, arg4, arg5);
+    result = (griddyn_status)gridDynSimulationGuessState(arg1, arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5537,13 +5537,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_setState, _wrap_gridDynSimulation_setState, std::string())
+SWIG_DEFUN(gridDynSimulationSetState, _wrap_gridDynSimulationSetState, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -5557,25 +5557,25 @@ SWIG_DEFUN(gridDynSimulation_setState, _wrap_gridDynSimulation_setState, std::st
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_setState", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationSetState", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_setState"
+                            "gridDynSimulationSetState"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_setState"
+                            "gridDynSimulationSetState"
                             "', argument "
                             "2"
                             " of type '"
@@ -5587,7 +5587,7 @@ SWIG_DEFUN(gridDynSimulation_setState, _wrap_gridDynSimulation_setState, std::st
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_setState"
+                            "gridDynSimulationSetState"
                             "', argument "
                             "3"
                             " of type '"
@@ -5599,7 +5599,7 @@ SWIG_DEFUN(gridDynSimulation_setState, _wrap_gridDynSimulation_setState, std::st
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_setState"
+                            "gridDynSimulationSetState"
                             "', argument "
                             "4"
                             " of type '"
@@ -5611,15 +5611,15 @@ SWIG_DEFUN(gridDynSimulation_setState, _wrap_gridDynSimulation_setState, std::st
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynSimulation_setState"
+                            "gridDynSimulationSetState"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynSimulation_setState(arg1, arg2, (double const*)arg3, (double const*)arg4, arg5);
+        gridDynSimulationSetState(arg1, arg2, (double const*)arg3, (double const*)arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5627,13 +5627,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_getStateVariableTypes,
-           _wrap_gridDynSimulation_getStateVariableTypes,
+SWIG_DEFUN(gridDynSimulationGetStateVariableTypes,
+           _wrap_gridDynSimulationGetStateVariableTypes,
            std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double* arg2 = (double*)0;
-    solverKey arg3 = (solverKey)0;
+    SolverKey arg3 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -5643,25 +5643,25 @@ SWIG_DEFUN(gridDynSimulation_getStateVariableTypes,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_getStateVariableTypes", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationGetStateVariableTypes", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_getStateVariableTypes"
+                            "gridDynSimulationGetStateVariableTypes"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSimulation_getStateVariableTypes"
+                            "gridDynSimulationGetStateVariableTypes"
                             "', argument "
                             "2"
                             " of type '"
@@ -5673,14 +5673,14 @@ SWIG_DEFUN(gridDynSimulation_getStateVariableTypes,
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_getStateVariableTypes"
+                            "gridDynSimulationGetStateVariableTypes"
                             "', argument "
                             "3"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_getStateVariableTypes(arg1, arg2, arg3);
+    result = (griddyn_status)gridDynSimulationGetStateVariableTypes(arg1, arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5688,14 +5688,14 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::string())
+SWIG_DEFUN(gridDynSimulationResidual, _wrap_gridDynSimulationResidual, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
     double* arg5 = (double*)0;
-    solverKey arg6 = (solverKey)0;
+    SolverKey arg6 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -5711,25 +5711,25 @@ SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::st
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_residual", args.length(), 6, 6, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationResidual", args.length(), 6, 6, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "2"
                             " of type '"
@@ -5741,7 +5741,7 @@ SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::st
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "3"
                             " of type '"
@@ -5753,7 +5753,7 @@ SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::st
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "4"
                             " of type '"
@@ -5765,7 +5765,7 @@ SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::st
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "5"
                             " of type '"
@@ -5777,15 +5777,15 @@ SWIG_DEFUN(gridDynSimulation_residual, _wrap_gridDynSimulation_residual, std::st
     if (!SWIG_IsOK(res6)) {
         SWIG_exception_fail(SWIG_ArgError(res6),
                             "in method '"
-                            "gridDynSimulation_residual"
+                            "gridDynSimulationResidual"
                             "', argument "
                             "6"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynSimulation_residual(
-        arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
+    result = (griddyn_status)
+        gridDynSimulationResidual(arg1, arg2, arg3, (double const*)arg4, (double const*)arg5, arg6);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5793,13 +5793,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_derivative, _wrap_gridDynSimulation_derivative, std::string())
+SWIG_DEFUN(gridDynSimulationDerivative, _wrap_gridDynSimulationDerivative, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -5813,25 +5813,25 @@ SWIG_DEFUN(gridDynSimulation_derivative, _wrap_gridDynSimulation_derivative, std
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_derivative", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationDerivative", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_derivative"
+                            "gridDynSimulationDerivative"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_derivative"
+                            "gridDynSimulationDerivative"
                             "', argument "
                             "2"
                             " of type '"
@@ -5843,7 +5843,7 @@ SWIG_DEFUN(gridDynSimulation_derivative, _wrap_gridDynSimulation_derivative, std
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_derivative"
+                            "gridDynSimulationDerivative"
                             "', argument "
                             "3"
                             " of type '"
@@ -5855,7 +5855,7 @@ SWIG_DEFUN(gridDynSimulation_derivative, _wrap_gridDynSimulation_derivative, std
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_derivative"
+                            "gridDynSimulationDerivative"
                             "', argument "
                             "4"
                             " of type '"
@@ -5867,15 +5867,15 @@ SWIG_DEFUN(gridDynSimulation_derivative, _wrap_gridDynSimulation_derivative, std
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynSimulation_derivative"
+                            "gridDynSimulationDerivative"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result =
-        (griddyn_status)gridDynSimulation_derivative(arg1, arg2, arg3, (double const*)arg4, arg5);
+        (griddyn_status)gridDynSimulationDerivative(arg1, arg2, arg3, (double const*)arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5883,16 +5883,14 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
-           _wrap_gridDynSimulation_algebraicUpdate,
-           std::string())
+SWIG_DEFUN(gridDynSimulationAlgebraicUpdate, _wrap_gridDynSimulationAlgebraicUpdate, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
     double arg5;
-    solverKey arg6 = (solverKey)0;
+    SolverKey arg6 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -5908,25 +5906,25 @@ SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_algebraicUpdate", args.length(), 6, 6, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationAlgebraicUpdate", args.length(), 6, 6, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "2"
                             " of type '"
@@ -5938,7 +5936,7 @@ SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "3"
                             " of type '"
@@ -5950,7 +5948,7 @@ SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "4"
                             " of type '"
@@ -5962,7 +5960,7 @@ SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
     if (!SWIG_IsOK(ecode5)) {
         SWIG_exception_fail(SWIG_ArgError(ecode5),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "5"
                             " of type '"
@@ -5974,15 +5972,15 @@ SWIG_DEFUN(gridDynSimulation_algebraicUpdate,
     if (!SWIG_IsOK(res6)) {
         SWIG_exception_fail(SWIG_ArgError(res6),
                             "in method '"
-                            "gridDynSimulation_algebraicUpdate"
+                            "gridDynSimulationAlgebraicUpdate"
                             "', argument "
                             "6"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynSimulation_algebraicUpdate(arg1, arg2, arg3, (double const*)arg4, arg5, arg6);
+        gridDynSimulationAlgebraicUpdate(arg1, arg2, arg3, (double const*)arg4, arg5, arg6);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -5990,14 +5988,14 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::string())
+SWIG_DEFUN(gridDynSimulationJacobian, _wrap_gridDynSimulationJacobian, std::string())
 {
-    gridDynSimReference arg1 = (gridDynSimReference)0;
+    GridDynSimulation arg1 = (GridDynSimulation)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
     double arg5;
-    solverKey arg6 = (solverKey)0;
+    SolverKey arg6 = (SolverKey)0;
     void (*arg7)(int, int, double) = (void (*)(int, int, double))0;
     int res1;
     double val2;
@@ -6014,25 +6012,25 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSimulation_jacobian", args.length(), 7, 7, 0)) {
+    if (!SWIG_check_num_args("gridDynSimulationJacobian", args.length(), 7, 7, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "2"
                             " of type '"
@@ -6044,7 +6042,7 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "3"
                             " of type '"
@@ -6056,7 +6054,7 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "4"
                             " of type '"
@@ -6068,7 +6066,7 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
     if (!SWIG_IsOK(ecode5)) {
         SWIG_exception_fail(SWIG_ArgError(ecode5),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "5"
                             " of type '"
@@ -6080,11 +6078,11 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
     if (!SWIG_IsOK(res6)) {
         SWIG_exception_fail(SWIG_ArgError(res6),
                             "in method '"
-                            "gridDynSimulation_jacobian"
+                            "gridDynSimulationJacobian"
                             "', argument "
                             "6"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     {
@@ -6093,7 +6091,7 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
         if (!SWIG_IsOK(res)) {
             SWIG_exception_fail(SWIG_ArgError(res),
                                 "in method '"
-                                "gridDynSimulation_jacobian"
+                                "gridDynSimulationJacobian"
                                 "', argument "
                                 "7"
                                 " of type '"
@@ -6101,7 +6099,7 @@ SWIG_DEFUN(gridDynSimulation_jacobian, _wrap_gridDynSimulation_jacobian, std::st
                                 "'");
         }
     }
-    result = (griddyn_status)gridDynSimulation_jacobian(
+    result = (griddyn_status)gridDynSimulationJacobian(
         arg1, arg2, (double const*)arg3, (double const*)arg4, arg5, arg6, arg7);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
@@ -6110,9 +6108,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSingleQuery_create, _wrap_gridDynSingleQuery_create, std::string())
+SWIG_DEFUN(GridDynSingleQueryCreate, _wrap_GridDynSingleQuery_create, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -6121,27 +6119,27 @@ SWIG_DEFUN(gridDynSingleQuery_create, _wrap_gridDynSingleQuery_create, std::stri
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynSingleQuery result;
+    GridDynSingleQuery result;
 
-    if (!SWIG_check_num_args("gridDynSingleQuery_create", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynSingleQueryCreate", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSingleQuery_create"
+                            "GridDynSingleQueryCreate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSingleQuery_create"
+                            "GridDynSingleQueryCreate"
                             "', argument "
                             "2"
                             " of type '"
@@ -6149,7 +6147,7 @@ SWIG_DEFUN(gridDynSingleQuery_create, _wrap_gridDynSingleQuery_create, std::stri
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (gridDynSingleQuery)gridDynSingleQuery_create(arg1, (char const*)arg2);
+    result = (GridDynSingleQuery)GridDynSingleQueryCreate(arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -6159,9 +6157,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynVectorQuery_create, _wrap_gridDynVectorQuery_create, std::string())
+SWIG_DEFUN(GridDynVectorQueryCreate, _wrap_GridDynVectorQuery_create, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     char* arg2 = (char*)0;
     int res1;
     int res2;
@@ -6170,27 +6168,27 @@ SWIG_DEFUN(gridDynVectorQuery_create, _wrap_gridDynVectorQuery_create, std::stri
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynVectorQuery result;
+    GridDynVectorQuery result;
 
-    if (!SWIG_check_num_args("gridDynVectorQuery_create", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynVectorQueryCreate", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynVectorQuery_create"
+                            "GridDynVectorQueryCreate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynVectorQuery_create"
+                            "GridDynVectorQueryCreate"
                             "', argument "
                             "2"
                             " of type '"
@@ -6198,7 +6196,7 @@ SWIG_DEFUN(gridDynVectorQuery_create, _wrap_gridDynVectorQuery_create, std::stri
                             "'");
     }
     arg2 = reinterpret_cast<char*>(buf2);
-    result = (gridDynVectorQuery)gridDynVectorQuery_create(arg1, (char const*)arg2);
+    result = (GridDynVectorQuery)GridDynVectorQueryCreate(arg1, (char const*)arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -6208,29 +6206,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSingleQuery_free, _wrap_gridDynSingleQuery_free, std::string())
+SWIG_DEFUN(GridDynSingleQueryFree, _wrap_GridDynSingleQuery_free, std::string())
 {
-    gridDynSingleQuery arg1 = (gridDynSingleQuery)0;
+    GridDynSingleQuery arg1 = (GridDynSingleQuery)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynSingleQuery_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynSingleQueryFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSingleQuery_free"
+                            "GridDynSingleQueryFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSingleQuery"
+                            "GridDynSingleQuery"
                             "'");
     }
-    gridDynSingleQuery_free(arg1);
+    GridDynSingleQueryFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6238,29 +6236,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynVectorQuery_free, _wrap_gridDynVectorQuery_free, std::string())
+SWIG_DEFUN(GridDynVectorQueryFree, _wrap_GridDynVectorQuery_free, std::string())
 {
-    gridDynVectorQuery arg1 = (gridDynVectorQuery)0;
+    GridDynVectorQuery arg1 = (GridDynVectorQuery)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynVectorQuery_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynVectorQueryFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynVectorQuery_free"
+                            "GridDynVectorQueryFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynVectorQuery"
+                            "GridDynVectorQuery"
                             "'");
     }
-    gridDynVectorQuery_free(arg1);
+    GridDynVectorQueryFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6268,30 +6266,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSingleQuery_run, _wrap_gridDynSingleQuery_run, std::string())
+SWIG_DEFUN(GridDynSingleQueryRun, _wrap_GridDynSingleQuery_run, std::string())
 {
-    gridDynSingleQuery arg1 = (gridDynSingleQuery)0;
+    GridDynSingleQuery arg1 = (GridDynSingleQuery)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     double result;
 
-    if (!SWIG_check_num_args("gridDynSingleQuery_run", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynSingleQueryRun", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSingleQuery_run"
+                            "GridDynSingleQueryRun"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSingleQuery"
+                            "GridDynSingleQuery"
                             "'");
     }
-    result = (double)gridDynSingleQuery_run(arg1);
+    result = (double)GridDynSingleQueryRun(arg1);
     _outv = SWIG_From_double(static_cast<double>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6299,9 +6297,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynVectorQuery_run, _wrap_gridDynVectorQuery_run, std::string())
+SWIG_DEFUN(GridDynVectorQueryRun, _wrap_GridDynVectorQuery_run, std::string())
 {
-    gridDynVectorQuery arg1 = (gridDynVectorQuery)0;
+    GridDynVectorQuery arg1 = (GridDynVectorQuery)0;
     double* arg2 = (double*)0;
     int arg3;
     int res1;
@@ -6314,25 +6312,25 @@ SWIG_DEFUN(gridDynVectorQuery_run, _wrap_gridDynVectorQuery_run, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynVectorQuery_run", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynVectorQueryRun", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynVectorQuery_run"
+                            "GridDynVectorQueryRun"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynVectorQuery"
+                            "GridDynVectorQuery"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynVectorQuery_run"
+                            "GridDynVectorQueryRun"
                             "', argument "
                             "2"
                             " of type '"
@@ -6344,7 +6342,7 @@ SWIG_DEFUN(gridDynVectorQuery_run, _wrap_gridDynVectorQuery_run, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynVectorQuery_run"
+                            "GridDynVectorQueryRun"
                             "', argument "
                             "3"
                             " of type '"
@@ -6352,7 +6350,7 @@ SWIG_DEFUN(gridDynVectorQuery_run, _wrap_gridDynVectorQuery_run, std::string())
                             "'");
     }
     arg3 = static_cast<int>(val3);
-    result = (griddyn_status)gridDynVectorQuery_run(arg1, arg2, arg3);
+    result = (griddyn_status)GridDynVectorQueryRun(arg1, arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6360,10 +6358,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynVectorQuery_append, _wrap_gridDynVectorQuery_append, std::string())
+SWIG_DEFUN(GridDynVectorQueryAppend, _wrap_GridDynVectorQuery_append, std::string())
 {
-    gridDynVectorQuery arg1 = (gridDynVectorQuery)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynVectorQuery arg1 = (GridDynVectorQuery)0;
+    GridDynObject arg2 = (GridDynObject)0;
     char* arg3 = (char*)0;
     int res1;
     int res2;
@@ -6375,36 +6373,36 @@ SWIG_DEFUN(gridDynVectorQuery_append, _wrap_gridDynVectorQuery_append, std::stri
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynVectorQuery_append", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynVectorQueryAppend", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynVectorQuery_append"
+                            "GridDynVectorQueryAppend"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynVectorQuery"
+                            "GridDynVectorQuery"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynVectorQuery_append"
+                            "GridDynVectorQueryAppend"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res3 = SWIG_AsCharPtrAndSize(args(2), &buf3, NULL, &alloc3);
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynVectorQuery_append"
+                            "GridDynVectorQueryAppend"
                             "', argument "
                             "3"
                             " of type '"
@@ -6412,7 +6410,7 @@ SWIG_DEFUN(gridDynVectorQuery_append, _wrap_gridDynVectorQuery_append, std::stri
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynVectorQuery_append(arg1, arg2, (char const*)arg3);
+    result = (griddyn_status)GridDynVectorQueryAppend(arg1, arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -6422,10 +6420,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynSingleQuery_update, _wrap_gridDynSingleQuery_update, std::string())
+SWIG_DEFUN(GridDynSingleQueryUpdate, _wrap_GridDynSingleQuery_update, std::string())
 {
-    gridDynSingleQuery arg1 = (gridDynSingleQuery)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynSingleQuery arg1 = (GridDynSingleQuery)0;
+    GridDynObject arg2 = (GridDynObject)0;
     char* arg3 = (char*)0;
     int res1;
     int res2;
@@ -6437,36 +6435,36 @@ SWIG_DEFUN(gridDynSingleQuery_update, _wrap_gridDynSingleQuery_update, std::stri
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynSingleQuery_update", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynSingleQueryUpdate", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynSingleQuery_update"
+                            "GridDynSingleQueryUpdate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynSingleQuery"
+                            "GridDynSingleQuery"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynSingleQuery_update"
+                            "GridDynSingleQueryUpdate"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res3 = SWIG_AsCharPtrAndSize(args(2), &buf3, NULL, &alloc3);
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynSingleQuery_update"
+                            "GridDynSingleQueryUpdate"
                             "', argument "
                             "3"
                             " of type '"
@@ -6474,7 +6472,7 @@ SWIG_DEFUN(gridDynSingleQuery_update, _wrap_gridDynSingleQuery_update, std::stri
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynSingleQuery_update(arg1, arg2, (char const*)arg3);
+    result = (griddyn_status)GridDynSingleQueryUpdate(arg1, arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -6484,10 +6482,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynVectorQuery_update, _wrap_gridDynVectorQuery_update, std::string())
+SWIG_DEFUN(GridDynVectorQueryUpdate, _wrap_GridDynVectorQuery_update, std::string())
 {
-    gridDynVectorQuery arg1 = (gridDynVectorQuery)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynVectorQuery arg1 = (GridDynVectorQuery)0;
+    GridDynObject arg2 = (GridDynObject)0;
     char* arg3 = (char*)0;
     int res1;
     int res2;
@@ -6499,36 +6497,36 @@ SWIG_DEFUN(gridDynVectorQuery_update, _wrap_gridDynVectorQuery_update, std::stri
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynVectorQuery_update", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynVectorQueryUpdate", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynVectorQuery_update"
+                            "GridDynVectorQueryUpdate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynVectorQuery"
+                            "GridDynVectorQuery"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynVectorQuery_update"
+                            "GridDynVectorQueryUpdate"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res3 = SWIG_AsCharPtrAndSize(args(2), &buf3, NULL, &alloc3);
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynVectorQuery_update"
+                            "GridDynVectorQueryUpdate"
                             "', argument "
                             "3"
                             " of type '"
@@ -6536,7 +6534,7 @@ SWIG_DEFUN(gridDynVectorQuery_update, _wrap_gridDynVectorQuery_update, std::stri
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynVectorQuery_update(arg1, arg2, (char const*)arg3);
+    result = (griddyn_status)GridDynVectorQueryUpdate(arg1, arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -6546,10 +6544,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_create, _wrap_gridDynEvent_create, std::string())
+SWIG_DEFUN(GridDynEventCreate, _wrap_GridDynEvent_create, std::string())
 {
     char* arg1 = (char*)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynObject arg2 = (GridDynObject)0;
     int res1;
     char* buf1 = 0;
     int alloc1 = 0;
@@ -6557,16 +6555,16 @@ SWIG_DEFUN(gridDynEvent_create, _wrap_gridDynEvent_create, std::string())
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
-    gridDynEvent result;
+    GridDynEvent result;
 
-    if (!SWIG_check_num_args("gridDynEvent_create", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynEventCreate", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_AsCharPtrAndSize(args(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_create"
+                            "GridDynEventCreate"
                             "', argument "
                             "1"
                             " of type '"
@@ -6578,14 +6576,14 @@ SWIG_DEFUN(gridDynEvent_create, _wrap_gridDynEvent_create, std::string())
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_create"
+                            "GridDynEventCreate"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
-    result = (gridDynEvent)gridDynEvent_create((char const*)arg1, arg2);
+    result = (GridDynEvent)GridDynEventCreate((char const*)arg1, arg2);
     _outv = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0);
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
@@ -6595,29 +6593,29 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_free, _wrap_gridDynEvent_free, std::string())
+SWIG_DEFUN(GridDynEventFree, _wrap_GridDynEvent_free, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
 
-    if (!SWIG_check_num_args("gridDynEvent_free", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynEventFree", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_free"
+                            "GridDynEventFree"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
-    gridDynEvent_free(arg1);
+    GridDynEventFree(arg1);
     _outv = octave_value();
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6625,30 +6623,30 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_trigger, _wrap_gridDynEvent_trigger, std::string())
+SWIG_DEFUN(GridDynEventTrigger, _wrap_GridDynEvent_trigger, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
     int res1;
     octave_value_list _out;
     octave_value_list* _outp = &_out;
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_trigger", args.length(), 1, 1, 0)) {
+    if (!SWIG_check_num_args("GridDynEventTrigger", args.length(), 1, 1, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_trigger"
+                            "GridDynEventTrigger"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
-    result = (griddyn_status)gridDynEvent_trigger(arg1);
+    result = (griddyn_status)GridDynEventTrigger(arg1);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6656,10 +6654,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_schedule, _wrap_gridDynEvent_schedule, std::string())
+SWIG_DEFUN(GridDynEventSchedule, _wrap_GridDynEvent_schedule, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
-    gridDynSimReference arg2 = (gridDynSimReference)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
+    GridDynSimulation arg2 = (GridDynSimulation)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -6667,32 +6665,32 @@ SWIG_DEFUN(gridDynEvent_schedule, _wrap_gridDynEvent_schedule, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_schedule", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynEventSchedule", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_schedule"
+                            "GridDynEventSchedule"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_schedule"
+                            "GridDynEventSchedule"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynSimReference"
+                            "GridDynSimulation"
                             "'");
     }
-    result = (griddyn_status)gridDynEvent_schedule(arg1, arg2);
+    result = (griddyn_status)GridDynEventSchedule(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6700,9 +6698,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_setValue, _wrap_gridDynEvent_setValue, std::string())
+SWIG_DEFUN(GridDynEventSetValue, _wrap_GridDynEvent_setValue, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
     char* arg2 = (char*)0;
     double arg3;
     int res1;
@@ -6716,25 +6714,25 @@ SWIG_DEFUN(gridDynEvent_setValue, _wrap_gridDynEvent_setValue, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_setValue", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynEventSetValue", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_setValue"
+                            "GridDynEventSetValue"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_setValue"
+                            "GridDynEventSetValue"
                             "', argument "
                             "2"
                             " of type '"
@@ -6746,7 +6744,7 @@ SWIG_DEFUN(gridDynEvent_setValue, _wrap_gridDynEvent_setValue, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynEvent_setValue"
+                            "GridDynEventSetValue"
                             "', argument "
                             "3"
                             " of type '"
@@ -6754,7 +6752,7 @@ SWIG_DEFUN(gridDynEvent_setValue, _wrap_gridDynEvent_setValue, std::string())
                             "'");
     }
     arg3 = static_cast<double>(val3);
-    result = (griddyn_status)gridDynEvent_setValue(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynEventSetValue(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -6764,9 +6762,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_setString, _wrap_gridDynEvent_setString, std::string())
+SWIG_DEFUN(GridDynEventSetString, _wrap_GridDynEvent_setString, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
     char* arg2 = (char*)0;
     char* arg3 = (char*)0;
     int res1;
@@ -6781,25 +6779,25 @@ SWIG_DEFUN(gridDynEvent_setString, _wrap_gridDynEvent_setString, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_setString", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynEventSetString", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_setString"
+                            "GridDynEventSetString"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_setString"
+                            "GridDynEventSetString"
                             "', argument "
                             "2"
                             " of type '"
@@ -6811,7 +6809,7 @@ SWIG_DEFUN(gridDynEvent_setString, _wrap_gridDynEvent_setString, std::string())
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynEvent_setString"
+                            "GridDynEventSetString"
                             "', argument "
                             "3"
                             " of type '"
@@ -6819,7 +6817,7 @@ SWIG_DEFUN(gridDynEvent_setString, _wrap_gridDynEvent_setString, std::string())
                             "'");
     }
     arg3 = reinterpret_cast<char*>(buf3);
-    result = (griddyn_status)gridDynEvent_setString(arg1, (char const*)arg2, (char const*)arg3);
+    result = (griddyn_status)GridDynEventSetString(arg1, (char const*)arg2, (char const*)arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -6831,9 +6829,9 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_setFlag, _wrap_gridDynEvent_setFlag, std::string())
+SWIG_DEFUN(GridDynEventSetFlag, _wrap_GridDynEvent_setFlag, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
     char* arg2 = (char*)0;
     int arg3;
     int res1;
@@ -6847,25 +6845,25 @@ SWIG_DEFUN(gridDynEvent_setFlag, _wrap_gridDynEvent_setFlag, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_setFlag", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynEventSetFlag", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_setFlag"
+                            "GridDynEventSetFlag"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
     res2 = SWIG_AsCharPtrAndSize(args(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_setFlag"
+                            "GridDynEventSetFlag"
                             "', argument "
                             "2"
                             " of type '"
@@ -6877,7 +6875,7 @@ SWIG_DEFUN(gridDynEvent_setFlag, _wrap_gridDynEvent_setFlag, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynEvent_setFlag"
+                            "GridDynEventSetFlag"
                             "', argument "
                             "3"
                             " of type '"
@@ -6885,7 +6883,7 @@ SWIG_DEFUN(gridDynEvent_setFlag, _wrap_gridDynEvent_setFlag, std::string())
                             "'");
     }
     arg3 = static_cast<int>(val3);
-    result = (griddyn_status)gridDynEvent_setFlag(arg1, (char const*)arg2, arg3);
+    result = (griddyn_status)GridDynEventSetFlag(arg1, (char const*)arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -6895,10 +6893,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynEvent_setTarget, _wrap_gridDynEvent_setTarget, std::string())
+SWIG_DEFUN(GridDynEventSetTarget, _wrap_GridDynEvent_setTarget, std::string())
 {
-    gridDynEvent arg1 = (gridDynEvent)0;
-    gridDynObject arg2 = (gridDynObject)0;
+    GridDynEvent arg1 = (GridDynEvent)0;
+    GridDynObject arg2 = (GridDynObject)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -6906,32 +6904,32 @@ SWIG_DEFUN(gridDynEvent_setTarget, _wrap_gridDynEvent_setTarget, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynEvent_setTarget", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynEventSetTarget", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynEvent_setTarget"
+                            "GridDynEventSetTarget"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynEvent"
+                            "GridDynEvent"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynEvent_setTarget"
+                            "GridDynEventSetTarget"
                             "', argument "
                             "2"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
-    result = (griddyn_status)gridDynEvent_setTarget(arg1, arg2);
+    result = (griddyn_status)GridDynEventSetTarget(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6939,10 +6937,10 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_stateSize, _wrap_gridDynObject_stateSize, std::string())
+SWIG_DEFUN(GridDynObjectStateSize, _wrap_GridDynObject_stateSize, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
-    solverKey arg2 = (solverKey)0;
+    GridDynObject arg1 = (GridDynObject)0;
+    SolverKey arg2 = (SolverKey)0;
     int res1;
     int res2;
     octave_value_list _out;
@@ -6950,32 +6948,32 @@ SWIG_DEFUN(gridDynObject_stateSize, _wrap_gridDynObject_stateSize, std::string()
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_stateSize", args.length(), 2, 2, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectStateSize", args.length(), 2, 2, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_stateSize"
+                            "GridDynObjectStateSize"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), SWIG_as_voidptrptr(&arg2), 0, 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_stateSize"
+                            "GridDynObjectStateSize"
                             "', argument "
                             "2"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_stateSize(arg1, arg2);
+    result = (griddyn_status)GridDynObjectStateSize(arg1, arg2);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -6983,13 +6981,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_guessState, _wrap_gridDynObject_guessState, std::string())
+SWIG_DEFUN(GridDynObjectGuessState, _wrap_GridDynObject_guessState, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -7003,25 +7001,25 @@ SWIG_DEFUN(gridDynObject_guessState, _wrap_gridDynObject_guessState, std::string
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_guessState", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGuessState", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_guessState"
+                            "GridDynObjectGuessState"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynObject_guessState"
+                            "GridDynObjectGuessState"
                             "', argument "
                             "2"
                             " of type '"
@@ -7033,7 +7031,7 @@ SWIG_DEFUN(gridDynObject_guessState, _wrap_gridDynObject_guessState, std::string
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_guessState"
+                            "GridDynObjectGuessState"
                             "', argument "
                             "3"
                             " of type '"
@@ -7045,7 +7043,7 @@ SWIG_DEFUN(gridDynObject_guessState, _wrap_gridDynObject_guessState, std::string
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_guessState"
+                            "GridDynObjectGuessState"
                             "', argument "
                             "4"
                             " of type '"
@@ -7057,14 +7055,14 @@ SWIG_DEFUN(gridDynObject_guessState, _wrap_gridDynObject_guessState, std::string
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_guessState"
+                            "GridDynObjectGuessState"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_guessState(arg1, arg2, arg3, arg4, arg5);
+    result = (griddyn_status)GridDynObjectGuessState(arg1, arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7072,13 +7070,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_setState, _wrap_gridDynObject_setState, std::string())
+SWIG_DEFUN(GridDynObjectSetState, _wrap_GridDynObject_setState, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double arg2;
     double* arg3 = (double*)0;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     double val2;
     int ecode2 = 0;
@@ -7092,25 +7090,25 @@ SWIG_DEFUN(gridDynObject_setState, _wrap_gridDynObject_setState, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_setState", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectSetState", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_setState"
+                            "GridDynObjectSetState"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     ecode2 = SWIG_AsVal_double(args(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
         SWIG_exception_fail(SWIG_ArgError(ecode2),
                             "in method '"
-                            "gridDynObject_setState"
+                            "GridDynObjectSetState"
                             "', argument "
                             "2"
                             " of type '"
@@ -7122,7 +7120,7 @@ SWIG_DEFUN(gridDynObject_setState, _wrap_gridDynObject_setState, std::string())
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_setState"
+                            "GridDynObjectSetState"
                             "', argument "
                             "3"
                             " of type '"
@@ -7134,7 +7132,7 @@ SWIG_DEFUN(gridDynObject_setState, _wrap_gridDynObject_setState, std::string())
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_setState"
+                            "GridDynObjectSetState"
                             "', argument "
                             "4"
                             " of type '"
@@ -7146,15 +7144,15 @@ SWIG_DEFUN(gridDynObject_setState, _wrap_gridDynObject_setState, std::string())
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_setState"
+                            "GridDynObjectSetState"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynObject_setState(arg1, arg2, (double const*)arg3, (double const*)arg4, arg5);
+        GridDynObjectSetState(arg1, arg2, (double const*)arg3, (double const*)arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7162,13 +7160,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_getStateVariableTypes,
-           _wrap_gridDynObject_getStateVariableTypes,
+SWIG_DEFUN(GridDynObjectGetStateVariableTypes,
+           _wrap_GridDynObject_getStateVariableTypes,
            std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
-    solverKey arg3 = (solverKey)0;
+    SolverKey arg3 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7178,25 +7176,25 @@ SWIG_DEFUN(gridDynObject_getStateVariableTypes,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_getStateVariableTypes", args.length(), 3, 3, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectGetStateVariableTypes", args.length(), 3, 3, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_getStateVariableTypes"
+                            "GridDynObjectGetStateVariableTypes"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_getStateVariableTypes"
+                            "GridDynObjectGetStateVariableTypes"
                             "', argument "
                             "2"
                             " of type '"
@@ -7208,14 +7206,14 @@ SWIG_DEFUN(gridDynObject_getStateVariableTypes,
     if (!SWIG_IsOK(res3)) {
         SWIG_exception_fail(SWIG_ArgError(res3),
                             "in method '"
-                            "gridDynObject_getStateVariableTypes"
+                            "GridDynObjectGetStateVariableTypes"
                             "', argument "
                             "3"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_getStateVariableTypes(arg1, arg2, arg3);
+    result = (griddyn_status)GridDynObjectGetStateVariableTypes(arg1, arg2, arg3);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7223,13 +7221,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_residual, _wrap_gridDynObject_residual, std::string())
+SWIG_DEFUN(GridDynObjectResidual, _wrap_GridDynObject_residual, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7243,25 +7241,25 @@ SWIG_DEFUN(gridDynObject_residual, _wrap_gridDynObject_residual, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_residual", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectResidual", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_residual"
+                            "GridDynObjectResidual"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_residual"
+                            "GridDynObjectResidual"
                             "', argument "
                             "2"
                             " of type '"
@@ -7273,7 +7271,7 @@ SWIG_DEFUN(gridDynObject_residual, _wrap_gridDynObject_residual, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_residual"
+                            "GridDynObjectResidual"
                             "', argument "
                             "3"
                             " of type '"
@@ -7285,7 +7283,7 @@ SWIG_DEFUN(gridDynObject_residual, _wrap_gridDynObject_residual, std::string())
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_residual"
+                            "GridDynObjectResidual"
                             "', argument "
                             "4"
                             " of type '"
@@ -7297,14 +7295,14 @@ SWIG_DEFUN(gridDynObject_residual, _wrap_gridDynObject_residual, std::string())
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_residual"
+                            "GridDynObjectResidual"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_residual(arg1, (double const*)arg2, arg3, arg4, arg5);
+    result = (griddyn_status)GridDynObjectResidual(arg1, (double const*)arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7312,13 +7310,13 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_derivative, _wrap_gridDynObject_derivative, std::string())
+SWIG_DEFUN(GridDynObjectDerivative, _wrap_GridDynObject_derivative, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     double* arg4 = (double*)0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7332,25 +7330,25 @@ SWIG_DEFUN(gridDynObject_derivative, _wrap_gridDynObject_derivative, std::string
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_derivative", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectDerivative", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_derivative"
+                            "GridDynObjectDerivative"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_derivative"
+                            "GridDynObjectDerivative"
                             "', argument "
                             "2"
                             " of type '"
@@ -7362,7 +7360,7 @@ SWIG_DEFUN(gridDynObject_derivative, _wrap_gridDynObject_derivative, std::string
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_derivative"
+                            "GridDynObjectDerivative"
                             "', argument "
                             "3"
                             " of type '"
@@ -7374,7 +7372,7 @@ SWIG_DEFUN(gridDynObject_derivative, _wrap_gridDynObject_derivative, std::string
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_derivative"
+                            "GridDynObjectDerivative"
                             "', argument "
                             "4"
                             " of type '"
@@ -7386,14 +7384,14 @@ SWIG_DEFUN(gridDynObject_derivative, _wrap_gridDynObject_derivative, std::string
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_derivative"
+                            "GridDynObjectDerivative"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
-    result = (griddyn_status)gridDynObject_derivative(arg1, (double const*)arg2, arg3, arg4, arg5);
+    result = (griddyn_status)GridDynObjectDerivative(arg1, (double const*)arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7401,14 +7399,14 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, std::string())
+SWIG_DEFUN(GridDynObjectAlgebraicUpdate, _wrap_GridDynObject_algebraicUpdate, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     double* arg4 = (double*)0;
     double arg5;
-    solverKey arg6 = (solverKey)0;
+    SolverKey arg6 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7424,25 +7422,25 @@ SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, s
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_algebraicUpdate", args.length(), 6, 6, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectAlgebraicUpdate", args.length(), 6, 6, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "2"
                             " of type '"
@@ -7454,7 +7452,7 @@ SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, s
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "3"
                             " of type '"
@@ -7466,7 +7464,7 @@ SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, s
     if (!SWIG_IsOK(res4)) {
         SWIG_exception_fail(SWIG_ArgError(res4),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "4"
                             " of type '"
@@ -7478,7 +7476,7 @@ SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, s
     if (!SWIG_IsOK(ecode5)) {
         SWIG_exception_fail(SWIG_ArgError(ecode5),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "5"
                             " of type '"
@@ -7490,15 +7488,15 @@ SWIG_DEFUN(gridDynObject_algebraicUpdate, _wrap_gridDynObject_algebraicUpdate, s
     if (!SWIG_IsOK(res6)) {
         SWIG_exception_fail(SWIG_ArgError(res6),
                             "in method '"
-                            "gridDynObject_algebraicUpdate"
+                            "GridDynObjectAlgebraicUpdate"
                             "', argument "
                             "6"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynObject_algebraicUpdate(arg1, (double const*)arg2, arg3, arg4, arg5, arg6);
+        GridDynObjectAlgebraicUpdate(arg1, (double const*)arg2, arg3, arg4, arg5, arg6);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7506,14 +7504,14 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
+SWIG_DEFUN(GridDynObjectJacobian, _wrap_GridDynObject_jacobian, std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     double arg4;
     void (*arg5)(int, int, double) = (void (*)(int, int, double))0;
-    solverKey arg6 = (solverKey)0;
+    SolverKey arg6 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7527,25 +7525,25 @@ SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_jacobian", args.length(), 6, 6, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectJacobian", args.length(), 6, 6, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_jacobian"
+                            "GridDynObjectJacobian"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_jacobian"
+                            "GridDynObjectJacobian"
                             "', argument "
                             "2"
                             " of type '"
@@ -7557,7 +7555,7 @@ SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_jacobian"
+                            "GridDynObjectJacobian"
                             "', argument "
                             "3"
                             " of type '"
@@ -7569,7 +7567,7 @@ SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
     if (!SWIG_IsOK(ecode4)) {
         SWIG_exception_fail(SWIG_ArgError(ecode4),
                             "in method '"
-                            "gridDynObject_jacobian"
+                            "GridDynObjectJacobian"
                             "', argument "
                             "4"
                             " of type '"
@@ -7583,7 +7581,7 @@ SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
         if (!SWIG_IsOK(res)) {
             SWIG_exception_fail(SWIG_ArgError(res),
                                 "in method '"
-                                "gridDynObject_jacobian"
+                                "GridDynObjectJacobian"
                                 "', argument "
                                 "5"
                                 " of type '"
@@ -7595,15 +7593,15 @@ SWIG_DEFUN(gridDynObject_jacobian, _wrap_gridDynObject_jacobian, std::string())
     if (!SWIG_IsOK(res6)) {
         SWIG_exception_fail(SWIG_ArgError(res6),
                             "in method '"
-                            "gridDynObject_jacobian"
+                            "GridDynObjectJacobian"
                             "', argument "
                             "6"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result =
-        (griddyn_status)gridDynObject_jacobian(arg1, (double const*)arg2, arg3, arg4, arg5, arg6);
+        (griddyn_status)GridDynObjectJacobian(arg1, (double const*)arg2, arg3, arg4, arg5, arg6);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7611,15 +7609,15 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_ioPartialDerivatives,
-           _wrap_gridDynObject_ioPartialDerivatives,
+SWIG_DEFUN(GridDynObjectIoPartialDerivatives,
+           _wrap_GridDynObject_ioPartialDerivatives,
            std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     void (*arg4)(int, int, double) = (void (*)(int, int, double))0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7631,25 +7629,25 @@ SWIG_DEFUN(gridDynObject_ioPartialDerivatives,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_ioPartialDerivatives", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectIoPartialDerivatives", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_ioPartialDerivatives"
+                            "GridDynObjectIoPartialDerivatives"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_ioPartialDerivatives"
+                            "GridDynObjectIoPartialDerivatives"
                             "', argument "
                             "2"
                             " of type '"
@@ -7661,7 +7659,7 @@ SWIG_DEFUN(gridDynObject_ioPartialDerivatives,
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_ioPartialDerivatives"
+                            "GridDynObjectIoPartialDerivatives"
                             "', argument "
                             "3"
                             " of type '"
@@ -7675,7 +7673,7 @@ SWIG_DEFUN(gridDynObject_ioPartialDerivatives,
         if (!SWIG_IsOK(res)) {
             SWIG_exception_fail(SWIG_ArgError(res),
                                 "in method '"
-                                "gridDynObject_ioPartialDerivatives"
+                                "GridDynObjectIoPartialDerivatives"
                                 "', argument "
                                 "4"
                                 " of type '"
@@ -7687,15 +7685,15 @@ SWIG_DEFUN(gridDynObject_ioPartialDerivatives,
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_ioPartialDerivatives"
+                            "GridDynObjectIoPartialDerivatives"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynObject_ioPartialDerivatives(arg1, (double const*)arg2, arg3, arg4, arg5);
+        GridDynObjectIoPartialDerivatives(arg1, (double const*)arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7703,15 +7701,15 @@ fail:
     return octave_value_list();
 }
 
-SWIG_DEFUN(gridDynObject_outputPartialDerivatives,
-           _wrap_gridDynObject_outputPartialDerivatives,
+SWIG_DEFUN(GridDynObjectOutputPartialDerivatives,
+           _wrap_GridDynObject_outputPartialDerivatives,
            std::string())
 {
-    gridDynObject arg1 = (gridDynObject)0;
+    GridDynObject arg1 = (GridDynObject)0;
     double* arg2 = (double*)0;
     int arg3;
     void (*arg4)(int, int, double) = (void (*)(int, int, double))0;
-    solverKey arg5 = (solverKey)0;
+    SolverKey arg5 = (SolverKey)0;
     int res1;
     void* argp2 = 0;
     int res2 = 0;
@@ -7723,25 +7721,25 @@ SWIG_DEFUN(gridDynObject_outputPartialDerivatives,
     octave_value _outv;
     griddyn_status result;
 
-    if (!SWIG_check_num_args("gridDynObject_outputPartialDerivatives", args.length(), 5, 5, 0)) {
+    if (!SWIG_check_num_args("GridDynObjectOutputPartialDerivatives", args.length(), 5, 5, 0)) {
         SWIG_fail;
     }
     res1 = SWIG_ConvertPtr(args(0), SWIG_as_voidptrptr(&arg1), 0, 0);
     if (!SWIG_IsOK(res1)) {
         SWIG_exception_fail(SWIG_ArgError(res1),
                             "in method '"
-                            "gridDynObject_outputPartialDerivatives"
+                            "GridDynObjectOutputPartialDerivatives"
                             "', argument "
                             "1"
                             " of type '"
-                            "gridDynObject"
+                            "GridDynObject"
                             "'");
     }
     res2 = SWIG_ConvertPtr(args(1), &argp2, SWIGTYPE_p_double, 0 | 0);
     if (!SWIG_IsOK(res2)) {
         SWIG_exception_fail(SWIG_ArgError(res2),
                             "in method '"
-                            "gridDynObject_outputPartialDerivatives"
+                            "GridDynObjectOutputPartialDerivatives"
                             "', argument "
                             "2"
                             " of type '"
@@ -7753,7 +7751,7 @@ SWIG_DEFUN(gridDynObject_outputPartialDerivatives,
     if (!SWIG_IsOK(ecode3)) {
         SWIG_exception_fail(SWIG_ArgError(ecode3),
                             "in method '"
-                            "gridDynObject_outputPartialDerivatives"
+                            "GridDynObjectOutputPartialDerivatives"
                             "', argument "
                             "3"
                             " of type '"
@@ -7767,7 +7765,7 @@ SWIG_DEFUN(gridDynObject_outputPartialDerivatives,
         if (!SWIG_IsOK(res)) {
             SWIG_exception_fail(SWIG_ArgError(res),
                                 "in method '"
-                                "gridDynObject_outputPartialDerivatives"
+                                "GridDynObjectOutputPartialDerivatives"
                                 "', argument "
                                 "4"
                                 " of type '"
@@ -7779,15 +7777,15 @@ SWIG_DEFUN(gridDynObject_outputPartialDerivatives,
     if (!SWIG_IsOK(res5)) {
         SWIG_exception_fail(SWIG_ArgError(res5),
                             "in method '"
-                            "gridDynObject_outputPartialDerivatives"
+                            "GridDynObjectOutputPartialDerivatives"
                             "', argument "
                             "5"
                             " of type '"
-                            "solverKey"
+                            "SolverKey"
                             "'");
     }
     result = (griddyn_status)
-        gridDynObject_outputPartialDerivatives(arg1, (double const*)arg2, arg3, arg4, arg5);
+        GridDynObjectOutputPartialDerivatives(arg1, (double const*)arg2, arg3, arg4, arg5);
     _outv = SWIG_From_int(static_cast<int>(result));
     if (_outv.is_defined()) _outp = SWIG_Octave_AppendOutput(_outp, _outv);
     return _out;
@@ -7812,104 +7810,99 @@ static const struct swig_octave_member swig_globals[] = {
     {"doubleArray___paren_asgn__", _wrap_doubleArray___paren_asgn__, 0, 0, 2, 0},
     {"doubleArray_cast", _wrap_doubleArray_cast, 0, 0, 2, 0},
     {"doubleArray_frompointer", _wrap_doubleArray_frompointer, 0, 0, 2, 0},
-    {"gridDynObject_create", _wrap_gridDynObject_create, 0, 0, 2, 0},
-    {"gridDynObject_clone", _wrap_gridDynObject_clone, 0, 0, 2, 0},
-    {"gridDynObject_free", _wrap_gridDynObject_free, 0, 0, 2, 0},
-    {"gridDynObject_add", _wrap_gridDynObject_add, 0, 0, 2, 0},
-    {"gridDynObject_remove", _wrap_gridDynObject_remove, 0, 0, 2, 0},
-    {"gridDynObject_setString", _wrap_gridDynObject_setString, 0, 0, 2, 0},
-    {"gridDynObject_setValue", _wrap_gridDynObject_setValue, 0, 0, 2, 0},
-    {"gridDynObject_setValueUnits", _wrap_gridDynObject_setValueUnits, 0, 0, 2, 0},
-    {"gridDynObject_setFlag", _wrap_gridDynObject_setFlag, 0, 0, 2, 0},
-    {"gridDynObject_getString", _wrap_gridDynObject_getString, 0, 0, 2, 0},
-    {"gridDynObject_getValue", _wrap_gridDynObject_getValue, 0, 0, 2, 0},
-    {"gridDynObject_getValueUnits", _wrap_gridDynObject_getValueUnits, 0, 0, 2, 0},
-    {"gridDynObject_getFlag", _wrap_gridDynObject_getFlag, 0, 0, 2, 0},
-    {"gridDynObject_find", _wrap_gridDynObject_find, 0, 0, 2, 0},
-    {"gridDynObject_getSubObject", _wrap_gridDynObject_getSubObject, 0, 0, 2, 0},
-    {"gridDynObject_findByUserId", _wrap_gridDynObject_findByUserId, 0, 0, 2, 0},
-    {"gridDynObject_getParent", _wrap_gridDynObject_getParent, 0, 0, 2, 0},
-    {"gridDynObject_getType", _wrap_gridDynObject_getType, 0, 0, 2, 0},
-    {"gridDynSimulation_create", _wrap_gridDynSimulation_create, 0, 0, 2, 0},
-    {"gridDynSimulation_free", _wrap_gridDynSimulation_free, 0, 0, 2, 0},
-    {"gridDynSimulation_initializeFromString",
-     _wrap_gridDynSimulation_initializeFromString,
+    {"GridDynObjectCreate", _wrap_GridDynObject_create, 0, 0, 2, 0},
+    {"GridDynObjectClone", _wrap_GridDynObject_clone, 0, 0, 2, 0},
+    {"GridDynObjectFree", _wrap_GridDynObject_free, 0, 0, 2, 0},
+    {"GridDynObjectAdd", _wrap_GridDynObject_add, 0, 0, 2, 0},
+    {"GridDynObjectRemove", _wrap_GridDynObject_remove, 0, 0, 2, 0},
+    {"GridDynObjectSetString", _wrap_GridDynObject_setString, 0, 0, 2, 0},
+    {"GridDynObjectSetValue", _wrap_GridDynObject_setValue, 0, 0, 2, 0},
+    {"GridDynObjectSetValueUnits", _wrap_GridDynObject_setValueUnits, 0, 0, 2, 0},
+    {"GridDynObjectSetFlag", _wrap_GridDynObject_setFlag, 0, 0, 2, 0},
+    {"GridDynObjectGetString", _wrap_GridDynObject_getString, 0, 0, 2, 0},
+    {"GridDynObjectGetValue", _wrap_GridDynObject_getValue, 0, 0, 2, 0},
+    {"GridDynObjectGetValueUnits", _wrap_GridDynObject_getValueUnits, 0, 0, 2, 0},
+    {"GridDynObjectGetFlag", _wrap_GridDynObject_getFlag, 0, 0, 2, 0},
+    {"GridDynObjectFind", _wrap_GridDynObject_find, 0, 0, 2, 0},
+    {"GridDynObjectGetSubObject", _wrap_GridDynObject_getSubObject, 0, 0, 2, 0},
+    {"GridDynObjectFindByUserId", _wrap_GridDynObject_findByUserId, 0, 0, 2, 0},
+    {"GridDynObjectGetParent", _wrap_GridDynObject_getParent, 0, 0, 2, 0},
+    {"GridDynObjectGetType", _wrap_GridDynObject_getType, 0, 0, 2, 0},
+    {"gridDynSimulationCreate", _wrap_gridDynSimulationCreate, 0, 0, 2, 0},
+    {"gridDynSimulationFree", _wrap_gridDynSimulationFree, 0, 0, 2, 0},
+    {"gridDynSimulationInitializeFromString",
+     _wrap_gridDynSimulationInitializeFromString,
      0,
      0,
      2,
      0},
-    {"gridDynSimulation_initializeFromArgs",
-     _wrap_gridDynSimulation_initializeFromArgs,
+    {"gridDynSimulationInitializeFromArgs", _wrap_gridDynSimulationInitializeFromArgs, 0, 0, 2, 0},
+    {"gridDynSimulationLoadfile", _wrap_gridDynSimulationLoadfile, 0, 0, 2, 0},
+    {"gridDynSimulationAddCommand", _wrap_gridDynSimulationAddCommand, 0, 0, 2, 0},
+    {"gridDynSimulationPowerflowInitialize",
+     _wrap_gridDynSimulationPowerflowInitialize,
      0,
      0,
      2,
      0},
-    {"gridDynSimulation_loadfile", _wrap_gridDynSimulation_loadfile, 0, 0, 2, 0},
-    {"gridDynSimulation_addCommand", _wrap_gridDynSimulation_addCommand, 0, 0, 2, 0},
-    {"gridDynSimulation_powerflowInitialize",
-     _wrap_gridDynSimulation_powerflowInitialize,
-     0,
-     0,
-     2,
-     0},
-    {"gridDynSimulation_powerflow", _wrap_gridDynSimulation_powerflow, 0, 0, 2, 0},
-    {"gridDynSimulation_dynamicInitialize", _wrap_gridDynSimulation_dynamicInitialize, 0, 0, 2, 0},
-    {"gridDynSimulation_reset", _wrap_gridDynSimulation_reset, 0, 0, 2, 0},
-    {"gridDynSimulation_getCurrentTime", _wrap_gridDynSimulation_getCurrentTime, 0, 0, 2, 0},
-    {"gridDynSimulation_run", _wrap_gridDynSimulation_run, 0, 0, 2, 0},
-    {"gridDynSimulation_runTo", _wrap_gridDynSimulation_runTo, 0, 0, 2, 0},
-    {"gridDynSimulation_Step", _wrap_gridDynSimulation_Step, 0, 0, 2, 0},
-    {"gridDynSimulation_runAsync", _wrap_gridDynSimulation_runAsync, 0, 0, 2, 0},
-    {"gridDynSimulation_runToAsync", _wrap_gridDynSimulation_runToAsync, 0, 0, 2, 0},
-    {"gridDynSimulation_StepAsync", _wrap_gridDynSimulation_StepAsync, 0, 0, 2, 0},
-    {"gridDynSimulation_getStatus", _wrap_gridDynSimulation_getStatus, 0, 0, 2, 0},
+    {"gridDynSimulationPowerflow", _wrap_gridDynSimulationPowerflow, 0, 0, 2, 0},
+    {"gridDynSimulationDynamicInitialize", _wrap_gridDynSimulationDynamicInitialize, 0, 0, 2, 0},
+    {"gridDynSimulationReset", _wrap_gridDynSimulationReset, 0, 0, 2, 0},
+    {"gridDynSimulationGetCurrentTime", _wrap_gridDynSimulationGetCurrentTime, 0, 0, 2, 0},
+    {"gridDynSimulationRun", _wrap_gridDynSimulationRun, 0, 0, 2, 0},
+    {"gridDynSimulationRunTo", _wrap_gridDynSimulationRunTo, 0, 0, 2, 0},
+    {"gridDynSimulationStep", _wrap_gridDynSimulationStep, 0, 0, 2, 0},
+    {"gridDynSimulationRunAsync", _wrap_gridDynSimulationRunAsync, 0, 0, 2, 0},
+    {"gridDynSimulationRunToAsync", _wrap_gridDynSimulationRunToAsync, 0, 0, 2, 0},
+    {"gridDynSimulationStepAsync", _wrap_gridDynSimulationStepAsync, 0, 0, 2, 0},
+    {"gridDynSimulationGetStatus", _wrap_gridDynSimulationGetStatus, 0, 0, 2, 0},
     {"getSimulationObject", _wrap_getSimulationObject, 0, 0, 2, 0},
-    {"gridDynSimulation_getSolverKey", _wrap_gridDynSimulation_getSolverKey, 0, 0, 2, 0},
-    {"gridDynSolverKey_free", _wrap_gridDynSolverKey_free, 0, 0, 2, 0},
-    {"gridDynSimulation_stateSize", _wrap_gridDynSimulation_stateSize, 0, 0, 2, 0},
-    {"gridDynSimulation_busCount", _wrap_gridDynSimulation_busCount, 0, 0, 2, 0},
-    {"gridDynSimulation_lineCount", _wrap_gridDynSimulation_lineCount, 0, 0, 2, 0},
-    {"gridDynSimulation_getResults", _wrap_gridDynSimulation_getResults, 0, 0, 2, 0},
-    {"gridDynSimulation_guessState", _wrap_gridDynSimulation_guessState, 0, 0, 2, 0},
-    {"gridDynSimulation_setState", _wrap_gridDynSimulation_setState, 0, 0, 2, 0},
-    {"gridDynSimulation_getStateVariableTypes",
-     _wrap_gridDynSimulation_getStateVariableTypes,
+    {"gridDynSimulationGetSolverKey", _wrap_gridDynSimulationGetSolverKey, 0, 0, 2, 0},
+    {"gridDynSolverKeyFree", _wrap_gridDynSolverKeyFree, 0, 0, 2, 0},
+    {"gridDynSimulationStateSize", _wrap_gridDynSimulationStateSize, 0, 0, 2, 0},
+    {"gridDynSimulationBusCount", _wrap_gridDynSimulationBusCount, 0, 0, 2, 0},
+    {"gridDynSimulationLineCount", _wrap_gridDynSimulationLineCount, 0, 0, 2, 0},
+    {"gridDynSimulationGetResults", _wrap_gridDynSimulationGetResults, 0, 0, 2, 0},
+    {"gridDynSimulationGuessState", _wrap_gridDynSimulationGuessState, 0, 0, 2, 0},
+    {"gridDynSimulationSetState", _wrap_gridDynSimulationSetState, 0, 0, 2, 0},
+    {"gridDynSimulationGetStateVariableTypes",
+     _wrap_gridDynSimulationGetStateVariableTypes,
      0,
      0,
      2,
      0},
-    {"gridDynSimulation_residual", _wrap_gridDynSimulation_residual, 0, 0, 2, 0},
-    {"gridDynSimulation_derivative", _wrap_gridDynSimulation_derivative, 0, 0, 2, 0},
-    {"gridDynSimulation_algebraicUpdate", _wrap_gridDynSimulation_algebraicUpdate, 0, 0, 2, 0},
-    {"gridDynSimulation_jacobian", _wrap_gridDynSimulation_jacobian, 0, 0, 2, 0},
-    {"gridDynSingleQuery_create", _wrap_gridDynSingleQuery_create, 0, 0, 2, 0},
-    {"gridDynVectorQuery_create", _wrap_gridDynVectorQuery_create, 0, 0, 2, 0},
-    {"gridDynSingleQuery_free", _wrap_gridDynSingleQuery_free, 0, 0, 2, 0},
-    {"gridDynVectorQuery_free", _wrap_gridDynVectorQuery_free, 0, 0, 2, 0},
-    {"gridDynSingleQuery_run", _wrap_gridDynSingleQuery_run, 0, 0, 2, 0},
-    {"gridDynVectorQuery_run", _wrap_gridDynVectorQuery_run, 0, 0, 2, 0},
-    {"gridDynVectorQuery_append", _wrap_gridDynVectorQuery_append, 0, 0, 2, 0},
-    {"gridDynSingleQuery_update", _wrap_gridDynSingleQuery_update, 0, 0, 2, 0},
-    {"gridDynVectorQuery_update", _wrap_gridDynVectorQuery_update, 0, 0, 2, 0},
-    {"gridDynEvent_create", _wrap_gridDynEvent_create, 0, 0, 2, 0},
-    {"gridDynEvent_free", _wrap_gridDynEvent_free, 0, 0, 2, 0},
-    {"gridDynEvent_trigger", _wrap_gridDynEvent_trigger, 0, 0, 2, 0},
-    {"gridDynEvent_schedule", _wrap_gridDynEvent_schedule, 0, 0, 2, 0},
-    {"gridDynEvent_setValue", _wrap_gridDynEvent_setValue, 0, 0, 2, 0},
-    {"gridDynEvent_setString", _wrap_gridDynEvent_setString, 0, 0, 2, 0},
-    {"gridDynEvent_setFlag", _wrap_gridDynEvent_setFlag, 0, 0, 2, 0},
-    {"gridDynEvent_setTarget", _wrap_gridDynEvent_setTarget, 0, 0, 2, 0},
-    {"gridDynObject_stateSize", _wrap_gridDynObject_stateSize, 0, 0, 2, 0},
-    {"gridDynObject_guessState", _wrap_gridDynObject_guessState, 0, 0, 2, 0},
-    {"gridDynObject_setState", _wrap_gridDynObject_setState, 0, 0, 2, 0},
-    {"gridDynObject_getStateVariableTypes", _wrap_gridDynObject_getStateVariableTypes, 0, 0, 2, 0},
-    {"gridDynObject_residual", _wrap_gridDynObject_residual, 0, 0, 2, 0},
-    {"gridDynObject_derivative", _wrap_gridDynObject_derivative, 0, 0, 2, 0},
-    {"gridDynObject_algebraicUpdate", _wrap_gridDynObject_algebraicUpdate, 0, 0, 2, 0},
-    {"gridDynObject_jacobian", _wrap_gridDynObject_jacobian, 0, 0, 2, 0},
-    {"gridDynObject_ioPartialDerivatives", _wrap_gridDynObject_ioPartialDerivatives, 0, 0, 2, 0},
-    {"gridDynObject_outputPartialDerivatives",
-     _wrap_gridDynObject_outputPartialDerivatives,
+    {"gridDynSimulationResidual", _wrap_gridDynSimulationResidual, 0, 0, 2, 0},
+    {"gridDynSimulationDerivative", _wrap_gridDynSimulationDerivative, 0, 0, 2, 0},
+    {"gridDynSimulationAlgebraicUpdate", _wrap_gridDynSimulationAlgebraicUpdate, 0, 0, 2, 0},
+    {"gridDynSimulationJacobian", _wrap_gridDynSimulationJacobian, 0, 0, 2, 0},
+    {"GridDynSingleQueryCreate", _wrap_GridDynSingleQuery_create, 0, 0, 2, 0},
+    {"GridDynVectorQueryCreate", _wrap_GridDynVectorQuery_create, 0, 0, 2, 0},
+    {"GridDynSingleQueryFree", _wrap_GridDynSingleQuery_free, 0, 0, 2, 0},
+    {"GridDynVectorQueryFree", _wrap_GridDynVectorQuery_free, 0, 0, 2, 0},
+    {"GridDynSingleQueryRun", _wrap_GridDynSingleQuery_run, 0, 0, 2, 0},
+    {"GridDynVectorQueryRun", _wrap_GridDynVectorQuery_run, 0, 0, 2, 0},
+    {"GridDynVectorQueryAppend", _wrap_GridDynVectorQuery_append, 0, 0, 2, 0},
+    {"GridDynSingleQueryUpdate", _wrap_GridDynSingleQuery_update, 0, 0, 2, 0},
+    {"GridDynVectorQueryUpdate", _wrap_GridDynVectorQuery_update, 0, 0, 2, 0},
+    {"GridDynEventCreate", _wrap_GridDynEvent_create, 0, 0, 2, 0},
+    {"GridDynEventFree", _wrap_GridDynEvent_free, 0, 0, 2, 0},
+    {"GridDynEventTrigger", _wrap_GridDynEvent_trigger, 0, 0, 2, 0},
+    {"GridDynEventSchedule", _wrap_GridDynEvent_schedule, 0, 0, 2, 0},
+    {"GridDynEventSetValue", _wrap_GridDynEvent_setValue, 0, 0, 2, 0},
+    {"GridDynEventSetString", _wrap_GridDynEvent_setString, 0, 0, 2, 0},
+    {"GridDynEventSetFlag", _wrap_GridDynEvent_setFlag, 0, 0, 2, 0},
+    {"GridDynEventSetTarget", _wrap_GridDynEvent_setTarget, 0, 0, 2, 0},
+    {"GridDynObjectStateSize", _wrap_GridDynObject_stateSize, 0, 0, 2, 0},
+    {"GridDynObjectGuessState", _wrap_GridDynObject_guessState, 0, 0, 2, 0},
+    {"GridDynObjectSetState", _wrap_GridDynObject_setState, 0, 0, 2, 0},
+    {"GridDynObjectGetStateVariableTypes", _wrap_GridDynObject_getStateVariableTypes, 0, 0, 2, 0},
+    {"GridDynObjectResidual", _wrap_GridDynObject_residual, 0, 0, 2, 0},
+    {"GridDynObjectDerivative", _wrap_GridDynObject_derivative, 0, 0, 2, 0},
+    {"GridDynObjectAlgebraicUpdate", _wrap_GridDynObject_algebraicUpdate, 0, 0, 2, 0},
+    {"GridDynObjectJacobian", _wrap_GridDynObject_jacobian, 0, 0, 2, 0},
+    {"GridDynObjectIoPartialDerivatives", _wrap_GridDynObject_ioPartialDerivatives, 0, 0, 2, 0},
+    {"GridDynObjectOutputPartialDerivatives",
+     _wrap_GridDynObject_outputPartialDerivatives,
      0,
      0,
      2,
@@ -7939,7 +7932,7 @@ static swig_type_info _swigt__p_int = {"_p_int", "int *|griddyn_status *", 0, 0,
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_void = {
     "_p_void",
-    "gridDynObject|gridDynVectorQuery|gridDynSimReference|gridDynEvent|void *|solverKey|gridDynSingleQuery",
+    "GridDynObject|GridDynVectorQuery|GridDynSimulation|GridDynEvent|void *|SolverKey|GridDynSingleQuery",
     0,
     0,
     (void*)0,

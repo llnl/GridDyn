@@ -26,13 +26,13 @@
 
 using namespace griddyn;
 
-static const std::string fault_test_directory(GRIDDYN_TEST_DIRECTORY "/fault_tests/");
+static constexpr const char fault_test_directory[] = GRIDDYN_TEST_DIRECTORY "/fault_tests/";
 
 class FaultTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
-TEST_F(FaultTests, FaultTest1)
+TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complexity)
 {
-    std::string fileName = fault_test_directory + "fault_test1.xml";
+    std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
     auto cof = coreObjectFactory::instance();
     CoreObject* obj = nullptr;
@@ -80,9 +80,9 @@ TEST_F(FaultTests, FaultTest1)
 }
 
 // testing with an exciter added
-TEST_F(FaultTests, FaultTest2)
+TEST_F(FaultTests, FaultTest2)  // NOLINT(readability-function-cognitive-complexity)
 {
-    std::string fileName = fault_test_directory + "fault_test1.xml";
+    std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
     auto cof = coreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
@@ -128,9 +128,9 @@ TEST_F(FaultTests, FaultTest2)
 // #endif
 
 // testing with a governor added
-TEST_F(FaultTests, FaultTest3)
+TEST_F(FaultTests, FaultTest3)  // NOLINT(readability-function-cognitive-complexity)
 {
-    std::string fileName = fault_test_directory + "fault_test1.xml";
+    std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
     auto cof = coreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
@@ -179,7 +179,7 @@ TEST_F(FaultTests, FaultTest3)
 
 TEST_F(FaultTests, DISABLED_GecoFaultCase)
 {
-    std::string fileName = fault_test_directory + "geco_fault_uncoupled.xml";
+    std::string fileName = std::string(fault_test_directory) + "geco_fault_uncoupled.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::debug;
@@ -190,7 +190,7 @@ TEST_F(FaultTests, DISABLED_GecoFaultCase)
     int mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
     ASSERT_EQ(mmatch, 0);
-    mmatch = runResidualCheck(gds, cDaeSolverMode);
+    runResidualCheck(gds, cDaeSolverMode);
 
     gds->run();
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
@@ -203,7 +203,7 @@ TEST_F(FaultTests, LinkTestFaultDynamic)
     //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault2.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault2.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::trace;
@@ -224,7 +224,7 @@ TEST_F(FaultTests, LinkTestFaultDynamic)
 TEST_F(FaultTests, LinkTestFaultFuse)
 {
     // test a fuse
-    std::string fileName = fault_test_directory + "link_fault_fuse.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_fuse.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::warning;
@@ -246,7 +246,7 @@ TEST_F(FaultTests, LinkTestFaultFuse)
 TEST_F(FaultTests, LinkTestFaultFuse2)
 {
     // test whether fuses are working properly
-    std::string fileName = fault_test_directory + "link_fault_fuse2.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_fuse2.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::debug;
@@ -266,7 +266,7 @@ TEST_F(FaultTests, LinkTestFaultFuse2)
 TEST_F(FaultTests, LinkTestFaultFuse3)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault_fuse3.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_fuse3.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::debug;
@@ -291,7 +291,7 @@ TEST_F(FaultTests, LinkTestFaultFuse3)
 TEST_F(FaultTests, LinkTestFaultBreaker)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault_breaker.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_breaker.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::warning;
@@ -313,7 +313,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker)
 TEST_F(FaultTests, LinkTestFaultBreaker2)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault_breaker2.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_breaker2.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::warning;
@@ -335,7 +335,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker2)
 TEST_F(FaultTests, LinkTestFaultBreaker3)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault_breaker3.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_breaker3.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::warning;
@@ -357,7 +357,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker3)
 TEST_F(FaultTests, LinkTestFaultBreaker4)
 {
     // test a bunch of different link parameters to make sure all the solve properly
-    std::string fileName = fault_test_directory + "link_fault_breaker4.xml";
+    std::string fileName = std::string(fault_test_directory) + "link_fault_breaker4.xml";
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = print_level::warning;

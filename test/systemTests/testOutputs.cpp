@@ -40,6 +40,6 @@ TEST_F(OutputTests, OutputTest1)
     std::vector<double> st2 = gds2->getState(cPflowSolverMode);
 
     auto diff = countDiffs(st1, st2, 0.000001);
-    EXPECT_EQ(diff, 0u);
-    remove("testout.cdf");
+    EXPECT_EQ(diff, 0U);
+    static_cast<void>(remove("testout.cdf"));
 }

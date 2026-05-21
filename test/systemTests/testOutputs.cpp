@@ -27,7 +27,7 @@ TEST_F(OutputTests, OutputTest1)
 {
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
 
-    simpleStageCheck(fileName, gridSimulation::gridState_t::POWERFLOW_COMPLETE);
+    simpleStageCheck(fileName, GridSimulation::gridState_t::POWERFLOW_COMPLETE);
     savePowerFlowCdf(gds.get(), "testout.cdf");
 
     ASSERT_TRUE(std::filesystem::exists("testout.cdf"));
@@ -40,6 +40,6 @@ TEST_F(OutputTests, OutputTest1)
     std::vector<double> st2 = gds2->getState(cPflowSolverMode);
 
     auto diff = countDiffs(st1, st2, 0.000001);
-    EXPECT_EQ(diff, 0u);
-    remove("testout.cdf");
+    EXPECT_EQ(diff, 0U);
+    static_cast<void>(remove("testout.cdf"));
 }

@@ -7,7 +7,6 @@
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
-#include "griddyn/GridDynSimulation.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Collector.h"
 #include <cmath>
@@ -30,21 +29,21 @@ TEST_F(RecorderTests, TsMultiTests)
 {
     TimeSeriesMulti<> ts2;
     TimeSeriesMulti<> ts3(1, 10);
-    std::vector<double> tv(10);
+    std::vector<double> timeValues(10);
     std::vector<double> val(10);
     ts2.setCols(1);
-    double t = 0.0;
+    double currentTime = 0.0;
     for (int kk = 0; kk < 10; ++kk) {
-        ts2.addData(t, 4.5);
-        tv[kk] = t;
+        ts2.addData(currentTime, 4.5);
+        timeValues[kk] = currentTime;
         val[kk] = 4.5;
-        t = t + 1.0;
+        currentTime = currentTime + 1.0;
     }
     EXPECT_EQ(ts2.size(), 10U);
-    ts3.addData(tv, val);
+    ts3.addData(timeValues, val);
     EXPECT_EQ(ts3.size(), 10U);
 
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-4);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-4);  // NOLINT(readability-suspicious-call-argument)
 
     ts3.setCols(4);
     ts3.addData(val, 1);
@@ -52,16 +51,18 @@ TEST_F(RecorderTests, TsMultiTests)
     ts3.addData(val, 3);
     ts3.updateData(3, 4, 6.5);
 
-    EXPECT_NEAR(compare(ts2, ts3, 0, 3), 2.0, std::abs(2.0) * 1e-6 + 1e-12);
+    EXPECT_NEAR(compare(ts2, ts3, 0, 3),
+                2.0,
+                (std::abs(2.0) * 1e-6) + 1e-12);  // NOLINT(readability-suspicious-call-argument)
 }
 
 TEST_F(RecorderTests, FileSaveTests)
 {
     TimeSeriesMulti<> ts2(1);
-    double t = 0.0;
+    double currentTime = 0.0;
     for (int kk = 0; kk < 10; ++kk) {
-        ts2.addData(t, 4.5);
-        t = t + 1.0;
+        ts2.addData(currentTime, 4.5);
+        currentTime = currentTime + 1.0;
     }
     EXPECT_EQ(ts2.size(), 10U);
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "ts_test.dat");
@@ -72,24 +73,24 @@ TEST_F(RecorderTests, FileSaveTests)
     ts3.loadBinaryFile(fileName);
     EXPECT_EQ(ts3.columns(), 1U);
     EXPECT_EQ(ts3.size(), 10U);
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
     int ret = remove(fileName.c_str());
 
     EXPECT_EQ(ret, 0);
 }
 
-TEST_F(RecorderTests, FileSaveTests2)
+TEST_F(RecorderTests, FileSaveTests2)  // NOLINT(readability-function-cognitive-complexity)
 {
     TimeSeriesMulti<> ts2;
     ts2.setCols(4);  // test the set cols method
     EXPECT_EQ(ts2.columns(), 4);
 
-    std::vector<double> vt{4.5, 5.5, 6.5, 7.5};
+    std::vector<double> valueTrace{4.5, 5.5, 6.5, 7.5};
 
-    double t = 0.0;
+    double currentTime = 0.0;
     for (int kk = 0; kk < 30; ++kk) {
-        ts2.addData(t, vt);
-        t = t + 1.0;
+        ts2.addData(currentTime, valueTrace);
+        currentTime = currentTime + 1.0;
     }
     EXPECT_EQ(ts2.size(), 30U);
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "ts_test2.dat");
@@ -99,11 +100,11 @@ TEST_F(RecorderTests, FileSaveTests2)
 
     EXPECT_EQ(ts3.columns(), 4U);
     EXPECT_EQ(ts3.size(), 30U);
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
 
     ts3.updateData(3, 2, 7.0);
-    double diff = compare(ts2, ts3);
-    EXPECT_NEAR(diff, 0.5, std::abs(0.5) * 1e-5 + 1e-12);
+    double diff = compare(ts2, ts3);  // NOLINT(readability-suspicious-call-argument)
+    EXPECT_NEAR(diff, 0.5, (std::abs(0.5) * 1e-5) + 1e-12);
     EXPECT_EQ(ts3.size(), ts3[3].size());
     int ret = remove(fileName.c_str());
 
@@ -223,7 +224,7 @@ TEST_F(RecorderTests, RecorderTest4)
 
     EXPECT_EQ(ret, 0);
 
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
 }
 
 // testing the vector recorders of the simulation object
@@ -255,7 +256,7 @@ TEST_F(RecorderTests, RecorderTest5)
     ts3.loadBinaryFile(recname);
 
     EXPECT_EQ(ts3.size(), 61U);
-    EXPECT_EQ(ts3.columns(), 5u);
+    EXPECT_EQ(ts3.columns(), 5U);
     ret = remove(recname.c_str());
 
     EXPECT_EQ(ret, 0);
@@ -295,7 +296,7 @@ TEST_F(RecorderTests, RecorderTest6)
 
     EXPECT_EQ(ret, 0);
 
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
 }
 
 // testing multiple :: naming for fields
@@ -333,7 +334,7 @@ TEST_F(RecorderTests, RecorderTest7)
 
     EXPECT_EQ(ret, 0);
 
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
 }
 
 // testing multiple :: naming for fields and units
@@ -359,7 +360,7 @@ TEST_F(RecorderTests, RecorderTest8)
     int ret = remove(recname.c_str());
     EXPECT_EQ(ret, 0);
     // check to make sure the conversion is correct
-    EXPECT_NEAR(ts3.data(0, 3) * 180 / kPI - ts3.data(2, 3), 0.0, 1e-4);
+    EXPECT_NEAR((ts3.data(0, 3) * 180 / kPI) - ts3.data(2, 3), 0.0, 1e-4);
 
     recname = std::string(RECORDER_TEST_DIRECTORY "busrec2.dat");
     TimeSeriesMulti<> ts2;
@@ -371,7 +372,7 @@ TEST_F(RecorderTests, RecorderTest8)
 
     EXPECT_EQ(ret, 0);
 
-    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);
+    EXPECT_NEAR(compare(ts2, ts3), 0.0, 1e-5);  // NOLINT(readability-suspicious-call-argument)
 }
 
 // testing gain and bias
@@ -395,7 +396,7 @@ TEST_F(RecorderTests, RecorderTest9)
     EXPECT_EQ(ts2.columns(), 4U);
     int ret = remove(recname.c_str());
     EXPECT_EQ(ret, 0);
-    EXPECT_NEAR(ts2.data(1, 2) - 1.0, ts2.data(3, 2), std::abs(ts2.data(3, 2)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ts2.data(1, 2) - 1.0, ts2.data(3, 2), (std::abs(ts2.data(3, 2)) * 1e-6) + 1e-12);
 }
 
 // testing multiple grabber calculations
@@ -421,10 +422,10 @@ TEST_F(RecorderTests, RecorderTest10)
     EXPECT_EQ(ret, 0);
     EXPECT_NEAR(ts2.data(0, 2) - ts2.data(1, 2),
                 ts2.data(2, 2),
-                std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(2, 2)) * 1e-6) + 1e-12);
     EXPECT_NEAR(ts2.data(0, 8) - ts2.data(1, 8),
                 ts2.data(2, 8),
-                std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(2, 8)) * 1e-6) + 1e-12);
 }
 
 TEST_F(RecorderTests, RecorderTest11)
@@ -449,10 +450,10 @@ TEST_F(RecorderTests, RecorderTest11)
     EXPECT_EQ(ret, 0);
     EXPECT_NEAR(ts2.data(0, 2) - (ts2.data(1, 2) - ts2.data(2, 2)),
                 ts2.data(3, 2),
-                std::abs(ts2.data(3, 2)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(3, 2)) * 1e-6) + 1e-12);
     EXPECT_NEAR(ts2.data(0, 8) - (ts2.data(1, 8) - ts2.data(2, 8)),
                 ts2.data(3, 8),
-                std::abs(ts2.data(3, 8)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(3, 8)) * 1e-6) + 1e-12);
 }
 
 // testing function calls
@@ -478,10 +479,10 @@ TEST_F(RecorderTests, RecorderTest12)
     EXPECT_EQ(ret, 0);
     EXPECT_NEAR(sin(ts2.data(0, 2) - ts2.data(1, 2)),
                 ts2.data(2, 2),
-                std::abs(ts2.data(2, 2)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(2, 2)) * 1e-6) + 1e-12);
     EXPECT_NEAR(sin(ts2.data(0, 8) - ts2.data(1, 8)),
                 ts2.data(2, 8),
-                std::abs(ts2.data(2, 8)) * 1e-6 + 1e-12);
+                (std::abs(ts2.data(2, 8)) * 1e-6) + 1e-12);
 }
 
 // test and invalid input
@@ -489,7 +490,7 @@ TEST_F(RecorderTests, RecorderTestBadInput)
 {
     std::string fileName =
         std::string(collector_test_directory) + "recorder_test_invalid_field1.xml";
-    printf("NOTE:  this should produce some warning messages\n");
+    static_cast<void>(std::fputs("NOTE:  this should produce some warning messages\n", stdout));
     gds = readSimXMLFile(fileName);
 
     EXPECT_GT(readerConfig::warnCount, 0);

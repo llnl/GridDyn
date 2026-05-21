@@ -24,8 +24,10 @@ Checks: >
   -cert-err58-cpp,
   portability-*,
   readability-*,
+  -readability-function-cognitive-complexity,
   -readability-magic-numbers,
   -readability-qualified-auto,
+  -readability-suspicious-call-argument,
   performance-*
 
 WarningsAsErrors: >
@@ -47,8 +49,10 @@ WarningsAsErrors: >
   -bugprone-narrowing-conversions,
   portability-*,
   readability-*,
+  -readability-function-cognitive-complexity,
   -readability-magic-numbers,
   -readability-qualified-auto,
+  -readability-suspicious-call-argument,
   performance-*
 
 HeaderFilterRegex: "*test.*cpp"

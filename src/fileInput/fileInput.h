@@ -63,9 +63,6 @@ namespace readerConfig {
     extern MatchType defMatchType;  //!< control for how names are matches in the xm
 }  // namespace readerConfig
 
-enum readerflags {
-
-};
 /** @brief defined flags for the readerInfo*/
 enum ReaderFlags {
     IGNORE_STEP_UP_TRANSFORMER = 1,  //!< ignore any step up transformer definitions

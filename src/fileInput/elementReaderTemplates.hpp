@@ -225,7 +225,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-COMPONENT* ElementReaderSetup(std::shared_ptr<readerElement>& element,
+COMPONENT* elementReaderSetup(std::shared_ptr<readerElement>& element,
                               COMPONENT* mobj,
                               const std::string& component,
                               readerInfo& ri,
@@ -248,7 +248,7 @@ COMPONENT* ElementReaderSetup(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-COMPONENT* ElementReader(std::shared_ptr<readerElement>& element,
+COMPONENT* elementReader(std::shared_ptr<readerElement>& element,
                          COMPONENT* mobj,
                          const std::string& component,
                          readerInfo& ri,
@@ -256,7 +256,7 @@ COMPONENT* ElementReader(std::shared_ptr<readerElement>& element,
 {
     auto riScope = ri.newScope();
 
-    mobj = ElementReaderSetup(element, mobj, component, ri, searchObject);
+    mobj = elementReaderSetup(element, mobj, component, ri, searchObject);
 
     loadElementInformation(mobj, element, component, ri, emptyIgnoreList);
 

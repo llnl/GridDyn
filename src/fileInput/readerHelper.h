@@ -30,7 +30,7 @@ class readerInfo;
 class CoreObject;
 class basicReaderInfo;
 
-void paramStringProcess(gridParameter& param, readerInfo& readerInformation);
+void processParamString(gridParameter& param, readerInfo& readerInformation);
 
 double convertBV(std::string& baseVoltageCode);
 

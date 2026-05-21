@@ -44,7 +44,7 @@ namespace {
                              readerInfo& readerInf,
                              CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, parentObject);
     }
 
@@ -52,7 +52,7 @@ namespace {
                             readerInfo& readerInf,
                             CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, parentObject);
     }
 
@@ -60,7 +60,7 @@ namespace {
                              readerInfo& readerInf,
                              CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<Governor*>(nullptr), "governor", readerInf, parentObject);
     }
 
@@ -68,7 +68,7 @@ namespace {
                         readerInfo& readerInf,
                         CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<Stabilizer*>(nullptr), "pss", readerInf, parentObject);
     }
 
@@ -76,7 +76,7 @@ namespace {
                            readerInfo& readerInf,
                            CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<Source*>(nullptr), "source", readerInf, parentObject);
     }
 
@@ -84,7 +84,7 @@ namespace {
                               readerInfo& readerInf,
                               CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, parentObject);
     }
 
@@ -92,7 +92,7 @@ namespace {
                         readerInfo& readerInf,
                         CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<AGControl*>(nullptr), "agc", readerInf, parentObject);
     }
 
@@ -100,7 +100,7 @@ namespace {
                                       readerInfo& readerInf,
                                       CoreObject* parentObject)
     {
-        return ElementReader(currentElement,
+        return elementReader(currentElement,
                              static_cast<reserveDispatcher*>(nullptr),
                              "reservedispatcher",
                              readerInf,
@@ -111,7 +111,7 @@ namespace {
                           readerInfo& readerInf,
                           CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<GridBlock*>(nullptr), "block", readerInf, parentObject);
     }
 
@@ -119,7 +119,7 @@ namespace {
                               readerInfo& readerInf,
                               CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<Generator*>(nullptr), "generator", readerInf, parentObject);
     }
 
@@ -127,7 +127,7 @@ namespace {
                          readerInfo& readerInf,
                          CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<GridLoad*>(nullptr), "load", readerInf, parentObject);
     }
 
@@ -135,7 +135,7 @@ namespace {
                           readerInfo& readerInf,
                           CoreObject* parentObject)
     {
-        return ElementReader(
+        return elementReader(
             currentElement, static_cast<CoreObject*>(nullptr), "extra", readerInf, parentObject);
     }
 

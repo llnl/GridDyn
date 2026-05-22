@@ -27,8 +27,8 @@ using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
 using gmlc::utilities::stringOps::trimString;
 
-static ClassFactory<Event> gEventFactory(
-    std::vector<std::string>{"event", "simple", "single"}, "event");
+static ClassFactory<Event> gEventFactory(std::vector<std::string>{"event", "simple", "single"},
+                                         "event");
 namespace events {
     static ChildClassFactory<Player, Event>
         gPlayerFactory(std::vector<std::string>{"player", "timeseries", "file"});
@@ -41,8 +41,8 @@ namespace events {
 
     static ChildClassFactory<interpolatingPlayer, Event> gInterpolatingPlayerFactory(
         std::vector<std::string>{"interpolating", "interp", "interpolated"});
-    static ChildClassFactory<reversibleEvent, Event> gReversibleEventFactory(
-        std::vector<std::string>{"reversible", "undo", "rollback"});
+    static ChildClassFactory<reversibleEvent, Event>
+        gReversibleEventFactory(std::vector<std::string>{"reversible", "undo", "rollback"});
 }  // namespace events
 
 Event::Event(const std::string& eventName):
@@ -299,58 +299,58 @@ bool Event::setTarget(CoreObject* gdo, std::string_view var)
 }
 
 namespace {
-enum class EventType : std::uint8_t {
-    BASIC,
-    COMPOUND,
-    PLAYER,
-    COMPOUND_PLAYER,
-    TOGGLE,
-    INTERPOLATING,
-    REVERSIBLE,
-};
+    enum class EventType : std::uint8_t {
+        BASIC,
+        COMPOUND,
+        PLAYER,
+        COMPOUND_PLAYER,
+        TOGGLE,
+        INTERPOLATING,
+        REVERSIBLE,
+    };
 
-EventType findEventType(EventInfo& gdEI)
-{
-    if (!gdEI.type.empty()) {
-        if ((gdEI.type == "basic") || (gdEI.type == "simple")) {
-            return EventType::BASIC;
+    EventType findEventType(EventInfo& gdEI)
+    {
+        if (!gdEI.type.empty()) {
+            if ((gdEI.type == "basic") || (gdEI.type == "simple")) {
+                return EventType::BASIC;
+            }
+            if (gdEI.type == "player") {
+                return EventType::PLAYER;
+            }
+            if (gdEI.type == "compound") {
+                return EventType::COMPOUND;
+            }
+            if (gdEI.type == "compoundplayer") {
+                return EventType::COMPOUND_PLAYER;
+            }
+            if (gdEI.type == "toggle") {
+                return EventType::TOGGLE;
+            }
+            if (gdEI.type == "reversible") {
+                return EventType::REVERSIBLE;
+            }
+            if ((gdEI.type == "interpolating") || (gdEI.type == "interpolated")) {
+                return EventType::INTERPOLATING;
+            }
         }
-        if (gdEI.type == "player") {
+        if (!gdEI.file.empty()) {
             return EventType::PLAYER;
         }
-        if (gdEI.type == "compound") {
+        if (gdEI.period > timeZero) {
+            return EventType::PLAYER;
+        }
+        if (gdEI.time.size() > 1) {
+            return EventType::PLAYER;
+        }
+        if (gdEI.value.size() > 1) {
             return EventType::COMPOUND;
         }
-        if (gdEI.type == "compoundplayer") {
-            return EventType::COMPOUND_PLAYER;
+        if (gdEI.fieldList.size() > 1) {
+            return EventType::COMPOUND;
         }
-        if (gdEI.type == "toggle") {
-            return EventType::TOGGLE;
-        }
-        if (gdEI.type == "reversible") {
-            return EventType::REVERSIBLE;
-        }
-        if ((gdEI.type == "interpolating") || (gdEI.type == "interpolated")) {
-            return EventType::INTERPOLATING;
-        }
+        return EventType::BASIC;
     }
-    if (!gdEI.file.empty()) {
-        return EventType::PLAYER;
-    }
-    if (gdEI.period > timeZero) {
-        return EventType::PLAYER;
-    }
-    if (gdEI.time.size() > 1) {
-        return EventType::PLAYER;
-    }
-    if (gdEI.value.size() > 1) {
-        return EventType::COMPOUND;
-    }
-    if (gdEI.fieldList.size() > 1) {
-        return EventType::COMPOUND;
-    }
-    return EventType::BASIC;
-}
 }  // namespace
 
 EventInfo::EventInfo(std::string_view eventString, CoreObject* rootObj)

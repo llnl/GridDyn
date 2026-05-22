@@ -37,10 +37,7 @@
 
 namespace griddyn {
 static TypeFactory<GridDynSimulation>
-    gSimulationFactory(
-        "simulation",
-        stringVec{"GridDyn", "gridlab", "gridlabd"},
-        "GridDyn");
+    gSimulationFactory("simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
 
 std::atomic<GridDynSimulation*> GridDynSimulation::s_instance{nullptr};
 

@@ -41,38 +41,23 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 
 namespace griddyn {
 static childTypeFactory<fmi::FmiMELoad, GridLoad>
-    fmild(
-        "load",
-        std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
+    fmild("load", std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
 static childTypeFactory<fmi::FmiCoSimLoad, GridLoad>
-    fmiCSld(
-        "load",
-        std::to_array<std::string_view>({"fmicosimload", "cosim"}));
+    fmiCSld("load", std::to_array<std::string_view>({"fmicosimload", "cosim"}));
 static childTypeFactory<fmi::FmiCoSimLoad3phase, GridLoad>
-    fmiCSld3(
-        "load",
-        std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
+    fmiCSld3("load", std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
 static childTypeFactory<fmi::FmiMELoad3phase, GridLoad>
-    fmiMEld3(
-        "load",
-        std::to_array<std::string_view>(
-            {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
+    fmiMEld3("load",
+             std::to_array<std::string_view>(
+                 {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
 static childTypeFactory<fmi::FmiGovernor, Governor>
-    fmiGov(
-        "governor",
-        std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
+    fmiGov("governor", std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
 static childTypeFactory<fmi::FmiExciter, Exciter>
-    fmiExciter(
-        "exciter",
-        std::to_array<std::string_view>({"fmiexiter", "fmi"}));
+    fmiExciter("exciter", std::to_array<std::string_view>({"fmiexiter", "fmi"}));
 static childTypeFactory<fmi::FmiGenModel, GenModel>
-    fmiGM(
-        "genmodel",
-        std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
+    fmiGM("genmodel", std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
 static childTypeFactory<fmi::CymeDistLoadME, GridLoad>
-    cymeME(
-        "load",
-        std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
+    cymeME("load", std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
 
 void loadFmiLibrary()
 {

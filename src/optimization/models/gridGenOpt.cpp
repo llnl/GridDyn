@@ -37,7 +37,6 @@ namespace {
     }
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridGenOpt, Generator> opgen("basic", "gen", 0, true);
 // NOLINTBEGIN(readability-identifier-length,misc-const-correctness,readability-isolate-declaration)
 

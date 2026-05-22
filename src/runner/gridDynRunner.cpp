@@ -154,10 +154,10 @@ coreTime GriddynRunner::Run()
     m_startTime = std::chrono::high_resolution_clock::now();
     m_gds->run();
     m_stopTime = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsedT = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                PrintLevel::SUMMARY,
-               m_gds->getName() + " executed in " + std::to_string(elapsed_t.count()) + " seconds");
+               m_gds->getName() + " executed in " + std::to_string(elapsedT.count()) + " seconds");
     return m_gds->getSimulationTime();
 }
 
@@ -235,11 +235,11 @@ void GriddynRunner::StopRecording()
     m_gds->log(m_gds.get(), PrintLevel::NORMAL, "Saving recorders...");
     m_gds->saveRecorders();
     m_stopTime = std::chrono::high_resolution_clock::now();
-    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsedT = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                PrintLevel::NORMAL,
                std::string("\nSimulation ") + m_gds->getName() + " executed in " +
-                   std::to_string(elapsed_t.count()) + " seconds");
+                   std::to_string(elapsedT.count()) + " seconds");
 }
 
 void GriddynRunner::Finalize()
@@ -253,9 +253,9 @@ int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allow
     m_startTime = std::chrono::high_resolution_clock::now();
     auto app = generateBaseCommandLineParser(readerInformation);
     app->allow_extras(allowUnrecognized);
-    auto sub_app = generateLocalCommandLineParser(readerInformation);
-    if (sub_app) {
-        app->add_subcommand(std::move(sub_app));
+    auto subApp = generateLocalCommandLineParser(readerInformation);
+    if (subApp) {
+        app->add_subcommand(std::move(subApp));
     }
     try {
         if (mArgcValue > 0) {
@@ -281,11 +281,11 @@ int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allow
     }
     m_stopTime = std::chrono::high_resolution_clock::now();
 
-    const std::chrono::duration<double> elapsed_t = m_stopTime - m_startTime;
+    const std::chrono::duration<double> elapsedT = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                PrintLevel::NORMAL,
                std::string("\nInitialization ") + m_gds->getName() + " executed in " +
-                   std::to_string(elapsed_t.count()) + " seconds");
+                   std::to_string(elapsedT.count()) + " seconds");
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
@@ -396,8 +396,8 @@ std::shared_ptr<CLI::App>
     savestateGroup
         ->add_option_function<std::string>(
             "--jac_state,--jac_state_file",
-            [this](const std::string& jac_file) {
-                captureJacState(m_gds.get(), jac_file, m_gds->getSolverMode("pflow"));
+            [this](const std::string& jacFile) {
+                captureJacState(m_gds.get(), jacFile, m_gds->getSolverMode("pflow"));
             },
             "save the jacobian values of the power flow solution to a file")
         ->transform(defineTransform);

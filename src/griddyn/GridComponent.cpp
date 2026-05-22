@@ -399,24 +399,28 @@ bool GridComponent::isRootCountLoaded(const solverMode& sMode) const
     return offsets.isRootCountLoaded(sMode);
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, operation_flags, std::less<>> user_settable_flags{
-    {"use_bus_frequency", uses_bus_frequency},
-    {"late_b_initialize", late_b_initialize},
-    {"error", error_flag},
-    {"no_gridcomponent_set", no_gridcomponent_set},
-    {"disable_flag_update", disable_flag_updates},
-    {"flag_update_required", flag_update_required},
-    {"pflow_init_required", pflow_init_required},
-    {"sampled_only", no_dynamics},
-};
+static const auto& userSettableFlags()
+{
+    static const std::map<std::string_view, operation_flags, std::less<>> flags{
+        {"use_bus_frequency", uses_bus_frequency},
+        {"late_b_initialize", late_b_initialize},
+        {"error", error_flag},
+        {"no_gridcomponent_set", no_gridcomponent_set},
+        {"disable_flag_update", disable_flag_updates},
+        {"flag_update_required", flag_update_required},
+        {"pflow_init_required", pflow_init_required},
+        {"sampled_only", no_dynamics},
+    };
+    return flags;
+}
 
 // there isn't that many flags that we want to be user settable, most are controlled by the model so
 // allowing them to be set by an external function might not be the best thing
 void GridComponent::setFlag(std::string_view flag, bool val)
 {
-    auto ffind = user_settable_flags.find(flag);
-    if (ffind != user_settable_flags.end()) {
+    const auto& flags = userSettableFlags();
+    auto ffind = flags.find(flag);
+    if (ffind != flags.end()) {
         opFlags.set(ffind->second, val);
         if (flag == "sampled_only") {
             if (opFlags[pFlow_initialized]) {
@@ -446,84 +450,95 @@ void GridComponent::setFlag(std::string_view flag, bool val)
     }
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::vector<index_t> parentSettableFlags{sampled_only,
-                                                      no_gridcomponent_set,
-                                                      separate_processing};
+static const auto& parentSettableFlags()
+{
+    static const std::vector<index_t> flags{
+        sampled_only,
+        no_gridcomponent_set,
+        separate_processing,
+    };
+    return flags;
+}
 
 void GridComponent::parentSetFlag(index_t flagID, bool val, CoreObject* checkParent)
 {
     if (isSameObject(getParent(), checkParent)) {
-        if (std::binary_search(parentSettableFlags.begin(), parentSettableFlags.end(), flagID)) {
+        const auto& flags = parentSettableFlags();
+        if (std::binary_search(flags.begin(), flags.end(), flagID)) {
             opFlags[flagID] = val;
         }
     }
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<std::string_view, operation_flags, std::less<>> flagmap{
-    {"constraints", has_constraints},
-    {"roots", has_roots},
-    {"alg_roots", has_alg_roots},
-    {"voltage_adjustments", has_powerflow_adjustments},
-    {"preex", preEx_requested},
-    {"use_bus_frequency", uses_bus_frequency},
-    {"pflow_states", has_pflow_states},
-    {"dyn_states", has_dyn_states},
-    {"differential_states", has_differential_states},
-    {"not_cloneable", not_cloneable},
-    {"remote_voltage_control", remote_voltage_control},
-    {"local_voltage_control", local_voltage_control},
-    {"indirect_voltage_control", indirect_voltage_control},
-    {"remote_power_control", remote_voltage_control},
-    {"local_power_control", local_power_control},
-    {"indirect_power_control", indirect_power_control},
-    {"pflow_initialized", pFlow_initialized},
-    {"dyn_initialized", dyn_initialized},
-    {"armed", object_armed_flag},
-    {"late_b_initialize", late_b_initialize},
-    {"object_flag1", object_flag1},
-    {"object_flag2", object_flag2},
-    {"object_flag3", object_flag3},
-    {"object_flag4", object_flag4},
-    {"object_flag5", object_flag5},
-    {"object_flag6", object_flag6},
-    {"object_flag7", object_flag7},
-    {"object_flag8", object_flag8},
-    {"object_flag9", object_flag9},
-    {"object_flag10", object_flag10},
-    {"object_flag11", object_flag11},
-    {"object_flag12", object_flag12},
-    {"state_change", state_change_flag},
-    {"object_change", object_change_flag},
-    {"constraint_change", constraint_change_flag},
-    {"root_change", root_change_flag},
-    {"jacobian_count_change", jacobian_count_change_flag},
-    {"slack_bus_change", slack_bus_change},
-    {"voltage_control_change", voltage_control_change},
-    {"error", error_flag},
-    {"connectivity_change", connectivity_change_flag},
-    {"no_powerflow_operations", no_powerflow_operations},
-    {"disconnected", disconnected},
-    {"no_dynamics", no_dynamics},
-    {"sampled_only", no_dynamics},
-    {"disable_flag_update", disable_flag_updates},
-    {"flag_update_required", flag_update_required},
-    {"differential_output", differential_output},
-    {"multipart_calculation_capable", multipart_calculation_capable},
-    {"pflow_init_required", pflow_init_required},
-    {"dc_only", dc_only},
-    {"dc_capable", dc_capable},
-    {"dc_terminal2", dc_terminal2},
-    {"separate_processing", separate_processing},
-    {"three_phase_only", three_phase_only},
-    {"three_phase_capable", three_phase_capable},
-    {"three_phase_terminal2", three_phase_terminal2}};
+static const auto& flagMap()
+{
+    static const std::map<std::string_view, operation_flags, std::less<>> flags{
+        {"constraints", has_constraints},
+        {"roots", has_roots},
+        {"alg_roots", has_alg_roots},
+        {"voltage_adjustments", has_powerflow_adjustments},
+        {"preex", preEx_requested},
+        {"use_bus_frequency", uses_bus_frequency},
+        {"pflow_states", has_pflow_states},
+        {"dyn_states", has_dyn_states},
+        {"differential_states", has_differential_states},
+        {"not_cloneable", not_cloneable},
+        {"remote_voltage_control", remote_voltage_control},
+        {"local_voltage_control", local_voltage_control},
+        {"indirect_voltage_control", indirect_voltage_control},
+        {"remote_power_control", remote_voltage_control},
+        {"local_power_control", local_power_control},
+        {"indirect_power_control", indirect_power_control},
+        {"pflow_initialized", pFlow_initialized},
+        {"dyn_initialized", dyn_initialized},
+        {"armed", object_armed_flag},
+        {"late_b_initialize", late_b_initialize},
+        {"object_flag1", object_flag1},
+        {"object_flag2", object_flag2},
+        {"object_flag3", object_flag3},
+        {"object_flag4", object_flag4},
+        {"object_flag5", object_flag5},
+        {"object_flag6", object_flag6},
+        {"object_flag7", object_flag7},
+        {"object_flag8", object_flag8},
+        {"object_flag9", object_flag9},
+        {"object_flag10", object_flag10},
+        {"object_flag11", object_flag11},
+        {"object_flag12", object_flag12},
+        {"state_change", state_change_flag},
+        {"object_change", object_change_flag},
+        {"constraint_change", constraint_change_flag},
+        {"root_change", root_change_flag},
+        {"jacobian_count_change", jacobian_count_change_flag},
+        {"slack_bus_change", slack_bus_change},
+        {"voltage_control_change", voltage_control_change},
+        {"error", error_flag},
+        {"connectivity_change", connectivity_change_flag},
+        {"no_powerflow_operations", no_powerflow_operations},
+        {"disconnected", disconnected},
+        {"no_dynamics", no_dynamics},
+        {"sampled_only", no_dynamics},
+        {"disable_flag_update", disable_flag_updates},
+        {"flag_update_required", flag_update_required},
+        {"differential_output", differential_output},
+        {"multipart_calculation_capable", multipart_calculation_capable},
+        {"pflow_init_required", pflow_init_required},
+        {"dc_only", dc_only},
+        {"dc_capable", dc_capable},
+        {"dc_terminal2", dc_terminal2},
+        {"separate_processing", separate_processing},
+        {"three_phase_only", three_phase_only},
+        {"three_phase_capable", three_phase_capable},
+        {"three_phase_terminal2", three_phase_terminal2},
+    };
+    return flags;
+}
 
 bool GridComponent::getFlag(std::string_view flag) const
 {
-    auto flagfind = flagmap.find(flag);
-    if (flagfind != flagmap.end()) {
+    const auto& flags = flagMap();
+    auto flagfind = flags.find(flag);
+    if (flagfind != flags.end()) {
         return opFlags[flagfind->second];
     }
     return CoreObject::getFlag(flag);
@@ -557,14 +572,22 @@ void GridComponent::disconnect()
 {
     opFlags.set(disconnected);
 }
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const stringVec locNumStrings{"status", "basefrequency", "basepower"};
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const stringVec locStrStrings{"status"};
+static const stringVec& localNumericStrings()
+{
+    static const stringVec strings{"status", "basefrequency", "basepower"};
+    return strings;
+}
+
+static const stringVec& localStringStrings()
+{
+    static const stringVec strings{"status"};
+    return strings;
+}
 
 void GridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype) const
 {
-    getParamString<GridComponent, CoreObject>(this, pstr, locNumStrings, locStrStrings, {}, pstype);
+    getParamString<GridComponent, CoreObject>(
+        this, pstr, localNumericStrings(), localStringStrings(), {}, pstype);
 }
 
 void GridComponent::set(std::string_view param, std::string_view val)
@@ -898,7 +921,7 @@ change_code
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::setState(coreTime time,
                              const double state[],
-                             const double dstate_dt[],
+                             const double dstateDt[],
                              const solverMode& sMode)
 {
     prevTime = time;
@@ -922,28 +945,28 @@ void GridComponent::setState(coreTime time,
             std::copy(state + solverOffsetsValue.diffOffset,
                       state + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_state.data() + algSize(cLocalSolverMode));
-            std::copy(dstate_dt + solverOffsetsValue.diffOffset,
-                      dstate_dt + solverOffsetsValue.diffOffset + localStates.diffSize,
+            std::copy(dstateDt + solverOffsetsValue.diffOffset,
+                      dstateDt + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_dstate_dt.data() + algSize(cLocalSolverMode));
         } else {
             std::copy(state + solverOffsetsValue.diffOffset,
                       state + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_state.data() + localStates.algSize);
-            std::copy(dstate_dt + solverOffsetsValue.diffOffset,
-                      dstate_dt + solverOffsetsValue.diffOffset + localStates.diffSize,
+            std::copy(dstateDt + solverOffsetsValue.diffOffset,
+                      dstateDt + solverOffsetsValue.diffOffset + localStates.diffSize,
                       m_dstate_dt.data() + localStates.algSize);
         }
     }
 
     for (auto& sub : subObjectList) {
-        sub->setState(time, state, dstate_dt, sMode);
+        sub->setState(time, state, dstateDt, sMode);
     }
 }
 // for saving the state
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::guessState(coreTime time,
                                double state[],
-                               double dstate_dt[],
+                               double dstateDt[],
                                const solverMode& sMode)
 {
     if (!hasStates(sMode)) {
@@ -970,7 +993,7 @@ void GridComponent::guessState(coreTime time,
                       state + solverOffsetsValue.diffOffset);
             std::copy(m_dstate_dt.data() + localAlgSize,
                       m_dstate_dt.data() + localAlgSize + localStates.diffSize,
-                      dstate_dt + solverOffsetsValue.diffOffset);
+                      dstateDt + solverOffsetsValue.diffOffset);
         } else {
             if (solverOffsetsValue.diffOffset == kNullLocation) {
                 std::cout << std::format("{}::{} in mode {} {} ds={}, do={}\n",
@@ -989,12 +1012,12 @@ void GridComponent::guessState(coreTime time,
                       state + solverOffsetsValue.diffOffset);
             std::copy(m_dstate_dt.data() + localStates.algSize,
                       m_dstate_dt.data() + stateCount,
-                      dstate_dt + solverOffsetsValue.diffOffset);
+                      dstateDt + solverOffsetsValue.diffOffset);
         }
     }
 
     for (auto& sub : subObjectList) {
-        sub->guessState(time, state, dstate_dt, sMode);
+        sub->guessState(time, state, dstateDt, sMode);
     }
 }
 
@@ -1289,31 +1312,35 @@ void GridComponent::getVariableType(double sdata[], const solverMode& sMode)
     }
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::map<int, int> alertFlags{
-    std::make_pair(FLAG_CHANGE, 1),
-    std::make_pair(STATE_COUNT_INCREASE, 3),
-    std::make_pair(STATE_COUNT_DECREASE, 3),
-    std::make_pair(STATE_COUNT_CHANGE, 3),
-    std::make_pair(ROOT_COUNT_INCREASE, 2),
-    std::make_pair(ROOT_COUNT_DECREASE, 2),
-    std::make_pair(ROOT_COUNT_CHANGE, 2),
-    std::make_pair(JAC_COUNT_INCREASE, 4),
-    std::make_pair(JAC_COUNT_DECREASE, 4),
-    std::make_pair(JAC_COUNT_CHANGE, 4),
-    std::make_pair(OBJECT_COUNT_INCREASE, 5),
-    std::make_pair(OBJECT_COUNT_DECREASE, 5),
-    std::make_pair(OBJECT_COUNT_CHANGE, 5),
-    std::make_pair(CONSTRAINT_COUNT_DECREASE, 1),
-    std::make_pair(CONSTRAINT_COUNT_INCREASE, 1),
-    std::make_pair(CONSTRAINT_COUNT_CHANGE, 1),
-};
+static const auto& alertFlags()
+{
+    static const std::map<int, int> flags{
+        std::make_pair(FLAG_CHANGE, 1),
+        std::make_pair(STATE_COUNT_INCREASE, 3),
+        std::make_pair(STATE_COUNT_DECREASE, 3),
+        std::make_pair(STATE_COUNT_CHANGE, 3),
+        std::make_pair(ROOT_COUNT_INCREASE, 2),
+        std::make_pair(ROOT_COUNT_DECREASE, 2),
+        std::make_pair(ROOT_COUNT_CHANGE, 2),
+        std::make_pair(JAC_COUNT_INCREASE, 4),
+        std::make_pair(JAC_COUNT_DECREASE, 4),
+        std::make_pair(JAC_COUNT_CHANGE, 4),
+        std::make_pair(OBJECT_COUNT_INCREASE, 5),
+        std::make_pair(OBJECT_COUNT_DECREASE, 5),
+        std::make_pair(OBJECT_COUNT_CHANGE, 5),
+        std::make_pair(CONSTRAINT_COUNT_DECREASE, 1),
+        std::make_pair(CONSTRAINT_COUNT_INCREASE, 1),
+        std::make_pair(CONSTRAINT_COUNT_CHANGE, 1),
+    };
+    return flags;
+}
 
 void GridComponent::alert(CoreObject* object, int code)
 {
     if ((code >= MIN_CHANGE_ALERT) && (code <= MAX_CHANGE_ALERT)) {
-        auto res = alertFlags.find(code);
-        if (res != alertFlags.end()) {
+        const auto& flags = alertFlags();
+        auto res = flags.find(code);
+        if (res != flags.end()) {
             if (!opFlags[disable_flag_updates]) {
                 updateFlags();
             } else {
@@ -1365,53 +1392,63 @@ void GridComponent::setRootOffset(index_t newRootOffset, const solverMode& sMode
     }
 }
 
-static const stringVec emptyStr{};
+static const stringVec& emptyStrings()
+{
+    static const stringVec strings{};
+    return strings;
+}
 
 stringVec GridComponent::localStateNames() const
 {
-    return emptyStr;
+    return emptyStrings();
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::vector<stringVec> inputNamesStr{
-    {"input0", "i0"},
-    {"input1", "i1"},
-    {"input2", "i2"},
-    {"input3", "i3"},
-    {"input4", "i4"},
-    {"input5", "i5"},
-    {"input6", "i6"},
-    {"input7", "i7"},
-    {"input8", "i8"},
-    {"input9", "i9"},
-    {"input10", "i10"},
-    {"input11", "i11"},
-};
+static const std::vector<stringVec>& inputNamesStorage()
+{
+    static const std::vector<stringVec> names{
+        {"input0", "i0"},
+        {"input1", "i1"},
+        {"input2", "i2"},
+        {"input3", "i3"},
+        {"input4", "i4"},
+        {"input5", "i5"},
+        {"input6", "i6"},
+        {"input7", "i7"},
+        {"input8", "i8"},
+        {"input9", "i9"},
+        {"input10", "i10"},
+        {"input11", "i11"},
+    };
+    return names;
+}
 
 const std::vector<stringVec>& GridComponent::inputNames() const
 {
-    return inputNamesStr;
+    return inputNamesStorage();
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static const std::vector<stringVec> outputNamesStr{
-    {"output", "o0", "out0", "output0", "out", "o", "value"},
-    {"output1", "o1", "out1"},
-    {"output2", "o2", "out2"},
-    {"output3", "o3", "out3"},
-    {"output4", "o4", "out4"},
-    {"output5", "o5", "out5"},
-    {"output6", "o6", "out6"},
-    {"output7", "o7", "out7"},
-    {"output8", "o8", "out8"},
-    {"output9", "o9", "out9"},
-    {"output10", "o10", "out10"},
-    {"output11", "o11", "out11"},
-};
+static const std::vector<stringVec>& outputNamesStorage()
+{
+    static const std::vector<stringVec> names{
+        {"output", "o0", "out0", "output0", "out", "o", "value"},
+        {"output1", "o1", "out1"},
+        {"output2", "o2", "out2"},
+        {"output3", "o3", "out3"},
+        {"output4", "o4", "out4"},
+        {"output5", "o5", "out5"},
+        {"output6", "o6", "out6"},
+        {"output7", "o7", "out7"},
+        {"output8", "o8", "out8"},
+        {"output9", "o9", "out9"},
+        {"output10", "o10", "out10"},
+        {"output11", "o11", "out11"},
+    };
+    return names;
+}
 
 const std::vector<stringVec>& GridComponent::outputNames() const
 {
-    return outputNamesStr;
+    return outputNamesStorage();
 }
 
 units::unit GridComponent::inputUnits(index_t /*inputNum*/) const

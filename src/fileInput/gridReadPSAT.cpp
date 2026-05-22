@@ -39,7 +39,7 @@
 namespace griddyn {
 // using namespace units;
 
-// NOLINTBEGIN(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
+// NOLINTBEGIN(misc-use-internal-linkage,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
@@ -1005,6 +1005,6 @@ void loadPsatMotorArray(CoreObject* /*parentObject*/,
     }
 }
 
-// NOLINTEND(misc-use-internal-linkage,bugprone-throwing-static-initialization,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
+// NOLINTEND(misc-use-internal-linkage,misc-const-correctness,readability-isolate-declaration,readability-identifier-length,readability-qualified-auto,performance-inefficient-string-concatenation,bugprone-branch-clone,modernize-use-integer-sign-comparison,bugprone-switch-missing-default-case)
 
 }  // namespace griddyn

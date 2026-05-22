@@ -18,7 +18,6 @@
 #include <vector>
 
 namespace griddyn {
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static const typeFactory<GridBlock>
     blockFactory("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
 static const childTypeFactory<blocks::ControlBlock, GridBlock> controlBlockFactory("block",
@@ -41,7 +40,6 @@ static const childTypeFactory<blocks::FilteredDerivativeBlock, GridBlock>
     filteredDerivativeBlockFactory(
         "block",
         std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 GridBlock::GridBlock(const std::string& objName): GridSubModel(objName)
 {

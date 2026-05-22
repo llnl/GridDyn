@@ -25,7 +25,6 @@
 #include <vector>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridBusOpt, GridBus> opbus("basic", "bus");
 // NOLINTBEGIN(bugprone-branch-clone)
 

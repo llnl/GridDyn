@@ -436,7 +436,7 @@ see GridComponent::dynInitializeA for more details
     */
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const solverMode& sMode);
     /** @brief transfer state information from the objects to a vector
     @param time -the time the state corresponds to
@@ -446,7 +446,7 @@ see GridComponent::dynInitializeA for more details
     @param sMode  -- the solverMode corresponding to the computed state.
     */
     virtual void
-        guessState(coreTime time, double state[], double dstate_dt[], const solverMode& sMode);
+        guessState(coreTime time, double state[], double dstateDt[], const solverMode& sMode);
     /** @brief load tolerance information from the objects
     @param[out] tols -- a double array with the state tolerance information
     @param[in] sMode  -- the solverMode corresponding to the computed state.

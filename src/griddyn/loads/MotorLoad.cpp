@@ -24,7 +24,6 @@ using units::puMW;
 using units::puV;
 
 // setup the load object factories
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<MotorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
 
 static typeFactory<MotorLoad3> mlf3("load",
@@ -32,7 +31,6 @@ static typeFactory<MotorLoad3> mlf3("load",
 
 static typeFactory<MotorLoad5> mlf5("load",
                                     std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 static constexpr double cSmallDiff = 1e-7;
 MotorLoad::MotorLoad(const std::string& objName): GridLoad(objName)

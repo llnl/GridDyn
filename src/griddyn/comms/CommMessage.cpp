@@ -25,7 +25,6 @@ using retriever = cereal::PortableBinaryInputArchive;
 
 namespace griddyn {
 namespace {
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
     std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
         {"overcurrent", OVERCURRENT_ALARM},
         {"undercurrent", UNDERCURRENT_ALARM},
@@ -40,47 +39,32 @@ namespace {
 
 using gmlc::utilities::numeric_conversion;
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeIgnore, "IGNORE", commMessage::ignoreMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypePing, "ping", commMessage::pingMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeReply, "reply", commMessage::replyMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeNoEvent, "NO EVENT", commMessage::NO_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeLocalFault, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRemoteFault, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeBreakerClose, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeLocalFaultCleared,
                       "LOCAL FAULT CLEARED",
                       commMessage::LOCAL_FAULT_CLEARED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRemoteFaultCleared,
                       "REMOTE FAULT CLEARED",
                       commMessage::REMOTE_FAULT_CLEARED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeBreakerTripCommand,
                       "BREAKER TRIP COMMAND",
                       commMessage::BREAKER_TRIP_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeBreakerCloseCommand,
                       "BREAKER CLOSE COMMAND",
                       commMessage::BREAKER_CLOSE_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeBreakerOosCommand,
                       "BREAKER OOS COMMAND",
                       commMessage::BREAKER_OOS_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeAlarmTriggerEvent,
                       "ALARM TRIGGER EVENT",
                       commMessage::ALARM_TRIGGER_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeAlarmClearedEvent,
                       "ALARM CLEARED EVENT",
                       commMessage::ALARM_CLEARED_EVENT);

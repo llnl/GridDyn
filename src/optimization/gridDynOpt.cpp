@@ -23,7 +23,7 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<GridDynOptimization> gfo(  // NOLINT(bugprone-throwing-static-initialization)
+static typeFactory<GridDynOptimization> gfo(
     "simulation",
     std::to_array<std::string_view>({"optimization", "optim"}));
 

@@ -18,51 +18,37 @@ namespace {
     dPayloadFactory<schedulerMessagePayload,
                     BASE_SCHEDULER_MESSAGE_NUMBER,
                     BASE_SCHEDULER_MESSAGE_NUMBER + 16>
-        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
         schedulerPayloadFactory("scheduler");
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeClearTargets,
                       "CLEAR TARGETS",
                       schedulerMessagePayload::CLEAR_TARGETS);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeShutdown, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeStartup, "STARTUP", schedulerMessagePayload::STARTUP);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeAddTargets, "ADD TARGETS", schedulerMessagePayload::ADD_TARGETS);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateTargets,
                       "UPDATE TARGETS",
                       schedulerMessagePayload::UPDATE_TARGETS);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateReserves,
                       "UPDATE RESERVES",
                       schedulerMessagePayload::UPDATE_RESERVES);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationReserve,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_RESERVE);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUseReserve, "USE RESERVE", schedulerMessagePayload::USE_RESERVE);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationTarget,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_TARGET);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRegisterDispatcher,
                       "REGISTER DISPATCHER",
                       schedulerMessagePayload::REGISTER_DISPATCHER);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRegisterAgcDispatcher,
                       "REGISTER AGC DISPATCHER",
                       schedulerMessagePayload::REGISTER_AGC_DISPATCHER);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRegisterReserveDispatcher,
                       "REGISTER RESERVE DISPATCHER",
                       schedulerMessagePayload::REGISTER_RESERVE_DISPATCHER);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 REGISTER_MESSAGE_TYPE(messageTypeRegisterController,
                       "REGISTER CONTROLLER",
                       schedulerMessagePayload::REGISTER_CONTROLLER);

@@ -27,21 +27,22 @@ using gmlc::utilities::stringOps::trailingStringInt;
 using gmlc::utilities::stringOps::trim;
 using gmlc::utilities::stringOps::trimString;
 
-static classFactory<Event> evntFac(std::vector<std::string>{"event", "simple", "single"}, "event");
+static ClassFactory<Event> gEventFactory(
+    std::vector<std::string>{"event", "simple", "single"}, "event");
 namespace events {
-    static childClassFactory<Player, Event>
-        playerFac(std::vector<std::string>{"player", "timeseries", "file"});
+    static ChildClassFactory<Player, Event>
+        gPlayerFactory(std::vector<std::string>{"player", "timeseries", "file"});
 
-    static childClassFactory<compoundEvent, Event>
-        cmpdEvnt(std::vector<std::string>{"multi", "compound"});
+    static ChildClassFactory<compoundEvent, Event>
+        gCompoundEventFactory(std::vector<std::string>{"multi", "compound"});
 
-    static childClassFactory<compoundEventPlayer, Event>
-        cmpdEvntPlay(std::vector<std::string>{"compoundplayer", "multifile", "multiplayer"});
+    static ChildClassFactory<compoundEventPlayer, Event> gCompoundEventPlayerFactory(
+        std::vector<std::string>{"compoundplayer", "multifile", "multiplayer"});
 
-    static childClassFactory<interpolatingPlayer, Event>
-        interpPlay(std::vector<std::string>{"interpolating", "interp", "interpolated"});
-    static childClassFactory<reversibleEvent, Event>
-        revEvnt(std::vector<std::string>{"reversible", "undo", "rollback"});
+    static ChildClassFactory<interpolatingPlayer, Event> gInterpolatingPlayerFactory(
+        std::vector<std::string>{"interpolating", "interp", "interpolated"});
+    static ChildClassFactory<reversibleEvent, Event> gReversibleEventFactory(
+        std::vector<std::string>{"reversible", "undo", "rollback"});
 }  // namespace events
 
 Event::Event(const std::string& eventName):
@@ -51,7 +52,8 @@ Event::Event(const std::string& eventName):
 
 Event::Event(coreTime time0): triggerTime(time0), eventId(static_cast<count_t>(getID())) {}
 
-Event::Event(const EventInfo& gdEI, CoreObject* rootObject): eventId(static_cast<count_t>(getID()))
+Event::Event(const EventInfo& gdEI, CoreObject* rootObject):
+    triggerTime(negTime), eventId(static_cast<count_t>(getID()))
 {
     Event::updateEvent(gdEI, rootObject);
 }
@@ -169,7 +171,7 @@ void Event::set(std::string_view param, std::string_view val)
     if (param == "field") {
         setTarget(m_obj, std::string{val});
     } else if (param == "units") {
-        units::unit newUnits = unit_cast(units::unit_from_string(std::string{val}));
+        const units::unit newUnits = unit_cast(units::unit_from_string(std::string{val}));
         if (!is_valid(newUnits)) {
             throw(InvalidParameterValue(param));
         }
@@ -190,12 +192,15 @@ void Event::setValue(double val, units::unit newUnits)
     if (is_valid(newUnits)) {
         if (unitType == units::defunit) {
             unitType = newUnits;
-        } else {
+        } else if (m_obj != nullptr) {
             value = convert(value, newUnits, unitType, m_obj->get("basepower"));
             if (value == kNullVal) {
                 value = val;
                 unitType = newUnits;
             }
+        } else {
+            value = val;
+            unitType = newUnits;
         }
     }
 }
@@ -203,17 +208,17 @@ void Event::setValue(double val, units::unit newUnits)
 std::string Event::to_string() const
 {
     // [@time1 | ]rootobj::obj:field[(units)] = val1
-    std::stringstream ss;
+    std::stringstream stream;
     if (triggerTime > negTime) {
-        ss << '@' << triggerTime;
-        ss << " | ";
+        stream << '@' << triggerTime;
+        stream << " | ";
     }
-    ss << fullObjectName(m_obj) << ':' << field;
+    stream << fullObjectName(m_obj) << ':' << field;
     if (unitType != units::defunit) {
-        ss << '(' << units::to_string(unitType) << ')';
+        stream << '(' << units::to_string(unitType) << ')';
     }
-    ss << " = " << value;
-    return ss.str();
+    stream << " = " << value;
+    return stream.str();
 }
 
 change_code Event::trigger()
@@ -257,7 +262,7 @@ void Event::updateObject(CoreObject* gco, ObjectUpdateMode mode)
         setTarget(gco);
     } else {
         if (m_obj != nullptr) {
-            auto newTarget = findMatchingObject(m_obj, gco);
+            auto* newTarget = findMatchingObject(m_obj, gco);
             if (newTarget != nullptr) {
                 setTarget(newTarget);
             } else {
@@ -293,58 +298,60 @@ bool Event::setTarget(CoreObject* gdo, std::string_view var)
     return armed;
 }
 
-enum class event_types {
-    basic,
-    compound,
-    player,
-    compoundplayer,
-    toggle,
-    interpolating,
-    reversible,
+namespace {
+enum class EventType : std::uint8_t {
+    BASIC,
+    COMPOUND,
+    PLAYER,
+    COMPOUND_PLAYER,
+    TOGGLE,
+    INTERPOLATING,
+    REVERSIBLE,
 };
 
-event_types findEventType(EventInfo& gdEI)
+EventType findEventType(EventInfo& gdEI)
 {
     if (!gdEI.type.empty()) {
         if ((gdEI.type == "basic") || (gdEI.type == "simple")) {
-            return event_types::basic;
+            return EventType::BASIC;
         }
         if (gdEI.type == "player") {
-            return event_types::player;
+            return EventType::PLAYER;
         }
         if (gdEI.type == "compound") {
-            return event_types::compound;
+            return EventType::COMPOUND;
         }
         if (gdEI.type == "compoundplayer") {
-            return event_types::compoundplayer;
+            return EventType::COMPOUND_PLAYER;
         }
         if (gdEI.type == "toggle") {
-            return event_types::toggle;
+            return EventType::TOGGLE;
         }
         if (gdEI.type == "reversible") {
-            return event_types::reversible;
+            return EventType::REVERSIBLE;
         }
         if ((gdEI.type == "interpolating") || (gdEI.type == "interpolated")) {
-            return event_types::interpolating;
+            return EventType::INTERPOLATING;
         }
     }
     if (!gdEI.file.empty()) {
-        return event_types::player;
+        return EventType::PLAYER;
     }
     if (gdEI.period > timeZero) {
-        return event_types::player;
+        return EventType::PLAYER;
     }
     if (gdEI.time.size() > 1) {
-        return event_types::player;
+        return EventType::PLAYER;
     }
     if (gdEI.value.size() > 1) {
-        return event_types::compound;
+        return EventType::COMPOUND;
     }
     if (gdEI.fieldList.size() > 1) {
-        return event_types::compound;
+        return EventType::COMPOUND;
     }
-    return event_types::basic;
+    return EventType::BASIC;
 }
+}  // namespace
 
 EventInfo::EventInfo(std::string_view eventString, CoreObject* rootObj)
 {
@@ -354,6 +361,7 @@ EventInfo::EventInfo(std::string_view eventString, CoreObject* rootObj)
 // @time1[,time2,time3,... + period] |[rootobj::obj1:]field(units) const =
 // val1,[val2,val3,...];[rootobj::obj1:]field(units) const = val1,[val2,val3,...];  or
 // [rootobj::obj:]field(units) = val1,[val2,val3,...] @time1[,time2,time3,...|+ period] or
+// NOLINTNEXTLINE(misc-no-recursion)
 void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
 {
     if (eventString.find_first_of(';') != std::string::npos) {
@@ -398,7 +406,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
     trimString(vstring);
     objString = objString.substr(0, posE);
     // break down the object specification
-    ObjectInfo fdata(objString, rootObj);
+    const ObjectInfo fdata(objString, rootObj);
 
     targetObjs.push_back(fdata.mObject);
     units.push_back(fdata.mUnitType);
@@ -409,7 +417,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
         auto posEndFile = vstring.find_first_of('}', posFile);
         file = vstring.substr(posE + 1, posEndFile - posFile - 1);
 
-        int col = trailingStringInt(file, file, 0);
+        const int col = trailingStringInt(file, file, 0);
         columns.push_back(col);
         auto posPlus = vstring.find_first_of('+', posEndFile);
         if (posPlus != std::string::npos) {
@@ -428,11 +436,11 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
 std::unique_ptr<Event>
     make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
 {
-    auto ev = std::make_unique<Event>(eventTime);
-    ObjectInfo fdata(std::string{field}, rootObject);
-    ev->setTarget(fdata.mObject, fdata.mField);
-    ev->setValue(val, fdata.mUnitType);
-    return ev;
+    auto eventObject = std::make_unique<Event>(eventTime);
+    const ObjectInfo fdata(std::string{field}, rootObject);
+    eventObject->setTarget(fdata.mObject, fdata.mField);
+    eventObject->setValue(val, fdata.mUnitType);
+    return eventObject;
 }
 
 std::unique_ptr<Event> make_event(std::string_view eventString, CoreObject* rootObject)
@@ -443,42 +451,40 @@ std::unique_ptr<Event> make_event(std::string_view eventString, CoreObject* root
 
 std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
 {
-    std::unique_ptr<Event> ev;
+    std::unique_ptr<Event> eventObject;
     if (!gdEI.type.empty()) {
-        ev = coreClassFactory<Event>::instance()->createObject(gdEI.type);
-        if (ev) {
-            ev->updateEvent(gdEI, rootObject);
-            return ev;
+        eventObject = CoreClassFactory<Event>::instance()->createObject(gdEI.type);
+        if (eventObject) {
+            eventObject->updateEvent(gdEI, rootObject);
+            return eventObject;
         }
     }
     auto evType = findEventType(gdEI);
 
     switch (evType) {
-        case event_types::basic:
-            ev = std::make_unique<Event>(gdEI, rootObject);
+        case EventType::BASIC:
+            eventObject = std::make_unique<Event>(gdEI, rootObject);
             break;
-        case event_types::compound:
-            ev = std::make_unique<events::compoundEvent>(gdEI, rootObject);
+        case EventType::COMPOUND:
+            eventObject = std::make_unique<events::compoundEvent>(gdEI, rootObject);
             break;
-        case event_types::player:
-            ev = std::make_unique<events::Player>(gdEI, rootObject);
+        case EventType::PLAYER:
+            eventObject = std::make_unique<events::Player>(gdEI, rootObject);
             break;
-        case event_types::compoundplayer:
-            ev = std::make_unique<events::compoundEventPlayer>(gdEI, rootObject);
+        case EventType::COMPOUND_PLAYER:
+            eventObject = std::make_unique<events::compoundEventPlayer>(gdEI, rootObject);
             break;
-        case event_types::interpolating:
-            ev = std::make_unique<events::interpolatingPlayer>(gdEI, rootObject);
+        case EventType::INTERPOLATING:
+            eventObject = std::make_unique<events::interpolatingPlayer>(gdEI, rootObject);
             break;
-        case event_types::reversible:
-            ev = std::make_unique<events::reversibleEvent>(gdEI, rootObject);
+        case EventType::REVERSIBLE:
+            eventObject = std::make_unique<events::reversibleEvent>(gdEI, rootObject);
             break;
-        case event_types::toggle:
-            break;
-        default:
+        case EventType::TOGGLE:
             break;
     }
 
-    return ev;
+    return eventObject;
 }
 
 }  // namespace griddyn

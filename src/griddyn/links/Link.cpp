@@ -35,7 +35,6 @@ using units::unit;
 
 // make the object factory types
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static typeFactory<Link> blf("link",
                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
@@ -178,9 +177,7 @@ void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const solverM
     }*/
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
 void Link::getParameterStrings(stringVec& pstr, paramStringType pstype) const
@@ -448,7 +445,7 @@ int Link::fixRealPower(double power,
     return 1;
 }
 
-static IOlocs aLoc{0, 1};  // NOLINT(bugprone-throwing-static-initialization)
+static IOlocs aLoc{0, 1};
 
 int Link::fixPower(double rPower,
                    double /*qPower*/,

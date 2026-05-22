@@ -19,7 +19,6 @@
 #include <utility>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridLinkOpt, Link> opLink("basic", "link");
 // NOLINTBEGIN(bugprone-branch-clone)
 

@@ -16,10 +16,8 @@
 #include <string>
 
 namespace griddyn {
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
-static const typeFactory<GridBlock>
-    agcFactory("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
-// NOLINTEND(bugprone-throwing-static-initialization)
+static const TypeFactory<GridBlock>
+    AGC_FACTORY("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
 /*
 class AGControl
 {

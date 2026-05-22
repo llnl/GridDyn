@@ -32,46 +32,37 @@ namespace {
     dPayloadFactory<controlMessagePayload,
                     BASE_CONTROL_MESSAGE_NUMBER,
                     BASE_CONTROL_MESSAGE_NUMBER + 16>
-        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-        controlPayloadFactory("control");
+        gControlPayloadFactory("control");
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSet, "SET", controlMessagePayload::SET);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGet, "GET", controlMessagePayload::GET);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetMultiple, "GET MULTIPLE", controlMessagePayload::GET_MULTIPLE);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetPeriodic, "GET PERIODIC", controlMessagePayload::GET_PERIODIC);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetMultiple, "SET MULTIPLE", controlMessagePayload::SET_MULTIPLE);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetSuccess, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetFail, "SET FAIL", controlMessagePayload::SET_FAIL);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetResult, "GET RESULT", controlMessagePayload::GET_RESULT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetResultMultiple,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET, "SET", controlMessagePayload::SET);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET, "GET", controlMessagePayload::GET);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_MULTIPLE,
+                      "GET MULTIPLE",
+                      controlMessagePayload::GET_MULTIPLE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_PERIODIC,
+                      "GET PERIODIC",
+                      controlMessagePayload::GET_PERIODIC);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_MULTIPLE,
+                      "SET MULTIPLE",
+                      controlMessagePayload::SET_MULTIPLE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_SUCCESS, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_FAIL, "SET FAIL", controlMessagePayload::SET_FAIL);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_RESULT, "GET RESULT", controlMessagePayload::GET_RESULT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_RESULT_MULTIPLE,
                       "GET RESULT MULTIPLE",
                       controlMessagePayload::GET_RESULT_MULTIPLE);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeSetScheduled,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_SCHEDULED,
                       "SET SCHEDULED",
                       controlMessagePayload::SET_SCHEDULED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeGetScheduled,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_SCHEDULED,
                       "GET SCHEDULED",
                       controlMessagePayload::GET_SCHEDULED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeCancel, "CANCEL", controlMessagePayload::CANCEL);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeCancelSuccess,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL, "CANCEL", controlMessagePayload::CANCEL);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL_SUCCESS,
                       "CANCEL SUCCESS",
                       controlMessagePayload::CANCEL_SUCCESS);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeCancelFail, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL_FAIL, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
 std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string temp;

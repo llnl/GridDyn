@@ -25,8 +25,7 @@ using retriever = cereal::PortableBinaryInputArchive;
 
 namespace griddyn {
 namespace {
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    std::map<std::string_view, std::uint32_t, std::less<>> alarmCodeMap{
+    std::map<std::string_view, std::uint32_t, std::less<>> gAlarmCodeMap{
         {"overcurrent", OVERCURRENT_ALARM},
         {"undercurrent", UNDERCURRENT_ALARM},
         {"overvoltage", OVERVOLTAGE_ALARM},
@@ -40,48 +39,35 @@ namespace {
 
 using gmlc::utilities::numeric_conversion;
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeIgnore, "IGNORE", commMessage::ignoreMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypePing, "ping", commMessage::pingMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeReply, "reply", commMessage::replyMessageType);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeNoEvent, "NO EVENT", commMessage::NO_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeLocalFault, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeRemoteFault, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerTrip, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerClose, "BREAKER CLOSE", commMessage::BREAKER_CLOSE_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeLocalFaultCleared,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_IGNORE, "IGNORE", commMessage::ignoreMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_PING, "ping", commMessage::pingMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REPLY, "reply", commMessage::replyMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_NO_EVENT, "NO EVENT", commMessage::NO_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_TRIP, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_CLOSE,
+                      "BREAKER CLOSE",
+                      commMessage::BREAKER_CLOSE_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT_CLEARED,
                       "LOCAL FAULT CLEARED",
                       commMessage::LOCAL_FAULT_CLEARED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeRemoteFaultCleared,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT_CLEARED,
                       "REMOTE FAULT CLEARED",
                       commMessage::REMOTE_FAULT_CLEARED);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerTripCommand,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_TRIP_COMMAND,
                       "BREAKER TRIP COMMAND",
                       commMessage::BREAKER_TRIP_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerCloseCommand,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_CLOSE_COMMAND,
                       "BREAKER CLOSE COMMAND",
                       commMessage::BREAKER_CLOSE_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeBreakerOosCommand,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_OOS_COMMAND,
                       "BREAKER OOS COMMAND",
                       commMessage::BREAKER_OOS_COMMAND);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeAlarmTriggerEvent,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ALARM_TRIGGER_EVENT,
                       "ALARM TRIGGER EVENT",
                       commMessage::ALARM_TRIGGER_EVENT);
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-REGISTER_MESSAGE_TYPE(messageTypeAlarmClearedEvent,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ALARM_CLEARED_EVENT,
                       "ALARM CLEARED EVENT",
                       commMessage::ALARM_CLEARED_EVENT);
 
@@ -137,12 +123,12 @@ void commMessage::from_string(std::string_view fromString)
     payload->from_string(m_messageType, code, fromString, delimiterPos + 1);
 }
 
-int commMessage::toByteArray(char* data, size_t buffer_size) const
+int commMessage::toByteArray(char* data, size_t bufferSize) const
 {
-    if ((data == nullptr) || (buffer_size == 0)) {
+    if ((data == nullptr) || (bufferSize == 0)) {
         return -1;
     }
-    boost::iostreams::basic_array_sink<char> sinkRange(data, buffer_size);
+    boost::iostreams::basic_array_sink<char> sinkRange(data, bufferSize);
     boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> sinkStream(sinkRange);
 
     archiver outputArchive(sinkStream);
@@ -214,9 +200,9 @@ void commMessage::to_datastring(std::string& data) const
     outputStream.flush();
 }
 
-void commMessage::fromByteArray(const char* data, size_t buffer_size)
+void commMessage::fromByteArray(const char* data, size_t bufferSize)
 {
-    boost::iostreams::basic_array_source<char> device(data, buffer_size);
+    boost::iostreams::basic_array_source<char> device(data, bufferSize);
     boost::iostreams::stream<boost::iostreams::basic_array_source<char>> inputStream(device);
     retriever inputArchive(inputStream);
     try {
@@ -239,8 +225,8 @@ void commMessage::from_vector(const std::vector<char>& data)
 
 std::uint32_t getAlarmCode(std::string_view alarmStr)
 {
-    auto fnd = alarmCodeMap.find(alarmStr);
-    if (fnd != alarmCodeMap.end()) {
+    auto fnd = gAlarmCodeMap.find(alarmStr);
+    if (fnd != gAlarmCodeMap.end()) {
         return fnd->second;
     }
     return 0xFFFFFFFF;

@@ -20,7 +20,6 @@
 namespace griddyn {
 using units::unit;
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridLoadOpt, ZipLoad> opLoad("basic", "load");
 
 GridLoadOpt::GridLoadOpt(const std::string& objName): GridOptObject(objName) {}

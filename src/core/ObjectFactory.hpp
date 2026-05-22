@@ -18,9 +18,9 @@
 
 namespace griddyn {
 /** @brief class definitions for the object factories that can create the objects
- cFactory is a virtual base class for object Construction functions
+ ObjectFactory is a virtual base class for object construction functions
 */
-class objectFactory {
+class ObjectFactory {
   public:
     std::string name;  //!< factory name
 
@@ -28,14 +28,14 @@ class objectFactory {
     @param[in] component  the name of the type of component this factory is a constructor for
     @param[in] typeName  the name of the specific type of object this factor builds
     */
-    objectFactory(std::string_view component, std::string_view typeName);
+    ObjectFactory(std::string_view component, std::string_view typeName);
 
     /** @brief constructor B
     @param[in] component  the name of component this factory is a constructor for
     @param[in] typeNames  the names of the specific types of objects this factor builds
     */
-    objectFactory(std::string_view component, std::span<const std::string_view> typeNames);
-    objectFactory(std::string_view component, const stringVec& typeNames);
+    ObjectFactory(std::string_view component, std::span<const std::string_view> typeNames);
+    ObjectFactory(std::string_view component, const stringVec& typeNames);
 
     /** @brief make and object   abstract function
     @return a pointer to a newly constructed object
@@ -57,30 +57,30 @@ class objectFactory {
     */
     virtual count_t remainingPrepped() const;
     /** @brief destructor*/
-    virtual ~objectFactory();
+    virtual ~ObjectFactory();
 };
 // component factory is a template class that inherits from cFactory to actually to the construction
 // of a specific object
 
-using cMap = std::map<std::string, objectFactory*, std::less<>>;
+using cMap = std::map<std::string, ObjectFactory*, std::less<>>;
 
 /** @brief a factory containing a mapping of specific object factories for a specific component
  */
-class componentFactory {
+class ComponentFactory {
   public:
     std::string name;  //!< name of the component
-    componentFactory();
-    explicit componentFactory(std::string component);
-    ~componentFactory();
+    ComponentFactory();
+    explicit ComponentFactory(std::string component);
+    ~ComponentFactory();
     stringVec getTypeNames();
     CoreObject* makeObject(std::string_view type, std::string_view objectName);
     CoreObject* makeObject(std::string_view type);
     CoreObject* makeObject();
-    void registerFactory(std::string_view typeName, objectFactory* oFac);
-    void registerFactory(objectFactory* oFac);
+    void registerFactory(std::string_view typeName, ObjectFactory* oFac);
+    void registerFactory(ObjectFactory* oFac);
     void setDefault(std::string_view type);
     bool isValidType(std::string_view typeName) const;
-    objectFactory* getFactory(std::string_view typeName);
+    ObjectFactory* getFactory(std::string_view typeName);
 
   protected:
     cMap m_factoryMap;
@@ -88,30 +88,30 @@ class componentFactory {
 };
 
 // create a high level object factory for the CoreObject class
-using fMap = std::map<std::string, std::shared_ptr<componentFactory>, std::less<>>;
+using fMap = std::map<std::string, std::shared_ptr<ComponentFactory>, std::less<>>;
 /** @brief central location for building objects and storing factories for making all the gridDyn
  component core object Factory class  intended to be a singleton it contains a map from strings to
  typeFactories
 */
-class coreObjectFactory {
+class CoreObjectFactory {
   public:
-    ~coreObjectFactory();
+    ~CoreObjectFactory();
 
     /** @brief get a shared pointer to the core object factory*/
-    static std::shared_ptr<coreObjectFactory> instance();
+    static std::shared_ptr<CoreObjectFactory> instance();
 
-    /** @brief register a type factory with the coreObjectFactory
+    /** @brief register a type factory with the CoreObjectFactory
     @param[in] name the string identifier to the factory
     @param[in] componentFac the type factory to place in the map
     */
     void registerFactory(std::string_view name,
-                         const std::shared_ptr<componentFactory>& componentFac);
+                         const std::shared_ptr<ComponentFactory>& componentFac);
 
-    /** @brief register a type factory with the coreObjectFactory
+    /** @brief register a type factory with the CoreObjectFactory
     gets the name to use in the mapping from the type factory itself
     @param[in] componentFac the type factory to place in the map
     */
-    void registerFactory(const std::shared_ptr<componentFactory>& componentFac);
+    void registerFactory(const std::shared_ptr<ComponentFactory>& componentFac);
 
     /** @brief get a listing of the factory names*/
     stringVec getFactoryNames();
@@ -140,10 +140,10 @@ class coreObjectFactory {
                              std::string_view objName);
 
     /** @brief get a specific type factory
-    @param[in] component the name of the typeFactory to get
+    @param[in] component the name of the TypeFactory to get
     @return a shared pointer to a specific type Factory
     */
-    std::shared_ptr<componentFactory> getFactory(std::string_view component);
+    std::shared_ptr<ComponentFactory> getFactory(std::string_view component);
 
     /** @brief check if a specific object category is valid*/
     bool isValidObject(std::string_view component);
@@ -171,8 +171,12 @@ class coreObjectFactory {
     void prepObjects(std::string_view component, count_t numObjects, CoreObject* obj);
 
   private:
-    coreObjectFactory();
+    CoreObjectFactory();
 
-    fMap m_factoryMap;  //!< the main map from string to the typeFactory
+    fMap m_factoryMap;  //!< the main map from string to the TypeFactory
 };
+
+using objectFactory = ObjectFactory;  // NOLINT(readability-identifier-naming)
+using componentFactory = ComponentFactory;  // NOLINT(readability-identifier-naming)
+using coreObjectFactory = CoreObjectFactory;  // NOLINT(readability-identifier-naming)
 }  // namespace griddyn

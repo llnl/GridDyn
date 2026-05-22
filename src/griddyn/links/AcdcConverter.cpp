@@ -281,7 +281,6 @@ void acdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     offsets.local().local.jacSize = 4;
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static IOdata zVec{0.0, 0.0, 0.0};
 
 void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,

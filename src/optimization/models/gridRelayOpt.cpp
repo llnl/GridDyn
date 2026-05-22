@@ -18,7 +18,6 @@
 #include <utility>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridRelayOpt, Relay> opRelay("basic", "relay");
 
 using units::unit;

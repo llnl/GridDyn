@@ -51,7 +51,7 @@ class PropertyBuffer {
     void apply(CoreObject* obj) const;
     /** template specialization for coreOwningPtrs to route through the existing object*/
     template<class Y>
-    void apply(coreOwningPtr<Y>& obj)
+    void apply(CoreOwningPtr<Y>& obj)
     {
         this->apply(static_cast<CoreObject*>(obj.get()));
     }

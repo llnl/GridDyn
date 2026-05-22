@@ -90,10 +90,10 @@ std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param
         rname = trim(paramS.substr(renameloc + 4));
         paramS = paramS.substr(0, renameloc);
     }
-    const ObjInfo objI(std::string{paramS}, rootObject);
+    const ObjectInfo objectInfo(std::string{paramS}, rootObject);
 
-    auto pop =
-        std::make_unique<parameterOperator>(dynamic_cast<GridComponent*>(objI.m_obj), objI.m_field);
+    auto pop = std::make_unique<parameterOperator>(dynamic_cast<GridComponent*>(objectInfo.mObject),
+                                                   objectInfo.mField);
     if (!rname.empty()) {
         pop->setName(rname);
     }

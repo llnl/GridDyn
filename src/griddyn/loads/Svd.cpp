@@ -14,11 +14,9 @@
 #include <vector>
 
 namespace griddyn::loads {
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<Svd>
     svdld("load",
           std::to_array<std::string_view>({"Svd", "switched shunt", "switchedshunt", "ssd"}));
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::numeric_conversion;

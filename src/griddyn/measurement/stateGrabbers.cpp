@@ -29,7 +29,6 @@ namespace {
     grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>&
         stateGrabberInterpreter()
     {
-        // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
         static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
             [](std::string_view fld, CoreObject* obj) {
                 return std::make_unique<stateGrabber>(fld, obj);
@@ -138,7 +137,6 @@ using units::puV;
 using units::rad;
 
 /** map of all the alternate strings that can be used*/
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, std::string> stringTranslate{
     {"v", "voltage"},
     {"vol", "voltage"},
@@ -236,7 +234,6 @@ static const std::map<std::string, std::string> stringTranslate{
        const solverMode& sMode)
 
 // clang-format off
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> objectFunctions{
   {"connected", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<double> (obj->isConnected ());}, defunit}},
   {"enabled", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<double> (obj->isEnabled ());}, defunit}},
@@ -245,7 +242,6 @@ static const std::map<std::string, fstateobjectPair> objectFunctions{
 {"deriv",{FUNCTION_SIGNATURE { return obj->getDoutdt (noInputs, stateDataValue, sMode, 0); }, defunit}}
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> busFunctions{
   {"voltage", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getVoltage (stateDataValue, sMode);}, puV}},
 {"angle", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
@@ -260,7 +256,6 @@ static const std::map<std::string, fstateobjectPair> busFunctions{
 {"linkreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLinkReactive ();}, puMW}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, objJacFunction> busJacFunctions{
   {"voltage", JAC_FUNCTION_SIGNATURE_NO_STATE{
           matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, voltageInLocation), 1.0);}},
@@ -274,7 +269,6 @@ static const std::map<std::string, objJacFunction> busJacFunctions{
     matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> areaFunctions{
   {"avgfreq", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getAvgFreq ();}, puHz}},
 {"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getGenerationReal ();}, puMW}},
@@ -285,7 +279,6 @@ static const std::map<std::string, fstateobjectPair> areaFunctions{
 {"tieflow", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getTieFlowReal ();}, puMW}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> secondaryFunctions{ { "real",{ secondaryRealPower, puMW } },
 { "reactive",{ secondaryReactivePower, puMW } },
 { "busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getAngle(stateDataValue, sMode); }, rad } },
@@ -293,12 +286,10 @@ static const std::map<std::string, fstateobjectPair> secondaryFunctions{ { "real
 { "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getFreq(stateDataValue, sMode); }, puV } },
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> loadFunctions{{"loadreal", {secondaryRealPower, puMW}},
                                                                    {"loadreactive", {secondaryReactivePower, puMW}}
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> genFunctions{
   {"general", {secondaryRealPower, puMW}},
   {"genreactive", {secondaryReactivePower, puMW}},
@@ -313,7 +304,6 @@ static const std::map<std::string, fstateobjectPair> genFunctions{
   {"angle",{FUNCTION_SIGNATURE{return static_cast<Generator *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, fstateobjectPair> linkFunctions{
   {"real", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Link *> (obj)->getRealPower (1);}, puMW}},
 {"reactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Link *> (obj)->getReactivePower (1);}, puMW}},

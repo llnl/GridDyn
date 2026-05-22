@@ -262,9 +262,9 @@ double objectQuery(string_view command, CoreObject* obj)
     if (obj == nullptr) {
         return nanVal;
     }
-    objInfo query(std::string{command}, obj);
-    if (!query.m_field.empty()) {
-        double val = query.m_obj->get(query.m_field, query.m_unitType);
+    ObjectInfo query(std::string{command}, obj);
+    if (!query.mField.empty()) {
+        double val = query.mObject->get(query.mField, query.mUnitType);
         return val;
     }
     return nanVal;

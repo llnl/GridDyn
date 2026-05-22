@@ -10,17 +10,18 @@
 #include <string>
 
 namespace griddyn {
-/** @brief      a nullObject class
+class NullObject;
+/** @brief      a NullObject class
 pretty much does nothing it absorbs logs and alerts (its parent is itself)
 **/
-class nullObject final: public CoreObject {
+class NullObject final: public CoreObject {
   public:
     /** @brief default constructor
     takes a code used as the oid for special id codes below 100
     */
-    explicit nullObject(std::uint64_t nullCode = 500) noexcept;
-    /** @brief nullObject constructor which takes a string*/
-    explicit nullObject(std::string_view objName);
+    explicit NullObject(std::uint64_t nullCode = 500) noexcept;
+    /** @brief NullObject constructor which takes a string*/
+    explicit NullObject(std::string_view objName);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     /**
@@ -46,4 +47,6 @@ class nullObject final: public CoreObject {
     @details nullObjects do not allow the parents to be set*/
     virtual void setParent(CoreObject* parentObj) override;
 };
+
+using nullObject = NullObject;  // NOLINT(readability-identifier-naming)
 }  // namespace griddyn

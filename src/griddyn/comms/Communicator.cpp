@@ -15,9 +15,8 @@
 #include <utility>
 
 namespace griddyn {
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-static classFactory<Communicator> commFac(std::vector<std::string>{"comm", "simple", "basic"},
-                                          "basic");
+static ClassFactory<Communicator> gCommFac(std::vector<std::string>{"comm", "simple", "basic"},
+                                           "basic");
 
 Communicator::Communicator(): mId(getID())
 {

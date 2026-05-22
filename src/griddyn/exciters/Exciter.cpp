@@ -278,7 +278,7 @@ const std::vector<stringVec>& Exciter::inputNames() const
         {"vset", "setpoint", "voltageset"},
         {"pmech", "power", "mechanicalpower"},
         {"omega", "frequency", "w", "f"},
-    };  // NOLINT(bugprone-throwing-static-initialization)
+    };
     return inputNamesStr;
 }
 
@@ -286,7 +286,7 @@ const std::vector<stringVec>& Exciter::outputNames() const
 {
     static const std::vector<stringVec> outputNamesStr{
         {"e", "field", "exciter"},
-    };  // NOLINT(bugprone-throwing-static-initialization)
+    };
     return outputNamesStr;
 }
 

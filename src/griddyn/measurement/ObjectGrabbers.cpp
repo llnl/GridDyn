@@ -142,7 +142,6 @@ namespace {
     }
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> objectFunctions{
     {"connected",
      {[](CoreObject* obj) {
@@ -170,7 +169,6 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
       },
       defunit}}};
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> busFunctions{
     {"voltage", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getVoltage(); }, puV}},
     {"angle", {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getAngle(); }, rad}},
@@ -189,7 +187,6 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
      {[](CoreObject* obj) { return static_cast<GridBus*>(obj)->getLinkReactive(); }, puMW}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> areaFunctions{
     {"avgfreq", {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getAvgFreq(); }, puHz}},
     {"general",
@@ -205,7 +202,6 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
      {[](CoreObject* obj) { return static_cast<GridArea*>(obj)->getTieFlowReal(); }, puMW}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fvecPair, std::less<std::string_view>> areaVecFunctions{
     {"voltage",
      {[](CoreObject* obj, std::vector<double>& data) {
@@ -355,7 +351,6 @@ namespace {
     }
 }  // namespace
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> loadFunctions{
     {"loadreal",
      {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getRealPower(); }, puMW}},
@@ -363,7 +358,6 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
      {[](CoreObject* obj) { return static_cast<GridLoad*>(obj)->getReactivePower(); }, puMW}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> genFunctions{
     {"general",
      {[](CoreObject* obj) { return static_cast<Generator*>(obj)->getRealPower(); }, puMW}},
@@ -392,7 +386,6 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
       rad}},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, fobjectPair, std::less<std::string_view>> linkFunctions{
     {"real", {[](CoreObject* obj) { return static_cast<Link*>(obj)->getRealPower(1); }, puMW}},
     {"reactive",

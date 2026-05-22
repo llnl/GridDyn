@@ -18,7 +18,7 @@
 namespace griddyn {
 /** @brief template class for object ownership*/
 template<class Ntype>
-class gridObjectHolder: public CoreObject {
+class GridObjectHolder: public CoreObject {
     static_assert(std::is_base_of<CoreObject, Ntype>::value,
                   "holder object must have CoreObject as base");
 
@@ -29,7 +29,7 @@ class gridObjectHolder: public CoreObject {
     count_t objCount = 0;
 
   public:
-    explicit gridObjectHolder(count_t objs): CoreObject("holder_#"), objArray(objs), objCount(objs)
+    explicit GridObjectHolder(count_t objs): CoreObject("holder_#"), objArray(objs), objCount(objs)
     {
         for (auto& so : objArray) {  // we want to add an owning reference since these objects are
                                      // held internally and should not be deleted
@@ -37,7 +37,7 @@ class gridObjectHolder: public CoreObject {
             so.addOwningReference();
         }
     }
-    ~gridObjectHolder()
+    ~GridObjectHolder()
     {
         for (auto& so : objArray) {
             if (so.getParent()) {
@@ -74,17 +74,17 @@ class gridObjectHolder: public CoreObject {
 /** @brief template class for creating an object block of prepared objects
 @details a class which contains an object holder and gives them out as requested*/
 template<class Ntype>
-class objectPrepper {
+class ObjectPrepper {
     static_assert(std::is_base_of<CoreObject, Ntype>::value,
                   "factory class must have CoreObject as base");
 
   private:
-    coreOwningPtr<gridObjectHolder<Ntype>> obptr;
+    CoreOwningPtr<GridObjectHolder<Ntype>> obptr;
     count_t targetprepped = 0;
     bool useBlock;
 
   public:
-    objectPrepper(count_t objCount, CoreObject* example) { prepObjects(objCount, example); }
+    ObjectPrepper(count_t objCount, CoreObject* example) { prepObjects(objCount, example); }
     void prepObjects(count_t objCount, CoreObject* example)
     {
         auto root = example->getRoot();
@@ -98,7 +98,7 @@ class objectPrepper {
             if ((obptr) && (obptr->remaining() > 0)) {
                 targetprepped = objCount - obptr->remaining();
             } else {
-                obptr = make_owningPtr<gridObjectHolder<Ntype>>(targetprepped);
+                obptr = makeOwningPtr<GridObjectHolder<Ntype>>(targetprepped);
                 if (root != nullptr) {
                     if (!obptr) {
                         root->log(root, PrintLevel::WARNING, "unable to create container object");
@@ -126,7 +126,7 @@ class objectPrepper {
                             root->add(obptr.get());
                         }
                     }
-                    obptr = make_owningPtr<gridObjectHolder<Ntype>>(targetprepped);
+                    obptr = makeOwningPtr<GridObjectHolder<Ntype>>(targetprepped);
                     if (!obptr) {
                         if (root != nullptr) {
                             root->log(root,
@@ -165,52 +165,52 @@ class objectPrepper {
 
 /** @brief template class for object construction */
 template<class Ntype>
-class typeFactory: public objectFactory {
+class TypeFactory: public ObjectFactory {
     static_assert(std::is_base_of<CoreObject, Ntype>::value,
                   "factory class must have CoreObject as base");
 
   private:
-    std::unique_ptr<objectPrepper<Ntype>> preparedObjects;
+    std::unique_ptr<ObjectPrepper<Ntype>> preparedObjects;
 
   public:
-    typeFactory(std::string_view component, std::string_view typeName):
-        objectFactory(component, typeName)
+    TypeFactory(std::string_view component, std::string_view typeName):
+        ObjectFactory(component, typeName)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         tF->registerFactory(typeName, this);
     }
 
-    typeFactory(std::string_view component, std::span<const std::string_view> typeNames):
-        objectFactory(component, typeNames)
+    TypeFactory(std::string_view component, std::span<const std::string_view> typeNames):
+        ObjectFactory(component, typeNames)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
     }
 
-    typeFactory(std::string_view component, const stringVec& typeNames):
-        objectFactory(component, typeNames)
+    TypeFactory(std::string_view component, const stringVec& typeNames):
+        ObjectFactory(component, typeNames)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
     }
-    typeFactory(std::string_view component,
+    TypeFactory(std::string_view component,
                 std::span<const std::string_view> typeNames,
-                std::string_view defType): objectFactory(component, typeNames)
+                std::string_view defType): ObjectFactory(component, typeNames)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
         tF->setDefault(defType);
     }
-    typeFactory(std::string_view component, const stringVec& typeNames, std::string_view defType):
-        objectFactory(component, typeNames)
+    TypeFactory(std::string_view component, const stringVec& typeNames, std::string_view defType):
+        ObjectFactory(component, typeNames)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
@@ -235,7 +235,7 @@ class typeFactory: public objectFactory {
     virtual void prepObjects(count_t objectCount, CoreObject* obj) override
     {
         if (!preparedObjects) {
-            preparedObjects = std::make_unique<objectPrepper<Ntype>>(objectCount, obj);
+            preparedObjects = std::make_unique<ObjectPrepper<Ntype>>(objectCount, obj);
         } else {
             preparedObjects->prepObjects(objectCount, obj);
         }
@@ -253,38 +253,38 @@ class typeFactory: public objectFactory {
 
 /** @brief template class for inherited object factories to cascade correctly*/
 template<class Ntype, class Btype>
-class childTypeFactory: public typeFactory<Btype> {
+class ChildTypeFactory: public TypeFactory<Btype> {
     static_assert(std::is_base_of<CoreObject, Btype>::value,
                   "factory class must have CoreObject as base");
     static_assert(std::is_base_of<Btype, Ntype>::value,
                   "factory class types must have parent child relationship");
 
   private:
-    std::unique_ptr<objectPrepper<Ntype>> preparedObjects;
+    std::unique_ptr<ObjectPrepper<Ntype>> preparedObjects;
 
   public:
-    childTypeFactory(std::string_view component, std::string_view typeName):
-        typeFactory<Btype>(component, typeName)
+    ChildTypeFactory(std::string_view component, std::string_view typeName):
+        TypeFactory<Btype>(component, typeName)
     {
     }
 
-    childTypeFactory(std::string_view component, std::span<const std::string_view> typeNames):
-        typeFactory<Btype>(component, typeNames)
+    ChildTypeFactory(std::string_view component, std::span<const std::string_view> typeNames):
+        TypeFactory<Btype>(component, typeNames)
     {
     }
 
-    childTypeFactory(std::string_view component, const stringVec& typeNames):
-        typeFactory<Btype>(component, typeNames)
+    ChildTypeFactory(std::string_view component, const stringVec& typeNames):
+        TypeFactory<Btype>(component, typeNames)
     {
     }
-    childTypeFactory(std::string_view component,
+    ChildTypeFactory(std::string_view component,
                      std::span<const std::string_view> typeNames,
-                     std::string_view defType): typeFactory<Btype>(component, typeNames, defType)
+                     std::string_view defType): TypeFactory<Btype>(component, typeNames, defType)
     {
     }
-    childTypeFactory(std::string_view component,
+    ChildTypeFactory(std::string_view component,
                      const stringVec& typeNames,
-                     std::string_view defType): typeFactory<Btype>(component, typeNames, defType)
+                     std::string_view defType): TypeFactory<Btype>(component, typeNames, defType)
     {
     }
     CoreObject* makeObject() override { return makeTypeObject(); }
@@ -315,7 +315,7 @@ class childTypeFactory: public typeFactory<Btype> {
     virtual void prepObjects(count_t objectCount, CoreObject* obj) override
     {
         if (!preparedObjects) {
-            preparedObjects = std::make_unique<objectPrepper<Ntype>>(objectCount, obj);
+            preparedObjects = std::make_unique<ObjectPrepper<Ntype>>(objectCount, obj);
         } else {
             preparedObjects->prepObjects(objectCount, obj);
         }
@@ -332,34 +332,34 @@ class childTypeFactory: public typeFactory<Btype> {
 };
 
 template<class Ntype, class argType>
-class typeFactoryArg: public objectFactory {
+class TypeFactoryArg: public ObjectFactory {
     static_assert(std::is_base_of<CoreObject, Ntype>::value,
                   "factory class must have CoreObject as base");
     static_assert(!std::is_same<argType, std::string>::value, "arg type cannot be a std::string");
 
   public:
     argType arg;
-    typeFactoryArg(std::string_view component, std::string_view typeName, const argType iArg):
-        objectFactory(component, typeName), arg(iArg)
+    TypeFactoryArg(std::string_view component, std::string_view typeName, const argType iArg):
+        ObjectFactory(component, typeName), arg(iArg)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         tF->registerFactory(typeName, this);
     }
 
-    typeFactoryArg(std::string_view component,
+    TypeFactoryArg(std::string_view component,
                    std::span<const std::string_view> typeNames,
-                   const argType iArg): objectFactory(component, typeNames), arg(iArg)
+                   const argType iArg): ObjectFactory(component, typeNames), arg(iArg)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
     }
 
-    typeFactoryArg(std::string_view component, const stringVec& typeNames, const argType iArg):
-        objectFactory(component, typeNames), arg(iArg)
+    TypeFactoryArg(std::string_view component, const stringVec& typeNames, const argType iArg):
+        ObjectFactory(component, typeNames), arg(iArg)
     {
-        auto tF = coreObjectFactory::instance()->getFactory(component);
+        auto tF = CoreObjectFactory::instance()->getFactory(component);
         for (auto tname : typeNames) {
             tF->registerFactory(tname, this);
         }
@@ -385,7 +385,7 @@ class typeFactoryArg: public objectFactory {
  * @return pointer to the cloned object
  */
 template<class A, class B>
-A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
+A* cloneBaseFactory(const A* bobj, CoreObject* obj, ObjectFactory* cfact)
 {
     static_assert(std::is_base_of<B, A>::value,
                   "classes A and B must have parent child relationship");
@@ -413,5 +413,20 @@ A* cloneBaseFactory(const A* bobj, CoreObject* obj, objectFactory* cfact)
     bobj->B::clone(nobj);
     return nobj;
 }
+
+template<class Ntype>
+using gridObjectHolder = GridObjectHolder<Ntype>;  // NOLINT(readability-identifier-naming)
+
+template<class Ntype>
+using objectPrepper = ObjectPrepper<Ntype>;  // NOLINT(readability-identifier-naming)
+
+template<class Ntype>
+using typeFactory = TypeFactory<Ntype>;  // NOLINT(readability-identifier-naming)
+
+template<class Ntype, class Btype>
+using childTypeFactory = ChildTypeFactory<Ntype, Btype>;  // NOLINT(readability-identifier-naming)
+
+template<class Ntype, class argType>
+using typeFactoryArg = TypeFactoryArg<Ntype, argType>;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

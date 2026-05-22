@@ -126,7 +126,7 @@ class commMessage {
     @param[in] buffer_size the size of the buffer
     @return the size of the buffer actually used
     */
-    int toByteArray(char* data, size_t buffer_size) const;
+    int toByteArray(char* data, size_t bufferSize) const;
     /** convert to a data string using a reference*/
     void to_datastring(std::string& data) const;
     /** convert to a data string
@@ -137,7 +137,7 @@ class commMessage {
     /** convert a command to a byte vector*/
     std::vector<char> to_vector() const;
     /** generate a command from a raw data stream*/
-    void fromByteArray(const char* data, size_t buffer_size);
+    void fromByteArray(const char* data, size_t bufferSize);
     /** read a command from a string*/
     void from_datastring(std::string_view data);
     /** read a command from a char vector*/

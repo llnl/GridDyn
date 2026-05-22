@@ -28,6 +28,7 @@
 #endif
 
 namespace griddyn {
+class NullObject;
 enum class ParamStringType {
     ALL,
     all = ALL,  // NOLINT(readability-identifier-naming)
@@ -285,7 +286,7 @@ class CoreObject {
     CoreObject* getParent() const { return parent; }
     /** get the root object */
     CoreObject* getRoot() const
-    {  // the id of 0 is used by a special nullObject
+    {  // the id of 0 is used by a special NullObject
         return (parent->id != 0) ? (parent->getRoot()) : const_cast<CoreObject*>(this);
     }
     /** check if the object is a root object*/
@@ -303,10 +304,14 @@ class CoreObject {
     /** turn on updates for an object
     @param[in] upd_enabled a boolean defining whether to turn updates on(true) or off (false)
     */
-    void enable_updates(bool upd_enabled = true)
+    void enableUpdates(bool updatesEnabled = true)
     {
-        updates_enabled = upd_enabled;
+        updates_enabled = updatesEnabled;
         alert(this, UPDATE_REQUIRED);
+    }
+    void enable_updates(bool upd_enabled = true)  // NOLINT(readability-identifier-naming)
+    {
+        enableUpdates(upd_enabled);
     }
     /** check if an object has updates
     @return true if updates are enabled
@@ -331,7 +336,7 @@ class CoreObject {
     friend bool isSameObject(id_type_t id, const CoreObject* o2);
     friend bool isSameObject(const CoreObject* o1, id_type_t id);
     friend std::string fullObjectName(const CoreObject* obj);
-    friend class nullObject;
+    friend class NullObject;
 
   protected:
     /** simple function for alerting of a name change*/
@@ -433,46 +438,45 @@ inline bool isSameObject(const CoreObject* o1, id_type_t id)
 PrintLevel stringToPrintLevel(const std::string& level);
 
 namespace logging {
-    [[nodiscard]] inline bool should_log(const CoreObject* logger, PrintLevel level)
+    [[nodiscard]] inline bool shouldLog(const CoreObject* logger, PrintLevel level)
     {
         return (logger != nullptr) && logger->shouldLog(level);
     }
 
     inline void
-        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, const std::string& message)
+        logTo(CoreObject* logger, CoreObject* object, PrintLevel level, const std::string& message)
     {
-        if (!should_log(logger, level)) {
+        if (!shouldLog(logger, level)) {
             return;
         }
         logger->log(object, level, message);
     }
 
     inline void
-        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, std::string_view message)
+        logTo(CoreObject* logger, CoreObject* object, PrintLevel level, std::string_view message)
     {
-        if (!should_log(logger, level)) {
+        if (!shouldLog(logger, level)) {
             return;
         }
         logger->log(object, level, std::string{message});
     }
 
-    inline void
-        log_to(CoreObject* logger, CoreObject* object, PrintLevel level, const char* message)
+    inline void logTo(CoreObject* logger, CoreObject* object, PrintLevel level, const char* message)
     {
-        if (!should_log(logger, level)) {
+        if (!shouldLog(logger, level)) {
             return;
         }
         logger->log(object, level, std::string{message});
     }
 
     template<class... Args>
-    inline void log_to(CoreObject* logger,
-                       CoreObject* object,
-                       PrintLevel level,
-                       std::string_view formatText,
-                       Args&&... args)
+    inline void logTo(CoreObject* logger,
+                      CoreObject* object,
+                      PrintLevel level,
+                      std::string_view formatText,
+                      Args&&... args)
     {
-        if (!should_log(logger, level)) {
+        if (!shouldLog(logger, level)) {
             return;
         }
         auto formatArgs = std::make_tuple(std::forward<Args>(args)...);
@@ -486,45 +490,90 @@ namespace logging {
     }
 
     template<class... Args>
-    inline void log_self(CoreObject* logger, PrintLevel level, Args&&... args)
+    inline void logSelf(CoreObject* logger, PrintLevel level, Args&&... args)
     {
-        log_to(logger, logger, level, std::forward<Args>(args)...);
+        logTo(logger, logger, level, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void error(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::ERROR, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::ERROR, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void warning(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::WARNING, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::WARNING, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void summary(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::SUMMARY, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::SUMMARY, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void normal(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::NORMAL, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::NORMAL, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void debug(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::DEBUG, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::DEBUG, std::forward<Args>(args)...);
     }
 
     template<class... Args>
     inline void trace(CoreObject* logger, Args&&... args)
     {
-        log_self(logger, PrintLevel::TRACE, std::forward<Args>(args)...);
+        logSelf(logger, PrintLevel::TRACE, std::forward<Args>(args)...);
+    }
+
+    [[nodiscard]] inline bool should_log(const CoreObject* logger, PrintLevel level)  // NOLINT
+    {
+        return shouldLog(logger, level);
+    }
+
+    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
+                       CoreObject* object,
+                       PrintLevel level,
+                       const std::string& message)
+    {
+        logTo(logger, object, level, message);
+    }
+
+    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
+                       CoreObject* object,
+                       PrintLevel level,
+                       std::string_view message)
+    {
+        logTo(logger, object, level, message);
+    }
+
+    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
+                       CoreObject* object,
+                       PrintLevel level,
+                       const char* message)
+    {
+        logTo(logger, object, level, message);
+    }
+
+    template<class... Args>
+    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
+                       CoreObject* object,
+                       PrintLevel level,
+                       std::string_view formatText,
+                       Args&&... args)
+    {
+        logTo(logger, object, level, formatText, std::forward<Args>(args)...);
+    }
+
+    template<class... Args>
+    inline void log_self(CoreObject* logger, PrintLevel level, Args&&... args)  // NOLINT
+    {
+        logSelf(logger, level, std::forward<Args>(args)...);
     }
 }  // namespace logging
 

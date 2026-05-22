@@ -37,7 +37,6 @@ namespace {
     }
 }  // namespace
 
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<GenModel> genModelFactory("genmodel",
                                              std::to_array<std::string_view>({"trivial"}));
 static childTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
@@ -70,7 +69,6 @@ static childTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
 static childTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 GenModel::GenModel(const std::string& objName): GridSubModel(objName)
 {

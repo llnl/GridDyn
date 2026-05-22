@@ -23,7 +23,7 @@ std::atomic<id_type_t> CoreObject::s_obcnt(101);
 
 CoreObject::CoreObject(std::string_view objName): m_refCount(0), m_oid(s_obcnt++), name(objName)
 {
-    static nullObject nullObject0(0);
+    static NullObject nullObject0(0);
     // not using updateName since in many cases the id has not been set yet
     if (!name.empty() && (name.back() == '#')) {
         name.pop_back();
@@ -215,7 +215,7 @@ static bool parentReferenceLoop(CoreObject* pobj, CoreObject* test)
     }
     return false;
 }
-static nullObject gNullObjectEp(0);
+static NullObject gNullObjectEp(0);
 
 void CoreObject::setParent(CoreObject* parentObj)
 {
@@ -249,7 +249,7 @@ void CoreObject::setFlag(std::string_view flag, bool val)  // NOLINT(misc-no-rec
             }
         }
     } else if (flag == "updates") {
-        enable_updates(val);
+        enableUpdates(val);
     } else if (flag == "searchable") {
         alert(this, OBJECT_IS_SEARCHABLE);
     } else if (flag == "hasupdates") {
@@ -393,7 +393,7 @@ void CoreObject::alert(CoreObject* object, int code)  // NOLINT(misc-no-recursio
 {
     parent->alert(object, code);
 }
-// Parent-chain forwarding terminates at nullObject.
+// Parent-chain forwarding terminates at NullObject.
 // NOLINTNEXTLINE(misc-no-recursion)
 void CoreObject::log(CoreObject* object, PrintLevel level, const std::string& message)
 {
@@ -424,7 +424,7 @@ int CoreObject::getInt(std::string_view param) const
 
 std::string fullObjectName(const CoreObject* obj)  // NOLINT(misc-no-recursion)
 {
-    if (obj->parent->m_oid != 0)  // the nullobject oid==0
+    if (obj->parent->m_oid != 0)  // the NullObject oid==0
     {
         if (obj->parent->parent->m_oid != 0) {
             return fullObjectName(obj->parent) + "::" + obj->getName();  // yay recursion

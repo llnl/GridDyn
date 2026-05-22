@@ -68,7 +68,6 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObjec
     return condition;
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, ComparisonType, std::less<std::string_view>> compStrMap{
     {">", ComparisonType::GT},
     {"gt", ComparisonType::GT},

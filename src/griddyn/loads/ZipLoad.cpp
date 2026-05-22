@@ -32,7 +32,6 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<GridLoad> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
 static childTypeFactory<ZipLoad, GridLoad> zlf("load",
                                                std::to_array<std::string_view>({"basic", "zip"}),
@@ -61,7 +60,6 @@ namespace loads {
     static childTypeFactory<ApproximatingLoad, GridLoad>
         apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 ZipLoad::ZipLoad(const std::string& objName): GridLoad(objName) {}
 ZipLoad::ZipLoad(double rP, double rQ, const std::string& objName): GridLoad(rP, rQ, objName) {}

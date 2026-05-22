@@ -17,40 +17,40 @@
 namespace griddyn {
 /**create a factory for a specific type of helper component*/
 template<class parentClass>
-class classFactory;
+class ClassFactory;
 
 /** @brief factory for building types of various components that interact with GridDyn
  */
 template<class parentClass>
-class coreClassFactory {
-    using fMap = std::map<std::string, classFactory<parentClass>*, std::less<>>;
+class CoreClassFactory {
+    using fMap = std::map<std::string, ClassFactory<parentClass>*, std::less<>>;
     std::string mDefaultType;
 
   public:
     /** @brief get a shared pointer to the core object factory*/
-    static std::shared_ptr<coreClassFactory> instance()
+    static std::shared_ptr<CoreClassFactory> instance()
     {
-        static std::shared_ptr<coreClassFactory> factory =
-            std::shared_ptr<coreClassFactory>(new coreClassFactory());
+        static std::shared_ptr<CoreClassFactory> factory =
+            std::shared_ptr<CoreClassFactory>(new CoreClassFactory());
         return factory;
     }
 
-    /** @brief register a type factory with the coreObjectFactory
+    /** @brief register a type factory with the CoreClassFactory
     @param[in] name the string identifier to the factory
     @param[in] tf the type factory to place in the map
     */
-    void registerFactory(std::string_view name, classFactory<parentClass>* tf)
+    void registerFactory(std::string_view name, ClassFactory<parentClass>* tf)
     {
         auto ret = m_factoryMap.emplace(name, tf);
         if (!ret.second) {
             ret.first->second = tf;
         }
     }
-    /** @brief register a type factory with the coreObjectFactory
+    /** @brief register a type factory with the CoreClassFactory
     gets the name to use in the mapping from the type factory itself
     @param[in] tf the type factory to place in the map
     */
-    void registerFactory(classFactory<parentClass>* tf) { registerFactory(tf->name, tf); }
+    void registerFactory(ClassFactory<parentClass>* tf) { registerFactory(tf->name, tf); }
     void setDefault(std::string_view type)
     {
         if (type.empty()) {
@@ -105,10 +105,10 @@ class coreClassFactory {
     }
 
     /** @brief get a specific type factory
-    @param[in] typeName the name of the typeFactory to get
+    @param[in] typeName the name of the TypeFactory to get
     @return a shared pointer to a specific type Factory
     */
-    classFactory<parentClass>* getFactory(std::string_view typeName)
+    ClassFactory<parentClass>* getFactory(std::string_view typeName)
     {
         if (typeName.empty()) {
             return m_factoryMap[mDefaultType];
@@ -128,35 +128,35 @@ class coreClassFactory {
     }
 
   private:
-    coreClassFactory() = default;
-    fMap m_factoryMap;  //!< the main map from string to the classFactory
+    CoreClassFactory() = default;
+    fMap m_factoryMap;  //!< the main map from string to the ClassFactory
 };
 
 template<class parentClass>
-class classFactory {
+class ClassFactory {
   public:
     std::string name;
 
-    explicit classFactory(const std::string& keyName): name(keyName)
+    explicit ClassFactory(const std::string& keyName): name(keyName)
     {
-        coreClassFactory<parentClass>::instance()->registerFactory(keyName, this);
+        CoreClassFactory<parentClass>::instance()->registerFactory(keyName, this);
     }
-    explicit classFactory(const std::vector<std::string>& names): name(names[0])
+    explicit ClassFactory(const std::vector<std::string>& names): name(names[0])
     {
-        auto cfac = coreClassFactory<parentClass>::instance();
+        auto cfac = CoreClassFactory<parentClass>::instance();
         for (auto& nn : names) {
             cfac->registerFactory(nn, this);
         }
     }
-    classFactory(const std::vector<std::string>& names, const std::string& defType): name(names[0])
+    ClassFactory(const std::vector<std::string>& names, const std::string& defType): name(names[0])
     {
-        auto cfac = coreClassFactory<parentClass>::instance();
+        auto cfac = CoreClassFactory<parentClass>::instance();
         for (auto& nn : names) {
             cfac->registerFactory(nn, this);
         }
         cfac->setDefault(defType);
     }
-    virtual ~classFactory() = default;
+    virtual ~ClassFactory() = default;
     virtual std::unique_ptr<parentClass> makeObject() { return std::make_unique<parentClass>(); }
     virtual std::unique_ptr<parentClass> makeObject(std::string_view newObjectName)
     {
@@ -166,18 +166,18 @@ class classFactory {
 
 /** factory class for an inherited object*/
 template<class childClass, class parentClass>
-class childClassFactory: public classFactory<parentClass> {
+class ChildClassFactory: public ClassFactory<parentClass> {
     static_assert(std::is_base_of<parentClass, childClass>::value,
                   "factory classes must have parent child class relationship");
 
   public:
-    explicit childClassFactory(const std::string& keyName): classFactory<parentClass>(keyName) {}
-    explicit childClassFactory(const std::vector<std::string>& names):
-        classFactory<parentClass>(names)
+    explicit ChildClassFactory(const std::string& keyName): ClassFactory<parentClass>(keyName) {}
+    explicit ChildClassFactory(const std::vector<std::string>& names):
+        ClassFactory<parentClass>(names)
     {
     }
-    explicit childClassFactory(const std::vector<std::string>& names, const std::string& defType):
-        classFactory<parentClass>(names, defType)
+    explicit ChildClassFactory(const std::vector<std::string>& names, const std::string& defType):
+        ClassFactory<parentClass>(names, defType)
     {
     }
     virtual std::unique_ptr<parentClass> makeObject() override
@@ -194,7 +194,7 @@ class childClassFactory: public classFactory<parentClass> {
 
 /** factory class for an inherited object with an argument*/
 template<class childClass, class parentClass, class argType>
-class childClassFactoryArg: public classFactory<parentClass> {
+class ChildClassFactoryArg: public ClassFactory<parentClass> {
     static_assert(std::is_base_of<parentClass, childClass>::value,
                   "factory classes must have parent child class relationship");
     static_assert(!std::is_same<argType, std::string>::value, "arg type cannot be a std::string");
@@ -203,17 +203,17 @@ class childClassFactoryArg: public classFactory<parentClass> {
     argType argVal;
 
   public:
-    childClassFactoryArg(const std::string& keyName, argType iArg):
-        classFactory<parentClass>(keyName), argVal(iArg)
+    ChildClassFactoryArg(const std::string& keyName, argType iArg):
+        ClassFactory<parentClass>(keyName), argVal(iArg)
     {
     }
-    childClassFactoryArg(const std::vector<std::string>& names, argType iArg):
-        classFactory<parentClass>(names), argVal(iArg)
+    ChildClassFactoryArg(const std::vector<std::string>& names, argType iArg):
+        ClassFactory<parentClass>(names), argVal(iArg)
     {
     }
-    childClassFactoryArg(const std::vector<std::string>& names,
+    ChildClassFactoryArg(const std::vector<std::string>& names,
                          const std::string& defType,
-                         argType iArg): classFactory<parentClass>(names, defType), argVal(iArg)
+                         argType iArg): ClassFactory<parentClass>(names, defType), argVal(iArg)
     {
     }
     std::unique_ptr<parentClass> makeObject() override
@@ -226,5 +226,21 @@ class childClassFactoryArg: public classFactory<parentClass> {
     }
     std::unique_ptr<childClass> makeClassObject() { return std::make_unique<childClass>(argVal); }
 };
+
+template<class parentClass>
+using classFactory = ClassFactory<parentClass>;  // NOLINT(readability-identifier-naming)
+
+template<class parentClass>
+using coreClassFactory = CoreClassFactory<parentClass>;  // NOLINT(readability-identifier-naming)
+
+template<class childClass, class parentClass>
+using childClassFactory =
+    ChildClassFactory<childClass, parentClass>;  // NOLINT(readability-identifier-naming)
+
+template<class childClass, class parentClass, class argType>
+using childClassFactoryArg =
+    ChildClassFactoryArg<childClass,
+                         parentClass,
+                         argType>;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

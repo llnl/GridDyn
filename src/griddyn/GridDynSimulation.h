@@ -255,9 +255,9 @@ class GridDynSimulation: public GridSimulation {
     }
 
     /**@brief run the simulation until the specified time
-    @param[in] t_end  the simulation time to stop defaults to the time given in system parameters
+    @param[in] tEnd  the simulation time to stop defaults to the time given in system parameters
     @return int indicating success (0) or failure (non-zero)*/
-    int run(coreTime t_end = negTime) override;
+    int run(coreTime tEnd = negTime) override;
 
     /**@brief initialize the simulation for power flow at the specified time
     @param[in] time0 the time of the initialization default to 0
@@ -433,7 +433,7 @@ class GridDynSimulation: public GridSimulation {
                               const double values[],
                               count_t parameterCount,
                               const double state[],
-                              const double dstate_dt[],
+                              const double dstateDt[],
                               matrixData<double>& matrixDataRef,
                               const solverMode& sMode);
 

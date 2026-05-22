@@ -26,7 +26,6 @@
 namespace griddyn {
 using units::unit;
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static OptObjectFactory<GridAreaOpt, GridArea> opa("basic", "area");
 // NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 

@@ -39,7 +39,6 @@ CoreObject* SourceLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> source_lookup{
     {"source", SourceLoad::p_source},
     {"psource", SourceLoad::p_source},
@@ -60,7 +59,6 @@ static const std::map<std::string_view, int, std::less<>> source_lookup{
     {"iq_source", SourceLoad::iq_source},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
     {"p", SourceLoad::p_source},
     {"q", SourceLoad::q_source},
@@ -75,7 +73,6 @@ static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
     {"iq", SourceLoad::iq_source},
 };
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string_view, int, std::less<>> source_match{
     {"source", SourceLoad::p_source},     {"psource", SourceLoad::p_source},
     {"p_source", SourceLoad::p_source},   {"qsource", SourceLoad::q_source},

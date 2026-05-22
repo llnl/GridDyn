@@ -65,7 +65,6 @@ void gridGrabber::cloneTo(gridGrabber* ggb) const
     ggb->mObject = mObject;
 }
 
-// NOLINTNEXTLINE(bugprone-throwing-static-initialization)
 static const std::map<std::string, std::function<double(CoreObject*)>> coreFunctions{
     {"nextupdatetime", [](CoreObject* obj) { return obj->getNextUpdateTime(); }},
     {"lastupdatetime", [](CoreObject* obj) { return obj->get("lastupdatetime"); }},

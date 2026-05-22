@@ -20,7 +20,7 @@ class HelperObject {
   private:
     static std::atomic<uint64_t> s_obcnt;  //!< static counter for a global object counter
     std::uint64_t m_oid;  //!< the identifier for the object
-    std::string um_name;  //!< the text name of the object
+    std::string mName;  //!< the text name of the object
 
   public:
     /** @brief default constructor*/
@@ -68,12 +68,12 @@ class HelperObject {
     /** @brief set the name*/
     void setName(std::string_view newName)
     {
-        um_name = newName;
+        mName = newName;
         nameUpdate();
     }
 
     /** @brief get the name of the object*/
-    const std::string& getName() const noexcept { return um_name; }
+    const std::string& getName() const noexcept { return mName; }
     /** set the description of the object */
     void setDescription(std::string_view description);
     /** get the description of the object*/

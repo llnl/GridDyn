@@ -36,11 +36,8 @@
 #include <vector>
 
 namespace griddyn {
-static typeFactory<GridDynSimulation>
-    simulationFactory(  // NOLINT(bugprone-throwing-static-initialization)
-        "simulation",
-        stringVec{"GridDyn", "gridlab", "gridlabd"},
-        "GridDyn");
+static TypeFactory<GridDynSimulation>
+    gSimulationFactory("simulation", stringVec{"GridDyn", "gridlab", "gridlabd"}, "GridDyn");
 
 std::atomic<GridDynSimulation*> GridDynSimulation::s_instance{nullptr};
 
@@ -519,14 +516,14 @@ void GridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering of
 
 // --------------- run the simulation ---------------
 
-int GridDynSimulation::run(coreTime t_end)
+int GridDynSimulation::run(coreTime tEnd)
 {
-    if (t_end == negTime) {
-        t_end = stopTime;
+    if (tEnd == negTime) {
+        tEnd = stopTime;
     }
     gridDynAction gda;
     gda.command = gridDynAction::gd_action_t::run;
-    gda.val_double = t_end;
+    gda.val_double = tEnd;
     return execute(gda);
 }
 
@@ -555,11 +552,11 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         default:
             break;
         case gridDynAction::gd_action_t::set: {
-            objInfo objectInfo(cmd.string1, this);
+            ObjectInfo objectInfo(cmd.string1, this);
             if (cmd.val_double == kNullVal) {
-                objectInfo.m_obj->set(objectInfo.m_field, cmd.string2);
+                objectInfo.mObject->set(objectInfo.mField, cmd.string2);
             } else {
-                objectInfo.m_obj->set(objectInfo.m_field, cmd.val_double, objectInfo.m_unitType);
+                objectInfo.mObject->set(objectInfo.mField, cmd.val_double, objectInfo.mUnitType);
             }
         } break;
         case gridDynAction::gd_action_t::setall:
@@ -1555,7 +1552,7 @@ void GridDynSimulation::parameterDerivatives(coreTime time,
                                              const double values[],
                                              count_t parameterCount,
                                              const double state[],
-                                             const double dstate_dt[],
+                                             const double dstateDt[],
                                              matrixData<double>& matrixDataRef,
                                              const solverMode& sMode)
 {
@@ -1564,7 +1561,7 @@ void GridDynSimulation::parameterDerivatives(coreTime time,
         parameterOperators[indices[ii]]->setParameter(values[ii]);
     }
 
-    stateData stateDataValue(time, state, dstate_dt, 0);
+    stateData stateDataValue(time, state, dstateDt, 0);
 
     fillExtraStateData(stateDataValue, sMode);
     // compute this for the base case with the specified parameters

@@ -13,10 +13,8 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-// NOLINTBEGIN(bugprone-throwing-static-initialization)
 static typeFactory<AggregateLoad>
     glfld("load", std::to_array<std::string_view>({"composite", "cluster", "group"}));
-// NOLINTEND(bugprone-throwing-static-initialization)
 
 using gmlc::utilities::stringOps::splitline;
 using gmlc::utilities::stringOps::trailingStringInt;

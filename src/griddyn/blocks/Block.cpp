@@ -18,26 +18,26 @@
 #include <vector>
 
 namespace griddyn {
-static const typeFactory<GridBlock>
-    blockFactory("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
-static const childTypeFactory<blocks::ControlBlock, GridBlock> controlBlockFactory("block",
-                                                                                   "control");
-static const childTypeFactory<blocks::DeadbandBlock, GridBlock>
-    deadbandBlockFactory("block", std::to_array<std::string_view>({"deadband", "db"}));
-static const childTypeFactory<blocks::DelayBlock, GridBlock>
-    delayBlockFactory("block", std::to_array<std::string_view>({"delay", "filter"}));
-static const childTypeFactory<blocks::PidBlock, GridBlock> pidBlockFactory("block", "pid");
-static const childTypeFactory<blocks::IntegralBlock, GridBlock>
-    integralBlockFactory("block", std::to_array<std::string_view>({"integrator", "integral"}));
-static const childTypeFactory<blocks::FunctionBlock, GridBlock>
-    functionBlockFactory("block", std::to_array<std::string_view>({"function", "func"}));
-static const childTypeFactory<blocks::LutBlock, GridBlock>
-    lookupTableBlockFactory("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
-static const childTypeFactory<blocks::DerivativeBlock, GridBlock>
-    derivativeBlockFactory("block",
-                           std::to_array<std::string_view>({"der", "derivative", "deriv"}));
-static const childTypeFactory<blocks::FilteredDerivativeBlock, GridBlock>
-    filteredDerivativeBlockFactory(
+static const TypeFactory<GridBlock>
+    BLOCK_FACTORY("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
+static const ChildTypeFactory<blocks::ControlBlock, GridBlock> CONTROL_BLOCK_FACTORY("block",
+                                                                                      "control");
+static const ChildTypeFactory<blocks::DeadbandBlock, GridBlock>
+    DEADBAND_BLOCK_FACTORY("block", std::to_array<std::string_view>({"deadband", "db"}));
+static const ChildTypeFactory<blocks::DelayBlock, GridBlock>
+    DELAY_BLOCK_FACTORY("block", std::to_array<std::string_view>({"delay", "filter"}));
+static const ChildTypeFactory<blocks::PidBlock, GridBlock> PID_BLOCK_FACTORY("block", "pid");
+static const ChildTypeFactory<blocks::IntegralBlock, GridBlock>
+    INTEGRAL_BLOCK_FACTORY("block", std::to_array<std::string_view>({"integrator", "integral"}));
+static const ChildTypeFactory<blocks::FunctionBlock, GridBlock>
+    FUNCTION_BLOCK_FACTORY("block", std::to_array<std::string_view>({"function", "func"}));
+static const ChildTypeFactory<blocks::LutBlock, GridBlock>
+    LOOKUP_TABLE_BLOCK_FACTORY("block", std::to_array<std::string_view>({"lut", "lookuptable"}));
+static const ChildTypeFactory<blocks::DerivativeBlock, GridBlock>
+    DERIVATIVE_BLOCK_FACTORY("block",
+                             std::to_array<std::string_view>({"der", "derivative", "deriv"}));
+static const ChildTypeFactory<blocks::FilteredDerivativeBlock, GridBlock>
+    FILTERED_DERIVATIVE_BLOCK_FACTORY(
         "block",
         std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
 
@@ -272,7 +272,7 @@ void GridBlock::timestep(coreTime time, const IOdata& inputs, const solverMode& 
     step(time, inputs[0]);
 }
 
-static IOdata kNullVec;
+static IOdata gKNullVec;
 
 double GridBlock::step(coreTime time, double input)
 {
@@ -312,7 +312,7 @@ double GridBlock::step(coreTime time, double input)
                 const auto offset = opFlags[differential_output] ?
                     (offsets.getDiffOffset(cLocalSolverMode)) + 1 :
                     1;
-                rootCheck(kNullVec,
+                rootCheck(gKNullVec,
                           emptyStateData,
                           cLocalSolverMode,
                           check_level_t::reversable_only);

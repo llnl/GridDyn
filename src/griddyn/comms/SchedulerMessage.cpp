@@ -18,38 +18,42 @@ namespace {
     dPayloadFactory<schedulerMessagePayload,
                     BASE_SCHEDULER_MESSAGE_NUMBER,
                     BASE_SCHEDULER_MESSAGE_NUMBER + 16>
-        schedulerPayloadFactory("scheduler");
+        gSchedulerPayloadFactory("scheduler");
 }  // namespace
 
-REGISTER_MESSAGE_TYPE(messageTypeClearTargets,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CLEAR_TARGETS,
                       "CLEAR TARGETS",
                       schedulerMessagePayload::CLEAR_TARGETS);
-REGISTER_MESSAGE_TYPE(messageTypeShutdown, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
-REGISTER_MESSAGE_TYPE(messageTypeStartup, "STARTUP", schedulerMessagePayload::STARTUP);
-REGISTER_MESSAGE_TYPE(messageTypeAddTargets, "ADD TARGETS", schedulerMessagePayload::ADD_TARGETS);
-REGISTER_MESSAGE_TYPE(messageTypeUpdateTargets,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SHUTDOWN, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_STARTUP, "STARTUP", schedulerMessagePayload::STARTUP);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ADD_TARGETS,
+                      "ADD TARGETS",
+                      schedulerMessagePayload::ADD_TARGETS);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_TARGETS,
                       "UPDATE TARGETS",
                       schedulerMessagePayload::UPDATE_TARGETS);
-REGISTER_MESSAGE_TYPE(messageTypeUpdateReserves,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_RESERVES,
                       "UPDATE RESERVES",
                       schedulerMessagePayload::UPDATE_RESERVES);
-REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationReserve,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_REGULATION_RESERVE,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_RESERVE);
-REGISTER_MESSAGE_TYPE(messageTypeUseReserve, "USE RESERVE", schedulerMessagePayload::USE_RESERVE);
-REGISTER_MESSAGE_TYPE(messageTypeUpdateRegulationTarget,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_USE_RESERVE,
+                      "USE RESERVE",
+                      schedulerMessagePayload::USE_RESERVE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_REGULATION_TARGET,
                       "UPDATE REGULATION RESERVE",
                       schedulerMessagePayload::UPDATE_REGULATION_TARGET);
-REGISTER_MESSAGE_TYPE(messageTypeRegisterDispatcher,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_DISPATCHER,
                       "REGISTER DISPATCHER",
                       schedulerMessagePayload::REGISTER_DISPATCHER);
-REGISTER_MESSAGE_TYPE(messageTypeRegisterAgcDispatcher,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_AGC_DISPATCHER,
                       "REGISTER AGC DISPATCHER",
                       schedulerMessagePayload::REGISTER_AGC_DISPATCHER);
-REGISTER_MESSAGE_TYPE(messageTypeRegisterReserveDispatcher,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_RESERVE_DISPATCHER,
                       "REGISTER RESERVE DISPATCHER",
                       schedulerMessagePayload::REGISTER_RESERVE_DISPATCHER);
-REGISTER_MESSAGE_TYPE(messageTypeRegisterController,
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_CONTROLLER,
                       "REGISTER CONTROLLER",
                       schedulerMessagePayload::REGISTER_CONTROLLER);
 

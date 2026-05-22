@@ -43,9 +43,9 @@ namespace griddyn {
 void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
-                      const mArray& SW,
-                      const mArray& PV,
-                      const mArray& PQ,
+                      const mArray& sw,
+                      const mArray& pv,
+                      const mArray& pq,
                       const stringVec& busnames,
                       std::vector<GridBus*>& busList);
 void loadPSATGenArray(CoreObject* parentObject,
@@ -96,7 +96,7 @@ void loadOtherObjectData(CoreObject* parentObject,
                          const std::vector<GridBus*>& busList);
 static const std::vector<
     std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<GridBus*>&)>>
-    arrayIdentifiers{
+    ARRAY_IDENTIFIERS{
         {"Shunt.con", loadPSATShuntArray},
         {"Line.con", loadPSATLinkArray},
         {"Lines.con", loadPSATLinkArrayB},
@@ -119,7 +119,7 @@ void loadPSAT(CoreObject* parentObject,
 {
     double basepower = readerOptions.base;
     // std::string tstr;
-    mArray M1, SW, PQ, PV;
+    mArray busArrayData, swingBusData, pqBusData, pvBusData;
     std::vector<GridBus*> busList;
     /*
     A = filetext.find(basename + ".baseMVA") const;
@@ -138,43 +138,44 @@ void loadPSAT(CoreObject* parentObject,
                                             // the numbers
     // match up
 
-    stringVec Vnames;
-    auto A = filetext.find("Varname.bus");
-    if (A != std::string::npos) {
-        size_t B = filetext.find_first_of('=', A);
-        Vnames = readMatlabCellArray(filetext, B + 1);
+    stringVec busNames;
+    auto busNameStart = filetext.find("Varname.bus");
+    if (busNameStart != std::string::npos) {
+        size_t busNameEquals = filetext.find_first_of('=', busNameStart);
+        busNames = readMatlabCellArray(filetext, busNameEquals + 1);
         nmfnd = true;
     }
     if (!nmfnd) {
-        A = filetext.find("Bus.names");
-        if (A != std::string::npos) {
-            size_t B = filetext.find_first_of('=', A);
-            Vnames = readMatlabCellArray(filetext, B + 1);
+        busNameStart = filetext.find("Bus.names");
+        if (busNameStart != std::string::npos) {
+            size_t busNameEquals = filetext.find_first_of('=', busNameStart);
+            busNames = readMatlabCellArray(filetext, busNameEquals + 1);
             nmfnd = true;
         }
     }
     if (nmfnd) {
         if (!(readerOptions.prefix.empty())) {
-            for (auto& vk : Vnames) {
+            for (auto& vk : busNames) {
                 vk = readerOptions.prefix + '_' + vk;
             }
         }
     }
     // now find the bus structure
-    A = filetext.find("Bus.con");
-    if (A != std::string::npos) {
-        size_t B = filetext.find_first_of('=', A);
-        readMatlabArray(filetext, B + 1, M1);
-        readMatlabArray("SW.con", filetext, SW);
+    auto busArrayStart = filetext.find("Bus.con");
+    if (busArrayStart != std::string::npos) {
+        size_t busArrayEquals = filetext.find_first_of('=', busArrayStart);
+        readMatlabArray(filetext, busArrayEquals + 1, busArrayData);
+        readMatlabArray("SW.con", filetext, swingBusData);
 
-        if (Vnames.size() != M1.size()) {
-            if (Vnames.empty()) {
-                Vnames.resize(M1.size());
-                for (stringVec::size_type kk = 0; kk < M1.size(); ++kk) {
+        if (busNames.size() != busArrayData.size()) {
+            if (busNames.empty()) {
+                busNames.resize(busArrayData.size());
+                for (stringVec::size_type kk = 0; kk < busArrayData.size(); ++kk) {
                     if (readerOptions.prefix.empty()) {
-                        Vnames[kk] = "Bus-" + std::to_string(M1[kk][0]);
+                        busNames[kk] = "Bus-" + std::to_string(busArrayData[kk][0]);
                     } else {
-                        Vnames[kk] = readerOptions.prefix + "_Bus-" + std::to_string(M1[kk][0]);
+                        busNames[kk] =
+                            readerOptions.prefix + "_Bus-" + std::to_string(busArrayData[kk][0]);
                     }
                 }
             } else {
@@ -182,9 +183,10 @@ void loadPSAT(CoreObject* parentObject,
                     << "WARNING: number of bus names does not match the number of buses listed\n";
             }
         }
-        readMatlabArray("PV.con", filetext, PV);
-        readMatlabArray("PQ.con", filetext, PQ);
-        loadPSATBusArray(parentObject, basepower, M1, SW, PV, PQ, Vnames, busList);
+        readMatlabArray("PV.con", filetext, pvBusData);
+        readMatlabArray("PQ.con", filetext, pqBusData);
+        loadPSATBusArray(
+            parentObject, basepower, busArrayData, swingBusData, pvBusData, pqBusData, busNames, busList);
     }
     loadOtherObjectData(parentObject, filetext, busList);
 }
@@ -193,13 +195,13 @@ void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<GridBus*>& busList)
 {
-    mArray M1;
-    for (auto& namepair : arrayIdentifiers) {
-        auto A = filetext.find(namepair.first);
-        if (A != std::string::npos) {
-            size_t B = filetext.find_first_of('=', A);
-            readMatlabArray(filetext, B + 1, M1);
-            namepair.second(parentObject, M1, busList);
+    mArray objectArrayData;
+    for (auto& namepair : ARRAY_IDENTIFIERS) {
+        auto arrayStart = filetext.find(namepair.first);
+        if (arrayStart != std::string::npos) {
+            size_t arrayEquals = filetext.find_first_of('=', arrayStart);
+            readMatlabArray(filetext, arrayEquals + 1, objectArrayData);
+            namepair.second(parentObject, objectArrayData, busList);
         }
     }
 }
@@ -207,9 +209,9 @@ void loadOtherObjectData(CoreObject* parentObject,
 void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
-                      const mArray& SW,
-                      const mArray& PV,
-                      const mArray& PQ,
+                      const mArray& sw,
+                      const mArray& pv,
+                      const mArray& pq,
                       const stringVec& busnames,
                       std::vector<GridBus*>& busList)
 {
@@ -236,7 +238,7 @@ void loadPSATBusArray(CoreObject* parentObject,
         }
     }
 
-    for (auto& swInfo : SW) {
+    for (auto& swInfo : sw) {
         auto ind1 = static_cast<size_t>(swInfo[0]);
         auto bus = busList[ind1];
         bus->set("type", "swing");
@@ -257,7 +259,7 @@ void loadPSATBusArray(CoreObject* parentObject,
             gen->set("p", swInfo[9]);
         }
     }
-    for (auto& pvInfo : PV) {
+    for (auto& pvInfo : pv) {
         auto ind1 = static_cast<size_t>(pvInfo[0]);
         auto bus = busList[ind1];
         bus->set("type", "PV");
@@ -278,13 +280,13 @@ void loadPSATBusArray(CoreObject* parentObject,
         }
     }
 
-    for (auto& pqInfo : PQ) {
+    for (auto& pqInfo : pq) {
         auto ind1 = static_cast<size_t>(pqInfo[0]);
         auto bus = busList[ind1];
-        auto P = pqInfo[3];
-        auto Q = pqInfo[4];
-        if ((P != 0.0) || (Q != 0.0)) {
-            auto ld = new ZipLoad(P, Q);
+        auto p = pqInfo[3];
+        auto q = pqInfo[4];
+        if ((p != 0.0) || (q != 0.0)) {
+            auto ld = new ZipLoad(p, q);
             bus->add(ld);
         }
 

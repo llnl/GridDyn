@@ -16,8 +16,8 @@
 #include <string>
 
 namespace griddyn {
-static const typeFactory<GridBlock>
-    agcFactory("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
+static const TypeFactory<GridBlock>
+    AGC_FACTORY("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
 /*
 class AGControl
 {

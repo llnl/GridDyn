@@ -40,37 +40,37 @@ along with this program. If not, contact Modelon AB <http://www.modelon.com>.
 // create the component factories
 
 namespace griddyn {
-static childTypeFactory<fmi::FmiMELoad, GridLoad>
-    fmild(
+static ChildTypeFactory<fmi::FmiMELoad, GridLoad>
+    gFmiMeLoadFactory(
         "load",
         std::to_array<std::string_view>({"fmimeload", "fmi", "me"}));
-static childTypeFactory<fmi::FmiCoSimLoad, GridLoad>
-    fmiCSld(
+static ChildTypeFactory<fmi::FmiCoSimLoad, GridLoad>
+    gFmiCoSimLoadFactory(
         "load",
         std::to_array<std::string_view>({"fmicosimload", "cosim"}));
-static childTypeFactory<fmi::FmiCoSimLoad3phase, GridLoad>
-    fmiCSld3(
+static ChildTypeFactory<fmi::FmiCoSimLoad3phase, GridLoad>
+    gFmiCoSimLoad3Factory(
         "load",
         std::to_array<std::string_view>({"fmicosimload3", "fmicosimload3phase"}));
-static childTypeFactory<fmi::FmiMELoad3phase, GridLoad>
-    fmiMEld3(
+static ChildTypeFactory<fmi::FmiMELoad3phase, GridLoad>
+    gFmiMeLoad3Factory(
         "load",
         std::to_array<std::string_view>(
             {"fmimeload3", "fmiload3phase", "fmi3phase", "fmimeload3phase", "fmime3phase"}));
-static childTypeFactory<fmi::FmiGovernor, Governor>
-    fmiGov(
+static ChildTypeFactory<fmi::FmiGovernor, Governor>
+    gFmiGovernorFactory(
         "governor",
         std::to_array<std::string_view>({"fmigov", "fmigovernor", "fmi"}));
-static childTypeFactory<fmi::FmiExciter, Exciter>
-    fmiExciter(
+static ChildTypeFactory<fmi::FmiExciter, Exciter>
+    gFmiExciterFactory(
         "exciter",
         std::to_array<std::string_view>({"fmiexiter", "fmi"}));
-static childTypeFactory<fmi::FmiGenModel, GenModel>
-    fmiGM(
+static ChildTypeFactory<fmi::FmiGenModel, GenModel>
+    gFmiGenModelFactory(
         "genmodel",
         std::to_array<std::string_view>({"fmigenmodel", "fmimachine", "fmi"}));
-static childTypeFactory<fmi::CymeDistLoadME, GridLoad>
-    cymeME(
+static ChildTypeFactory<fmi::CymeDistLoadME, GridLoad>
+    gCymeMeFactory(
         "load",
         std::to_array<std::string_view>({"cyme", "cymeme", "cymefmi"}));
 
@@ -89,7 +89,7 @@ void loadFmiLibrary()
 namespace fmi_plugin_namespace {
 namespace {
     class FmiPlugin: public gridDynPlugInApi {
-        static std::vector<std::shared_ptr<griddyn::objectFactory>> fmiFactories;
+        static std::vector<std::shared_ptr<griddyn::ObjectFactory>> mFmiFactories;
         FmiPlugin() = default;
 
       public:
@@ -98,9 +98,9 @@ namespace {
         void load() override
         {
             auto factory = std::make_shared<
-                griddyn::childTypeFactory<griddyn::fmi::FmiMELoad, griddyn::GridLoad>>(
+                griddyn::ChildTypeFactory<griddyn::fmi::FmiMELoad, griddyn::GridLoad>>(
                 "load", griddyn::stringVec{"fmiload", "fmi"});
-            fmiFactories.push_back(factory);
+            mFmiFactories.push_back(factory);
         }
 
         void load(const std::string& /*section*/) override { load(); }
@@ -112,7 +112,7 @@ namespace {
     };
 }  // namespace
 
-std::vector<std::shared_ptr<griddyn::objectFactory>> FmiPlugin::fmiFactories;
+std::vector<std::shared_ptr<griddyn::ObjectFactory>> FmiPlugin::mFmiFactories;
 
 /*BOOST_DLL_ALIAS(
     fmi_plugin_namespace::FmiPlugin::create, // <-- this function is exported with...

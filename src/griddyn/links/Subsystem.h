@@ -197,7 +197,7 @@ class subsystem: public Link {
   */
     count_t getBusVector(std::vector<GridBus*>& busVector, index_t start = 0);
     /** @brief change the number of terminals
-  @param[in] count  the desired number of terminals
+  @param[in] newSize  the desired number of terminals
   */
     void resize(count_t newSize);
 };

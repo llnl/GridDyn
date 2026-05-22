@@ -191,7 +191,7 @@ namespace {
         return parentObject;
     }
 
-    static constexpr std::array<LoadFunctionEntry, 19> loadFunctionMap{
+    constexpr std::array<LoadFunctionEntry, 19> loadFunctionMap{
         {{.mName = "genmodel", .mLoader = &loadGenModel},
          {.mName = "exciter", .mLoader = &loadExciter},
          {.mName = "governor", .mLoader = &loadGovernor},
@@ -212,19 +212,24 @@ namespace {
          {.mName = "array", .mLoader = &loadArray},
          {.mName = "if", .mLoader = &loadIf}}};
 
-    // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static constexpr std::array<std::string_view, 11> customIgnoreValues{"args",
-                                                                         "arg1",
-                                                                         "arg2",
-                                                                         "arg3",
-                                                                         "arg4",
-                                                                         "arg5",
-                                                                         "arg6",
-                                                                         "arg7",
-                                                                         "arg8",
-                                                                         "arg9",
-                                                                         "arg0"};
-    const IgnoreListType customIgnore(customIgnoreValues.begin(), customIgnoreValues.end());
+    constexpr std::array<std::string_view, 11> customIgnoreValues{"args",
+                                                                  "arg1",
+                                                                  "arg2",
+                                                                  "arg3",
+                                                                  "arg4",
+                                                                  "arg5",
+                                                                  "arg6",
+                                                                  "arg7",
+                                                                  "arg8",
+                                                                  "arg9",
+                                                                  "arg0"};
+
+    const IgnoreListType& customIgnore()
+    {
+        static const auto* ignoreFields =
+            new IgnoreListType(customIgnoreValues.begin(), customIgnoreValues.end());
+        return *ignoreFields;
+    }
 }  // namespace
 
 void loadSubObjects(std::shared_ptr<readerElement>& element,
@@ -311,7 +316,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                            customElementData.first,
                                            objectName,
                                            readerInformation,
-                                           customIgnore);
+                                           customIgnore());
                     readerInformation.closeScope(scopeId);
                 }
             }

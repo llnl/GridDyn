@@ -136,7 +136,7 @@ namespace {
                              nullptr);
     }
 
-    static constexpr std::array<LoadFunctionEntry, 16> loadFunctionMap{{
+    constexpr std::array<LoadFunctionEntry, 16> loadFunctionMap{{
         // clang-format off
     {.mName = "genmodel", .mLoader = &loadGenModel},
     {.mName = "exciter", .mLoader = &loadExciter},

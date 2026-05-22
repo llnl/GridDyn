@@ -265,9 +265,9 @@ bool ReaderInfo::addLibraryObject(CoreObject* obj, std::vector<GridParameter>& p
     return false;
 }
 
-CoreObject* ReaderInfo::findLibraryObject(std::string_view objName) const
+CoreObject* ReaderInfo::findLibraryObject(const std::string& objName) const
 {
-    auto retval = library.find(std::string{objName});
+    auto retval = library.find(objName);
     if (retval != library.end()) {
         return retval->second.first;
     }
@@ -275,9 +275,9 @@ CoreObject* ReaderInfo::findLibraryObject(std::string_view objName) const
 }
 
 static constexpr char libraryLabel[] = "library";
-CoreObject* ReaderInfo::makeLibraryObject(std::string_view objName, CoreObject* mobj)
+CoreObject* ReaderInfo::makeLibraryObject(const std::string& objName, CoreObject* mobj)
 {
-    auto objloc = library.find(std::string{objName});
+    auto objloc = library.find(objName);
     if (objloc == library.end()) {
         WARNPRINT(READER_WARN_ALL, "unknown reference object " << objName);
         return mobj;
@@ -329,8 +329,8 @@ void ReaderInfo::addDirectory(const std::string& directory)
     }
 }
 
-std::shared_ptr<collector> ReaderInfo::findCollector(std::string_view name,
-                                                     std::string_view fileName)
+std::shared_ptr<collector> ReaderInfo::findCollector(const std::string& name,
+                                                     const std::string& fileName)
 {
     for (auto& col : collectors) {
         if ((name.empty()) || (col->getName() == name)) {

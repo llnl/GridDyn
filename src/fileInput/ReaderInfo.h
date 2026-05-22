@@ -107,19 +107,20 @@ class ReaderInfo: public BasicReaderInfo {
     the given object
     @return a pointer to the new object created/or cloned from the library object
     */
-    CoreObject* makeLibraryObject(std::string_view objName, CoreObject* mobj);
+    CoreObject* makeLibraryObject(const std::string& objName, CoreObject* mobj);
     /** @brief get a pointer to a library object
     @param[in] objName  the name of the object in the library to locate
     @return nullptr if no object found or a pointer to the library object
     */
-    CoreObject* findLibraryObject(std::string_view objName) const;
+    CoreObject* findLibraryObject(const std::string& objName) const;
 
     /** @brief  find a collector stored in the ReaderInfo either by name or by sink location
     *@param[in] name  the name of the collector to find
     @param[in] fileName  the sink name of the collector to find by file name
     @return a shared pointer to the collector or nullptr if not found
     */
-    std::shared_ptr<collector> findCollector(std::string_view name, std::string_view fileName);
+    std::shared_ptr<collector> findCollector(const std::string& name,
+                                             const std::string& fileName);
     /** get the keyObject*/
     CoreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/

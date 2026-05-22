@@ -212,7 +212,7 @@ class AcBus: public GridBus {
     /** @brief  compute adjustments required for the dynamic update*/
     virtual void computePowerAdjustments();
     /** @brief  compute the partial derivatives based on the given state data
-    @param[in] sD  the state Data in question
+    @param[in] stateDataValue  the state Data in question
     @param[in] sMode the solver mode*/
     virtual void computeDerivatives(const stateData& stateDataValue, const solverMode& sMode);
 
@@ -309,21 +309,21 @@ class AcBus: public GridBus {
     **/
     virtual double getAngle(const double state[], const solverMode& sMode) const override;
     /** @brief get the voltage
-    * @param[in] sD the system state data
+    * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding solverMode to the state data
     @return the bus voltage
     **/
     virtual double getVoltage(const stateData& stateDataValue,
                               const solverMode& sMode) const override;
     /** @brief get the angle
-    * @param[in] sD the system state data
+    * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding solverMode to the state
     @return the bus angle
     **/
     virtual double getAngle(const stateData& stateDataValue,
                             const solverMode& sMode) const override;
     /** @brief get the bus frequency
-    * @param[in] sD the system state data
+    * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding solverMode to the state
     @return the bus frequency
     **/
@@ -372,7 +372,7 @@ class AcBus: public GridBus {
 
   protected:
     /** @brief compute the current power-balance error
-    @param[in] sD stateData the stateData from which to compute the error
+    @param[in] stateDataValue the stateData from which to compute the error
     @param[in] sMode the solverMode corresponding to the stateData
     @return the error in the power balance equations
     */

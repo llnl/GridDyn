@@ -27,9 +27,9 @@ class Communicator;
 class AGControl: public GridSubModel {
   public:
     enum AGCType {
-        basicAGC,
-        batteryAGC,
-        battDR,
+        BASIC_AGC,
+        BATTERY_AGC,
+        BATT_DR,
     };
 
   protected:

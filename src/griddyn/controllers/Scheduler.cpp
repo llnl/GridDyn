@@ -328,7 +328,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<com
 
 void scheduler::dispatcherLink()
 {
-    auto* dispatch = static_cast<dispatcher*>(getParent()->find("dispatcher"));
+    auto* dispatch = static_cast<Dispatcher*>(getParent()->find("dispatcher"));
     if (dispatch != nullptr) {
         dispatch->add(this);
     }

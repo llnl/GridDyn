@@ -101,7 +101,7 @@ namespace {
                                       CoreObject* parentObject)
     {
         return elementReader(currentElement,
-                             static_cast<reserveDispatcher*>(nullptr),
+                             static_cast<ReserveDispatcher*>(nullptr),
                              "reservedispatcher",
                              readerInf,
                              parentObject);

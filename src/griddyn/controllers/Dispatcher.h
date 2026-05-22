@@ -14,7 +14,7 @@ namespace griddyn {
 class GridArea;
 class scheduler;
 
-class dispatcher: public CoreObject {
+class Dispatcher: public CoreObject {
   public:
   protected:
     double totalDispatch;
@@ -26,11 +26,11 @@ class dispatcher: public CoreObject {
     std::vector<scheduler*> schedList;
 
   public:
-    dispatcher(const std::string& objName = "dispatcher_#");
+    Dispatcher(const std::string& objName = "dispatcher_#");
 
-    virtual ~dispatcher();
+    virtual ~Dispatcher();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    void moveSchedulers(dispatcher* dis);
+    void moveSchedulers(Dispatcher* dis);
     virtual double initialize(coreTime time0, double dispatch);
 
     virtual double updateP(coreTime time, double required, double targetTime);
@@ -51,5 +51,6 @@ class dispatcher: public CoreObject {
   protected:
     virtual void dispatch(double level);
 };
+using dispatcher = Dispatcher;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

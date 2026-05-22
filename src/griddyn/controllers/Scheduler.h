@@ -85,12 +85,12 @@ as well as handling spinning reserve like capacity in an object
 */
 class schedulerRamp: public scheduler {
   public:
-    enum rampMode_t {
-        midPoint,
-        justInTime,
-        onTargetRamp,
-        delayed,
-        interp,
+    enum RampMode {
+        MID_POINT,
+        JUST_IN_TIME,
+        ON_TARGET_RAMP,
+        DELAYED,
+        INTERP,
     };
 
   protected:
@@ -105,7 +105,7 @@ class schedulerRamp: public scheduler {
     double ramp30Up = kBigNum;  //!< the 30 minute maximum up ramp
     double ramp10Down = kBigNum;  //!< the 10 minute maximum down ramp
     double ramp30Down = kBigNum;  //!< the 30 minute maximum down ramp
-    rampMode_t mode = interp;  //!< the interpolation mode
+    RampMode mode = INTERP;  //!< the interpolation mode
 
     // spinning reserve capacity
     double reserveAvail = 0.0;  //!< the amount of reserve power in the generator

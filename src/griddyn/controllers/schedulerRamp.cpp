@@ -183,15 +183,15 @@ void schedulerRamp::set(std::string_view param, std::string_view val)
     if (param == "rampmode") {
         auto v2 = gmlc::utilities::convertToLowerCase(val);
         if (v2 == "midpoint") {
-            mode = midPoint;
+            mode = MID_POINT;
         } else if (v2 == "justInTime") {
-            mode = justInTime;
+            mode = JUST_IN_TIME;
         } else if (v2 == "ontargetramp") {
-            mode = onTargetRamp;
+            mode = ON_TARGET_RAMP;
         } else if (v2 == "delayed") {
-            mode = delayed;
+            mode = DELAYED;
         } else if (v2 == "interp") {
-            mode = interp;
+            mode = INTERP;
         }
     } else {
         scheduler::set(param, val);
@@ -351,7 +351,7 @@ void schedulerRamp::updatePTarget()
     }
 
     switch (mode) {
-        case interp:
+        case INTERP:
             nextUpdateTime = time;
             pRampCurr = pdiff / td;
             if (pRampCurr > rampLimitUp) {
@@ -360,7 +360,7 @@ void schedulerRamp::updatePTarget()
                 pRampCurr = -rampDown;
             }
             break;
-        case midPoint:
+        case MID_POINT:
             if (td >= rampTime) {
                 if (rempower != 0.0) {
                     /*keep ramp until we would begin ramping for the next target*/
@@ -420,7 +420,7 @@ void schedulerRamp::updatePTarget()
                 }
             }
             break;
-        case delayed:
+        case DELAYED:
             if (rempower != 0.0) {
                 if (rempower > 0.0) {
                     remtime = rempower / rampLimitUp;
@@ -445,8 +445,8 @@ void schedulerRamp::updatePTarget()
                 nextUpdateTime = time;
             }
             break;
-        case justInTime:
-        case onTargetRamp:
+        case JUST_IN_TIME:
+        case ON_TARGET_RAMP:
             break;
     }
 }

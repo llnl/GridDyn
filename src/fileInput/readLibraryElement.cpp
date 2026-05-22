@@ -130,7 +130,7 @@ namespace {
                                       readerInfo& readerInf)
     {
         return elementReader(currentElement,
-                             static_cast<reserveDispatcher*>(nullptr),
+                             static_cast<ReserveDispatcher*>(nullptr),
                              "reserveDispatcher",
                              readerInf,
                              nullptr);

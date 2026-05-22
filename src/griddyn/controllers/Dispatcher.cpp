@@ -10,51 +10,51 @@
 #include <string>
 
 namespace griddyn {
-dispatcher::dispatcher(const std::string& objName): CoreObject(objName) {}
+Dispatcher::Dispatcher(const std::string& objName): CoreObject(objName) {}
 
-dispatcher::~dispatcher() = default;
-CoreObject* dispatcher::clone(CoreObject* /*obj*/) const
+Dispatcher::~Dispatcher() = default;
+CoreObject* Dispatcher::clone(CoreObject* /*obj*/) const
 {
     return nullptr;
 }
 
-void dispatcher::moveSchedulers(dispatcher* /*dis*/) {}
-double dispatcher::initialize(coreTime /*time0*/, double /*dispatch*/)
+void Dispatcher::moveSchedulers(Dispatcher* /*dis*/) {}
+double Dispatcher::initialize(coreTime /*time0*/, double /*dispatch*/)
 {
     return 0;
 }
 
-double dispatcher::updateP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
+double Dispatcher::updateP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
 {
     return 0;
 }
-double dispatcher::testP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
+double Dispatcher::testP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
 {
     return 0;
 }
 
-void dispatcher::add(CoreObject* /*obj*/)
+void Dispatcher::add(CoreObject* /*obj*/)
 {
     throw(objectAddFailure(this));
 }
-void dispatcher::add(scheduler* /*sched*/)
+void Dispatcher::add(scheduler* /*sched*/)
 {
     throw(objectAddFailure(this));
 }
-void dispatcher::remove(CoreObject* /*obj*/) {}
-void dispatcher::remove(scheduler* /*sched*/) {}
+void Dispatcher::remove(CoreObject* /*obj*/) {}
+void Dispatcher::remove(scheduler* /*sched*/) {}
 
-void dispatcher::set(std::string_view param, std::string_view val)
+void Dispatcher::set(std::string_view param, std::string_view val)
 {
     return CoreObject::set(param, val);
 }
-void dispatcher::set(std::string_view param, double val, units::unit unitType)
+void Dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
     return CoreObject::set(param, val, unitType);
 }
 
-void dispatcher::checkGen() {}
+void Dispatcher::checkGen() {}
 
-void dispatcher::dispatch(double /*level*/) {}
+void Dispatcher::dispatch(double /*level*/) {}
 
 }  // namespace griddyn

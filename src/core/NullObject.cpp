@@ -8,43 +8,43 @@
 #include <cassert>
 #include <string>
 namespace griddyn {
-nullObject::nullObject(std::uint64_t nullCode) noexcept: CoreObject(nullCode)
+NullObject::NullObject(std::uint64_t nullCode) noexcept: CoreObject(nullCode)
 {
     assert(nullCode <= 100);
     parent = this;
 }
 
-nullObject::nullObject(std::string_view objName): CoreObject(objName)
+NullObject::NullObject(std::string_view objName): CoreObject(objName)
 {
     parent = this;
 }
-CoreObject* nullObject::clone(CoreObject* obj) const
+CoreObject* NullObject::clone(CoreObject* obj) const
 {
     if (obj != nullptr) {
         return CoreObject::clone(obj);
     }
     if (id < 100) {
-        return CoreObject::clone(new nullObject(id));
+        return CoreObject::clone(new NullObject(id));
     }
-    return CoreObject::clone(new nullObject(getName()));
+    return CoreObject::clone(new NullObject(getName()));
 }
 
-void nullObject::alert(CoreObject* /*obj*/, int /*code*/) {}
-void nullObject::log(CoreObject* /*obj*/, PrintLevel /*level*/, const std::string& /*message*/) {}
-bool nullObject::shouldLog(PrintLevel /*level*/) const
+void NullObject::alert(CoreObject* /*obj*/, int /*code*/) {}
+void NullObject::log(CoreObject* /*obj*/, PrintLevel /*level*/, const std::string& /*message*/) {}
+bool NullObject::shouldLog(PrintLevel /*level*/) const
 {
     return false;
 }
-CoreObject* nullObject::find(std::string_view /*object*/) const
+CoreObject* NullObject::find(std::string_view /*object*/) const
 {
     return nullptr;
 }
-CoreObject* nullObject::findByUserID(std::string_view /*typeName*/, index_t /*searchID*/) const
+CoreObject* NullObject::findByUserID(std::string_view /*typeName*/, index_t /*searchID*/) const
 {
     return nullptr;
 }
 
-void nullObject::setParent(CoreObject* /*parentObj*/)
+void NullObject::setParent(CoreObject* /*parentObj*/)
 {
     // ignore it (null objects can't have parents)
 }

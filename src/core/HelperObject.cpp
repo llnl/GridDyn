@@ -25,7 +25,7 @@ std::atomic<std::uint64_t> HelperObject::s_obcnt(101);
 HelperObject::HelperObject() noexcept: m_oid(s_obcnt++) {}
 HelperObject::~HelperObject() = default;
 
-HelperObject::HelperObject(std::string objectName): m_oid(s_obcnt++), um_name(std::move(objectName))
+HelperObject::HelperObject(std::string objectName): m_oid(s_obcnt++), mName(std::move(objectName))
 {
 }
 

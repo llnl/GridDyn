@@ -555,11 +555,11 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         default:
             break;
         case gridDynAction::gd_action_t::set: {
-            objInfo objectInfo(cmd.string1, this);
+            ObjectInfo objectInfo(cmd.string1, this);
             if (cmd.val_double == kNullVal) {
-                objectInfo.m_obj->set(objectInfo.m_field, cmd.string2);
+                objectInfo.mObject->set(objectInfo.mField, cmd.string2);
             } else {
-                objectInfo.m_obj->set(objectInfo.m_field, cmd.val_double, objectInfo.m_unitType);
+                objectInfo.mObject->set(objectInfo.mField, cmd.val_double, objectInfo.mUnitType);
             }
         } break;
         case gridDynAction::gd_action_t::setall:

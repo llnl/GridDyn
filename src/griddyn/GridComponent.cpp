@@ -614,12 +614,12 @@ static auto hasParameterPath(std::string_view param)
 bool GridComponent::subObjectSet(std::string_view param, double val, units::unit unitType)
 {
     if (hasParameterPath(param)) {
-        const objInfo pinfo(std::string{param}, this);
-        if (pinfo.m_obj != nullptr) {
-            if (pinfo.m_unitType != units::defunit) {
-                pinfo.m_obj->set(pinfo.m_field, val, pinfo.m_unitType);
+        const ObjectInfo pinfo(std::string{param}, this);
+        if (pinfo.mObject != nullptr) {
+            if (pinfo.mUnitType != units::defunit) {
+                pinfo.mObject->set(pinfo.mField, val, pinfo.mUnitType);
             } else {
-                pinfo.m_obj->set(pinfo.m_field, val, unitType);
+                pinfo.mObject->set(pinfo.mField, val, unitType);
             }
             return true;
         }
@@ -631,9 +631,9 @@ bool GridComponent::subObjectSet(std::string_view param, double val, units::unit
 bool GridComponent::subObjectSet(std::string_view param, std::string_view val)
 {
     if (hasParameterPath(param)) {
-        const objInfo pinfo(std::string{param}, this);
-        if (pinfo.m_obj != nullptr) {
-            pinfo.m_obj->set(pinfo.m_field, val);
+        const ObjectInfo pinfo(std::string{param}, this);
+        if (pinfo.mObject != nullptr) {
+            pinfo.mObject->set(pinfo.mField, val);
         } else {
             throw(unrecognizedParameter(param));
         }
@@ -645,9 +645,9 @@ bool GridComponent::subObjectSet(std::string_view param, std::string_view val)
 bool GridComponent::subObjectSet(std::string_view flag, bool val)
 {
     if (hasParameterPath(flag)) {
-        const objInfo pinfo(std::string{flag}, this);
-        if (pinfo.m_obj != nullptr) {
-            pinfo.m_obj->setFlag(pinfo.m_field, val);
+        const ObjectInfo pinfo(std::string{flag}, this);
+        if (pinfo.mObject != nullptr) {
+            pinfo.mObject->setFlag(pinfo.mField, val);
         } else {
             throw(unrecognizedParameter(flag));
         }
@@ -659,12 +659,12 @@ bool GridComponent::subObjectSet(std::string_view flag, bool val)
 double GridComponent::subObjectGet(std::string_view param, units::unit unitType) const
 {
     if (hasParameterPath(param)) {
-        const objInfo pinfo(std::string{param}, this);
-        if (pinfo.m_obj != nullptr) {
-            if (pinfo.m_unitType != units::defunit) {
-                return pinfo.m_obj->get(pinfo.m_field, pinfo.m_unitType);
+        const ObjectInfo pinfo(std::string{param}, this);
+        if (pinfo.mObject != nullptr) {
+            if (pinfo.mUnitType != units::defunit) {
+                return pinfo.mObject->get(pinfo.mField, pinfo.mUnitType);
             }
-            return pinfo.m_obj->get(pinfo.m_field, unitType);
+            return pinfo.mObject->get(pinfo.mField, unitType);
         }
         throw(unrecognizedParameter(param));
     }

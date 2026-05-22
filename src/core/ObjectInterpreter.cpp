@@ -10,34 +10,34 @@
 #include <string>
 
 namespace griddyn {
-ObjInfo::ObjInfo(std::string_view istring, const CoreObject* obj)
+ObjectInfo::ObjectInfo(std::string_view istring, const CoreObject* obj)
 {
-    LoadInfo(istring, obj);
+    loadInfo(istring, obj);
 }
-void ObjInfo::LoadInfo(std::string_view istring, const CoreObject* obj)
+void ObjectInfo::loadInfo(std::string_view istring, const CoreObject* obj)
 {
     // get the object which to grab from
     size_t rlc = istring.find_last_of(":?");
     if (rlc != std::string::npos) {
-        m_obj = locateObject(istring.substr(0, rlc), obj);
+        mObject = locateObject(istring.substr(0, rlc), obj);
 
-        m_field = std::string{istring.substr(rlc + 1, std::string::npos)};
+        mField = std::string{istring.substr(rlc + 1, std::string::npos)};
     } else {
-        m_obj = const_cast<CoreObject*>(obj);
-        m_field = std::string{istring};
+        mObject = const_cast<CoreObject*>(obj);
+        mField = std::string{istring};
     }
 
-    rlc = m_field.find_first_of('(');
+    rlc = mField.find_first_of('(');
     if (rlc != std::string::npos) {
-        const size_t rlc2 = m_field.find_last_of(')');
-        m_unitType =
-            units::unit_cast(units::unit_from_string(m_field.substr(rlc + 1, rlc2 - rlc - 1)));
-        m_field = gmlc::utilities::convertToLowerCase(m_field.substr(0, rlc));
+        const size_t rlc2 = mField.find_last_of(')');
+        mUnitType =
+            units::unit_cast(units::unit_from_string(mField.substr(rlc + 1, rlc2 - rlc - 1)));
+        mField = gmlc::utilities::convertToLowerCase(mField.substr(0, rlc));
     } else {
-        m_field = gmlc::utilities::convertToLowerCase(m_field);
+        mField = gmlc::utilities::convertToLowerCase(mField);
     }
 
-    gmlc::utilities::stringOps::trimString(m_field);
+    gmlc::utilities::stringOps::trimString(mField);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

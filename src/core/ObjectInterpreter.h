@@ -15,30 +15,35 @@ namespace griddyn {
  generally used for interpreting an object string with object and field references and possibly
  units as well
 */
-class ObjInfo {
+class ObjectInfo {
   public:
-    CoreObject* m_obj = nullptr;  //!< pointer to the object being referenced
-    std::string m_field;  //!< the field referenced
-    units::unit m_unitType = units::defunit;  //!< the units corresponding to the reference
+    CoreObject* mObject = nullptr;  //!< pointer to the object being referenced
+    std::string mField;  //!< the field referenced
+    units::unit mUnitType = units::defunit;  //!< the units corresponding to the reference
 
     /** @brief default constructor*/
-    ObjInfo() = default;
+    ObjectInfo() = default;
     /** @brief constructor with the string to interpret and a base object to begin the search
     process for
     @param[in] istring the input string containing the object and field reference
     @param[in] obj the object used as the basis for the search if needed
     */
-    ObjInfo(std::string_view istring, const CoreObject* obj);
+    ObjectInfo(std::string_view istring, const CoreObject* obj);
 
     /** @brief load a string similar to the constructor except with an existing object
      the string should be of the form objA::subObject:field(units) const
     @param[in] istring the input string containing the object and field reference
             @param[in] obj the object used as the basis for the search if needed
             */
-    void LoadInfo(std::string_view istring, const CoreObject* obj);
+    void loadInfo(std::string_view istring, const CoreObject* obj);
+    void LoadInfo(std::string_view istring, const CoreObject* obj)  // NOLINT
+    {
+        loadInfo(istring, obj);
+    }
 };
 
-using objInfo = ObjInfo;  // NOLINT(readability-identifier-naming)
+using ObjInfo = ObjectInfo;  // NOLINT(readability-identifier-naming)
+using objInfo = ObjectInfo;  // NOLINT(readability-identifier-naming)
 
 /** @brief locate a specific object by name
  the string should be of the form obj::subobj:field, or /obj/subobj?field,  field is optional but

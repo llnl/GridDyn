@@ -128,7 +128,7 @@ TEST_F(RelayTests, TestControlRelay)
     auto cm = std::make_shared<commMessage>(comms::controlMessagePayload::SET);
     auto data = cm->getPayload<comms::controlMessagePayload>();
     ASSERT_NE(data, nullptr);
-    data->m_field = "P";
+    data->mField = "P";
     data->m_value = 1.3;
 
     comm->transmit("cld4", cm);
@@ -144,7 +144,7 @@ TEST_F(RelayTests, TestControlRelay)
     cm->setMessageType(comms::controlMessagePayload::GET);
     auto getData = cm->getPayload<comms::controlMessagePayload>();
     ASSERT_NE(getData, nullptr);
-    getData->m_field = "q";
+    getData->mField = "q";
 
     comm->transmit("cld4", cm);
     rep = comm->getMessage(src);

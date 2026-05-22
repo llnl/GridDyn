@@ -301,13 +301,13 @@ std::shared_ptr<CLI::App>
         for (const auto& str : results) {
             const GridParameter parameterDefinition(str);
             if (parameterDefinition.valid) {
-                ObjInfo objectInformation(parameterDefinition.field, m_gds.get());
+                ObjectInfo objectInformation(parameterDefinition.field, m_gds.get());
                 try {
                     if (parameterDefinition.stringType) {
-                        objectInformation.m_obj->set(objectInformation.m_field,
+                        objectInformation.mObject->set(objectInformation.mField,
                                                      parameterDefinition.strVal);
                     } else {
-                        objectInformation.m_obj->set(objectInformation.m_field,
+                        objectInformation.mObject->set(objectInformation.mField,
                                                      parameterDefinition.value,
                                                      parameterDefinition.paramUnits);
                     }

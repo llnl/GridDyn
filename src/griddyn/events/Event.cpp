@@ -102,20 +102,20 @@ void Event::loadField(CoreObject* searchObj, std::string_view newField)
     auto renameloc = newField.find(" as ");  // spaces are important
                                              // extract out a rename
 
-    ObjInfo fdata;
+    ObjectInfo fdata;
     if (renameloc != std::string::npos) {
         setName(trim(std::string{newField.substr(renameloc + 4)}));
-        fdata = ObjInfo(newField.substr(0, renameloc), searchObj);
+        fdata = ObjectInfo(newField.substr(0, renameloc), searchObj);
     } else {
-        fdata = ObjInfo(newField, searchObj);
+        fdata = ObjectInfo(newField, searchObj);
     }
 
-    field = fdata.m_field;
-    if (fdata.m_unitType != units::defunit) {
-        unitType = fdata.m_unitType;
+    field = fdata.mField;
+    if (fdata.mUnitType != units::defunit) {
+        unitType = fdata.mUnitType;
     }
-    if (fdata.m_obj != m_obj) {
-        m_obj = fdata.m_obj;
+    if (fdata.mObject != m_obj) {
+        m_obj = fdata.mObject;
         if (getName().empty()) {
             setName(m_obj->getName() + ":" + field);
         }
@@ -398,11 +398,11 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
     trimString(vstring);
     objString = objString.substr(0, posE);
     // break down the object specification
-    ObjInfo fdata(objString, rootObj);
+    ObjectInfo fdata(objString, rootObj);
 
-    targetObjs.push_back(fdata.m_obj);
-    units.push_back(fdata.m_unitType);
-    fieldList.push_back(fdata.m_field);
+    targetObjs.push_back(fdata.mObject);
+    units.push_back(fdata.mUnitType);
+    fieldList.push_back(fdata.mField);
 
     auto posFile = vstring.find_first_of('{');
     if (posFile != std::string::npos) {  // now we get into file based event
@@ -429,9 +429,9 @@ std::unique_ptr<Event>
     make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
 {
     auto ev = std::make_unique<Event>(eventTime);
-    ObjInfo fdata(std::string{field}, rootObject);
-    ev->setTarget(fdata.m_obj, fdata.m_field);
-    ev->setValue(val, fdata.m_unitType);
+    ObjectInfo fdata(std::string{field}, rootObject);
+    ev->setTarget(fdata.mObject, fdata.mField);
+    ev->setValue(val, fdata.mUnitType);
     return ev;
 }
 

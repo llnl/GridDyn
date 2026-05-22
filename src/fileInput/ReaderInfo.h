@@ -119,8 +119,7 @@ class ReaderInfo: public BasicReaderInfo {
     @param[in] fileName  the sink name of the collector to find by file name
     @return a shared pointer to the collector or nullptr if not found
     */
-    std::shared_ptr<collector> findCollector(const std::string& name,
-                                             const std::string& fileName);
+    std::shared_ptr<collector> findCollector(const std::string& name, const std::string& fileName);
     /** get the keyObject*/
     CoreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/

@@ -213,8 +213,17 @@ namespace {
          {.mName = "if", .mLoader = &loadIf}}};
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    static constexpr std::array<std::string_view, 11> customIgnoreValues{
-        "args", "arg1", "arg2", "arg3", "arg4", "arg5", "arg6", "arg7", "arg8", "arg9", "arg0"};
+    static constexpr std::array<std::string_view, 11> customIgnoreValues{"args",
+                                                                         "arg1",
+                                                                         "arg2",
+                                                                         "arg3",
+                                                                         "arg4",
+                                                                         "arg5",
+                                                                         "arg6",
+                                                                         "arg7",
+                                                                         "arg8",
+                                                                         "arg9",
+                                                                         "arg0"};
     const IgnoreListType customIgnore(customIgnoreValues.begin(), customIgnoreValues.end());
 }  // namespace
 
@@ -271,8 +280,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                      return entry.mName == objectName;
                                  });
                 if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                    const auto* object =
-                        reader->mLoader(element, readerInformation, parentObject);
+                    const auto* object = reader->mLoader(element, readerInformation, parentObject);
                     if ((object->isRoot()) && (object != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   object->getName() << " not owned by any other object");

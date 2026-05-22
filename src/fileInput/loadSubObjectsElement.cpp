@@ -35,9 +35,9 @@ namespace {
                                             readerInfo&,
                                             CoreObject* parent);
 
-    struct load_function_entry {
-        const char* name;
-        load_function_t loader;
+    struct LoadFunctionEntry {
+        const char* mName;
+        load_function_t mLoader;
     };
 
     CoreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement,
@@ -191,39 +191,31 @@ namespace {
         return parentObject;
     }
 
-    const std::array<load_function_entry, 19> loadFunctionMap{
-        {{.name = "genmodel", .loader = &loadGenModel},
-         {.name = "exciter", .loader = &loadExciter},
-         {.name = "governor", .loader = &loadGovernor},
-         {.name = "pss", .loader = &loadPss},
-         {.name = "source", .loader = &loadSource},
-         {.name = "scheduler", .loader = &loadScheduler},
-         {.name = "agc", .loader = &loadAgc},
-         {.name = "reservedispatcher", .loader = &loadReserveDispatcher},
-         {.name = "block", .loader = &loadBlock},
-         {.name = "generator", .loader = &loadGenerator},
-         {.name = "load", .loader = &loadLoad},
-         {.name = "extra", .loader = &loadExtra},
-         {.name = "bus", .loader = &loadBus},
-         {.name = "relay", .loader = &loadRelay},
-         {.name = "area", .loader = &loadGridArea},
-         {.name = "link", .loader = &loadLink},
-         {.name = "econ", .loader = &loadEcon},
-         {.name = "array", .loader = &loadArray},
-         {.name = "if", .loader = &loadIf}}};
+    static constexpr std::array<LoadFunctionEntry, 19> loadFunctionMap{
+        {{.mName = "genmodel", .mLoader = &loadGenModel},
+         {.mName = "exciter", .mLoader = &loadExciter},
+         {.mName = "governor", .mLoader = &loadGovernor},
+         {.mName = "pss", .mLoader = &loadPss},
+         {.mName = "source", .mLoader = &loadSource},
+         {.mName = "scheduler", .mLoader = &loadScheduler},
+         {.mName = "agc", .mLoader = &loadAgc},
+         {.mName = "reservedispatcher", .mLoader = &loadReserveDispatcher},
+         {.mName = "block", .mLoader = &loadBlock},
+         {.mName = "generator", .mLoader = &loadGenerator},
+         {.mName = "load", .mLoader = &loadLoad},
+         {.mName = "extra", .mLoader = &loadExtra},
+         {.mName = "bus", .mLoader = &loadBus},
+         {.mName = "relay", .mLoader = &loadRelay},
+         {.mName = "area", .mLoader = &loadGridArea},
+         {.mName = "link", .mLoader = &loadLink},
+         {.mName = "econ", .mLoader = &loadEcon},
+         {.mName = "array", .mLoader = &loadArray},
+         {.mName = "if", .mLoader = &loadIf}}};
 
     // NOLINTNEXTLINE(bugprone-throwing-static-initialization)
-    const IgnoreListType customIgnore{"args",
-                                      "arg1",
-                                      "arg2",
-                                      "arg3",
-                                      "arg4",
-                                      "arg5",
-                                      "arg6",
-                                      "arg7",
-                                      "arg8",
-                                      "arg9",
-                                      "arg0"};
+    static constexpr std::array<std::string_view, 11> customIgnoreValues{
+        "args", "arg1", "arg2", "arg3", "arg4", "arg5", "arg6", "arg7", "arg8", "arg9", "arg0"};
+    const IgnoreListType customIgnore(customIgnoreValues.begin(), customIgnoreValues.end());
 }  // namespace
 
 void loadSubObjects(std::shared_ptr<readerElement>& element,
@@ -276,10 +268,11 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                     std::find_if(loadFunctionMap.data(),
                                  loadFunctionMap.data() + loadFunctionMap.size(),
                                  [&objectName](const auto& entry) {
-                                     return entry.name == objectName;
+                                     return entry.mName == objectName;
                                  });
                 if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                    const auto* object = reader->loader(element, readerInformation, parentObject);
+                    const auto* object =
+                        reader->mLoader(element, readerInformation, parentObject);
                     if ((object->isRoot()) && (object != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   object->getName() << " not owned by any other object");

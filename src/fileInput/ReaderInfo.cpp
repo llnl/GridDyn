@@ -274,7 +274,7 @@ CoreObject* ReaderInfo::findLibraryObject(std::string_view objName) const
     return nullptr;
 }
 
-const char libraryLabel[] = "library";
+static constexpr char libraryLabel[] = "library";
 CoreObject* ReaderInfo::makeLibraryObject(std::string_view objName, CoreObject* mobj)
 {
     auto objloc = library.find(std::string{objName});
@@ -343,7 +343,7 @@ std::shared_ptr<collector> ReaderInfo::findCollector(std::string_view name,
     return nullptr;
 }
 
-bool ReaderInfo::checkFileParam(std::string& strVal, bool extra_find)
+bool ReaderInfo::checkFileParam(std::string& strVal, bool extraFind)
 {
     if (strVal.back() == '_')  // escape hatch to skip the file checking
     {
@@ -369,7 +369,7 @@ bool ReaderInfo::checkFileParam(std::string& strVal, bool extra_find)
                 break;
             }
         }
-        if (!foundPath && extra_find) {
+        if (!foundPath && extraFind) {
             // check the most recently added directories first
             // NOLINTNEXTLINE(modernize-loop-convert)
             for (auto checkDirectory = directories.rbegin(); checkDirectory != directories.rend();

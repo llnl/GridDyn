@@ -26,7 +26,7 @@ namespace {
     bool isMasterObject(const CoreObject* searchObject, const GridSimulation* simulationObject);
 }  // namespace
 
-static const char libstring[] = "library";
+static constexpr char libstring[] = "library";
 // read XML file
 // CoreObject * readSimXMLFile(const std::string &fileName, CoreObject *gco, const std::string
 // prefix, readerInfo *ri) const

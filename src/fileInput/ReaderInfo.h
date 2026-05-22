@@ -223,11 +223,11 @@ class ReaderInfo: public BasicReaderInfo {
 
     /** @brief check that a file parameter is valid
     @param[in,out] strVal  the file to check and output an updated file location
-    @param[in] extra_find if the file cannot be found on the first check, ignore the path
+    @param[in] extraFind if the file cannot be found on the first check, ignore the path
     information and check again for just the fileName in known locations
     @return true if the file was changed false otherwise
     */
-    bool checkFileParam(std::string& strVal, bool extra_find = false);
+    bool checkFileParam(std::string& strVal, bool extraFind = false);
 
     /** @brief check if a directory is valid
     @param[in,out] strVal  the directory to check and output an updated location

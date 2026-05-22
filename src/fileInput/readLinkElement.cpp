@@ -23,7 +23,7 @@ namespace {
         return *ignoreElements;
     }
 }  // namespace
-static const char linkComponentName[] = "link";
+static constexpr char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
                       readerInfo& readerInformation,

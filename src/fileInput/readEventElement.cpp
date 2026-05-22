@@ -17,7 +17,7 @@
 #include <utility>
 
 namespace griddyn {
-static const char eventNameString[] = "event";
+static constexpr char eventNameString[] = "event";
 
 namespace {
     const IgnoreListType& eventIgnoreStrings()

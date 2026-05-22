@@ -22,7 +22,7 @@ namespace {
         return *ignoreElements;
     }
 }  // namespace
-static const char relayComponentName[] = "relay";
+static constexpr char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
 Relay* readRelayElement(std::shared_ptr<readerElement>& element,

@@ -40,7 +40,7 @@ void loadElementInformation(CoreObject* obj,
 
 static void checkForEndUnits(gridParameter& param, const std::string& parameterString);
 
-static const char importString[] = "import";
+static constexpr char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
                  readerInfo& readerInformation,
                  CoreObject* parentObject,
@@ -109,8 +109,8 @@ void readImports(std::shared_ptr<readerElement>& element,
     element->restore();
 }
 
-static const char unitString1[] = "units";
-static const char unitString2[] = "unit";
+static constexpr char unitString1[] = "units";
+static constexpr char unitString2[] = "unit";
 
 static units::unit readUnits(const std::shared_ptr<readerElement>& element,
                              const std::string& field)
@@ -142,7 +142,7 @@ static units::unit readUnits(const std::shared_ptr<readerElement>& element,
     return units::defunit;
 }
 
-static const char valueString[] = "value";
+static constexpr char valueString[] = "value";
 
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element)
 {

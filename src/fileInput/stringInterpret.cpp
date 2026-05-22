@@ -158,27 +158,27 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
     char op = command[rlc];
 
     // check if either Ablock or Bclock is a constant
-    auto Ablock = trim(command.substr(0, rlc));
-    double valA = (Ablock.empty()) ? 0.0 : stringBlocktoDouble(Ablock, ri);
+    auto ablock = trim(command.substr(0, rlc));
+    double valA = (ablock.empty()) ? 0.0 : stringBlocktoDouble(ablock, ri);
 
-    auto Bblock = trim(command.substr(rlc + 1, std::string_view::npos));
-    double valB = stringBlocktoDouble(Bblock, ri);
+    auto bblock = trim(command.substr(rlc + 1, std::string_view::npos));
+    double valB = stringBlocktoDouble(bblock, ri);
 
     return (op == '+') ? valA + valB : valA - valB;
 }
 
-static constexpr double nan_val = std::numeric_limits<double>::quiet_NaN();
+static constexpr double nanVal = std::numeric_limits<double>::quiet_NaN();
 
 double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
 {
     char op = command[rlc];
 
-    auto Ablock = trim(command.substr(0, rlc));
-    double valA = stringBlocktoDouble(Ablock, ri);
+    auto ablock = trim(command.substr(0, rlc));
+    double valA = stringBlocktoDouble(ablock, ri);
 
     // load the second half of the multiplication
-    auto Bblock = trim(command.substr(rlc + 1, std::string_view::npos));
-    double valB = stringBlocktoDouble(Bblock, ri);
+    auto bblock = trim(command.substr(rlc + 1, std::string_view::npos));
+    double valB = stringBlocktoDouble(bblock, ri);
 
     double val;
     switch (op) {
@@ -186,17 +186,17 @@ double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
             val = valA * valB;
             break;
         case '%':
-            val = (valB == 0.0) ? nan_val : fmod(valA, valB);
+            val = (valB == 0.0) ? nanVal : fmod(valA, valB);
             break;
         case '/':
-            val = (valB == 0.0) ? nan_val : valA / valB;
+            val = (valB == 0.0) ? nanVal : valA / valB;
             break;
         case '^':
             val = pow(valA, valB);
             break;
         default:
             // this shouldn't happen
-            val = nan_val;
+            val = nanVal;
     }
     return val;
 }
@@ -260,14 +260,14 @@ double interpretFunction(string_view command, double val1, double val2, readerIn
 double objectQuery(string_view command, CoreObject* obj)
 {
     if (obj == nullptr) {
-        return nan_val;
+        return nanVal;
     }
     objInfo query(std::string{command}, obj);
     if (!query.m_field.empty()) {
         double val = query.m_obj->get(query.m_field, query.m_unitType);
         return val;
     }
-    return nan_val;
+    return nanVal;
 }
 
 double stringBlocktoDouble(string_view block, readerInfo& ri)

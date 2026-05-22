@@ -20,7 +20,7 @@ namespace {
         return *ignoreElements;
     }
 }  // namespace
-static const char areaComponentName[] = "area";
+static constexpr char areaComponentName[] = "area";
 GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
                               readerInfo& readerInformation,
                               CoreObject* searchObject)

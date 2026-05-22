@@ -172,9 +172,9 @@ CoreObject* getParent(std::shared_ptr<readerElement>& element,
 
 // This set of constants and functions is to allow templating of the object type but getting an
 // alternative string for the parent type
-static const char emptyString[] = "";
-static const char areaTypeString[] = "area";
-static const char busTypeString[] = "bus";
+static constexpr char emptyString[] = "";
+static constexpr char areaTypeString[] = "area";
+static constexpr char busTypeString[] = "bus";
 
 inline const std::string& parentSearchComponent(CoreObject*)
 {

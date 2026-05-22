@@ -305,11 +305,11 @@ std::shared_ptr<CLI::App>
                 try {
                     if (parameterDefinition.stringType) {
                         objectInformation.mObject->set(objectInformation.mField,
-                                                     parameterDefinition.strVal);
+                                                       parameterDefinition.strVal);
                     } else {
                         objectInformation.mObject->set(objectInformation.mField,
-                                                     parameterDefinition.value,
-                                                     parameterDefinition.paramUnits);
+                                                       parameterDefinition.value,
+                                                       parameterDefinition.paramUnits);
                     }
                 }
                 catch (const UnrecognizedParameter&) {

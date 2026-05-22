@@ -239,6 +239,8 @@ using childClassFactory =
 
 template<class childClass, class parentClass, class argType>
 using childClassFactoryArg =
-    ChildClassFactoryArg<childClass, parentClass, argType>;  // NOLINT(readability-identifier-naming)
+    ChildClassFactoryArg<childClass,
+                         parentClass,
+                         argType>;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

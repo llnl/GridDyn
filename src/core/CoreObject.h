@@ -461,8 +461,7 @@ namespace logging {
         logger->log(object, level, std::string{message});
     }
 
-    inline void
-        logTo(CoreObject* logger, CoreObject* object, PrintLevel level, const char* message)
+    inline void logTo(CoreObject* logger, CoreObject* object, PrintLevel level, const char* message)
     {
         if (!shouldLog(logger, level)) {
             return;

@@ -424,8 +424,7 @@ template<class Ntype>
 using typeFactory = TypeFactory<Ntype>;  // NOLINT(readability-identifier-naming)
 
 template<class Ntype, class Btype>
-using childTypeFactory =
-    ChildTypeFactory<Ntype, Btype>;  // NOLINT(readability-identifier-naming)
+using childTypeFactory = ChildTypeFactory<Ntype, Btype>;  // NOLINT(readability-identifier-naming)
 
 template<class Ntype, class argType>
 using typeFactoryArg = TypeFactoryArg<Ntype, argType>;  // NOLINT(readability-identifier-naming)

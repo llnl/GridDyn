@@ -213,16 +213,16 @@ namespace {
          {.mName = "if", .mLoader = &loadIf}}};
 
     constexpr std::array<const char*, 11> customIgnoreValues{"args",
-                                                              "arg1",
-                                                              "arg2",
-                                                              "arg3",
-                                                              "arg4",
-                                                              "arg5",
-                                                              "arg6",
-                                                              "arg7",
-                                                              "arg8",
-                                                              "arg9",
-                                                              "arg0"};
+                                                             "arg1",
+                                                             "arg2",
+                                                             "arg3",
+                                                             "arg4",
+                                                             "arg5",
+                                                             "arg6",
+                                                             "arg7",
+                                                             "arg8",
+                                                             "arg9",
+                                                             "arg0"};
 
     const IgnoreListType& customIgnore()
     {

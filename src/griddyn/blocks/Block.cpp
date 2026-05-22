@@ -21,7 +21,7 @@ namespace griddyn {
 static const TypeFactory<GridBlock>
     BLOCK_FACTORY("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
 static const ChildTypeFactory<blocks::ControlBlock, GridBlock> CONTROL_BLOCK_FACTORY("block",
-                                                                                      "control");
+                                                                                     "control");
 static const ChildTypeFactory<blocks::DeadbandBlock, GridBlock>
     DEADBAND_BLOCK_FACTORY("block", std::to_array<std::string_view>({"deadband", "db"}));
 static const ChildTypeFactory<blocks::DelayBlock, GridBlock>

@@ -185,8 +185,14 @@ void loadPSAT(CoreObject* parentObject,
         }
         readMatlabArray("PV.con", filetext, pvBusData);
         readMatlabArray("PQ.con", filetext, pqBusData);
-        loadPSATBusArray(
-            parentObject, basepower, busArrayData, swingBusData, pvBusData, pqBusData, busNames, busList);
+        loadPSATBusArray(parentObject,
+                         basepower,
+                         busArrayData,
+                         swingBusData,
+                         pvBusData,
+                         pqBusData,
+                         busNames,
+                         busList);
     }
     loadOtherObjectData(parentObject, filetext, busList);
 }

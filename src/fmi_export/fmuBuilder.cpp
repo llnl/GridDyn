@@ -60,14 +60,14 @@ void FmuBuilder::loadComponents()
         gds = getSim();
     }
     gds->add(mCoordinator.get());
-    mReaderInfo = std::make_unique<readerInfo>();
+    mReaderInfo = std::make_unique<ReaderInfo>();
     loadFmiExportReaderInfoDefinitions(*mReaderInfo);
     mReaderInfo->captureFiles = true;
 }
 
 FmuBuilder::~FmuBuilder() = default;
 
-std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(readerInfo& readerInformation)
+std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(ReaderInfo& readerInformation)
 {
     const std::vector<std::string> validPlatforms{
         "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
@@ -114,20 +114,20 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
             fmupath = path("griddyn.fmu");
         }
     }
-    auto fmu_temp_dir = bpath / fmupath.stem();
-    create_directory(fmu_temp_dir);
+    auto fmuTempDir = bpath / fmupath.stem();
+    create_directory(fmuTempDir);
 
-    copySharedLibrary(fmu_temp_dir.string());
+    copySharedLibrary(fmuTempDir.string());
 
-    path resource_dir = fmu_temp_dir / "resources";
-    create_directory(resource_dir);
+    path resourceDir = fmuTempDir / "resources";
+    create_directory(resourceDir);
 
     path sourcefile = getSim()->sourceFile;
     auto ext = gmlc::utilities::convertToLowerCase(sourcefile.extension().string());
     if (ext[0] == '.') {
         ext.erase(0, 1);
     }
-    auto newFile = resource_dir;
+    auto newFile = resourceDir;
     if (ext == "xml") {
         newFile /= "simulation.xml";
     } else if (ext == "json") {
@@ -147,15 +147,15 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
     for (const auto& file : mReaderInfo->getCapturedFiles()) {
         path capturedFile(file);
         if (exists(capturedFile)) {
-            testCopyFile(capturedFile, resource_dir / capturedFile.filename());
+            testCopyFile(capturedFile, resourceDir / capturedFile.filename());
         }
     }
     // now generate the model description file
-    generateXML((fmu_temp_dir / "modelDescription.xml").string());
+    generateXML((fmuTempDir / "modelDescription.xml").string());
 
     if (fmupath.is_absolute()) {
         // now zip the fmu
-        const int status = utilities::zipFolder(fmupath.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(fmupath.string(), fmuTempDir.string());
         if (status == 0) {
             getSim()->log(nullptr, PrintLevel::SUMMARY, "fmu created at " + fmupath.string());
         } else {
@@ -166,7 +166,7 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
         }
     } else {
         auto path2 = current_path() / fmupath;
-        const int status = utilities::zipFolder(path2.string(), fmu_temp_dir.string());
+        const int status = utilities::zipFolder(path2.string(), fmuTempDir.string());
         if (status == 0) {
             getSim()->log(nullptr, PrintLevel::SUMMARY, "fmu created at " + path2.string());
         } else {
@@ -180,23 +180,23 @@ void FmuBuilder::makeFmu(const std::string& fmuLocation)
 
 void FmuBuilder::copySharedLibrary(const std::string& tempdir)
 {
-    path binary_dir = path(tempdir) / "binaries";
-    create_directory(binary_dir);
+    path binaryDir = path(tempdir) / "binaries";
+    create_directory(binaryDir);
     bool copySome = false;
     path executable(mExecutablePath);
     path execDir = executable.parent_path();
     if ((mPlatform == "all") || (mPlatform == "windows") || (mPlatform == "win64")) {
         auto source = execDir / "win64" / "fmiGridDynSharedLib.dll";
         if (exists(source)) {
-            create_directory(binary_dir / "win64");
-            auto dest = binary_dir / "win64" / "fmiGridDynSharedLib.dll";
+            create_directory(binaryDir / "win64");
+            auto dest = binaryDir / "win64" / "fmiGridDynSharedLib.dll";
             testCopyFile(source, dest);
             copySome = true;
         } else {
             source = execDir / "win64" / "libfmiGridDynSharedLib.dll";
             if (exists(source)) {
-                create_directory(binary_dir / "win64");
-                auto dest = binary_dir / "win64" / "fmiGridDynSharedLib.dll";
+                create_directory(binaryDir / "win64");
+                auto dest = binaryDir / "win64" / "fmiGridDynSharedLib.dll";
                 testCopyFile(source, dest);
                 copySome = true;
             }
@@ -206,15 +206,15 @@ void FmuBuilder::copySharedLibrary(const std::string& tempdir)
     if ((mPlatform == "all") || (mPlatform == "linux") || (mPlatform == "linux64")) {
         auto source = execDir / "linux64" / "fmiGridDynSharedLib.so";
         if (exists(source)) {
-            create_directory(binary_dir / "linux64");
-            auto dest = binary_dir / "linux64" / "fmiGridDynSharedLib.so";
+            create_directory(binaryDir / "linux64");
+            auto dest = binaryDir / "linux64" / "fmiGridDynSharedLib.so";
             testCopyFile(source, dest);
             copySome = true;
         } else {
             source = execDir / "linux64" / "libfmiGridDynSharedLib.so";
             if (exists(source)) {
-                create_directory(binary_dir / "linux64");
-                auto dest = binary_dir / "linux64" / "fmiGridDynSharedLib.so";
+                create_directory(binaryDir / "linux64");
+                auto dest = binaryDir / "linux64" / "fmiGridDynSharedLib.so";
                 testCopyFile(source, dest);
                 copySome = true;
             }
@@ -224,77 +224,77 @@ void FmuBuilder::copySharedLibrary(const std::string& tempdir)
         (mPlatform == "darwin64")) {
         auto source = execDir / "darwin64" / "fmiGridDynSharedLib.so";
         if (exists(source)) {
-            create_directory(binary_dir / "darwin64");
-            auto dest = binary_dir / "darwin64" / "fmiGridDynSharedLib.so";
+            create_directory(binaryDir / "darwin64");
+            auto dest = binaryDir / "darwin64" / "fmiGridDynSharedLib.so";
             testCopyFile(source, dest);
             copySome = true;
         } else if (exists(execDir / "darwin64" / "fmiGridDynSharedLib.dylib")) {
             source = execDir / "darwin64" / "fmiGridDynSharedLib.dylib";
-            create_directory(binary_dir / "darwin64");
-            auto dest = binary_dir / "darwin64" / "fmiGridDynSharedLib.dylib";
+            create_directory(binaryDir / "darwin64");
+            auto dest = binaryDir / "darwin64" / "fmiGridDynSharedLib.dylib";
             testCopyFile(source, dest);
             copySome = true;
         } else if (exists(execDir / "darwin64" / "libfmiGridDynSharedLib.dylib")) {
             source = execDir / "darwin64" / "libfmiGridDynSharedLib.dylib";
-            create_directory(binary_dir / "darwin64");
-            auto dest = binary_dir / "darwin64" / "fmiGridDynSharedLib.dylib";
+            create_directory(binaryDir / "darwin64");
+            auto dest = binaryDir / "darwin64" / "fmiGridDynSharedLib.dylib";
             testCopyFile(source, dest);
             copySome = true;
         } else if (exists(execDir / "darwin64" / "libfmiGridDynSharedLib.so")) {
             source = execDir / "darwin64" / "libfmiGridDynSharedLib.so";
-            create_directory(binary_dir / "darwin64");
-            auto dest = binary_dir / "darwin64" / "fmiGridDynSharedLib.so";
+            create_directory(binaryDir / "darwin64");
+            auto dest = binaryDir / "darwin64" / "fmiGridDynSharedLib.so";
             testCopyFile(source, dest);
             copySome = true;
         }
     }
     auto binaryLocPath = path(GRIDDYNFMILIBRARY_LOC);
     if (exists(binaryLocPath / GRIDDYNFMILIBRARY_NAME)) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / GRIDDYNFMILIBRARY_NAME;
-        auto dest = binary_dir / FMILIBRARY_TYPE / GRIDDYNFMILIBRARY_NAME;
+        auto dest = binaryDir / FMILIBRARY_TYPE / GRIDDYNFMILIBRARY_NAME;
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "fmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "fmiGridDynSharedLib.dll";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "libfmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "libfmiGridDynSharedLib.dll";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "fmiGridDynSharedLib.so")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "fmiGridDynSharedLib.so";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so";
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "libfmiGridDynSharedLib.so")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "libfmiGridDynSharedLib.so";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so";
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "fmiGridDynSharedLib.dylib")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "fmiGridDynSharedLib.dylib";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib";
         testCopyFile(source, dest);
         return;
     }
     if (exists(binaryLocPath / "libfmiGridDynSharedLib.dylib")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "libfmiGridDynSharedLib.dylib";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib";
         testCopyFile(source, dest);
         return;
     }
@@ -305,61 +305,61 @@ void FmuBuilder::copySharedLibrary(const std::string& tempdir)
 // Deal with Visual Studio locations
 #ifndef NDEBUG
     if (exists(binaryLocPath / "Debug" / "fmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "Debug" / "fmiGridDynSharedLib.dll";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
         testCopyFile(source, dest);
         return;
     }
 #else
     if (exists(binaryLocPath / "Release" / "fmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         auto source = binaryLocPath / "Release" / "fmiGridDynSharedLib.dll";
-        auto dest = binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
+        auto dest = binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll";
         testCopyFile(source, dest);
         return;
     }
 #endif
     // now just search the current directory
     if (exists(GRIDDYNFMILIBRARY_NAME)) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
-        testCopyFile(GRIDDYNFMILIBRARY_NAME, binary_dir / FMILIBRARY_TYPE / GRIDDYNFMILIBRARY_NAME);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
+        testCopyFile(GRIDDYNFMILIBRARY_NAME, binaryDir / FMILIBRARY_TYPE / GRIDDYNFMILIBRARY_NAME);
         return;
     }
     if (exists("fmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("fmiGridDynSharedLib.dll",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll");
         return;
     }
     if (exists("libfmiGridDynSharedLib.dll")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("libfmiGridDynSharedLib.dll",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dll");
         return;
     }
     if (exists("fmiGridDynSharedLib.so")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("fmiGridDynSharedLib.so",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so");
         return;
     }
     if (exists("libfmiGridDynSharedLib.so")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("libfmiGridDynSharedLib.so",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.so");
         return;
     }
     if (exists("fmiGridDynSharedLib.dylib")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("fmiGridDynSharedLib.dylib",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib");
         return;
     }
     if (exists("libfmiGridDynSharedLib.dylib")) {
-        create_directory(binary_dir / FMILIBRARY_TYPE);
+        create_directory(binaryDir / FMILIBRARY_TYPE);
         testCopyFile("libfmiGridDynSharedLib.dylib",
-                     binary_dir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib");
+                     binaryDir / FMILIBRARY_TYPE / "fmiGridDynSharedLib.dylib");
         return;
     }
     throw(std::runtime_error("unable to locate shared fmu library file"));

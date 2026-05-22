@@ -6,7 +6,7 @@
 
 #include "../../test/gtestHelper.h"
 #include "core/CoreOwningPtr.hpp"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include "fmi/fmi_import/fmiImport.h"
 #include "fmi/fmi_import/fmiObjects.h"
 #include "fmi_export/fmiCollector.h"
@@ -141,18 +141,18 @@ TEST_F(FmiExportTests, TestFmiRunner)
     runner->simInitialize();
     runner->updateOutputs();
 
-    auto ld_vr = runner->findVR("load");
-    auto out = runner->getValue(ld_vr);
+    auto ldVr = runner->findVR("load");
+    auto out = runner->getValue(ldVr);
     EXPECT_NEAR(out, 0.5, 0.000001);
 
-    auto in_vr = runner->findVR("power");
-    runner->setValue(in_vr, 0.6);
+    auto inVr = runner->findVR("power");
+    runner->setValue(inVr, 0.6);
     runner->Step(1.0);
-    out = runner->getValue(ld_vr);
+    out = runner->getValue(ldVr);
     EXPECT_NEAR(out, 0.6, 0.00001);
-    runner->setValue(in_vr, 0.7);
+    runner->setValue(inVr, 0.7);
     runner->Step(2.0);
-    out = runner->getValue(ld_vr);
+    out = runner->getValue(ldVr);
     EXPECT_NEAR(out, 0.7, 0.00001);
     runner->Finalize();
 }
@@ -262,15 +262,15 @@ TEST_F(FmiExportTests, TestFmiRunner2)
     auto ret = runner->Step(10.0);
     EXPECT_EQ(ret, coreTime(10.0));
 
-    auto va_vr = runner->findVR("Bus11_VA");
-    auto vb_vr = runner->findVR("Bus11_VB");
-    auto vc_vr = runner->findVR("Bus11_VC");
-    EXPECT_NE(va_vr, kNullLocation);
-    EXPECT_NE(vb_vr, kNullLocation);
-    EXPECT_NE(vc_vr, kNullLocation);
-    auto val1 = runner->getValue(va_vr);
-    auto val2 = runner->getValue(vb_vr);
-    auto val3 = runner->getValue(vc_vr);
+    auto vaVr = runner->findVR("Bus11_VA");
+    auto vbVr = runner->findVR("Bus11_VB");
+    auto vcVr = runner->findVR("Bus11_VC");
+    EXPECT_NE(vaVr, kNullLocation);
+    EXPECT_NE(vbVr, kNullLocation);
+    EXPECT_NE(vcVr, kNullLocation);
+    auto val1 = runner->getValue(vaVr);
+    auto val2 = runner->getValue(vbVr);
+    auto val3 = runner->getValue(vcVr);
     EXPECT_GT(val1, 3500.0);
     EXPECT_LT(val1, 5200.0);
     EXPECT_GT(val2, 3500.0);
@@ -291,9 +291,9 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         ret = runner->Step(time);
         time += 10.0;
 
-        auto val1b = runner->getValue(va_vr);
-        auto val2b = runner->getValue(vb_vr);
-        auto val3b = runner->getValue(vc_vr);
+        auto val1b = runner->getValue(vaVr);
+        auto val2b = runner->getValue(vbVr);
+        auto val3b = runner->getValue(vcVr);
         EXPECT_GT(std::abs(val1b - val1), 0.00001);
         EXPECT_GT(std::abs(val2b - val2), 0.00001);
         EXPECT_GT(std::abs(val3b - val3), 0.00001);
@@ -315,9 +315,9 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         ret = runner->Step(time);
         time += 10.0;
 
-        auto val1b = runner->getValue(va_vr);
-        auto val2b = runner->getValue(vb_vr);
-        auto val3b = runner->getValue(vc_vr);
+        auto val1b = runner->getValue(vaVr);
+        auto val2b = runner->getValue(vbVr);
+        auto val3b = runner->getValue(vcVr);
         EXPECT_GT(std::abs(val1b - val1), 0.00001);
         EXPECT_GT(std::abs(val2b - val2), 0.00001);
         EXPECT_GT(std::abs(val3b - val3), 0.00001);

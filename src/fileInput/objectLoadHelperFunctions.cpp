@@ -23,7 +23,7 @@ namespace {
     }
 }  // namespace
 
-static const char nameString[] = "name";
+static constexpr char nameString[] = "name";
 
 std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation)
 {

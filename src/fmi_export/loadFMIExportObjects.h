@@ -7,10 +7,10 @@
 #pragma once
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 
 void loadFmiExportObjects();
 
-void loadFmiExportReaderInfoDefinitions(readerInfo& readerInformation);
+void loadFmiExportReaderInfoDefinitions(ReaderInfo& readerInformation);
 
 }  // namespace griddyn

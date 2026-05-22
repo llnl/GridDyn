@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "ReaderInfo.h"
 #include "core/CoreObject.h"
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
@@ -15,7 +16,6 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
-#include "readerInfo.h"
 #include <fstream>
 #include <iostream>
 #include <string>

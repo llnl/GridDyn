@@ -15,7 +15,7 @@ class Federate;
 }
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 namespace helicsLib {
     class HelicsCoordinator;
 
@@ -35,7 +35,7 @@ executing with helics
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(readerInfo& readerInformation) override;
+            generateLocalCommandLineParser(ReaderInfo& readerInformation) override;
 
         virtual void simInitialize() override;
         virtual coreTime Run() override;

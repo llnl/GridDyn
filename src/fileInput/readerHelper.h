@@ -25,18 +25,18 @@
 // helper function for grabbing parameters and attributes from an xml file
 
 namespace griddyn {
-class gridParameter;
-class readerInfo;
+class GridParameter;
+class ReaderInfo;
 class CoreObject;
-class basicReaderInfo;
+class BasicReaderInfo;
 
-void paramStringProcess(gridParameter& param, readerInfo& readerInformation);
+void processParamString(GridParameter& param, ReaderInfo& readerInformation);
 
 double convertBV(std::string& baseVoltageCode);
 
 using mArray = std::vector<std::vector<double>>;
 
-double interpretString(const std::string& command, readerInfo& readerInformation);
+double interpretString(const std::string& command, ReaderInfo& readerInformation);
 
 // NOTE:PT I am leaving these as size_t since they are part of file reading and text location types
 // and spread across multiple files
@@ -47,14 +47,14 @@ void removeMatlabComments(std::string& text);
 
 void loadPSAT(CoreObject* parentObject,
               const std::string& fileText,
-              const basicReaderInfo& readerOptions);
+              const BasicReaderInfo& readerOptions);
 void loadMatPower(CoreObject* parentObject,
                   const std::string& fileText,
                   const std::string& baseName,
-                  const basicReaderInfo& readerOptions);
-void loadMatDyn(CoreObject* parentObject, const std::string& fileText, const basicReaderInfo& bri);
+                  const BasicReaderInfo& readerOptions);
+void loadMatDyn(CoreObject* parentObject, const std::string& fileText, const BasicReaderInfo& bri);
 void loadMatDynEvent(CoreObject* parentObject,
                      const std::string& fileText,
-                     const basicReaderInfo& bri);
+                     const BasicReaderInfo& bri);
 
 }  // namespace griddyn

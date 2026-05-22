@@ -280,7 +280,7 @@ void loadCsv(CoreObject* parentObject,
                             continue;
                         }
                         gridParameter parameterObject(field, str);
-                        paramStringProcess(parameterObject, readerInformation);
+                        processParamString(parameterObject, readerInformation);
                         auto result =
                             setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
 

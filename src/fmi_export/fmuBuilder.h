@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 
 namespace fmi {
     class FmiCoordinator;
@@ -25,7 +25,7 @@ namespace fmi {
         std::vector<unsigned int> mValueReferences;  //!< the value references
         coreOwningPtr<FmiCoordinator>
             mCoordinator;  //!< coordinator to maintain organize everything
-        std::unique_ptr<readerInfo> mReaderInfo;  //!< location of readerInfo
+        std::unique_ptr<ReaderInfo> mReaderInfo;  //!< location of ReaderInfo
         std::string mExecutablePath;  //!< location of the executable making the fmu
         std::string mPlatform = "all";  //!< target platform for the fmu
         bool mKeepDirectory = false;
@@ -40,7 +40,7 @@ namespace fmi {
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(readerInfo& readerInformation) override final;
+            generateLocalCommandLineParser(ReaderInfo& readerInformation) override final;
 
         /** build the FMU at the given location
     @param[in] fmuLocation optional argument to specify the location to build the FMU*/

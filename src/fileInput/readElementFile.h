@@ -16,10 +16,10 @@
 #include <type_traits>
 
 namespace griddyn {
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& readerInfoRef);
+void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& readerInfoRef);
 
 template<class RX>
-CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileName, readerInfo* ri)
+CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileName, ReaderInfo* ri)
 {
     static_assert(std::is_base_of<readerElement, RX>::value,
                   "classes must be inherited from CoreObject");
@@ -41,9 +41,9 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
         readerConfig::warnCount = 0;
     }
 
-    // May need to create a readerInfo object this to ensure it gets deleted even under exception
-    std::unique_ptr<readerInfo> rip = (ri == nullptr) ? std::make_unique<readerInfo>() : nullptr;
-    readerInfo::scopeID riScope = 0;
+    // May need to create a ReaderInfo object this to ensure it gets deleted even under exception
+    std::unique_ptr<ReaderInfo> rip = (ri == nullptr) ? std::make_unique<ReaderInfo>() : nullptr;
+    ReaderInfo::scopeID riScope = 0;
     if (ri == nullptr) {
         ri = rip.get();  // we created the unique_ptr now
 

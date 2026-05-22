@@ -13,7 +13,7 @@
 #include <string>
 
 namespace griddyn {
-static const char nameString[] = "name";
+static constexpr char nameString[] = "name";
 
 namespace {
     const IgnoreListType& collectorIgnoreStrings()
@@ -24,7 +24,7 @@ namespace {
     }
 }  // namespace
 
-static const char collectorNameString[] = "collector";
+static constexpr char collectorNameString[] = "collector";
 
 int loadCollectorElement(std::shared_ptr<readerElement>& element,
                          CoreObject* obj,

@@ -8,7 +8,7 @@
 
 #include "core/FactoryTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "fileInput/readerInfo.h"
+#include "fileInput/ReaderInfo.h"
 #include "griddyn/griddyn-config.h"
 #include "helicsCollector.h"
 #include "helicsCommunicator.h"
@@ -39,7 +39,7 @@ void loadHelicsLibrary()
     (void)loaded;
 }
 
-void loadHelicsReaderInfoDefinitions(readerInfo& readerInformation)
+void loadHelicsReaderInfoDefinitions(ReaderInfo& readerInformation)
 {
     readerInformation.addTranslate("helics", "extra");
     // readerInformation.addTranslate("cosim", "helics");

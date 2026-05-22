@@ -40,7 +40,7 @@ void loadElementInformation(CoreObject* obj,
 
 static void checkForEndUnits(gridParameter& param, const std::string& parameterString);
 
-static const char importString[] = "import";
+static constexpr char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
                  readerInfo& readerInformation,
                  CoreObject* parentObject,
@@ -109,8 +109,8 @@ void readImports(std::shared_ptr<readerElement>& element,
     element->restore();
 }
 
-static const char unitString1[] = "units";
-static const char unitString2[] = "unit";
+static constexpr char unitString1[] = "units";
+static constexpr char unitString2[] = "unit";
 
 static units::unit readUnits(const std::shared_ptr<readerElement>& element,
                              const std::string& field)
@@ -142,7 +142,7 @@ static units::unit readUnits(const std::shared_ptr<readerElement>& element,
     return units::defunit;
 }
 
-static const char valueString[] = "value";
+static constexpr char valueString[] = "value";
 
 gridParameter getElementParam(const std::shared_ptr<readerElement>& element)
 {
@@ -312,7 +312,7 @@ void objSetAttributes(CoreObject* obj,
                 setObjectParameter(component, obj, paramObject);
             } else {
                 gridParameter paramObject(fieldName, att.getText());
-                paramStringProcess(paramObject, readerInfoRef);
+                processParamString(paramObject, readerInfoRef);
                 setObjectParameter(component, obj, paramObject);
             }
         }
@@ -357,7 +357,7 @@ void paramLoopElement(CoreObject* obj,
                     setObjectParameter(component, obj, param);
                 } else if ((fieldName == "flag") || (fieldName == "flags")) {
                     // read the flags parameter
-                    paramStringProcess(param, readerInfoRef);
+                    processParamString(param, readerInfoRef);
                     try {
                         setMultipleFlags(obj, param.strVal);
                     }
@@ -365,7 +365,7 @@ void paramLoopElement(CoreObject* obj,
                         WARNPRINT(READER_WARN_ALL, "unrecognized flag in " << param.strVal << "\n");
                     }
                 } else {
-                    paramStringProcess(param, readerInfoRef);
+                    processParamString(param, readerInfoRef);
                     setObjectParameter(component, obj, param);
                 }
             } else {
@@ -461,7 +461,7 @@ void setAttributes(HelperObject* obj,
                     obj->set(fieldName, val);
                 } else {
                     gridParameter paramObject(fieldName, att.getText());
-                    paramStringProcess(paramObject, readerInfoRef);
+                    processParamString(paramObject, readerInfoRef);
                     if (paramObject.stringType) {
                         obj->set(paramObject.field, paramObject.strVal);
                         LEVELPRINT(READER_VERBOSE_PRINT,
@@ -515,7 +515,7 @@ void setParams(HelperObject* obj,
                                              << param.strVal);
                         obj->set(param.field, param.strVal);
                     } else {
-                        paramStringProcess(param, readerInfoRef);
+                        processParamString(param, readerInfoRef);
                         if (param.stringType) {
                             LEVELPRINT(READER_VERBOSE_PRINT,
                                        component << ":setting " << obj->getName() << " "

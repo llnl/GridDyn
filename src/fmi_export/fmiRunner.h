@@ -14,7 +14,7 @@
 #include <string>
 
 namespace griddyn {
-class readerInfo;
+class ReaderInfo;
 namespace fmi {
     class FmiCoordinator;
 
@@ -36,13 +36,13 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
     @param name the name of the runner
     @param resourceLocations the FMU resource location information
     @param functions a set of helper function from the FMI master
-    @param ModelExchange set to true if this is instantiating a model exchange object (optional
+    @param modelExchange set to true if this is instantiating a model exchange object (optional
     defaults to false)
     */
         FmiRunner(const std::string& name,
                   const std::string& resourceLocations,
                   const fmi2CallbackFunctions* functions,
-                  bool ModelExchange = false);
+                  bool modelExchange = false);
         ~FmiRunner();
 
       public:

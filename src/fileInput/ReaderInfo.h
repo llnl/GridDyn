@@ -7,11 +7,12 @@
 #pragma once
 
 // forward declarations
+// NOLINTNEXTLINE(readability-identifier-naming)
 class readerElement;
-
+// NOLINTNEXTLINE(readability-identifier-naming)
 class gridGrabberInfo;
 
-#include "gridParameter.h"
+#include "GridParameter.h"
 #include <cstdint>
 #include <list>
 #include <map>
@@ -25,12 +26,13 @@ class gridGrabberInfo;
 #include <vector>
 
 namespace griddyn {
+// NOLINTNEXTLINE(readability-identifier-naming)
 class collector;
 class Event;
 class CoreObject;
 
 /** @brief class containing some basic information for reading power system files*/
-class basicReaderInfo {
+class BasicReaderInfo {
   public:
     double base = 100.0;  //!< base power in MW
     double basefreq = 60.0;  //!< base frequency in Hz
@@ -41,7 +43,7 @@ class basicReaderInfo {
     std::string prefix;  //!< prefix to add to the names of imported objects
 
     /** @brief virtual destructor*/
-    virtual ~basicReaderInfo() = default;
+    virtual ~BasicReaderInfo() = default;
     void setFlag(uint32_t flagID);
     bool checkFlag(uint32_t flagID) const
     {
@@ -51,12 +53,12 @@ class basicReaderInfo {
     uint32_t getFlags() const { return flags; }
 };
 
-const basicReaderInfo defInfo = basicReaderInfo();
+const BasicReaderInfo defInfo = BasicReaderInfo();
 
 using ignoreListType = std::unordered_set<std::string>;
 /** @brief a class defining information to help manage the inputs files
  */
-class readerInfo: public basicReaderInfo {
+class ReaderInfo: public BasicReaderInfo {
   public:
     std::vector<std::shared_ptr<collector>> collectors;  //!< stores the active recorders
     std::vector<std::shared_ptr<Event>> events;  //!< store the captured events
@@ -72,7 +74,7 @@ class readerInfo: public basicReaderInfo {
         objectTranslations;  //!< storage for object Translations
     std::unordered_map<std::string, std::string>
         objectTranslationsType;  //!< storage for the type associated with an object translation
-    std::unordered_map<std::string, std::pair<CoreObject*, std::vector<gridParameter>>>
+    std::unordered_map<std::string, std::pair<CoreObject*, std::vector<GridParameter>>>
         library;  //!< library objects
     std::unordered_map<std::string, std::string> lockDefines;  //!< locked definitions
     std::unordered_map<std::string, std::pair<std::shared_ptr<readerElement>, int>>
@@ -86,38 +88,38 @@ class readerInfo: public basicReaderInfo {
     CoreObject* keyObj = nullptr;  //!< placeholder for storage of a keyObject
   public:
     /** @brief default constructor*/
-    readerInfo();
-    /** @brief construct a reader info object from a basic readerInfo object
+    ReaderInfo();
+    /** @brief construct a reader info object from a basic ReaderInfo object
     @param[in] bri  a basic reader info object
     */
-    explicit readerInfo(basicReaderInfo const& bri);
+    explicit ReaderInfo(BasicReaderInfo const& bri);
     /**@brief destructor*/
-    ~readerInfo();
+    ~ReaderInfo();
     /** @brief add an object to the library
     @param[in] obj  the object to add
     @param[in] pobjs a set of parameter objects to apply to newly created objects
     @return true if object was successfully added
     */
-    bool addLibraryObject(CoreObject* obj, std::vector<gridParameter>& pobjs);
+    bool addLibraryObject(CoreObject* obj, std::vector<GridParameter>& pobjs);
     /** @brief  create an object based on a reference object in the library
     @param[in] objName  the name of the object in the library to find
     @param[in] mobj set to nullptr to create a new object, if set the library object is cloned onto
     the given object
     @return a pointer to the new object created/or cloned from the library object
     */
-    CoreObject* makeLibraryObject(std::string_view objName, CoreObject* mobj);
+    CoreObject* makeLibraryObject(const std::string& objName, CoreObject* mobj);
     /** @brief get a pointer to a library object
     @param[in] objName  the name of the object in the library to locate
     @return nullptr if no object found or a pointer to the library object
     */
-    CoreObject* findLibraryObject(std::string_view objName) const;
+    CoreObject* findLibraryObject(const std::string& objName) const;
 
-    /** @brief  find a collector stored in the readerInfo either by name or by sink location
+    /** @brief  find a collector stored in the ReaderInfo either by name or by sink location
     *@param[in] name  the name of the collector to find
     @param[in] fileName  the sink name of the collector to find by file name
     @return a shared pointer to the collector or nullptr if not found
     */
-    std::shared_ptr<collector> findCollector(std::string_view name, std::string_view fileName);
+    std::shared_ptr<collector> findCollector(const std::string& name, const std::string& fileName);
     /** get the keyObject*/
     CoreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/
@@ -221,11 +223,11 @@ class readerInfo: public basicReaderInfo {
 
     /** @brief check that a file parameter is valid
     @param[in,out] strVal  the file to check and output an updated file location
-    @param[in] extra_find if the file cannot be found on the first check, ignore the path
+    @param[in] extraFind if the file cannot be found on the first check, ignore the path
     information and check again for just the fileName in known locations
     @return true if the file was changed false otherwise
     */
-    bool checkFileParam(std::string& strVal, bool extra_find = false);
+    bool checkFileParam(std::string& strVal, bool extraFind = false);
 
     /** @brief check if a directory is valid
     @param[in,out] strVal  the directory to check and output an updated location
@@ -245,5 +247,10 @@ class readerInfo: public basicReaderInfo {
     /** @brief load some default defines such as %time, %date, and %datetime */
     void loadDefaultDefines();
 };
+
+// NOLINTNEXTLINE(readability-identifier-naming)
+using basicReaderInfo = BasicReaderInfo;
+// NOLINTNEXTLINE(readability-identifier-naming)
+using readerInfo = ReaderInfo;
 
 }  // namespace griddyn

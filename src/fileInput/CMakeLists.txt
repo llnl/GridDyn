@@ -7,8 +7,8 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-set(reader_sources stringInterpret.cpp readerHelper.cpp fileInput.cpp gridParameter.cpp
-                   readerInfo.cpp
+set(reader_sources stringInterpret.cpp readerHelper.cpp fileInput.cpp GridParameter.cpp
+                   ReaderInfo.cpp
 )
 
 set(elementReader_sources
@@ -51,8 +51,8 @@ set(fileInput_headers
     readerHelper.h
     fileInput.h
     elementReaderTemplates.hpp
-    readerInfo.h
-    gridParameter.h
+    ReaderInfo.h
+    GridParameter.h
     readElementFile.h
 )
 

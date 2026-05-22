@@ -8,10 +8,10 @@
 
 namespace griddyn {
 
-class readerInfo;
+class ReaderInfo;
 
 void loadHelicsLibrary();
 
-void loadHelicsReaderInfoDefinitions(readerInfo& readerInformation);
+void loadHelicsReaderInfoDefinitions(ReaderInfo& readerInformation);
 
 }  // namespace griddyn

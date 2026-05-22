@@ -14,7 +14,7 @@
 #include <cmath>
 namespace griddyn {
 
-void paramStringProcess(gridParameter& param, readerInfo& readerInformation)
+void processParamString(gridParameter& param, readerInfo& readerInformation)
 {
     if (!param.stringType) {
         return;

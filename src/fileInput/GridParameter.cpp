@@ -3,7 +3,7 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "gridParameter.h"
+#include "GridParameter.h"
 
 #include "core/CoreExceptions.h"
 #include "gmlc/utilities/string_viewConversion.h"
@@ -13,27 +13,27 @@
 #include <utility>
 
 namespace griddyn {
-gridParameter::gridParameter() = default;
-gridParameter::gridParameter(const std::string& str)
+GridParameter::GridParameter() = default;
+GridParameter::GridParameter(const std::string& str)
 {
     fromString(str);
 }
-gridParameter::gridParameter(std::string fld, double val):
+GridParameter::GridParameter(std::string fld, double val):
     field(std::move(fld)), value(val), valid(true)
 {
 }
-gridParameter::gridParameter(std::string fld, std::string val):
+GridParameter::GridParameter(std::string fld, std::string val):
     field(std::move(fld)), strVal(std::move(val)), valid(true), stringType(true)
 {
 }
 
-void gridParameter::reset()
+void GridParameter::reset()
 {
     valid = false, stringType = false, paramUnits = units::defunit;
     applyIndex.resize(0);
 }
 
-void gridParameter::fromString(const std::string& str)
+void GridParameter::fromString(const std::string& str)
 {
     using gmlc::utilities::string_viewOps::trim;
     using std::string_view;

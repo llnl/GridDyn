@@ -31,9 +31,9 @@ CoreObject* schedulerRamp::clone(CoreObject* obj) const
 
     nobj->rampUp = rampUp;
     nobj->rampDown = rampDown;
-    nobj->PRampCurr = PRampCurr;
+    nobj->pRampCurr = pRampCurr;
     nobj->rampTime = rampTime;
-    nobj->dPdt = dPdt;
+    nobj->dpdt = dpdt;
     nobj->lastTargetTime = lastTargetTime;
     nobj->mode = mode;
     nobj->reserveAvail = reserveAvail;
@@ -73,9 +73,9 @@ void schedulerRamp::updateA(coreTime time)
     if (time >= nextUpdateTime) {
         double otime = nextUpdateTime;
         dt = nextUpdateTime - prevTime;
-        PCurr = PCurr + PRampCurr * dt;
-        dPdt = getRamp();
-        m_output = m_output + dPdt * dt;
+        pCurr = pCurr + pRampCurr * dt;
+        dpdt = getRamp();
+        m_output = m_output + dpdt * dt;
         prevTime = nextUpdateTime;
 
         updatePTarget();
@@ -83,10 +83,10 @@ void schedulerRamp::updateA(coreTime time)
         dt = time - otime;
     }
 
-    PCurr = PCurr + PRampCurr * dt;
-    dPdt = getRamp();
-    m_output = m_output + dPdt * dt;
-    reserveAct = m_output - PCurr;
+    pCurr = pCurr + pRampCurr * dt;
+    dpdt = getRamp();
+    m_output = m_output + dpdt * dt;
+    reserveAct = m_output - pCurr;
     prevTime = time;
 }
 
@@ -126,12 +126,12 @@ void schedulerRamp::dynObjectInitializeB(const IOdata& inputs,
         }
     }
     updatePTarget();
-    dPdt = PRampCurr;
+    dpdt = pRampCurr;
 }
 
 double schedulerRamp::getRamp() const
 {
-    double ramp = PRampCurr;
+    double ramp = pRampCurr;
     double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
         ramp = rampUp;
@@ -146,10 +146,10 @@ double schedulerRamp::getRampTime() const
 {
     double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
-        return (diff) / (rampUp - PRampCurr);
+        return (diff) / (rampUp - pRampCurr);
     }
     if (diff < -0.001) {
-        return (diff) / (-rampDown - PRampCurr);
+        return (diff) / (-rampDown - pRampCurr);
     }
 
     if (pTarget.empty()) {
@@ -161,12 +161,12 @@ double schedulerRamp::getRampTime() const
 
 double schedulerRamp::getMax(const coreTime /*time*/) const
 {
-    return Pmax;
+    return pMax;
 }
 
 double schedulerRamp::getMin(coreTime /*time*/) const
 {
-    return Pmin;
+    return pMin;
 }
 
 void schedulerRamp::setReserveTarget(double target)
@@ -296,24 +296,24 @@ void schedulerRamp::updatePTarget()
         rampLimitUp = rampUp - (reserveAvail - reserveUse) / reserveRampTime;
     }
     if (pTarget.empty()) {
-        PRampCurr = 0;
+        pRampCurr = 0;
         nextUpdateTime = maxTime;
         return;
     }
 
     target = (pTarget.front()).target;
     time = (pTarget.front()).time;
-    if (target > (Pmax - reserveAvail)) {
-        target = (Pmax - reserveAvail);
-    } else if (target < Pmin) {
-        target = Pmin;
+    if (target > (pMax - reserveAvail)) {
+        target = (pMax - reserveAvail);
+    } else if (target < pMin) {
+        target = pMin;
     }
 
     tsched tempTarget;
     if (time <= prevTime) {
         // get rid of first element
         pTarget.pop_front();
-        rempower = target - PCurr;
+        rempower = target - pCurr;
         // ignore small variations
         if ((rempower <= 0.0001) && (rempower >= -0.0001)) {
             rempower = 0.0;
@@ -322,29 +322,29 @@ void schedulerRamp::updatePTarget()
         if (pTarget.empty()) {
             target = (pTarget.front()).target;
             time = (pTarget.front()).time;
-            if (target > (Pmax - reserveAvail)) {
-                target = (Pmax - reserveAvail);
-            } else if (target < Pmin) {
-                target = Pmin;
+            if (target > (pMax - reserveAvail)) {
+                target = (pMax - reserveAvail);
+            } else if (target < pMin) {
+                target = pMin;
             }
         } else {
             if (rempower != 0.0) {
                 // assume we were ramp limited so just keep ramping
-                remtime = rempower / PRampCurr;
+                remtime = rempower / pRampCurr;
                 insertTarget(tsched(target, prevTime + remtime));
                 nextUpdateTime = prevTime + remtime;
             } else {
-                PRampCurr = 0;
+                pRampCurr = 0;
                 nextUpdateTime = maxTime;
             }
             return;
         }
     }
     double td = (time - prevTime);
-    double pdiff = target - PCurr;
+    double pdiff = target - pCurr;
     if (rempower == 0.0) {
         if ((pdiff < 0.0001) && (pdiff > -0.0001)) {
-            PRampCurr = 0;
+            pRampCurr = 0;
             nextUpdateTime = time;
             return;
         }
@@ -353,18 +353,18 @@ void schedulerRamp::updatePTarget()
     switch (mode) {
         case interp:
             nextUpdateTime = time;
-            PRampCurr = pdiff / td;
-            if (PRampCurr > rampLimitUp) {
-                PRampCurr = rampLimitUp;
-            } else if (PRampCurr < -rampDown) {
-                PRampCurr = -rampDown;
+            pRampCurr = pdiff / td;
+            if (pRampCurr > rampLimitUp) {
+                pRampCurr = rampLimitUp;
+            } else if (pRampCurr < -rampDown) {
+                pRampCurr = -rampDown;
             }
             break;
         case midPoint:
             if (td >= rampTime) {
                 if (rempower != 0.0) {
                     /*keep ramp until we would begin ramping for the next target*/
-                    remtime = rempower / PRampCurr;
+                    remtime = rempower / pRampCurr;
                     if (remtime < ((td - rampTime) / 2.0)) {
                         nextUpdateTime = prevTime + remtime;
                     } else {
@@ -374,29 +374,29 @@ void schedulerRamp::updatePTarget()
                     td2 = time - lastTargetTime;
                     if ((prevTime - lastTargetTime) >= (td2 - rampTime) / 2.0) {
                         if (prevTime < (lastTargetTime + (td2 - rampTime) / 2.0 + rampTime)) {
-                            PRampCurr = pdiff / rampTime;
-                            if (PRampCurr > rampLimitUp) {
-                                PRampCurr = rampLimitUp;
-                            } else if (PRampCurr < -rampDown) {
-                                PRampCurr = -rampDown;
+                            pRampCurr = pdiff / rampTime;
+                            if (pRampCurr > rampLimitUp) {
+                                pRampCurr = rampLimitUp;
+                            } else if (pRampCurr < -rampDown) {
+                                pRampCurr = -rampDown;
                             }
                             nextUpdateTime = lastTargetTime + (td2 - rampTime) / 2.0 + rampTime;
                         } else {
-                            remtime = pdiff / PRampCurr;
+                            remtime = pdiff / pRampCurr;
                             nextUpdateTime = prevTime + remtime;
                             if (time < nextUpdateTime) {
                                 nextUpdateTime = time;
                             }
                         }
                     } else {
-                        PRampCurr = 0;
+                        pRampCurr = 0;
                         nextUpdateTime = lastTargetTime + (td2 - rampTime) / 2.0;
                     }
                 }
             } else {
                 td2 = time - lastTargetTime;
                 if (prevTime >= (lastTargetTime + (td2 - rampTime) / 2.0 + rampTime)) {
-                    remtime = pdiff / PRampCurr;
+                    remtime = pdiff / pRampCurr;
                     nextUpdateTime = prevTime + remtime;
                     if (time < nextUpdateTime) {
                         nextUpdateTime = time;
@@ -405,16 +405,16 @@ void schedulerRamp::updatePTarget()
                     nextUpdateTime = time;
                     if (td == 0) {
                         if (pdiff > 0) {
-                            PRampCurr = rampLimitUp;
+                            pRampCurr = rampLimitUp;
                         } else {
-                            PRampCurr = -rampDown;
+                            pRampCurr = -rampDown;
                         }
                     } else {
-                        PRampCurr = pdiff / td;
-                        if (PRampCurr > rampLimitUp) {
-                            PRampCurr = rampLimitUp;
-                        } else if (PRampCurr < -rampDown) {
-                            PRampCurr = -rampDown;
+                        pRampCurr = pdiff / td;
+                        if (pRampCurr > rampLimitUp) {
+                            pRampCurr = rampLimitUp;
+                        } else if (pRampCurr < -rampDown) {
+                            pRampCurr = -rampDown;
                         }
                     }
                 }
@@ -433,15 +433,15 @@ void schedulerRamp::updatePTarget()
                 if (remtime > td) {
                     remtime = td;
                 }
-                PRampCurr = rempower / remtime;
-                if (PRampCurr > rampLimitUp) {
-                    PRampCurr = rampLimitUp;
-                } else if (PRampCurr < -rampDown) {
-                    PRampCurr = -rampDown;
+                pRampCurr = rempower / remtime;
+                if (pRampCurr > rampLimitUp) {
+                    pRampCurr = rampLimitUp;
+                } else if (pRampCurr < -rampDown) {
+                    pRampCurr = -rampDown;
                 }
                 nextUpdateTime = prevTime + remtime;
             } else {
-                PRampCurr = 0;
+                pRampCurr = 0;
                 nextUpdateTime = time;
             }
             break;

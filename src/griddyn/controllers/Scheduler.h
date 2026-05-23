@@ -170,9 +170,9 @@ class schedulerReg: public schedulerRamp {
     double regTarget = 0.0;  //!< the current regulation target
     double regUpFrac = 0.0;  //!< the capacity of the object to keep for regulation up purposes
     double regDownFrac = 0.0;  //!< the capacity of the object to keep for regulation down purposes
-    double regPriority;  // a priority queue for the AGC controller if used.
+    double regPriority = 0.0;  // a priority queue for the AGC controller if used.
     bool regEnabled = false;  //!< flag indicating that the regulation system is active
-    double participationRating;  //!< regulation participation rating base
+    double participationRating = 0.0;  //!< regulation participation rating base
   private:
     AGControl* agcController = nullptr;
 

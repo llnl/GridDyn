@@ -194,8 +194,8 @@ void scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
     commLink = cManager.build();
 
     commLink->registerReceiveCallback(
-        [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
-            receiveMessage(sourceID, std::move(message));
+        [this](std::uint64_t sourceID, const std::shared_ptr<commMessage>& message) {
+            receiveMessage(sourceID, message);
         });
     prevTime = time0;
 }

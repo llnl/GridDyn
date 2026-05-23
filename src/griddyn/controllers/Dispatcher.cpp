@@ -46,11 +46,11 @@ void Dispatcher::remove(scheduler* /*sched*/) {}
 
 void Dispatcher::set(std::string_view param, std::string_view val)
 {
-    return CoreObject::set(param, val);
+    CoreObject::set(param, val);
 }
 void Dispatcher::set(std::string_view param, double val, units::unit unitType)
 {
-    return CoreObject::set(param, val, unitType);
+    CoreObject::set(param, val, unitType);
 }
 
 void Dispatcher::checkGen() {}

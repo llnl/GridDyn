@@ -39,16 +39,16 @@ std::unique_ptr<Event> reversibleEvent::clone() const
     return upE;
 }
 
-void reversibleEvent::cloneTo(Event* gE) const
+void reversibleEvent::cloneTo(Event* evnt) const
 {
-    Event::cloneTo(gE);
-    auto nE = dynamic_cast<reversibleEvent*>(gE);
-    if (nE == nullptr) {
+    Event::cloneTo(evnt);
+    auto* newEvent = dynamic_cast<reversibleEvent*>(evnt);
+    if (newEvent == nullptr) {
         return;
     }
-    nE->grabber = createGrabber(field, m_obj);
-    nE->grabber->outputUnits = grabber->outputUnits;
-    nE->canUndo = canUndo;
+    newEvent->grabber = createGrabber(field, m_obj);
+    newEvent->grabber->outputUnits = grabber->outputUnits;
+    newEvent->canUndo = canUndo;
 }
 
 // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;

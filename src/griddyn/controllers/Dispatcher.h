@@ -17,11 +17,11 @@ class scheduler;
 class Dispatcher: public CoreObject {
   public:
   protected:
-    double totalDispatch;
-    double capacity;
-    double period;
-    double dispatchTime;
-    unsigned int schedCount;
+    double totalDispatch = 0.0;
+    double capacity = 0.0;
+    double period = 0.0;
+    double dispatchTime = 0.0;
+    unsigned int schedCount = 0;
 
     std::vector<scheduler*> schedList;
 

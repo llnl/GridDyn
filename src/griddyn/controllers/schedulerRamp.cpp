@@ -64,40 +64,40 @@ void schedulerRamp::setTarget(coreTime time, double target)
 
 void schedulerRamp::updateA(coreTime time)
 {
-    double dt = (time - prevTime);
+    double deltaTime = (time - prevTime);
 
-    if (dt == 0) {
+    if (deltaTime == 0) {
         return;
     }
 
     if (time >= nextUpdateTime) {
-        double otime = nextUpdateTime;
-        dt = nextUpdateTime - prevTime;
-        pCurr = pCurr + pRampCurr * dt;
+        const double originalNextUpdateTime = nextUpdateTime;
+        deltaTime = nextUpdateTime - prevTime;
+        pCurr = pCurr + (pRampCurr * deltaTime);
         dpdt = getRamp();
-        m_output = m_output + dpdt * dt;
+        m_output = m_output + (dpdt * deltaTime);
         prevTime = nextUpdateTime;
 
         updatePTarget();
 
-        dt = time - otime;
+        deltaTime = time - originalNextUpdateTime;
     }
 
-    pCurr = pCurr + pRampCurr * dt;
+    pCurr = pCurr + (pRampCurr * deltaTime);
     dpdt = getRamp();
-    m_output = m_output + dpdt * dt;
+    m_output = m_output + (dpdt * deltaTime);
     reserveAct = m_output - pCurr;
     prevTime = time;
 }
 
 double schedulerRamp::predict(coreTime time)
 {
-    double dt = (time - prevTime);
-    if (dt == 0) {
+    const double deltaTime = (time - prevTime);
+    if (deltaTime == 0) {
         return m_output;
     }
-    double ramp = getRamp();
-    return (m_output + ramp * dt);
+    const double ramp = getRamp();
+    return (m_output + (ramp * deltaTime));
 }
 
 void schedulerRamp::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -132,7 +132,7 @@ void schedulerRamp::dynObjectInitializeB(const IOdata& inputs,
 double schedulerRamp::getRamp() const
 {
     double ramp = pRampCurr;
-    double diff = reserveUse - reserveAct;
+    const double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
         ramp = rampUp;
     } else if (diff < -0.001) {
@@ -144,12 +144,12 @@ double schedulerRamp::getRamp() const
 
 double schedulerRamp::getRampTime() const
 {
-    double diff = reserveUse - reserveAct;
+    const double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
-        return (diff) / (rampUp - pRampCurr);
+        return diff / (rampUp - pRampCurr);
     }
     if (diff < -0.001) {
-        return (diff) / (-rampDown - pRampCurr);
+        return diff / (-rampDown - pRampCurr);
     }
 
     if (pTarget.empty()) {
@@ -181,16 +181,16 @@ void schedulerRamp::setReserveTarget(double target)
 void schedulerRamp::set(std::string_view param, std::string_view val)
 {
     if (param == "rampmode") {
-        auto v2 = gmlc::utilities::convertToLowerCase(val);
-        if (v2 == "midpoint") {
+        const auto modeString = gmlc::utilities::convertToLowerCase(val);
+        if (modeString == "midpoint") {
             mode = MID_POINT;
-        } else if (v2 == "justInTime") {
+        } else if (modeString == "justInTime") {
             mode = JUST_IN_TIME;
-        } else if (v2 == "ontargetramp") {
+        } else if (modeString == "ontargetramp") {
             mode = ON_TARGET_RAMP;
-        } else if (v2 == "delayed") {
+        } else if (modeString == "delayed") {
             mode = DELAYED;
-        } else if (v2 == "interp") {
+        } else if (modeString == "interp") {
             mode = INTERP;
         }
     } else {
@@ -279,13 +279,14 @@ void schedulerRamp::setTarget(const std::string& fileName)
     updatePTarget();
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void schedulerRamp::updatePTarget()
 {
     double rempower = 0.0;
     double remtime = 0.0;
     double target;
     coreTime time;
-    double td2;
+    double targetSpan;
     double rampLimitUp;
 
     if (reserveAvail < 0.001) {
@@ -309,7 +310,6 @@ void schedulerRamp::updatePTarget()
         target = pMin;
     }
 
-    tsched tempTarget;
     if (time <= prevTime) {
         // get rid of first element
         pTarget.pop_front();
@@ -340,10 +340,10 @@ void schedulerRamp::updatePTarget()
             return;
         }
     }
-    double td = (time - prevTime);
-    double pdiff = target - pCurr;
+    const double targetDeltaTime = (time - prevTime);
+    const double powerDifference = target - pCurr;
     if (rempower == 0.0) {
-        if ((pdiff < 0.0001) && (pdiff > -0.0001)) {
+        if ((powerDifference < 0.0001) && (powerDifference > -0.0001)) {
             pRampCurr = 0;
             nextUpdateTime = time;
             return;
@@ -353,7 +353,7 @@ void schedulerRamp::updatePTarget()
     switch (mode) {
         case INTERP:
             nextUpdateTime = time;
-            pRampCurr = pdiff / td;
+            pRampCurr = powerDifference / targetDeltaTime;
             if (pRampCurr > rampLimitUp) {
                 pRampCurr = rampLimitUp;
             } else if (pRampCurr < -rampDown) {
@@ -361,28 +361,30 @@ void schedulerRamp::updatePTarget()
             }
             break;
         case MID_POINT:
-            if (td >= rampTime) {
+            if (targetDeltaTime >= rampTime) {
                 if (rempower != 0.0) {
                     /*keep ramp until we would begin ramping for the next target*/
                     remtime = rempower / pRampCurr;
-                    if (remtime < ((td - rampTime) / 2.0)) {
+                    if (remtime < ((targetDeltaTime - rampTime) / 2.0)) {
                         nextUpdateTime = prevTime + remtime;
                     } else {
-                        nextUpdateTime = prevTime + ((td - rampTime) / 2.0);
+                        nextUpdateTime = prevTime + ((targetDeltaTime - rampTime) / 2.0);
                     }
                 } else {
-                    td2 = time - lastTargetTime;
-                    if ((prevTime - lastTargetTime) >= (td2 - rampTime) / 2.0) {
-                        if (prevTime < (lastTargetTime + (td2 - rampTime) / 2.0 + rampTime)) {
-                            pRampCurr = pdiff / rampTime;
+                    targetSpan = time - lastTargetTime;
+                    if ((prevTime - lastTargetTime) >= (targetSpan - rampTime) / 2.0) {
+                        if (prevTime <
+                            (lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime)) {
+                            pRampCurr = powerDifference / rampTime;
                             if (pRampCurr > rampLimitUp) {
                                 pRampCurr = rampLimitUp;
                             } else if (pRampCurr < -rampDown) {
                                 pRampCurr = -rampDown;
                             }
-                            nextUpdateTime = lastTargetTime + (td2 - rampTime) / 2.0 + rampTime;
+                            nextUpdateTime =
+                                lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime;
                         } else {
-                            remtime = pdiff / pRampCurr;
+                            remtime = powerDifference / pRampCurr;
                             nextUpdateTime = prevTime + remtime;
                             if (time < nextUpdateTime) {
                                 nextUpdateTime = time;
@@ -390,27 +392,27 @@ void schedulerRamp::updatePTarget()
                         }
                     } else {
                         pRampCurr = 0;
-                        nextUpdateTime = lastTargetTime + (td2 - rampTime) / 2.0;
+                        nextUpdateTime = lastTargetTime + (targetSpan - rampTime) / 2.0;
                     }
                 }
             } else {
-                td2 = time - lastTargetTime;
-                if (prevTime >= (lastTargetTime + (td2 - rampTime) / 2.0 + rampTime)) {
-                    remtime = pdiff / pRampCurr;
+                targetSpan = time - lastTargetTime;
+                if (prevTime >= (lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime)) {
+                    remtime = powerDifference / pRampCurr;
                     nextUpdateTime = prevTime + remtime;
                     if (time < nextUpdateTime) {
                         nextUpdateTime = time;
                     }
                 } else {
                     nextUpdateTime = time;
-                    if (td == 0) {
-                        if (pdiff > 0) {
+                    if (targetDeltaTime == 0) {
+                        if (powerDifference > 0) {
                             pRampCurr = rampLimitUp;
                         } else {
                             pRampCurr = -rampDown;
                         }
                     } else {
-                        pRampCurr = pdiff / td;
+                        pRampCurr = powerDifference / targetDeltaTime;
                         if (pRampCurr > rampLimitUp) {
                             pRampCurr = rampLimitUp;
                         } else if (pRampCurr < -rampDown) {
@@ -430,9 +432,7 @@ void schedulerRamp::updatePTarget()
                 if (remtime < rampTime) {
                     remtime = rampTime;
                 }
-                if (remtime > td) {
-                    remtime = td;
-                }
+                remtime = std::min(remtime, targetDeltaTime);
                 pRampCurr = rempower / remtime;
                 if (pRampCurr > rampLimitUp) {
                     pRampCurr = rampLimitUp;
@@ -451,10 +451,11 @@ void schedulerRamp::updatePTarget()
     }
 }
 
-void schedulerRamp::insertTarget(tsched ts)
+// NOLINTNEXTLINE(misc-no-recursion)
+void schedulerRamp::insertTarget(tsched targetSchedule)
 {
-    scheduler::insertTarget(ts);
-    if (nextUpdateTime == ts.time) {
+    scheduler::insertTarget(targetSchedule);
+    if (nextUpdateTime == targetSchedule.time) {
         updatePTarget();
     }
 }
@@ -480,13 +481,9 @@ void schedulerRamp::receiveMessage(std::uint64_t sourceID,
             clearSchedule();
             break;
         case schedulerMessagePayload::SHUTDOWN:
-            break;
         case schedulerMessagePayload::STARTUP:
-            break;
         case schedulerMessagePayload::UPDATE_TARGETS:
-            break;
         case schedulerMessagePayload::UPDATE_RESERVES:
-            break;
         case schedulerMessagePayload::USE_RESERVE:
             break;
         default:

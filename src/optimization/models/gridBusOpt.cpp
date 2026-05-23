@@ -362,7 +362,7 @@ void GridBusOpt::add(CoreObject* obj)
         }
         setUserID(bus->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -580,3 +580,4 @@ double GridBusOpt::get(std::string_view param, units::unit unitType) const
 
 }  // namespace griddyn
 // NOLINTEND(bugprone-branch-clone)
+

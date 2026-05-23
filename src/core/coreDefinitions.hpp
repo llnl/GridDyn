@@ -89,7 +89,7 @@ enum class PrintLevel : int {
 #    undef GRIDDYN_RESTORE_ERROR_MACRO
 #endif
 
-using print_level = PrintLevel;  // NOLINT(readability-identifier-naming)
+using PrintLevel = PrintLevel;  // NOLINT(readability-identifier-naming)
 
 /// a type used for an id code of an object
 using id_type_t = std::int64_t;
@@ -135,3 +135,4 @@ inline bool isValidIndex(IND index, const std::vector<VX>& vector_obj)
     return ((index >= 0) && (index < static_cast<IND>(vector_obj.size())));
 }
 }  // namespace griddyn
+

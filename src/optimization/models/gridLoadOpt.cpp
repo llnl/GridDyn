@@ -66,7 +66,7 @@ void GridLoadOpt::add(CoreObject* obj)
         }
         setUserID(load->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -216,3 +216,4 @@ GridOptObject* GridLoadOpt::getArea(index_t index) const
 }
 
 }  // namespace griddyn
+

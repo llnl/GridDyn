@@ -109,7 +109,7 @@ TEST_F(LinkTests, LinkTest1Dynamic)
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto eventOne = std::make_shared<Event>();
 
     // this tests events as much as links here
@@ -148,7 +148,7 @@ TEST_F(LinkTests, LinkTestFaultPowerflow)
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     gds->powerflow();
 
     std::vector<double> originalVoltages;
@@ -190,7 +190,7 @@ TEST_F(LinkTests, LinkTestFaultPowerflow2)
     std::string fileName = std::string(LINK_TEST_DIRECTORY "link_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     gds->powerflow();
 
     std::vector<double> originalVoltages;
@@ -289,3 +289,4 @@ TEST_F(LinkTests, LinkTestFixPower)
     delete busOne;
     delete busTwo;
 }
+

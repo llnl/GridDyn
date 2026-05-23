@@ -407,7 +407,7 @@ void GridAreaOpt::add(CoreObject* obj)
         add(relay);
         return;
     }
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 void GridAreaOpt::remove(CoreObject* obj)
@@ -434,7 +434,7 @@ void GridAreaOpt::remove(CoreObject* obj)
         remove(relay);
         return;
     }
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 // TODO(phlpt): Make this work like GridArea.
@@ -784,3 +784,4 @@ GridAreaOpt* getMatchingGridArea(GridAreaOpt* area, GridOptObject* src, GridOptO
 
 }  // namespace griddyn
 // NOLINTEND(misc-no-recursion,bugprone-branch-clone)
+

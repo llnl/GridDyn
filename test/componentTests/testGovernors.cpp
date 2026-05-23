@@ -30,7 +30,7 @@ TEST_F(GovernorTests, GovStabilityTest)
     Generator* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
     ASSERT_NE(gen, nullptr);
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     CoreObject* obj = cof->createObject("governor", "basic");
     ASSERT_NE(obj, nullptr);
 
@@ -65,3 +65,4 @@ TEST_F(GovernorTests, GovStabilityTest)
     }
     EXPECT_EQ(ncnt, 0);
 }
+

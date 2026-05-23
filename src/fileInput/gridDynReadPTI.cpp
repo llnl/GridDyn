@@ -73,18 +73,18 @@ void loadPti(CoreObject* parentObject,
     if (gBusfactory == nullptr) {
         // get the basic busFactory
         gBusfactory = static_cast<decltype(gBusfactory)>(
-            coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("bus")->getFactory(""));
 
         // get the basic load Factory
         gLdfactory = static_cast<decltype(gLdfactory)>(
-            coreObjectFactory::instance()->getFactory("load")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("load")->getFactory(""));
 
         // get the basic load Factory
         gGenfactory = static_cast<decltype(gGenfactory)>(
-            coreObjectFactory::instance()->getFactory("generator")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("generator")->getFactory(""));
         // get the basic link Factory
         gLinkfactory = static_cast<decltype(gLinkfactory)>(
-            coreObjectFactory::instance()->getFactory("link")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("link")->getFactory(""));
     }
     /* Process the first line
     First card in file.
@@ -664,3 +664,4 @@ int ptiReadTX(CoreObject* parentObject,
 
 // NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 }  // namespace griddyn
+

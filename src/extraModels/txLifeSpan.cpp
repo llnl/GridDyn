@@ -83,7 +83,7 @@ double txLifeSpan::get(std::string_view param, units::unit unitType) const
 
 void txLifeSpan::add(CoreObject* /*obj*/)
 {
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -204,3 +204,4 @@ void txLifeSpan::actionTaken(index_t actionNumber,
 }
 
 }  // namespace griddyn::extra
+

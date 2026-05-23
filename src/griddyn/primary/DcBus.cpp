@@ -45,7 +45,7 @@ void DcBus::add(Link* lnk)
         return GridBus::add(lnk);
     }
 
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 // dynInitializeB states
@@ -562,3 +562,4 @@ void DcBus::computePowerAdjustments()
 }
 
 }  // namespace griddyn
+

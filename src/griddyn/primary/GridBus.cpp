@@ -152,7 +152,7 @@ void GridBus::add(CoreObject* obj)
     if (lnk != nullptr) {
         return add(lnk);
     }
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
@@ -212,7 +212,7 @@ void GridBus::remove(CoreObject* obj)
         return (remove(lnk));
     }
 
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
@@ -1653,3 +1653,4 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
 }
 
 }  // namespace griddyn
+

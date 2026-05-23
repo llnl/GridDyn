@@ -148,18 +148,18 @@ void loadRaw(CoreObject* parentObject,
     if (gBusfactory == nullptr) {
         // get the basic busFactory
         gBusfactory = static_cast<decltype(gBusfactory)>(
-            coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("bus")->getFactory(""));
 
         // get the basic load Factory
         gLdfactory = static_cast<decltype(gLdfactory)>(
-            coreObjectFactory::instance()->getFactory("load")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("load")->getFactory(""));
 
         // get the basic load Factory
         gGenfactory = static_cast<decltype(gGenfactory)>(
-            coreObjectFactory::instance()->getFactory("generator")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("generator")->getFactory(""));
         // get the basic link Factory
         gLinkfactory = static_cast<decltype(gLinkfactory)>(
-            coreObjectFactory::instance()->getFactory("link")->getFactory(""));
+            CoreObjectFactory::instance()->getFactory("link")->getFactory(""));
     }
     /* Process the first line
     First card in file.
@@ -1592,3 +1592,4 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
 }
 
 }  // namespace griddyn
+

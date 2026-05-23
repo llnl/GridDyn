@@ -24,7 +24,7 @@ TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     gds->powerflow();
     ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
@@ -53,7 +53,7 @@ TEST_F(DynamicSystemTests2, DynTestSimpleChunked)
 
     fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::warning;
+    gds2->consolePrintLevel = PrintLevel::WARNING;
     gds2->run(1.5);
     gds2->run(3.7);
     gds2->run(7.65896);
@@ -126,3 +126,4 @@ TEST_F(DynamicSystemTests2, DynTestPulseLoadChangePart)
     simpleRunTestXML(fileName);
 }
 #endif
+

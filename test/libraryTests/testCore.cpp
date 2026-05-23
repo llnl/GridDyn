@@ -150,7 +150,7 @@ TEST(CoreTests, UnitFunctions)
 
 TEST(CoreTests, ObjectFactory)
 {
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     CoreObject* obj = cof->createObject("load", "basic");
     auto ld = dynamic_cast<ZipLoad*>(obj);
     EXPECT_NE(ld, nullptr);
@@ -189,7 +189,7 @@ the object doesn't break or cause a fault
 
 TEST(CoreTests, ObjectProbe)
 {
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto componentList = cof->getFactoryNames();
     for (auto& comp : componentList) {
         auto componentFactory = cof->getFactory(comp);
@@ -234,3 +234,4 @@ TEST(CoreTests, ObjectProbe)
         }
     }
 }
+

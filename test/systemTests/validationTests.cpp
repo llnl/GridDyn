@@ -222,7 +222,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
     for (const auto& mp : compare_cases_withq) {
         SCOPED_TRACE(mp.first);
         gds = std::make_unique<gridDynSimulation>();
-        gds->set("consoleprintlevel", print_level::summary);
+        gds->set("consoleprintlevel", PrintLevel::SUMMARY);
         std::string fileName;
         if (mp.first.length() > 25) {
             fileName = mp.first;
@@ -263,7 +263,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         } else {
             fileName = validationTestDirectory + mp.second;
         }
-        gds2->set("consoleprintlevel", print_level::summary);
+        gds2->set("consoleprintlevel", PrintLevel::SUMMARY);
         loadFile(gds2, fileName);
         ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
         gds2->pFlowInitialize();
@@ -428,3 +428,4 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
     }
 }
 #endif
+

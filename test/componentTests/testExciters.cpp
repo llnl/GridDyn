@@ -44,7 +44,7 @@ void applyExciterParameters(CoreObject* object,
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 Generator* loadExciterCase(ExciterTests& fixture,
-                           coreObjectFactory* factory,
+                           CoreObjectFactory* factory,
                            const std::string& caseFileName,
                            const std::string& exciterName,
                            const exciter_parameter_map& parameters)
@@ -56,7 +56,7 @@ Generator* loadExciterCase(ExciterTests& fixture,
         return nullptr;
     }
 
-    fixture.gds->consolePrintLevel = print_level::no_print;
+    fixture.gds->consolePrintLevel = PrintLevel::NO_PRINT;
     auto* object = factory->createObject("exciter", exciterName);
     EXPECT_NE(object, nullptr) << "Failed to create exciter " << exciterName;
     if (object == nullptr) {
@@ -78,7 +78,7 @@ void verifyStabilityCase(ExciterTests& fixture,
                          double maxVoltage1,
                          const std::vector<std::string>& skippedExcters = {})
 {
-    auto factory = coreObjectFactory::instance();
+    auto factory = CoreObjectFactory::instance();
     const auto exciterList = factory->getTypeNames("exciter");
 
     for (const auto& exciterName : exciterList) {
@@ -200,7 +200,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 
     std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
 
     auto exclist = cof->getTypeNames("exciter");
 
@@ -212,7 +212,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
         ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
+        gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("exciter", excname);
         ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
@@ -247,7 +247,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
 
     std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
 
     auto exclist = cof->getTypeNames("exciter");
 
@@ -259,7 +259,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
         gds = readSimXMLFile(fileName);
         Generator* gen = gds->getGen(0);
         ASSERT_NE(gen, nullptr);
-        gds->consolePrintLevel = print_level::no_print;
+        gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("exciter", excname);
         ASSERT_NE(obj, nullptr) << "Failed to create exciter " << excname;
         auto fnd = parameters.find(excname);
@@ -281,3 +281,5 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     }
 }
 #endif
+
+

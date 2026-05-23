@@ -241,7 +241,7 @@ void Generator::add(CoreObject* obj)
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
         setRemoteBus(obj);
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -250,7 +250,7 @@ void Generator::add(GridSubModel* obj)
     if (dynamic_cast<scheduler*>(obj) != nullptr) {
         sched = static_cast<scheduler*>(obj);
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -821,3 +821,4 @@ double Generator::getAngle(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
+

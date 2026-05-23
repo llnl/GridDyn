@@ -63,7 +63,7 @@ void dcLink::updateBus(GridBus* bus, index_t busnumber)
     if (dynamic_cast<DcBus*>(bus) != nullptr) {
         Link::updateBus(bus, busnumber);
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -477,3 +477,4 @@ int dcLink::fixPower(double power,
 }
 
 }  // namespace griddyn::links
+

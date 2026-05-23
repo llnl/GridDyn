@@ -33,7 +33,7 @@
 class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
 
 using griddyn::CoreObject;
-using griddyn::coreObjectFactory;
+using griddyn::CoreObjectFactory;
 using griddyn::coreTime;
 using griddyn::Generator;
 using griddyn::gridDynSimulationTestFixture;
@@ -173,7 +173,7 @@ TEST_F(HelicsTests, LoadHelicsXml)
                              "helics_test1.xml --core_type=inproc");
 
     CoreObject* obj =
-        coreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
+        CoreObjectFactory::instance()->createObject("source", "helics", "helicsSource");
 
     ASSERT_NE(dynamic_cast<HelicsSource*>(obj), nullptr);
     auto src = static_cast<HelicsSource*>(obj);
@@ -501,3 +501,4 @@ TEST_F(HelicsTests, TestMainExe)
         std::cout << "Unable to locate main executable:: skipping test\n";
     }
 }
+

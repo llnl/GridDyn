@@ -54,13 +54,13 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
                 // no type information so generate default relay of a specific type
                 if (dynamic_cast<GridBus*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
-                        coreObjectFactory::instance()->createObject(relayComponentName, "bus"));
+                        CoreObjectFactory::instance()->createObject(relayComponentName, "bus"));
                 } else if (dynamic_cast<ZipLoad*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
-                        coreObjectFactory::instance()->createObject(relayComponentName, "load"));
+                        CoreObjectFactory::instance()->createObject(relayComponentName, "load"));
                 } else if (dynamic_cast<Generator*>(defaultTargetObject) != nullptr) {
                     relay = static_cast<Relay*>(
-                        coreObjectFactory::instance()->createObject(relayComponentName, "gen"));
+                        CoreObjectFactory::instance()->createObject(relayComponentName, "gen"));
                 }
             }
         }
@@ -114,3 +114,4 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

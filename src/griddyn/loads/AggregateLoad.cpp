@@ -63,7 +63,7 @@ void AggregateLoad::add(CoreObject* obj)
     if (ld != nullptr) {
         return add(ld);
     }
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 void AggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -179,7 +179,7 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
         ZipLoad* Ld;
         auto strSplit = splitline(val);
         trim(strSplit);
-        auto load_factory = coreObjectFactory::instance()->getFactory("load");
+        auto load_factory = CoreObjectFactory::instance()->getFactory("load");
         size_t nn = 0;
         while (nn < strSplit.size()) {
             if (load_factory->isValidType(strSplit[nn])) {
@@ -400,3 +400,5 @@ double AggregateLoad::getReactivePower() const
     return rp;
 }
 }  // namespace griddyn::loads
+
+

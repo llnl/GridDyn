@@ -29,7 +29,7 @@ CoreObject* LongLine::clone(CoreObject* obj) const
 // add components
 void LongLine::add(CoreObject* /*obj*/)
 {
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 // remove components
 void LongLine::remove(CoreObject* /*obj*/) {}
@@ -171,3 +171,4 @@ void LongLine::generateIntermediateLinks()
 }
 
 }  // namespace griddyn::links
+

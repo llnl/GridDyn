@@ -35,7 +35,7 @@ void loadCsv(CoreObject* parentObject,
              readerInfo& readerInformation,
              const std::string& objectName)
 {
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     std::ifstream file(fileName, std::ios::in);
     if (!(file.is_open())) {
         std::cerr << "Unable to open file " << fileName << '\n';
@@ -308,3 +308,4 @@ void loadCsv(CoreObject* parentObject,
 
 // NOLINTEND(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 }  // namespace griddyn
+

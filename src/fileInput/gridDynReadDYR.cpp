@@ -91,7 +91,7 @@ namespace {
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-        auto cof = coreObjectFactory::instance();
+        auto cof = CoreObjectFactory::instance();
         auto* genModel = static_cast<GenModel*>(cof->createObject("genmodel", "6"));
         genModel->set("tdop", params[3]);
         genModel->set("tdopp", params[4]);
@@ -121,7 +121,7 @@ namespace {
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         Exciter* exciterModel;
-        auto cof = coreObjectFactory::instance();
+        auto cof = CoreObjectFactory::instance();
         if (params[6] > 0.0)  // dc1a model must have tb>0 otherwise revert to type1
         {
             exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "dc1a"));
@@ -156,7 +156,7 @@ namespace {
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-        auto cof = coreObjectFactory::instance();
+        auto cof = CoreObjectFactory::instance();
         auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "dc2a"));
         // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
         // exciterModel->set("tr", params[3]);
@@ -183,7 +183,7 @@ namespace {
         auto* gen = bus->getGen(genId - 1);
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto cof = coreObjectFactory::instance();
+        auto cof = CoreObjectFactory::instance();
         auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "sexs"));
 
         // exciterModel->set("tr", params[3]);
@@ -205,7 +205,7 @@ namespace {
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
-        auto cof = coreObjectFactory::instance();
+        auto cof = CoreObjectFactory::instance();
         auto* governorModel = static_cast<Governor*>(cof->createObject("governor", "tgov1"));
         // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
         // governorModel->set("tr", params[3]);
@@ -222,3 +222,4 @@ namespace {
 }  // namespace
 
 }  // namespace griddyn
+

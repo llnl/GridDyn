@@ -144,7 +144,7 @@ void GridLabDLoad::add(CoreObject* obj)
             }
         }
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -1092,3 +1092,4 @@ void GridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, Curren
 #endif  // GRIDDYN_ENABLE_MPI
 
 }  // namespace griddyn::loads
+

@@ -46,7 +46,7 @@ TEST_F(GenModelTests, ModelTest2)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
@@ -81,7 +81,7 @@ TEST_F(GenModelTests, ModelTest2WithR)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
@@ -113,7 +113,7 @@ TEST_F(GenModelTests, ModelTest2AlgDiffTests)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
 
     auto genlist = cof->getTypeNames("genmodel");
 
@@ -159,3 +159,4 @@ TEST_F(GenModelTests, ModelTest3)
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
+

@@ -31,7 +31,7 @@ void ControlSystem::add(CoreObject* obj)
     if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         add(static_cast<GridBlock*>(obj));
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -119,3 +119,4 @@ change_code ControlSystem::rootCheck(const IOdata& /*inputs*/,
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
+

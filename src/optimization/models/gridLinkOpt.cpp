@@ -98,7 +98,7 @@ void GridLinkOpt::add(CoreObject* obj)
         }
         setUserID(link->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 
@@ -284,3 +284,4 @@ double GridLinkOpt::get(std::string_view param, units::unit unitType) const
 
 }  // namespace griddyn
 // NOLINTEND(bugprone-branch-clone)
+

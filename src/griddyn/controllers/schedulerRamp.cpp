@@ -11,6 +11,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
 #include <memory>
 #include <string>
 

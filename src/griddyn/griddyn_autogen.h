@@ -55,7 +55,7 @@
   public:
 
 #define AUTOGEN_GET_PSTRING /*autogen:getParameterString*/                                         \
-    virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
+    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
 #define AUTOGEN_SET_FLAG /*autogen:setflag*/                                                       \
     virtual void setFlag(std::string_view flag, bool val = true) override;

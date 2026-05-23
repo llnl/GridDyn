@@ -70,7 +70,7 @@ class FmiMESubModel: public GridSubModel {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
+    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual stringVec getOutputNames() const;
     virtual stringVec getInputNames() const;
     virtual void set(std::string_view param, std::string_view val) override;

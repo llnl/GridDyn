@@ -49,9 +49,9 @@ namespace links {
         model_parameter maxAngle = kPI / 2.0;  //!< [rad]  maximum tap angle
         ControlMode control_mode = ControlMode::VOLTAGE;
 
-        coreOwningPtr<blocks::PidBlock> firingAngleControl;  //!< block controlling firing angle
-        coreOwningPtr<blocks::PidBlock> powerLevelControl;  //!< block controlling power
-        coreOwningPtr<blocks::DelayBlock> controlDelay;  //!< delayblock for control of tap
+        CoreOwningPtr<blocks::PidBlock> firingAngleControl;  //!< block controlling firing angle
+        CoreOwningPtr<blocks::PidBlock> powerLevelControl;  //!< block controlling power
+        CoreOwningPtr<blocks::DelayBlock> controlDelay;  //!< delayblock for control of tap
 
       public:
         explicit acdcConverter(const std::string& objName = "acdcConveter_$");

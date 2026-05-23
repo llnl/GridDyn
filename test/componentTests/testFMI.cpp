@@ -247,7 +247,7 @@ TEST_F(FmiTests, FmiTest1)
     auto tsb = new fmiLoad(FMU_LOC "ACMotorFMU.fmu");
     tsb->set("a_in", "#");
     stringVec b;
-    tsb->getParameterStrings(b, paramStringType::numeric);
+    tsb->getParameterStrings(b, ParamStringType::numeric);
     tsb->set("a_in", 0.7);
     tsb->pFlowInitializeA(0, 0);
     auto outP = tsb->getRealPower();

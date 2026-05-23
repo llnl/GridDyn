@@ -46,8 +46,6 @@ enum class ParamStringType {
     flags = FLAGS,  // NOLINT(readability-identifier-naming)
 };
 
-using paramStringType = ParamStringType;  // NOLINT(readability-identifier-naming)
-
 typedef void gridPositionInfo;
 
 class HelperObject;

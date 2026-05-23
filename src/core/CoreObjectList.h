@@ -99,6 +99,4 @@ class CoreObjectList {
     void updateObject(CoreObject* obj);
 };
 
-using coreObjectList = CoreObjectList;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

@@ -164,7 +164,7 @@ class AcLine: public Link {
     using Link::getAngle;
     virtual double getAngle(const double state[], const solverMode& sMode) const override;
 
-    virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
+    virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual void set(std::string_view param, std::string_view val) override;

@@ -584,7 +584,7 @@ static const stringVec& localStringStrings()
     return strings;
 }
 
-void GridComponent::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridComponent, CoreObject>(
         this, pstr, localNumericStrings(), localStringStrings(), {}, pstype);

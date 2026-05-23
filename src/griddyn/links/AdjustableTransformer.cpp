@@ -92,7 +92,7 @@ static const stringVec locNumStrings{"vmin",
                                      "dtapadt"};
 static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};
 static const stringVec flagStrings{"no_pflow_adjustments"};
-void adjustableTransformer::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void adjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<adjustableTransformer, AcLine>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

@@ -82,7 +82,7 @@ static const stringVec flagStrings{"use_abs_angle",
                                    "three_phase_inputs",
                                    "three_phase_outputs"};
 
-void ThreePhaseLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<ThreePhaseLoad, GridLoad>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

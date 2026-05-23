@@ -68,7 +68,7 @@ class AcBus: public GridBus {
     model_parameter Tw = 0.1;  //!< time constant for the frequency estimator
 
     coreTime lastSetTime = negTime;  //!< last set time
-    coreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
+    CoreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
 
     BusControls busController;  //!< pointer to the eControls object
     // extra blocks and object for remote controlled buses and bus merging
@@ -136,7 +136,7 @@ class AcBus: public GridBus {
     virtual void reconnect(GridBus* mapBus) override;
     // parameter set functions
     virtual void getParameterStrings(stringVec& pstr,
-                                     paramStringType pstype = paramStringType::all) const override;
+                                     ParamStringType pstype = ParamStringType::all) const override;
     virtual void setFlag(std::string_view flag, bool val) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

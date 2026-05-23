@@ -168,7 +168,7 @@ static const stringVec locNumStrings{"r",
                                      "p"};
 static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
-void AcLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AcLine, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

@@ -151,7 +151,7 @@ static const stringVec locStrStrings{
 
 static const stringVec flagStrings{"converttoimpedance", "no_pqvoltage_limit"};
 
-void ZipLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<ZipLoad, GridLoad>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

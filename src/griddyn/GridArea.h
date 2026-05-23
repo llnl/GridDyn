@@ -178,7 +178,7 @@ class GridArea: public gridPrimary {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr,
-                                     paramStringType pstype = paramStringType::all) const override;
+                                     ParamStringType pstype = ParamStringType::all) const override;
     void setAll(std::string_view type,
                 std::string_view param,
                 double val,

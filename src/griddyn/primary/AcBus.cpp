@@ -101,7 +101,7 @@ CoreObject* AcBus::clone(CoreObject* obj) const
     if (opFlags[compute_frequency]) {
         if (fblock) {
             nobj->fblock =
-                coreOwningPtr<GridBlock>(static_cast<GridBlock*>(fblock->clone(nullptr)));
+                CoreOwningPtr<GridBlock>(static_cast<GridBlock*>(fblock->clone(nullptr)));
             nobj->addSubObject(nobj->fblock.get());
         }
     }
@@ -992,7 +992,7 @@ static const stringVec locStrStrings{"pflowtype", "dyntype"};
 
 static const stringVec flagStrings{"use_frequency"};
 
-void AcBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AcBus, GridBus>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }

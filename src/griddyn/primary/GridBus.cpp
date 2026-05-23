@@ -485,7 +485,7 @@ static const stringVec locStrStrings{"status"};
 
 static const stringVec flagStrings{"connected"};
 
-void GridBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridBus, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

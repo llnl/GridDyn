@@ -25,7 +25,7 @@ executing with helics
 */
     class HelicsRunner: public GriddynRunner {
       private:
-        coreOwningPtr<HelicsCoordinator> coord_;  //!< the coordinator object for managing object
+        CoreOwningPtr<HelicsCoordinator> coord_;  //!< the coordinator object for managing object
                                                   //!< that manage the HELICS coordination
         std::shared_ptr<helics::Federate> fed_;  //!< pointer to the helics federate object
       public:

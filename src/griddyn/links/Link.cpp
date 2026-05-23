@@ -180,7 +180,7 @@ void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const solverM
 static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};
 static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
-void Link::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<Link, gridPrimary>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

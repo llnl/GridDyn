@@ -45,7 +45,7 @@ conversions to positive sequence values.
 
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-        virtual void getParameterStrings(stringVec& pstr, paramStringType pstype) const override;
+        virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void

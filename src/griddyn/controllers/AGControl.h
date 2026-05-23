@@ -26,31 +26,31 @@ namespace blocks {
 class Communicator;
 class AGControl: public GridSubModel {
   public:
-    enum agcType {
-        basicAGC,
-        batteryAGC,
-        battDR,
+    enum AGCType {
+        BASIC_AGC,
+        BATTERY_AGC,
+        BATT_DR,
     };
 
   protected:
-    double KI = 0.005;
-    double KP = 1.0;
+    double ki = 0.005;
+    double kp = 1.0;
     double beta = 8.0;
     double deadband = 20;
 
-    double Tf = 8.0;
-    double Tr = 15;
-    double ACE = 0;
-    double fACE = 0;
+    double tf = 8.0;
+    double tr = 15;
+    double ace = 0;
+    double filteredAce = 0;
     double freg = 0;
     double reg = 0;
     double regUpAvailable = 0;
     double regDownAvailable = 0;
 
-    coreOwningPtr<blocks::PidBlock> pid;
-    coreOwningPtr<blocks::DelayBlock> filt1;
-    coreOwningPtr<blocks::DelayBlock> filt2;
-    coreOwningPtr<blocks::DeadbandBlock> db;
+    CoreOwningPtr<blocks::PidBlock> pid;
+    CoreOwningPtr<blocks::DelayBlock> filt1;
+    CoreOwningPtr<blocks::DelayBlock> filt2;
+    CoreOwningPtr<blocks::DeadbandBlock> db;
 
     count_t schedCount = 0;
 
@@ -85,8 +85,8 @@ class AGControl: public GridSubModel {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    double getACE() { return ACE; }
-    double getfACE() { return fACE; }
+    double getACE() { return ace; }
+    double getfACE() { return filteredAce; }
 
     virtual void regChange();
 };

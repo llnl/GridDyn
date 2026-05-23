@@ -17,33 +17,33 @@ class schedulerRamp;
 
 /** in development object to manage the dispatch of reserve generation
  */
-class reserveDispatcher: public CoreObject {
+class ReserveDispatcher: public CoreObject {
   public:
   protected:
     double thresholdStart = kBigNum;
     double thresholdStop = kBigNum;
-    double currDispatch = 0.0;
+    double currentDispatch = 0.0;
     double reserveAvailable = 0.0;
     coreTime dispatchTime = negTime;
     coreTime dispatchInterval = 60.0 * 5.0;
 
     count_t schedCount = 0;
     std::vector<schedulerRamp*> schedList;
-    std::vector<double> resAvailable;
+    std::vector<double> reserveAvailableByScheduler;
     std::vector<double> reserveUsed;
 
   public:
-    explicit reserveDispatcher(const std::string& objName = "reserveDispatch_#");
+    explicit ReserveDispatcher(const std::string& objName = "reserveDispatch_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual ~reserveDispatcher();
+    virtual ~ReserveDispatcher();
 
     virtual double dynInitializeA(coreTime time0, double dispatchSet);
 
-    void moveSchedulers(reserveDispatcher* dispatcherToMove);
+    void moveSchedulers(ReserveDispatcher* dispatcherToMove);
 
     virtual double updateP(coreTime time, double pShort);
     virtual double testP(coreTime time, double pShort);
-    double getOutput(index_t /*num*/ = 0) { return currDispatch; }
+    double getOutput(index_t /*num*/ = 0) { return currentDispatch; }
 
     virtual void add(schedulerRamp* sched);
     virtual void add(CoreObject* obj) override;
@@ -63,5 +63,6 @@ class reserveDispatcher: public CoreObject {
     virtual void checkGen();
     virtual void dispatch(double level);
 };
+using reserveDispatcher = ReserveDispatcher;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

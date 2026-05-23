@@ -14,21 +14,21 @@
 
 namespace griddyn {
 schedulerReg::schedulerReg(const std::string& objName):
-    schedulerRamp(objName), regMax(Pmax), regMin(Pmin), regRampUp(rampUp), regRampDown(rampDown)
+    schedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
 {
     rampTime = 600;
 }
 
 schedulerReg::schedulerReg(double initialValue, const std::string& objName):
-    schedulerRamp(initialValue, objName), regMax(Pmax), regMin(Pmin), regRampUp(rampUp),
+    schedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
     regRampDown(rampDown)
 {
     rampTime = 600;
 }
 
 schedulerReg::schedulerReg(double initialValue, double initialReg, const std::string& objName):
-    schedulerRamp(initialValue, objName), regMax(Pmax), regMin(Pmin), regRampUp(rampUp),
-    regRampDown(rampDown), regCurr(initialReg), regTarget(initialReg)
+    schedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
+    regRampDown(rampDown), regCurrent(initialReg), regTarget(initialReg)
 {
     rampTime = 600;
 }
@@ -40,7 +40,7 @@ CoreObject* schedulerReg::clone(CoreObject* obj) const
         return nobj;
     }
 
-    nobj->regCurr = regCurr;
+    nobj->regCurrent = regCurrent;
     nobj->regTarget = regTarget;
     nobj->regUpFrac = regUpFrac;
     nobj->regDownFrac = regDownFrac;
@@ -51,7 +51,7 @@ CoreObject* schedulerReg::clone(CoreObject* obj) const
     nobj->regEnabled = regEnabled;
     nobj->rampTime = rampTime;
 
-    nobj->pr = pr;
+    nobj->participationRating = participationRating;
     // copy the scheduler object last as it runs an initialize routine
     schedulerRamp::clone(nobj);
 
@@ -61,19 +61,19 @@ CoreObject* schedulerReg::clone(CoreObject* obj) const
 schedulerReg::~schedulerReg()
 {
     clearSchedule();
-    if (agc != nullptr) {
-        agc->remove(this);
+    if (agcController != nullptr) {
+        agcController->remove(this);
     }
 }
 
 void schedulerReg::setReg(double regLevel)
 {
-    pr = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
 
-    if (regLevel > regUpFrac * pr) {
-        regTarget = regUpFrac * pr;
-    } else if (regLevel < -regDownFrac * pr) {
-        regTarget = -regDownFrac * pr;
+    if (regLevel > regUpFrac * participationRating) {
+        regTarget = regUpFrac * participationRating;
+    } else if (regLevel < -regDownFrac * participationRating) {
+        regTarget = -regDownFrac * participationRating;
     } else {
         regTarget = regLevel;
     }
@@ -81,53 +81,54 @@ void schedulerReg::setReg(double regLevel)
 
 void schedulerReg::updateA(coreTime time)
 {
-    double dt = (time - prevTime);
+    const double deltaTime = (time - prevTime);
 
-    if (dt == 0) {
+    if (deltaTime == 0) {
         return;
     }
-    double prevOutput = m_output;
+    const double prevOutput = m_output;
     schedulerRamp::updateA(time);
 
-    double ramp = (regTarget - regCurr) / dt + dPdt;
+    double ramp = ((regTarget - regCurrent) / deltaTime) + dpdt;
     if (ramp > regRampUp) {
         ramp = regRampUp;
     } else if (ramp < -regRampDown) {
         ramp = -regRampDown;
     }
 
-    m_output = prevOutput + ramp * dt;
+    m_output = prevOutput + (ramp * deltaTime);
 
-    dPdt = ramp;
-    regCurr = m_output - PCurr - reserveAct;
+    dpdt = ramp;
+    regCurrent = m_output - pCurr - reserveAct;
 }
 
 double schedulerReg::predict(coreTime time)
 {
-    double dt = (time - prevTime);
-    if (dt == 0) {
+    const double deltaTime = (time - prevTime);
+    if (deltaTime == 0) {
         return m_output;
     }
-    double toutput = schedulerRamp::predict(time);
+    const double predictedOutput = schedulerRamp::predict(time);
 
-    double ramp = (regTarget - regCurr) / dt + (toutput - m_output) / dt;
+    double ramp =
+        ((regTarget - regCurrent) / deltaTime) + ((predictedOutput - m_output) / deltaTime);
     if (ramp > regRampUp) {
         ramp = regRampUp;
     } else if (ramp < -regRampDown) {
         ramp = -regRampDown;
     }
 
-    double retout = m_output + ramp * dt;
-    return retout;
+    const double predictedRampOutput = m_output + (ramp * deltaTime);
+    return predictedRampOutput;
 }
 
 void schedulerReg::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     schedulerRamp::dynObjectInitializeA(time0, flags);
-    pr = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
 
     if ((regUpFrac > 0) || (regDownFrac > 0)) {
-        if (agc == nullptr) {
+        if (agcController == nullptr) {
             dispatcherLink();
         }
     }
@@ -138,22 +139,22 @@ void schedulerReg::dynObjectInitializeB(const IOdata& inputs,
                                         IOdata& fieldSet)
 {
     schedulerRamp::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
-    double AGClevel = (desiredOutput.size() > 2) ? desiredOutput[2] : 0;
-    if (AGClevel > regUpFrac * pr) {
-        regCurr = regUpFrac * pr;
-    } else if (AGClevel < -regDownFrac * pr) {
-        regCurr = -regDownFrac * pr;
+    const double agcLevel = (desiredOutput.size() > 2) ? desiredOutput[2] : 0;
+    if (agcLevel > regUpFrac * participationRating) {
+        regCurrent = regUpFrac * participationRating;
+    } else if (agcLevel < -regDownFrac * participationRating) {
+        regCurrent = -regDownFrac * participationRating;
     } else {
-        regCurr = AGClevel;
+        regCurrent = agcLevel;
     }
 
-    m_output = regCurr + PCurr + reserveAct;
+    m_output = regCurrent + pCurr + reserveAct;
 }
 
 double schedulerReg::getRamp() const
 {
     double ramp = 0;
-    double diff = regTarget - regCurr;
+    const double diff = regTarget - regCurrent;
     if (diff > 0.001) {
         ramp = regRampUp;
     } else if (diff < 0.001) {
@@ -166,12 +167,12 @@ double schedulerReg::getRamp() const
 
 double schedulerReg::getRampTime() const
 {
-    double diff = regTarget - regCurr;
+    const double diff = regTarget - regCurrent;
     if (diff > 0.001) {
-        return (regTarget - regCurr) / (regRampUp - PRampCurr);
+        return (regTarget - regCurrent) / (regRampUp - pRampCurr);
     }
     if (diff < 0.001) {
-        return (regTarget - regCurr) / (regRampDown - PRampCurr);
+        return (regTarget - regCurrent) / (regRampDown - pRampCurr);
     }
 
     return schedulerRamp::getRampTime();
@@ -179,12 +180,12 @@ double schedulerReg::getRampTime() const
 
 double schedulerReg::getMax(const coreTime /*time*/) const
 {
-    return Pmax;
+    return pMax;
 }
 
 double schedulerReg::getMin(coreTime /*time*/) const
 {
-    return Pmin;
+    return pMin;
 }
 
 void schedulerReg::regSettings(bool active, double upFrac, double downFrac)
@@ -192,16 +193,16 @@ void schedulerReg::regSettings(bool active, double upFrac, double downFrac)
     if (upFrac < 0) {
         if (regEnabled) {
             if (!active) {
-                if (agc != nullptr) {
-                    agc->remove(this);
+                if (agcController != nullptr) {
+                    agcController->remove(this);
                 }
                 regEnabled = false;
             }
         } else {
             if (active) {
                 regEnabled = true;
-                if (agc != nullptr) {
-                    agc->add(this);
+                if (agcController != nullptr) {
+                    agcController->add(this);
                 } else {
                     dispatcherLink();
                 }
@@ -209,29 +210,24 @@ void schedulerReg::regSettings(bool active, double upFrac, double downFrac)
         }
     } else {
         regEnabled = active;
-        if (downFrac < 0) {
-            regUpFrac = upFrac;
-            regDownFrac = downFrac;
-        } else {
-            regUpFrac = upFrac;
-            regDownFrac = downFrac;
-        }
+        regUpFrac = upFrac;
+        regDownFrac = downFrac;
     }
     if (regEnabled) {
-        pr = (m_Base >= kHalfBigNum) ? regMax : m_Base;
-        rampUp = regRampUp - regUpFrac * pr / 600;
-        rampDown = regRampDown - regDownFrac * pr / 600;
-        Pmax = regMax - regUpFrac * pr;
-        Pmin = regMin + regDownFrac * pr;
+        participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+        rampUp = regRampUp - ((regUpFrac * participationRating) / 600);
+        rampDown = regRampDown - ((regDownFrac * participationRating) / 600);
+        pMax = regMax - (regUpFrac * participationRating);
+        pMin = regMin + (regDownFrac * participationRating);
     } else {
         rampUp = regRampUp;
         rampDown = regRampDown;
-        Pmax = regMax;
-        Pmin = regMin;
+        pMax = regMax;
+        pMin = regMin;
     }
     updatePTarget();
-    if (agc != nullptr) {
-        agc->regChange();
+    if (agcController != nullptr) {
+        agcController->regChange();
     }
 }
 
@@ -259,41 +255,41 @@ void schedulerReg::set(std::string_view param, double val, units::unit unitType)
         regRampDown = val;
     } else if ((param == "rating") || (param == "base")) {
         m_Base = val;
-        if (agc != nullptr) {
-            agc->regChange();
+        if (agcController != nullptr) {
+            agcController->regChange();
         }
     } else if (param == "regfrac") {
         temp = val;
         regUpFrac = temp;
         regDownFrac = temp;
-        if (agc != nullptr) {
-            agc->regChange();
+        if (agcController != nullptr) {
+            agcController->regChange();
         }
     } else if (param == "regupfrac") {
         regUpFrac = val;
-        if (agc != nullptr) {
-            agc->regChange();
+        if (agcController != nullptr) {
+            agcController->regChange();
         }
     } else if (param == "regdownfrac") {
         regDownFrac = val;
 
-        if (agc != nullptr) {
-            agc->regChange();
+        if (agcController != nullptr) {
+            agcController->regChange();
         }
     } else if (param == "regenabled") {
-        bool active = val > 0;
+        const bool active = val > 0;
         if (regEnabled) {
             if (!active) {
-                if (agc != nullptr) {
-                    agc->remove(this);
+                if (agcController != nullptr) {
+                    agcController->remove(this);
                 }
                 regEnabled = false;
             }
         } else {
             if (active) {
                 regEnabled = true;
-                if (agc != nullptr) {
-                    agc->add(this);
+                if (agcController != nullptr) {
+                    agcController->add(this);
                 }
             }
         }
@@ -301,25 +297,25 @@ void schedulerReg::set(std::string_view param, double val, units::unit unitType)
         schedulerRamp::set(param, val, unitType);
     }
     if (regEnabled) {
-        pr = (m_Base >= kHalfBigNum) ? regMax : m_Base;
-        rampUp = regRampUp - regUpFrac * pr / 600;
-        rampDown = regRampDown - regDownFrac * pr / 600;
-        Pmax = regMax - regUpFrac * pr;
-        Pmin = regMin + regDownFrac * pr;
+        participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+        rampUp = regRampUp - ((regUpFrac * participationRating) / 600);
+        rampDown = regRampDown - ((regDownFrac * participationRating) / 600);
+        pMax = regMax - (regUpFrac * participationRating);
+        pMin = regMin + (regDownFrac * participationRating);
     } else {
         rampUp = regRampUp;
         rampDown = regRampDown;
-        Pmax = regMax;
-        Pmin = regMin;
+        pMax = regMax;
+        pMin = regMin;
     }
     updatePTarget();
 }
 
 void schedulerReg::dispatcherLink()
 {
-    agc = static_cast<AGControl*>(find("agc"));
-    if (agc != nullptr) {
-        agc->add(this);
+    agcController = static_cast<AGControl*>(find("agc"));
+    if (agcController != nullptr) {
+        agcController->add(this);
     }
     schedulerRamp::dispatcherLink();
 }
@@ -328,9 +324,9 @@ double schedulerReg::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "min") {
-        val = Pmin;
+        val = pMin;
     } else if (param == "max") {
-        val = Pmax;
+        val = pMax;
     } else {
         return schedulerRamp::get(param, unitType);
     }
@@ -347,9 +343,7 @@ void schedulerReg::receiveMessage(std::uint64_t sourceID,
             clearSchedule();
             break;
         case schedulerMessagePayload::SHUTDOWN:
-            break;
         case schedulerMessagePayload::STARTUP:
-            break;
         case schedulerMessagePayload::UPDATE_TARGETS:
             break;
         default:

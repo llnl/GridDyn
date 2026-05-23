@@ -17,17 +17,17 @@ reversibleEvent::reversibleEvent(coreTime time0): Event(time0) {}
 reversibleEvent::reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject)
 {
-    ggrab = createGrabber(field, m_obj);
-    ggrab->outputUnits = unitType;
-    canUndo = ggrab->loaded;
+    grabber = createGrabber(field, m_obj);
+    grabber->outputUnits = unitType;
+    canUndo = grabber->loaded;
 }
 
 void reversibleEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     Event::updateEvent(gdEI, rootObject);
-    ggrab = createGrabber(field, m_obj);
-    ggrab->outputUnits = unitType;
-    canUndo = ggrab->loaded;
+    grabber = createGrabber(field, m_obj);
+    grabber->outputUnits = unitType;
+    canUndo = grabber->loaded;
 }
 
 reversibleEvent::~reversibleEvent() = default;
@@ -39,23 +39,23 @@ std::unique_ptr<Event> reversibleEvent::clone() const
     return upE;
 }
 
-void reversibleEvent::cloneTo(Event* gE) const
+void reversibleEvent::cloneTo(Event* evnt) const
 {
-    Event::cloneTo(gE);
-    auto nE = dynamic_cast<reversibleEvent*>(gE);
-    if (nE == nullptr) {
+    Event::cloneTo(evnt);
+    auto* newEvent = dynamic_cast<reversibleEvent*>(evnt);
+    if (newEvent == nullptr) {
         return;
     }
-    nE->ggrab = createGrabber(field, m_obj);
-    nE->ggrab->outputUnits = ggrab->outputUnits;
-    nE->canUndo = canUndo;
+    newEvent->grabber = createGrabber(field, m_obj);
+    newEvent->grabber->outputUnits = grabber->outputUnits;
+    newEvent->canUndo = canUndo;
 }
 
 // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 change_code reversibleEvent::trigger()
 {
     if (canUndo) {
-        undoValue = ggrab->grabData();
+        undoValue = grabber->grabData();
         hasUndo = true;
     }
     if (stringEvent) {
@@ -79,7 +79,7 @@ change_code reversibleEvent::trigger()
 change_code reversibleEvent::trigger(coreTime time)
 {
     if (canUndo) {
-        undoValue = ggrab->grabData();
+        undoValue = grabber->grabData();
         hasUndo = true;
     }
     if (stringEvent) {
@@ -106,14 +106,14 @@ change_code reversibleEvent::trigger(coreTime time)
 bool reversibleEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     auto res = Event::setTarget(gdo, var);
-    if (ggrab) {
-        ggrab->updateObject(m_obj);
-        ggrab->updateField(field);
-        canUndo = ggrab->loaded;
+    if (grabber) {
+        grabber->updateObject(m_obj);
+        grabber->updateField(field);
+        canUndo = grabber->loaded;
     } else {
-        ggrab = createGrabber(field, m_obj);
-        ggrab->outputUnits = unitType;
-        canUndo = ggrab->loaded;
+        grabber = createGrabber(field, m_obj);
+        grabber->outputUnits = unitType;
+        canUndo = grabber->loaded;
     }
     return res;
 }
@@ -126,8 +126,8 @@ void reversibleEvent::updateStringValue(const std::string& newStr)
 void reversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     Event::updateObject(gco, mode);
-    if (ggrab) {
-        ggrab->updateObject(gco, mode);
+    if (grabber) {
+        grabber->updateObject(gco, mode);
     }
 }
 
@@ -143,7 +143,7 @@ change_code reversibleEvent::undo()
 
 double reversibleEvent::query()
 {
-    return (ggrab) ? (ggrab->grabData()) : kNullVal;
+    return (grabber) ? (grabber->grabData()) : kNullVal;
 }
 
 }  // namespace griddyn::events

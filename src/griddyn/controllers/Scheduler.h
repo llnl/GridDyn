@@ -25,14 +25,14 @@ class commMessage;
 class scheduler: public Source {
   public:
   protected:
-    double Pmax = kBigNum;  //!< [puMW] maximum set power
-    double Pmin = -kBigNum;  //!< [puMW] minimum set power
+    double pMax = kBigNum;  //!< [puMW] maximum set power
+    double pMin = -kBigNum;  //!< [puMW] minimum set power
     double m_Base = 100;  //!< [MW] generator base power
-    double PCurr = 0;  //!<[puMW] current power output
+    double pCurr = 0;  //!<[puMW] current power output
     std::list<tsched> pTarget;  //!< target list
     std::shared_ptr<Communicator> commLink;  //!< communicator link
     comms::commManager cManager;
-    std::uint64_t dispatcher_id = 0;  //!< communication id of the dispatcher
+    std::uint64_t dispatcherId = 0;  //!< communication id of the dispatcher
   public:
     scheduler(const std::string& objName = "scheduler_#", double initialValue = 0.0);
     scheduler(double initialValue, const std::string& objName = "scheduler_#");
@@ -47,7 +47,7 @@ class scheduler: public Source {
     virtual void setTarget(const std::string& fileName);
     virtual void setTarget(std::vector<double>& time, std::vector<double>& target);
     virtual double getTarget() const;
-    double getEnergy() { return PCurr; }
+    double getEnergy() { return pCurr; }
 
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -85,27 +85,27 @@ as well as handling spinning reserve like capacity in an object
 */
 class schedulerRamp: public scheduler {
   public:
-    enum rampMode_t {
-        midPoint,
-        justInTime,
-        onTargetRamp,
-        delayed,
-        interp,
+    enum RampMode {
+        MID_POINT,
+        JUST_IN_TIME,
+        ON_TARGET_RAMP,
+        DELAYED,
+        INTERP,
     };
 
   protected:
     double rampUp = kBigNum;  //!< maximum ramp rate in the up direction
     double rampDown = kBigNum;  //!< maximum ramp rate in the down direction
     coreTime rampTime = 20.0 * 60.0;  //!< the ramp window
-    double dPdt = 0.0;  //!< the actual ramp rate
-    double PRampCurr = 0.0;  //!< the current scheduled ramp rate
+    double dpdt = 0.0;  //!< the actual ramp rate
+    double pRampCurr = 0.0;  //!< the current scheduled ramp rate
     coreTime lastTargetTime = negTime;  //!< the time of the last scheduled target power level
 
     double ramp10Up = kBigNum;  //!<[puMW] The 10 minute maximum up ramp
     double ramp30Up = kBigNum;  //!< the 30 minute maximum up ramp
     double ramp10Down = kBigNum;  //!< the 10 minute maximum down ramp
     double ramp30Down = kBigNum;  //!< the 30 minute maximum down ramp
-    rampMode_t mode = interp;  //!< the interpolation mode
+    RampMode mode = INTERP;  //!< the interpolation mode
 
     // spinning reserve capacity
     double reserveAvail = 0.0;  //!< the amount of reserve power in the generator
@@ -166,15 +166,15 @@ class schedulerReg: public schedulerRamp {
 
     double regRampUp;  //!< the rate at which the regulation must ramp
     double regRampDown;  //!< the maximum rate at which regulation can ramp down
-    double regCurr = 0;  //!< the current regulation output
+    double regCurrent = 0;  //!< the current regulation output
     double regTarget = 0.0;  //!< the current regulation target
     double regUpFrac = 0.0;  //!< the capacity of the object to keep for regulation up purposes
     double regDownFrac = 0.0;  //!< the capacity of the object to keep for regulation down purposes
-    double regPriority;  // a priority queue for the AGC controller if used.
+    double regPriority = 0.0;  // a priority queue for the AGC controller if used.
     bool regEnabled = false;  //!< flag indicating that the regulation system is active
-    double pr;  //!< ?
+    double participationRating = 0.0;  //!< regulation participation rating base
   private:
-    AGControl* agc = nullptr;
+    AGControl* agcController = nullptr;
 
   public:
     explicit schedulerReg(const std::string& objName = "schedulerReg_#");
@@ -187,9 +187,9 @@ class schedulerReg: public schedulerRamp {
     void setReg(double regLevel);
 
     double getRegTarget() const { return regTarget; }
-    double getReg() const { return regCurr; }
-    double getRegUpAvailable() const { return regUpFrac * pr; }
-    double getRegDownAvailable() const { return regDownFrac * pr; }
+    double getReg() const { return regCurrent; }
+    double getRegUpAvailable() const { return regUpFrac * participationRating; }
+    double getRegDownAvailable() const { return regDownFrac * participationRating; }
     bool getRegEnabled() const { return regEnabled; }
 
     void updateA(coreTime time) override;

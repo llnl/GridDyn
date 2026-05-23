@@ -71,13 +71,13 @@ AGControl::~AGControl() = default;
 
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
-    pid = make_owningPtr<blocks::PidBlock>(KP, KI, 0, "pid");
+    pid = makeOwningPtr<blocks::PidBlock>(kp, ki, 0, "pid");
     pid->setParent(this);
-    filt1 = make_owningPtr<blocks::DelayBlock>(Tf, "delay1");
+    filt1 = makeOwningPtr<blocks::DelayBlock>(tf, "delay1");
     filt1->setParent(this);
-    filt2 = make_owningPtr<blocks::DelayBlock>(Tr, "delay2");
+    filt2 = makeOwningPtr<blocks::DelayBlock>(tr, "delay2");
     filt2->setParent(this);
-    db = make_owningPtr<blocks::DeadbandBlock>(deadband, "deadband");
+    db = makeOwningPtr<blocks::DeadbandBlock>(deadband, "deadband");
     db->setParent(this);
     db->set("rampband", 4);
 }
@@ -89,13 +89,13 @@ CoreObject* AGControl::clone(CoreObject* obj) const
         return obj;
     }
 
-    nobj->KI = KI;
-    nobj->KP = KP;
+    nobj->ki = ki;
+    nobj->kp = kp;
     nobj->beta = beta;
     nobj->deadband = deadband;
 
-    nobj->Tf = Tf;
-    nobj->Tr = Tr;
+    nobj->tf = tf;
+    nobj->tr = tr;
 
     pid->clone(nobj->pid.get());
     filt1->clone(nobj->filt1.get());
@@ -123,13 +123,13 @@ void AGControl::dynObjectInitializeB(const IOdata& inputs,
 {
     IOdata iSet(1);
     if (desiredOutput.empty()) {
-        ACE = (inputs[1]) - (10.0 * beta * inputs[0]);
+        ace = (inputs[1]) - (10.0 * beta * inputs[0]);
     } else {
-        ACE = desiredOutput[0];
+        ace = desiredOutput[0];
     }
-    filt1->dynInitializeB({0}, {ACE}, iSet);
-    fACE = ACE;
-    pid->dynInitializeB({0}, {fACE}, iSet);
+    filt1->dynInitializeB({0}, {ace}, iSet);
+    filteredAce = ace;
+    pid->dynInitializeB({0}, {filteredAce}, iSet);
     fieldSet[0] = pid->getOutput();
 }
 
@@ -139,10 +139,10 @@ void AGControl::timestep(coreTime time, const IOdata& inputs, const solverMode& 
 {
     prevTime = time;
 
-    ACE = (inputs[1]) - (10.0 * beta * inputs[0]);
-    fACE = filt1->step(time, ACE);
+    ace = (inputs[1]) - (10.0 * beta * inputs[0]);
+    filteredAce = filt1->step(time, ace);
 
-    reg += pid->step(time, fACE - reg);
+    reg += pid->step(time, filteredAce - reg);
 
     reg = db->step(time, reg);
 
@@ -213,17 +213,17 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "beta") {
         beta = val;
     } else if (param == "ki") {
-        KI = val;
+        ki = val;
         pid->set("I", val);
     } else if (param == "kp") {
-        KP = val;
+        kp = val;
         pid->set("P", val);
     } else if (param == "tf") {
-        Tf = val;
-        filt1->set("T1", Tf);
+        tf = val;
+        filt1->set("T1", tf);
     } else if (param == "tr") {
-        Tr = val;
-        filt2->set("T1", Tr);
+        tr = val;
+        filt2->set("T1", tr);
     } else {
         CoreObject::set(param, val, unitType);
     }

@@ -14,7 +14,7 @@ namespace griddyn {
 class GridBlock;
 
 /** @brief class implementing a control system built from the defined control blocks*/
-class controlSystem: public GridSubModel {
+class ControlSystem: public GridSubModel {
   protected:
     std::vector<GridBlock*> blocks;  //!< the set of blocks to operate on
     matrixDataSparse<double> inputMult;  //!< multipliers for the input to the blocks
@@ -24,8 +24,8 @@ class controlSystem: public GridSubModel {
     std::vector<double> blockOutputs;  //!< current vector of block outputs
 
   public:
-    explicit controlSystem(const std::string& objName = "control_system_#");
-    virtual ~controlSystem();
+    explicit ControlSystem(const std::string& objName = "control_system_#");
+    virtual ~ControlSystem();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -68,5 +68,6 @@ class controlSystem: public GridSubModel {
                                   check_level_t level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 };
+using controlSystem = ControlSystem;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn

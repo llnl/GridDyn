@@ -76,7 +76,7 @@ bool operator!=(const tsched& td1, coreTime timeC)
 }
 
 scheduler::scheduler(const std::string& objName, double initialValue):
-    Source(objName, initialValue), PCurr(initialValue)
+    Source(objName, initialValue), pCurr(initialValue)
 {
     prevTime = negTime;  // override default setting
 }
@@ -92,8 +92,8 @@ CoreObject* scheduler::clone(CoreObject* obj) const
     if (nobj == nullptr) {
         return obj;
     }
-    nobj->Pmax = Pmax;
-    nobj->Pmin = Pmin;
+    nobj->pMax = pMax;
+    nobj->pMin = pMin;
     nobj->pTarget = pTarget;
     nobj->m_Base = m_Base;
 
@@ -162,8 +162,8 @@ void scheduler::updateA(coreTime time)
     }
     if (time >= nextUpdateTime) {
         while (time >= pTarget.front().time) {
-            PCurr = (pTarget.front()).target;
-            PCurr = std::clamp(PCurr, Pmin, Pmax);
+            pCurr = (pTarget.front()).target;
+            pCurr = std::clamp(pCurr, pMin, pMax);
 
             pTarget.pop_front();
             if (pTarget.empty()) {
@@ -174,7 +174,7 @@ void scheduler::updateA(coreTime time)
             nextUpdateTime = (pTarget.front()).time;
         }
     }
-    m_output = PCurr;
+    m_output = pCurr;
     prevTime = time;
     lastUpdateTime = time;
 }
@@ -184,7 +184,7 @@ double scheduler::predict(coreTime time)
     double out = m_output;
     if (time >= nextUpdateTime) {
         out = (pTarget.front()).target;
-        out = std::clamp(out, Pmin, Pmax);
+        out = std::clamp(out, pMin, pMax);
     }
     return out;
 }
@@ -194,8 +194,8 @@ void scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
     commLink = cManager.build();
 
     commLink->registerReceiveCallback(
-        [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
-            receiveMessage(sourceID, std::move(message));
+        [this](std::uint64_t sourceID, const std::shared_ptr<commMessage>& message) {
+            receiveMessage(sourceID, message);
         });
     prevTime = time0;
 }
@@ -204,31 +204,31 @@ void scheduler::dynObjectInitializeB(const IOdata& /*inputs*/,
                                      const IOdata& desiredOutput,
                                      IOdata& /*fieldSet*/)
 {
-    if (desiredOutput[0] > Pmax) {
-        Pmax = desiredOutput[0];
-    } else if (desiredOutput[0] < Pmin) {
-        Pmin = desiredOutput[0];
+    if (desiredOutput[0] > pMax) {
+        pMax = desiredOutput[0];
+    } else if (desiredOutput[0] < pMin) {
+        pMin = desiredOutput[0];
     }
 
     // try to register to a dispatcher
 
-    PCurr = desiredOutput[0];
-    m_output = PCurr;
+    pCurr = desiredOutput[0];
+    m_output = pCurr;
 }
 
 double scheduler::getTarget() const
 {
-    return (pTarget.empty()) ? PCurr : (pTarget.front()).target;
+    return (pTarget.empty()) ? pCurr : (pTarget.front()).target;
 }
 
 double scheduler::getMax(coreTime /*time*/) const
 {
-    return Pmax;
+    return pMax;
 }
 
 double scheduler::getMin(coreTime /*time*/) const
 {
-    return Pmin;
+    return pMin;
 }
 
 void scheduler::set(std::string_view param, std::string_view val)
@@ -244,11 +244,11 @@ void scheduler::set(std::string_view param, std::string_view val)
 void scheduler::set(std::string_view param, double val, unit unitType)
 {
     if (param == "min") {
-        Pmin = convert(val, unitType, puMW, m_Base);
-        PCurr = std::clamp(PCurr, Pmin, Pmax);
+        pMin = convert(val, unitType, puMW, m_Base);
+        pCurr = std::clamp(pCurr, pMin, pMax);
     } else if (param == "max") {
-        Pmax = convert(val, unitType, puMW, m_Base);
-        PCurr = std::clamp(PCurr, Pmin, Pmax);
+        pMax = convert(val, unitType, puMW, m_Base);
+        pCurr = std::clamp(pCurr, pMin, pMax);
     } else if (param == "base") {
         m_Base = convert(val, unitType, MW, systemBasePower);
     } else if (param == "target") {
@@ -271,9 +271,9 @@ double scheduler::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "min") {
-        val = convert(Pmin, puMW, unitType, m_Base);
+        val = convert(pMin, puMW, unitType, m_Base);
     } else if (param == "max") {
-        val = convert(Pmax, puMW, unitType, m_Base);
+        val = convert(pMax, puMW, unitType, m_Base);
     } else {
         val = Source::get(param, unitType);
     }
@@ -319,7 +319,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<com
             setTarget(schedulerPayload->m_time, schedulerPayload->m_target);
             break;
         case schedulerMessagePayload::REGISTER_DISPATCHER:
-            dispatcher_id = sourceID;
+            dispatcherId = sourceID;
             break;
         default:
             break;
@@ -328,7 +328,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<com
 
 void scheduler::dispatcherLink()
 {
-    auto* dispatch = static_cast<dispatcher*>(getParent()->find("dispatcher"));
+    auto* dispatch = static_cast<Dispatcher*>(getParent()->find("dispatcher"));
     if (dispatch != nullptr) {
         dispatch->add(this);
     }

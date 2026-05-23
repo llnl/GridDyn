@@ -20,7 +20,7 @@ namespace events {
         bool hasUndo = false;  //!< flag indicating that the event has an undo value
         bool stringEvent = false;  //!< flag indicating that the event corresponds to a string set
         double undoValue = kNullVal;  //!< the value before the event took place
-        std::unique_ptr<gridGrabber> ggrab;  //!< a grabber to get the values
+        std::unique_ptr<gridGrabber> grabber;  //!< a grabber to get the values
         std::string undoString;  //!< the previous value for a string
         std::string newStringValue;  //!< the new value to set for a string
       public:

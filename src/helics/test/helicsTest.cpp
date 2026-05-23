@@ -501,4 +501,3 @@ TEST_F(HelicsTests, TestMainExe)
         std::cout << "Unable to locate main executable:: skipping test\n";
     }
 }
-

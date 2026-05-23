@@ -114,4 +114,3 @@ using fileOperationError = FileOperationError;  // NOLINT(readability-identifier
 using invalidFileName = InvalidFileName;  // NOLINT(readability-identifier-naming)
 
 }  // namespace griddyn
-

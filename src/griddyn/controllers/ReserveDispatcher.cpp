@@ -289,4 +289,3 @@ void ReserveDispatcher::dispatch(double level)
 }
 
 }  // namespace griddyn
-

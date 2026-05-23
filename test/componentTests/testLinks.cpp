@@ -289,4 +289,3 @@ TEST_F(LinkTests, LinkTestFixPower)
     delete busOne;
     delete busTwo;
 }
-

@@ -152,4 +152,3 @@ TEST_F(CloneTests, CloningTestEvents)
     diffc = countDiffs(v1, v2, 0.0000001);
     EXPECT_EQ(diffc, 0u);
 }
-

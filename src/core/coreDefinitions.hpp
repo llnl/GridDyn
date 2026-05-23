@@ -135,4 +135,3 @@ inline bool isValidIndex(IND index, const std::vector<VX>& vector_obj)
     return ((index >= 0) && (index < static_cast<IND>(vector_obj.size())));
 }
 }  // namespace griddyn
-

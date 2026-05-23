@@ -428,4 +428,3 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
     }
 }
 #endif
-

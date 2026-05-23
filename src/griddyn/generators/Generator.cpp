@@ -821,4 +821,3 @@ double Generator::getAngle(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
-

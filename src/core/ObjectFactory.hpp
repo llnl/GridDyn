@@ -177,4 +177,3 @@ class CoreObjectFactory {
 };
 
 }  // namespace griddyn
-

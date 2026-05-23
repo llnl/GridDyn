@@ -441,4 +441,3 @@ std::shared_ptr<MasterObjectHolder> getMasterHolder()
     static const gmlc::concurrency::TripWireTrigger tripTriggerholder;
     return instance;
 }
-

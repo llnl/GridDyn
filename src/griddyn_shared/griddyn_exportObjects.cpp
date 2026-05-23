@@ -464,4 +464,3 @@ const char* gridDynObjectGetType(GridDynObject obj)
     }
     return unknown_str;
 }
-

@@ -242,4 +242,3 @@ void addToParentWithRename(CoreObject* objectToAdd, CoreObject* parentObject)
 }
 
 }  // namespace griddyn
-

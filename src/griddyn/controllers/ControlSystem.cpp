@@ -119,4 +119,3 @@ change_code ControlSystem::rootCheck(const IOdata& /*inputs*/,
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
-

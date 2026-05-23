@@ -171,4 +171,3 @@ void LongLine::generateIntermediateLinks()
 }
 
 }  // namespace griddyn::links
-

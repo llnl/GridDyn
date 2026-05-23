@@ -30,4 +30,3 @@ TEST_F(ConstraintTests, ConstraintTest1)
     gds->run(30.0);
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
-

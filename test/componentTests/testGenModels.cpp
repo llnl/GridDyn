@@ -159,4 +159,3 @@ TEST_F(GenModelTests, ModelTest3)
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
-

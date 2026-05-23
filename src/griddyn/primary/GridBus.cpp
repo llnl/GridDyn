@@ -1653,4 +1653,3 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
 }
 
 }  // namespace griddyn
-

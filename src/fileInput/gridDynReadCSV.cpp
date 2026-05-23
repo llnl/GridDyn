@@ -308,4 +308,3 @@ void loadCsv(CoreObject* parentObject,
 
 // NOLINTEND(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 }  // namespace griddyn
-

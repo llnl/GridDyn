@@ -550,4 +550,3 @@ TEST_F(RecorderTests, RecorderTestPeriod)
     // remove (recname.c_str ());
     // remove (recname2.c_str ());
 }
-

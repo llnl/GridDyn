@@ -562,4 +562,3 @@ void DcBus::computePowerAdjustments()
 }
 
 }  // namespace griddyn
-

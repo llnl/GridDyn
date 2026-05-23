@@ -258,4 +258,3 @@ static AGControl* newAGC(const std::string& type)
 */
 
 }  // namespace griddyn
-

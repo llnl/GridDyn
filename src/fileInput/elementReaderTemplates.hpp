@@ -265,4 +265,3 @@ COMPONENT* elementReader(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
-

@@ -11,6 +11,6 @@ class ReaderInfo;
 
 void loadFmiExportObjects();
 
-void loadFmiExportReaderInfoDefinitions(ReaderInfo& readerInformation);
+void loadFmiExportReaderInfoDefinitions(ReaderInfo& ReaderInformation);
 
 }  // namespace griddyn

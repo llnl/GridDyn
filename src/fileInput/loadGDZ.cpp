@@ -10,7 +10,7 @@
 #include <string>
 
 namespace griddyn {
-void loadGdz(CoreObject* parentObject, const std::string& fileName, readerInfo& readerInformation)
+void loadGdz(CoreObject* parentObject, const std::string& fileName, ReaderInfo& ReaderInformation)
 {
     const std::filesystem::path filePath(fileName);
     if (!std::filesystem::exists(filePath)) {
@@ -29,12 +29,12 @@ void loadGdz(CoreObject* parentObject, const std::string& fileName, readerInfo& 
     if (!std::filesystem::exists(keyFile)) {
         return;
     }
-    readerInformation.addDirectory(extractPath.string());
+    ReaderInformation.addDirectory(extractPath.string());
     auto resourcePath = extractPath / "resources";
     if (std::filesystem::exists(resourcePath)) {
-        readerInformation.addDirectory(resourcePath.string());
+        ReaderInformation.addDirectory(resourcePath.string());
     }
-    loadFile(parentObject, keyFile.string(), &readerInformation, "xml");
+    loadFile(parentObject, keyFile.string(), &ReaderInformation, "xml");
 }
 
 }  // namespace griddyn

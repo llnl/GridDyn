@@ -22,17 +22,17 @@ namespace {
         return *ignoreVariables;
     }
 
-    bool checkCondition(string_view cond, readerInfo& readerInformation, CoreObject* parentObject);
+    bool checkCondition(string_view cond, ReaderInfo& ReaderInformation, CoreObject* parentObject);
 }  // namespace
 // "aP" is the XML element passed from the reader
 void loadConditionElement(std::shared_ptr<readerElement>& element,
-                          readerInfo& readerInformation,
+                          ReaderInfo& ReaderInformation,
                           CoreObject* parentObject)
 {
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
 
-    loadDefines(element, readerInformation);
-    loadDirectories(element, readerInformation);
+    loadDefines(element, ReaderInformation);
+    loadDirectories(element, ReaderInformation);
 
     bool eval = false;
     std::string condString = getElementField(element, "condition", readerConfig::defMatchType);
@@ -40,23 +40,23 @@ void loadConditionElement(std::shared_ptr<readerElement>& element,
     if (!condString.empty()) {
         // deal with &gt for > and &lt for < if necessary
         condString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(condString);
-        eval = checkCondition(condString, readerInformation, parentObject);
+        eval = checkCondition(condString, ReaderInformation, parentObject);
     } else {
         WARNPRINT(READER_WARN_IMPORTANT, "no condition specified");
         eval = false;
     }
 
     if (eval) {
-        readImports(element, readerInformation, parentObject, false);
+        readImports(element, ReaderInformation, parentObject, false);
         // load the subobjects of gen
-        loadSubObjects(element, readerInformation, parentObject);
+        loadSubObjects(element, ReaderInformation, parentObject);
         // get all element fields
         paramLoopElement(
-            parentObject, element, "local", readerInformation, ignoreConditionVariables());
-        readImports(element, readerInformation, parentObject, true);
+            parentObject, element, "local", ReaderInformation, ignoreConditionVariables());
+        readImports(element, ReaderInformation, parentObject, true);
     }
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
 }
 
 template<class X>
@@ -77,7 +77,7 @@ static bool compare(const X& val1, const X& val2, char op1, char op2)
 }
 
 namespace {
-    bool checkCondition(string_view cond, readerInfo& readerInformation, CoreObject* parentObject)
+    bool checkCondition(string_view cond, ReaderInfo& ReaderInformation, CoreObject* parentObject)
     {
         gmlc::utilities::string_viewOps::trim(cond);
         bool reverseResult = false;
@@ -113,9 +113,9 @@ namespace {
                 gmlc::utilities::string_viewOps::trim(cond.substr(operatorPos + 1));
         }
 
-        readerInformation.setKeyObject(parentObject);
-        const double leftValue = interpretString(std::string{leftOperand}, readerInformation);
-        const double rightValue = interpretString(std::string{rightOperand}, readerInformation);
+        ReaderInformation.setKeyObject(parentObject);
+        const double leftValue = interpretString(std::string{leftOperand}, ReaderInformation);
+        const double rightValue = interpretString(std::string{rightOperand}, ReaderInformation);
 
         if (!std::isnan(leftValue) && !std::isnan(rightValue)) {
             try {
@@ -125,9 +125,9 @@ namespace {
                 WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison operator");
             }
         } else if (std::isnan(leftValue) && (std::isnan(rightValue))) {  // do a string comparison
-            const std::string leftString = readerInformation.checkDefines(std::string{leftOperand});
+            const std::string leftString = ReaderInformation.checkDefines(std::string{leftOperand});
             const std::string rightString =
-                readerInformation.checkDefines(std::string{rightOperand});
+                ReaderInformation.checkDefines(std::string{rightOperand});
 
             try {
                 eval = compare(leftString, rightString, primaryOperator, secondaryOperator);
@@ -139,7 +139,7 @@ namespace {
             WARNPRINT(READER_WARN_IMPORTANT, "invalid comparison terms");
         }
 
-        readerInformation.setKeyObject(nullptr);
+        ReaderInformation.setKeyObject(nullptr);
         return reverseResult ? !eval : eval;
     }
 }  // namespace

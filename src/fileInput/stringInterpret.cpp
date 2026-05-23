@@ -26,28 +26,28 @@ using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
 
 // NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)
-double interpretStringBlock(string_view command, readerInfo& ri);
+double interpretStringBlock(string_view command, ReaderInfo& ri);
 
-void interpretStringBlock(string_view command, readerInfo& ri, std::vector<double>& outputs);
+void interpretStringBlock(string_view command, ReaderInfo& ri, std::vector<double>& outputs);
 
-double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc);
-double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc);
+double addSubStringBlocks(string_view command, ReaderInfo& ri, size_t rlc);
+double multDivStringBlocks(string_view command, ReaderInfo& ri, size_t rlc);
 size_t pChunckEnd(string_view command, size_t start);
 
-double interpretFunction(string_view command, readerInfo& ri);
-double interpretFunction(string_view command, double val, readerInfo& ri);
-double interpretFunction(string_view command, double val1, double val2, readerInfo& ri);
+double interpretFunction(string_view command, ReaderInfo& ri);
+double interpretFunction(string_view command, double val, ReaderInfo& ri);
+double interpretFunction(string_view command, double val1, double val2, ReaderInfo& ri);
 
-double stringBlocktoDouble(string_view block, readerInfo& ri);
-double interpretStringSv(string_view command, readerInfo& ri);
+double stringBlocktoDouble(string_view block, ReaderInfo& ri);
+double interpretStringSv(string_view command, ReaderInfo& ri);
 
 double objectQuery(string_view command, CoreObject* obj);
 
-double interpretString(const std::string& command, readerInfo& ri)
+double interpretString(const std::string& command, ReaderInfo& ri)
 {
     return interpretStringSv(command, ri);
 }
-double interpretStringSv(string_view command, readerInfo& ri)
+double interpretStringSv(string_view command, ReaderInfo& ri)
 {
     size_t rlc{0};
     size_t rlcp{0};
@@ -122,7 +122,7 @@ double interpretStringSv(string_view command, readerInfo& ri)
     return val;
 }
 
-double interpretStringBlock(string_view command, readerInfo& ri)
+double interpretStringBlock(string_view command, ReaderInfo& ri)
 {
     auto val = gmlc::utilities::numeric_conversionComplete<double>(command, std::nan("0"));
     if (std::isnan(val)) {
@@ -139,7 +139,7 @@ double interpretStringBlock(string_view command, readerInfo& ri)
     return val;
 }
 
-void interpretStringBlock(string_view command, readerInfo& ri, std::vector<double>& outputs)
+void interpretStringBlock(string_view command, ReaderInfo& ri, std::vector<double>& outputs)
 {
     auto strSplit = split(command);
     trim(strSplit);
@@ -153,7 +153,7 @@ void interpretStringBlock(string_view command, readerInfo& ri, std::vector<doubl
     //}
 }
 
-double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
+double addSubStringBlocks(string_view command, ReaderInfo& ri, size_t rlc)
 {
     char op = command[rlc];
 
@@ -169,7 +169,7 @@ double addSubStringBlocks(string_view command, readerInfo& ri, size_t rlc)
 
 static constexpr double nanVal = std::numeric_limits<double>::quiet_NaN();
 
-double multDivStringBlocks(string_view command, readerInfo& ri, size_t rlc)
+double multDivStringBlocks(string_view command, ReaderInfo& ri, size_t rlc)
 {
     char op = command[rlc];
 
@@ -215,7 +215,7 @@ size_t pChunckEnd(string_view command, size_t start)
     return rlc;
 }
 
-double interpretFunction(string_view command, readerInfo& ri)
+double interpretFunction(string_view command, ReaderInfo& ri)
 {
     auto fval = evalFunction(command);
 
@@ -229,7 +229,7 @@ double interpretFunction(string_view command, readerInfo& ri)
     return fval;
 }
 
-double interpretFunction(string_view command, double val, readerInfo& ri)
+double interpretFunction(string_view command, double val, ReaderInfo& ri)
 {
     auto fval = evalFunction(command, val);
 
@@ -243,7 +243,7 @@ double interpretFunction(string_view command, double val, readerInfo& ri)
     return fval;
 }
 
-double interpretFunction(string_view command, double val1, double val2, readerInfo& ri)
+double interpretFunction(string_view command, double val1, double val2, ReaderInfo& ri)
 {
     auto fval = evalFunction(command, val1, val2);
 
@@ -270,7 +270,7 @@ double objectQuery(string_view command, CoreObject* obj)
     return nanVal;
 }
 
-double stringBlocktoDouble(string_view block, readerInfo& ri)
+double stringBlocktoDouble(string_view block, ReaderInfo& ri)
 {
     // if the first character is not a digit then go to the string interpreter
     if (gmlc::utilities::nonNumericFirstCharacter(block)) {

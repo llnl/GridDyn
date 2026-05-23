@@ -12,6 +12,6 @@ class ReaderInfo;
 
 void loadHelicsLibrary();
 
-void loadHelicsReaderInfoDefinitions(ReaderInfo& readerInformation);
+void loadHelicsReaderInfoDefinitions(ReaderInfo& ReaderInformation);
 
 }  // namespace griddyn

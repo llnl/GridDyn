@@ -63,6 +63,4 @@ class ReserveDispatcher: public CoreObject {
     virtual void checkGen();
     virtual void dispatch(double level);
 };
-using reserveDispatcher = ReserveDispatcher;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

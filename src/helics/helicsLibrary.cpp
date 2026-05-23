@@ -39,10 +39,10 @@ void loadHelicsLibrary()
     (void)loaded;
 }
 
-void loadHelicsReaderInfoDefinitions(ReaderInfo& readerInformation)
+void loadHelicsReaderInfoDefinitions(ReaderInfo& ReaderInformation)
 {
-    readerInformation.addTranslate("helics", "extra");
-    // readerInformation.addTranslate("cosim", "helics");
+    ReaderInformation.addTranslate("helics", "extra");
+    // ReaderInformation.addTranslate("cosim", "helics");
 }
 
 }  // namespace griddyn

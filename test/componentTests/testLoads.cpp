@@ -361,7 +361,7 @@ TEST_F(LoadTests, GridDynLoadTest1)
     ASSERT_NE(gld, nullptr);
 
     gds->run();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -377,11 +377,11 @@ TEST_F(LoadTests, MotorTest1)
     ASSERT_NE(mtld, nullptr);
 
     gds->dynInitialize();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, MotorTest3)
@@ -399,9 +399,9 @@ TEST_F(LoadTests, MotorTest3)
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode, 1e-8);
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     gds->run();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, MotorTest3Stall)
@@ -419,9 +419,9 @@ TEST_F(LoadTests, MotorTest3Stall)
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode, 1e-8);
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     gds->run(2.5);
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     EXPECT_TRUE(mtld->checkFlag(MotorLoad::stalled));
     gds->run();
     EXPECT_FALSE(mtld->checkFlag(MotorLoad::stalled));
@@ -440,13 +440,13 @@ TEST_F(LoadTests, MotorTest5)
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
     runJacobianCheck(gds, cPflowSolverMode);
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #    endif
 #endif
@@ -467,7 +467,7 @@ TEST_F(LoadTests, FdepTest)
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, ApproxloadTest1)

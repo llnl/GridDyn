@@ -26,7 +26,7 @@ namespace {
 using exciter_parameter_map = std::map<std::string, std::vector<std::pair<std::string, double>>>;
 
 // NOLINTNEXTLINE(misc-multiple-inheritance)
-class ExciterTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExciterTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 void applyExciterParameters(CoreObject* object,
                             const exciter_parameter_map& parameters,
@@ -95,7 +95,7 @@ void verifyStabilityCase(ExciterTests& fixture,
         ASSERT_NE(generator, nullptr);
 
         const int returnValue = fixture.gds->dynInitialize();
-        fixture.requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        fixture.requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
         EXPECT_EQ(returnValue, 0) << "Exciter " << exciterName << " dynInitialize issue";
 
         const int badResidual = runResidualCheck(fixture.gds, cDaeSolverMode, false);
@@ -130,12 +130,12 @@ TEST_F(ExciterTests, RootExciterTest)
 
     const int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     const std::vector<double> initialState = gds->getState();
 
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     const std::vector<double> finalState = gds->getState();
 
     // check for stability

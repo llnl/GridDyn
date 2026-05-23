@@ -66,8 +66,6 @@ struct GridDynSimulationTestFixture {
     void requireState2(griddyn::GridDynSimulation::gridState_t state);
 };
 
-using gridDynSimulationTestFixture = GridDynSimulationTestFixture;
-
 struct gridLoadTestFixture {
     gridLoadTestFixture();
     gridLoadTestFixture(const gridLoadTestFixture&) = delete;

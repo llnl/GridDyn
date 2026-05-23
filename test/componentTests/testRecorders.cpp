@@ -23,7 +23,7 @@ static const char collector_test_directory[] = GRIDDYN_TEST_DIRECTORY "/recorder
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class RecorderTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class RecorderTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(RecorderTests, TsMultiTests)
 {

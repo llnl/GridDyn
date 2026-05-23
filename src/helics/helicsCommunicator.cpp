@@ -45,7 +45,7 @@ void HelicsCommunicator::initialize()
 {
     coord = HelicsCoordinator::findCoordinator(coordName);
     if (coord == nullptr) {
-        auto obj = gridDynSimulation::getInstance()->find("helics");
+        auto obj = GridDynSimulation::getInstance()->find("helics");
         coord = dynamic_cast<HelicsCoordinator*>(obj);
     }
     if (coord == nullptr) {

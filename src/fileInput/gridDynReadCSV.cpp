@@ -32,7 +32,7 @@ enum class ModeState { READ_HEADER, READ_DATA };
 
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
-             readerInfo& readerInformation,
+             ReaderInfo& ReaderInformation,
              const std::string& objectName)
 {
     auto cof = CoreObjectFactory::instance();
@@ -147,7 +147,7 @@ void loadCsv(CoreObject* parentObject,
                 obj = locateObject(std::string{trim(lineTokens[0])}, parentObject);
             }
             if (refkey >= 0) {
-                obj = readerInformation.makeLibraryObject(ref, obj);
+                obj = ReaderInformation.makeLibraryObject(ref, obj);
             }
 
             if (obj == nullptr) {
@@ -189,12 +189,12 @@ void loadCsv(CoreObject* parentObject,
                     }
                 } else if ((field == "name") || (field == "description")) {
                     auto str = std::string{trim(lineTokens[kk])};
-                    str = readerInformation.checkDefines(str);
+                    str = ReaderInformation.checkDefines(str);
                     obj->set(field, str);
                 } else if ((field.compare(0, 2, "to") == 0) && (objectMode == "link")) {
                     auto str = std::string{trim(lineTokens[kk])};
 
-                    str = readerInformation.checkDefines(str);
+                    str = ReaderInformation.checkDefines(str);
                     auto val = numeric_conversion<double>(str, kBigNum);
                     GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -207,7 +207,7 @@ void loadCsv(CoreObject* parentObject,
                         static_cast<Link*>(obj)->updateBus(bus, 2);
                     }
                 } else if ((field.compare(0, 4, "from") == 0) && (objectMode == "link")) {
-                    auto str = readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
+                    auto str = ReaderInformation.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -224,7 +224,7 @@ void loadCsv(CoreObject* parentObject,
                                           << str);
                     }
                 } else if ((field == "bus") && ((objectMode == "load") || (objectMode == "gen"))) {
-                    auto str = readerInformation.checkDefines(std::string{lineTokens[kk]});
+                    auto str = ReaderInformation.checkDefines(std::string{lineTokens[kk]});
                     auto val = numeric_conversion<double>(str, kBigNum);
                     GridBus* bus = nullptr;
                     if (val < kHalfBigNum) {
@@ -242,7 +242,7 @@ void loadCsv(CoreObject* parentObject,
                     }
                 } else if (((field == "target") || (field == "sink") || (field == "source")) &&
                            (objectMode == "relay")) {
-                    auto str = readerInformation.checkDefines(std::string{lineTokens[kk]});
+                    auto str = ReaderInformation.checkDefines(std::string{lineTokens[kk]});
                     auto relatedObject = locateObject(str, parentObject);
                     if (relatedObject != nullptr) {
                         if (field != "sink") {
@@ -257,30 +257,30 @@ void loadCsv(CoreObject* parentObject,
                     }
                 } else if (field == "file") {
                     auto str = std::string{lineTokens[kk]};
-                    readerInformation.checkFileParam(str);
-                    gridParameter parameterObject(field, str);
+                    ReaderInformation.checkFileParam(str);
+                    GridParameter parameterObject(field, str);
 
                     setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                 } else if (field == "workdir") {
                     auto str = std::string{lineTokens[kk]};
-                    readerInformation.checkDirectoryParam(str);
-                    gridParameter parameterObject(field, str);
+                    ReaderInformation.checkDirectoryParam(str);
+                    GridParameter parameterObject(field, str);
 
                     setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                 } else {
-                    auto str = readerInformation.checkDefines(std::string{trim(lineTokens[kk])});
+                    auto str = ReaderInformation.checkDefines(std::string{trim(lineTokens[kk])});
                     auto val = numeric_conversion<double>(str, kBigNum);
 
                     if (val < kHalfBigNum) {
-                        gridParameter parameterObject(field, val);
+                        GridParameter parameterObject(field, val);
                         parameterObject.paramUnits = units[kk];
                         setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
                     } else {
                         if (str.empty()) {
                             continue;
                         }
-                        gridParameter parameterObject(field, str);
-                        processParamString(parameterObject, readerInformation);
+                        GridParameter parameterObject(field, str);
+                        processParamString(parameterObject, ReaderInformation);
                         auto result =
                             setObjectParameter(std::to_string(lineNumber), obj, parameterObject);
 
@@ -291,8 +291,8 @@ void loadCsv(CoreObject* parentObject,
                 }
             }
             if (obj->isRoot()) {
-                if (!(readerInformation.prefix.empty())) {
-                    obj->setName(readerInformation.prefix + '_' + obj->getName());
+                if (!(ReaderInformation.prefix.empty())) {
+                    obj->setName(ReaderInformation.prefix + '_' + obj->getName());
                 }
                 try {
                     parentObject->add(obj);

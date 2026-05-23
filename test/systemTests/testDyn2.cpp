@@ -17,7 +17,7 @@
 
 using namespace griddyn;
 
-class DynamicSystemTests2: public gridDynSimulationTestFixture, public ::testing::Test {};
+class DynamicSystemTests2: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
 {
@@ -26,18 +26,18 @@ TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState();
 
     EXPECT_EQ(st.size(), 30u);
 
     gds->run();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState();
 
     auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.02);
@@ -58,7 +58,7 @@ TEST_F(DynamicSystemTests2, DynTestSimpleChunked)
     gds2->run(3.7);
     gds2->run(7.65896);
     gds2->run();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.0001);

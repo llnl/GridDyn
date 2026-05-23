@@ -25,13 +25,13 @@ namespace {
 
 static constexpr char nameString[] = "name";
 
-std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& readerInformation)
+std::string getObjectName(std::shared_ptr<readerElement>& element, ReaderInfo& ReaderInformation)
 {
     std::string newName = getElementField(element, nameString, readerConfig::defMatchType);
     if (!newName.empty()) {
-        newName = readerInformation.checkDefines(newName);
-        if (!readerInformation.prefix.empty()) {
-            newName = readerInformation.prefix + '_' + newName;
+        newName = ReaderInformation.checkDefines(newName);
+        if (!ReaderInformation.prefix.empty()) {
+            newName = ReaderInformation.prefix + '_' + newName;
         }
     }
     return newName;
@@ -39,19 +39,19 @@ std::string getObjectName(std::shared_ptr<readerElement>& element, readerInfo& r
 
 void setIndex(std::shared_ptr<readerElement>& element,
               CoreObject* mainObject,
-              readerInfo& readerInformation)
+              ReaderInfo& ReaderInformation)
 {
     std::string indexValue =
         getElementFieldOptions(element, indexAndNumber(), readerConfig::defMatchType);
     if (!indexValue.empty()) {
-        indexValue = readerInformation.checkDefines(indexValue);
-        const double interpretedIndex = interpretString(indexValue, readerInformation);
+        indexValue = ReaderInformation.checkDefines(indexValue);
+        const double interpretedIndex = interpretString(indexValue, ReaderInformation);
         mainObject->locIndex = static_cast<int>(interpretedIndex);
     }
     // check if there is a purpose string which is used in some models
     std::string purpose = getElementField(element, "purpose", readerConfig::defMatchType);
     if (!purpose.empty()) {
-        purpose = readerInformation.checkDefines(purpose);
+        purpose = ReaderInformation.checkDefines(purpose);
         try {
             mainObject->set("purpose", purpose);
         }

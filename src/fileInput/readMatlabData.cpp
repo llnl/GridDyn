@@ -20,7 +20,7 @@ using gmlc::utilities::numeric_conversion;
 
 void loadMatlabFile(CoreObject* parentObject,
                     const std::string& fileName,
-                    const basicReaderInfo& readerOptions)
+                    const BasicReaderInfo& readerOptions)
 {
     std::ifstream infile(fileName.c_str(), std::ios::in);
     std::stringstream stringStream;

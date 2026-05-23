@@ -37,7 +37,7 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
 {
     if (!m_gds) {
         m_gds = std::make_shared<GridDynSimulation>();
-        // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
+        // GridDynSimulation::setInstance(m_gds.get());  // peer to GridDynSimulation::GetInstance
         // ();
     }
     m_gds->log(nullptr, PrintLevel::SUMMARY, "GridDyn version:" GRIDDYN_VERSION_STRING);
@@ -45,8 +45,8 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
     mArgValues = nullptr;
     mArgcValue = 0;
     mArgumentString = cmdargs;
-    ReaderInfo readerInformation;
-    auto returnCode = loadCommandArgument(readerInformation, false);
+    ReaderInfo ReaderInformation;
+    auto returnCode = loadCommandArgument(ReaderInformation, false);
     if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
         return returnCode;
     }
@@ -68,12 +68,12 @@ int GriddynRunner::InitializeFromString(const std::string& cmdargs)
 
 int GriddynRunner::Initialize(int argc,
                               char* argv[],
-                              ReaderInfo& readerInformation,
+                              ReaderInfo& ReaderInformation,
                               bool allowUnrecognized)
 {
     if (!m_gds) {
         m_gds = std::make_shared<GridDynSimulation>();
-        // gridDynSimulation::setInstance(m_gds.get());  // peer to gridDynSimulation::GetInstance
+        // GridDynSimulation::setInstance(m_gds.get());  // peer to GridDynSimulation::GetInstance
         // ();
     }
     m_gds->log(nullptr, PrintLevel::SUMMARY, "GridDyn version:" GRIDDYN_VERSION_STRING);
@@ -83,7 +83,7 @@ int GriddynRunner::Initialize(int argc,
     mArgValues = argv;
     mArgcValue = argc;
 
-    auto returnCode = loadCommandArgument(readerInformation, allowUnrecognized);
+    auto returnCode = loadCommandArgument(ReaderInformation, allowUnrecognized);
     if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
         return returnCode;
     }
@@ -105,8 +105,8 @@ int GriddynRunner::Initialize(int argc,
 
 int GriddynRunner::Initialize(int argc, char* argv[], bool allowUnrecognized)
 {
-    ReaderInfo readerInformation;
-    return Initialize(argc, argv, readerInformation, allowUnrecognized);
+    ReaderInfo ReaderInformation;
+    return Initialize(argc, argv, ReaderInformation, allowUnrecognized);
 }
 
 void GriddynRunner::simInitialize()
@@ -123,11 +123,11 @@ int GriddynRunner::Reset()
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    ReaderInfo readerInformation;
-    return Reset(readerInformation);
+    ReaderInfo ReaderInformation;
+    return Reset(ReaderInformation);
 }
 
-int GriddynRunner::Reset(ReaderInfo& readerInformation)
+int GriddynRunner::Reset(ReaderInfo& ReaderInformation)
 {
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
@@ -135,7 +135,7 @@ int GriddynRunner::Reset(ReaderInfo& readerInformation)
     // make a new simulation object
     m_gds = std::make_shared<GridDynSimulation>();
     // reload it from the existing vm
-    auto returnCode = loadCommandArgument(readerInformation, false);
+    auto returnCode = loadCommandArgument(ReaderInformation, false);
     if (returnCode != FUNCTION_EXECUTION_SUCCESS) {
         return returnCode;
     }
@@ -248,12 +248,12 @@ void GriddynRunner::Finalize()
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allowUnrecognized)
+int GriddynRunner::loadCommandArgument(ReaderInfo& ReaderInformation, bool allowUnrecognized)
 {
     m_startTime = std::chrono::high_resolution_clock::now();
-    auto app = generateBaseCommandLineParser(readerInformation);
+    auto app = generateBaseCommandLineParser(ReaderInformation);
     app->allow_extras(allowUnrecognized);
-    auto subApp = generateLocalCommandLineParser(readerInformation);
+    auto subApp = generateLocalCommandLineParser(ReaderInformation);
     if (subApp) {
         app->add_subcommand(std::move(subApp));
     }
@@ -290,10 +290,10 @@ int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allow
 }
 
 std::shared_ptr<CLI::App>
-    GriddynRunner::generateBaseCommandLineParser(ReaderInfo& readerInformation)
+    GriddynRunner::generateBaseCommandLineParser(ReaderInfo& ReaderInformation)
 {
-    auto defineTransform = [&readerInformation](const std::string& input) {
-        return readerInformation.checkDefines(input);
+    auto defineTransform = [&ReaderInformation](const std::string& input) {
+        return ReaderInformation.checkDefines(input);
     };
 
     // function for loading parameters from strings
@@ -322,9 +322,9 @@ std::shared_ptr<CLI::App>
 
     // function for loading parameters from strings
     const CLI::callback_t loadFileCallback = [this,
-                                              &readerInformation](const CLI::results_t& results) {
+                                              &ReaderInformation](const CLI::results_t& results) {
         for (const auto& file : results) {
-            loadFile(m_gds.get(), file, &readerInformation);
+            loadFile(m_gds.get(), file, &ReaderInformation);
             if (m_gds->getErrorCode() != 0) {
                 throw(CLI::Error(m_gds->getName(),
                                  "Error loading File " + file,
@@ -464,22 +464,22 @@ std::shared_ptr<CLI::App>
         ->delimiter(',')
         ->type_size(-1)
         ->each(
-            [&readerInformation](const std::string& flag) { addFlags(readerInformation, flag); });
+            [&ReaderInformation](const std::string& flag) { addFlags(ReaderInformation, flag); });
     readerGroup->add_option("--define,-D", "definition strings for the element file readers")
         ->type_size(-1)
-        ->each([&readerInformation](const std::string& defstr) {
+        ->each([&ReaderInformation](const std::string& defstr) {
             auto splitLocation = defstr.find_first_of('=');
             auto def = gmlc::utilities::stringOps::trim(defstr.substr(0, splitLocation));
             auto rep = gmlc::utilities::stringOps::trim(defstr.substr(splitLocation + 1));
-            readerInformation.addLockedDefinition(def, rep);
+            ReaderInformation.addLockedDefinition(def, rep);
         });
     readerGroup->add_option("--translate,-T", "translation strings for the element file readers")
         ->type_size(-1)
-        ->each([&readerInformation](const std::string& transstr) {
+        ->each([&ReaderInformation](const std::string& transstr) {
             auto splitLocation = transstr.find_first_of('=');
             auto tran = gmlc::utilities::stringOps::trim(transstr.substr(0, splitLocation));
             auto rep = gmlc::utilities::stringOps::trim(transstr.substr(splitLocation + 1));
-            readerInformation.addTranslate(tran, rep);
+            ReaderInformation.addTranslate(tran, rep);
         });
 
     readerGroup
@@ -492,9 +492,9 @@ std::shared_ptr<CLI::App>
     readerGroup
         ->add_option_function<std::vector<std::string>>(
             "--dir",
-            [&readerInformation](const std::vector<std::string>& dirList) {
+            [&ReaderInformation](const std::vector<std::string>& dirList) {
                 for (const auto& dirname : dirList) {
-                    readerInformation.addDirectory(dirname);
+                    ReaderInformation.addDirectory(dirname);
                 }
             },
             "add search directory for input files")
@@ -564,7 +564,7 @@ std::shared_ptr<CLI::App>
 }
 
 std::shared_ptr<CLI::App>
-    GriddynRunner::generateLocalCommandLineParser(ReaderInfo& /*readerInformation*/)
+    GriddynRunner::generateLocalCommandLineParser(ReaderInfo& /*ReaderInformation*/)
 {
     return nullptr;
 }

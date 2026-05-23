@@ -23,7 +23,7 @@ namespace griddyn {
 
 class Violation;
 
-/** @brief base object for gridDynSimulations
+/** @brief base object for GridDynSimulations
  * the basic object for creating a power system encapsulating some common functions and data that is
  *needed by all objects in the simulation and defining some common methods for use by all objects.
  *This object is not really intended to be instantiated directly and is mostly a common interface to

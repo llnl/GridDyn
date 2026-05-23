@@ -16,7 +16,7 @@
 #include <type_traits>
 
 namespace griddyn {
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& readerInfoRef);
+void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& ReaderInfoRef);
 
 template<class RX>
 CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileName, ReaderInfo* ri)
@@ -63,8 +63,8 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
 
     if (!doc->isValid()) {
         WARNPRINT(READER_WARN_ALL, "Unable to open File: " << fileName);
-        if (dynamic_cast<gridSimulation*>(parentObject)) {
-            dynamic_cast<gridSimulation*>(parentObject)->setErrorCode(GS_INVALID_FILE_ERROR);
+        if (dynamic_cast<GridSimulation*>(parentObject)) {
+            dynamic_cast<GridSimulation*>(parentObject)->setErrorCode(GS_INVALID_FILE_ERROR);
         }
         return nullptr;
     }
@@ -73,7 +73,7 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
         readConfigurationFields(sim, *ri);
     }
     gco = (rootSimFile) ?
-        readSimulationElement(sim, *ri, nullptr, static_cast<gridSimulation*>(gco)) :
+        readSimulationElement(sim, *ri, nullptr, static_cast<GridSimulation*>(gco)) :
         parentObject;
     std::string name = sim->getName();
     if (!rootSimFile) {

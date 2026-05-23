@@ -26,7 +26,7 @@
 static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
 // create a test fixture that makes sure everything gets deleted properly
 
-class XmlTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class XmlTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace griddyn;
 using namespace gmlc::utilities;
@@ -36,7 +36,7 @@ TEST_F(XmlTests, XmlTest1)
     // test the loading of a single bus
     std::string fileName = xmlTestDirectory + "test_xmltest1.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -63,7 +63,7 @@ TEST_F(XmlTests, XmlTest2)
 
     std::string fileName = xmlTestDirectory + "test_xmltest2.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 4);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -91,7 +91,7 @@ TEST_F(XmlTests, XmlTest3)
     // testt the loading of links
     std::string fileName = xmlTestDirectory + "test_xmltest3.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 9);
     EXPECT_EQ(readerConfig::warnCount, 1);
@@ -142,7 +142,7 @@ TEST_F(XmlTests, XmlTest4)
     std::string fileName = xmlTestDirectory + "test_xmltest4.xml";
 
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -181,12 +181,12 @@ TEST_F(XmlTests, XmlTest5)
 
     std::string fileName = xmlTestDirectory + "test_xmltest5.xml";
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
 
-    readerInfo ri;
+    ReaderInfo ri;
 
     loadFile(gds.get(), fileName, &ri);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -220,12 +220,12 @@ TEST_F(XmlTests, XmlTest6)
 
     std::string fileName = xmlTestDirectory + "test_xmltest6.xml";
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
 
-    readerInfo ri;
+    ReaderInfo ri;
 
     loadFile(gds.get(), fileName, &ri);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -253,7 +253,7 @@ TEST_F(XmlTests, XmlTest7)
 
     std::string fileName = xmlTestDirectory + "test_xmltest7.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
@@ -292,14 +292,14 @@ TEST_F(XmlTests, XmlTestDynLib)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_lib.xml";
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     auto sdiffs = countDiffs(st, st2, 5e-5);
@@ -314,14 +314,14 @@ TEST_F(XmlTests, XmlTestMainGen)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_mgen.xml";
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     auto sdiffs = countDiffs(st, st2, 5e-5);
@@ -336,14 +336,14 @@ TEST_F(XmlTests, XmlTestReload)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_rload.xml";
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     auto sdiffs = countDiffs(st, st2, 5e-5);
@@ -358,14 +358,14 @@ TEST_F(XmlTests, XmlTestSource1)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_sep.xml";
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     auto sdiffs = countDiffs(st, st2, 5e-5);
@@ -379,12 +379,12 @@ TEST_F(XmlTests, XmlTest8)
 
     std::string fileName = xmlTestDirectory + "test_xmltest8.xml";
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
 
-    readerInfo ri;
+    ReaderInfo ri;
 
     loadFile(gds.get(), fileName, &ri);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
     EXPECT_EQ(readerConfig::warnCount, 0);
     EXPECT_EQ(ri.collectors.size(), 1u);
 }
@@ -396,7 +396,7 @@ TEST_F(XmlTests, XmlTest9)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_xmltest9.xml";
@@ -404,7 +404,7 @@ TEST_F(XmlTests, XmlTest9)
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
-    requireState2(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState2(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
     // check for equality

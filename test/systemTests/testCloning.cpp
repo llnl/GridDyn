@@ -19,7 +19,7 @@ static const char clone_test_directory[] = GRIDDYN_TEST_DIRECTORY "/clone_tests/
 using namespace griddyn;
 using gmlc::utilities::countDiffs;
 
-class CloneTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class CloneTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(CloneTests, CloningTest1)
 {
@@ -27,12 +27,12 @@ TEST_F(CloneTests, CloningTest1)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
-    gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
+    gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds2->powerflow();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);
@@ -47,12 +47,12 @@ TEST_F(CloneTests, CloningTest2)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
-    gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
+    gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds2->powerflow();
-    ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);
@@ -68,12 +68,12 @@ TEST_F(CloneTests, CloningTestSolverApprox)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
-    gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
+    gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    checkState2(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    checkState2(GridDynSimulation::gridState_t::STARTUP);
     gds2->powerflow();
-    requireState2(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState2(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);
@@ -109,7 +109,7 @@ TEST_F(CloneTests, CloningTestEvents)
     std::string fileName = std::string(clone_test_directory) + "test_griddyn39_events.xml";
     gds = readSimXMLFile(fileName);
 
-    gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
+    gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
 
     EXPECT_EQ(gds->getInt("eventcount"), gds2->getInt("eventcount"));
     EXPECT_EQ(gds->getInt("relaycount"), gds2->getInt("relaycount"));

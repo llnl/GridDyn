@@ -724,8 +724,7 @@ void Relay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<commMessa
 void Relay::sendAlarm(std::uint32_t code)
 {
     if (commLink) {
-        auto message =
-            std::make_shared<comms::relayMessage>(comms::relayMessage::ALARM_TRIGGER_EVENT, code);
+        auto message = std::make_shared<commMessage>(commMessage::ALARM_TRIGGER_EVENT, code);
         cManager.send(std::move(message));
         return;
     }

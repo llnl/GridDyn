@@ -32,7 +32,7 @@ class arkodeInterface: public sundialsInterface {
     /** @brief constructor*/
     explicit arkodeInterface(const std::string& objName = "arkode");
     /** @brief alternate constructor
-@param[in] gds  the gridDynSimulation object to connect to
+@param[in] gds  the GridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
     arkodeInterface(GridDynSimulation* gds, const solverMode& sMode);

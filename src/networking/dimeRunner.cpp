@@ -25,19 +25,19 @@ namespace griddyn::dimeLib {
 DimeRunner::DimeRunner()
 {
     loadDimeLibrary();
-    m_gds = std::make_shared<gridDynSimulation>();
+    m_gds = std::make_shared<GridDynSimulation>();
 }
 
 DimeRunner::~DimeRunner() = default;
 
-DimeRunner::DimeRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(std::move(sim))
+DimeRunner::DimeRunner(std::shared_ptr<GridDynSimulation> sim): GriddynRunner(std::move(sim))
 {
     loadDimeLibrary();
 }
 
-std::shared_ptr<CLI::App> DimeRunner::generateLocalCommandLineParser(ReaderInfo& readerInformation)
+std::shared_ptr<CLI::App> DimeRunner::generateLocalCommandLineParser(ReaderInfo& ReaderInformation)
 {
-    loadDimeReaderInfoDefinitions(readerInformation);
+    loadDimeReaderInfoDefinitions(ReaderInformation);
 
     auto parser =
         std::make_shared<CLI::App>("options related to helics executable", "helics_options");

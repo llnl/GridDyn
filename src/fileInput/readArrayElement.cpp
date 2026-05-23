@@ -24,19 +24,19 @@ namespace {
 
     int readElementInteger(std::shared_ptr<readerElement>& element,
                            const std::string& name,
-                           readerInfo& readerInformation,
+                           ReaderInfo& ReaderInformation,
                            int defValue);
 }  // namespace
 // "aP" is the XML element passed from the reader
 void readArrayElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
+                      ReaderInfo& ReaderInformation,
                       CoreObject* parentObject)
 {
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
     std::vector<int> indices;
 
-    loadDefines(element, readerInformation);
-    loadDirectories(element, readerInformation);
+    loadDefines(element, ReaderInformation);
+    loadDirectories(element, ReaderInformation);
     // loop through the other children
     //  cd = aP->FirstChildElement (false);
     std::string loopVariable = getElementField(element, "loopvariable", readerConfig::defMatchType);
@@ -44,12 +44,12 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
         loopVariable = "#index";
     }
 
-    readerInformation.setKeyObject(parentObject);
-    const int count = readElementInteger(element, "count", readerInformation, -1);
-    const int start = readElementInteger(element, "start", readerInformation, 1);
-    const int stop = readElementInteger(element, "stop", readerInformation, -1);
-    const int interval = readElementInteger(element, "interval", readerInformation, 1);
-    readerInformation.setKeyObject(nullptr);
+    ReaderInformation.setKeyObject(parentObject);
+    const int count = readElementInteger(element, "count", ReaderInformation, -1);
+    const int start = readElementInteger(element, "start", ReaderInformation, 1);
+    const int stop = readElementInteger(element, "stop", ReaderInformation, -1);
+    const int interval = readElementInteger(element, "interval", ReaderInformation, 1);
+    ReaderInformation.setKeyObject(nullptr);
     if (count > 0) {
         indices.resize(count);
         if (interval == 1) {
@@ -77,18 +77,18 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
     // fill the vector
 
     for (auto ind : indices) {
-        readerInformation.addDefinition(loopVariable, std::to_string(ind));
+        ReaderInformation.addDefinition(loopVariable, std::to_string(ind));
         loadElementInformation(
-            parentObject, element, "array", readerInformation, ignoreArrayVariables());
+            parentObject, element, "array", ReaderInformation, ignoreArrayVariables());
     }
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
 }
 
 namespace {
     int readElementInteger(std::shared_ptr<readerElement>& element,
                            const std::string& name,
-                           readerInfo& readerInformation,
+                           ReaderInfo& ReaderInformation,
                            int defValue)
     {
         int returnValue = defValue;
@@ -100,7 +100,7 @@ namespace {
         returnValue = gmlc::utilities::numeric_conversionComplete<int>(strVal, -kBigINT);
         if (returnValue == -kBigINT)  // we have a more complicated string
         {
-            const double val = interpretString(strVal, readerInformation);
+            const double val = interpretString(strVal, ReaderInformation);
             if ((val > 0) && (static_cast<int>(val) < kBigINT)) {
                 returnValue = static_cast<int>(val);
             } else {

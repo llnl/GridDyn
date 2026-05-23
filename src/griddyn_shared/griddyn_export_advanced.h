@@ -21,7 +21,7 @@ extern "C" {
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     @return the state size of the object for a particular solverkey
     */
 GRIDDYN_EXPORT int gridDynObjectStateSize(GridDynObject obj, SolverKey key, GridDynError* err);
@@ -30,7 +30,7 @@ GRIDDYN_EXPORT int gridDynObjectStateSize(GridDynObject obj, SolverKey key, Grid
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectGuessState(GridDynObject obj,
                                             double time,
@@ -43,7 +43,7 @@ GRIDDYN_EXPORT void gridDynObjectGuessState(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectSetState(GridDynObject obj,
                                           double time,
@@ -56,7 +56,7 @@ GRIDDYN_EXPORT void gridDynObjectSetState(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectGetStateVariableTypes(GridDynObject obj,
                                                        double* types,
@@ -67,7 +67,7 @@ GRIDDYN_EXPORT void gridDynObjectGetStateVariableTypes(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectResidual(GridDynObject obj,
                                           const double* inputs,
@@ -80,7 +80,7 @@ GRIDDYN_EXPORT void gridDynObjectResidual(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectDerivative(GridDynObject obj,
                                             const double* inputs,
@@ -93,7 +93,7 @@ GRIDDYN_EXPORT void gridDynObjectDerivative(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectAlgebraicUpdate(GridDynObject obj,
                                                  const double* inputs,
@@ -107,7 +107,7 @@ GRIDDYN_EXPORT void gridDynObjectAlgebraicUpdate(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectJacobian(GridDynObject obj,
                                           const double* inputs,
@@ -121,7 +121,7 @@ GRIDDYN_EXPORT void gridDynObjectJacobian(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectIoPartialDerivatives(GridDynObject obj,
                                                       const double* inputs,
@@ -134,7 +134,7 @@ GRIDDYN_EXPORT void gridDynObjectIoPartialDerivatives(GridDynObject obj,
     @details this function uses a SolverKey.  0 can be used on objects with no subobjects on objects
    with subobject using a key of 0 will generate an error code and not produce results
     @param[in] obj the object to query
-    @param[in] key a SolverKey obtained from ::gridDynSimulation_getSolverKey
+    @param[in] key a SolverKey obtained from ::GridDynSimulation_getSolverKey
     */
 GRIDDYN_EXPORT void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
                                                           const double* inputs,

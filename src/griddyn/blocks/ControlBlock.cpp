@@ -210,7 +210,7 @@ void ControlBlock::set(std::string_view param, std::string_view val)
 }
 void ControlBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
 
     if ((param == "t1") || (param == "t")) {
         mT1 = val;

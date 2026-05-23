@@ -14,4 +14,4 @@
 
 using namespace griddyn;
 
-class SolverModeTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class SolverModeTests: public GridDynSimulationTestFixture, public ::testing::Test {};

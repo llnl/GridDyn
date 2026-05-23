@@ -254,7 +254,7 @@ void GovernorIeeeSimple::set(std::string_view param, std::string_view val)
 
 void GovernorIeeeSimple::set(std::string_view param, double val, unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
     if (param == "t3") {
         T3 = val;
     } else if (param == "pup") {

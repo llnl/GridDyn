@@ -90,7 +90,7 @@ class sundialsInterface: public SolverInterface {
   public:
     explicit sundialsInterface(const std::string& objName = "sundials");
     /** @brief constructor loading the SolverInterface structure*
-@param[in] gds  the gridDynSimulation to link with
+@param[in] gds  the GridDynSimulation to link with
 @param[in] sMode the solverMode for the solver
 */
     sundialsInterface(GridDynSimulation* gds, const solverMode& sMode);

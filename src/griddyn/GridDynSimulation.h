@@ -735,6 +735,4 @@ class GridDynSimulation: public GridSimulation {
         s_instance;  //!< static variable to set the master simulation instance
 };
 
-using gridDynSimulation = GridDynSimulation;
-
 }  // namespace griddyn

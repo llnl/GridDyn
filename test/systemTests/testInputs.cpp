@@ -27,7 +27,7 @@
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class InputTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class InputTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::vector<std::pair<std::string, std::array<int, 2>>> baseCDFcase{
     {"ieee14_act.cdf", {{14, 20}}},
@@ -54,7 +54,7 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         auto mp = baseCDFcase[caseIndex];
 
         SCOPED_TRACE(mp.first);
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
         std::string fileName;
         if (mp.first.length() > 25) {
             fileName = mp.first;
@@ -63,7 +63,7 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         }
 
         loadFile(gds, fileName);
-        requireState(gridDynSimulation::gridState_t::STARTUP);
+        requireState(GridDynSimulation::gridState_t::STARTUP);
         int count = gds->getInt("totalbuscount");
         EXPECT_EQ(count, mp.second[0]);
         count = gds->getInt("totallinkcount");
@@ -72,16 +72,16 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         gds->getAngle(ang1);
         EXPECT_EQ(ct, static_cast<count_t>(ang1.size()));
         gds->pFlowInitialize();
-        requireState(gridDynSimulation::gridState_t::INITIALIZED);
+        requireState(GridDynSimulation::gridState_t::INITIALIZED);
         gds->updateLocalCache();
         gds->getBusGenerationReal(P1);
         gds->getBusGenerationReactive(Q1);
 
         gds->powerflow();
-        if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation" << '\n';
         }
-        requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         gds->getVoltage(volts2);
         gds->getAngle(ang2);
@@ -149,10 +149,10 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         }
 
         gds->powerflow();
-        if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation 2" << '\n';
         }
-        requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -186,7 +186,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
         std::vector<double> volts2;
         std::vector<double> ang2;
 
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
 
         auto caseSet = compareCases[caseIndex];
         SCOPED_TRACE(caseSet[0]);
@@ -207,7 +207,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
         for (size_t ns = 1; ns < caseSet.size(); ++ns) {
             std::string fname2 = caseSet[ns];
             std::string nf = caseSet[ns];
-            gds2 = std::make_unique<gridDynSimulation>();
+            gds2 = std::make_unique<GridDynSimulation>();
             if (fname2.size() < 25) {
                 fname2 = std::string(IEEE_TEST_DIRECTORY) + nf;
                 if (!std::filesystem::exists(fname2)) {
@@ -233,7 +233,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
             gds2->powerflow();
 
             ASSERT_EQ(gds2->currentProcessState(),
-                      gridDynSimulation::gridState_t::POWERFLOW_COMPLETE)
+                      GridDynSimulation::gridState_t::POWERFLOW_COMPLETE)
                 << fname2 << " failed to complete";
 
             gds2->getVoltage(volts2);
@@ -283,10 +283,10 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         auto fileName = mp.first;
         SCOPED_TRACE(fileName);
 
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
 
         loadFile(gds, fileName);
-        requireState(gridDynSimulation::gridState_t::STARTUP);
+        requireState(GridDynSimulation::gridState_t::STARTUP);
 
         if (mp.second[1] > 0) {
             count = gds->getInt("totalbuscount");
@@ -302,10 +302,10 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         }
         if (mp.second[0] == 0) {
             gds->powerflow();
-            requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+            requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
         } else if (mp.second[0] == 1) {
             gds->run();
-            requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+            requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
         }
     }
 }

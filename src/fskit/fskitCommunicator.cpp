@@ -7,7 +7,7 @@
 #include "fskitCommunicator.h"
 
 #include "gridDynFederatedScheduler.h"
-#include "griddyn/GridDynSimulation.h"  // for gridDynSimulation
+#include "griddyn/GridDynSimulation.h"  // for GridDynSimulation
 #include "griddyn/comms/CommMessage.h"
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/comms/relayMessage.h"
@@ -63,7 +63,7 @@ void FskitCommunicator::disconnect() {}
 
 void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMessage)
 {
-    auto simulation = griddyn::gridDynSimulation::getInstance();
+    auto simulation = griddyn::GridDynSimulation::getInstance();
 
     // Convert fskit time (ns) to Griddyn time (s)
     double griddynTime = eventMessage.GetTime().GetRaw() * 1.0E-9;
@@ -102,7 +102,7 @@ void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(
         GridDynFederatedScheduler::getScheduler());
 
-    griddyn::gridDynSimulation* simulation = griddyn::gridDynSimulation::getInstance();
+    griddyn::GridDynSimulation* simulation = griddyn::GridDynSimulation::getInstance();
     fskit::Time currentTime;
     if (simulation != nullptr) {
         double currentTimeSeconds = simulation->getSimulationTime();

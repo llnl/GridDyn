@@ -15,7 +15,7 @@
 
 using namespace griddyn;
 
-class GridLabTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class GridLabTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GridLabTests, GridlabTest1)
 {
@@ -24,16 +24,16 @@ TEST_F(GridLabTests, GridlabTest1)
     GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
     EXPECT_EQ(glb, 1);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload1"));
 
     ASSERT_NE(ld, nullptr);
@@ -60,16 +60,16 @@ TEST_F(GridLabTests, GridlabTest2)
     GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
     EXPECT_EQ(glb, 3);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
@@ -98,16 +98,16 @@ TEST_F(GridLabTests, GridlabTest3)
     GhostSwingBusManager::setDebug(false);
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x_current.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
     EXPECT_EQ(glb, 3);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     ZipLoad* ld = static_cast<ZipLoad*>(gds->find("bus2::gload2"));
 
     // P = 0.27 Q = -0.1 Ir = 0.34 Iq = -0.13
@@ -136,10 +136,10 @@ TEST_F(GridLabTests, TestGridlabArray)
     std::string fileName = std::string(GRIDLAB_TEST_DIRECTORY "Simple_3Bus_mod3x_mix_scale.xml");
     GhostSwingBusManager::initialize(&argc, nullptr);
     GhostSwingBusManager::setDebug(false);
-    readerInfo ri;
+    ReaderInfo ri;
     ri.keepdefines = true;
     gds = readSimXMLFile(fileName, &ri);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     int glb = gds->countMpiObjects();
     int cnt = 60;
@@ -153,8 +153,8 @@ TEST_F(GridLabTests, TestGridlabArray)
     }
     EXPECT_EQ(glb, cnt);
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }

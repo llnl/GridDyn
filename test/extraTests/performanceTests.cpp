@@ -25,7 +25,7 @@
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class ExtraPerformanceTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExtraPerformanceTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 
@@ -44,7 +44,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
             fileName = validationTestDirectory + mp;
         }
         for (int kk = 0; kk < 10; ++kk) {
-            gds = std::make_unique<gridDynSimulation>();
+            gds = std::make_unique<GridDynSimulation>();
             gds->set("consoleprintlevel", "summary");
             auto start_t = std::chrono::high_resolution_clock::now();
             loadFile(gds.get(), fileName);
@@ -52,19 +52,19 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
             auto stop_t = std::chrono::high_resolution_clock::now();
             load_time += (stop_t - start_t);
 
-            ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
             stop_t = std::chrono::high_resolution_clock::now();
             pflow_time += (stop_t - start_t);
 
-            if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+            if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
                 std::cout << fileName << " did not complete power flow calculation\n";
                 break;
             }
             ASSERT_EQ(gds->currentProcessState(),
-                      gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+                      GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
         }
         printf("%s load in %f powerflow in %f\n",
                mp.c_str(),
@@ -98,9 +98,9 @@ TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
                "time, jac time, jac1 time, kin1time\n";
         int ii = 0;
         for (auto gsize : elements) {
-            gds = std::make_unique<gridDynSimulation>();
+            gds = std::make_unique<GridDynSimulation>();
 
-            readerInfo ri;
+            ReaderInfo ri;
             ri.addLockedDefinition("garraySize", std::to_string(gsize));
             gds->set("consoleprintlevel", "summary");
             auto start_t = std::chrono::high_resolution_clock::now();
@@ -110,7 +110,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
             load_time = (stop_t - start_t);
             ldtime[ii] = load_time.count();
 
-            ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
@@ -165,9 +165,9 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
 
     int gsize = 50;
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
 
-    readerInfo ri;
+    ReaderInfo ri;
     ri.addLockedDefinition("garraySize", std::to_string(gsize));
     gds->set("consoleprintlevel", "summary");
     auto start_t = std::chrono::high_resolution_clock::now();
@@ -176,7 +176,7 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
     auto stop_t = std::chrono::high_resolution_clock::now();
     load_time = (stop_t - start_t);
 
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 
     start_t = std::chrono::high_resolution_clock::now();
     gds->powerflow();

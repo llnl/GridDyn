@@ -41,25 +41,25 @@ void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<GridBus*>& busList,
-                  const basicReaderInfo& readerOptions);
+                  const BasicReaderInfo& readerOptions);
 int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
                  std::vector<GridBus*>& busList,
-                 const basicReaderInfo& readerOptions);
+                 const BasicReaderInfo& readerOptions);
 void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount);
 void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
                    std::vector<GridBus*>& busList,
-                   const basicReaderInfo& readerOptions);
+                   const BasicReaderInfo& readerOptions);
 // wrapper function to detect m file format for matpower or PSAT
 
 void loadMatPower(CoreObject* parentObject,
                   const std::string& filetext,
                   const std::string& basename,
-                  const basicReaderInfo& readerOptions)
+                  const BasicReaderInfo& readerOptions)
 {
     double basepower = readerOptions.base;
-    gridSimulation::resetObjectCounters();  // reset all the object counters to 0
+    GridSimulation::resetObjectCounters();  // reset all the object counters to 0
     mArray m1;
     int gencount = 0;
     std::vector<GridBus*> busList;
@@ -90,7 +90,7 @@ void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
                   std::vector<GridBus*>& busList,
-                  const basicReaderInfo& /*readerOptions*/)
+                  const BasicReaderInfo& /*readerOptions*/)
 {
     GridLoad* ld = nullptr;
     auto busFactory = dynamic_cast<TypeFactory<GridBus>*>(
@@ -187,7 +187,7 @@ MU QMINÃ¢â‚¬Â  25 Kuhn-Tucker multiplier on lower Qg limit (u/MVAr)
 int loadGenArray(CoreObject* parentObject,
                  mArray& gens,
                  std::vector<GridBus*>& busList,
-                 const basicReaderInfo& readerOptions)
+                 const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
     index_t kk = 1;
@@ -367,7 +367,7 @@ MU ANGMAXÃ¢â‚¬Â¡ 21 Kuhn-Tucker multiplier upper angle difference limit 
 void loadLinkArray(CoreObject* parentObject,
                    mArray& lnks,
                    std::vector<GridBus*>& busList,
-                   const basicReaderInfo& /*readerOptions*/)
+                   const BasicReaderInfo& /*readerOptions*/)
 {
     auto linkFactory = dynamic_cast<TypeFactory<Link>*>(
         CoreObjectFactory::instance()->getFactory("link")->getFactory(""));

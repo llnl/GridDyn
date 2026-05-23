@@ -239,7 +239,7 @@ gridLoadTestFixture::~gridLoadTestFixture()
 glbconfig::glbconfig() = default;
 glbconfig::~glbconfig() = default;
 
-int runJacobianCheck(std::unique_ptr<gridDynSimulation>& gds,
+int runJacobianCheck(std::unique_ptr<GridDynSimulation>& gds,
                      const solverMode& sMode,
                      bool checkRequired)
 {
@@ -253,7 +253,7 @@ int runJacobianCheck(std::unique_ptr<gridDynSimulation>& gds,
     return mmatch;
 }
 
-int runJacobianCheck(std::unique_ptr<gridDynSimulation>& gds,
+int runJacobianCheck(std::unique_ptr<GridDynSimulation>& gds,
                      const solverMode& sMode,
                      double tol,
                      bool checkRequired)
@@ -268,7 +268,7 @@ int runJacobianCheck(std::unique_ptr<gridDynSimulation>& gds,
     return mmatch;
 }
 
-int runResidualCheck(std::unique_ptr<gridDynSimulation>& gds,
+int runResidualCheck(std::unique_ptr<GridDynSimulation>& gds,
                      const solverMode& sMode,
                      bool checkRequired)
 {
@@ -283,7 +283,7 @@ int runResidualCheck(std::unique_ptr<gridDynSimulation>& gds,
     return mmatch;
 }
 
-int runDerivativeCheck(std::unique_ptr<gridDynSimulation>& gds,
+int runDerivativeCheck(std::unique_ptr<GridDynSimulation>& gds,
                        const solverMode& sMode,
                        bool checkRequired)
 {
@@ -297,7 +297,7 @@ int runDerivativeCheck(std::unique_ptr<gridDynSimulation>& gds,
     return mmatch;
 }
 
-int runAlgebraicCheck(std::unique_ptr<gridDynSimulation>& gds,
+int runAlgebraicCheck(std::unique_ptr<GridDynSimulation>& gds,
                       const solverMode& sMode,
                       bool checkRequired)
 {

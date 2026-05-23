@@ -25,24 +25,24 @@ using gmlc::utilities::numeric_conversion;
 void loadElementInformation(CoreObject* obj,
                             std::shared_ptr<readerElement>& element,
                             const std::string& objectName,
-                            readerInfo& readerInfoRef,
+                            ReaderInfo& ReaderInfoRef,
                             const IgnoreListType& ignoreList)
 {
-    objSetAttributes(obj, element, objectName, readerInfoRef, ignoreList);
-    readImports(element, readerInfoRef, obj, false);
+    objSetAttributes(obj, element, objectName, ReaderInfoRef, ignoreList);
+    readImports(element, ReaderInfoRef, obj, false);
     // check for child objects
-    loadSubObjects(element, readerInfoRef, obj);
+    loadSubObjects(element, ReaderInfoRef, obj);
 
     // get all element fields
-    paramLoopElement(obj, element, objectName, readerInfoRef, ignoreList);
-    readImports(element, readerInfoRef, obj, true);
+    paramLoopElement(obj, element, objectName, ReaderInfoRef, ignoreList);
+    readImports(element, ReaderInfoRef, obj, true);
 }
 
-static void checkForEndUnits(gridParameter& param, const std::string& parameterString);
+static void checkForEndUnits(GridParameter& param, const std::string& parameterString);
 
 static constexpr char importString[] = "import";
 void readImports(std::shared_ptr<readerElement>& element,
-                 readerInfo& readerInformation,
+                 ReaderInfo& ReaderInformation,
                  CoreObject* parentObject,
                  bool finalFlag)
 {
@@ -51,7 +51,7 @@ void readImports(std::shared_ptr<readerElement>& element,
     }
 
     // run any source files
-    const auto baseFlags = readerInformation.getFlags();
+    const auto baseFlags = ReaderInformation.getFlags();
     element->bookmark();
     element->moveToFirstChild(importString);
     while (element->isValid()) {
@@ -69,7 +69,7 @@ void readImports(std::shared_ptr<readerElement>& element,
 
         const std::string flags = getElementField(element, "flags", readerConfig::defMatchType);
         if (!flags.empty()) {
-            addFlags(readerInformation, flags);
+            addFlags(ReaderInformation, flags);
         }
         std::string sourceFile = getElementField(element, "file", readerConfig::defMatchType);
         if (sourceFile.empty()) {
@@ -78,14 +78,14 @@ void readImports(std::shared_ptr<readerElement>& element,
         }
 
         // check through the files to find the right location
-        readerInformation.checkFileParam(sourceFile, true);
+        ReaderInformation.checkFileParam(sourceFile, true);
         std::string prefix =
             getElementField(element, "prefix", readerConfig::MatchType::CAPITAL_CASE_MATCH);
         // get the prefix if any
         if (prefix.empty()) {
-            prefix = readerInformation.prefix;
-        } else if (!readerInformation.prefix.empty()) {
-            auto temp = readerInformation.prefix;
+            prefix = ReaderInformation.prefix;
+        } else if (!ReaderInformation.prefix.empty()) {
+            auto temp = ReaderInformation.prefix;
             temp.push_back('_');
             temp.append(prefix);
             prefix = std::move(temp);
@@ -95,15 +95,15 @@ void readImports(std::shared_ptr<readerElement>& element,
         const std::string ext =
             convertToLowerCase(getElementField(element, "filetype", readerConfig::defMatchType));
 
-        std::swap(prefix, readerInformation.prefix);
+        std::swap(prefix, ReaderInformation.prefix);
         if (ext.empty()) {
-            loadFile(parentObject, sourceFile, &readerInformation);
+            loadFile(parentObject, sourceFile, &ReaderInformation);
         } else {
-            loadFile(parentObject, sourceFile, &readerInformation, ext);
+            loadFile(parentObject, sourceFile, &ReaderInformation, ext);
         }
-        std::swap(prefix, readerInformation.prefix);
+        std::swap(prefix, ReaderInformation.prefix);
 
-        readerInformation.setAllFlags(baseFlags);
+        ReaderInformation.setAllFlags(baseFlags);
         element->moveToNextSibling(importString);  // next import file
     }
     element->restore();
@@ -144,14 +144,14 @@ static units::unit readUnits(const std::shared_ptr<readerElement>& element,
 
 static constexpr char valueString[] = "value";
 
-gridParameter getElementParam(const std::shared_ptr<readerElement>& element)
+GridParameter getElementParam(const std::shared_ptr<readerElement>& element)
 {
-    gridParameter param;
+    GridParameter param;
     getElementParam(element, param);
     return param;
 }
 
-void getElementParam(const std::shared_ptr<readerElement>& element, gridParameter& param)
+void getElementParam(const std::shared_ptr<readerElement>& element, GridParameter& param)
 {
     param.paramUnits = units::defunit;
     param.valid = false;
@@ -210,7 +210,7 @@ void getElementParam(const std::shared_ptr<readerElement>& element, gridParamete
     param.valid = true;
 }
 
-void checkForEndUnits(gridParameter& param, const std::string& parameterString)
+void checkForEndUnits(GridParameter& param, const std::string& parameterString)
 {
     const double numericValue = numeric_conversion(parameterString, readerNullVal);
     if (numericValue != readerNullVal) {
@@ -252,7 +252,7 @@ static bool isXmlNamespaceAttribute(const std::string& fieldName)
 void objSetAttributes(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& readerInfoRef,
+                      ReaderInfo& ReaderInfoRef,
                       const IgnoreListType& ignoreList)
 {
     auto att = element->getFirstAttribute();
@@ -288,13 +288,13 @@ void objSetAttributes(CoreObject* obj,
 
         if (fieldName.contains("file") || (fieldName == "fmu")) {
             std::string strVal = att.getText();
-            readerInfoRef.checkFileParam(strVal);
-            gridParameter paramObject(fieldName, strVal);
+            ReaderInfoRef.checkFileParam(strVal);
+            GridParameter paramObject(fieldName, strVal);
             setObjectParameter(component, obj, paramObject);
         } else if (fieldName.contains("workdir") || fieldName.contains("directory")) {
             std::string strVal = att.getText();
-            readerInfoRef.checkDirectoryParam(strVal);
-            gridParameter paramObject(fieldName, strVal);
+            ReaderInfoRef.checkDirectoryParam(strVal);
+            GridParameter paramObject(fieldName, strVal);
             setObjectParameter(component, obj, paramObject);
         } else if ((fieldName == "flag") || (fieldName == "flags")) {
             // read the flags parameter
@@ -307,12 +307,12 @@ void objSetAttributes(CoreObject* obj,
         } else {
             const double val = att.getValue();
             if (val != readerNullVal) {
-                gridParameter paramObject(fieldName, val);
+                GridParameter paramObject(fieldName, val);
                 paramObject.paramUnits = unitType;
                 setObjectParameter(component, obj, paramObject);
             } else {
-                gridParameter paramObject(fieldName, att.getText());
-                processParamString(paramObject, readerInfoRef);
+                GridParameter paramObject(fieldName, att.getText());
+                processParamString(paramObject, ReaderInfoRef);
                 setObjectParameter(component, obj, paramObject);
             }
         }
@@ -323,7 +323,7 @@ void objSetAttributes(CoreObject* obj,
 void paramLoopElement(CoreObject* obj,
                       std::shared_ptr<readerElement>& element,
                       const std::string& component,
-                      readerInfo& readerInfoRef,
+                      ReaderInfo& ReaderInfoRef,
                       const IgnoreListType& ignoreList)
 {
     element->moveToFirstChild();
@@ -335,8 +335,8 @@ void paramLoopElement(CoreObject* obj,
             element->moveToNextSibling();
             continue;
         }
-        ifind = readerInfoRef.getIgnoreList().find(fieldName);
-        if (ifind != readerInfoRef.getIgnoreList().end()) {
+        ifind = ReaderInfoRef.getIgnoreList().find(fieldName);
+        if (ifind != ReaderInfoRef.getIgnoreList().end()) {
             element->moveToNextSibling();
             continue;
         }
@@ -350,14 +350,14 @@ void paramLoopElement(CoreObject* obj,
         if (param.valid) {
             if (param.stringType) {
                 if (param.field.contains("file") || (param.field == "fmu")) {
-                    readerInfoRef.checkFileParam(param.strVal);
+                    ReaderInfoRef.checkFileParam(param.strVal);
                     setObjectParameter(component, obj, param);
                 } else if (param.field.contains("workdir") || param.field.contains("directory")) {
-                    readerInfoRef.checkDirectoryParam(param.strVal);
+                    ReaderInfoRef.checkDirectoryParam(param.strVal);
                     setObjectParameter(component, obj, param);
                 } else if ((fieldName == "flag") || (fieldName == "flags")) {
                     // read the flags parameter
-                    processParamString(param, readerInfoRef);
+                    processParamString(param, ReaderInfoRef);
                     try {
                         setMultipleFlags(obj, param.strVal);
                     }
@@ -365,7 +365,7 @@ void paramLoopElement(CoreObject* obj,
                         WARNPRINT(READER_WARN_ALL, "unrecognized flag in " << param.strVal << "\n");
                     }
                 } else {
-                    processParamString(param, readerInfoRef);
+                    processParamString(param, ReaderInfoRef);
                     setObjectParameter(component, obj, param);
                 }
             } else {
@@ -377,7 +377,7 @@ void paramLoopElement(CoreObject* obj,
     element->moveToParent();
 }
 
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& /*readerInfoRef*/)
+void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& /*ReaderInfoRef*/)
 {
     if (sim->hasElement("configuration")) {
         sim->bookmark();
@@ -428,7 +428,7 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, readerInfo& /*
 void setAttributes(HelperObject* obj,
                    std::shared_ptr<readerElement>& element,
                    const std::string& component,
-                   readerInfo& readerInfoRef,
+                   ReaderInfo& ReaderInfoRef,
                    const IgnoreListType& ignoreList)
 {
     auto att = element->getFirstAttribute();
@@ -449,7 +449,7 @@ void setAttributes(HelperObject* obj,
         try {
             if (fieldName.contains("file") || (fieldName == "fmu")) {
                 std::string strVal = att.getText();
-                readerInfoRef.checkFileParam(strVal);
+                ReaderInfoRef.checkFileParam(strVal);
                 LEVELPRINT(READER_VERBOSE_PRINT,
                            component << ": setting " << fieldName << " to " << strVal);
                 obj->set(fieldName, strVal);
@@ -460,8 +460,8 @@ void setAttributes(HelperObject* obj,
                                component << ": setting " << fieldName << " to " << val);
                     obj->set(fieldName, val);
                 } else {
-                    gridParameter paramObject(fieldName, att.getText());
-                    processParamString(paramObject, readerInfoRef);
+                    GridParameter paramObject(fieldName, att.getText());
+                    processParamString(paramObject, ReaderInfoRef);
                     if (paramObject.stringType) {
                         obj->set(paramObject.field, paramObject.strVal);
                         LEVELPRINT(READER_VERBOSE_PRINT,
@@ -492,7 +492,7 @@ void setAttributes(HelperObject* obj,
 void setParams(HelperObject* obj,
                std::shared_ptr<readerElement>& element,
                const std::string& component,
-               readerInfo& readerInfoRef,
+               ReaderInfo& ReaderInfoRef,
                const IgnoreListType& ignoreList)
 {
     element->moveToFirstChild();
@@ -509,13 +509,13 @@ void setParams(HelperObject* obj,
             try {
                 if (param.stringType) {
                     if (param.field.contains("file") || (param.field == "fmu")) {
-                        readerInfoRef.checkFileParam(param.strVal);
+                        ReaderInfoRef.checkFileParam(param.strVal);
                         LEVELPRINT(READER_VERBOSE_PRINT,
                                    component << ":setting " << obj->getName() << " file to "
                                              << param.strVal);
                         obj->set(param.field, param.strVal);
                     } else {
-                        processParamString(param, readerInfoRef);
+                        processParamString(param, ReaderInfoRef);
                         if (param.stringType) {
                             LEVELPRINT(READER_VERBOSE_PRINT,
                                        component << ":setting " << obj->getName() << " "

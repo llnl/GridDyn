@@ -22,7 +22,7 @@ const IgnoreListType emptyIgnoreList{};
 template<class COMPONENT>
 void loadParentInfo(std::shared_ptr<readerElement>& element,
                     COMPONENT* mobj,
-                    readerInfo& ri,
+                    ReaderInfo& ri,
                     CoreObject* parentObject)
 {
     CoreObject* newParentObject = getParent(element, ri, parentObject, parentSearchComponent(mobj));
@@ -48,7 +48,7 @@ void loadParentInfo(std::shared_ptr<readerElement>& element,
 
 template<class COMPONENT>
 CoreObject* updateSearchObject(std::shared_ptr<readerElement>& element,
-                               readerInfo& ri,
+                               ReaderInfo& ri,
                                CoreObject* parentObject)
 {
     CoreObject* alternateObject =
@@ -67,7 +67,7 @@ const stringVec typeandRetype{"type", "retype"};
 template<class COMPONENT>
 COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
                                    const std::string& component,
-                                   readerInfo& ri,
+                                   ReaderInfo& ri,
                                    CoreObject* searchObject)
 {
     CoreObject* obj;
@@ -112,7 +112,7 @@ template<class COMPONENT>
 COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
                        COMPONENT* mobj,
                        const std::string& component,
-                       readerInfo& ri,
+                       ReaderInfo& ri,
                        CoreObject* searchObject)
 {
     auto cof = CoreObjectFactory::instance();
@@ -228,7 +228,7 @@ template<class COMPONENT>
 COMPONENT* elementReaderSetup(std::shared_ptr<readerElement>& element,
                               COMPONENT* mobj,
                               const std::string& component,
-                              readerInfo& ri,
+                              ReaderInfo& ri,
                               CoreObject* searchObject)
 {
     loadDefines(element, ri);
@@ -251,7 +251,7 @@ template<class COMPONENT>
 COMPONENT* elementReader(std::shared_ptr<readerElement>& element,
                          COMPONENT* mobj,
                          const std::string& component,
-                         readerInfo& ri,
+                         ReaderInfo& ri,
                          CoreObject* searchObject)
 {
     auto riScope = ri.newScope();

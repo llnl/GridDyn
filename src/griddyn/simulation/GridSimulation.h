@@ -252,6 +252,4 @@ tree given by sec
 */
 CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec);
 
-using gridSimulation = GridSimulation;
-
 }  // namespace griddyn

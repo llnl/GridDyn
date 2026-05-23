@@ -192,7 +192,7 @@ void HelicsCoordinator::receiveMessage(helics::Endpoint& endpoint, helics::Time 
 
     // convert helics::Time to griddynTime
     event->m_nextTime = messageTime;
-    gridDynSimulation::getInstance()->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
+    GridDynSimulation::getInstance()->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
 }
 
 void HelicsCoordinator::sendMessage(int32_t index, const char* data, count_t size)

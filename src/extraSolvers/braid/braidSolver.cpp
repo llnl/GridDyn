@@ -131,7 +131,7 @@ braidSolver::braidSolver(const std::string& objName): SolverInterface(objName)
     mode.algebraic = true;
     flags[block_mode_only] = true;
 }
-braidSolver::braidSolver(gridDynSimulation* gds, const solverMode& sMode):
+braidSolver::braidSolver(GridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
 }

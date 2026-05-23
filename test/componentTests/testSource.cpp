@@ -12,7 +12,7 @@
 
 #define SOURCE_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/source_tests/"
 
-class SourceTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class SourceTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace griddyn;
 using namespace griddyn::sources;

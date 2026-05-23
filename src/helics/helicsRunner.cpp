@@ -31,14 +31,14 @@ namespace griddyn::helicsLib {
 HelicsRunner::HelicsRunner()
 {
     griddyn::loadHelicsLibrary();
-    m_gds = std::make_shared<gridDynSimulation>();
+    m_gds = std::make_shared<GridDynSimulation>();
 
     coord_ = make_owningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
 }
 
-HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunner(sim)
+HelicsRunner::HelicsRunner(std::shared_ptr<GridDynSimulation> sim): GriddynRunner(sim)
 {
     griddyn::loadHelicsLibrary();
     coord_ = make_owningPtr<HelicsCoordinator>();
@@ -49,9 +49,9 @@ HelicsRunner::HelicsRunner(std::shared_ptr<gridDynSimulation> sim): GriddynRunne
 HelicsRunner::~HelicsRunner() = default;
 
 std::shared_ptr<CLI::App>
-    HelicsRunner::generateLocalCommandLineParser(ReaderInfo& readerInformation)
+    HelicsRunner::generateLocalCommandLineParser(ReaderInfo& ReaderInformation)
 {
-    loadHelicsReaderInfoDefinitions(readerInformation);
+    loadHelicsReaderInfoDefinitions(ReaderInformation);
 
     auto parser =
         std::make_shared<CLI::App>("options related to helics executable", "helics_options");

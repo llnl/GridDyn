@@ -30,7 +30,7 @@ class faultResetRecovery {
     };
 
     /** @brief constructor
-    @param[in] gds the gridDynSimulation object to work from
+    @param[in] gds the GridDynSimulation object to work from
     @param[in] sd the SolverInterface object to work from
     */
     faultResetRecovery(GridDynSimulation* gds, std::shared_ptr<SolverInterface> sd);

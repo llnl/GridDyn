@@ -30,13 +30,13 @@
 #include <string>
 #include <vector>
 
-class HelicsTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class HelicsTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using griddyn::CoreObject;
 using griddyn::CoreObjectFactory;
 using griddyn::coreTime;
 using griddyn::Generator;
-using griddyn::gridDynSimulationTestFixture;
+using griddyn::GridDynSimulationTestFixture;
 using griddyn::Source;
 using griddyn::helicsLib::gdToHelicsTime;
 using griddyn::helicsLib::HelicsCoordinator;

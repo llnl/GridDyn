@@ -26,20 +26,20 @@ namespace {
 static constexpr char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
 GridBus* readBusElement(std::shared_ptr<readerElement>& element,
-                        readerInfo& readerInformation,
+                        ReaderInfo& ReaderInformation,
                         CoreObject* searchObject)
 {
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
     // check for the area field
 
     GridBus* bus = elementReaderSetup(
-        element, static_cast<GridBus*>(nullptr), busComponentName, readerInformation, searchObject);
+        element, static_cast<GridBus*>(nullptr), busComponentName, ReaderInformation, searchObject);
 
     std::string valType = getElementField(element, "type", readerConfig::defMatchType);
     if (!valType.empty()) {
-        valType = readerInformation.checkDefines(valType);
+        valType = ReaderInformation.checkDefines(valType);
         auto delimiterPos = valType.find_first_of(",;");
         if (delimiterPos != std::string::npos) {
             std::string primaryType = valType.substr(0, delimiterPos);
@@ -77,11 +77,11 @@ GridBus* readBusElement(std::shared_ptr<readerElement>& element,
             }
         }
     }
-    loadElementInformation(bus, element, busComponentName, readerInformation, busIgnore());
+    loadElementInformation(bus, element, busComponentName, ReaderInformation, busIgnore());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded Bus " << bus->getName());
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
     return bus;
 }
 

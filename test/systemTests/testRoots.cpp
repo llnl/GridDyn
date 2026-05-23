@@ -15,7 +15,7 @@
 using namespace griddyn;
 #define ROOTS_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/rootFinding_tests/"
 
-class RootTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class RootTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
 TEST_F(RootTests, RootTest1)
@@ -23,18 +23,18 @@ TEST_F(RootTests, RootTest1)
     std::string fileName = std::string(ROOTS_TEST_DIRECTORY "test_roots1.xml");
 
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 
     //    gds->consolePrintLevel=0;
 
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds->run(30);
     int alerts = gds->getInt("alertcount");
 
     EXPECT_EQ(alerts, 2);
-    EXPECT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -53,11 +53,11 @@ TEST_F(RootTests, TestGovernorRoots)
 {
   std::string fileName = std::string(ROOTS_TEST_DIRECTORY "test_gov_limit3.xml");
   gds = readSimXMLFile(fileName);
-  requireState(gridDynSimulation::gridState_t::STARTUP);
+  requireState(GridDynSimulation::gridState_t::STARTUP);
   gds->consolePrintLevel = PrintLevel::NO_PRINT;
   gds->set("recorddirectory", ROOTS_TEST_DIRECTORY);
   gds->run();
-  requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+  requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
   std::string recname = std::string(ROOTS_TEST_DIRECTORY "rootDisplay.dat");
   TimeSeriesMulti<> ts3;

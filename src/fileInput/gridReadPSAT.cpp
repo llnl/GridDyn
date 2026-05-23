@@ -115,7 +115,7 @@ static const std::vector<
 
 void loadPSAT(CoreObject* parentObject,
               const std::string& filetext,
-              const basicReaderInfo& readerOptions)
+              const BasicReaderInfo& readerOptions)
 {
     double basepower = readerOptions.base;
     // std::string tstr;
@@ -134,7 +134,7 @@ void loadPSAT(CoreObject* parentObject,
     */
     // get the list of bus names
     bool nmfnd = false;
-    gridSimulation::resetObjectCounters();  // reset all the object counters to 0 to make sure all
+    GridSimulation::resetObjectCounters();  // reset all the object counters to 0 to make sure all
                                             // the numbers
     // match up
 
@@ -910,7 +910,7 @@ void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
                         const std::vector<GridBus*>& busList)
 {
-    auto gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
+    auto gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
     }
@@ -950,7 +950,7 @@ void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<GridBus*>& busList)
 {
-    auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
+    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't add the sensors if there is no simulation
         return;
     }
@@ -976,7 +976,7 @@ void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& brkr,
                           const std::vector<GridBus*>& /*busList*/)
 {
-    auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
+    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
     }

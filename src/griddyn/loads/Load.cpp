@@ -71,7 +71,7 @@ static const stringVec locStrStrings{
 
 static const stringVec flagStrings{"usepowerfactor"};
 
-void GridLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridLoad, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
@@ -145,7 +145,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
                 setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
         checkFaultChange();
         return;

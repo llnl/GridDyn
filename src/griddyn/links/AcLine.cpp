@@ -56,7 +56,7 @@ AcLine::AcLine(double rP, double xP, const std::string& objName): Link(objName),
     // load up the member function pointer array to point to the correct function
 }
 
-static typeFactory<AcLine> glf("link", "tie");
+static TypeFactory<AcLine> glf("link", "tie");
 
 CoreObject* AcLine::clone(CoreObject* obj) const
 {
@@ -168,7 +168,7 @@ static const stringVec locNumStrings{"r",
                                      "p"};
 static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
-void AcLine::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AcLine, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
@@ -256,7 +256,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
                 opFlags.set(fixed_target_power);
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
         return;
     }

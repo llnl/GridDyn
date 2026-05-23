@@ -72,7 +72,7 @@ void gridDynAction::process(std::string_view operation)
                 string2 = ssep[2];
             }
         } else {
-            throw(invalidParameterValue(commandToken));
+            throw(InvalidParameterValue(commandToken));
         }
     } else if (commandToken == "setall") {
         // setall  objecttype(s) parameter(s) value(d)
@@ -80,13 +80,13 @@ void gridDynAction::process(std::string_view operation)
         if (tokenCount >= 4) {
             const auto test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
             if (test == kNullVal) {
-                throw(invalidParameterValue(commandToken));
+                throw(InvalidParameterValue(commandToken));
             }
             string1 = ssep[1];
             string2 = ssep[2];
             val_double = test;
         } else {
-            throw(invalidParameterValue(commandToken));
+            throw(InvalidParameterValue(commandToken));
         }
     } else if (commandToken == "setsolver") {
         // setsolver mode(s) solver(s|i)
@@ -100,7 +100,7 @@ void gridDynAction::process(std::string_view operation)
                 string1 = ssep[2];
             }
         } else {
-            throw(invalidParameterValue(commandToken));
+            throw(InvalidParameterValue(commandToken));
         }
     } else if (commandToken == "print") {
         // print parameter(s) setstring(s)
@@ -109,7 +109,7 @@ void gridDynAction::process(std::string_view operation)
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
-            throw(invalidParameterValue(commandToken));
+            throw(InvalidParameterValue(commandToken));
         }
     } else if (commandToken == "powerflow") {
         // powerflow
@@ -162,7 +162,7 @@ void gridDynAction::process(std::string_view operation)
             } else {
                 const auto test = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 if (test == kNullVal) {
-                    throw(invalidParameterValue(commandToken));
+                    throw(InvalidParameterValue(commandToken));
                 }
                 if (tokenCount > 2) {
                     val_double = test;
@@ -191,7 +191,7 @@ void gridDynAction::process(std::string_view operation)
         if (tokenCount > 1) {
             auto test_int = gmlc::utilities::numeric_conversion<int>(ssep[1], -435);
             if (test_int == -435) {
-                throw(invalidParameterValue(commandToken));
+                throw(InvalidParameterValue(commandToken));
             }
             val_int1 = test_int;
         } else {
@@ -221,7 +221,7 @@ void gridDynAction::process(std::string_view operation)
         if (tokenCount > 1) {
             const auto test = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (test == kNullVal) {
-                throw(invalidParameterValue("time"));
+                throw(InvalidParameterValue("time"));
             }
             val_double = test;
         } else {
@@ -234,7 +234,7 @@ void gridDynAction::process(std::string_view operation)
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
-            throw(invalidParameterValue(commandToken));
+            throw(InvalidParameterValue(commandToken));
         }
         command = gd_action_t::save;
     } else if (commandToken == "load") {
@@ -243,7 +243,7 @@ void gridDynAction::process(std::string_view operation)
             string1 = ssep[1];
             string2 = ssep[2];
         } else {
-            throw(invalidParameterValue("load"));
+            throw(InvalidParameterValue("load"));
         }
         command = gd_action_t::load;
     } else if (commandToken == "add") {
@@ -254,7 +254,7 @@ void gridDynAction::process(std::string_view operation)
                 string1 += " " + ssep[kk];
             }
         } else {
-            throw(invalidParameterValue("add"));
+            throw(InvalidParameterValue("add"));
         }
         command = gd_action_t::add;
     } else if (commandToken == "rollback") {
@@ -303,7 +303,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "continuation") {
     } else {
-        throw(unrecognizedParameter(commandToken));
+        throw(UnrecognizedParameter(commandToken));
     }
 }
 

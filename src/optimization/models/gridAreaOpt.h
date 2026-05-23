@@ -32,7 +32,7 @@ class GridAreaOpt: public GridOptObject {
     std::vector<GridOptObject*> objectList;
     GridArea* area = nullptr;
 
-    coreObjectList optObList;  // a search index for object names
+    CoreObjectList optObList;  // a search index for object names
   public:
     GridAreaOpt(const std::string& objName = "");
     GridAreaOpt(CoreObject* obj, const std::string& objName = "");

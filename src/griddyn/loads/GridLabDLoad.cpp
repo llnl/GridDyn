@@ -23,7 +23,7 @@
 
 // #define SGS_DEBUG
 namespace griddyn::loads {
-static typeFactory<GridLabDLoad> gfgld("load",
+static TypeFactory<GridLabDLoad> gfgld("load",
                                        std::to_array<std::string_view>({"gridlabd", "gridlab"}));
 // constants for rotating a complex number by +120 and -120 degrees
 static const std::complex<double> rotp120(-0.5, sqrt(3.0) / 2.0);
@@ -948,7 +948,7 @@ void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
         if (std::abs(val) > kMin_Res) {
             spread = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
         opFlags.set(uses_bounds_flag, (val > 0));

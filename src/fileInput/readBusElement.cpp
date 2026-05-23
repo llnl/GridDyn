@@ -67,8 +67,8 @@ GridBus* readBusElement(std::shared_ptr<readerElement>& element,
             {
                 bus->set("type", valType);
             }
-            catch (const std::invalid_argument&)  // either invalidParameterValue or
-                                                  // unrecognizedParameter depending on the actual
+            catch (const std::invalid_argument&)  // either InvalidParameterValue or
+                                                  // UnrecognizedParameter depending on the actual
                                                   // model used
             {
                 if (!CoreObjectFactory::instance()->isValidType(busComponentName, valType)) {

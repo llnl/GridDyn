@@ -29,7 +29,7 @@
 
 using griddyn::CoreObject;
 using griddyn::CoreObjectFactory;
-using griddyn::coreOwningPtr;
+using griddyn::CoreOwningPtr;
 using griddyn::Exciter;
 using griddyn::Generator;
 using griddyn::GenModel;
@@ -54,14 +54,14 @@ GridDynObject createGridDynObject(GridComponent* comp)
     if (comp == nullptr) {
         return nullptr;
     }
-    auto* componentPointer = new coreOwningPtr<GridComponent>(comp);
+    auto* componentPointer = new CoreOwningPtr<GridComponent>(comp);
     return componentPointer;
 }
 
 GridComponent* getComponentPointer(GridDynObject obj)
 {
     if (obj != nullptr) {
-        auto* componentPointer = static_cast<coreOwningPtr<GridComponent>*>(obj);
+        auto* componentPointer = static_cast<CoreOwningPtr<GridComponent>*>(obj);
         return componentPointer->get();
     }
     return nullptr;
@@ -70,7 +70,7 @@ GridComponent* getComponentPointer(GridDynObject obj)
 const GridComponent* getConstComponentPointer(GridDynObject obj)
 {
     if (obj != nullptr) {
-        const auto* componentPointer = static_cast<coreOwningPtr<GridComponent> const*>(obj);
+        const auto* componentPointer = static_cast<CoreOwningPtr<GridComponent> const*>(obj);
         return componentPointer->get();
     }
     return nullptr;
@@ -88,7 +88,7 @@ GridDynObject
     if (comp == nullptr) {
         return nullptr;
     }
-    auto* componentPointer = new coreOwningPtr<GridComponent>(comp);
+    auto* componentPointer = new CoreOwningPtr<GridComponent>(comp);
     return componentPointer;
 }
 
@@ -106,14 +106,14 @@ GridDynObject gridDynObjectClone(GridDynObject obj, GridDynError* err)
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return nullptr;
     }
-    auto* componentPointer = new coreOwningPtr<GridComponent>(componentClone);
+    auto* componentPointer = new CoreOwningPtr<GridComponent>(componentClone);
     return componentPointer;
 }
 
 void gridDynObjectFree(GridDynObject obj)
 {
     if (obj != nullptr) {
-        auto* componentPointer = static_cast<coreOwningPtr<GridComponent>*>(obj);
+        auto* componentPointer = static_cast<CoreOwningPtr<GridComponent>*>(obj);
         delete componentPointer;
     }
 }

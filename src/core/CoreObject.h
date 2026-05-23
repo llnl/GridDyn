@@ -46,8 +46,6 @@ enum class ParamStringType {
     flags = FLAGS,  // NOLINT(readability-identifier-naming)
 };
 
-using paramStringType = ParamStringType;  // NOLINT(readability-identifier-naming)
-
 typedef void gridPositionInfo;
 
 class HelperObject;
@@ -433,7 +431,7 @@ inline bool isSameObject(const CoreObject* o1, id_type_t id)
 /**
 * @brief convert a string to a print level
 * @param[in] level the level name as a string
-@throw invalidParameterValue() if level is not recognized
+@throw InvalidParameterValue() if level is not recognized
 */
 PrintLevel stringToPrintLevel(const std::string& level);
 

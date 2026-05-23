@@ -79,7 +79,7 @@ void fuse::set(std::string_view param, double val, units::unit unitType)
             minBlowTime = val;
         } else {
             logging::warning(this, "minimum blow time must be greater or equal to 0.001");
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else {
         Relay::set(param, val, unitType);

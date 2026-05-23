@@ -41,7 +41,7 @@ void GridParameter::fromString(const std::string& str)
     valid = false;
     size_t equalPos = strv.find_last_of('=');
     if (equalPos == std::string::npos) {
-        throw(invalidParameterValue(str));
+        throw(InvalidParameterValue(str));
     }
     valid = true;
     auto fieldString = trim(strv.substr(0, equalPos));

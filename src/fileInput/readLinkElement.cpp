@@ -50,7 +50,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
             try {
                 linkObject->updateBus(bus, 1);
             }
-            catch (const objectAddFailure& oaf) {
+            catch (const ObjectAddFailure& oaf) {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "unable to load 'from' bus " << busName << oaf.what());
             }
@@ -73,7 +73,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
             try {
                 linkObject->updateBus(bus, 2);
             }
-            catch (const objectAddFailure& oaf) {
+            catch (const ObjectAddFailure& oaf) {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "unable to load 'to' bus " << busName << " error: " << oaf.what());
             }

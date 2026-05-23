@@ -169,7 +169,7 @@ void HelicsLoad::set(const std::string& param, const std::string& val)
         if (type != helics::data_type::helics_unknown) {
             voltageType = type;
         } else {
-            throw(invalidParameterValue("unrecognized type"));
+            throw(InvalidParameterValue("unrecognized type"));
         }
     } else if (param == "loadkey") {
         loadKey = val;
@@ -178,7 +178,7 @@ void HelicsLoad::set(const std::string& param, const std::string& val)
         if (type != helics::data_type::helics_unknown) {
             loadType = type;
         } else {
-            throw(invalidParameterValue("unrecognized type"));
+            throw(InvalidParameterValue("unrecognized type"));
         }
     } else if ((param == "units") || (param == "inputunits")) {
         inputUnits = units::unit_cast_from_string(val);

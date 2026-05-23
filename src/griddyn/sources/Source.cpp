@@ -14,18 +14,18 @@
 
 namespace griddyn {
 // setup the load object factories
-static typeFactory<Source> glf("source",
+static TypeFactory<Source> glf("source",
                                std::to_array<std::string_view>({"basic", "constant", "simple"}),
                                "constant");  // set constant to the default
 namespace sources {
-    static childTypeFactory<pulseSource, Source> glfp("source", "pulse");
-    static childTypeFactory<sineSource, Source>
+    static ChildTypeFactory<pulseSource, Source> glfp("source", "pulse");
+    static ChildTypeFactory<sineSource, Source>
         cfgsl("source", std::to_array<std::string_view>({"sine", "oscillatory"}));
-    static childTypeFactory<rampSource, Source> glfr("source", "ramp");
-    static childTypeFactory<randomSource, Source>
+    static ChildTypeFactory<rampSource, Source> glfr("source", "ramp");
+    static ChildTypeFactory<randomSource, Source>
         glfrand("source", std::to_array<std::string_view>({"random", "rand"}));
-    static childTypeFactory<fileSource, Source> glfld("source", "file");
-    static childTypeFactory<grabberSource, Source>
+    static ChildTypeFactory<fileSource, Source> glfld("source", "file");
+    static ChildTypeFactory<grabberSource, Source>
         grbsrc("source", std::to_array<std::string_view>({"grabber", "data"}));
 }  // namespace sources
 

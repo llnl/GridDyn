@@ -160,7 +160,7 @@ void HelicsSource::set(const std::string& param, const std::string& val)
     } else if (param == "valuetype") {
         auto vType = helics::getTypeFromString(val);
         if (vType == helics::data_type::helics_unknown) {
-            throw(invalidParameterValue("unrecognized value type " + val));
+            throw(InvalidParameterValue("unrecognized value type " + val));
         }
         valueType = vType;
     } else if ((param == "input_units") || (param == "inunits") || (param == "inputunits")) {
@@ -173,7 +173,7 @@ void HelicsSource::set(const std::string& param, const std::string& val)
         auto uval = units::unit_cast_from_string(val);
         if (!units::is_valid(uval)) {
             if (val != "default") {
-                throw(invalidParameterValue("unknown unit type " + val));
+                throw(InvalidParameterValue("unknown unit type " + val));
             }
         }
         inputUnits = uval;

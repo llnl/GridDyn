@@ -46,7 +46,7 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
-static typeFactory<DynamicGenerator>
+static TypeFactory<DynamicGenerator>
     generatorFactory("generator", std::to_array<std::string_view>({"local_dynamic"}));
 
 using units::convert;
@@ -428,7 +428,7 @@ void DynamicGenerator::add(GridSubModel* obj)
         } else if ((pSetControl == nullptr) && (src->purpose_.empty())) {
             pSetControl = static_cast<Source*>(replaceModel(obj, pSetControl, pset_loc));
         } else {
-            throw(objectAddFailure(this));
+            throw(ObjectAddFailure(this));
         }
     } else if (dynamic_cast<isocController*>(obj) != nullptr) {
         isoc = static_cast<isocController*>(replaceModel(obj, isoc, isoc_control));
@@ -459,7 +459,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
     if (param == "dynmodel") {
         auto dmodel = dynModelFromString(std::string{val});
         if (dmodel == dynModel_t::invalid) {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
         buildDynModel(dmodel);
     } else {
@@ -612,7 +612,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
                 if (genModel != nullptr) {
                     genModel->set(param, val, unitType);
                 } else {
-                    throw(unrecognizedParameter(param));
+                    throw(UnrecognizedParameter(param));
                 }
                 break;
             default:
@@ -679,7 +679,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         try {
             Generator::set(param, val, unitType);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             for (auto* subobj : getSubObjects()) {
                 subobj->setFlag("no_gridcomponent_set");
                 try {
@@ -687,11 +687,11 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
                     subobj->setFlag("no_gridcomponent_set", false);
                     return;
                 }
-                catch (const unrecognizedParameter&) {
+                catch (const UnrecognizedParameter&) {
                     subobj->setFlag("no_gridcomponent_set", false);
                 }
             }
-            throw(unrecognizedParameter(param));
+            throw(UnrecognizedParameter(param));
         }
     }
 }

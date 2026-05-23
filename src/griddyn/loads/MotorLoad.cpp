@@ -24,12 +24,12 @@ using units::puMW;
 using units::puV;
 
 // setup the load object factories
-static typeFactory<MotorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
+static TypeFactory<MotorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
 
-static typeFactory<MotorLoad3> mlf3("load",
+static TypeFactory<MotorLoad3> mlf3("load",
                                     std::to_array<std::string_view>({"motor3", "motorIII", "m3"}));
 
-static typeFactory<MotorLoad5> mlf5("load",
+static TypeFactory<MotorLoad5> mlf5("load",
                                     std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
 
 static constexpr double cSmallDiff = 1e-7;
@@ -179,7 +179,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
                 slipCheck = true;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
     } else {
         if (param == "r1") {

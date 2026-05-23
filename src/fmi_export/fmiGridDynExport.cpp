@@ -26,7 +26,7 @@ const char* fmi2GetVersion(void)
     return "2.0";
 }
 
-using griddyn::coreObjectException;
+using griddyn::CoreObjectException;
 using griddyn::id_type_t;
 using griddyn::fmi::FmiRunner;
 
@@ -184,7 +184,7 @@ fmi2Status fmi2ExitInitializationMode(fmi2Component comp)
     try {
         runner->simInitialize();
     }
-    catch (const coreObjectException& e) {
+    catch (const CoreObjectException& e) {
         runner->logger(0, std::string("Simulation Initialization failed:") + e.what());
         return fmi2Error;
     }

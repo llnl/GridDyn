@@ -32,14 +32,14 @@
 
 namespace griddyn {
 std::atomic<count_t> GridBus::busCount(0);
-static typeFactory<GridBus> gbf("bus", std::to_array<std::string_view>({"basic"}));
-static childTypeFactory<AcBus, GridBus>
+static TypeFactory<GridBus> gbf("bus", std::to_array<std::string_view>({"basic"}));
+static ChildTypeFactory<AcBus, GridBus>
     gbfac("bus",
           std::to_array<std::string_view>({"ac", "pq", "pv", "slk", "slack", "afix", "ref"}),
           "ac");
-static childTypeFactory<DcBus, GridBus> gbfdc("bus",
+static ChildTypeFactory<DcBus, GridBus> gbfdc("bus",
                                               std::to_array<std::string_view>({"dc", "hvdc"}));
-static childTypeFactory<infiniteBus, GridBus>
+static ChildTypeFactory<infiniteBus, GridBus>
     igbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
 
 using units::convert;
@@ -168,7 +168,7 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
             bus->alert(bus, OBJECT_COUNT_INCREASE);
         }
     } else if (!isSameObject(obj, foundObj)) {
-        throw(objectAddFailure(bus));
+        throw(ObjectAddFailure(bus));
     }
 }
 
@@ -447,7 +447,7 @@ void GridBus::setAll(std::string_view objtype,
             try {
                 gen->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -456,7 +456,7 @@ void GridBus::setAll(std::string_view objtype,
             try {
                 ld->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -465,7 +465,7 @@ void GridBus::setAll(std::string_view objtype,
             try {
                 gen->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -473,7 +473,7 @@ void GridBus::setAll(std::string_view objtype,
             try {
                 ld->set(param, val, unitType);
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 // we ignore this exception in this function
             }
         }
@@ -485,7 +485,7 @@ static const stringVec locStrStrings{"status"};
 
 static const stringVec flagStrings{"connected"};
 
-void GridBus::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridBus, GridComponent>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

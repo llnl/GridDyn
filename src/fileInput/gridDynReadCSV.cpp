@@ -297,7 +297,7 @@ void loadCsv(CoreObject* parentObject,
                 try {
                     parentObject->add(obj);
                 }
-                catch (const coreObjectException& uroe) {
+                catch (const CoreObjectException& uroe) {
                     WARNPRINT(READER_WARN_ALL,
                               "line " << lineNumber << ":: " << uroe.what() << " " << uroe.who());
                 }

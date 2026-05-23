@@ -98,7 +98,7 @@ void blockSource::setFlag(std::string_view flag, bool val)
     try {
         Source::setFlag(flag, val);
     }
-    catch (const unrecognizedParameter&) {
+    catch (const UnrecognizedParameter&) {
         if (src != nullptr) {
             src->setFlag(flag, val);
         }
@@ -114,7 +114,7 @@ void blockSource::set(std::string_view param, std::string_view val)
     try {
         Source::set(param, val);
     }
-    catch (const unrecognizedParameter&) {
+    catch (const UnrecognizedParameter&) {
         if (src != nullptr) {
             src->set(param, val);
         }
@@ -131,7 +131,7 @@ void blockSource::set(std::string_view param, double val, units::unit unitType)
         try {
             Source::set(param, val, unitType);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             if (src != nullptr) {
                 src->set(param, val, unitType);
             }

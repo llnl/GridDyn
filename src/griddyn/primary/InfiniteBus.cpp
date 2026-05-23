@@ -72,7 +72,7 @@ void infiniteBus::set(std::string_view param, std::string_view val)
 {
     if (param == "type") {
         if (val != "infinite") {
-            throw(invalidParameterValue(std::string{param} + ':' + std::string{val}));
+            throw(InvalidParameterValue(std::string{param} + ':' + std::string{val}));
         }
     } else {
         GridBus::set(param, val);

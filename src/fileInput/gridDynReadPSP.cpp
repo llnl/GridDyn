@@ -121,7 +121,7 @@ void loadPsp(CoreObject* parentObject,
                             try {
                                 parentObject->add(busList[index]);
                             }
-                            catch (const objectAddFailure&) {
+                            catch (const ObjectAddFailure&) {
                                 addToParentWithRename(busList[index], parentObject);
                             }
                         } else {
@@ -222,7 +222,7 @@ void pspReadBus(GridBus* bus,
     GridLoad* ld = nullptr;
     Generator* gen = nullptr;
     int code;
-    double P, Q;
+    double p, q;
     double val;
     temp = line.substr(9, 12);
     temp = removeQuotes(temp);
@@ -278,14 +278,14 @@ void pspReadBus(GridBus* bus,
             bus->set("type", "pv");
             // get the Qmax and Qmin
             temp = line.substr(40, 5);
-            P = numeric_conversion<double>(temp, 0.0);
+            p = numeric_conversion<double>(temp, 0.0);
             temp = line.substr(45, 5);
-            Q = numeric_conversion<double>(temp, 0.0);
-            if (P != 0.0) {
-                bus->set("qmin", P / base);
+            q = numeric_conversion<double>(temp, 0.0);
+            if (p != 0.0) {
+                bus->set("qmin", p / base);
             }
-            if (Q != 0.0) {
-                bus->set("qmax", Q / base);
+            if (q != 0.0) {
+                bus->set("qmax", q / base);
             }
             // get the desired voltage
             temp = line.substr(22, 4);
@@ -307,59 +307,59 @@ void pspReadBus(GridBus* bus,
     }
     // load section
     temp = line.substr(55, 5);
-    P = numeric_conversion<double>(temp, 0.0);
+    p = numeric_conversion<double>(temp, 0.0);
     temp = line.substr(60, 5);
-    Q = numeric_conversion<double>(temp, 0.0);
+    q = numeric_conversion<double>(temp, 0.0);
 
-    if ((P != 0) || (Q != 0)) {
-        ld = new ZipLoad(P / base, Q / base);
+    if ((p != 0) || (q != 0)) {
+        ld = new ZipLoad(p / base, q / base);
         bus->add(ld);
     }
     // get the shunt impedance
     temp = trim(line.substr(65, 5));
-    Q = numeric_conversion<double>(temp, 0.0);
-    if (Q != 0.0) {
+    q = numeric_conversion<double>(temp, 0.0);
+    if (q != 0.0) {
         if (ld == nullptr) {
             ld = new ZipLoad();
             bus->add(ld);
         }
-        ld->set("yq", -Q / base);
+        ld->set("yq", -q / base);
     }
     // get the generation
     temp = trim(line.substr(30, 5));
-    P = numeric_conversion<double>(temp, 0.0);
+    p = numeric_conversion<double>(temp, 0.0);
     temp = trim(line.substr(35, 5));
-    Q = numeric_conversion<double>(temp, 0.0);
+    q = numeric_conversion<double>(temp, 0.0);
 
-    if ((P != 0.0) || (Q != 0.0)) {
+    if ((p != 0.0) || (q != 0.0)) {
         gen = new Generator();
         bus->add(gen);
-        gen->set("p", P / base);
-        gen->set("q", Q / base);
+        gen->set("p", p / base);
+        gen->set("q", q / base);
         // get the Qmax and Qmin
         temp = line.substr(40, 5);
-        P = numeric_conversion<double>(temp, 0.0);
+        p = numeric_conversion<double>(temp, 0.0);
         temp = line.substr(45, 5);
-        Q = numeric_conversion<double>(temp, 0.0);
-        if (P != 0.0) {
-            gen->set("qmin", P / base);
+        q = numeric_conversion<double>(temp, 0.0);
+        if (p != 0.0) {
+            gen->set("qmin", p / base);
         }
-        if (Q != 0.0) {
-            gen->set("qmax", Q / base);
+        if (q != 0.0) {
+            gen->set("qmax", q / base);
         }
     } else if (bus->getType() != GridBus::busType::PQ) {
         temp = line.substr(40, 5);
-        P = numeric_conversion<double>(temp, 0.0);
+        p = numeric_conversion<double>(temp, 0.0);
         temp = line.substr(45, 5);
-        Q = numeric_conversion<double>(temp, 0.0);
-        if ((P != 0.0) || (Q != 0.0)) {
+        q = numeric_conversion<double>(temp, 0.0);
+        if ((p != 0.0) || (q != 0.0)) {
             gen = new Generator();
             bus->add(gen);
-            if (P != 0.0) {
-                gen->set("qmin", P / base);
+            if (p != 0.0) {
+                gen->set("qmin", p / base);
             }
-            if (Q != 0.0) {
-                gen->set("qmax", Q / base);
+            if (q != 0.0) {
+                gen->set("qmax", q / base);
             }
         }
     }
@@ -469,12 +469,12 @@ void pspReadBranch(CoreObject* parentObject,
 
     // get the branch impedance
     temp = line.substr(17, 6);
-    auto R = numeric_conversion<double>(temp, 0.0);
+    auto r = numeric_conversion<double>(temp, 0.0);
     temp = line.substr(23, 6);
-    auto X = numeric_conversion<double>(temp, 0.0);
+    auto x = numeric_conversion<double>(temp, 0.0);
 
-    lnk->set("r", R / 100.0);
-    lnk->set("x", X / 100.0);
+    lnk->set("r", r / 100.0);
+    lnk->set("x", x / 100.0);
     // get line capacitance
     temp = line.substr(29, 6);
     val = numeric_conversion<double>(temp, 0.0);

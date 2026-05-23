@@ -32,32 +32,32 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-static typeFactory<GridLoad> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
-static childTypeFactory<ZipLoad, GridLoad> zlf("load",
+static TypeFactory<GridLoad> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
+static ChildTypeFactory<ZipLoad, GridLoad> zlf("load",
                                                std::to_array<std::string_view>({"basic", "zip"}),
                                                "zip");  // set basic to the default
 namespace loads {
-    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
+    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
         glfp("load", "pulse", SourceLoad::sourceType::pulse);
-    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
+    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
         cfgsl("load",
               std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
               SourceLoad::sourceType::sine);
-    static childTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
-    static typeFactoryArg<SourceLoad, SourceLoad::sourceType>
+    static ChildTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
+    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
         glfrand("load",
                 std::to_array<std::string_view>({"random", "rand"}),
                 SourceLoad::sourceType::random);
-    static childTypeFactory<FileLoad, GridLoad> glfld("load", "file");
-    static childTypeFactory<SourceLoad, GridLoad>
+    static ChildTypeFactory<FileLoad, GridLoad> glfld("load", "file");
+    static ChildTypeFactory<SourceLoad, GridLoad>
         srcld("load", std::to_array<std::string_view>({"src", "source"}));
-    static childTypeFactory<ExponentialLoad, GridLoad>
+    static ChildTypeFactory<ExponentialLoad, GridLoad>
         glexp("load", std::to_array<std::string_view>({"exponential", "exp"}));
-    static childTypeFactory<FDepLoad, GridLoad> glfd("load", "fdep");
-    static childTypeFactory<ThreePhaseLoad, GridLoad>
+    static ChildTypeFactory<FDepLoad, GridLoad> glfd("load", "fdep");
+    static ChildTypeFactory<ThreePhaseLoad, GridLoad>
         gl3("load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
-    static childTypeFactory<ApproximatingLoad, GridLoad>
+    static ChildTypeFactory<ApproximatingLoad, GridLoad>
         apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
 
@@ -151,7 +151,7 @@ static const stringVec locStrStrings{
 
 static const stringVec flagStrings{"converttoimpedance", "no_pqvoltage_limit"};
 
-void ZipLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<ZipLoad, GridLoad>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
@@ -266,7 +266,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
                 setYq(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
         checkFaultChange();
         return;

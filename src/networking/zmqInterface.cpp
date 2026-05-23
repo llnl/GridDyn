@@ -17,7 +17,7 @@ namespace griddyn {
 void loadZMQLibrary()
 {
     static const bool loaded = []() {
-        static const childClassFactory<zmqInterface::ZmqCommunicator, Communicator>
+        static const ChildClassFactory<zmqInterface::ZmqCommunicator, Communicator>
             zmqCommunicatorFactory(std::vector<std::string>{"zmq"});
         return true;
     }();

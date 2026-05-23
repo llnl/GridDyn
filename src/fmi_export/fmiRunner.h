@@ -23,7 +23,7 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
 */
     class FmiRunner: public GriddynRunner {
       private:
-        coreOwningPtr<FmiCoordinator> mCoordinator;  //!< the coordinator object for managing object
+        CoreOwningPtr<FmiCoordinator> mCoordinator;  //!< the coordinator object for managing object
                                                      //!< that manage the fmi inputs and outputs
         std::bitset<7> mLoggingCategories;  //!< indicators of which logging categories to use
         bool mRunAsync = false;  //!< indicator that we should run asynchronously

@@ -22,17 +22,17 @@ namespace griddyn {
 void loadHelicsLibrary()
 {
     static const bool loaded = []() {
-        static const childClassFactory<helicsLib::HelicsCollector, collector>
+        static const ChildClassFactory<helicsLib::HelicsCollector, collector>
             helicsCollectorFactory(stringVec{"helics"});
-        static const childClassFactory<helicsLib::HelicsEvent, Event> helicsEventFactory(
+        static const ChildClassFactory<helicsLib::HelicsEvent, Event> helicsEventFactory(
             stringVec{"helics"});
-        static const childClassFactory<helicsLib::HelicsCommunicator, Communicator>
+        static const ChildClassFactory<helicsLib::HelicsCommunicator, Communicator>
             helicsCommunicatorFactory(stringVec{"helics"});
-        static const childTypeFactory<helicsLib::HelicsSource, sources::rampSource>
+        static const ChildTypeFactory<helicsLib::HelicsSource, sources::rampSource>
             helicsSourceFactory("source", std::to_array<std::string_view>({"helics"}));
-        static const childTypeFactory<helicsLib::HelicsLoad, loads::RampLoad> helicsLoadFactory(
+        static const ChildTypeFactory<helicsLib::HelicsLoad, loads::RampLoad> helicsLoadFactory(
             "load", "helics");
-        static const typeFactory<helicsLib::HelicsCoordinator> helicsCoordinatorFactory("extra",
+        static const TypeFactory<helicsLib::HelicsCoordinator> helicsCoordinatorFactory("extra",
                                                                                         "helics");
         return true;
     }();

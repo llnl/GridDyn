@@ -39,17 +39,17 @@
 namespace griddyn::solvers {
 static void ensureSundialsFactories()
 {
-    static childClassFactory<kinsolInterface, SolverInterface> kinFactory(
+    static ChildClassFactory<kinsolInterface, SolverInterface> kinFactory(
         stringVec{"kinsol", "algebraic"});
-    static childClassFactory<idaInterface, SolverInterface> idaFactory(
+    static ChildClassFactory<idaInterface, SolverInterface> idaFactory(
         stringVec{"ida", "dae", "dynamic"});
 #ifdef GRIDDYN_ENABLE_CVODE
-    static childClassFactory<cvodeInterface, SolverInterface> cvodeFactory(
+    static ChildClassFactory<cvodeInterface, SolverInterface> cvodeFactory(
         stringVec{"cvode", "dyndiff", "differential"});
 #endif
 
 #ifdef GRIDDYN_ENABLE_ARKODE
-    static childClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
+    static ChildClassFactory<arkodeInterface, SolverInterface> arkodeFactory(stringVec{"arkode"});
 #endif
 }
 

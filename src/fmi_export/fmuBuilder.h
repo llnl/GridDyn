@@ -23,7 +23,7 @@ namespace fmi {
       private:
         std::string mFmuLocation;  //!< location to place the FMU
         std::vector<unsigned int> mValueReferences;  //!< the value references
-        coreOwningPtr<FmiCoordinator>
+        CoreOwningPtr<FmiCoordinator>
             mCoordinator;  //!< coordinator to maintain organize everything
         std::unique_ptr<ReaderInfo> mReaderInfo;  //!< location of ReaderInfo
         std::string mExecutablePath;  //!< location of the executable making the fmu

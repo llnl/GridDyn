@@ -14,7 +14,7 @@
 #include <string>
 
 namespace griddyn {
-static const typeFactory<Stabilizer> gf("pss", std::to_array<std::string_view>({"basic"}));
+static const TypeFactory<Stabilizer> gf("pss", std::to_array<std::string_view>({"basic"}));
 
 Stabilizer::Stabilizer(const std::string& objName): GridSubModel(objName) {}
 CoreObject* Stabilizer::clone(CoreObject* obj) const

@@ -65,7 +65,7 @@ void differentialRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void differentialRelay::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void differentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     const stringVec numericParameterStrings{"delay", "max_difference", "reset_margin", "minlevel"};
     const stringVec stringParameterStrings{};

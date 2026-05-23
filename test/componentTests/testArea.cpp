@@ -76,7 +76,7 @@ TEST_F(AreaTests, AreaTestAdd)
         // this is testing failure
         FAIL();
     }
-    catch (const objectAddFailure& oaf) {
+    catch (const ObjectAddFailure& oaf) {
         EXPECT_EQ(oaf.who(), "area1");
     }
     bus2->setName("bus2");

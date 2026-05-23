@@ -162,7 +162,7 @@ void DelayBlock::set(std::string_view param, double val, units::unit unitType)
             if (!opFlags[simplified]) {
                 // parameter doesn't get used in simplified mode
                 if (std::abs(val) < kMin_Res) {
-                    throw(invalidParameterValue(param));
+                    throw(InvalidParameterValue(param));
                 }
             }
         }

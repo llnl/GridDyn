@@ -70,7 +70,7 @@ static const stringVec locStrStrings{};
 
 static const stringVec flagStrings{};
 
-void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<FrequencySensitiveLoad, GridLoad>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);

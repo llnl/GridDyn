@@ -19,7 +19,7 @@ dime
 */
     class DimeRunner: public GriddynRunner {
       private:
-        // coreOwningPtr<dimeCoordinator> coord_; //!< the coordinator object for managing object
+        // CoreOwningPtr<dimeCoordinator> coord_; //!< the coordinator object for managing object
         // that manage the HELICS coordination
       public:
         DimeRunner();

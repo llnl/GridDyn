@@ -134,7 +134,7 @@ see GridComponent::dynInitializeA for more details
 
   public:
     virtual void getParameterStrings(stringVec& pstr,
-                                     paramStringType pstype = paramStringType::all) const override;
+                                     ParamStringType pstype = ParamStringType::all) const override;
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

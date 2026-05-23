@@ -171,7 +171,7 @@ std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,
                                                const std::uint64_t commId)
 {
-    auto ret = coreClassFactory<Communicator>::instance()->createObject(commType, commName);
+    auto ret = CoreClassFactory<Communicator>::instance()->createObject(commType, commName);
 
     if (commId != 0) {
         ret->setCommID(commId);

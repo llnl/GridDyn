@@ -92,7 +92,7 @@ static const stringVec locNumStrings{"vmin",
                                      "dtapadt"};
 static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};
 static const stringVec flagStrings{"no_pflow_adjustments"};
-void adjustableTransformer::getParameterStrings(stringVec& pstr, paramStringType pstype) const
+void adjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<adjustableTransformer, AcLine>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
@@ -114,7 +114,7 @@ void adjustableTransformer::set(std::string_view param, std::string_view val)
         } else if (cmstr == "manual") {
             cMode = ControlMode::MANUAL_CONTROL;
         } else {
-            throw(invalidParameterValue(cmstr));
+            throw(InvalidParameterValue(cmstr));
         }
     } else if ((param == "change") || (param == "change_mode") || (param == "changemode") ||
                (param == "stepmode")) {
@@ -124,7 +124,7 @@ void adjustableTransformer::set(std::string_view param, std::string_view val)
         } else if ((cmstr == "stepped") || (cmstr == "step")) {
             opFlags.set(continuous_flag, false);
         } else {
-            throw(invalidParameterValue(cmstr));
+            throw(InvalidParameterValue(cmstr));
         }
     } else if ((param == "center") || (param == "center_mode") || (param == "centermode")) {
         auto cmstr = convertToLowerCase(val);
@@ -133,7 +133,7 @@ void adjustableTransformer::set(std::string_view param, std::string_view val)
         } else if ((cmstr == "target") || (cmstr == "center")) {
             opFlags.set(use_target_mode);
         } else {
-            throw(invalidParameterValue(cmstr));
+            throw(InvalidParameterValue(cmstr));
         }
     } else if ((param == "bus") || (param == "controlbus")) {
         auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
@@ -254,7 +254,7 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
             this,
             "faults not allowed on adjustable transformers change shunt conductance  or impedance to "
             "simulate a fault");
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     } else if (param == "maxtapangle") {
         maxTapAngle = convert(val, unitType, rad);
         if (tapAngle > maxTapAngle) {

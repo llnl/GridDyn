@@ -8,4 +8,5 @@
 
 #include "CommMessage.h"
 
-namespace griddyn::comms {}
+namespace griddyn::comms {
+}

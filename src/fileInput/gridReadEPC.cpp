@@ -138,9 +138,9 @@ void ignoreSection(std::string line, std::ifstream& file)
     }
 }
 
-void ProcessSection(std::string line,
+void processSection(std::string line,
                     std::ifstream& file,
-                    const std::function<void(string_view)>& Func)
+                    const std::function<void(string_view)>& func)
 {
     int cnt = getSectionCount(line);
 
@@ -154,16 +154,16 @@ void ProcessSection(std::string line,
         if (index < 0) {
         }
         ++bcount;
-        Func(line);
+        func(line);
     }
 }
 
 template<class X>
-void ProcessSectionObject(std::string line,
+void processSectionObject(std::string line,
                           std::ifstream& file,
                           const std::string& oname,
                           std::vector<GridBus*>& busList,
-                          const std::function<void(X*, string_view)>& Func)
+                          const std::function<void(X*, string_view)>& func)
 {
     int cnt = getSectionCount(line);
 
@@ -186,7 +186,7 @@ void ProcessSectionObject(std::string line,
         } else {
             auto obj = new X();
             busList[index - 1]->add(obj);
-            Func(obj, line);
+            func(obj, line);
         }
     }
 }
@@ -286,30 +286,30 @@ void loadEpc(CoreObject* parentObject,
                 nextLine(file, line);
             }
         } else if (tokens[0] == "branch") {
-            ProcessSection(line, file, [&](string_view config) {
+            processSection(line, file, [&](string_view config) {
                 epcReadBranch(parentObject, config, base, busList, bri);
             });
         } else if (tokens[0] == "transformer") {
-            ProcessSection(line, file, [&](string_view config) {
+            processSection(line, file, [&](string_view config) {
                 epcReadTX(parentObject, config, base, busList, bri);
             });
         } else if (tokens[0] == "generator") {
-            ProcessSectionObject<Generator>(
+            processSectionObject<Generator>(
                 line, file, "generator", busList, [base](Generator* gen, string_view config) {
                     epcReadGen(gen, config, base);
                 });
         } else if (tokens[0] == "load") {
-            ProcessSectionObject<ZipLoad>(
+            processSectionObject<ZipLoad>(
                 line, file, "load", busList, [base](ZipLoad* ld, string_view config) {
                     epcReadLoad(ld, config, base);
                 });
         } else if (tokens[0] == "shunt") {
-            ProcessSectionObject<ZipLoad>(
+            processSectionObject<ZipLoad>(
                 line, file, "shunt", busList, [base](ZipLoad* ld, string_view config) {
                     epcReadFixedShunt(ld, config, base);
                 });
         } else if (tokens[0] == "Svd") {
-            ProcessSectionObject<loads::Svd>(
+            processSectionObject<loads::Svd>(
                 line, file, "Svd", busList, [base](loads::Svd* ld, string_view config) {
                     epcReadSwitchShunt(ld, config, base);
                 });
@@ -359,7 +359,7 @@ void loadEpc(CoreObject* parentObject,
                     }
                 }
             } else if (tokens[1] == "line") {
-                ProcessSection(line, file, [&](string_view config) {
+                processSection(line, file, [&](string_view config) {
                     epcReadDCBranch(parentObject, config, base, dcbusList, bri);
                 });
             } else if (tokens[1] == "converter") {
@@ -583,9 +583,9 @@ void epcReadLoad(ZipLoad* ld, string_view line, double /*base*/)
         prefix += '_' + std::string{strvec[3]};
     }
     ld->setName(prefix);
-    auto long_id = trim(removeQuotes(strvec[4]));
-    if (!long_id.empty()) {
-        ld->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[4]));
+    if (!longId.empty()) {
+        ld->setDescription(std::string{longId});
     }
     // get the status
     int status = toIntSimple(strvec[5]);
@@ -640,9 +640,9 @@ void epcReadFixedShunt(ZipLoad* ld, string_view line, double /*base*/)
         prefix += '_' + std::string{trim(strvec[7])};
     }
 
-    auto long_id = trim(removeQuotes(strvec[4]));
-    if (!long_id.empty()) {
-        ld->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[4]));
+    if (!longId.empty()) {
+        ld->setDescription(std::string{longId});
     }
 
     ld->setName(prefix);
@@ -675,9 +675,9 @@ void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
     // get the load index and name
     std::string prefix = ld->getParent()->getName() + "_svd";
 
-    auto long_id = trim(removeQuotes(strvec[1]));
-    if (!long_id.empty()) {
-        ld->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[1]));
+    if (!longId.empty()) {
+        ld->setDescription(std::string{longId});
     }
 
     ld->setName(prefix);
@@ -915,9 +915,9 @@ void epcReadBranch(CoreObject* parentObject,
     // check the circuit identifier
     auto name = generateLineName(strvec, bri.prefix);
     auto lnk = new AcLine(name);
-    auto long_id = trim(removeQuotes(strvec[8]));
-    if (!long_id.empty()) {
-        lnk->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[8]));
+    if (!longId.empty()) {
+        lnk->setDescription(std::string{longId});
     }
 
     // set the base power to that used this model
@@ -932,11 +932,11 @@ void epcReadBranch(CoreObject* parentObject,
         lnk->disable();
     }
 
-    auto R = numeric_conversion<double>(strvec[10], 0.0);
-    auto X = numeric_conversion<double>(strvec[11], 0.0);
+    auto r = numeric_conversion<double>(strvec[10], 0.0);
+    auto x = numeric_conversion<double>(strvec[11], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", r);
+    lnk->set("x", x);
 
     // skip the load flow area and loss zone and circuit for now
 
@@ -992,9 +992,9 @@ void epcReadDCBranch(CoreObject* parentObject,
     // check the circuit identifier
     auto name = generateLineName(strvec, bri.prefix);
     auto lnk = new links::dcLink(name);
-    auto long_id = trim(removeQuotes(strvec[7]));
-    if (!long_id.empty()) {
-        lnk->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[7]));
+    if (!longId.empty()) {
+        lnk->setDescription(std::string{longId});
     }
 
     // set the base power to that used this model
@@ -1009,11 +1009,11 @@ void epcReadDCBranch(CoreObject* parentObject,
         lnk->disable();
     }
 
-    auto R = numeric_conversion<double>(strvec[11], 0.0);
-    auto X = numeric_conversion<double>(strvec[12], 0.0);
+    auto r = numeric_conversion<double>(strvec[11], 0.0);
+    auto x = numeric_conversion<double>(strvec[12], 0.0);
 
-    lnk->set("r", R);
-    lnk->set("x", X);
+    lnk->set("r", r);
+    lnk->set("x", x);
 
     // skip the load flow area and loss zone and circuit for now
 
@@ -1104,9 +1104,9 @@ void epcReadTX(CoreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
-    auto long_id = trim(removeQuotes(strvec[7]));
-    if (!long_id.empty()) {
-        lnk->setDescription(std::string{long_id});
+    auto longId = trim(removeQuotes(strvec[7]));
+    if (!longId.empty()) {
+        lnk->setDescription(std::string{longId});
     }
 
     addToParentWithRename(lnk, parentObject);
@@ -1119,11 +1119,11 @@ void epcReadTX(CoreObject* parentObject,
     double tbase = base;
     tbase = numeric_conversion<double>(strvec[22], 0.0);
     // primary and secondary winding resistance
-    auto R = numeric_conversion<double>(strvec[23], 0.0);
-    auto X = numeric_conversion<double>(strvec[24], 0.0);
+    auto r = numeric_conversion<double>(strvec[23], 0.0);
+    auto x = numeric_conversion<double>(strvec[24], 0.0);
 
-    lnk->set("r", R * tbase / base);
-    lnk->set("x", X * tbase / base);
+    lnk->set("r", r * tbase / base);
+    lnk->set("x", x * tbase / base);
 
     // skip the load flow area and loss zone and circuit for now
 
@@ -1158,32 +1158,32 @@ void epcReadTX(CoreObject* parentObject,
         if (cbus != 0) {
             static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[cbus - 1]);
         }
-        R = numeric_conversion<double>(strvec[40], 0.0);
-        X = numeric_conversion<double>(strvec[41], 0.0);
+        r = numeric_conversion<double>(strvec[40], 0.0);
+        x = numeric_conversion<double>(strvec[41], 0.0);
         if (code == 4) {
-            lnk->set("maxtapangle", R, deg);
-            lnk->set("mintapangle", X, deg);
+            lnk->set("maxtapangle", r, deg);
+            lnk->set("mintapangle", x, deg);
         } else {
-            lnk->set("maxtap", R);
-            lnk->set("mintap", X);
+            lnk->set("maxtap", r);
+            lnk->set("mintap", x);
         }
-        R = numeric_conversion<double>(strvec[42], 0.0);
-        X = numeric_conversion<double>(strvec[43], 0.0);
+        r = numeric_conversion<double>(strvec[42], 0.0);
+        x = numeric_conversion<double>(strvec[43], 0.0);
         if (code == 4) {
-            lnk->set("pmax", R, MW);
-            lnk->set("pmin", X, MW);
+            lnk->set("pmax", r, MW);
+            lnk->set("pmin", x, MW);
         } else if (code == 3) {
-            lnk->set("qmax", R, MVAR);
-            lnk->set("qmin", X, MVAR);
+            lnk->set("qmax", r, MVAR);
+            lnk->set("qmin", x, MVAR);
         } else {
-            lnk->set("vmax", R);
-            lnk->set("vmin", X);
+            lnk->set("vmax", r);
+            lnk->set("vmin", x);
         }
-        R = numeric_conversion<double>(strvec[44], 0.0);
+        r = numeric_conversion<double>(strvec[44], 0.0);
         if (code == 4) {
-            lnk->set("stepsize", R, deg);
+            lnk->set("stepsize", r, deg);
         } else {
-            lnk->set("stepsize", R);
+            lnk->set("stepsize", r);
         }
     }
 }

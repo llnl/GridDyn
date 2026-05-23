@@ -60,29 +60,29 @@ void loadMatPower(CoreObject* parentObject,
 {
     double basepower = readerOptions.base;
     gridSimulation::resetObjectCounters();  // reset all the object counters to 0
-    mArray M1;
+    mArray m1;
     int gencount = 0;
     std::vector<GridBus*> busList;
     size_t baseMVALoc = filetext.find(basename + ".baseMVA");
     if (baseMVALoc != std::string::npos) {
-        size_t B = filetext.find_first_of('=', baseMVALoc);
-        size_t C = filetext.find_first_of(";\n", baseMVALoc);
-        auto tstr = filetext.substr(B + 1, C - B - 1);
+        size_t b = filetext.find_first_of('=', baseMVALoc);
+        size_t c = filetext.find_first_of(";\n", baseMVALoc);
+        auto tstr = filetext.substr(b + 1, c - b - 1);
         basepower = numeric_conversion(tstr, 0.0);
         parentObject->set("basepower", basepower);
     }
     // now find the bus structure
-    if (readMatlabArray(basename + ".bus", filetext, M1)) {
-        loadBusArray(parentObject, basepower, M1, busList, readerOptions);
+    if (readMatlabArray(basename + ".bus", filetext, m1)) {
+        loadBusArray(parentObject, basepower, m1, busList, readerOptions);
     }
-    if (readMatlabArray(basename + ".gen", filetext, M1)) {
-        gencount = loadGenArray(parentObject, M1, busList, readerOptions);
+    if (readMatlabArray(basename + ".gen", filetext, m1)) {
+        gencount = loadGenArray(parentObject, m1, busList, readerOptions);
     }
-    if (readMatlabArray(basename + ".branch", filetext, M1)) {
-        loadLinkArray(parentObject, M1, busList, readerOptions);
+    if (readMatlabArray(basename + ".branch", filetext, m1)) {
+        loadLinkArray(parentObject, m1, busList, readerOptions);
     }
-    if (readMatlabArray(basename + ".gencost", filetext, M1)) {
-        loadGenCostArray(parentObject, M1, gencount);
+    if (readMatlabArray(basename + ".gencost", filetext, m1)) {
+        loadGenCostArray(parentObject, m1, gencount);
     }
 }
 
@@ -239,10 +239,10 @@ int loadGenArray(CoreObject* parentObject,
 
         if (genLine.size() >= 21) {
             if ((genLine[10] != 0) && (genLine[11] != 0)) {
-                std::vector<double> PC{genLine[10], genLine[11]};
-                std::vector<double> Qmin{genLine[12], genLine[14]};
-                std::vector<double> Qmax{genLine[13], genLine[15]};
-                gen->setCapabilityCurve(PC, Qmin, Qmax);
+                std::vector<double> pc{genLine[10], genLine[11]};
+                std::vector<double> qmin{genLine[12], genLine[14]};
+                std::vector<double> qmax{genLine[13], genLine[15]};
+                gen->setCapabilityCurve(pc, qmin, qmax);
             }
             if (genLine[16] != 0) {
                 gen->set("rampreg", genLine[16], MW / s);

@@ -166,7 +166,7 @@ void HelicsCollector::set(std::string_view param, std::string_view val)
         } else if (val == "individual") {
             publicationType = CollectorPubType::AS_INDIVIDUAL;
         } else {
-            throw(invalidParameterValue(
+            throw(InvalidParameterValue(
                 "pubtype must be one of \"vector\",\"string\",\"individual\""));
         }
     } else if (param == "pubname") {

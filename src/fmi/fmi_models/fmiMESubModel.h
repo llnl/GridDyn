@@ -45,7 +45,7 @@ class FmiMESubModel: public GridSubModel {
     std::vector<ValueDependencyInfo> stateInformation;
     std::vector<ValueDependencyInfo> outputInformation;
     std::vector<int> inputVarIndices;
-    propertyBuffer paramBuffer;
+    PropertyBuffer paramBuffer;
 
   private:
     count_t lastSeqID = 0;

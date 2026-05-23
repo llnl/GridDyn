@@ -17,9 +17,9 @@ namespace griddyn {
 void loadTcpLibrary()
 {
     static const bool loaded = []() {
-        static const childClassFactory<tcpLib::TcpCollector, collector> tcpCollectorFactory(
+        static const ChildClassFactory<tcpLib::TcpCollector, collector> tcpCollectorFactory(
             std::vector<std::string>{"tcp"});
-        static const childClassFactory<tcpLib::TcpCommunicator, Communicator>
+        static const ChildClassFactory<tcpLib::TcpCommunicator, Communicator>
             tcpCommunicatorFactory(std::vector<std::string>{"tcp"});
         return true;
     }();

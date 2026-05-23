@@ -145,7 +145,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
                 setQ(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
         checkFaultChange();
         return;

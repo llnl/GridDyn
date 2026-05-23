@@ -13,7 +13,7 @@
 #include <string_view>
 
 namespace griddyn {
-static childClassFactory<BasicOptimizer, OptimizerInterface>
+static ChildClassFactory<BasicOptimizer, OptimizerInterface>
     basicFac(stringVec{"basic", "pricestack"});
 
 OptimizerInterface::OptimizerInterface(std::string_view optName): mName(optName) {}
@@ -126,7 +126,7 @@ std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
 
 std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type)
 {
-    return coreClassFactory<OptimizerInterface>::instance()->createObject(type);
+    return CoreClassFactory<OptimizerInterface>::instance()->createObject(type);
 }
 
 }  // namespace griddyn

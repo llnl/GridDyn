@@ -196,7 +196,7 @@ void SourceLoad::setFlag(std::string_view flag, bool val)
         if (src != nullptr) {
             src->setFlag(flag.substr(sfnd + 1, std::string::npos), val);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(UnrecognizedParameter(flag));
         }
     } else {
         ZipLoad::setFlag(flag, val);
@@ -211,7 +211,7 @@ void SourceLoad::set(std::string_view param, std::string_view val)
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(UnrecognizedParameter(param));
         }
     } else {
         ZipLoad::set(param, val);
@@ -248,7 +248,7 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
         if (src != nullptr) {
             src->set(param.substr(sfnd + 1, std::string::npos), val, unitType);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(UnrecognizedParameter(param));
         }
     } else {
         auto ind = source_lookup.find(param);
@@ -259,7 +259,7 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
             if (canSetSourceLink) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else {
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
             }
             return;
         }

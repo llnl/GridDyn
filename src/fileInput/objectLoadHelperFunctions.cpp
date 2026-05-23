@@ -55,7 +55,7 @@ void setIndex(std::shared_ptr<readerElement>& element,
         try {
             mainObject->set("purpose", purpose);
         }
-        catch (unrecognizedParameter&) {
+        catch (UnrecognizedParameter&) {
             mainObject->set("description", purpose);
         }
     }

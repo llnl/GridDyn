@@ -42,7 +42,7 @@ class GridParameter {
     void reset();
     /** @brief load a GridParameter from a string*
     @param[in] str the string to load from
-    @throw invalidParameterValue on failure
+    @throw InvalidParameterValue on failure
     */
     void fromString(const std::string& str);
 };

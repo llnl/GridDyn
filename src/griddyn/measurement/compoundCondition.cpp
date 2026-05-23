@@ -66,7 +66,7 @@ void compoundCondition::add(std::shared_ptr<Condition> condition)
         mConditions.push_back(std::move(condition));
         return;
     }
-    throw(addFailureException());
+    throw(AddFailureException());
 }
 
 void compoundCondition::setMode(CompoundMode newMode)

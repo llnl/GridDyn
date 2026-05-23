@@ -94,14 +94,14 @@ namespace {
 }  // namespace
 
 // get the basic busFactory
-static typeFactory<GridBus>* gBusfactory = nullptr;
+static TypeFactory<GridBus>* gBusfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<GridLoad>* gLdfactory = nullptr;
+static TypeFactory<GridLoad>* gLdfactory = nullptr;
 // get the basic Link Factory
-static childTypeFactory<AcLine, Link>* gLinkfactory = nullptr;
+static ChildTypeFactory<AcLine, Link>* gLinkfactory = nullptr;
 // get the basic Generator Factory
-static typeFactory<Generator>* gGenfactory = nullptr;
+static TypeFactory<Generator>* gGenfactory = nullptr;
 
 static SectionType findSectionType(const std::string& line);
 

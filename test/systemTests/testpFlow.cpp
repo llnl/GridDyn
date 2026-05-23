@@ -379,7 +379,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         try {
             newSolver->set("approx", std::string{approx});
         }
-        catch (const invalidParameterValue&) {
+        catch (const InvalidParameterValue&) {
             ADD_FAILURE() << "unrecognized approx mode " << approx;
             continue;
         }

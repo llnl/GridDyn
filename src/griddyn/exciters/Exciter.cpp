@@ -31,15 +31,15 @@ namespace griddyn {
 namespace exciters {
     namespace {
         // setup the object factories
-        static childTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
-        static childTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
-        static childTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
-        static typeFactory<Exciter> gfeDefault(  // NOLINT
+        static ChildTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
+        static ChildTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+        static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
+        static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",
             stringVec{"basic", "fast"},
             "type1");  // setup type 1 as the default
-        static childTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
-        static childTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
+        static ChildTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
+        static ChildTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
     }  // namespace
 }  // namespace exciters
 

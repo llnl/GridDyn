@@ -198,7 +198,7 @@ data object)
 @param[in] data the data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
-@throw fileOperationError if the file cannot be opened
+@throw FileOperationError if the file cannot be opened
 */
 
 void writeVector(coreTime time,
@@ -222,7 +222,7 @@ data object)
 @param[in] matrixValues the Jacobian data to write to the file
 @param[in] fileName the name of the file
 @param[in] append indicator if the file should be appended or overwritten(def true)
-@throw fileOperationError if the file cannot be opened
+@throw FileOperationError if the file cannot be opened
 */
 
 #define JACOBIAN_DATA 1

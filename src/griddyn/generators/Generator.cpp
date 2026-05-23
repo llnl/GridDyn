@@ -36,13 +36,13 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
-static typeFactory<Generator>
+static TypeFactory<Generator>
     generatorFactory("generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
-static childTypeFactory<DynamicGenerator, Generator>
+static ChildTypeFactory<DynamicGenerator, Generator>
     dynamicGeneratorFactory("generator",
                             std::to_array<std::string_view>({"dynamic", "spinning"}),
                             "dynamic");
-static childTypeFactory<variableGenerator, Generator>
+static ChildTypeFactory<variableGenerator, Generator>
     variableGeneratorFactory("generator",
                              std::to_array<std::string_view>({"variable", "renewable"}));
 
@@ -305,7 +305,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             P = Pmin;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else if (param == "q") {
         if (val == "max") {
@@ -313,7 +313,7 @@ void Generator::set(std::string_view param, std::string_view val)
         } else if (val == "min") {
             Q = Qmin;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else {
         gridSecondary::set(param, val);
@@ -464,7 +464,7 @@ void Generator::set(std::string_view param, double val, unit unitType)
                 m_Xs = val;
                 break;
             default:
-                throw(unrecognizedParameter(param));
+                throw(UnrecognizedParameter(param));
         }
         return;
     }

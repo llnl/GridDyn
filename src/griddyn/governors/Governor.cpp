@@ -16,24 +16,24 @@
 
 namespace griddyn {
 // Create the component factories for the various governors
-static typeFactory<Governor> gfgov1("governor",
+static TypeFactory<Governor> gfgov1("governor",
                                     std::to_array<std::string_view>({"simple", "fast"}));
 namespace governors {
-    static childTypeFactory<GovernorIeeeSimple, Governor>
+    static ChildTypeFactory<GovernorIeeeSimple, Governor>
         gfgovsi("governor", std::to_array<std::string_view>({"basic", "ieeesimple"}), "basic");
 
-    static childTypeFactory<GovernorReheat, Governor>
+    static ChildTypeFactory<GovernorReheat, Governor>
         gfgovrh("governor", std::to_array<std::string_view>({"reheat"}));
-    static childTypeFactory<GovernorHydro, Governor>
+    static ChildTypeFactory<GovernorHydro, Governor>
         gfgov2("governor", std::to_array<std::string_view>({"ieeehydro", "hydro"}));
 
-    static childTypeFactory<GovernorSteamNR, Governor>
+    static ChildTypeFactory<GovernorSteamNR, Governor>
         gfgov3("governor", std::to_array<std::string_view>({"ieeesteamnr", "steamnr"}));
 
-    static childTypeFactory<GovernorSteamTCSR, Governor>
+    static ChildTypeFactory<GovernorSteamTCSR, Governor>
         gfgov4("governor", std::to_array<std::string_view>({"ieeesteamtcsr", "steamtcsr"}));
 
-    static childTypeFactory<GovernorTgov1, Governor>
+    static ChildTypeFactory<GovernorTgov1, Governor>
         gfgov5("governor", std::to_array<std::string_view>({"tgov1"}));
 
 }  // namespace governors
@@ -263,7 +263,7 @@ void Governor::setFlag(std::string_view flag, bool val)
     try {
         GridSubModel::setFlag(flag, val);
     }
-    catch (const unrecognizedParameter&) {
+    catch (const UnrecognizedParameter&) {
         dbb.setFlag(flag, val);
     }
 }
@@ -273,7 +273,7 @@ void Governor::set(std::string_view param, std::string_view val)
     try {
         GridSubModel::set(param, val);
     }
-    catch (const unrecognizedParameter&) {
+    catch (const UnrecognizedParameter&) {
         dbb.set(param, val);
     }
 }

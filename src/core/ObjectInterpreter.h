@@ -42,9 +42,6 @@ class ObjectInfo {
     }
 };
 
-using ObjInfo = ObjectInfo;  // NOLINT(readability-identifier-naming)
-using objInfo = ObjectInfo;  // NOLINT(readability-identifier-naming)
-
 /** @brief locate a specific object by name
  the string should be of the form obj::subobj:field, or /obj/subobj?field,  field is optional but
 "::" or "/" defines parent child relationships along the search path obj and subobj descriptions can

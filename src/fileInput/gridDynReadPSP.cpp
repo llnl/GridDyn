@@ -121,7 +121,7 @@ void loadPsp(CoreObject* parentObject,
                             try {
                                 parentObject->add(busList[index]);
                             }
-                            catch (const objectAddFailure&) {
+                            catch (const ObjectAddFailure&) {
                                 addToParentWithRename(busList[index], parentObject);
                             }
                         } else {

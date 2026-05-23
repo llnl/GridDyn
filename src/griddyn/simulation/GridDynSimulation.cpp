@@ -845,7 +845,7 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
         } else if (order == "differential_first") {
             default_ordering = offset_ordering::differential_first;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
@@ -856,7 +856,7 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
         } else if (method == "decoupled") {
             defaultDynamicSolverMethod = dynamic_solver_methods::decoupled;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else {
         GridSimulation::set(param, val);
@@ -892,7 +892,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 solverData->set("mode", "powerflow");
                 defPowerFlowMode = &(solverData->getSolverMode());
             } else {
-                throw(invalidParameterValue("mode"));
+                throw(InvalidParameterValue("mode"));
             }
             break;
         case solution_modes_t::dae_mode:
@@ -905,7 +905,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
 
                 defDAEMode = &(solverData->getSolverMode());
             } else {
-                throw(invalidParameterValue("mode"));
+                throw(InvalidParameterValue("mode"));
             }
             break;
         case solution_modes_t::algebraic_mode:
@@ -918,7 +918,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 solverData->setFlag("dynamic", true);
                 defDynAlgMode = &(solverData->getSolverMode());
             } else {
-                throw(invalidParameterValue("mode"));
+                throw(InvalidParameterValue("mode"));
             }
             break;
         case solution_modes_t::differential_mode:
@@ -930,11 +930,11 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 }
                 defDynDiffMode = &(solverData->getSolverMode());
             } else {
-                throw(invalidParameterValue("mode"));
+                throw(InvalidParameterValue("mode"));
             }
             break;
         default:
-            throw(unrecognizedParameter("mode"));
+            throw(UnrecognizedParameter("mode"));
             break;
     }
 }
@@ -1029,7 +1029,7 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
         try {
             GridSimulation::set(param, val, unitType);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             setFlag(param, (val > 0.1));
         }
     }

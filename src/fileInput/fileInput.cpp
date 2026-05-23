@@ -102,10 +102,10 @@ int setObjectParameter(const std::string& label, CoreObject* obj, GridParameter&
         }
         return 0;
     }
-    catch (const unrecognizedParameter&) {
+    catch (const UnrecognizedParameter&) {
         WARNPRINT(READER_WARN_ALL, "unrecognized " << label << "  parameter " << param.field);
     }
-    catch (const invalidParameterValue&) {
+    catch (const InvalidParameterValue&) {
         if (param.stringType) {
             WARNPRINT(READER_WARN_ALL,
                       "value for parameter " << param.field << " (" << param.strVal
@@ -219,7 +219,7 @@ void addToParent(CoreObject* objectToAdd, CoreObject* parentObject)
                   "Object " << objectToAdd->getName() << " not recognized by "
                             << parentObject->getName());
     }
-    catch (const objectAddFailure&) {
+    catch (const ObjectAddFailure&) {
         WARNPRINT(READER_WARN_IMPORTANT,
                   "Failure to add " << objectToAdd->getName() << " to " << parentObject->getName());
     }

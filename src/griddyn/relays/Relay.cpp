@@ -36,21 +36,21 @@
 namespace griddyn {
 using units::convert;
 
-static typeFactory<Relay> gbf("relay", std::to_array<std::string_view>({"basic"}), "basic");
-static typeFactory<sensor> snsr("relay", "sensor");
+static TypeFactory<Relay> gbf("relay", std::to_array<std::string_view>({"basic"}), "basic");
+static TypeFactory<sensor> snsr("relay", "sensor");
 namespace relays {
-    static typeFactory<zonalRelay>
+    static TypeFactory<zonalRelay>
         zr("relay", std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
-    static typeFactory<differentialRelay>
+    static TypeFactory<differentialRelay>
         dr("relay", std::to_array<std::string_view>({"differential", "diff"}));
 
-    static typeFactory<busRelay> br("relay", "bus");
-    static typeFactory<loadRelay> lr("relay", "load");
-    static typeFactory<fuse> fr("relay", "fuse");
-    static typeFactory<breaker> brkr("relay", "breaker");
-    static childTypeFactory<pmu, sensor>
+    static TypeFactory<busRelay> br("relay", "bus");
+    static TypeFactory<loadRelay> lr("relay", "load");
+    static TypeFactory<fuse> fr("relay", "fuse");
+    static TypeFactory<breaker> brkr("relay", "breaker");
+    static ChildTypeFactory<pmu, sensor>
         pmur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
-    static typeFactory<controlRelay> cntrl("relay", "control");
+    static TypeFactory<controlRelay> cntrl("relay", "control");
 }  // namespace relays
 
 std::atomic<count_t> Relay::relayCount(0);

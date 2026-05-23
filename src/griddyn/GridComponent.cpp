@@ -593,7 +593,7 @@ void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype)
 void GridComponent::set(std::string_view param, std::string_view val)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     }
 
     if (param == "status") {
@@ -646,7 +646,7 @@ bool GridComponent::subObjectSet(std::string_view param, double val, units::unit
             }
             return true;
         }
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     }
     return false;
 }
@@ -658,7 +658,7 @@ bool GridComponent::subObjectSet(std::string_view param, std::string_view val)
         if (pinfo.mObject != nullptr) {
             pinfo.mObject->set(pinfo.mField, val);
         } else {
-            throw(unrecognizedParameter(param));
+            throw(UnrecognizedParameter(param));
         }
         return true;
     }
@@ -672,7 +672,7 @@ bool GridComponent::subObjectSet(std::string_view flag, bool val)
         if (pinfo.mObject != nullptr) {
             pinfo.mObject->setFlag(pinfo.mField, val);
         } else {
-            throw(unrecognizedParameter(flag));
+            throw(UnrecognizedParameter(flag));
         }
         return true;
     }
@@ -689,7 +689,7 @@ double GridComponent::subObjectGet(std::string_view param, units::unit unitType)
             }
             return pinfo.mObject->get(pinfo.mField, unitType);
         }
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     }
     return kNullVal;
 }
@@ -698,7 +698,7 @@ double GridComponent::subObjectGet(std::string_view param, units::unit unitType)
 void GridComponent::set(std::string_view param, double val, units::unit unitType)
 {
     if (opFlags[no_gridcomponent_set]) {
-        throw(unrecognizedParameter(param));
+        throw(UnrecognizedParameter(param));
     }
 
     if ((param == "enabled") || (param == "status")) {
@@ -1996,11 +1996,11 @@ IOlocs GridComponent::getOutputLocs(const solverMode& sMode) const
 
 void GridComponent::setParameter(index_t param, double /*value*/)
 {
-    throw(unrecognizedParameter("param" + std::to_string(param)));
+    throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
 double GridComponent::getParameter(index_t param) const
 {
-    throw(unrecognizedParameter("param" + std::to_string(param)));
+    throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
 void GridComponent::parameterPartialDerivatives(index_t param,
                                                 double /*val*/,
@@ -2009,7 +2009,7 @@ void GridComponent::parameterPartialDerivatives(index_t param,
                                                 matrixData<double>& /*md*/,
                                                 const solverMode& /*sMode*/)
 {
-    throw(unrecognizedParameter("param" + std::to_string(param)));
+    throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
 
 double GridComponent::parameterOutputPartialDerivatives(index_t param,
@@ -2019,7 +2019,7 @@ double GridComponent::parameterOutputPartialDerivatives(index_t param,
                                                         const stateData& /*sD*/,
                                                         const solverMode& /*sMode*/)
 {
-    throw(unrecognizedParameter("param" + std::to_string(param)));
+    throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
 
 void printStateNames(const GridComponent* comp, const solverMode& sMode)

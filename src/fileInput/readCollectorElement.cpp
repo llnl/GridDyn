@@ -126,7 +126,7 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element,
                 collectorObject->setName(targetObj->getName() + "_" + type);
             }
         }
-        catch (const addFailureException&) {
+        catch (const AddFailureException&) {
             WARNPRINT(READER_WARN_IMPORTANT,
                       type << " for " << obj->getName() << "cannot find field "
                            << grabberInfo.field);

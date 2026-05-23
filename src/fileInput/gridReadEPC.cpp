@@ -268,7 +268,7 @@ void loadEpc(CoreObject* parentObject,
                     try {
                         parentObject->add(busList[index - 1]);
                     }
-                    catch (const objectAddFailure&) {
+                    catch (const ObjectAddFailure&) {
                         addToParentWithRename(busList[index - 1], parentObject);
                     }
                 } else {
@@ -351,7 +351,7 @@ void loadEpc(CoreObject* parentObject,
                         try {
                             parentObject->add(dcbusList[index - 1]);
                         }
-                        catch (const objectAddFailure&) {
+                        catch (const ObjectAddFailure&) {
                             addToParentWithRename(dcbusList[index - 1], parentObject);
                         }
                     } else {

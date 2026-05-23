@@ -88,6 +88,4 @@ class PropertyBuffer {
     void clear();
 };
 
-using propertyBuffer = PropertyBuffer;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

@@ -30,7 +30,7 @@
 
 namespace griddyn {
 // factory is for the cloning function
-static childTypeFactory<AcBus, GridBus> gbfac("bus", std::to_array<std::string_view>({"psystem"}));
+static ChildTypeFactory<AcBus, GridBus> gbfac("bus", std::to_array<std::string_view>({"psystem"}));
 
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::solve2x2;
@@ -1047,7 +1047,7 @@ void AcBus::set(std::string_view param, std::string_view val)
         } else if (val_lowerCase == "normal") {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
@@ -1062,7 +1062,7 @@ void AcBus::set(std::string_view param, std::string_view val)
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else {
         GridBus::set(param, val);

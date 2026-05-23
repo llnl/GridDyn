@@ -301,7 +301,7 @@ void objSetAttributes(CoreObject* obj,
             try {
                 setMultipleFlags(obj, att.getText());
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 WARNPRINT(READER_WARN_ALL, "unrecognized flag " << att.getText() << "\n");
             }
         } else {
@@ -361,7 +361,7 @@ void paramLoopElement(CoreObject* obj,
                     try {
                         setMultipleFlags(obj, param.strVal);
                     }
-                    catch (const unrecognizedParameter&) {
+                    catch (const UnrecognizedParameter&) {
                         WARNPRINT(READER_WARN_ALL, "unrecognized flag in " << param.strVal << "\n");
                     }
                 } else {
@@ -476,10 +476,10 @@ void setAttributes(HelperObject* obj,
                 }
             }
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             WARNPRINT(READER_WARN_ALL, "unknown " << component << " parameter " << fieldName);
         }
-        catch (const invalidParameterValue&) {
+        catch (const InvalidParameterValue&) {
             WARNPRINT(READER_WARN_ALL,
                       "value for " << component << " parameter " << fieldName << " ("
                                    << att.getText() << ") is invalid");
@@ -535,10 +535,10 @@ void setParams(HelperObject* obj,
                     obj->set(param.field, param.value);
                 }
             }
-            catch (const unrecognizedParameter&) {
+            catch (const UnrecognizedParameter&) {
                 WARNPRINT(READER_WARN_ALL, "unknown " << component << " parameter " << param.field);
             }
-            catch (const invalidParameterValue&) {
+            catch (const InvalidParameterValue&) {
                 if (param.stringType) {
                     WARNPRINT(READER_WARN_ALL,
                               "value for " << component << " parameter " << param.field << " ("

@@ -17,7 +17,7 @@
 #include <string>
 
 namespace griddyn {
-static childClassFactory<FskitCommunicator, griddyn::Communicator>
+static ChildClassFactory<FskitCommunicator, griddyn::Communicator>
     commFac(std::vector<std::string>{"fskit"});
 
 FskitRunner::FskitRunner() {}

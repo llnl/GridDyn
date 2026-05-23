@@ -152,7 +152,7 @@ int loadEventElement(std::shared_ptr<readerElement>& element,
             try {  // this could throw in which case we can't move the object into it first
                 owner->addHelper(ownedEvent);
             }
-            catch (const objectAddFailure&) {
+            catch (const ObjectAddFailure&) {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Event: " << ownedEvent->getName() << " unable to be added to "
                                     << owner->getName());

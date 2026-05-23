@@ -44,14 +44,14 @@ int ptiReadTX(CoreObject* parentObject,
 
 // static variables with the factories
 // get the basic busFactory
-static typeFactory<GridBus>* gBusfactory = nullptr;
+static TypeFactory<GridBus>* gBusfactory = nullptr;
 
 // get the basic load Factory
-static typeFactory<GridLoad>* gLdfactory = nullptr;
+static TypeFactory<GridLoad>* gLdfactory = nullptr;
 // get the basic Link Factory
-static typeFactory<Link>* gLinkfactory = nullptr;
+static TypeFactory<Link>* gLinkfactory = nullptr;
 // get the basic Generator Factory
-static typeFactory<Generator>* gGenfactory = nullptr;
+static TypeFactory<Generator>* gGenfactory = nullptr;
 
 void loadPti(CoreObject* parentObject,
              const std::string& fileName,

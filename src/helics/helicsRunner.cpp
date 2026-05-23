@@ -70,14 +70,14 @@ void HelicsRunner::simInitialize()
     int ret = 0;
     ret = m_gds->pFlowInitialize();
     if (ret != 0) {
-        throw(executionFailure(m_gds.get(), "power flow initialize failure"));
+        throw(ExecutionFailure(m_gds.get(), "power flow initialize failure"));
     }
 
     GriddynRunner::simInitialize();  // TODO(phlpt): Unpack this for co-iteration on
                                      // the power flow
     // solution
     if (!fed_) {
-        throw(executionFailure(m_gds.get(), "unable to initialize helics federate"));
+        throw(ExecutionFailure(m_gds.get(), "unable to initialize helics federate"));
     }
     fed_->enterExecutingMode();
 }

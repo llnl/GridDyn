@@ -21,17 +21,17 @@ DECLARE_TRIPLINE()
 using griddyn::buildFlags;
 using griddyn::compiler;
 using griddyn::coreTime;
-using griddyn::executionFailure;
-using griddyn::fileOperationError;
+using griddyn::ExecutionFailure;
+using griddyn::FileOperationError;
 using griddyn::gridDynAction;
 using griddyn::GriddynRunner;
-using griddyn::invalidParameterValue;
+using griddyn::InvalidParameterValue;
 using griddyn::kNullVal;
 using griddyn::loadFile;
-using griddyn::objectAddFailure;
-using griddyn::objectRemoveFailure;
+using griddyn::ObjectAddFailure;
+using griddyn::ObjectRemoveFailure;
 using griddyn::UnrecognizedObjectException;
-using griddyn::unrecognizedParameter;
+using griddyn::UnrecognizedParameter;
 using griddyn::versionString;
 
 const char* gridDynGetVersion(void)
@@ -96,31 +96,31 @@ void griddynErrorHandler(GridDynError* err) noexcept
             err->error_code = griddyn_error_invalid_object;
             err->message = getMasterHolder()->addErrorString(uoe.what());
         }
-        catch (const griddyn::objectAddFailure& af) {
+        catch (const griddyn::ObjectAddFailure& af) {
             err->error_code = griddyn_error_add_failure;
             err->message = getMasterHolder()->addErrorString(af.what());
         }
-        catch (const griddyn::objectRemoveFailure& rf) {
+        catch (const griddyn::ObjectRemoveFailure& rf) {
             err->error_code = griddyn_error_remove_failure;
             err->message = getMasterHolder()->addErrorString(rf.what());
         }
-        catch (const griddyn::unrecognizedParameter& up) {
+        catch (const griddyn::UnrecognizedParameter& up) {
             err->error_code = griddyn_error_unknown_parameter;
             err->message = getMasterHolder()->addErrorString(up.what());
         }
-        catch (const griddyn::invalidParameterValue& ip) {
+        catch (const griddyn::InvalidParameterValue& ip) {
             err->error_code = griddyn_error_invalid_parameter_value;
             err->message = getMasterHolder()->addErrorString(ip.what());
         }
-        catch (const griddyn::executionFailure& ef) {
+        catch (const griddyn::ExecutionFailure& ef) {
             err->error_code = griddyn_error_function_failure;
             err->message = getMasterHolder()->addErrorString(ef.what());
         }
-        catch (const griddyn::cloneFailure& cf) {
+        catch (const griddyn::CloneFailure& cf) {
             err->error_code = griddyn_error_other;
             err->message = getMasterHolder()->addErrorString(cf.what());
         }
-        catch (const griddyn::fileOperationError& cf) {
+        catch (const griddyn::FileOperationError& cf) {
             err->error_code = griddyn_error_file_load_failure;
             err->message = getMasterHolder()->addErrorString(cf.what());
         }

@@ -19,12 +19,12 @@ static std::vector<std::shared_ptr<ObjectFactory>> extraModelFactories;
 void loadExtraModels(const std::string& /*subset*/)
 {
     auto thermalModelFactory =
-        std::make_shared<childTypeFactory<extra::txThermalModel, Relay>>("relay",
+        std::make_shared<ChildTypeFactory<extra::txThermalModel, Relay>>("relay",
                                                                          stringVec{"thermaltx"});
     extraModelFactories.push_back(thermalModelFactory);
 
     auto lifeSpanFactory =
-        std::make_shared<childTypeFactory<extra::txLifeSpan, Relay>>("relay",
+        std::make_shared<ChildTypeFactory<extra::txLifeSpan, Relay>>("relay",
                                                                      stringVec{"txaging", "txage"});
     extraModelFactories.push_back(lifeSpanFactory);
 }

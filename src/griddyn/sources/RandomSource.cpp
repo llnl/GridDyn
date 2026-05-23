@@ -98,7 +98,7 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "min_t") {
         if (val <= 0.0) {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         param1_t = val;
         timeParamUpdate();
@@ -111,13 +111,13 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "mean_t") {
         if (val <= 0.0) {
             logging::warning(this, "mean_t parameter must be > 0");
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         param1_t = val;
     } else if (param == "scale_t") {
         if (val <= 0.0) {
             logging::warning(this, "scale_t parameter must be > 0");
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         param2_t = val;
     } else if (param == "param1_t") {

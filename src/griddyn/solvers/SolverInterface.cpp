@@ -60,16 +60,16 @@ namespace {
     }
 }  // namespace
 
-static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
     basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::mode_t::gauss);
-static childClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
+static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
     basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::mode_t::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
-static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+static ChildClassFactory<solvers::basicOdeSolver, SolverInterface>
     basicOdeFactory(stringVec{"basicode", "euler"});
 #else
 // if cvode is not available this becomes the default differential solver
-static childClassFactory<solvers::basicOdeSolver, SolverInterface>
+static ChildClassFactory<solvers::basicOdeSolver, SolverInterface>
     basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
@@ -554,7 +554,7 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solver
             sd->setName("dynamic");
         }
     } else if (isDifferentialOnly(sMode)) {
-        sd = coreClassFactory<SolverInterface>::instance()->createObject("differential");
+        sd = CoreClassFactory<SolverInterface>::instance()->createObject("differential");
         sd->setSimulationData(gds, sMode);
         if (sMode.offsetIndex == dynamic_differential) {
             sd->setName("differential");
@@ -567,10 +567,10 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solver
 std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name)
 {
     if (name.empty()) {
-        return coreClassFactory<SolverInterface>::instance()->createObject(type);
+        return CoreClassFactory<SolverInterface>::instance()->createObject(type);
     }
 
-    return coreClassFactory<SolverInterface>::instance()->createObject(type, name);
+    return CoreClassFactory<SolverInterface>::instance()->createObject(type, name);
 }
 
 }  // namespace griddyn

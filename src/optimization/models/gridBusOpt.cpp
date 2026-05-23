@@ -375,7 +375,7 @@ void GridBusOpt::add(GridLoadOpt* loadObject)
         loadList.push_back(loadObject);
         loadObject->setParent(this);
     } else if (loadObject->getID() != obj->getID()) {
-        throw(objectAddFailure(this));
+        throw(ObjectAddFailure(this));
     }
 }
 
@@ -388,7 +388,7 @@ void GridBusOpt::add(GridGenOpt* gen)
         genList.push_back(gen);
         gen->setParent(this);
     } else if (gen->getID() != obj->getID()) {
-        throw(objectAddFailure(this));
+        throw(ObjectAddFailure(this));
     }
 }
 

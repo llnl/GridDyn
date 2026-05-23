@@ -28,7 +28,7 @@ using gmlc::utilities::signn;
 using gmlc::utilities::sum;
 using units::unit;
 
-static typeFactory<subsystem>
+static TypeFactory<subsystem>
     subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
 subsystem::subsystem(const std::string& objName): Link(objName)
@@ -217,21 +217,21 @@ void subsystem::set(std::string_view param, std::string_view val)
             }
             updateBus(bus, num);
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "from") {
         auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "to") {
         auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (iparam == "connection") {
         auto pos1 = val.find_first_of(":,");
@@ -269,14 +269,14 @@ void subsystem::set(std::string_view param, std::string_view val)
                 }
             }
             if (cterm[num] == 0) {
-                throw(invalidParameterValue(param));
+                throw(InvalidParameterValue(param));
             }
         }
     } else {
         try {
             gridPrimary::set(param, val);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             subarea.set(param, val);
         }
     }
@@ -290,7 +290,7 @@ void subsystem::set(std::string_view param, double val, unit unitType)
         try {
             gridPrimary::set(param, val, unitType);  // skipping Link set function
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             subarea.set(param, val, unitType);
         }
     }
@@ -417,7 +417,7 @@ void subsystem::updateBus(GridBus* bus, index_t busnumber)
         if (opFlags[direct_connection]) {
             Link::updateBus(bus, busnumber);
         } else {
-            throw(objectAddFailure(this));
+            throw(ObjectAddFailure(this));
         }
     }
 }

@@ -25,9 +25,9 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
-static classFactory<collector> collFac("collector");
+static ClassFactory<collector> collFac("collector");
 
-static childClassFactory<Recorder, collector>
+static ChildClassFactory<Recorder, collector>
     grFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
 collector::collector(coreTime time0, coreTime period):
@@ -484,9 +484,9 @@ const std::string& collector::getSinkName() const
 std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name)
 {
     if (name.empty()) {
-        return coreClassFactory<collector>::instance()->createObject(type);
+        return CoreClassFactory<collector>::instance()->createObject(type);
     }
-    return coreClassFactory<collector>::instance()->createObject(type, name);
+    return CoreClassFactory<collector>::instance()->createObject(type, name);
 }
 
 }  // namespace griddyn

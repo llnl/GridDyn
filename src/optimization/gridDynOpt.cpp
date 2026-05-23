@@ -23,7 +23,7 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<GridDynOptimization>
+static TypeFactory<GridDynOptimization>
     gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
@@ -120,7 +120,7 @@ void GridDynOptimization::setFlag(std::string_view flag, bool val)
 void GridDynOptimization::setFlags(size_t param, int val)
 {
     if (param > 32) {
-        throw(unrecognizedParameter("flag" + std::to_string(param)));
+        throw(UnrecognizedParameter("flag" + std::to_string(param)));
     }
 
     controlFlags.set(param, (val > 0));
@@ -135,7 +135,7 @@ void GridDynOptimization::set(std::string_view param, double val, units::unit un
         try {
             GridDynSimulation::set(param, val, unitType);
         }
-        catch (const unrecognizedParameter&) {
+        catch (const UnrecognizedParameter&) {
             setFlag(param, (val > 0.1));
         }
     }

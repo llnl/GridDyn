@@ -122,7 +122,7 @@ GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
                 try {
                     owner->addHelper(col);
                 }
-                catch (const objectAddFailure&) {
+                catch (const ObjectAddFailure&) {
                     WARNPRINT(READER_WARN_IMPORTANT,
                               "Collector: " << col->getName() << " unable to be added to "
                                             << owner->getName());

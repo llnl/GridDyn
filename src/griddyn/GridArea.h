@@ -82,22 +82,22 @@ class GridArea: public gridPrimary {
     virtual void add(CoreObject* obj) override;
     /** @brief add a bus to the area
     @param[in] bus  the bus to add
-    @throw objectAddFailure on add failure typically duplicated names
+    @throw ObjectAddFailure on add failure typically duplicated names
     */
     virtual void add(GridBus* bus);
     /** @brief add a link to the area
     @param[in] lnk  the link to add
-    @throw objectAddFailure on add failure typically duplicated names
+    @throw ObjectAddFailure on add failure typically duplicated names
     */
     virtual void add(Link* lnk);
     /** @brief add an area to the area
     @param[in] area  the area to add
-    @throw objectAddFailure on add failure typically duplicated names
+    @throw ObjectAddFailure on add failure typically duplicated names
     */
     virtual void add(GridArea* area);
     /** @brief add a relay to the area
     @param[in] relay  the relay to add
-   @throw objectAddFailure on add failure typically duplicated names
+   @throw ObjectAddFailure on add failure typically duplicated names
     */
     virtual void add(Relay* relay);
 

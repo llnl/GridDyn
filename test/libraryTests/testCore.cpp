@@ -63,7 +63,7 @@ TEST(CoreTests, CoreObject)
     EXPECT_DOUBLE_EQ(double(obj3->getNextUpdateTime()), ntime);
     EXPECT_EQ(obj3->getName(), "test_object");
     // check the parameter not found function
-    EXPECT_THROW(obj3->set("bob", 0.5), unrecognizedParameter);
+    EXPECT_THROW(obj3->set("bob", 0.5), UnrecognizedParameter);
     delete (obj1);
     delete (obj2);
     delete (obj3);

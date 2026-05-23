@@ -49,7 +49,7 @@ void HelicsCommunicator::initialize()
         coord = dynamic_cast<HelicsCoordinator*>(obj);
     }
     if (coord == nullptr) {
-        throw(griddyn::executionFailure(nullptr, "unable to connect with HELICS coordinator"));
+        throw(griddyn::ExecutionFailure(nullptr, "unable to connect with HELICS coordinator"));
     }
     index = coord->addEndpoint(getName(), std::string(), target);
 }

@@ -20,7 +20,7 @@
 #include <string>
 
 namespace griddyn {
-static typeFactory<DcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
+static TypeFactory<DcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
 
 using units::convert;
 using units::unit;
@@ -226,7 +226,7 @@ void DcBus::set(std::string_view param, std::string_view val)
         } else if (val_lowerCase == "normal") {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
@@ -240,7 +240,7 @@ void DcBus::set(std::string_view param, std::string_view val)
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
             dynType = dynBusType::normal;
         } else {
-            throw(invalidParameterValue(val));
+            throw(InvalidParameterValue(val));
         }
     } else {
         GridBus::set(param, val);

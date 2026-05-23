@@ -227,20 +227,4 @@ class ChildClassFactoryArg: public ClassFactory<parentClass> {
     std::unique_ptr<childClass> makeClassObject() { return std::make_unique<childClass>(argVal); }
 };
 
-template<class parentClass>
-using classFactory = ClassFactory<parentClass>;  // NOLINT(readability-identifier-naming)
-
-template<class parentClass>
-using coreClassFactory = CoreClassFactory<parentClass>;  // NOLINT(readability-identifier-naming)
-
-template<class childClass, class parentClass>
-using childClassFactory =
-    ChildClassFactory<childClass, parentClass>;  // NOLINT(readability-identifier-naming)
-
-template<class childClass, class parentClass, class argType>
-using childClassFactoryArg =
-    ChildClassFactoryArg<childClass,
-                         parentClass,
-                         argType>;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

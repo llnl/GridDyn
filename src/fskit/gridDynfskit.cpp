@@ -16,7 +16,7 @@
 #include <string>
 // static std::vector<std::shared_ptr<griddyn::ObjectFactory>> fskitFactories;
 
-static griddyn::childClassFactory<FskitCommunicator, griddyn::Communicator>
+static griddyn::ChildClassFactory<FskitCommunicator, griddyn::Communicator>
     commFac(std::vector<std::string>{"fskit"});
 
 void loadFskit(const std::string& /*subset*/) {}

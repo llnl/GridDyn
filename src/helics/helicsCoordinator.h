@@ -102,7 +102,7 @@ class HelicsCoordinator: public CoreObject {
             auto& pub = pubs_[index];
             pub.publish(val);
         } else {
-            throw(invalidParameterValue());
+            throw(InvalidParameterValue());
         }
     }
 
@@ -113,7 +113,7 @@ class HelicsCoordinator: public CoreObject {
             auto& sub = subs_[index];
             return sub.getValue<ValueType>();
         }
-        throw(invalidParameterValue());
+        throw(InvalidParameterValue());
     }
 
     void receiveMessage(helics::Endpoint& endpoint,
@@ -191,7 +191,7 @@ class HelicsCoordinator: public CoreObject {
             auto& sub = subscriptionInfo_[index];
             sub.defaults = val;
         } else {
-            throw(invalidParameterValue());
+            throw(InvalidParameterValue());
         }
     }
 

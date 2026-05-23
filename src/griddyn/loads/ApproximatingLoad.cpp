@@ -535,7 +535,7 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
         if (std::abs(val) > kMin_Res) {
             spread = val;
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
         opFlags.set(uses_bounds_flag, (val > 0));

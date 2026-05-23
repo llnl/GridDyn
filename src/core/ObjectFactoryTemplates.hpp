@@ -414,19 +414,4 @@ A* cloneBaseFactory(const A* bobj, CoreObject* obj, ObjectFactory* cfact)
     return nobj;
 }
 
-template<class Ntype>
-using gridObjectHolder = GridObjectHolder<Ntype>;  // NOLINT(readability-identifier-naming)
-
-template<class Ntype>
-using objectPrepper = ObjectPrepper<Ntype>;  // NOLINT(readability-identifier-naming)
-
-template<class Ntype>
-using typeFactory = TypeFactory<Ntype>;  // NOLINT(readability-identifier-naming)
-
-template<class Ntype, class Btype>
-using childTypeFactory = ChildTypeFactory<Ntype, Btype>;  // NOLINT(readability-identifier-naming)
-
-template<class Ntype, class argType>
-using typeFactoryArg = TypeFactoryArg<Ntype, argType>;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

@@ -16,22 +16,22 @@
 #include <vector>
 
 namespace griddyn {
-static std::vector<std::shared_ptr<classFactory<SolverInterface>>> extraFactories;
+static std::vector<std::shared_ptr<ClassFactory<SolverInterface>>> extraFactories;
 
 void loadExtraSolvers(const std::string& subset)
 {
     if ((subset.empty()) || (subset == "braid")) {
 #ifdef ENABLE_BRAID
-        auto bfact = std::make_shared<childClassFactory<braid::braidSolver, SolverInterface>>(
+        auto bfact = std::make_shared<ChildClassFactory<braid::braidSolver, SolverInterface>>(
             stringVec{"braid"});
         extraFactories.push_back(bfact);
 #endif
     }
-    //  auto b = std::make_shared<childTypeFactory<extra::txThermalModel, Relay>> ("relay",
+    //  auto b = std::make_shared<ChildTypeFactory<extra::txThermalModel, Relay>> ("relay",
     //  stringVec{"thermaltx"});
     // extraFactories.push_back (b);
 
-    // auto c = std::make_shared<childTypeFactory<extra::txLifeSpan, Relay>> ("relay",
+    // auto c = std::make_shared<ChildTypeFactory<extra::txLifeSpan, Relay>> ("relay",
     // stringVec{"txaging", "txage"}); extraFactories.push_back (c);
 }
 }  // namespace griddyn

@@ -35,31 +35,31 @@ using units::unit;
 
 // make the object factory types
 
-static typeFactory<Link> blf("link",
+static TypeFactory<Link> blf("link",
                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static childTypeFactory<AcLine, Link> glf(
+static ChildTypeFactory<AcLine, Link> glf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
     "ac");
 
 namespace links {
-    static childTypeFactory<adjustableTransformer, Link>
+    static ChildTypeFactory<adjustableTransformer, Link>
         gfad("link",
              std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
-    static childTypeFactory<dcLink, Link>
+    static ChildTypeFactory<dcLink, Link>
         dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcrect("link",
                std::to_array<std::string_view>({"rectifier", "rect"}),
                acdcConverter::Mode::RECTIFIER);
-    static typeFactoryArg<acdcConverter, acdcConverter::Mode>
+    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
         dcinv("link",
               std::to_array<std::string_view>({"inverter", "inv"}),
               acdcConverter::Mode::INVERTER);
-    static childTypeFactory<acdcConverter, Link>
+    static ChildTypeFactory<acdcConverter, Link>
         acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
@@ -116,7 +116,7 @@ void Link::updateBus(GridBus* bus, index_t busNumber)
             B2->add(this);
         }
     } else {
-        throw(objectAddFailure(this));
+        throw(ObjectAddFailure(this));
     }
 }
 
@@ -195,14 +195,14 @@ void Link::set(std::string_view param, std::string_view val)
         if (bus != nullptr) {
             updateBus(bus, 1);
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if ((param == "bus2") || (param == "to")) {
         auto* bus = dynamic_cast<GridBus*>(locateObject(std::string{val}, getParent()));
         if (bus != nullptr) {
             updateBus(bus, 2);
         } else {
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
     } else if (param == "status") {
         auto statusValue = gmlc::utilities::convertToLowerCase(val);

@@ -13,7 +13,7 @@
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
-static typeFactory<AggregateLoad>
+static TypeFactory<AggregateLoad>
     glfld("load", std::to_array<std::string_view>({"composite", "cluster", "group"}));
 
 using gmlc::utilities::stringOps::splitline;
@@ -245,7 +245,7 @@ void AggregateLoad::set(std::string_view param, double val, units::unit unitType
         }
         if (num >= static_cast<int>(fraction.size())) {
             logging::warning(this, "fraction specification count exceeds load count");
-            throw(invalidParameterValue(param));
+            throw(InvalidParameterValue(param));
         }
         fraction[num] = val;
     } else {

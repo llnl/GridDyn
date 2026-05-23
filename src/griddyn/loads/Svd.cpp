@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace griddyn::loads {
-static typeFactory<Svd>
+static TypeFactory<Svd>
     svdld("load",
           std::to_array<std::string_view>({"Svd", "switched shunt", "switchedshunt", "ssd"}));
 

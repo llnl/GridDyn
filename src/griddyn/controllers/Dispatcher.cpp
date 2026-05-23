@@ -35,11 +35,11 @@ double Dispatcher::testP(coreTime /*time*/, double /*required*/, double /*target
 
 void Dispatcher::add(CoreObject* /*obj*/)
 {
-    throw(objectAddFailure(this));
+    throw(ObjectAddFailure(this));
 }
 void Dispatcher::add(scheduler* /*sched*/)
 {
-    throw(objectAddFailure(this));
+    throw(ObjectAddFailure(this));
 }
 void Dispatcher::remove(CoreObject* /*obj*/) {}
 void Dispatcher::remove(scheduler* /*sched*/) {}

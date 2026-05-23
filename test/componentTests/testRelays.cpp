@@ -103,7 +103,7 @@ TEST_F(RelayTests, TestDifferentialRelay)
 {
     std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_differential_relay.xml");
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::summary;
+    gds->consolePrintLevel = PrintLevel::SUMMARY;
     gds->run();
     auto obj = gds->find("bus1_to_bus3");
     ASSERT_NE(obj, nullptr);
@@ -115,7 +115,7 @@ TEST_F(RelayTests, TestControlRelay)
 {
     std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_control_relay.xml");
     gds = readSimXMLFile(fileName);
-    // gds->consolePrintLevel = print_level::no_print;
+    // gds->consolePrintLevel = PrintLevel::NO_PRINT;
     auto obj = gds->find("bus4::load4");
     auto cr = dynamic_cast<relays::controlRelay*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
@@ -159,7 +159,7 @@ TEST_F(RelayTests, TestRelayComms)
 {
     std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_relay_comms.xml");
     gds = readSimXMLFile(fileName);
-    // gds->consolePrintLevel = print_level::no_print;
+    // gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->dynInitialize();
     auto obj = gds->find("sensor1");
     ASSERT_NE(obj, nullptr);

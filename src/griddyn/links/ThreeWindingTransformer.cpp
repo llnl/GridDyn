@@ -49,7 +49,7 @@ CoreObject* ThreeWindingTransformer::clone(CoreObject* obj) const
 // add components
 void ThreeWindingTransformer::add(CoreObject* /*obj*/)
 {
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 // remove components
 void ThreeWindingTransformer::remove(CoreObject* /*obj*/) {}

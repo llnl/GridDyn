@@ -172,7 +172,7 @@ void AGControl::add(CoreObject* obj)
     if (dynamic_cast<schedulerReg*>(obj) != nullptr) {
         add(static_cast<schedulerReg*>(obj));
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

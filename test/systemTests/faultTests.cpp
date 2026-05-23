@@ -34,14 +34,14 @@ TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complex
 {
     std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     CoreObject* obj = nullptr;
 
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
         gds = readSimXMLFile(fileName);
-        gds->consolePrintLevel = print_level::no_print;
+        gds->consolePrintLevel = PrintLevel::NO_PRINT;
         obj = cof->createObject("genmodel", gname);
         ASSERT_NE(obj, nullptr);
 
@@ -84,12 +84,12 @@ TEST_F(FaultTests, FaultTest2)  // NOLINT(readability-function-cognitive-complex
 {
     std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
         gds = readSimXMLFile(fileName);
-        gds->consolePrintLevel = print_level::no_print;
+        gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("genmodel", gname);
         ASSERT_NE(obj, nullptr);
 
@@ -132,12 +132,12 @@ TEST_F(FaultTests, FaultTest3)  // NOLINT(readability-function-cognitive-complex
 {
     std::string fileName = std::string(fault_test_directory) + "fault_test1.xml";
 
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
         gds = readSimXMLFile(fileName);
-        gds->consolePrintLevel = print_level::no_print;
+        gds->consolePrintLevel = PrintLevel::NO_PRINT;
         auto obj = cof->createObject("genmodel", gname);
         ASSERT_NE(obj, nullptr);
 
@@ -182,7 +182,7 @@ TEST_F(FaultTests, DISABLED_GecoFaultCase)
     std::string fileName = std::string(fault_test_directory) + "geco_fault_uncoupled.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::debug;
+    gds->consolePrintLevel = PrintLevel::DEBUG;
     int retval = gds->dynInitialize();
 
     EXPECT_EQ(retval, 0);
@@ -206,8 +206,8 @@ TEST_F(FaultTests, LinkTestFaultDynamic)
     std::string fileName = std::string(fault_test_directory) + "link_fault2.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::trace;
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::TRACE;
+    gds->consolePrintLevel = PrintLevel::WARNING;
 
     gds->run();
 
@@ -227,7 +227,7 @@ TEST_F(FaultTests, LinkTestFaultFuse)
     std::string fileName = std::string(fault_test_directory) + "link_fault_fuse.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto obj = dynamic_cast<fuse*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
@@ -249,7 +249,7 @@ TEST_F(FaultTests, LinkTestFaultFuse2)
     std::string fileName = std::string(fault_test_directory) + "link_fault_fuse2.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::debug;
+    gds->consolePrintLevel = PrintLevel::DEBUG;
     auto obj = dynamic_cast<Link*>(gds->find("bus8_to_bus9"));
     ASSERT_NE(obj, nullptr);
     gds->run();
@@ -269,7 +269,7 @@ TEST_F(FaultTests, LinkTestFaultFuse3)
     std::string fileName = std::string(fault_test_directory) + "link_fault_fuse3.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::debug;
+    gds->consolePrintLevel = PrintLevel::DEBUG;
     // auto obj = dynamic_cast<Link *>(gds->find("bus2_to_bus3"));
     gds->dynInitialize();
     int mmatch = JacobianCheck(gds, cDaeSolverMode);
@@ -294,7 +294,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker)
     std::string fileName = std::string(fault_test_directory) + "link_fault_breaker.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
@@ -316,7 +316,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker2)
     std::string fileName = std::string(fault_test_directory) + "link_fault_breaker2.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
@@ -338,7 +338,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker3)
     std::string fileName = std::string(fault_test_directory) + "link_fault_breaker3.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
@@ -360,7 +360,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker4)
     std::string fileName = std::string(fault_test_directory) + "link_fault_breaker4.xml";
 
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();

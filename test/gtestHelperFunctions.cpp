@@ -125,7 +125,7 @@ void GridDynSimulationTestFixture::runTestXML(const std::string& fileName,
                                               GridDynSimulation::gridState_t finalState)
 {
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(finalState);
 }

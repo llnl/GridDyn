@@ -290,14 +290,14 @@ TEST_F(XmlTests, XmlTestDynLib)
 {
     std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_lib.xml";
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
     ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
@@ -312,14 +312,14 @@ TEST_F(XmlTests, XmlTestMainGen)
 {
     std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_mgen.xml";
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
     ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
@@ -334,14 +334,14 @@ TEST_F(XmlTests, XmlTestReload)
 {
     std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_rload.xml";
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
     ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
@@ -356,14 +356,14 @@ TEST_F(XmlTests, XmlTestSource1)
 {
     std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
     fileName = xmlTestDirectory + "test_2m4bDyn_sep.xml";
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
     ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
@@ -394,7 +394,7 @@ TEST_F(XmlTests, XmlTest9)
     // test the define functionality
     std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
@@ -402,7 +402,7 @@ TEST_F(XmlTests, XmlTest9)
     fileName = xmlTestDirectory + "test_xmltest9.xml";
 
     gds2 = readSimXMLFile(fileName);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
     requireState2(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();

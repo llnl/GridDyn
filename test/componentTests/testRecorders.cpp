@@ -115,7 +115,7 @@ TEST_F(RecorderTests, RecorderTest1)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test.xml");
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::debug;
+    gds->consolePrintLevel = PrintLevel::DEBUG;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 1);
@@ -135,7 +135,7 @@ TEST_F(RecorderTests, RecorderTest2)
 {
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test2.xml");
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 1);
@@ -158,7 +158,7 @@ TEST_F(RecorderTests, RecorderTest3)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test3.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 3);
@@ -199,7 +199,7 @@ TEST_F(RecorderTests, RecorderTest4)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test4.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 2);
@@ -233,7 +233,7 @@ TEST_F(RecorderTests, RecorderTest5)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test5.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 2);
@@ -269,7 +269,7 @@ TEST_F(RecorderTests, RecorderTest6)
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     EXPECT_EQ(gds->getInt("recordercount"), 2);
     gds->set("recorddirectory", collector_test_directory);
@@ -306,7 +306,7 @@ TEST_F(RecorderTests, RecorderTest7)
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 2);
@@ -343,7 +343,7 @@ TEST_F(RecorderTests, RecorderTest8)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test8.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
     int val = gds->getInt("recordercount");
     EXPECT_EQ(val, 2);
@@ -381,7 +381,7 @@ TEST_F(RecorderTests, RecorderTest9)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test9.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
 
     gds->set("recorddirectory", collector_test_directory);
@@ -405,7 +405,7 @@ TEST_F(RecorderTests, RecorderTest10)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test10.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
 
     gds->set("recorddirectory", collector_test_directory);
@@ -433,7 +433,7 @@ TEST_F(RecorderTests, RecorderTest11)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test11.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
 
     gds->set("recorddirectory", collector_test_directory);
@@ -462,7 +462,7 @@ TEST_F(RecorderTests, RecorderTest12)
     std::string fileName = std::string(RECORDER_TEST_DIRECTORY "recorder_test12.xml");
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
 
     gds->set("recorddirectory", collector_test_directory);
@@ -510,7 +510,7 @@ TEST_F(RecorderTests, RecorderTestPeriod)
     std::string fileName = std::string(collector_test_directory) + "recorder_test_sineA.xml";
     gds = readSimXMLFile(fileName);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->solverSet("dynamic", "printlevel", 0);
 
     gds->set("recorddirectory", collector_test_directory);
@@ -523,7 +523,7 @@ TEST_F(RecorderTests, RecorderTestPeriod)
     std::string fname2 = std::string(collector_test_directory) + "recorder_test_sineB.xml";
     gds2 = readSimXMLFile(fname2);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    gds2->consolePrintLevel = print_level::no_print;
+    gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->solverSet("dynamic", "printlevel", 0);
 
     gds2->set("recorddirectory", collector_test_directory);

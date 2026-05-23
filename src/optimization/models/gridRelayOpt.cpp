@@ -66,7 +66,7 @@ void GridRelayOpt::add(CoreObject* obj)
         }
         setUserID(relay->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

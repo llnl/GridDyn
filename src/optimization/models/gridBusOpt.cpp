@@ -362,7 +362,7 @@ void GridBusOpt::add(CoreObject* obj)
         }
         setUserID(bus->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

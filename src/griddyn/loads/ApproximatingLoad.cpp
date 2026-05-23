@@ -57,7 +57,7 @@ void ApproximatingLoad::add(CoreObject* obj)
         subLoad = static_cast<GridLoad*>(obj);
         addSubObject(subLoad);
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

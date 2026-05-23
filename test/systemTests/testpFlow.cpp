@@ -306,7 +306,7 @@ TEST_F(PowerflowSystemTests, DISABLED_TestIteratedPflow)
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
     requireState(gridDynSimulation::gridState_t::STARTUP);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->set("recorddirectory", pFlow_test_directory);
     gds->run();
     ASSERT_GT(gds->getSimulationTime(), 575.0);

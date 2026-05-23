@@ -144,7 +144,7 @@ void GridLabDLoad::add(CoreObject* obj)
             }
         }
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

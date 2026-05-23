@@ -21,7 +21,7 @@ TEST_F(ConstraintTests, ConstraintTest1)
     gds = readSimXMLFile(fileName);
     requireState(gridDynSimulation::gridState_t::STARTUP);
 
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds->powerflow();
     printf("completed power flow\n");

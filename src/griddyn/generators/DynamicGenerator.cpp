@@ -435,7 +435,7 @@ void DynamicGenerator::add(GridSubModel* obj)
         subInputLocs.inputLocs[isoc_control].resize(1);
         subInputs.inputs[isoc_control].resize(1);
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

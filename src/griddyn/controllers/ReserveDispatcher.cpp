@@ -177,7 +177,7 @@ void ReserveDispatcher::add(CoreObject* obj)
     if (dynamic_cast<schedulerRamp*>(obj) != nullptr) {
         add(static_cast<schedulerRamp*>(obj));
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

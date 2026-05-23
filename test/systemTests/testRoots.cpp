@@ -54,7 +54,7 @@ TEST_F(RootTests, TestGovernorRoots)
   std::string fileName = std::string(ROOTS_TEST_DIRECTORY "test_gov_limit3.xml");
   gds = readSimXMLFile(fileName);
   requireState(gridDynSimulation::gridState_t::STARTUP);
-  gds->consolePrintLevel = print_level::no_print;
+  gds->consolePrintLevel = PrintLevel::NO_PRINT;
   gds->set("recorddirectory", ROOTS_TEST_DIRECTORY);
   gds->run();
   requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);

@@ -234,14 +234,14 @@ TEST_P(BlockCompareTests, CompareBlockTest)
 {
     const auto caseIndex = GetParam();
     std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
-    auto bf = coreObjectFactory::instance()->getFactory("block");
+    auto bf = CoreObjectFactory::instance()->getFactory("block");
 
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
     gds->solverSet("powerflow", "printlevel", 0);
     gds->solverSet("dynamic", "printlevel", 0);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto rel1 = gds->getRelay(0);
     auto rel2 = gds->getRelay(1);
     auto& plist = blockparamMap[caseIndex];
@@ -318,7 +318,7 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
     const auto caseIndex = GetParam();
     std::string fileName = std::string(BLOCK_TEST_DIRECTORY "block_test_compare.xml");
 
-    auto bf = coreObjectFactory::instance()->getFactory("block");
+    auto bf = CoreObjectFactory::instance()->getFactory("block");
     auto& plist = blockparamMap[caseIndex];
 
     gds = readSimXMLFile(fileName);
@@ -326,7 +326,7 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
     gds->solverSet("powerflow", "printlevel", 0);
     gds->solverSet("dynamic", "printlevel", 0);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
-    gds->consolePrintLevel = print_level::warning;
+    gds->consolePrintLevel = PrintLevel::WARNING;
     auto rel1 = gds->getRelay(0);
     auto rel2 = gds->getRelay(1);
 

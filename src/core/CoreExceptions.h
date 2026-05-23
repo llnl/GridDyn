@@ -102,7 +102,7 @@ class InvalidFileName: public FileOperationError {
 };
 
 using coreObjectException = CoreObjectException;  // NOLINT(readability-identifier-naming)
-using unrecognizedObjectException =
+using UnrecognizedObjectException =
     UnrecognizedObjectException;  // NOLINT(readability-identifier-naming)
 using objectAddFailure = ObjectAddFailure;  // NOLINT(readability-identifier-naming)
 using objectRemoveFailure = ObjectRemoveFailure;  // NOLINT(readability-identifier-naming)

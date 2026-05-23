@@ -176,7 +176,4 @@ class CoreObjectFactory {
     fMap m_factoryMap;  //!< the main map from string to the TypeFactory
 };
 
-using objectFactory = ObjectFactory;  // NOLINT(readability-identifier-naming)
-using componentFactory = ComponentFactory;  // NOLINT(readability-identifier-naming)
-using coreObjectFactory = CoreObjectFactory;  // NOLINT(readability-identifier-naming)
 }  // namespace griddyn

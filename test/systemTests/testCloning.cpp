@@ -25,7 +25,7 @@ TEST_F(CloneTests, CloningTest1)
 {
     std::string fileName = std::string(clone_test_directory) + "clone_test1.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
     gds->powerflow();
@@ -45,7 +45,7 @@ TEST_F(CloneTests, CloningTest2)
 {
     std::string fileName = std::string(clone_test_directory) + "clone_test2.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
     gds->powerflow();
@@ -66,7 +66,7 @@ TEST_F(CloneTests, CloningTestSolverApprox)
 {
     std::string fileName = std::string(clone_test_directory) + "clone_test3.xml";
     gds = readSimXMLFile(fileName);
-    gds->consolePrintLevel = print_level::no_print;
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds2 = std::unique_ptr<gridDynSimulation>(static_cast<gridDynSimulation*>(gds->clone()));
     gds->powerflow();

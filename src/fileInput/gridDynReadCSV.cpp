@@ -35,7 +35,7 @@ void loadCsv(CoreObject* parentObject,
              readerInfo& readerInformation,
              const std::string& objectName)
 {
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     std::ifstream file(fileName, std::ios::in);
     if (!(file.is_open())) {
         std::cerr << "Unable to open file " << fileName << '\n';

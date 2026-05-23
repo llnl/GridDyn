@@ -76,8 +76,6 @@ CoreOwningPtr<X> makeOwningPtr(Args&&... args)
     return CoreOwningPtr<X>(new X(std::forward<Args>(args)...));
 }
 
-using removeFunction_t = RemoveFunction;  // NOLINT(readability-identifier-naming)
-
 template<class X>
 using coreOwningPtr = CoreOwningPtr<X>;  // NOLINT(readability-identifier-naming)
 

@@ -71,7 +71,7 @@ GridBus* readBusElement(std::shared_ptr<readerElement>& element,
                                                   // unrecognizedParameter depending on the actual
                                                   // model used
             {
-                if (!coreObjectFactory::instance()->isValidType(busComponentName, valType)) {
+                if (!CoreObjectFactory::instance()->isValidType(busComponentName, valType)) {
                     WARNPRINT(READER_WARN_IMPORTANT, "Bus type parameter not found " << valType);
                 }
             }

@@ -85,7 +85,7 @@ void BlockSequence::add(CoreObject* obj)
     if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         add(static_cast<GridBlock*>(obj));
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

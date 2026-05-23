@@ -186,7 +186,7 @@ double txThermalModel::get(std::string_view param, units::unit unitType) const
 
 void txThermalModel::add(CoreObject* /*obj*/)
 {
-    throw(unrecognizedObjectException(this));
+    throw(UnrecognizedObjectException(this));
 }
 
 void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)

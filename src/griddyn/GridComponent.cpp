@@ -56,7 +56,7 @@ CoreObject* GridComponent::clone(CoreObject* obj) const
             try {
                 nobj->add(subobj->clone());
             }
-            catch (const unrecognizedObjectException&) {
+            catch (const UnrecognizedObjectException&) {
                 continue;
             }
         }
@@ -82,7 +82,7 @@ CoreObject* GridComponent::clone(CoreObject* obj) const
                     try {
                         nobj->add(subObjectList[ii]->clone());
                     }
-                    catch (const unrecognizedObjectException&) {
+                    catch (const UnrecognizedObjectException&) {
                         continue;
                     }
                 }
@@ -91,7 +91,7 @@ CoreObject* GridComponent::clone(CoreObject* obj) const
                     try {
                         nobj->add(subObjectList[ii]->clone());
                     }
-                    catch (const unrecognizedObjectException&) {
+                    catch (const UnrecognizedObjectException&) {
                         continue;
                     }
                 } else {
@@ -101,7 +101,7 @@ CoreObject* GridComponent::clone(CoreObject* obj) const
                         try {
                             nobj->add(subObjectList[ii]->clone());
                         }
-                        catch (const unrecognizedObjectException&) {
+                        catch (const UnrecognizedObjectException&) {
                             continue;
                         }
                     }

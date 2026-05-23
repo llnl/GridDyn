@@ -80,7 +80,7 @@ void GridGenOpt::add(CoreObject* obj)
         setName(gen->getName());
         setUserID(gen->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

@@ -531,11 +531,6 @@ namespace logging {
         logSelf(logger, PrintLevel::TRACE, std::forward<Args>(args)...);
     }
 
-    [[nodiscard]] inline bool should_log(const CoreObject* logger, PrintLevel level)  // NOLINT
-    {
-        return shouldLog(logger, level);
-    }
-
     inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
                        CoreObject* object,
                        PrintLevel level,
@@ -570,11 +565,6 @@ namespace logging {
         logTo(logger, object, level, formatText, std::forward<Args>(args)...);
     }
 
-    template<class... Args>
-    inline void log_self(CoreObject* logger, PrintLevel level, Args&&... args)  // NOLINT
-    {
-        logSelf(logger, level, std::forward<Args>(args)...);
-    }
 }  // namespace logging
 
 }  // namespace griddyn

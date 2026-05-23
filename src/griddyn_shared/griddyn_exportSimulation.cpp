@@ -30,7 +30,7 @@ using griddyn::kNullVal;
 using griddyn::loadFile;
 using griddyn::objectAddFailure;
 using griddyn::objectRemoveFailure;
-using griddyn::unrecognizedObjectException;
+using griddyn::UnrecognizedObjectException;
 using griddyn::unrecognizedParameter;
 using griddyn::versionString;
 
@@ -92,7 +92,7 @@ void griddynErrorHandler(GridDynError* err) noexcept
                 // LCOV_EXCL_STOP
             }
         }
-        catch (const griddyn::unrecognizedObjectException& uoe) {
+        catch (const griddyn::UnrecognizedObjectException& uoe) {
             err->error_code = griddyn_error_invalid_object;
             err->message = getMasterHolder()->addErrorString(uoe.what());
         }

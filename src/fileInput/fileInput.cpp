@@ -214,7 +214,7 @@ void addToParent(CoreObject* objectToAdd, CoreObject* parentObject)
     try {
         parentObject->add(objectToAdd);
     }
-    catch (const unrecognizedObjectException&) {
+    catch (const UnrecognizedObjectException&) {
         WARNPRINT(READER_WARN_IMPORTANT,
                   "Object " << objectToAdd->getName() << " not recognized by "
                             << parentObject->getName());

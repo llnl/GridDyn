@@ -28,7 +28,7 @@
 #include <map>
 
 using griddyn::CoreObject;
-using griddyn::coreObjectFactory;
+using griddyn::CoreObjectFactory;
 using griddyn::coreOwningPtr;
 using griddyn::Exciter;
 using griddyn::Generator;
@@ -79,7 +79,7 @@ const GridComponent* getConstComponentPointer(GridDynObject obj)
 GridDynObject
     gridDynObjectCreate(const char* componentType, const char* objectType, GridDynError* err)
 {
-    auto* newObject = coreObjectFactory::instance()->createObject(componentType, objectType);
+    auto* newObject = CoreObjectFactory::instance()->createObject(componentType, objectType);
     if (newObject == nullptr) {
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return nullptr;

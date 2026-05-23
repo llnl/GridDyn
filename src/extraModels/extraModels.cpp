@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace griddyn {
-static std::vector<std::shared_ptr<objectFactory>> extraModelFactories;
+static std::vector<std::shared_ptr<ObjectFactory>> extraModelFactories;
 
 void loadExtraModels(const std::string& /*subset*/)
 {

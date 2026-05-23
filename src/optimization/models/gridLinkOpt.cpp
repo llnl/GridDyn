@@ -98,7 +98,7 @@ void GridLinkOpt::add(CoreObject* obj)
         }
         setUserID(link->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

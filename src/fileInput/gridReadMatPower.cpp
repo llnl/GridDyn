@@ -94,11 +94,11 @@ void loadBusArray(CoreObject* parentObject,
 {
     GridLoad* ld = nullptr;
     auto busFactory = dynamic_cast<typeFactory<GridBus>*>(
-        coreObjectFactory::instance()->getFactory("bus")->getFactory(""));
+        CoreObjectFactory::instance()->getFactory("bus")->getFactory(""));
     busFactory->prepObjects(static_cast<count_t>(buses.size()), parentObject);
 
     auto loadFactory = dynamic_cast<typeFactory<GridLoad>*>(
-        coreObjectFactory::instance()->getFactory("load")->getFactory(""));
+        CoreObjectFactory::instance()->getFactory("load")->getFactory(""));
     loadFactory->prepObjects(static_cast<count_t>(buses.size()), parentObject);
     for (const auto& busData : buses) {
         auto ind1 = static_cast<index_t>(busData[0]);
@@ -193,7 +193,7 @@ int loadGenArray(CoreObject* parentObject,
     index_t kk = 1;
     std::string gtype = (bri.checkFlag(ASSUME_POWERFLOW_ONLY)) ? "simple" : "";
     auto genFactory = dynamic_cast<typeFactory<Generator>*>(
-        coreObjectFactory::instance()->getFactory("generator")->getFactory(gtype));
+        CoreObjectFactory::instance()->getFactory("generator")->getFactory(gtype));
     genFactory->prepObjects(static_cast<count_t>(gens.size()), parentObject);
 
     for (auto& genLine : gens) {
@@ -370,7 +370,7 @@ void loadLinkArray(CoreObject* parentObject,
                    const basicReaderInfo& /*readerOptions*/)
 {
     auto linkFactory = dynamic_cast<typeFactory<Link>*>(
-        coreObjectFactory::instance()->getFactory("link")->getFactory(""));
+        CoreObjectFactory::instance()->getFactory("link")->getFactory(""));
     linkFactory->prepObjects(static_cast<count_t>(lnks.size()), parentObject);
     index_t kk = 0;
     for (const auto& linkData : lnks) {

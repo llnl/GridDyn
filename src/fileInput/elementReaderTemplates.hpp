@@ -115,7 +115,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
                        readerInfo& ri,
                        CoreObject* searchObject)
 {
-    auto cof = coreObjectFactory::instance();
+    auto cof = CoreObjectFactory::instance();
     auto tf = cof->getFactory(component);
     auto objectName = getObjectName(element, ri);
     bool preexist = (mobj != nullptr);

@@ -66,7 +66,7 @@ void GridLoadOpt::add(CoreObject* obj)
         }
         setUserID(load->getUserID());
     } else {
-        throw(unrecognizedObjectException(this));
+        throw(UnrecognizedObjectException(this));
     }
 }
 

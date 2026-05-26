@@ -97,18 +97,18 @@ ZmqProxyHub::ZmqProxyHub(const std::string& proxyName,
 {
     contextManager = ZmqContextManager::getContextPointer(context);
     if ((pairType == "pubsub") || (pairType == "sub") || (pairType == "pub")) {
-        incoming.type = zmq::SocketType::xsub;
-        outgoing.type = zmq::SocketType::xpub;
+        incoming.type = zmq::socket_type::xsub;
+        outgoing.type = zmq::socket_type::xpub;
     } else if ((pairType == "router") || (pairType == "dealer")) {
-        incoming.type = zmq::SocketType::router;
-        outgoing.type = zmq::SocketType::dealer;
+        incoming.type = zmq::socket_type::router;
+        outgoing.type = zmq::socket_type::dealer;
     } else if ((pairType == "pull") || (pairType == "push") || (pairType == "pushpull")) {
-        incoming.type = zmq::SocketType::pull;
-        outgoing.type = zmq::SocketType::push;
+        incoming.type = zmq::socket_type::pull;
+        outgoing.type = zmq::socket_type::push;
     }
     controllerSocket =
         std::make_unique<zmq::socket_t>(ZmqContextManager::getContext(contextManager->getName()),
-                                        zmq::SocketType::pair);
+                                        zmq::socket_type::pair);
     controllerSocket->bind(std::string("inproc://proxy_" + name).c_str());
 }
 
@@ -120,7 +120,7 @@ void ZmqProxyHub::proxyLoop()
         outgoing.makeSocket(ZmqContextManager::getContext(contextManager->getName()));
 
     zmq::socket_t control(ZmqContextManager::getContext(contextManager->getName()),
-                          zmq::SocketType::pair);
+                          zmq::socket_type::pair);
 
     control.connect(std::string("inproc://proxy_" + name).c_str());
 

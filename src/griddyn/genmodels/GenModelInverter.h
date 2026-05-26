@@ -97,16 +97,16 @@ class GenModelInverter: public GenModel {
   private:
     void reCalcImpedences();
     /** @brief compute the real power output
-@param V voltage
-@param Ef Exciter field
+@param voltage voltage
+@param exciterField Exciter field
 @param cosA  the cosine of the power angle
 @param sinA  the sine of the power angle
 @return the real power output;
 */
     double realPowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     /** @brief compute the reactive power output
-@param V voltage
-@param Ef Exciter field
+@param voltage voltage
+@param exciterField Exciter field
 @param cosA  the cosine of the power angle
 @param sinA  the sine of the power angle
 @return the real power output;

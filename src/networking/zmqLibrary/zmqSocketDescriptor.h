@@ -40,12 +40,12 @@ typedef std::pair<SocketOperation, std::string>
 class ZmqSocketDescriptor {
   public:
     std::string name;  //!< name of the socket for later reference
-    zmq::SocketType type = zmq::SocketType::sub;  //!< the socket type
+    zmq::socket_type type = zmq::socket_type::sub;  //!< the socket type
     std::vector<SocketOperationEntry> ops;  //!< a list of connections of make through bind
     std::function<void(const zmq::multipart_t& res)> callback;  //!< the message handler
     ZmqSocketDescriptor(const std::string& socketName = ""):
         name(socketName) {}  // purposefully implicit
-    ZmqSocketDescriptor(const std::string& socketName, zmq::SocketType stype):
+    ZmqSocketDescriptor(const std::string& socketName, zmq::socket_type stype):
         name(socketName), type(stype)
     {
     }

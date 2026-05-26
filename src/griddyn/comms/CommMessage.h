@@ -123,7 +123,7 @@ class commMessage {
 
     /** convert a command to a raw data bytes
     @param[out] data pointer to memory to store the command
-    @param[in] buffer_size the size of the buffer
+    @param[in] bufferSize the size of the buffer
     @return the size of the buffer actually used
     */
     int toByteArray(char* data, size_t bufferSize) const;

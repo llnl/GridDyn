@@ -101,7 +101,7 @@ int FmiInfo::getCounts(const std::string& countType) const
     return cnt;
 }
 
-static const char emptyString[] = "";
+static constexpr char emptyString[] = "";
 
 const std::string& FmiInfo::getString(const std::string& field) const
 {
@@ -231,7 +231,11 @@ std::vector<std::string> FmiInfo::getVariableNames(const std::string& type) cons
     return vnames;
 }
 
-static const std::vector<int> emptyVec;
+static const std::vector<int>& emptyVec()
+{
+    static const std::vector<int> emptyVector;
+    return emptyVector;
+}
 
 const std::vector<int>& FmiInfo::getVariableIndices(const std::string& type) const
 {
@@ -256,7 +260,7 @@ const std::vector<int>& FmiInfo::getVariableIndices(const std::string& type) con
     if (type == "unknown") {
         return initUnknown;
     }
-    return emptyVec;
+    return emptyVec();
 }
 
 /** get the variable indices of the derivative dependencies*/
@@ -414,7 +418,7 @@ description="Constant output value"
 variability="tunable"
 */
 
-static const char ScalarVString[] = "ScalarVariable";
+static constexpr char ScalarVString[] = "ScalarVariable";
 void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
@@ -564,9 +568,9 @@ static auto depkindNum(const std::string& depknd)
     return 6;
 }
 
-static const char unknownString[] = "Unknown";
-static const char depString[] = "dependencies";
-static const char depKindString[] = "dependenciesKind";
+static constexpr char unknownString[] = "Unknown";
+static constexpr char depString[] = "dependencies";
+static constexpr char depKindString[] = "dependenciesKind";
 
 static void loadDependencies(std::shared_ptr<readerElement>& readerElementPtr,
                              std::vector<int>& store,

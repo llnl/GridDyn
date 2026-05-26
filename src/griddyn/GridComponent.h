@@ -430,7 +430,7 @@ see GridComponent::dynInitializeA for more details
     /** @brief transfer a computed state to the objects
     @param time -the time the state corresponds to
     @param state -- a double array pointing to the state information
-    @param dstate_dt a double array pointing to the state derivative information (not necessary for
+    @param dstateDt a double array pointing to the state derivative information (not necessary for
     states with no corresponding time derivative
     @param sMode  -- the solverMode corresponding to the computed state.
     */
@@ -441,7 +441,7 @@ see GridComponent::dynInitializeA for more details
     /** @brief transfer state information from the objects to a vector
     @param time -the time the state corresponds to
     @param[out] state -- a double array pointing to the state information
-    @param[out] dstate_dt a double array pointing to the state derivative information (not necessary
+    @param[out] dstateDt a double array pointing to the state derivative information (not necessary
     for states with no corresponding time derivative
     @param sMode  -- the solverMode corresponding to the computed state.
     */

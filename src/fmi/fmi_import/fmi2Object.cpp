@@ -213,67 +213,69 @@ void Fmi2Object::setFlag(const std::string& param, bool val)
     }
 }
 
-void Fmi2Object::getFmuState(fmi2FMUstate* FMUState)
+void Fmi2Object::getFmuState(fmi2FMUstate* fmuState)
 {
-    auto ret = commonFunctions->fmi2GetFMUstate(comp, FMUState);
+    auto ret = commonFunctions->fmi2GetFMUstate(comp, fmuState);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void Fmi2Object::setFmuState(fmi2FMUstate FMUState)
+void Fmi2Object::setFmuState(fmi2FMUstate fmuState)
 {
-    auto ret = commonFunctions->fmi2SetFMUstate(comp, FMUState);
+    auto ret = commonFunctions->fmi2SetFMUstate(comp, fmuState);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
 
-size_t Fmi2Object::serializedStateSize(fmi2FMUstate FMUState)
+size_t Fmi2Object::serializedStateSize(fmi2FMUstate fmuState)
 {
     size_t serializedSize;
-    auto ret = commonFunctions->fmi2SerializedFMUstateSize(comp, FMUState, &serializedSize);
+    auto ret = commonFunctions->fmi2SerializedFMUstateSize(comp, fmuState, &serializedSize);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
     return serializedSize;
 }
-void Fmi2Object::serializeState(fmi2FMUstate FMUState, fmi2Byte serializedState[], size_t size)
+void Fmi2Object::serializeState(fmi2FMUstate fmuState,
+                                fmi2Byte serializedState[],
+                                size_t size)
 {
-    auto ret = commonFunctions->fmi2SerializeFMUstate(comp, FMUState, serializedState, size);
+    auto ret = commonFunctions->fmi2SerializeFMUstate(comp, fmuState, serializedState, size);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
 void Fmi2Object::deserializeState(const fmi2Byte serializedState[],
                                   size_t size,
-                                  fmi2FMUstate* FMUState)
+                                  fmi2FMUstate* fmuState)
 {
-    auto ret = commonFunctions->fmi2DeSerializeFMUstate(comp, serializedState, size, FMUState);
+    auto ret = commonFunctions->fmi2DeSerializeFMUstate(comp, serializedState, size, fmuState);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
-void Fmi2Object::getDirectionalDerivative(const fmi2ValueReference vUnknown_ref[],
+void Fmi2Object::getDirectionalDerivative(const fmi2ValueReference vUnknownRef[],
                                           size_t nUnknown,
-                                          const fmi2ValueReference vKnown_ref[],
+                                          const fmi2ValueReference vKnownRef[],
                                           size_t unknown,
                                           const fmi2Real dvKnown[],
                                           fmi2Real dvUnknown[])
 {
     auto ret = commonFunctions->fmi2GetDirectionalDerivative(
-        comp, vUnknown_ref, nUnknown, vKnown_ref, unknown, dvKnown, dvUnknown);
+        comp, vUnknownRef, nUnknown, vKnownRef, unknown, dvKnown, dvUnknown);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
     }
 }
 
-fmi2Real Fmi2Object::getPartialDerivative(int index_x, int index_y, double deltaX)
+fmi2Real Fmi2Object::getPartialDerivative(int indexX, int indexY, double deltaX)
 {
     double deltaY;
     commonFunctions->fmi2GetDirectionalDerivative(comp,
-                                                  &(info->getVariableInformation(index_x).valueRef),
+                                                  &(info->getVariableInformation(indexX).valueRef),
                                                   1,
-                                                  &(info->getVariableInformation(index_y).valueRef),
+                                                  &(info->getVariableInformation(indexY).valueRef),
                                                   1,
                                                   &deltaX,
                                                   &deltaY);

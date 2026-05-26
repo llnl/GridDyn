@@ -348,7 +348,7 @@ class GridDynSimulation: public GridSimulation {
     f(\hat{x},\hat{x}')$ so that r approaches 0 as the $x$ == $\hat{x}
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] resid the storage location for the residual function
     @param[in] sMode the solverMode to solve for
     @return integer indicating success (0) or failure (non-zero)

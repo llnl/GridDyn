@@ -188,10 +188,10 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     EXPECT_TRUE(static_cast<bool>(coSimObject1));
     EXPECT_TRUE(static_cast<bool>(coSimObject2));
 
-    coSimObject1->setMode(::FmuMode::initializationMode);
-    coSimObject2->setMode(::FmuMode::initializationMode);
+    coSimObject1->setMode(::FmuMode::INITIALIZATION_MODE);
+    coSimObject2->setMode(::FmuMode::INITIALIZATION_MODE);
 
-    EXPECT_EQ(coSimObject1->getCurrentMode(), ::FmuMode::initializationMode);
+    EXPECT_EQ(coSimObject1->getCurrentMode(), ::FmuMode::INITIALIZATION_MODE);
     ASSERT_EQ(coSimObject1->inputSize(), 1);
     ASSERT_EQ(coSimObject1->outputSize(), 1);
 
@@ -201,9 +201,9 @@ TEST_F(FmiExportTests, LoadGriddynFmu)
     ASSERT_EQ(inputName[0], "power");
     auto outputName = coSimObject1->getOutputNames();
     ASSERT_EQ(outputName[0], "load");
-    coSimObject1->setMode(::FmuMode::stepMode);
-    coSimObject2->setMode(::FmuMode::stepMode);
-    EXPECT_EQ(coSimObject2->getCurrentMode(), ::FmuMode::stepMode);
+    coSimObject1->setMode(::FmuMode::STEP_MODE);
+    coSimObject2->setMode(::FmuMode::STEP_MODE);
+    EXPECT_EQ(coSimObject2->getCurrentMode(), ::FmuMode::STEP_MODE);
 
     auto val = coSimObject1->getOutput(0);
     auto val2 = coSimObject2->getOutput(0);

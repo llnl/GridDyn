@@ -138,25 +138,27 @@ class Fmi2Object {
     }
 
     void setFlag(const std::string& param, bool val);
-    void getFmuState(fmi2FMUstate* FMUState);
-    void setFmuState(fmi2FMUstate FMUState);
+    void getFmuState(fmi2FMUstate* fmuState);
+    void setFmuState(fmi2FMUstate fmuState);
 
-    size_t serializedStateSize(fmi2FMUstate FMUState);
-    void serializeState(fmi2FMUstate FMUState, fmi2Byte serializedState[], size_t size);
+    size_t serializedStateSize(fmi2FMUstate fmuState);
+    void serializeState(fmi2FMUstate fmuState, fmi2Byte serializedState[], size_t size);
 
     void setInputs(const fmi2Real inputs[]);
     void getCurrentInputs(fmi2Real inputs[]);
     void getOutputs(fmi2Real outputs[]) const;
     fmi2Real getOutput(size_t outNum) const;
-    void deserializeState(const fmi2Byte serializedState[], size_t size, fmi2FMUstate* FMUState);
-    void getDirectionalDerivative(const fmi2ValueReference vUnknown_ref[],
+    void deserializeState(const fmi2Byte serializedState[],
+                          size_t size,
+                          fmi2FMUstate* fmuState);
+    void getDirectionalDerivative(const fmi2ValueReference vUnknownRef[],
                                   size_t nUnknown,
-                                  const fmi2ValueReference vKnown_ref[],
+                                  const fmi2ValueReference vKnownRef[],
                                   size_t unknown,
                                   const fmi2Real dvKnown[],
                                   fmi2Real dvUnknown[]);
 
-    fmi2Real getPartialDerivative(int index_x, int index_y, double deltaX);
+    fmi2Real getPartialDerivative(int indexX, int indexY, double deltaX);
     void setOutputVariables(const std::vector<std::string>& outNames);
     void setOutputVariables(const std::vector<int>& outIndices);
     void setInputVariables(const std::vector<std::string>& inNames);

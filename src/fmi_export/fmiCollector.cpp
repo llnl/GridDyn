@@ -36,10 +36,10 @@ void FmiCollector::cloneTo(collector* collectorClone) const
     }
 }
 
-change_code FmiCollector::trigger(coreTime time)
+ChangeCode FmiCollector::trigger(coreTime time)
 {
     collector::trigger(time);
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 void FmiCollector::set(std::string_view param, double val)
@@ -99,3 +99,4 @@ void FmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
 }
 
 }  // namespace griddyn::fmi
+

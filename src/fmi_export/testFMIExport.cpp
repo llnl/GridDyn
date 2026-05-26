@@ -129,7 +129,7 @@ TEST_F(FmiExportTests, TestFmiSimulation)
     EXPECT_EQ(outputEvents[0].second.name, "load");
 
     gds->run(30);
-    checkState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    checkState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 TEST_F(FmiExportTests, TestFmiRunner)
@@ -333,3 +333,4 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         EXPECT_NEAR(diff, 0.0, 0.1);
     }
 }
+

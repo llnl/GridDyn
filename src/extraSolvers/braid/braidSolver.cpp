@@ -256,7 +256,7 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
 {
     TimeIntegrator* TI = ode->GetTI();
     Equation* equation = ode->GetEq();
-    BDF_STRAT bdf_strat = nobdf;
+    BdfStrat bdf_strat = nobdf;
     int lowered_by_level = 1;
     int min_order = 1;
 
@@ -508,7 +508,7 @@ int braidSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int braidSolver::calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints)
+int braidSolver::calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints)
 {
     return 0;
 }
@@ -527,3 +527,4 @@ void braidSolver::getRoots()
     }
 }
 }  // namespace griddyn::braid
+

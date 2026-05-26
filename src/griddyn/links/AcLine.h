@@ -52,7 +52,7 @@ Each link has a disconnect switch at the "from" bus and the "to" bus
 */
 class AcLine: public Link {
   public:
-    enum acLine_flags {
+    enum AcLineFlags {
         // indicator that the angle slipped past 90 degree on a test
         angle_slip_on_test = object_flag10,
     };
@@ -147,8 +147,8 @@ class AcLine: public Link {
     result
     */
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
+    virtual ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void pFlowObjectInitializeB() override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
@@ -200,10 +200,10 @@ class AcLine: public Link {
                           const double dstate_dt[],
                           const solverMode& sMode) override;
 
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     virtual bool testAndTrip(int tripLevel) override;
 
@@ -290,3 +290,4 @@ class AcLine: public Link {
 };
 
 }  // namespace griddyn
+

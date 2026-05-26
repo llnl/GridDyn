@@ -25,7 +25,7 @@ class OutputEstimator;
 /** class defining a subModel interacting with an FMU v2.0 object for model exchange*/
 class FmiMESubModel: public GridSubModel {
   public:
-    enum fmiSubModelFlags {
+    enum FmiSubModelFlags {
         use_output_estimator = object_flag2,
         fixed_output_interval = object_flag3,
         reprobe_flag = object_flag4,

@@ -191,7 +191,7 @@ void txLifeSpan::timestep(coreTime time, const IOdata& /*inputs*/, const solverM
 
 void txLifeSpan::actionTaken(index_t actionNumber,
                              index_t /*conditionNum*/,
-                             change_code /*actionReturn*/,
+                             ChangeCode /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
     if (m_sinkObject != nullptr) {
@@ -204,3 +204,4 @@ void txLifeSpan::actionTaken(index_t actionNumber,
 }
 
 }  // namespace griddyn::extra
+

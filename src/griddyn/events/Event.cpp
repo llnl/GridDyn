@@ -222,35 +222,35 @@ std::string Event::to_string() const
     return stream.str();
 }
 
-change_code Event::trigger()
+ChangeCode Event::trigger()
 {
     if (m_obj == nullptr) {
         armed = false;
-        return change_code::execution_failure;
+        return ChangeCode::execution_failure;
     }
     try {
         m_obj->set(field, value, unitType);
-        return change_code::parameter_change;
+        return ChangeCode::parameter_change;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::execution_failure;
     }
 }
 
-change_code Event::trigger(coreTime time)
+ChangeCode Event::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::not_triggered;
     if (time >= triggerTime) {
         if (m_obj == nullptr) {
             armed = false;
-            return change_code::execution_failure;
+            return ChangeCode::execution_failure;
         }
         try {
             m_obj->set(field, value, unitType);
-            ret = change_code::parameter_change;
+            ret = ChangeCode::parameter_change;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::execution_failure;
         }
         armed = false;
     }
@@ -489,3 +489,4 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
 }
 
 }  // namespace griddyn
+

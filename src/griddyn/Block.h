@@ -30,7 +30,7 @@ class GridBlock: public GridSubModel {
   public:
     /** @brief flags common for all control blocks
      */
-    enum controller_flags {
+    enum ControllerFlags {
         step_only = object_flag1,  //!< flag indicating that the block does not have any state
         use_state = object_flag2,  //!< flag indicating that the basic block should not control the
                                    //!< state before the limiters
@@ -197,10 +197,10 @@ class GridBlock: public GridSubModel {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& solverModeValue) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   const solverMode& solverModeValue,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
     /** get the single output for the block
@@ -268,3 +268,4 @@ class GridBlock: public GridSubModel {
 std::unique_ptr<GridBlock> make_block(const std::string& blockstr);
 
 }  // namespace griddyn
+

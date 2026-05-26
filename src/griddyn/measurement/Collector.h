@@ -99,13 +99,13 @@ class collector: public HelperObject, public eventInterface, public ObjectOperat
     @return the number of data points stored
     */
     count_t grabData(double* outputData, index_t outputCount);
-    virtual change_code trigger(coreTime time) override;
+    virtual ChangeCode trigger(coreTime time) override;
     /** do a check to check and assign all columns*/
     void recheckColumns();
     coreTime nextTriggerTime() const override { return mTriggerTime; }
-    event_execution_mode executionMode() const override
+    EventExecutionMode executionMode() const override
     {
-        return (mDelayProcess) ? event_execution_mode::delayed : event_execution_mode::normal;
+        return (mDelayProcess) ? EventExecutionMode::delayed : EventExecutionMode::normal;
     }
 
     virtual void add(std::shared_ptr<gridGrabber> ggb, int requestedColumn = -1);
@@ -188,3 +188,4 @@ class collector: public HelperObject, public eventInterface, public ObjectOperat
 std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
+

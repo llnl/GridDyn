@@ -23,7 +23,7 @@ class Event;
 class commMessage;
 class PropertyBuffer;
 
-enum class change_code;  // forward declare change_code enumeration
+enum class ChangeCode;  // forward declare ChangeCode enumeration
 
 /**
 *@brief relay class:
@@ -35,7 +35,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     static std::atomic<count_t>
         relayCount;  //!< static counter for the number of relays to generate an id number
     /** @brief enumeration of the relay condition states*/
-    enum class condition_status_t {
+    enum class ConditionStatus {
         active,  //!< the relay condition is active
         triggered,  //!< the relay condition is triggered and waiting a timeout
         disabled,  //!< the relay condition is disabled and not scanning
@@ -43,7 +43,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
 
   protected:
     /** flags for the relayFlags data*/
-    enum relay_flags {
+    enum RelayFlags {
         relay_flag0 = 0,
         relay_flag1 = 1,
         relay_flag2 = 2,
@@ -160,7 +160,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] newStatus the updated status of the condition active, triggered, disabled
     */
     void setConditionStatus(index_t conditionNumber,
-                            condition_status_t newStatus = condition_status_t::active);
+                            ConditionStatus newStatus = ConditionStatus::active);
     /**
     @brief remove an action from service
     @param[in] actionNumber the index of the action to remove from service
@@ -181,7 +181,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] conditionNumber the index of the condition
     @return an enumeration of the condition status (active, triggered, or disabled)
     */
-    condition_status_t getConditionStatus(index_t conditionNumber);
+    ConditionStatus getConditionStatus(index_t conditionNumber);
     /**
     @brief get the value associated with a condition
     @param[in] conditionNumber the index of the condition
@@ -220,9 +220,9 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
                                   coreTime delayTime = timeZero);
     /** manually trigger a particular action
     @param[in] actionNumber the index of the action to manually trigger
-    @return a change_code associated with the action describing the level of change to the system
+    @return a ChangeCode associated with the action describing the level of change to the system
     */
-    virtual change_code triggerAction(index_t actionNumber);
+    virtual ChangeCode triggerAction(index_t actionNumber);
     /** define a set of conditions which all must be true for certain period of time before the
     action is triggered
     @param[in] multi_conditions the set of condition indices which must all be true before an action
@@ -255,8 +255,8 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     virtual void updateA(coreTime time) override;
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
+    virtual ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
@@ -265,10 +265,10 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
     /** message processing function for use with communicators
     @param[in] sourceID  the source of the comm message
     @param[in] message the actual message to process
@@ -307,7 +307,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     */
     virtual void actionTaken(index_t ActionNum,
                              index_t conditionNum,
-                             change_code actionReturn,
+                             ChangeCode actionReturn,
                              coreTime actionTime);
     /** do something when an condition is triggered
     @param conditionNum the index of the condition that triggered the action
@@ -370,7 +370,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     std::vector<std::vector<coreTime>>
         actionDelays;  //!< the periods of time in which the condition must be true for an action to
                        //!< occur
-    std::vector<condition_status_t> cStates;  //!< a vector of states for the conditions
+    std::vector<ConditionStatus> cStates;  //!< a vector of states for the conditions
     std::vector<coreTime> conditionTriggerTimes;  //!< the times at which the condition triggered
     std::vector<condCheckTime>
         condChecks;  //!< a vector of condition action pairs that are in wait and see mode
@@ -388,15 +388,15 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] actionNumber the index of the action to execute
     @param[in] conditionNumber the ndex of the condition which triggered the action
     @param[in] actionTime the time which to execute the action
-    @return a change_code indicating the effect of the action
+    @return a ChangeCode indicating the effect of the action
     */
-    change_code executeAction(index_t actionNumber, index_t conditionNumber, coreTime actionTime);
+    ChangeCode executeAction(index_t actionNumber, index_t conditionNumber, coreTime actionTime);
     /** trigger a specific condition
     @param[in] conditionNum  the index of the condition to trigger
     @param[in] conditionTriggerTime the time of the trigger
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
-    change_code triggerCondition(index_t conditionNum,
+    ChangeCode triggerCondition(index_t conditionNum,
                                  coreTime conditionTriggerTime,
                                  coreTime minimumDelayTime);
 
@@ -406,7 +406,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] conditionTriggerTime the time of the trigger
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
-    change_code multiConditionCheckExecute(index_t conditionNum,
+    ChangeCode multiConditionCheckExecute(index_t conditionNum,
                                            coreTime conditionTriggerTime,
                                            coreTime minimumDelayTime);
     /** evaluate a condition awaiting a delay and execute the action if appropriate
@@ -414,7 +414,8 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] checkTime the time to check
     @return a change code indicating the effect of any action Taken
     */
-    change_code evaluateCondCheck(condCheckTime& cond, coreTime checkTime);
+    ChangeCode evaluateCondCheck(condCheckTime& cond, coreTime checkTime);
 };
 
 }  // namespace griddyn
+

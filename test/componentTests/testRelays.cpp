@@ -60,7 +60,7 @@ TEST_F(RelayTests, RelayTest2)
     std::vector<double> v;
     gds->getVoltage(v);
 
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -88,8 +88,8 @@ TEST_F(RelayTests, RelayTestMulti)
     gds->getVoltage(v);
 
     auto ps = gds->currentProcessState();
-    ASSERT_TRUE((ps == GridDynSimulation::gridState_t::DYNAMIC_COMPLETE) ||
-                (ps == GridDynSimulation::gridState_t::DYNAMIC_PARTIAL));
+    ASSERT_TRUE((ps == GridDynSimulation::GridState::DYNAMIC_COMPLETE) ||
+                (ps == GridDynSimulation::GridState::DYNAMIC_PARTIAL));
 }
 #endif
 
@@ -108,7 +108,7 @@ TEST_F(RelayTests, TestDifferentialRelay)
     auto obj = gds->find("bus1_to_bus3");
     ASSERT_NE(obj, nullptr);
     EXPECT_FALSE(static_cast<GridComponent*>(obj)->isConnected());
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(RelayTests, TestControlRelay)
@@ -215,3 +215,4 @@ TEST_F(RelayTests, PmuTest1)
     EXPECT_GT(rocof2, 0.0);
     EXPECT_GT(rocof3, 0.0);
 }
+

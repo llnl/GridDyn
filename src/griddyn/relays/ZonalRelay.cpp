@@ -203,7 +203,7 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void zonalRelay::actionTaken(index_t ActionNum,
                              index_t conditionNum,
-                             change_code /*actionReturn*/,
+                             ChangeCode /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
     logging::normal(
@@ -216,7 +216,7 @@ void zonalRelay::actionTaken(index_t ActionNum,
         }
     }
     for (index_t kk = conditionNum + 1; kk < mZoneCount; ++kk) {
-        setConditionStatus(kk, condition_status_t::disabled);
+        setConditionStatus(kk, ConditionStatus::disabled);
     }
     mConditionLevel = std::min(conditionNum, mConditionLevel);
 }
@@ -246,7 +246,7 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
 {
     logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
-        if (getConditionStatus(kk) == condition_status_t::active) {
+        if (getConditionStatus(kk) == ConditionStatus::active) {
             mConditionLevel = kk + 1;
         } else {
             return;
@@ -276,7 +276,7 @@ void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<comm
             break;
         case commMessage::BREAKER_OOS_COMMAND:
             for (index_t kk = 0; kk < mZoneCount; ++kk) {
-                setConditionStatus(kk, condition_status_t::disabled);
+                setConditionStatus(kk, ConditionStatus::disabled);
             }
             break;
         default: {
@@ -338,3 +338,4 @@ std::string zonalRelay::generateAutoName(int code)
     return autoname;
 }
 }  // namespace griddyn::relays
+

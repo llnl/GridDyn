@@ -290,9 +290,9 @@ TEST_F(FmiTests, FmiXml1)
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     std::vector<double> v;
     gds->getVoltage(v);
     mmatch = residualCheck(gds, cDaeSolverMode);
@@ -307,7 +307,7 @@ TEST_F(FmiTests, FmiXml1)
     ASSERT_EQ(mmatch, 0);
 
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(FmiTests, FmiXml2)
@@ -327,9 +327,9 @@ TEST_F(FmiTests, FmiXml2)
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     std::vector<double> v;
     gds->getVoltage(v);
     mmatch = residualCheck(gds, cDaeSolverMode);
@@ -344,7 +344,7 @@ TEST_F(FmiTests, FmiXml2)
     ASSERT_EQ(mmatch, 0);
 
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(FmiTests, FmiXml3)
@@ -364,9 +364,9 @@ TEST_F(FmiTests, FmiXml3)
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     std::vector<double> v;
     gds->getVoltage(v);
     mmatch = residualCheck(gds, cDaeSolverMode);
@@ -381,7 +381,7 @@ TEST_F(FmiTests, FmiXml3)
     ASSERT_EQ(mmatch, 0);
 
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(FmiTests, FmiArray)
@@ -404,9 +404,9 @@ TEST_F(FmiTests, FmiArray)
     }
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     std::vector<double> v;
     gds->getVoltage(v);
 
@@ -417,3 +417,4 @@ TEST_F(FmiTests, FmiArray)
 }
 
 #endif
+

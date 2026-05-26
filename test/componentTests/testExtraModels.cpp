@@ -20,7 +20,7 @@ TEST_F(ExtraModelTests, TestThermaltxTxage)
 {
     std::string fileName = std::string(EXTRAMODEL_TEST_DIRECTORY "test_thermaltx_txage.xml");
     loadLibraries();
-    runTestXML(fileName, GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    runTestXML(fileName, GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     auto col = gds->findCollector("collector#0");
     ASSERT_NE(col, nullptr);
@@ -28,3 +28,4 @@ TEST_F(ExtraModelTests, TestThermaltxTxage)
 
     EXPECT_EQ(col->getWarningCount(), 0);
 }
+

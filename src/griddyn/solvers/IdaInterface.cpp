@@ -350,13 +350,13 @@ void idaInterface::setRootFinding(count_t numRoots)
 
 #define SHOW_MISSING_ELEMENTS 0
 
-int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bool constraints)
+int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
     ++icCount;
     assert(icCount < 200);
     if (initCondMode ==
-        ic_modes::fixed_masked_and_deriv)  // mainly for use upon startup from steady state
+        IcModes::fixed_masked_and_deriv)  // mainly for use upon startup from steady state
     {
         // do a series of steps to ensure the original algebraic states are fixed and the
         // derivatives are fixed
@@ -410,7 +410,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, ic_modes initCondMode, bo
         if (!flags[dense_flag]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
-    } else if (initCondMode == ic_modes::fixed_diff) {
+    } else if (initCondMode == IcModes::fixed_diff) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
 
         if (retval < 0) {
@@ -584,3 +584,4 @@ int idaJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

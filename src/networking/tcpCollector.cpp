@@ -39,7 +39,7 @@ void TcpCollector::cloneTo(collector* col) const
     tcpCollectorClone->port = port;
 }
 
-change_code TcpCollector::trigger(coreTime time)
+ChangeCode TcpCollector::trigger(coreTime time)
 {
     if (!connection) {
         connection = gmlc::networking::TcpConnection::create(
@@ -80,3 +80,4 @@ const std::string& TcpCollector::getSinkName() const
 }
 
 }  // namespace griddyn::tcpLib
+

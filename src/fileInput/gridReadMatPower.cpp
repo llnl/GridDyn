@@ -266,7 +266,7 @@ int loadGenArray(CoreObject* parentObject,
 /*
 see: http://www.pserc.cornell.edu/matpower/docs/ref/matpower5.0/idx_cost.html
 MODEL                   1 cost model, 1 = piecewise linear, 2 = polynomial
-gridState_t::STARTUP    2 startup cost in US dollars*
+GridState::STARTUP    2 startup cost in US dollars*
 SHUTDOWN                3 shutdown cost in US dollars*
 NCOST                   4 number of cost coefficients for polynomial cost function,
                           or number of data points for piecewise linear
@@ -420,3 +420,4 @@ void loadLinkArray(CoreObject* parentObject,
 // NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
 
 }  // namespace griddyn
+

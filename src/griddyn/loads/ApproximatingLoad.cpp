@@ -79,20 +79,20 @@ void ApproximatingLoad::pFlowObjectInitializeB()
 void ApproximatingLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     switch (dynCoupling) {
-        case coupling_mode_t::none:
+        case CouplingMode::none:
             opFlags.reset(preEx_requested);
             offsets.local().local.algRoots = 0;
             break;
-        case coupling_mode_t::interval:
+        case CouplingMode::interval:
             opFlags.reset(preEx_requested);
 
             break;
-        case coupling_mode_t::trigger:
+        case CouplingMode::trigger:
             opFlags.reset(preEx_requested);
             offsets.local().local.algRoots = 1;
             break;
 
-        case coupling_mode_t::full:
+        case CouplingMode::full:
             opFlags.set(preEx_requested);
             break;
     }
@@ -117,9 +117,9 @@ void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const solv
         subLoad->timestep(time, inputs, sMode);
     }
 
-    if (cDetail == coupling_detail_t::single) {
+    if (cDetail == CouplingDetail::single) {
         run1ApproxA(time, inputs);
-    } else if (cDetail == coupling_detail_t::VDep) {
+    } else if (cDetail == CouplingDetail::VDep) {
         run2ApproxA(time, inputs);
     } else {
         run3ApproxA(time, inputs);
@@ -143,9 +143,9 @@ void ApproximatingLoad::updateA(coreTime time)
         }
     }
 
-    if (cDetail == coupling_detail_t::single) {
+    if (cDetail == CouplingDetail::single) {
         run1ApproxA(time, inputs);
-    } else if (cDetail == coupling_detail_t::VDep) {
+    } else if (cDetail == CouplingDetail::VDep) {
         run2ApproxA(time, inputs);
     } else {
         run3ApproxA(time, inputs);
@@ -158,7 +158,7 @@ void ApproximatingLoad::updateA(coreTime time)
 coreTime ApproximatingLoad::updateB()
 {
     switch (cDetail) {
-        case coupling_detail_t::single: {
+        case CouplingDetail::single: {
             auto res = run1ApproxB();
             setP(res[0]);
             setQ(res[1]);
@@ -170,7 +170,7 @@ coreTime ApproximatingLoad::updateB()
             }
         } break;
 
-        case coupling_detail_t::VDep: {
+        case CouplingDetail::VDep: {
             auto LV = run2ApproxB();
             setP(LV[0]);
             setQ(LV[1]);
@@ -188,7 +188,7 @@ coreTime ApproximatingLoad::updateB()
             }
         } break;
 
-        case coupling_detail_t::triple: {
+        case CouplingDetail::triple: {
             auto LV = run3ApproxB();
             // printf("t=%f deltaP=%e deltaQ=%e deltaIr=%e deltaIq=%e deltaZr=%e deltaZq=%e\n",
             // prevTime, P - LV[0], Q
@@ -240,26 +240,26 @@ void ApproximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const s
     lastSeqID = sD.seqID;
     double V = inputs[voltageInLocation];
 
-    coupling_mode_t mode;
+    CouplingMode mode;
     if (!isDynamic(sMode)) {
         mode = pFlowCoupling;
     } else {
         mode = dynCoupling;
     }
-    if (mode == coupling_mode_t::full) {
-        if (cDetail == coupling_detail_t::single) {
+    if (mode == CouplingMode::full) {
+        if (cDetail == CouplingDetail::single) {
             run1ApproxA(sD.time, inputs);
-        } else if (cDetail == coupling_detail_t::VDep) {
+        } else if (cDetail == CouplingDetail::VDep) {
             run2ApproxA(sD.time, inputs);
         } else {
             run3ApproxA(sD.time, inputs);
         }
     } else {
-        if (cDetail == coupling_detail_t::single) {
+        if (cDetail == CouplingDetail::single) {
             if ((V > Vprev + 0.5 * spread) || (V < Vprev - 0.5 * spread)) {
                 run1ApproxA(sD.time, inputs);
             }
-        } else if (cDetail == coupling_detail_t::VDep) {
+        } else if (cDetail == CouplingDetail::VDep) {
             if ((V > Vprev + spread) || (V < Vprev - spread)) {
                 run2ApproxA(sD.time, inputs);
             }
@@ -492,36 +492,36 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
     if (param == "detail") {
         auto v2 = convertToLowerCase(val);
         if ((v2 == "triple") || (v2 == "high") || (v2 == "zip") || (v2 == "3")) {
-            cDetail = coupling_detail_t::triple;
+            cDetail = CouplingDetail::triple;
         } else if ((v2 == "lineartriple") || (v2 == "linear3")) {
-            cDetail = coupling_detail_t::triple;
+            cDetail = CouplingDetail::triple;
             opFlags.set(linearize_triple);
         } else if ((v2 == "single") || (v2 == "low") || (v2 == "constant") || (v2 == "1")) {
-            cDetail = coupling_detail_t::single;
+            cDetail = CouplingDetail::single;
         } else if ((v2 == "double") || (v2 == "vdep") || (v2 == "linear") || (v2 == "2")) {
-            cDetail = coupling_detail_t::VDep;
+            cDetail = CouplingDetail::VDep;
         }
     } else if ((param == "mode") || (param == "coupling") || (param == "dyncoupling")) {
         auto v2 = convertToLowerCase(val);
         if (v2 == "none") {
-            dynCoupling = coupling_mode_t::none;
+            dynCoupling = CouplingMode::none;
         } else if ((v2 == "interval") || (v2 == "periodic")) {
-            dynCoupling = coupling_mode_t::interval;
+            dynCoupling = CouplingMode::interval;
         } else if (v2 == "trigger") {
-            dynCoupling = coupling_mode_t::trigger;
+            dynCoupling = CouplingMode::trigger;
         } else if (v2 == "full") {
-            dynCoupling = coupling_mode_t::full;
+            dynCoupling = CouplingMode::full;
         }
     } else if ((param == "pflow") || (param == "pflowcoupling")) {
         auto v2 = convertToLowerCase(val);
         if (v2 == "none") {
-            pFlowCoupling = coupling_mode_t::none;
+            pFlowCoupling = CouplingMode::none;
         } else if ((v2 == "interval") || (v2 == "periodic")) {
-            pFlowCoupling = coupling_mode_t::interval;
+            pFlowCoupling = CouplingMode::interval;
         } else if (v2 == "trigger") {
-            pFlowCoupling = coupling_mode_t::trigger;
+            pFlowCoupling = CouplingMode::trigger;
         } else if (v2 == "full") {
-            pFlowCoupling = coupling_mode_t::full;
+            pFlowCoupling = CouplingMode::full;
         }
     } else {
         ZipLoad::set(param, val);
@@ -543,14 +543,14 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
         m_mult = val;
     } else if (param == "detail") {
         if (val <= 1.5) {
-            cDetail = coupling_detail_t::single;
+            cDetail = CouplingDetail::single;
         } else if (val < 2.25) {
-            cDetail = coupling_detail_t::VDep;
+            cDetail = CouplingDetail::VDep;
         } else if (val < 2.75) {
-            cDetail = coupling_detail_t::triple;
+            cDetail = CouplingDetail::triple;
             opFlags.set(linearize_triple);
         } else if (val >= 2.75) {
-            cDetail = coupling_detail_t::triple;
+            cDetail = CouplingDetail::triple;
         }
     } else if ((param == "dual") || (param == "dualmode")) {
         opFlags.set(dual_mode_flag, (val > 0.0));
@@ -587,18 +587,19 @@ void ApproximatingLoad::rootTrigger(coreTime time,
     }
 }
 
-change_code ApproximatingLoad::rootCheck(const IOdata& inputs,
+ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
                                          const stateData& sD,
                                          const solverMode& /*sMode*/,
-                                         check_level_t /*level*/)
+                                         CheckLevel /*level*/)
 {
     double V = inputs[voltageInLocation];
     if (std::abs(V - Vprev) > spread * triggerBound) {
         updateA((sD.empty()) ? (sD.time) : prevTime);
         updateB();
-        return change_code::parameter_change;
+        return ChangeCode::parameter_change;
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 }  // namespace griddyn::loads
+

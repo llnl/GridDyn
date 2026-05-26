@@ -776,25 +776,25 @@ double AcLine::getAngle(const double state[], const solverMode& sMode) const
     return t1 - t2 - tapAngle;
 }
 
-change_code
-    AcLine::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, check_level_t level)
+ChangeCode
+    AcLine::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, CheckLevel level)
 {
-    if ((level == check_level_t::high_angle_trip) && (isConnected())) {
+    if ((level == CheckLevel::high_angle_trip) && (isConnected())) {
         if (std::abs(linkInfo.theta1) > kPI / 2.0 + 0.01) {
             disconnect();
-            return change_code::jacobian_change;
+            return ChangeCode::jacobian_change;
         }
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
-change_code AcLine::rootCheck(const IOdata& /*inputs*/,
+ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
                               const stateData& sD,
                               const solverMode& sMode,
-                              check_level_t level)
+                              CheckLevel level)
 {
-    auto ret = change_code::no_change;
-    if (level == check_level_t::complete_state_check) {
+    auto ret = ChangeCode::no_change;
+    if (level == CheckLevel::complete_state_check) {
         updateLocalCache(noInputs, sD, sMode);
         if (std::abs(linkInfo.theta1) > maxAngle) {
             logging::warning(this, "max angle 1 exceeded");
@@ -1609,26 +1609,27 @@ void AcLine::swOpenDeriv()
 void AcLine::loadApproxFunctions()
 {
     // load up the member function pointer array to point to the correct function
-    flowCalc[indexVal(approxKeyMask::none)] = &AcLine::fullCalc;
-    flowCalc[indexVal(approxKeyMask::decoupled)] = &AcLine::decoupledCalc;
-    flowCalc[indexVal(approxKeyMask::sm_angle)] = &AcLine::smallAngleCalc;
-    flowCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::simplified)] = &AcLine::simplifiedCalc;
-    flowCalc[indexVal(approxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedCalc;
-    flowCalc[indexVal(approxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledCalc;
-    flowCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearCalc;
+    flowCalc[indexVal(ApproxKeyMask::none)] = &AcLine::fullCalc;
+    flowCalc[indexVal(ApproxKeyMask::decoupled)] = &AcLine::decoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::sm_angle)] = &AcLine::smallAngleCalc;
+    flowCalc[indexVal(ApproxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::simplified)] = &AcLine::simplifiedCalc;
+    flowCalc[indexVal(ApproxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedCalc;
+    flowCalc[indexVal(ApproxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::linear)] = &AcLine::linearCalc;
 
-    derivCalc[indexVal(approxKeyMask::none)] = &AcLine::fullDeriv;
-    derivCalc[indexVal(approxKeyMask::decoupled)] = &AcLine::decoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::sm_angle)] = &AcLine::smallAngleDeriv;
-    derivCalc[indexVal(approxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified)] = &AcLine::simplifiedDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedDeriv;
-    derivCalc[indexVal(approxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledDeriv;
-    derivCalc[indexVal(approxKeyMask::linear)] = &AcLine::linearDeriv;
+    derivCalc[indexVal(ApproxKeyMask::none)] = &AcLine::fullDeriv;
+    derivCalc[indexVal(ApproxKeyMask::decoupled)] = &AcLine::decoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::sm_angle)] = &AcLine::smallAngleDeriv;
+    derivCalc[indexVal(ApproxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::simplified)] = &AcLine::simplifiedDeriv;
+    derivCalc[indexVal(ApproxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedDeriv;
+    derivCalc[indexVal(ApproxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::linear)] = &AcLine::linearDeriv;
 }
 
 // NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn
+

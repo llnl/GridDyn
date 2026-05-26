@@ -13,7 +13,7 @@
 #include <list>
 #include <map>
 
-enum BDF_STRAT {
+enum BdfStrat {
     nobdf,
     usual,
     usual_c,
@@ -49,7 +49,7 @@ typedef struct _braid_App_struct {
     int nb_multisteps;
     int size_x; /*!< Size of the problem */
     int size_state;
-    BDF_STRAT bdf_strat;
+    BdfStrat bdf_strat;
     // bool do_bdf_uniform;
     // bool do_lowerorder; /*!< Do we lower the order of BDF method ? */
     int lowered_by_level; /*!< Lowered by how much each level ? */
@@ -120,3 +120,4 @@ int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferS
 int my_TimeGrid(braid_App app, braid_Real* ta, braid_Int* ilower, braid_Int* iupper);
 
 }  // namespace griddyn::braid
+

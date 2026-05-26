@@ -34,7 +34,7 @@ ZmqReactor::ZmqReactor(const std::string& reactorName, const std::string& contex
     contextManager = ZmqContextManager::getContextPointer(context);
     notifier =
         std::make_unique<zmq::socket_t>(ZmqContextManager::getContext(contextManager->getName()),
-                                        zmq::socket_type::pair);
+                                        zmq::SocketType::pair);
     const std::string constring = "inproc://reactor_" + name;
     notifier->bind(constring.c_str());
 
@@ -154,7 +154,7 @@ void ZmqReactor::reactorLoop()
     unsigned int messageCode = 0;
 
     sockets.emplace_back(ZmqContextManager::getContext(contextManager->getName()),
-                         zmq::socket_type::pair);
+                         zmq::SocketType::pair);
     sockets[0].connect(std::string("inproc://reactor_" + name).c_str());
 
     std::vector<zmq_pollitem_t> socketPolls;
@@ -242,3 +242,4 @@ REACTOR_HALT:
 }
 
 }  // namespace zmqlib
+

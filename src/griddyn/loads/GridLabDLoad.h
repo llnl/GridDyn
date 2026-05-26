@@ -60,10 +60,10 @@ namespace loads {
                                  const IOdata& inputs,
                                  const std::vector<int>& rootMask,
                                  const solverMode& sMode) override;
-        virtual change_code rootCheck(const IOdata& inputs,
+        virtual ChangeCode rootCheck(const IOdata& inputs,
                                       const stateData& sD,
                                       const solverMode& sMode,
-                                      check_level_t level) override;
+                                      CheckLevel level) override;
         /** @brief return a count of the number of MPI objects the load requires*/
         int mpiCount() const;
         virtual void updateLocalCache(const IOdata& inputs,
@@ -73,8 +73,8 @@ namespace loads {
       private:
         // double abstime;
         double m_mult = 1.0;  //!< a load multiplier
-        enum class coupling_mode_t { none, interval, trigger, full };
-        enum class coupling_detail_t { single, VDep, triple };
+        enum class CouplingMode { none, interval, trigger, full };
+        enum class CouplingDetail { single, VDep, triple };
         double spread = 0.01;  //!< the voltage spread to use when calculating the parameters
         double Vprev = 0.0;  //!< storage for recent voltage call
         double Thprev = 0.0;  //!< storage for recent phase call (phase is not really used yet)
@@ -94,7 +94,7 @@ namespace loads {
 
         std::vector<int> task_id;  //!< the taskid of the remote task
         std::vector<int> forward_task_id;  //!< task id of the forward task
-        enum gridlabd_flags {
+        enum GridlabdFlags {
             file_sent_flag = object_flag6,
             uses_bounds_flag = object_flag7,
             waiting_flag = object_flag8,
@@ -102,9 +102,9 @@ namespace loads {
             linearize_triple = object_flag10,
         };
 
-        coupling_mode_t pFlowCoupling = coupling_mode_t::trigger;  //!< the coupling pflow mode
-        coupling_mode_t dynCoupling = coupling_mode_t::trigger;  //!< the coupling dynamic mode
-        coupling_detail_t cDetail = coupling_detail_t::triple;  //!< the detail of the check
+        CouplingMode pFlowCoupling = CouplingMode::trigger;  //!< the coupling pflow mode
+        CouplingMode dynCoupling = CouplingMode::trigger;  //!< the coupling dynamic mode
+        CouplingDetail cDetail = CouplingDetail::triple;  //!< the detail of the check
         index_t lastSeqID = kNullLocation;
         std::vector<std::unique_ptr<GridLoad>>
             dummy_load;  //!< a dummy load for testing without MPI
@@ -117,3 +117,4 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
+

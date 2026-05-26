@@ -74,7 +74,7 @@ void gridPrimary::converge(coreTime /*time*/,
                            double /*state*/[],
                            double /*dstate_dt*/[],
                            const solverMode& /*sMode*/,
-                           converge_mode /*mode*/,
+                           ConvergeMode /*mode*/,
                            double /*tol*/)
 {
 }

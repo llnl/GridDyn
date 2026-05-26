@@ -50,12 +50,12 @@ void ZmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
                 sock.disconnect(operationEntry.second);
                 break;
             case SocketOperation::SUBSCRIBE:
-                if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
+                if ((type == zmq::SocketType::pub) || (type == zmq::SocketType::sub)) {
                     sock.setsockopt(ZMQ_SUBSCRIBE, operationEntry.second);
                 }
                 break;
             case SocketOperation::UNSUBSCRIBE:
-                if ((type == zmq::socket_type::pub) || (type == zmq::socket_type::sub)) {
+                if ((type == zmq::SocketType::pub) || (type == zmq::SocketType::sub)) {
                     sock.setsockopt(ZMQ_UNSUBSCRIBE, operationEntry.second);
                 }
                 break;
@@ -66,3 +66,4 @@ void ZmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 }
 
 }  // namespace zmqlib
+

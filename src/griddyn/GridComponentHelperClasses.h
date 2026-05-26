@@ -20,7 +20,7 @@ constexpr static std::uint64_t flagMask = 0x3FE;  //!< general flag mask for con
 /** @brief  an enumeration of flags in the opFlags bitset for GridComponent
 @details flags are intended to be default off hence the various names in certain circumstances
  */
-enum operation_flags {
+enum OperationFlags {
     // indicator flags 0 -15 are general indicators flags which default false
 
     // typically cascading flags
@@ -136,13 +136,13 @@ enum operation_flags {
 
 };
 /** alternate names for some of the flags*/
-enum operation_flag_overloads {
+enum OperationFlagOverloads {
     sampled_only = no_dynamics,
 };
 
 /** @brief enumeration of possible convergence modes
  */
-enum class converge_mode {
+enum class ConvergeMode {
     single_iteration,  //!< a single iteration loop
     voltage_only,  //!< only iterate on the voltage
     high_error_only,  //!< only iterate on high error states
@@ -156,7 +156,7 @@ enum class converge_mode {
 // for the controlFlags bitset used for initialization and powerFlowAdjustments
 
 /** @brief control flag locations for initialization functions */
-enum init_control_flags {
+enum InitControlFlags {
     constraints_disabled = 0,  //!< disable all constraints
     roots_disabled = 1,  //!< disable all roots
     unused_control_flag1 = 2,  //!< currently unused
@@ -249,7 +249,7 @@ inline bool anyChangeFlags(std::bitset<64> flags)
 
 /** @brief define the reset levels
  */
-enum class reset_levels {
+enum class ResetLevels {
     // Normal reset levels
     minimal = 0,  //!< a minimal reset
     voltage = 1,  //!< reset the voltage levels
@@ -263,7 +263,7 @@ enum class reset_levels {
     low_voltage_dyn0 = -12,  //!< reset low voltage levels on dynamic simulation mode 0
 };
 
-enum class check_level_t {
+enum class CheckLevel {
     reversable_only = 0,
     full_check = 1,
     low_voltage_check = 3,  //!< check for low voltages

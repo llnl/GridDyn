@@ -183,20 +183,20 @@ void ExciterIEEEtype1::rootTest(const IOdata& inputs,
     }
 }
 
-change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
+ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
                                         const stateData& /*sD*/,
                                         const solverMode& /*sMode*/,
-                                        check_level_t /*level*/)
+                                        CheckLevel /*level*/)
 {
     const double* es = m_state.data();
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::no_change;
     if (opFlags[outside_vlim]) {
         double test =
             es[2] - es[0] * Kf / Tf + (Vref + vBias - inputs[voltageInLocation]) - es[1] / Ka;
 
         if (opFlags[etrigger_high]) {
             if (test < -0.001 * es[1] / Ka / Ta) {
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::jacobian_change;
 
                 logging::debug(this, "root change V={}", inputs[voltageInLocation]);
                 opFlags.reset(outside_vlim);
@@ -206,7 +206,7 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
         } else {
             if (test > -0.001 * es[1] / Ka / Ta) {
                 logging::debug(this, "root change V={}", inputs[voltageInLocation]);
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::jacobian_change;
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
             }
@@ -218,7 +218,7 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             opFlags.set(outside_vlim);
             m_state[1] = Vrmax;
             m_dstate_dt[1] = 0.0;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::jacobian_change;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
             logging::debug(this, "root toggle V={}", inputs[voltageInLocation]);
@@ -227,7 +227,7 @@ change_code ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             opFlags.set(outside_vlim);
             m_state[1] = Vrmin;
             m_dstate_dt[1] = 0.0;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::jacobian_change;
             alert(this, JAC_COUNT_DECREASE);
         }
     }
@@ -278,3 +278,4 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
 }
 
 }  // namespace griddyn::exciters
+

@@ -149,7 +149,7 @@ RCODE BackwardDiff::AdvanceStep(DATA_Struct& val, int iter_ref)
         }
         success_solver = true;
     }
-    catch (NWT_error e) {
+    catch (NwtError e) {
         if (e == NEWTON_NOT_CONVERGED)
             cerr << "Newton did not converge at time t=" << tn
                  << ". Trying LineSearch keeping current solution" << endl;
@@ -579,3 +579,4 @@ void Solver_App_BDF::EvaluateFunAndJac(const Vector& x,
     // update_jacobian=true;
 }
 }  // namespace griddyn::paradae
+

@@ -176,10 +176,10 @@ class sensor: public Relay {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
                                 std::shared_ptr<commMessage> message) override;
@@ -208,3 +208,4 @@ class sensor: public Relay {
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;
 };
 }  // namespace griddyn
+

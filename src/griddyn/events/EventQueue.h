@@ -112,19 +112,19 @@ class eventQueue {
   @param[in] cTime the current Time
   @return code describing the effect of the executed events
   */
-    virtual change_code executeEvents(coreTime cTime);
+    virtual ChangeCode executeEvents(coreTime cTime);
 
     /** @brief Execute the first part of the events only
   @param[in] cTime the current Time
   @return code describing the effect of the executed events
   */
-    virtual change_code executeEventsAonly(coreTime cTime);
+    virtual ChangeCode executeEventsAonly(coreTime cTime);
 
     /** @brief Execute second portion of any events where the A portion (could be skipped) was
   executed by a call to execute A Events only
   @return code describing the effect of the executed events
   */
-    virtual change_code executeEventsBonly();
+    virtual ChangeCode executeEventsBonly();
 
     virtual count_t size() const;
     /** @brief sort the event Queue by time */
@@ -169,3 +169,4 @@ class eventQueue {
 };
 
 }  // namespace griddyn
+

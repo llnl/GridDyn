@@ -129,7 +129,7 @@ CoreObject* subsystem::findByUserID(std::string_view typeName, index_t searchID)
 }
 
 // reset the bus parameters
-void subsystem::reset(reset_levels level)
+void subsystem::reset(ResetLevels level)
 {
     subarea.reset(level);
 }
@@ -157,8 +157,8 @@ void subsystem::updateLocalCache(const IOdata& inputs,
     subarea.updateLocalCache(inputs, stateData, sMode);
 }
 
-change_code
-    subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
+ChangeCode
+    subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     return subarea.powerFlowAdjust(inputs, flags, level);
 }
@@ -177,7 +177,7 @@ void subsystem::converge(coreTime time,
                          double state[],
                          double dstate_dt[],
                          const solverMode& sMode,
-                         converge_mode mode,
+                         ConvergeMode mode,
                          double tol)
 {
     subarea.converge(time, state, dstate_dt, sMode, mode, tol);
@@ -627,3 +627,4 @@ IOdata subsystem::getOutputs(id_type_t busId,
 }
 
 }  // namespace griddyn
+

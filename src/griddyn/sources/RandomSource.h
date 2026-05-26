@@ -18,7 +18,7 @@ namespace griddyn::sources {
 class randomSource: public rampSource {
   public:
     /** random source flags*/
-    enum random_source_flags {
+    enum RandomSourceFlags {
         interpolate_flag = object_flag5,  //!< indicator that the output should be interpolated
         proportional_flag = object_flag6,  //!< indicator that the random change is proportional
                                            //!< to the current value
@@ -53,7 +53,7 @@ class randomSource: public rampSource {
 
     /** check if the random number generation has been triggered*/
     bool isTriggered() { return opFlags[triggered_flag]; }
-    virtual void reset(reset_levels level = reset_levels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -77,3 +77,4 @@ class randomSource: public rampSource {
     double computeBiasAdjust();
 };
 }  // namespace griddyn::sources
+

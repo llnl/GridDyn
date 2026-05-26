@@ -100,13 +100,13 @@ void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     setActionTrigger(0, 0, mVoltageDelay);
     if ((mCutoutVoltage > 2.0) || (mCutoutVoltage <= 0)) {
-        setConditionStatus(0, condition_status_t::disabled);
+        setConditionStatus(0, ConditionStatus::disabled);
     }
     add(std::shared_ptr<Condition>(
         make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
     setActionTrigger(0, 1, mFrequencyDelay);
     if ((mCutoutFrequency > 2.0) || (mCutoutFrequency <= 0)) {
-        setConditionStatus(1, condition_status_t::disabled);
+        setConditionStatus(1, ConditionStatus::disabled);
     }
 
     Relay::pFlowObjectInitializeA(time0, flags);
@@ -114,7 +114,7 @@ void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void busRelay::actionTaken(index_t /*actionNum*/,
                            index_t conditionNum,
-                           change_code /*actionReturn*/,
+                           ChangeCode /*actionReturn*/,
                            coreTime /*actionTime*/)
 {
     if (conditionNum == 0) {
@@ -124,3 +124,4 @@ void busRelay::actionTaken(index_t /*actionNum*/,
     }
 }
 }  // namespace griddyn::relays
+

@@ -21,7 +21,7 @@ namespace griddyn::comms {
 class controlMessagePayload: public CommPayload {
   public:
     /** the enumeration of the message types available in control messages*/
-    enum control_message_t : std::uint32_t {
+    enum ControlMessageType : std::uint32_t {
         SET = BASE_CONTROL_MESSAGE_NUMBER + 3,  //!< set a single value
         GET = BASE_CONTROL_MESSAGE_NUMBER + 4,  //!< request a single value
         GET_MULTIPLE = BASE_CONTROL_MESSAGE_NUMBER + 5,  //!< request multiple values
@@ -86,3 +86,4 @@ class controlMessagePayload: public CommPayload {
 }  // namespace griddyn::comms
 
 CEREAL_REGISTER_TYPE(griddyn::comms::controlMessagePayload)
+

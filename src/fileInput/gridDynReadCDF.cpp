@@ -347,7 +347,7 @@ static void cdfReadBusLine(GridBus* bus,
         if (reactivePower != 0) {
             gen->set("qmin", reactivePower / base);
         }
-    } else if (bus->getType() != GridBus::busType::PQ) {
+    } else if (bus->getType() != GridBus::BusType::PQ) {
         temp = line.substr(90, 7);
         realPower = gmlc::utilities::numConv<double>(
             gmlc::utilities::string_viewOps::trim(std::string_view{line}.substr(90, 7)));

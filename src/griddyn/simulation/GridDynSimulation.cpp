@@ -246,8 +246,8 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 // check to make sure the bus can actually work
                 if (bus->checkCapable()) {
                     bus->Network = 0;
-                    const auto busType = bus->getType();
-                    if ((busType == GridBus::busType::SLK) || (busType == GridBus::busType::afix)) {
+                    const auto BusType = bus->getType();
+                    if ((BusType == GridBus::BusType::SLK) || (BusType == GridBus::BusType::afix)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -285,7 +285,7 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
         bool afixFound = false;
         for (auto& slackBus : slkBusses) {
             if (slackBus->Network == nn) {
-                if (slackBus->getType() == GridBus::busType::SLK) {
+                if (slackBus->getType() == GridBus::BusType::SLK) {
                     slackFound = true;
                     break;
                 }
@@ -295,13 +295,13 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
         if (!slackFound) {
             for (auto& networkBus : bnetwork) {
                 if (networkBus->Network == nn) {
-                    if (networkBus->getType() == GridBus::busType::SLK) {
+                    if (networkBus->getType() == GridBus::BusType::SLK) {
                         slackFound = true;
                         break;
                     }
-                    if (networkBus->getType() == GridBus::busType::PV) {
+                    if (networkBus->getType() == GridBus::BusType::PV) {
                         pvFound = true;
-                    } else if (networkBus->getType() == GridBus::busType::afix) {
+                    } else if (networkBus->getType() == GridBus::BusType::afix) {
                         afixFound = true;
                     }
                     if (afixFound && pvFound) {
@@ -340,7 +340,7 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 double maxcap = 0.0;
                 for (auto& networkBus : bnetwork) {
                     if (networkBus->Network == nn) {
-                        if (networkBus->getType() == GridBus::busType::PV) {
+                        if (networkBus->getType() == GridBus::BusType::PV) {
                             const double cap = networkBus->getAdjustableCapacityUp();
                             if (cap > maxcap) {
                                 maxcap = cap;
@@ -398,14 +398,14 @@ double GridDynSimulation::getState(index_t offset, const solverMode& sMode) cons
     double ret = kNullVal;
     if (isLocal(sMode)) {
         switch (pState) {
-            case gridState_t::POWERFLOW_COMPLETE:
-            case gridState_t::INITIALIZED:
+            case GridState::POWERFLOW_COMPLETE:
+            case GridState::INITIALIZED:
                 nMode = *defPowerFlowMode;
                 break;
-            case gridState_t::DYNAMIC_INITIALIZED:
-            case gridState_t::DYNAMIC_COMPLETE:
-            case gridState_t::DYNAMIC_PARTIAL:
-                if (defaultDynamicSolverMethod == dynamic_solver_methods::dae) {
+            case GridState::DYNAMIC_INITIALIZED:
+            case GridState::DYNAMIC_COMPLETE:
+            case GridState::DYNAMIC_PARTIAL:
+                if (defaultDynamicSolverMethod == DynamicSolverMethods::dae) {
                     nMode = *defDAEMode;
                 } else {
                     nMode = *defDynAlgMode;
@@ -433,14 +433,14 @@ std::vector<double> GridDynSimulation::getState(const solverMode& sMode) const
     solverMode nMode = sMode;
     if (isLocal(sMode)) {
         switch (pState) {
-            case gridState_t::POWERFLOW_COMPLETE:
-            case gridState_t::INITIALIZED:
+            case GridState::POWERFLOW_COMPLETE:
+            case GridState::INITIALIZED:
                 nMode = *defPowerFlowMode;
                 break;
-            case gridState_t::DYNAMIC_INITIALIZED:
-            case gridState_t::DYNAMIC_COMPLETE:
-            case gridState_t::DYNAMIC_PARTIAL:
-                if (defaultDynamicSolverMethod == dynamic_solver_methods::dae) {
+            case GridState::DYNAMIC_INITIALIZED:
+            case GridState::DYNAMIC_COMPLETE:
+            case GridState::DYNAMIC_PARTIAL:
+                if (defaultDynamicSolverMethod == DynamicSolverMethods::dae) {
                     nMode = *defDAEMode;
                 } else {
                     nMode = *defDynAlgMode;
@@ -473,16 +473,16 @@ grouped with the angle coming first differential_first = 5, //!< differential an
 with differential first
 */
 
-void GridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering offsetOrdering)
+void GridDynSimulation::setupOffsets(const solverMode& sMode, OffsetOrdering offsetOrdering)
 {
     solverOffsets offsetValues;
     switch (offsetOrdering) {
-        case offset_ordering::mixed:
+        case OffsetOrdering::mixed:
         default:
             offsetValues.algOffset = 0;
             break;
-        case offset_ordering::grouped:
-        case offset_ordering::voltage_first:
+        case OffsetOrdering::grouped:
+        case OffsetOrdering::voltage_first:
             offsetValues.vOffset = 0;
             offsetValues.aOffset = voltageStateCount(sMode);
             offsetValues.algOffset = offsetValues.aOffset + angleStateCount(sMode);
@@ -490,13 +490,13 @@ void GridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering of
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case offset_ordering::algebraic_grouped:
+        case OffsetOrdering::algebraic_grouped:
             offsetValues.algOffset = 0;
             if (hasDifferential(sMode)) {
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case offset_ordering::angle_first:
+        case OffsetOrdering::angle_first:
             offsetValues.aOffset = 0;
             offsetValues.vOffset = angleStateCount(sMode);
             offsetValues.algOffset = offsetValues.aOffset + voltageStateCount(sMode);
@@ -504,7 +504,7 @@ void GridDynSimulation::setupOffsets(const solverMode& sMode, offset_ordering of
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case offset_ordering::differential_first:
+        case OffsetOrdering::differential_first:
             offsetValues.diffOffset = 0;
             offsetValues.algOffset = diffSize(sMode);
             break;
@@ -522,7 +522,7 @@ int GridDynSimulation::run(coreTime tEnd)
         tEnd = stopTime;
     }
     gridDynAction gda;
-    gda.command = gridDynAction::gd_action_t::run;
+    gda.command = gridDynAction::GdAction::run;
     gda.val_double = tEnd;
     return execute(gda);
 }
@@ -548,10 +548,10 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 {
     int out = FUNCTION_EXECUTION_SUCCESS;
     switch (cmd.command) {
-        case gridDynAction::gd_action_t::ignore:
+        case gridDynAction::GdAction::ignore:
         default:
             break;
-        case gridDynAction::gd_action_t::set: {
+        case gridDynAction::GdAction::set: {
             ObjectInfo objectInfo(cmd.string1, this);
             if (cmd.val_double == kNullVal) {
                 objectInfo.mObject->set(objectInfo.mField, cmd.string2);
@@ -559,18 +559,18 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 objectInfo.mObject->set(objectInfo.mField, cmd.val_double, objectInfo.mUnitType);
             }
         } break;
-        case gridDynAction::gd_action_t::setall:
+        case gridDynAction::GdAction::setall:
             setAll(cmd.string1, cmd.string2, cmd.val_double);
             break;
-        case gridDynAction::gd_action_t::setsolver:
+        case gridDynAction::GdAction::setsolver:
             solverSet(cmd.string1, cmd.string2, cmd.val_double);
             break;
-        case gridDynAction::gd_action_t::print:
+        case gridDynAction::GdAction::print:
             break;
-        case gridDynAction::gd_action_t::powerflow:
+        case gridDynAction::GdAction::powerflow:
             out = powerflow();
             break;
-        case gridDynAction::gd_action_t::check:
+        case gridDynAction::GdAction::check:
             if (cmd.string1 == "powerflow") {
                 std::vector<Violation> violations;
                 pFlowCheck(violations);
@@ -593,7 +593,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
             break;
-        case gridDynAction::gd_action_t::contingency: {
+        case gridDynAction::GdAction::contingency: {
             auto info = emptyExtraInfo;
 
             if (cmd.flag == 1) {
@@ -609,20 +609,20 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         }
 
         break;
-        case gridDynAction::gd_action_t::continuation:
+        case gridDynAction::GdAction::continuation:
             out = FUNCTION_EXECUTION_FAILURE;
             break;
-        case gridDynAction::gd_action_t::initialize: {
+        case gridDynAction::GdAction::initialize: {
             const coreTime startTimeValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : startTime;
 
-            if (pState == gridState_t::STARTUP) {
+            if (pState == GridState::STARTUP) {
                 out = pFlowInitialize(startTimeValue);
                 if (out == 1) {
                     logging::error(this, "unable to initialize powerflow");
                     out = FUNCTION_EXECUTION_FAILURE;
                 }
-            } else if (pState == gridState_t::POWERFLOW_COMPLETE) {
+            } else if (pState == GridState::POWERFLOW_COMPLETE) {
                 out = dynInitialize(startTimeValue);
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     logging::error(this, "unable to complete dynamic power initialization");
@@ -630,14 +630,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
         } break;
-        case gridDynAction::gd_action_t::iterate: {
+        case gridDynAction::GdAction::iterate: {
             const coreTime timeStepValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
             const coreTime endTimeValue =
                 (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
             out = eventDrivenPowerflow(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::gd_action_t::eventmode: {
+        case gridDynAction::GdAction::eventmode: {
             const coreTime endTimeValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
             if (cmd.val_double2 != kNullVal) {
@@ -649,10 +649,10 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         }
 
         break;
-        case gridDynAction::gd_action_t::dynamicDAE: {
+        case gridDynAction::GdAction::dynamicDAE: {
             const coreTime endTimeValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
-            if (pState < gridState_t::DYNAMIC_INITIALIZED) {
+            if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
@@ -665,12 +665,12 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = dynamicDAE(endTimeValue);
         } break;
-        case gridDynAction::gd_action_t::dynamicPart: {
+        case gridDynAction::GdAction::dynamicPart: {
             const double endTimeValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
                 (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
-            if (pState < gridState_t::DYNAMIC_INITIALIZED) {
+            if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
@@ -683,12 +683,12 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = dynamicPartitioned(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::gd_action_t::dynamicDecoupled: {
+        case gridDynAction::GdAction::dynamicDecoupled: {
             const double endTimeValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
                 (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
-            if (pState < gridState_t::DYNAMIC_INITIALIZED) {
+            if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
@@ -697,12 +697,12 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 
             out = dynamicDecoupled(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::gd_action_t::step: {
+        case gridDynAction::GdAction::step: {
             const coreTime timeStepValue =
                 (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
             coreTime timeActual =
                 (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
-            if (pState < gridState_t::DYNAMIC_INITIALIZED) {
+            if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
                     return out;
@@ -715,14 +715,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = step(timeStepValue, timeActual);
         } break;
-        case gridDynAction::gd_action_t::run:
+        case gridDynAction::GdAction::run:
             if (actionQueue.empty()) {
                 const coreTime endTimeValue =
                     (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
                 if (controlFlags[power_flow_only]) {
                     out = powerflow();
                 } else {
-                    if (pState < gridState_t::DYNAMIC_INITIALIZED) {
+                    if (pState < GridState::DYNAMIC_INITIALIZED) {
                         out = dynInitialize(currentTime);
                         if (out != FUNCTION_EXECUTION_SUCCESS) {
                             return out;
@@ -731,14 +731,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 
                     if (hasDynamics()) {
                         switch (defaultDynamicSolverMethod) {
-                            case dynamic_solver_methods::dae:
+                            case DynamicSolverMethods::dae:
                             default:
                                 out = dynamicDAE(endTimeValue);
                                 break;
-                            case dynamic_solver_methods::partitioned:
+                            case DynamicSolverMethods::partitioned:
                                 out = dynamicPartitioned(endTimeValue, stepTime);
                                 break;
-                            case dynamic_solver_methods::decoupled:
+                            case DynamicSolverMethods::decoupled:
                                 out = dynamicDecoupled(endTimeValue, stepTime);
                                 break;
                         }
@@ -762,14 +762,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
             break;
-        case gridDynAction::gd_action_t::reset:
+        case gridDynAction::GdAction::reset:
             if (cmd.val_int1 >= 0) {
-                reset(static_cast<reset_levels>(cmd.val_int1));
+                reset(static_cast<ResetLevels>(cmd.val_int1));
             } else {
-                reset(reset_levels::minimal);
+                reset(ResetLevels::minimal);
             }
             break;
-        case gridDynAction::gd_action_t::save:
+        case gridDynAction::GdAction::save:
             if (cmd.string1 == "recorder") {
                 saveRecorders();
             } else if (cmd.string1 == "state") {
@@ -783,13 +783,13 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             } else if ((cmd.string1 == "voltage") || (cmd.string1 == "jacstate")) {
             }
             break;
-        case gridDynAction::gd_action_t::load:
+        case gridDynAction::GdAction::load:
             if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
             }
             break;
-        case gridDynAction::gd_action_t::add:
-        case gridDynAction::gd_action_t::rollback:
-        case gridDynAction::gd_action_t::checkpoint:
+        case gridDynAction::GdAction::add:
+        case gridDynAction::GdAction::rollback:
+        case gridDynAction::GdAction::checkpoint:
             break;
     }
     return out;
@@ -817,13 +817,13 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
         powerFlowInputFile = val;
         controlFlags.set(save_power_flow_input_data);
     } else if (param == "defpowerflow") {
-        setDefaultMode(solution_modes_t::powerflow_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::powerflow_mode, getSolverMode(std::string{val}));
     } else if (param == "defdae") {
-        setDefaultMode(solution_modes_t::dae_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::dae_mode, getSolverMode(std::string{val}));
     } else if (param == "defdynalg") {
-        setDefaultMode(solution_modes_t::algebraic_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::algebraic_mode, getSolverMode(std::string{val}));
     } else if (param == "defdyndiff") {
-        setDefaultMode(solution_modes_t::differential_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::differential_mode, getSolverMode(std::string{val}));
     } else if (param == "action") {
         auto actions = gmlc::utilities::stringOps::splitline(val, ';');
         gmlc::utilities::stringOps::trim(actions);
@@ -833,28 +833,28 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "ordering") {
         auto order = gmlc::utilities::convertToLowerCase(val);
         if (order == "mixed") {
-            default_ordering = offset_ordering::mixed;
+            default_ordering = OffsetOrdering::mixed;
         } else if (order == "grouped") {
-            default_ordering = offset_ordering::grouped;
+            default_ordering = OffsetOrdering::grouped;
         } else if (order == "algebraic_grouped") {
-            default_ordering = offset_ordering::algebraic_grouped;
+            default_ordering = OffsetOrdering::algebraic_grouped;
         } else if (order == "voltage_first") {
-            default_ordering = offset_ordering::voltage_first;
+            default_ordering = OffsetOrdering::voltage_first;
         } else if (order == "angle_first") {
-            default_ordering = offset_ordering::angle_first;
+            default_ordering = OffsetOrdering::angle_first;
         } else if (order == "differential_first") {
-            default_ordering = offset_ordering::differential_first;
+            default_ordering = OffsetOrdering::differential_first;
         } else {
             throw(InvalidParameterValue(val));
         }
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
         if (method == "dae") {
-            defaultDynamicSolverMethod = dynamic_solver_methods::dae;
+            defaultDynamicSolverMethod = DynamicSolverMethods::dae;
         } else if (method == "partitioned") {
-            defaultDynamicSolverMethod = dynamic_solver_methods::partitioned;
+            defaultDynamicSolverMethod = DynamicSolverMethods::partitioned;
         } else if (method == "decoupled") {
-            defaultDynamicSolverMethod = dynamic_solver_methods::decoupled;
+            defaultDynamicSolverMethod = DynamicSolverMethods::decoupled;
         } else {
             throw(InvalidParameterValue(val));
         }
@@ -874,7 +874,7 @@ std::string GridDynSimulation::getString(std::string_view param) const
     return GridSimulation::getString(param);
 }
 
-void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& sMode)
+void GridDynSimulation::setDefaultMode(SolutionModes mode, const solverMode& sMode)
 {
     auto solverData = getSolverInterface(sMode);
     if (!solverData) {
@@ -882,7 +882,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
         add(solverData);
     }
     switch (mode) {
-        case solution_modes_t::powerflow_mode:
+        case SolutionModes::powerflow_mode:
             if (isAlgebraicOnly(sMode)) {
                 if (opFlags[pFlow_initialized]) {
                     if (solverData->isInitialized()) {
@@ -895,7 +895,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case solution_modes_t::dae_mode:
+        case SolutionModes::dae_mode:
             if (isDAE(sMode)) {
                 if (opFlags[dyn_initialized]) {
                     if (solverData->isInitialized()) {
@@ -908,7 +908,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case solution_modes_t::algebraic_mode:
+        case SolutionModes::algebraic_mode:
             if (isAlgebraicOnly(sMode)) {
                 if (opFlags[dyn_initialized]) {
                     if (solverData->isInitialized()) {
@@ -921,7 +921,7 @@ void GridDynSimulation::setDefaultMode(solution_modes_t mode, const solverMode& 
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case solution_modes_t::differential_mode:
+        case SolutionModes::differential_mode:
             if (isDifferentialOnly(sMode)) {
                 if (opFlags[dyn_initialized]) {
                     if (solverData->isInitialized()) {
@@ -1015,13 +1015,13 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
     } else if (param == "maxpoweradjustiterations") {
         max_Padjust_iterations = static_cast<count_t>(val);
     } else if (param == "defpowerflow") {
-        setDefaultMode(solution_modes_t::powerflow_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::powerflow_mode, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdae") {
-        setDefaultMode(solution_modes_t::dae_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::dae_mode, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdynalg") {
-        setDefaultMode(solution_modes_t::algebraic_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::algebraic_mode, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdyndiff") {
-        setDefaultMode(solution_modes_t::differential_mode,
+        setDefaultMode(SolutionModes::differential_mode,
                        getSolverMode(static_cast<index_t>(val)));
     } else if (param == "maxvoltageadjustiterations") {
         max_Vadjust_iterations = static_cast<count_t>(val);
@@ -1055,43 +1055,43 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
     double fval = kNullVal;
 
     if (param == "statesize") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = stateSize(*defPowerFlowMode);
         } else {
             val = stateSize(*defDAEMode);
         }
     } else if (param == "vcount") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = voltageStateCount(*defPowerFlowMode);
         } else {
             val = voltageStateCount(*defDAEMode);
         }
     } else if (param == "account") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = angleStateCount(*defPowerFlowMode);
         } else {
             val = angleStateCount(*defDAEMode);
         }
     } else if (param == "algcount") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = algSize(*defPowerFlowMode);
         } else {
             val = algSize(*defDAEMode);
         }
     } else if (param == "jacsize") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = jacSize(*defPowerFlowMode);
         } else {
             val = jacSize(*defDAEMode);
         }
     } else if ((param == "diffcount") || (param == "diffsize")) {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = 0;
         } else {
             val = diffSize(*defDAEMode);
         }
     } else if (param == "nonzeros") {
-        if (pState <= gridState_t::POWERFLOW_COMPLETE) {
+        if (pState <= GridState::POWERFLOW_COMPLETE) {
             val = nonZeros(*defPowerFlowMode);
         } else {
             val = nonZeros(*defDAEMode);
@@ -1188,7 +1188,7 @@ void GridDynSimulation::alert(CoreObject* object, int code)
     }
 }
 
-int GridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMode)
+int GridDynSimulation::makeReady(GridState desiredState, const solverMode& sMode)
 {
     // check to make sure we at or greater than the desiredState
     int retval = FUNCTION_EXECUTION_SUCCESS;
@@ -1196,21 +1196,21 @@ int GridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
     // all these function will call this function so it is a recursive function essentially
     if (pState < desiredState) {
         switch (desiredState) {
-            case gridState_t::INITIALIZED:
+            case GridState::INITIALIZED:
                 retval = pFlowInitialize(currentTime);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
                     logging::error(this, "Unable to initialize power flow solution");
                     return retval;
                 }
                 break;
-            case gridState_t::POWERFLOW_COMPLETE:
+            case GridState::POWERFLOW_COMPLETE:
                 retval = powerflow();
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
                     logging::error(this, "unable to complete power flow");
                     return retval;
                 }
                 break;
-            case gridState_t::DYNAMIC_INITIALIZED:
+            case GridState::DYNAMIC_INITIALIZED:
                 retval = dynInitialize(currentTime);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
                     logging::error(this, "Unable to initialize dynamic solution");
@@ -1225,15 +1225,15 @@ int GridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
     // everything is ready to go
     if (desiredState != pState) {
         switch (desiredState) {
-            case gridState_t::INITIALIZED:
+            case GridState::INITIALIZED:
                 if (!controlFlags[no_reset]) {
-                    reset(reset_levels::minimal);
+                    reset(ResetLevels::minimal);
                 }
                 reInitpFlow(sMode);
                 break;
-            case gridState_t::DYNAMIC_INITIALIZED:
-                if (pState == gridState_t::DYNAMIC_PARTIAL) {
-                } else if (pState == gridState_t::DYNAMIC_COMPLETE) {
+            case GridState::DYNAMIC_INITIALIZED:
+                if (pState == GridState::DYNAMIC_PARTIAL) {
+                } else if (pState == GridState::DYNAMIC_COMPLETE) {
                     // check to make sure nothing has changed
                     dynamicCheckAndReset(sMode);
                 }
@@ -1249,9 +1249,9 @@ int GridDynSimulation::makeReady(gridState_t desiredState, const solverMode& sMo
         solverData = updateSolver(sMode);
     }
     if (!solverData->isInitialized()) {
-        if (desiredState == gridState_t::INITIALIZED) {
+        if (desiredState == GridState::INITIALIZED) {
             reInitpFlow(sMode);
-        } else if (desiredState == gridState_t::DYNAMIC_INITIALIZED) {
+        } else if (desiredState == GridState::DYNAMIC_INITIALIZED) {
             retval = reInitDyn(sMode);
         }
     }
@@ -1395,21 +1395,21 @@ solverMode GridDynSimulation::getCurrentMode(const solverMode& sMode) const
         return sMode;
     }
     switch (pState) {
-        case gridState_t::GD_ERROR:
-        case gridState_t::STARTUP:
+        case GridState::GD_ERROR:
+        case GridState::STARTUP:
             return cLocalSolverMode;
-        case gridState_t::INITIALIZED:
-        case gridState_t::POWERFLOW_COMPLETE:
+        case GridState::INITIALIZED:
+        case GridState::POWERFLOW_COMPLETE:
             return *defPowerFlowMode;
-        case gridState_t::DYNAMIC_INITIALIZED:
-        case gridState_t::DYNAMIC_COMPLETE:
-        case gridState_t::DYNAMIC_PARTIAL:
+        case GridState::DYNAMIC_INITIALIZED:
+        case GridState::DYNAMIC_COMPLETE:
+        case GridState::DYNAMIC_PARTIAL:
             switch (defaultDynamicSolverMethod) {
-                case dynamic_solver_methods::dae:
+                case DynamicSolverMethods::dae:
                     return *defDAEMode;
-                case dynamic_solver_methods::partitioned:
+                case DynamicSolverMethods::partitioned:
                     return *defDynAlgMode;
-                case dynamic_solver_methods::decoupled:
+                case DynamicSolverMethods::decoupled:
                     return cLocalSolverMode;
                 default:
                     return *defDAEMode;
@@ -1525,13 +1525,13 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMod
         solverData->set("dense", 1.0);
     }
     solverData->set("tolerance", tols.rtol);
-    if ((pState >= gridState_t::INITIALIZED) && (!isDynamic(solverModeValue))) {
+    if ((pState >= GridState::INITIALIZED) && (!isDynamic(solverModeValue))) {
         const auto stateCount = stateSize(solverModeValue);
         solverData->allocate(stateCount, rootSize(solverModeValue));
         checkOffsets(solverModeValue);
         guessState(currentTime, solverData->state_data(), nullptr, solverModeValue);
         solverData->initialize(currentTime);
-    } else if (pState >= gridState_t::DYNAMIC_INITIALIZED) {
+    } else if (pState >= GridState::DYNAMIC_INITIALIZED) {
         const auto stateCount = stateSize(solverModeValue);
         solverData->allocate(stateCount, rootSize(solverModeValue));
         checkOffsets(solverModeValue);
@@ -1658,7 +1658,7 @@ bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverM
 {
     if (EvQ->getNextTime() < cTime) {
         auto eventReturn = EvQ->executeEvents(cTime);
-        if (eventReturn > change_code::non_state_change) {
+        if (eventReturn > ChangeCode::non_state_change) {
             return dynamicCheckAndReset(sMode);
         }
     }
@@ -1709,3 +1709,4 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
 }
 
 }  // namespace griddyn
+

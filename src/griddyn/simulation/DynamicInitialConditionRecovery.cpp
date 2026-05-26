@@ -83,7 +83,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
     sim->rootCheck(noInputs,
                    stateDataValue,
                    solver->getSolverMode(),
-                   check_level_t::low_voltage_check);
+                   CheckLevel::low_voltage_check);
 
     const int matchCount = JacobianCheck(sim, solver->getSolverMode());
     if (matchCount != 0) {
@@ -91,7 +91,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
     }
     return solver->calcIC(sim->getSimulationTime(),
                           sim->probeStepTime,
-                          SolverInterface::ic_modes::fixed_diff,
+                          SolverInterface::IcModes::fixed_diff,
                           true);
 }
 
@@ -103,11 +103,11 @@ int dynamicInitialConditionRecovery::dynamicFix1()
                   solver->state_data(),
                   solver->deriv_data(),
                   solver->getSolverMode(),
-                  converge_mode::block_iteration,
+                  ConvergeMode::block_iteration,
                   3.0);
     return solver->calcIC(sim->getSimulationTime(),
                           sim->probeStepTime,
-                          SolverInterface::ic_modes::fixed_diff,
+                          SolverInterface::IcModes::fixed_diff,
                           true);
 }
 
@@ -118,7 +118,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                   solver->state_data(),
                   solver->deriv_data(),
                   solver->getSolverMode(),
-                  converge_mode::block_iteration,
+                  ConvergeMode::block_iteration,
                   3.0);
     std::vector<double> voltages;
     int retval = -10;
@@ -140,38 +140,38 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                            solver->state_data(),
                                            solver->deriv_data());
 
-            const change_code rootCheckResult = sim->rootCheck(noInputs,
+            const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                                stateDataValue,
                                                                solver->getSolverMode(),
-                                                               check_level_t::complete_state_check);
+                                                               CheckLevel::complete_state_check);
             sim->handleRootChange(solver->getSolverMode(), solver);
-            if (rootCheckResult > change_code::no_change) {
+            if (rootCheckResult > ChangeCode::no_change) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
-                                            SolverInterface::ic_modes::fixed_diff,
+                                            SolverInterface::IcModes::fixed_diff,
                                             true);
                 }
             } else {
                 retval = solver->calcIC(sim->getSimulationTime(),
                                         sim->probeStepTime,
-                                        SolverInterface::ic_modes::fixed_diff,
+                                        SolverInterface::IcModes::fixed_diff,
                                         true);
             }
         } else {
             const stateData stateDataValue(sim->getSimulationTime(),
                                            solver->state_data(),
                                            solver->deriv_data());
-            const change_code rootCheckResult = sim->rootCheck(noInputs,
+            const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                                stateDataValue,
                                                                solver->getSolverMode(),
-                                                               check_level_t::reversable_only);
+                                                               CheckLevel::reversable_only);
             sim->handleRootChange(solver->getSolverMode(), solver);
-            if (rootCheckResult > change_code::non_state_change) {
+            if (rootCheckResult > ChangeCode::non_state_change) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
-                                            SolverInterface::ic_modes::fixed_diff,
+                                            SolverInterface::IcModes::fixed_diff,
                                             true);
                 }
             } else {
@@ -181,7 +181,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                 solver->getSolverMode());
                 retval = solver->calcIC(sim->getSimulationTime(),
                                         sim->probeStepTime,
-                                        SolverInterface::ic_modes::fixed_diff,
+                                        SolverInterface::IcModes::fixed_diff,
                                         true);
             }
         }
@@ -190,11 +190,11 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                       solver->state_data(),
                       solver->deriv_data(),
                       solver->getSolverMode(),
-                      converge_mode::block_iteration,
+                      ConvergeMode::block_iteration,
                       0.01);
         retval = solver->calcIC(sim->getSimulationTime(),
                                 sim->probeStepTime,
-                                SolverInterface::ic_modes::fixed_diff,
+                                SolverInterface::IcModes::fixed_diff,
                                 true);
     }
     return retval;
@@ -218,21 +218,21 @@ int dynamicInitialConditionRecovery::dynamicFix3()
                     double cr2 = checkResid(sim, timeCurr + 0.001, solver->getSolverMode());
                     // logging::debug(this, "tried alg converge from {} to {}",
     std::to_string(cr)); retval = solver->calcIC(timeCurr + 0.001, sim->probeStepTime,
-    SolverInterface::ic_modes::fixed_diff, true);
+    SolverInterface::IcModes::fixed_diff, true);
             }
             else
             {
                     sim->guessState(timeCurr + 0.001, solver->state_data(), solver->deriv_data(),
     solver->getSolverMode());
                     retval = solver->calcIC(timeCurr + 0.001, sim->probeStepTime,
-    SolverInterface::ic_modes::fixed_diff, true);
+    SolverInterface::IcModes::fixed_diff, true);
             }
 
     }
     */
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::ic_modes::fixed_diff,
+                                      SolverInterface::IcModes::fixed_diff,
                                       true);
     return retval;
 }
@@ -252,11 +252,11 @@ int dynamicInitialConditionRecovery::dynamicFix4()
                   solver->state_data(),
                   solver->deriv_data(),
                   solver->getSolverMode(),
-                  converge_mode::block_iteration,
+                  ConvergeMode::block_iteration,
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::ic_modes::fixed_diff,
+                                      SolverInterface::IcModes::fixed_diff,
                                       true);
     return retval;
 }
@@ -268,13 +268,14 @@ int dynamicInitialConditionRecovery::dynamicFix5()
                   solver->state_data(),
                   solver->deriv_data(),
                   solver->getSolverMode(),
-                  converge_mode::block_iteration,
+                  ConvergeMode::block_iteration,
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::ic_modes::fixed_diff,
+                                      SolverInterface::IcModes::fixed_diff,
                                       true);
     return retval;
 }
 
 }  // namespace griddyn
+

@@ -16,7 +16,7 @@
 
 namespace griddyn::paradae {
 
-enum TI_type { RK, BDF };
+enum TiType { RK, BDF };
 
 enum RCODE { OK, OK_ROOT, WARN_ROOT, ERRTEST_FAIL, NONLIN_FAIL };
 
@@ -118,7 +118,7 @@ class TimeIntegrator {
     inline Equation* GetEq() { return equation; };
     virtual std::string GetName() { return "UnknownTI"; };
     virtual void show() = 0;
-    virtual TI_type GetType() = 0;
+    virtual TiType GetType() = 0;
     inline void SetRTol(Real rtol_) { rtol = rtol_; };
     inline void SetATol(const Vector& atol_) { atol = atol_; };
     inline void SetMaxRFactor(Real max_rfactor_) { max_rfactor = max_rfactor_; };
@@ -126,3 +126,4 @@ class TimeIntegrator {
 };
 
 }  // namespace griddyn::paradae
+

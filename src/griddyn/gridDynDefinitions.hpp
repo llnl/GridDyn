@@ -63,7 +63,7 @@ constexpr double kWS50(50.0 * 2.0 * kPI);  // radians per second at 50 Hz
 
 constexpr double kMin_Res(1e-7);
 /** @brief enumeration of object changes that can occur throughout the simulation */
-enum class change_code {
+enum class ChangeCode {
     not_triggered = -2,  //!< no potential change was triggered
     execution_failure = -1,  //!< the execution has failed
     no_change = 0,  //!< there was no change
@@ -107,3 +107,4 @@ const IOdata noInputs{};
 const IOlocs noInputLocs{};
 
 }  // namespace griddyn
+

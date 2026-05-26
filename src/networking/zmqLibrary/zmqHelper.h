@@ -20,9 +20,10 @@ Livermore National Security, LLC.
 #include <string>
 
 namespace zmq {
-enum class socket_type : int;
+enum class SocketType : int;
 }
 
 namespace zmqlib {
-zmq::socket_type socketTypeFromString(const std::string& socketType);
+zmq::SocketType socketTypeFromString(const std::string& socketType);
 }
+

@@ -47,11 +47,12 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                           const stateData& sD,
                           double roots[],
                           const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 };
 
 }  // namespace griddyn::exciters
+

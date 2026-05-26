@@ -253,7 +253,7 @@ count_t collector::grabData(double* outputData, index_t outputCount)
     return currentCount;
 }
 
-change_code collector::trigger(coreTime time)
+ChangeCode collector::trigger(coreTime time)
 {
     std::vector<double> vals;
 
@@ -280,7 +280,7 @@ change_code collector::trigger(coreTime time)
     if (mTriggerTime > mStopTime) {
         mTriggerTime = maxTime;
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 int collector::getColumn(int requestedColumn) const
@@ -490,3 +490,4 @@ std::unique_ptr<collector> makeCollector(std::string_view type, const std::strin
 }
 
 }  // namespace griddyn
+

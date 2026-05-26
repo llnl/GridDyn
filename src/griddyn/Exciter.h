@@ -25,7 +25,7 @@ inline constexpr int exciterOmegaInLocation = 3;
  */
 class Exciter: public GridSubModel {
   public:
-    enum exciter_flags {
+    enum ExciterFlags {
         outside_vlim = object_flag3,
         etrigger_high = object_flag4,
     };
@@ -77,10 +77,10 @@ class Exciter: public GridSubModel {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& solverMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateData,
                                   const solverMode& solverMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual const std::vector<stringVec>& inputNames() const override;
@@ -91,3 +91,4 @@ class Exciter: public GridSubModel {
 };
 
 }  // namespace griddyn
+

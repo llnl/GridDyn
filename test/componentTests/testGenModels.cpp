@@ -28,13 +28,13 @@ TEST_F(GenModelTests, ModelTest1)
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState();
     runResidualCheck(gds, cDaeSolverMode);
     // gds->saveJacobian(std::string(GENMODEL_TEST_DIRECTORY "mjac5.bin"));
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState();
 
     auto cdiff = gmlc::utilities::countDiffs(st, st2, 0.001, 0.01);
@@ -157,5 +157,6 @@ TEST_F(GenModelTests, ModelTest3)
     gds = readSimXMLFile(fileName);
 
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
+

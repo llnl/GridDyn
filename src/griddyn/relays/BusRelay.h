@@ -39,7 +39,8 @@ class busRelay: public Relay {
   protected:
     virtual void actionTaken(index_t ActionNum,
                              index_t conditionNum,
-                             change_code actionReturn,
+                             ChangeCode actionReturn,
                              coreTime actionTime) override;
 };
 }  // namespace griddyn::relays
+

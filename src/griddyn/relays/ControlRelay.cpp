@@ -124,7 +124,7 @@ void controlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void controlRelay::actionTaken(index_t ActionNum,
                                index_t conditionNum,
-                               change_code /*actionReturn*/,
+                               ChangeCode /*actionReturn*/,
                                coreTime /*actionTime*/)
 {
     logging::normal(this, "condition {}-> action {} taken", conditionNum, ActionNum);
@@ -250,10 +250,10 @@ std::string controlRelay::generateAutoName(int code)
     }
 }
 
-change_code controlRelay::executeAction(index_t actionNum)
+ChangeCode controlRelay::executeAction(index_t actionNum)
 {
     if (!isValidIndex(actionNum, actions)) {
-        return change_code::not_triggered;
+        return ChangeCode::not_triggered;
     }
     auto cact = actions[actionNum];
     if (!cact.executed) {
@@ -280,7 +280,7 @@ change_code controlRelay::executeAction(index_t actionNum)
             ptr->m_value = val;
             ptr->m_time = prevTime;
             commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
-            return change_code::no_change;
+            return ChangeCode::no_change;
         }
 
         try {
@@ -304,7 +304,7 @@ change_code controlRelay::executeAction(index_t actionNum)
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
                 commLink->transmit(cact.sourceID, std::move(gres));
             }
-            return change_code::parameter_change;
+            return ChangeCode::parameter_change;
         }
         catch (const std::invalid_argument&) {
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
@@ -313,10 +313,10 @@ change_code controlRelay::executeAction(index_t actionNum)
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
                 commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
             }
-            return change_code::execution_failure;
+            return ChangeCode::execution_failure;
         }
     }
-    return change_code::not_triggered;
+    return ChangeCode::not_triggered;
 }
 
 void controlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
@@ -351,7 +351,7 @@ std::unique_ptr<functionEventAdapter>
     auto fea = std::make_unique<functionEventAdapter>([act, this]() { return executeAction(act); },
                                                       eventTime);
     /** this is so the get event triggers last*/
-    fea->setExecutionMode(event_execution_mode::delayed);
+    fea->setExecutionMode(EventExecutionMode::delayed);
     return fea;
 }
 
@@ -400,3 +400,4 @@ index_t controlRelay::getFreeAction()
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

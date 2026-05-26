@@ -122,8 +122,8 @@ Goal: establish the measurable list of remaining work.
   files
 - Baseline naming inventory report:
   [naming-inventory.md](C:\Users\phlpt\Documents\griddyn\docs\developer-guide\naming-inventory.md:1)
-- Baseline heuristic finding total: 13,907
-- Baseline findings by category:
+- Historical initial heuristic finding total: 13,907
+- Historical initial findings by category:
   - `class_type`: 576
   - `enum_constant`: 6,263
   - `enum_type`: 179
@@ -137,7 +137,7 @@ Goal: establish the measurable list of remaining work.
   - `src/utilities`: about 41 files
   - `src/fileInput`: about 41 files
   - `src/networking`: about 35 files
-- Current largest finding buckets by subsystem include:
+- Historical initial largest finding buckets by subsystem included:
   - `src/griddyn`: 7,466
   - `src/extraSolvers`: 857
   - `test/componentTests`: 803
@@ -149,6 +149,28 @@ Goal: establish the measurable list of remaining work.
   - `test/systemTests`: 314
   - `src/utilities`: 309
   - `src/networking`: 258
+- Current planning baseline was regenerated on 2026-05-25 after the merged
+  Phase 9 cleanup batches and should be treated as the source of truth for
+  remaining work.
+- Current heuristic finding total: 1,678
+- Current findings by category:
+  - `class_type`: 267
+  - `enum_constant`: 516
+  - `enum_type`: 93
+  - `filename_mismatch`: 236
+  - `function_like`: 522
+  - `member_variable`: 44
+- Current largest finding buckets by subsystem include:
+  - `src/griddyn`: 846
+  - `src/extraSolvers`: 380
+  - `src/fmi`: 86
+  - `src/utilities`: 61
+  - `src/griddyn_shared`: 57
+  - `src/networking`: 32
+  - `src/optimization`: 21
+  - `src/formatInterpreters`: 20
+  - `src/fskit`: 19
+  - `test/componentTests`: 18
 
 ## Phase 2: Tooling And Non-Blocking Enforcement
 
@@ -497,19 +519,23 @@ Goal: make compliance durable.
 
 Use this section to track PR-by-PR progress at a higher level.
 
+Tracker status should follow the regenerated naming inventory rather than older
+merged-batch assumptions. A checked subsystem should have no remaining findings
+in the current inventory or be intentionally excluded from remaining scope.
+
 ### Core Source Areas
 
 - [ ] `src/core`
 - [ ] `src/coupling`
 - [ ] `src/extraModels`
 - [ ] `src/extraSolvers`
-- [x] `src/fileInput`
+- [ ] `src/fileInput`
 - [ ] `src/fmi`
 - [ ] `src/fmi_export`
 - [ ] `src/formatInterpreters`
 - [ ] `src/fskit`
 - [ ] `src/griddyn`
-- [ ] `src/gridDynLoader`
+- [x] `src/gridDynLoader`
 - [ ] `src/gridDynMain`
 - [ ] `src/gridDynServer`
 - [ ] `src/griddyn_shared`
@@ -522,16 +548,23 @@ Use this section to track PR-by-PR progress at a higher level.
 
 ### Interface And Test Areas
 
-- [ ] `interfaces/java`
-- [ ] `interfaces/matlab`
-- [ ] `interfaces/octave`
-- [ ] `interfaces/python`
-- [ ] `interfaces/test`
+- [x] `interfaces/java`
+- [x] `interfaces/matlab`
+- [x] `interfaces/octave`
+- [x] `interfaces/python`
+- [x] `interfaces/test`
 - [ ] `test/componentTests`
 - [ ] `test/extraTests`
 - [ ] `test/libraryTests`
 - [ ] `test/systemTests`
-- [ ] `test/testSharedLibrary`
+- [x] `test/testSharedLibrary`
+
+Shared test support files are tracked separately by the current inventory and
+still carry residual findings outside the directory buckets above:
+
+- `test/gtestHelper.h`: 4
+- `test/gtestHelperFunctions.cpp`: 3
+- `test/exeTestHelper.h`: 2
 
 ## PR Log
 
@@ -539,6 +572,7 @@ Use this table to log each naming migration PR as it lands.
 
 | PR / Branch | Area                                                                                                                    | Phase   | Summary                                                                                                                                                                                                                                                               | Compatibility Needed | Tests Run                               | Status   |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | --------------------------------------- | -------- |
+| merged      | `src/core` + `src/fileInput` + `src/griddyn` + `src/griddyn_shared` + `test/`                                          | Phase 9 | Final enforcement cleanup removing the remaining core/file-input/simulation compatibility type aliases, deleting the obsolete relay-message alias layer, fixing export-side `GridDynSimulation` ambiguity, and following through with targeted `griddyn` and component-test rebuilds | No                   | Targeted `griddyn` and `OptionalComponentTests` rebuilds | Complete |
 | merged      | `src/griddyn/controllers` + `src/griddyn/events`                                                                        | Phase 9 | Final enforcement cleanup covering controller/event naming fallout in dispatcher, scheduler ramp/regulation, reversible-event helpers, member initialization, callback/signature alignment, and the associated `clang-tidy` plus targeted build follow-through        | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/fileInput` + `src/fmi` + `src/griddyn` + `src/runner`                                                              | Phase 9 | Final enforcement cleanup covering PSAT reader local naming, FMI and griddyn factory-registration globals, comms/controller registration normalization, redundant static-initialization suppression removal, and the associated `clang-tidy` and build follow-through | No                   | CI compile and `clang-tidy` run         | Complete |
 | merged      | `src/core` + `src/griddyn`                                                                                              | Phase 7 | Filename and include-path cleanup covering the remaining core and main griddyn source/header renames, dependent include updates, and corresponding CMake source-list normalization for the first-party simulation codebase                                            | No                   | Targeted build and reference sweep      | Complete |

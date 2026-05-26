@@ -57,7 +57,7 @@ class InvalidSolverOperation: public solverException {
 #define SOLVER_INITIAL_SETUP_ERROR (-38)
 #define SOLVER_CONVERGENCE_ERROR (-12)
 
-enum solver_flags : int {
+enum SolverFlags : int {
     dense_flag = 0,  //!< if the solver should use a dense or sparse version
     constantJacobian_flag = 1,  //!< if the solver should just keep a constant Jacobian
     useMask_flag = 2,  //!< if the solver should use a mask to filter out specific states
@@ -100,7 +100,7 @@ class SolverInterface: public HelperObject {
         BLOCK,  //!< the solver runs in a block mode all at once
     };
     /** @brief enumeration of initiaL condition call modes*/
-    enum class ic_modes {
+    enum class IcModes {
         fixed_masked_and_deriv,  //!< fixed_algebraic and differential state derivatives
         fixed_diff,  //!< differential states are fixed
     };
@@ -215,7 +215,7 @@ class SolverInterface: public HelperObject {
     @param[in] constraints  flag indicating that constraints should be used
     @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
-    virtual int calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints);
+    virtual int calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints);
     /** @brief get the current solution
      usually called after a call to CalcIC to get the calculated conditions
     */
@@ -372,3 +372,4 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solver
 std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn
+

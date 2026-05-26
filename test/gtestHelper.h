@@ -53,17 +53,17 @@ struct GridDynSimulationTestFixture {
 
     void simpleRunTestXML(const std::string& fileName);
     void runTestXML(const std::string& fileName,
-                    griddyn::GridDynSimulation::gridState_t finalState);
+                    griddyn::GridDynSimulation::GridState finalState);
     void detailedStageCheck(const std::string& fileName,
-                            griddyn::GridDynSimulation::gridState_t finalState);
+                            griddyn::GridDynSimulation::GridState finalState);
     void simpleStageCheck(const std::string& fileName,
-                          griddyn::GridDynSimulation::gridState_t finalState);
+                          griddyn::GridDynSimulation::GridState finalState);
     void dynamicInitializationCheck(const std::string& fileName);
 
-    void checkState(griddyn::GridDynSimulation::gridState_t state);
-    void requireState(griddyn::GridDynSimulation::gridState_t state);
-    void checkState2(griddyn::GridDynSimulation::gridState_t state);
-    void requireState2(griddyn::GridDynSimulation::gridState_t state);
+    void checkState(griddyn::GridDynSimulation::GridState state);
+    void requireState(griddyn::GridDynSimulation::GridState state);
+    void checkState2(griddyn::GridDynSimulation::GridState state);
+    void requireState2(griddyn::GridDynSimulation::GridState state);
 };
 
 struct gridLoadTestFixture {
@@ -81,15 +81,15 @@ struct glbconfig {
     ~glbconfig();
 };
 
-std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::gridState_t state);
+std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::GridState state);
 
-const std::string& to_string(griddyn::GridDynSimulation::gridState_t state);
+const std::string& to_string(griddyn::GridDynSimulation::GridState state);
 
-void checkStates(griddyn::GridDynSimulation::gridState_t state1,
-                 griddyn::GridDynSimulation::gridState_t state2);
+void checkStates(griddyn::GridDynSimulation::GridState state1,
+                 griddyn::GridDynSimulation::GridState state2);
 
-void requireStates(griddyn::GridDynSimulation::gridState_t state1,
-                   griddyn::GridDynSimulation::gridState_t state2);
+void requireStates(griddyn::GridDynSimulation::GridState state1,
+                   griddyn::GridDynSimulation::GridState state2);
 
 int runJacobianCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
                      const griddyn::solverMode& sMode,
@@ -116,3 +116,4 @@ void printBusResultDeviations(const std::vector<double>& V1,
                               const std::vector<double>& V2,
                               const std::vector<double>& A1,
                               const std::vector<double>& A2);
+

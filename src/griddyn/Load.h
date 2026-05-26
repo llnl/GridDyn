@@ -17,7 +17,7 @@ class GridBus;
 class GridLoad: public gridSecondary {
   public:
     /** flags used in the load object*/
-    enum load_flags {
+    enum LoadFlags {
         use_power_factor_flag =
             object_flag1,  //!< flag instructing the load to use a power factor to compute Q
     };
@@ -104,3 +104,4 @@ class GridLoad: public gridSecondary {
 };
 
 }  // namespace griddyn
+

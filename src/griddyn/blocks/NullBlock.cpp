@@ -137,12 +137,12 @@ void NullBlock::rootTest(const IOdata& /*inputs*/,
 {
 }
 
-change_code NullBlock::rootCheck(const IOdata& /*inputs*/,
+ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
                                  const stateData& /*sD*/,
                                  const solverMode& /*sMode*/,
-                                 check_level_t /*level*/)
+                                 CheckLevel /*level*/)
 {
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 void NullBlock::rootTrigger(coreTime /*time*/,
@@ -178,3 +178,4 @@ double NullBlock::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn::blocks
+

@@ -40,26 +40,26 @@ pull = ZMQ_PULL,
 
 /* *INDENT-OFF* */
 namespace zmqlib {
-static const std::map<std::string, zmq::socket_type> socketMap{{"req", zmq::socket_type::req},
-                                                               {"request", zmq::socket_type::req},
-                                                               {"rep", zmq::socket_type::rep},
-                                                               {"reply", zmq::socket_type::rep},
-                                                               {"dealer", zmq::socket_type::dealer},
-                                                               {"router", zmq::socket_type::router},
-                                                               {"pub", zmq::socket_type::pub},
-                                                               {"publish", zmq::socket_type::pub},
-                                                               {"sub", zmq::socket_type::sub},
-                                                               {"subscribe", zmq::socket_type::sub},
-                                                               {"xpub", zmq::socket_type::xpub},
-                                                               {"xsub", zmq::socket_type::xsub},
-                                                               {"push", zmq::socket_type::push},
-                                                               {"pull", zmq::socket_type::pull},
-                                                               {"pair", zmq::socket_type::pair},
+static const std::map<std::string, zmq::SocketType> socketMap{{"req", zmq::SocketType::req},
+                                                               {"request", zmq::SocketType::req},
+                                                               {"rep", zmq::SocketType::rep},
+                                                               {"reply", zmq::SocketType::rep},
+                                                               {"dealer", zmq::SocketType::dealer},
+                                                               {"router", zmq::SocketType::router},
+                                                               {"pub", zmq::SocketType::pub},
+                                                               {"publish", zmq::SocketType::pub},
+                                                               {"sub", zmq::SocketType::sub},
+                                                               {"subscribe", zmq::SocketType::sub},
+                                                               {"xpub", zmq::SocketType::xpub},
+                                                               {"xsub", zmq::SocketType::xsub},
+                                                               {"push", zmq::SocketType::push},
+                                                               {"pull", zmq::SocketType::pull},
+                                                               {"pair", zmq::SocketType::pair},
                                                                {"stream",
-                                                                zmq::socket_type::stream}};
+                                                                zmq::SocketType::stream}};
 /* *INDENT-ON* */
 
-zmq::socket_type socketTypeFromString(const std::string& socketType)
+zmq::SocketType socketTypeFromString(const std::string& socketType)
 {
     auto fnd = socketMap.find(socketType);
     if (fnd != socketMap.end()) {
@@ -74,7 +74,8 @@ zmq::socket_type socketTypeFromString(const std::string& socketType)
         return fnd->second;
     }
     assert(false);  // NEED to make this a throw operation instead once exceptions are integrated
-    return zmq::socket_type::req;
+    return zmq::SocketType::req;
 }
 
 }  // namespace zmqlib
+

@@ -38,14 +38,14 @@ TEST_F(GovernorTests, GovStabilityTest)
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
     gds->run(0.005);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
 
     gds->run(400.0);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
     gds->run(500.0);
     gds->saveRecorders();
@@ -65,3 +65,4 @@ TEST_F(GovernorTests, GovStabilityTest)
     }
     EXPECT_EQ(ncnt, 0);
 }
+

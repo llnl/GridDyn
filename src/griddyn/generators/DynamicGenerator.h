@@ -26,7 +26,7 @@ power system stabilizer. as well as control for the power set point and voltage 
 */
 class DynamicGenerator: public Generator {
   public:
-    enum class dynModel_t {
+    enum class DynModel {
         invalid,
         simple,
         dc,
@@ -40,7 +40,7 @@ class DynamicGenerator: public Generator {
     };
 
     /** @brief enum indicating subModel locations in the subObject structure*/
-    enum submodel_locations {
+    enum SubmodelLocations {
         genmodel_loc = 1,
         exciter_loc = 2,
         governor_loc = 3,
@@ -68,10 +68,10 @@ class DynamicGenerator: public Generator {
     double m_Eft = 0;  //!< place to store a constant the exciter field
     double m_Pmech = 0;  //!< place to store a constant power output
   public:
-    static dynModel_t dynModelFromString(const std::string& dynModelType);
+    static DynModel dynModelFromString(const std::string& dynModelType);
     /** @brief default constructor
     @param[in] dynModel  a string with the dynmodel description*/
-    DynamicGenerator(dynModel_t dynModel, const std::string& objName = "gen_$");
+    DynamicGenerator(DynModel dynModel, const std::string& objName = "gen_$");
     explicit DynamicGenerator(const std::string& objName = "gen_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -152,10 +152,10 @@ class DynamicGenerator: public Generator {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     using Generator::getReactivePower;
     using Generator::getRealPower;
@@ -213,7 +213,8 @@ class DynamicGenerator: public Generator {
 
     GridSubModel* replaceModel(GridSubModel* newObject, GridSubModel* oldObject, index_t newIndex);
 
-    void buildDynModel(dynModel_t dynModel);
+    void buildDynModel(DynModel dynModel);
 };
 
 }  // namespace griddyn
+

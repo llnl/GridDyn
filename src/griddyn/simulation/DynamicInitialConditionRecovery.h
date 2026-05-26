@@ -27,8 +27,8 @@ class dynamicInitialConditionRecovery {
     virtual ~dynamicInitialConditionRecovery();
 
     /** @brief attempt the various fixes in order
-    @return recovery_return_codes::more_options if attemptFix can be called again without reset
-    recovery_return_codes::out_of_options if no more fix attempts are available
+    @return RecoveryReturnCodes::more_options if attemptFix can be called again without reset
+    RecoveryReturnCodes::out_of_options if no more fix attempts are available
     */
     virtual int attemptFix();
 

@@ -15,7 +15,7 @@ namespace griddyn::sources {
 class fileSource: public rampSource {
   public:
     /** enumerations of flags used in the file source*/
-    enum file_load_flags {
+    enum FileLoadFlags {
         use_absolute_time_flag =
             object_flag7,  //!< flag indicating use of an absolute time reference in the file
         use_step_change_flag =
@@ -52,3 +52,4 @@ class fileSource: public rampSource {
     int loadFile();
 };
 }  // namespace griddyn::sources
+

@@ -132,8 +132,8 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     add(std::shared_ptr<Condition>(std::move(gc)));
     add(std::shared_ptr<Condition>(std::move(gc2)));
-    setConditionStatus(1, condition_status_t::disabled);
-    setConditionStatus(2, condition_status_t::disabled);
+    setConditionStatus(1, ConditionStatus::disabled);
+    setConditionStatus(2, ConditionStatus::disabled);
 
     cI2T = 0;
 
@@ -159,51 +159,51 @@ void fuse::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
     if (conditionNum == 2) {
         assert(opFlags[OVERLIMIT_FLAG]);
 
-        setConditionStatus(1, condition_status_t::disabled);
-        setConditionStatus(2, condition_status_t::disabled);
-        setConditionStatus(0, condition_status_t::active);
+        setConditionStatus(1, ConditionStatus::disabled);
+        setConditionStatus(2, ConditionStatus::disabled);
+        setConditionStatus(0, ConditionStatus::active);
         alert(this, JAC_COUNT_DECREASE);
         opFlags.reset(OVERLIMIT_FLAG);
         useI2T = false;
     }
 }
 
-change_code fuse::blowFuse()
+ChangeCode fuse::blowFuse()
 {
     opFlags.set(OVERLIMIT_FLAG);
-    setConditionStatus(0, condition_status_t::disabled);
-    setConditionStatus(1, condition_status_t::disabled);
-    setConditionStatus(2, condition_status_t::disabled);
+    setConditionStatus(0, ConditionStatus::disabled);
+    setConditionStatus(1, ConditionStatus::disabled);
+    setConditionStatus(2, ConditionStatus::disabled);
     alert(this, FUSE_BLOWN_CURRENT);
     logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
     opFlags.set(FUSE_BLOWN_FLAG);
-    change_code cchange = change_code::non_state_change;
+    ChangeCode cchange = ChangeCode::non_state_change;
     if (mp_I2T > 0.0) {
         alert(this, JAC_COUNT_DECREASE);
-        cchange = change_code::jacobian_change;
+        cchange = ChangeCode::jacobian_change;
     }
     return std::max(triggerAction(0), cchange);
 }
 
-change_code fuse::setupFuseEvaluation()
+ChangeCode fuse::setupFuseEvaluation()
 {
     if (mp_I2T <= 0.0) {
         return blowFuse();
     }
 
     opFlags.set(OVERLIMIT_FLAG);
-    setConditionStatus(0, condition_status_t::disabled);
+    setConditionStatus(0, ConditionStatus::disabled);
     double I = getConditionValue(0);
     cI2T = I2Tequation(I) * minBlowTime;
     if (cI2T > mp_I2T) {
         return blowFuse();
     }
 
-    setConditionStatus(1, condition_status_t::active);
-    setConditionStatus(2, condition_status_t::active);
+    setConditionStatus(1, ConditionStatus::active);
+    setConditionStatus(2, ConditionStatus::active);
     alert(this, JAC_COUNT_INCREASE);
     useI2T = true;
-    return change_code::jacobian_change;
+    return ChangeCode::jacobian_change;
 }
 
 stateSizes fuse::LocalStateSizes(const solverMode& sMode) const
@@ -240,7 +240,7 @@ void fuse::converge(coreTime time,
                     double state[],
                     double dstate_dt[],
                     const solverMode& sMode,
-                    converge_mode /*mode*/,
+                    ConvergeMode /*mode*/,
                     double /*tol*/)
 {
     guessState(time, state, dstate_dt, sMode);
@@ -380,3 +380,4 @@ void fuse::getStateName(stringVec& stNames,
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

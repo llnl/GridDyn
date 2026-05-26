@@ -39,8 +39,8 @@ class compoundEventPlayer: public compoundEvent {
 
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 
-    virtual change_code trigger() override;
-    virtual change_code trigger(coreTime time) override;
+    virtual ChangeCode trigger() override;
+    virtual ChangeCode trigger(coreTime time) override;
 
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -61,3 +61,4 @@ class compoundEventPlayer: public compoundEvent {
     virtual void updateTrigger(coreTime time);
 };
 }  // namespace griddyn::events
+

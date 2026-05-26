@@ -18,7 +18,7 @@ class gridDynAction {
   public:
     /** @brief the list of possible actions
      */
-    enum class gd_action_t {
+    enum class GdAction {
         ignore,  //!< null action
         set,  //!< set a parameter
         setsolver,  //!< set a parameter in the solver
@@ -44,7 +44,7 @@ class gridDynAction {
         continuation,  //!< perform a continuation analysis
         invalid  //!< invalid command
     };
-    gd_action_t command = gd_action_t::ignore;  //!< the command to execute
+    GdAction command = GdAction::ignore;  //!< the command to execute
     std::string string1;  //!< string parameter 1 of the action
     std::string string2;  //!< string parameter 2 of the action
     int val_int1{-1};  //!< integer parameter of action
@@ -58,7 +58,7 @@ class gridDynAction {
     /** @brief constructor taking a command
     @param[in] action command
     */
-    /*IMPLICIT*/ gridDynAction(gd_action_t action) noexcept;
+    /*IMPLICIT*/ gridDynAction(GdAction action) noexcept;
     /** @brief constructor with action string
     @param[in] operation  a string containing the information for a specific action*/
     /*IMPLICIT*/ gridDynAction(std::string_view operation);
@@ -71,3 +71,4 @@ class gridDynAction {
     void reset();
 };
 }  // namespace griddyn
+

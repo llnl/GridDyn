@@ -24,7 +24,7 @@ class GridSimulation;
 class functionEventAdapter;
 class gridGrabber;
 
-enum class change_code;
+enum class ChangeCode;
 namespace relays {
     /**helper class for delayed execution of set functions*/
     struct delayedControlAction {
@@ -92,7 +92,7 @@ namespace relays {
       protected:
         virtual void actionTaken(index_t ActionNum,
                                  index_t conditionNum,
-                                 change_code actionReturn,
+                                 ChangeCode actionReturn,
                                  coreTime actionTime) override;
 
         virtual void receiveMessage(std::uint64_t sourceID,
@@ -100,7 +100,7 @@ namespace relays {
         std::string generateAutoName(int code);
         std::string generateCommName() override;
 
-        change_code executeAction(index_t actionNum);
+        ChangeCode executeAction(index_t actionNum);
 
         index_t findAction(std::uint64_t actionID);
         index_t getFreeAction();
@@ -116,3 +116,4 @@ namespace relays {
     };
 }  // namespace relays
 }  // namespace griddyn
+

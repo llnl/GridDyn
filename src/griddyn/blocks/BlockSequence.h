@@ -84,10 +84,10 @@ class BlockSequence: public GridBlock {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateData,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     /** get the output of one of the component blocks
 *@param[in] blockNum the index of the block to the get the output of
@@ -109,3 +109,4 @@ class BlockSequence: public GridBlock {
     virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
 };
 }  // namespace griddyn::blocks
+

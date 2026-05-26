@@ -13,7 +13,7 @@
 #include <memory>
 #include <vector>
 
-using griddyn::change_code;
+using griddyn::ChangeCode;
 using griddyn::Event;
 using griddyn::GriddynRunner;
 using griddyn::make_event;
@@ -52,7 +52,7 @@ void gridDynEventTrigger(GridDynEvent evnt, GridDynError* err)
     }
     auto* shr_event = static_cast<std::shared_ptr<Event>*>(evnt);
     if (*shr_event) {
-        if ((*shr_event)->trigger() >= change_code::no_change) {
+        if ((*shr_event)->trigger() >= ChangeCode::no_change) {
             return;
         }
     }
@@ -151,3 +151,4 @@ void gridDynEventSetTarget(GridDynEvent evnt, GridDynObject obj, GridDynError* e
         griddynErrorHandler(err);
     }
 }
+

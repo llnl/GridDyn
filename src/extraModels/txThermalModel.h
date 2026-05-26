@@ -14,7 +14,7 @@ namespace griddyn::extra {
  */
 class txThermalModel: public sensor {
   public:
-    enum thermal_model_flags {
+    enum ThermalModelFlags {
         auto_parameter_load = object_flag10,
         enable_parameter_updates = object_flag11,
         enable_alarms = object_flag12,
@@ -63,3 +63,4 @@ class txThermalModel: public sensor {
 };
 
 }  // namespace griddyn::extra
+

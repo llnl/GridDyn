@@ -29,10 +29,10 @@ TEST_F(PowerflowSystemTests, PFlowTest1)
 {
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
 
     gds->pFlowInitialize();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::INITIALIZED);
 
     int count = gds->getInt("totalbuscount");
 
@@ -44,7 +44,7 @@ TEST_F(PowerflowSystemTests, PFlowTest1)
     EXPECT_EQ(runJacobianCheck(gds, cPflowSolverMode, false), 0);
     EXPECT_EQ(gds->getInt("jacsize"), 108);
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 // testcase for power flow from initial start
@@ -52,9 +52,9 @@ TEST_F(PowerflowSystemTests, PFlowTest2)
 {
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     gds->pFlowInitialize();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::INITIALIZED);
 
     std::vector<double> volts1;
     std::vector<double> ang1;
@@ -64,7 +64,7 @@ TEST_F(PowerflowSystemTests, PFlowTest2)
     gds->getVoltage(volts1);
     gds->getAngle(ang1);
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->getVoltage(volts2);
     gds->getAngle(ang2);
     // ensure the sizes are equal
@@ -82,15 +82,15 @@ TEST_F(PowerflowSystemTests, PFlowTest3)
 {
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b.xml";
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     std::string fname2 = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
     gds2 = readSimXMLFile(fname2);
-    requireState2(GridDynSimulation::gridState_t::STARTUP);
+    requireState2(GridDynSimulation::GridState::STARTUP);
     gds2->pFlowInitialize();
-    requireState2(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState2(GridDynSimulation::GridState::INITIALIZED);
 
     std::vector<double> volts1;
     std::vector<double> ang1;
@@ -98,12 +98,12 @@ TEST_F(PowerflowSystemTests, PFlowTest3)
     std::vector<double> ang2;
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->getVoltage(volts1);
     gds->getAngle(ang1);
 
     gds2->powerflow();
-    requireState2(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState2(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds2->getVoltage(volts2);
     gds2->getAngle(ang2);
     // ensure the sizes are equal
@@ -123,7 +123,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_shunt_cap_tap_limit.cdf";
 
     loadCdf(gds.get(), fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 30);
@@ -139,10 +139,10 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     gds->getAngle(ang1);
 
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->getVoltage(volts2);
     gds->getAngle(ang2);
@@ -157,7 +157,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
-    gds->reset(reset_levels::voltage_angle);
+    gds->reset(ResetLevels::voltage_angle);
     gds->getAngle(ang1);
     for (double angleValue : ang1) {
         EXPECT_NEAR(angleValue, 0.0, 1e-6);
@@ -165,7 +165,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
 
     gds->pFlowInitialize();
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->getVoltage(volts1);
     gds->getAngle(ang1);
@@ -184,7 +184,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
     loadCdf(gds.get(), fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 30);
@@ -200,10 +200,10 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     gds->getAngle(ang1);
 
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->getVoltage(volts2);
     gds->getAngle(ang2);
@@ -217,7 +217,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
-    gds->reset(reset_levels::voltage_angle);
+    gds->reset(ResetLevels::voltage_angle);
     gds->getAngle(ang1);
     for (double angleValue : ang1) {
         EXPECT_NEAR(angleValue, 0.0, 1e-6);
@@ -225,7 +225,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     gds->pFlowInitialize();
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->getVoltage(volts1);
     gds->getAngle(ang1);
@@ -242,7 +242,7 @@ TEST_F(PowerflowSystemTests, TestPFlowPadjust)
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b_Padjust.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     std::vector<double> generation1;
     std::vector<double> generation2;
@@ -253,7 +253,7 @@ TEST_F(PowerflowSystemTests, TestPFlowPadjust)
     gds->powerflow();
     auto warnCount = gds->getInt("warncount");
     EXPECT_EQ(warnCount, 0);
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->getBusGenerationReal(generation2);
     // there should be 2 generators+ the swing bus that had their real power levels adjusted instead
     // of just the swing bus
@@ -268,7 +268,7 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
     std::string fileName = std::string(ieee_test_directory) + "ieee30_no_limit.cdf";
 
     loadCdf(gds.get(), fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 30);
@@ -291,12 +291,12 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
     auto smode = gds->getSolverMode("dcflow");
     gds->set("defpowerflow", "dcflow");
     gds->pFlowInitialize(0.0);
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     runJacobianCheck(gds, smode);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 // iterated power flow test case
@@ -305,7 +305,7 @@ TEST_F(PowerflowSystemTests, DISABLED_TestIteratedPflow)
     std::string fileName = std::string(pFlow_test_directory) + "iterated_test_case.xml";
     gds = readSimXMLFile(fileName);
     ASSERT_NE(gds, nullptr);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->set("recorddirectory", pFlow_test_directory);
     gds->run();
@@ -319,12 +319,12 @@ TEST_F(PowerflowSystemTests, PFlowTestFloatingBus)
     gds = readSimXMLFile(fileName);
 
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     runJacobianCheck(gds, cPflowSolverMode);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 /** test case for a single line breaker trip*/
@@ -337,7 +337,7 @@ TEST_F(PowerflowSystemTests, PflowTestSingleBreaker)
     EXPECT_GE(static_cast<double>(gds->getSimulationTime()), 5.0);
     // gds->timestep(2.05,noInputs,cPflowSolverMode);
     // runJacobianCheck(gds, cPflowSolverMode);
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 static constexpr std::array<std::string_view, 9> approxModes{
     "normal",
@@ -360,7 +360,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
 
         loadCdf(gds.get(), fileName);
 
-        requireState(GridDynSimulation::gridState_t::STARTUP);
+        requireState(GridDynSimulation::GridState::STARTUP);
 
         int count = gds->getInt("totalbuscount");
         EXPECT_EQ(count, 30);
@@ -388,7 +388,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         auto smode = gds->getSolverMode(std::string{approx});
         gds->set("defpowerflow", std::string{approx});
         gds->pFlowInitialize(0.0);
-        requireState(GridDynSimulation::gridState_t::INITIALIZED);
+        requireState(GridDynSimulation::GridState::INITIALIZED);
         int errors;
         if (approx == "small_angle_decoupled") {
             errors = runJacobianCheck(gds, smode, 0.05, false);
@@ -398,6 +398,7 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         ASSERT_EQ(errors, 0) << "Errors in " << approx << " mode";
 
         gds->powerflow();
-        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     }
 }
+

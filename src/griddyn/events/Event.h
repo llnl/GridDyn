@@ -82,15 +82,15 @@ class Event: public HelperObject, public eventInterface, public ObjectOperatorIn
     */
     virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject);
     /** trigger the event
-    @return a change_code describing the impact associated with an event
+    @return a ChangeCode describing the impact associated with an event
     */
-    virtual change_code trigger();
+    virtual ChangeCode trigger();
 
-    virtual change_code trigger(coreTime time) override;
+    virtual ChangeCode trigger(coreTime time) override;
 
     virtual coreTime nextTriggerTime() const override { return triggerTime; }
     virtual bool isArmed() const override { return armed; }
-    event_execution_mode executionMode() const override { return event_execution_mode::normal; }
+    EventExecutionMode executionMode() const override { return EventExecutionMode::normal; }
     bool initNeeded() const { return initRequired; }
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -155,3 +155,4 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
+

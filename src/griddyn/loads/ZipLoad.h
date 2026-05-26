@@ -16,7 +16,7 @@ Z-constant impedance, I-constant current, P- constant Power
 */
 class ZipLoad: public GridLoad {
   public:
-    enum load_flags {
+    enum LoadFlags {
         convert_to_constant_impedance = object_flag2,
         no_pqvoltage_limit = object_flag3,
     };
@@ -129,3 +129,4 @@ class ZipLoad: public GridLoad {
 bool compareLoad(ZipLoad* ld1, ZipLoad* ld2, bool printDiff = false);
 
 }  // namespace griddyn
+

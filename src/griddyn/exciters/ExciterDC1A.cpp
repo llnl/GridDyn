@@ -191,28 +191,28 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
     }
 }
 
-change_code ExciterDC1A::rootCheck(const IOdata& inputs,
+ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
                                    const stateData& /*sD*/,
                                    const solverMode& /*sMode*/,
-                                   check_level_t /*level*/)
+                                   CheckLevel /*level*/)
 {
     double* es = m_state.data();
     double test;
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::no_change;
     if (opFlags[outside_vlim]) {
         test =
             ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
         if (opFlags[etrigger_high]) {
             if (test < 0.0) {
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::jacobian_change;
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::jacobian_change;
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
             }
@@ -222,13 +222,13 @@ change_code ExciterDC1A::rootCheck(const IOdata& inputs,
             opFlags.set(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmax;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::jacobian_change;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
             opFlags.reset(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmin;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::jacobian_change;
             alert(this, JAC_COUNT_DECREASE);
         }
     }
@@ -260,3 +260,4 @@ void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::exciters
+

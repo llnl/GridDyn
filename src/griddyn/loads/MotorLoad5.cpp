@@ -550,10 +550,10 @@ void MotorLoad5::rootTrigger(coreTime /*time*/,
     }
 }
 
-change_code MotorLoad5::rootCheck(const IOdata& /*inputs*/,
+ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t /*level*/)
+                                  CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
         auto Loc = offsets.getLocations(sD, sMode, this);
@@ -562,9 +562,10 @@ change_code MotorLoad5::rootCheck(const IOdata& /*inputs*/,
         if (Te - mechPower(1.0) > 0) {
             opFlags.reset(stalled);
             alert(this, JAC_COUNT_INCREASE);
-            return change_code::jacobian_change;
+            return ChangeCode::jacobian_change;
         }
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 }  // namespace griddyn::loads
+

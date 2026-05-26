@@ -10,7 +10,7 @@
 #include "Solver.h"
 
 namespace griddyn::paradae {
-enum NWT_error { NEWTON_NOT_CONVERGED, NEWTON_INF_NAN };
+enum NwtError { NEWTON_NOT_CONVERGED, NEWTON_INF_NAN };
 
 class Newton: Solver {
     Real tol;
@@ -26,3 +26,4 @@ class Newton: Solver {
     int Solve(Solver_App* app, Vector& x);
 };
 }  // namespace griddyn::paradae
+

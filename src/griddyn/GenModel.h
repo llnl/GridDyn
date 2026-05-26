@@ -24,7 +24,7 @@ class GenModel: public GridSubModel {
   public:
     /** @brief set of flags used by genModels for variations in computation
      */
-    enum genModel_flags {
+    enum GenModelFlags {
 
         use_saturation_flag =
             object_flag2,  //!< flag indicating that the simulation should use a saturation model
@@ -84,3 +84,4 @@ class GenModel: public GridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
 };
 }  // namespace griddyn
+

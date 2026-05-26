@@ -52,7 +52,7 @@ void reversibleEvent::cloneTo(Event* evnt) const
 }
 
 // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
-change_code reversibleEvent::trigger()
+ChangeCode reversibleEvent::trigger()
 {
     if (canUndo) {
         undoValue = grabber->grabData();
@@ -61,14 +61,14 @@ change_code reversibleEvent::trigger()
     if (stringEvent) {
         if (m_obj == nullptr) {
             armed = false;
-            return change_code::execution_failure;
+            return ChangeCode::execution_failure;
         }
         try {
             m_obj->set(field, newStringValue);
-            return change_code::parameter_change;
+            return ChangeCode::parameter_change;
         }
         catch (const std::invalid_argument&) {
-            return change_code::execution_failure;
+            return ChangeCode::execution_failure;
         }
 
     } else {
@@ -76,25 +76,25 @@ change_code reversibleEvent::trigger()
     }
 }
 
-change_code reversibleEvent::trigger(coreTime time)
+ChangeCode reversibleEvent::trigger(coreTime time)
 {
     if (canUndo) {
         undoValue = grabber->grabData();
         hasUndo = true;
     }
     if (stringEvent) {
-        change_code ret = change_code::not_triggered;
+        ChangeCode ret = ChangeCode::not_triggered;
         if (time >= triggerTime) {
             if (m_obj == nullptr) {
                 armed = false;
-                return change_code::execution_failure;
+                return ChangeCode::execution_failure;
             }
             try {
                 m_obj->set(field, newStringValue);
-                ret = change_code::parameter_change;
+                ret = ChangeCode::parameter_change;
             }
             catch (const std::invalid_argument&) {
-                ret = change_code::execution_failure;
+                ret = ChangeCode::execution_failure;
             }
             armed = false;
         }
@@ -131,14 +131,14 @@ void reversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
     }
 }
 
-change_code reversibleEvent::undo()
+ChangeCode reversibleEvent::undo()
 {
     if (hasUndo) {
         setValue(undoValue);
         hasUndo = false;
         return Event::trigger();
     }
-    return change_code::not_triggered;
+    return ChangeCode::not_triggered;
 }
 
 double reversibleEvent::query()
@@ -147,3 +147,4 @@ double reversibleEvent::query()
 }
 
 }  // namespace griddyn::events
+

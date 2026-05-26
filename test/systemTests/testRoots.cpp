@@ -23,18 +23,18 @@ TEST_F(RootTests, RootTest1)
     std::string fileName = std::string(ROOTS_TEST_DIRECTORY "test_roots1.xml");
 
     gds = readSimXMLFile(fileName);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
 
     //    gds->consolePrintLevel=0;
 
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->run(30);
     int alerts = gds->getInt("alertcount");
 
     EXPECT_EQ(alerts, 2);
-    EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -53,11 +53,11 @@ TEST_F(RootTests, TestGovernorRoots)
 {
   std::string fileName = std::string(ROOTS_TEST_DIRECTORY "test_gov_limit3.xml");
   gds = readSimXMLFile(fileName);
-  requireState(GridDynSimulation::gridState_t::STARTUP);
+  requireState(GridDynSimulation::GridState::STARTUP);
   gds->consolePrintLevel = PrintLevel::NO_PRINT;
   gds->set("recorddirectory", ROOTS_TEST_DIRECTORY);
   gds->run();
-  requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+  requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
   std::string recname = std::string(ROOTS_TEST_DIRECTORY "rootDisplay.dat");
   TimeSeriesMulti<> ts3;
@@ -86,3 +86,4 @@ TEST_F(RootTests, TestBusDisable)
     simpleRunTestXML(fileName);
 }
 #endif
+

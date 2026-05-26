@@ -26,7 +26,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple)
 
     gds = readSimXMLFile(fileName);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getVoltage(st);
@@ -38,7 +38,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple)
     fileName = std::string(TADJ_TEST_DIRECTORY "adj_test2.xml");
     gds2 = readSimXMLFile(fileName);
     gds2->powerflow();
-    requireStates(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireStates(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     auto adj = dynamic_cast<links::adjustableTransformer*>(gds2->getLink(1));
     ASSERT_NE(adj, nullptr);
@@ -52,7 +52,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple2)
 
     gds = readSimXMLFile(fileName);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getVoltage(st);
@@ -66,7 +66,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple2)
 
     gds2 = readSimXMLFile(fileName);
     gds2->powerflow();
-    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->getVoltage(st);
     EXPECT_GE(st[1], 0.99);
@@ -79,7 +79,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple2)
 
     gds = readSimXMLFile(fileName);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->getVoltage(st);
     EXPECT_GE(st[2], 0.99);
@@ -93,7 +93,7 @@ TEST_F(AdjustableTransformerTests, AdjTestMw)
 
     gds = readSimXMLFile(fileName);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getLinkRealPower(st);
@@ -113,7 +113,7 @@ TEST_F(AdjustableTransformerTests, AdjTestMvar)
 
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getLinkReactivePower(st, 0, 2);
@@ -125,7 +125,7 @@ TEST_F(AdjustableTransformerTests, AdjTestMvar)
 
     gds2 = readSimXMLFile(fileName);
     gds2->powerflow();
-    requireStates(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireStates(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->getLinkReactivePower(st, 0, 2);
 
@@ -143,7 +143,7 @@ TEST_F(AdjustableTransformerTests, AdjTestContMvar)
 
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getLinkReactivePower(st, 0, 2);
@@ -154,7 +154,7 @@ TEST_F(AdjustableTransformerTests, AdjTestContMvar)
 
     gds2 = readSimXMLFile(fileName);
     gds2->powerflow();
-    requireStates(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireStates(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->getLinkReactivePower(st, 0, 2);
 
@@ -172,7 +172,7 @@ TEST_F(AdjustableTransformerTests, AdjTestContV)
 
     ASSERT_EQ(mmatch, 0);
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> st;
     gds->getVoltage(st);
@@ -183,9 +183,10 @@ TEST_F(AdjustableTransformerTests, AdjTestContV)
 
     gds2 = readSimXMLFile(fileName);
     gds2->powerflow();
-    requireStates(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireStates(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->getVoltage(st);
     EXPECT_NEAR(st[1], 1.0, 1e-7);
     EXPECT_NEAR(st[2], 1.0, 1e-7);
 }
+

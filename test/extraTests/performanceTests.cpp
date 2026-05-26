@@ -52,19 +52,19 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
             auto stop_t = std::chrono::high_resolution_clock::now();
             load_time += (stop_t - start_t);
 
-            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
             stop_t = std::chrono::high_resolution_clock::now();
             pflow_time += (stop_t - start_t);
 
-            if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+            if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
                 std::cout << fileName << " did not complete power flow calculation\n";
                 break;
             }
             ASSERT_EQ(gds->currentProcessState(),
-                      GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+                      GridDynSimulation::GridState::POWERFLOW_COMPLETE);
         }
         printf("%s load in %f powerflow in %f\n",
                mp.c_str(),
@@ -110,7 +110,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
             load_time = (stop_t - start_t);
             ldtime[ii] = load_time.count();
 
-            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
 
             start_t = std::chrono::high_resolution_clock::now();
             gds->powerflow();
@@ -176,7 +176,7 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
     auto stop_t = std::chrono::high_resolution_clock::now();
     load_time = (stop_t - start_t);
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
 
     start_t = std::chrono::high_resolution_clock::now();
     gds->powerflow();
@@ -202,3 +202,4 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
 
     gds->run();
 }
+

@@ -20,7 +20,7 @@ namespace solvers {
       public:
         using SolverInterface::set;
         /** define whether to use the gauss algorithm or the gauss-seidel algorithm*/
-        enum class mode_t { gauss, gauss_seidel };
+        enum class Mode { gauss, gauss_seidel };
 
       private:
         std::vector<double> state;  //!< state data/
@@ -30,12 +30,12 @@ namespace solvers {
         double alpha = 1.1;  //!< convergence gain;
         /** @brief enumeration listing the algorithm types*/
 
-        mode_t algorithm;  //!< the algorithm to use
+        Mode algorithm;  //!< the algorithm to use
         count_t iterations = 0;  //!< counter for the number of iterations
       public:
-        explicit basicSolver(mode_t alg);
+        explicit basicSolver(Mode alg);
         /** @brief default constructor*/
-        explicit basicSolver(const std::string& objName = "basic", mode_t alg = mode_t::gauss);
+        explicit basicSolver(const std::string& objName = "basic", Mode alg = Mode::gauss);
         /** alternate constructor to feed to SolverInterface
     @param[in] gds  the GridDynSimulation to link to
     @param[in] sMode the solverMode to solve with
@@ -66,3 +66,4 @@ namespace solvers {
 
 }  // namespace solvers
 }  // namespace griddyn
+

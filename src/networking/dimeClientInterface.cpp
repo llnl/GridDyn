@@ -65,7 +65,7 @@ void DimeClientInterface::init()
 {
     auto context = zmqlib::ZmqContextManager::getContextPointer();
 
-    mSocket = std::make_unique<zmq::socket_t>(context->getBaseContext(), zmq::socket_type::req);
+    mSocket = std::make_unique<zmq::socket_t>(context->getBaseContext(), zmq::SocketType::req);
     mSocket->connect(mAddress);
 
     JsonValue outgoing;
@@ -134,3 +134,4 @@ void DimeClientInterface::broadcast(const std::string& varName, double val)
 }
 
 void DimeClientInterface::getDevices() {}
+

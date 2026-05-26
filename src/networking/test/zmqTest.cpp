@@ -23,7 +23,7 @@ class ZmqTests: public ::testing::Test {};
 }  // namespace
 
 using zmq::message_t;
-using zmq::socket_type;
+using zmq::SocketType;
 using zmqlib::SocketOperation;
 using zmqlib::socketTypeFromString;
 using zmqlib::ZmqContextManager;
@@ -47,7 +47,7 @@ TEST_F(ZmqTests, TestSocketDescriptor)
     ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
-    zDescriptor.type = socket_type::pub;
+    zDescriptor.type = SocketType::pub;
 
     ZmqSocketDescriptor zDescriptor2("test_socketr");
     zDescriptor2.addOperation(SocketOperation::CONNECT, endpoint);
@@ -83,7 +83,7 @@ TEST_F(ZmqTests, TestReactorA)
     ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
-    zDescriptor.type = socket_type::pub;
+    zDescriptor.type = SocketType::pub;
     auto& defContext = ZmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
@@ -129,7 +129,7 @@ TEST_F(ZmqTests, TestReactorB)
     ZmqSocketDescriptor zDescriptor("test_socket");
     zDescriptor.addOperation(SocketOperation::BIND, endpoint);
 
-    zDescriptor.type = socket_type::pub;
+    zDescriptor.type = SocketType::pub;
     auto& defContext = ZmqContextManager::getContext();
     auto sock1 = zDescriptor.makeSocket(defContext);
 
@@ -175,3 +175,4 @@ TEST_F(ZmqTests, TestReactorB)
     EXPECT_EQ(count1, 2);
     EXPECT_EQ(count2, 4);
 }
+

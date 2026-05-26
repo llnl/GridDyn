@@ -216,7 +216,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
             rootCheck(bus->getOutputs(noInputs, emptyStateData, cLocalSolverMode),
                       emptyStateData,
                       cLocalSolverMode,
-                      check_level_t::reversable_only);
+                      CheckLevel::reversable_only);
         }
     }
 }
@@ -481,19 +481,19 @@ void MotorLoad::rootTrigger(coreTime /*time*/,
     }
 }
 
-change_code MotorLoad::rootCheck(const IOdata& inputs,
+ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
                                  const stateData& /*sD*/,
                                  const solverMode& /*sMode*/,
-                                 check_level_t /*level*/)
+                                 CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
         if (rPower(inputs[voltageInLocation] * Vcontrol, 1.0) - mechPower(1.0) > 0) {
             opFlags.reset(stalled);
             alert(this, JAC_COUNT_INCREASE);
-            return change_code::jacobian_change;
+            return ChangeCode::jacobian_change;
         }
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 double MotorLoad::getRealPower() const
@@ -615,3 +615,4 @@ double MotorLoad::qPower(double vin, double slip) const
     return reactivePowerOutput;
 }
 }  // namespace griddyn::loads
+

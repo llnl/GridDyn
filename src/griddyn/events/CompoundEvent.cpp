@@ -130,7 +130,7 @@ std::string compoundEvent::to_string() const
 
     return ss.str();
 }
-change_code compoundEvent::trigger()
+ChangeCode compoundEvent::trigger()
 {
     try {
         if (targetObjects.empty()) {
@@ -142,16 +142,16 @@ change_code compoundEvent::trigger()
                 ++index;
             }
         }
-        return change_code::parameter_change;
+        return ChangeCode::parameter_change;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::execution_failure;
     }
 }
 
-change_code compoundEvent::trigger(coreTime time)
+ChangeCode compoundEvent::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::not_triggered;
     if (time >= triggerTime) {
         try {
             if (targetObjects.empty()) {
@@ -163,10 +163,10 @@ change_code compoundEvent::trigger(coreTime time)
                     ++index;
                 }
             }
-            ret = change_code::parameter_change;
+            ret = ChangeCode::parameter_change;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::execution_failure;
         }
         armed = false;
     }
@@ -191,3 +191,4 @@ bool compoundEvent::setTarget(CoreObject* gdo, std::string_view var)
     return armed;
 }
 }  // namespace griddyn::events
+

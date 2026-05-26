@@ -43,13 +43,13 @@ class CommPayload {
 class commMessage {
   public:
     /** define the most basic of message types*/
-    enum comm_message_type_t : std::uint32_t {
+    enum CommMessageType : std::uint32_t {
         ignoreMessageType = 0,  //!< a message that can be ignored
         pingMessageType = 1,  //!< a message sending a ping
         replyMessageType = 2,  //!< a message responding to a ping
         unknownMessageType = 0xFFFFFFFF,  //!< I don't know what this message means
     };
-    enum relay_message_type_t : std::uint32_t {
+    enum RelayMessageType : std::uint32_t {
         NO_EVENT = BASE_RELAY_MESSAGE_NUMBER,
         LOCAL_FAULT_EVENT = BASE_RELAY_MESSAGE_NUMBER + 3,
         REMOTE_FAULT_EVENT = BASE_RELAY_MESSAGE_NUMBER + 4,
@@ -77,14 +77,14 @@ class commMessage {
     payLoadType* getPayload()
     {
         switch (ptype) {
-            case payloadType_t::none:
+            case PayloadType::none:
             default:
                 return nullptr;
-            case payloadType_t::shared:
+            case PayloadType::shared:
                 return (payload) ? dynamic_cast<payLoadType*>(payload.get()) : nullptr;
-            case payloadType_t::vector:
+            case PayloadType::vector:
                 return reinterpret_cast<payLoadType*>(payload_V.data());
-            case payloadType_t::raw:
+            case PayloadType::raw:
                 return reinterpret_cast<payLoadType*>(payloadData);
         }
     }
@@ -93,27 +93,27 @@ class commMessage {
 
     void setPayload(std::shared_ptr<CommPayload> ptr)
     {
-        ptype = (ptr) ? payloadType_t::shared : payloadType_t::none;
+        ptype = (ptr) ? PayloadType::shared : PayloadType::none;
         payload = std::move(ptr);
     }
     void setPayload(const std::vector<char>& vec)
     {
         payload_V = vec;
-        ptype = payloadType_t::vector;
+        ptype = PayloadType::vector;
     }
     void setPayload(std::vector<char>&& vec)
     {
         payload_V = std::move(vec);
-        ptype = payloadType_t::vector;
+        ptype = PayloadType::vector;
     }
     void setPayload(void* data, size_t dsize)
     {
         payloadData = data;
         payloadSize = dsize;
         if ((data == nullptr) || (dsize == 0)) {
-            ptype = payloadType_t::none;
+            ptype = PayloadType::none;
         } else {
-            ptype = payloadType_t::raw;
+            ptype = PayloadType::raw;
         }
     }
     /** generate a string describing the message*/
@@ -149,8 +149,8 @@ class commMessage {
     std::uint32_t code = 0xFFFFFFFF;
 
   private:
-    enum class payloadType_t : uint8_t { none = 0, shared = 1, vector = 2, raw = 3 };
-    payloadType_t ptype = payloadType_t::none;
+    enum class PayloadType : uint8_t { none = 0, shared = 1, vector = 2, raw = 3 };
+    PayloadType ptype = PayloadType::none;
     std::shared_ptr<CommPayload> payload;
     void* payloadData = nullptr;  //!< blob pointer for payload data
     size_t payloadSize = 0;  //!< blob size;
@@ -162,15 +162,15 @@ class commMessage {
         ar(m_messageType, code);
         ar(static_cast<uint8_t>(ptype));
         switch (ptype) {
-            case payloadType_t::none:
+            case PayloadType::none:
                 break;
-            case payloadType_t::shared:
+            case PayloadType::shared:
                 ar(payload);
                 break;
-            case payloadType_t::vector:
+            case PayloadType::vector:
                 ar(payload_V);
                 break;
-            case payloadType_t::raw:
+            case PayloadType::raw:
                 // Save number of chars + the data
                 ar(cereal::make_size_tag(payloadSize));
                 if (payloadData != nullptr) {
@@ -184,17 +184,17 @@ class commMessage {
         ar(m_messageType, code);
         uint8_t type;
         ar(type);
-        ptype = static_cast<payloadType_t>(type);
+        ptype = static_cast<PayloadType>(type);
         switch (ptype) {
-            case payloadType_t::none:
+            case PayloadType::none:
                 break;
-            case payloadType_t::shared:
+            case PayloadType::shared:
                 ar(payload);
                 break;
-            case payloadType_t::vector:
+            case PayloadType::vector:
                 ar(payload_V);
                 break;
-            case payloadType_t::raw:
+            case PayloadType::raw:
                 // Save to the vector
                 size_t size;
                 ar(cereal::make_size_tag(size));
@@ -205,7 +205,7 @@ class commMessage {
 };
 
 // defining a number of alarm codes
-enum alarmCode {
+enum AlarmCode {
     OVERCURRENT_ALARM = 101,
     UNDERCURRENT_ALARM = 102,
     OVERVOLTAGE_ALARM = 111,
@@ -356,3 +356,4 @@ class dPayloadFactory: public payloadFactory {
 };
 
 }  // namespace griddyn
+

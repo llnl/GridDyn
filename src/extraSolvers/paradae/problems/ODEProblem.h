@@ -14,7 +14,7 @@
 #include <fstream>
 #include <string>
 
-enum ODE_error { ODE_FAILED };
+enum OdeError { ODE_FAILED };
 namespace griddyn::paradae {
 class ODEProblem {
     Equation* equation;
@@ -44,3 +44,4 @@ class ODEProblem {
     inline bool PrintAllITERSolution() { return print_all_iter_solution; };
 };
 }  // namespace griddyn::paradae
+

@@ -17,7 +17,7 @@ namespace griddyn::loads {
 class MotorLoad: public GridLoad {
   public:
     /** @brief motor load flags*/
-    enum motor_load_flags {
+    enum MotorLoadFlags {
         init_transient =
             object_flag8,  //!< flag indicating that the motor starts with a load transient
         stalled = object_flag9,  //!< flag indicating that the motor is stalled
@@ -117,10 +117,10 @@ class MotorLoad: public GridLoad {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     /** @brief compute the mechanical torque on the motor as a function of slip
 @param[in]  slip  the slip on the motor
@@ -170,3 +170,4 @@ class MotorLoad: public GridLoad {
 };
 
 }  // namespace griddyn::loads
+

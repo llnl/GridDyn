@@ -89,10 +89,10 @@ class GenModelInverter: public GenModel {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
   private:
     void reCalcImpedences();
@@ -118,3 +118,4 @@ class GenModelInverter: public GenModel {
 };
 
 }  // namespace griddyn::genmodels
+

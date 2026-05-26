@@ -34,7 +34,7 @@ class GridArea: public gridPrimary {
 
   public:
     /** @brief flags for area operations and control*/
-    enum area_flags {
+    enum AreaFlags {
         reverse_converge = object_flag1,  //!< flag indicating that the area should do a
                                           //!< convergence/algebraic loop in reverse
         direction_oscillate =
@@ -241,8 +241,8 @@ class GridArea: public gridPrimary {
                                         const solverMode& sMode,
                                         double alpha) override;
 
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
+    virtual ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
     virtual void setState(coreTime time,
                           const double state[],
@@ -271,7 +271,7 @@ class GridArea: public gridPrimary {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode mode,
+                          ConvergeMode mode,
                           double tol) override;
     virtual void updateLocalCache() override;
 
@@ -279,7 +279,7 @@ class GridArea: public gridPrimary {
                                   const stateData& sD,
                                   const solverMode& sMode) override;
 
-    virtual void reset(reset_levels level) override;
+    virtual void reset(ResetLevels level) override;
     // root finding functions
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
@@ -289,10 +289,10 @@ class GridArea: public gridPrimary {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
     // grab information
     /** @brief get a vector of voltage from the attached buses
     @param[out] voltages the vector to put the bus voltages
@@ -499,3 +499,4 @@ class GridArea: public gridPrimary {
 GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
+

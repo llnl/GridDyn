@@ -26,10 +26,10 @@ TEST_F(AreaTests, AreaTest1)
     std::string fileName = std::string(AREA_TEST_DIRECTORY "area_test1.xml");
 
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     int count;
     count = gds->getInt("totalareacount");
@@ -41,7 +41,7 @@ TEST_F(AreaTests, AreaTest1)
     EXPECT_EQ(count, 9);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     auto st = gds->getState();
 
@@ -50,7 +50,7 @@ TEST_F(AreaTests, AreaTest1)
     gds2 = readSimXMLFile(fileName);
 
     gds2->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     auto st2 = gds2->getState();
     auto diffs = gmlc::utilities::countDiffs(st, st2, 0.00001);
@@ -88,3 +88,4 @@ TEST_F(AreaTests, AreaTestAdd)
         FAIL();
     }
 }
+

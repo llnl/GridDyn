@@ -67,10 +67,10 @@ class MotorLoad3: public MotorLoad {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
+    virtual ChangeCode rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const solverMode& sMode,
-                                  check_level_t level) override;
+                                  CheckLevel level) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
@@ -113,3 +113,4 @@ class MotorLoad3: public MotorLoad {
 };
 
 }  // namespace griddyn::loads
+

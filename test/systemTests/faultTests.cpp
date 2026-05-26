@@ -51,7 +51,7 @@ TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault
         gds->run(1.01);
         if (gds->hasDynamics()) {
-            EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+            EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
                 << "Model " << gname << " failed to run past fault";
             auto mmatch = runJacobianCheck(gds, cDaeSolverMode);
             EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure after fault";
@@ -62,14 +62,14 @@ TEST_F(FaultTests, FaultTest1)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault clears
         gds->run(1.2);
 
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run past fault clear";
         auto mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
         EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure";
 
         gds->run();
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run to completion";
 
         std::vector<double> volts;
@@ -101,7 +101,7 @@ TEST_F(FaultTests, FaultTest2)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault
         gds->run(1.01);
 
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run past fault";
         auto mmatch = runJacobianCheck(gds, cDaeSolverMode);
         EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure after fault";
@@ -109,14 +109,14 @@ TEST_F(FaultTests, FaultTest2)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault clears
         gds->run(1.2);
 
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run past fault clear";
         mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
         EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure";
 
         gds->run();
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run to completion";
 
         std::vector<double> volts;
@@ -152,7 +152,7 @@ TEST_F(FaultTests, FaultTest3)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault
         gds->run(1.01);
 
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run past fault";
         auto mmatch = runJacobianCheck(gds, cDaeSolverMode);
         EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure after fault";
@@ -160,14 +160,14 @@ TEST_F(FaultTests, FaultTest3)  // NOLINT(readability-function-cognitive-complex
         // run till just after the fault clears
         gds->run(1.2);
 
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run past fault clear";
         mmatch = runJacobianCheck(gds, cDaeSolverMode);
 
         EXPECT_EQ(mmatch, 0) << "Model " << gname << " Jacobian failure";
 
         gds->run();
-        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE)
+        EXPECT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE)
             << "Model " << gname << " failed to run to completion";
 
         std::vector<double> volts;
@@ -193,7 +193,7 @@ TEST_F(FaultTests, DISABLED_GecoFaultCase)
     runResidualCheck(gds, cDaeSolverMode);
 
     gds->run();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     // simpleRunTestXML(fileName);
 }
 
@@ -215,7 +215,7 @@ TEST_F(FaultTests, LinkTestFaultDynamic)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.75); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 #endif
@@ -238,7 +238,7 @@ TEST_F(FaultTests, LinkTestFaultFuse)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -258,7 +258,7 @@ TEST_F(FaultTests, LinkTestFaultFuse2)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -283,7 +283,7 @@ TEST_F(FaultTests, LinkTestFaultFuse3)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -305,7 +305,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -327,7 +327,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker2)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -349,7 +349,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker3)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -371,6 +371,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker4)
     gds->getVoltage(v);
     EXPECT_TRUE(std::all_of(v.begin(), v.end(), [](double a) { return (a > 0.80); }));
 
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
+

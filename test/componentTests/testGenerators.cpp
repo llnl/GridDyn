@@ -20,25 +20,25 @@ class GeneratorTests: public GridDynSimulationTestFixture, public ::testing::Tes
 TEST_F(GeneratorTests, GenTestRemote)
 {
     std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_remote.xml");
-    detailedStageCheck(fileName, GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    detailedStageCheck(fileName, GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 TEST_F(GeneratorTests, GenTestRemoteB)
 {
     std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_remote_b.xml");
-    detailedStageCheck(fileName, GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    detailedStageCheck(fileName, GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 }
 
 TEST_F(GeneratorTests, GenTestRemote2)
 {
     std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote.xml");
-    detailedStageCheck(fileName, GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    detailedStageCheck(fileName, GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
 TEST_F(GeneratorTests, GenTestRemote2B)
 {
     std::string fileName = std::string(GEN_TEST_DIRECTORY "test_gen_dualremote_b.xml");
-    detailedStageCheck(fileName, GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    detailedStageCheck(fileName, GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 }
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
@@ -62,3 +62,4 @@ TEST_F(GeneratorTests, GenTestIsoc)
     remove(recname.c_str());
 }
 #endif
+

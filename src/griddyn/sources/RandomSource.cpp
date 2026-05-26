@@ -133,7 +133,7 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void randomSource::reset(reset_levels /*level*/)
+void randomSource::reset(ResetLevels /*level*/)
 {
     opFlags.reset(triggered_flag);
     opFlags.reset(object_armed_flag);

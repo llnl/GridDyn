@@ -55,14 +55,14 @@ int eventAdapter::eventCode() const
     return 0;
 }
 
-change_code eventAdapter::execute(coreTime cTime)
+ChangeCode eventAdapter::execute(coreTime cTime)
 {
     if (m_period > timeZero) {
         m_nextTime += std::floor((cTime - m_nextTime) / m_period) * m_period + m_period;
     } else {
         m_nextTime = maxTime;
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 bool compareEventAdapters(const std::shared_ptr<eventAdapter>& e1,
@@ -97,7 +97,7 @@ std::unique_ptr<eventAdapter> functionEventAdapter::clone() const
     return ea;
 }
 
-change_code functionEventAdapter::execute(coreTime cTime)
+ChangeCode functionEventAdapter::execute(coreTime cTime)
 {
     auto retval = fptr();
     if (m_period > timeZero) {
@@ -113,20 +113,20 @@ void functionEventAdapter::setfunction(ccode_function_t nfptr)
     fptr = std::move(nfptr);
 }
 
-void functionEventAdapter::setExecutionMode(event_execution_mode newMode)
+void functionEventAdapter::setExecutionMode(EventExecutionMode newMode)
 {
     switch (newMode) {
-        case event_execution_mode::normal:
+        case EventExecutionMode::normal:
 
             two_part_execute = false;
             partB_only = false;
             break;
             /** this one really shouldn't be used as it has no meaning*/
-        case event_execution_mode::two_part_execution:
+        case EventExecutionMode::two_part_execution:
             two_part_execute = true;
             partB_only = true;
             break;
-        case event_execution_mode::delayed:
+        case EventExecutionMode::delayed:
             two_part_execute = true;
             partB_only = true;
             break;
@@ -136,3 +136,4 @@ void functionEventAdapter::setExecutionMode(event_execution_mode newMode)
 }
 
 }  // namespace griddyn
+

@@ -36,19 +36,19 @@ TEST_F(LargeValidationTests, TestPjmPflow)
     ReaderInfo ReaderInformation;
     addFlags(ReaderInformation, "ignore_step_up_transformers");
     loadFile(gds, fileName, &ReaderInformation);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     std::vector<double> gv1;
     std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::INITIALIZED);
     int mmatch = residualCheck(gds, cPflowSolverMode, 0.2, true);
     if (mmatch > 0) {
         std::println("Mmatch failures={}", mmatch);
     }
 
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->getVoltage(gv2);
     ASSERT_EQ(gv1.size(), gv2.size());
     int diffc = 0;
@@ -82,16 +82,16 @@ TEST_F(LargeValidationTests, TestPgePflow)
     gds = std::make_unique<GridDynSimulation>();
     ReaderInfo ReaderInformation;
     loadFile(gds, fileName, &ReaderInformation);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
     std::vector<double> gv1;
     std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
     residualCheck(gds.get(), cPflowSolverMode, 0.2, true);
 
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->getVoltage(gv2);
     ASSERT_EQ(gv1.size(), gv2.size());
     int diffc = 0;
@@ -115,3 +115,4 @@ TEST_F(LargeValidationTests, TestPgePflow)
                      gv2[bdiffi]);
     }
 }
+

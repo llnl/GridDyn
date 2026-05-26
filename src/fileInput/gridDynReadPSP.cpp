@@ -347,7 +347,7 @@ void pspReadBus(GridBus* bus,
         if (q != 0.0) {
             gen->set("qmax", q / base);
         }
-    } else if (bus->getType() != GridBus::busType::PQ) {
+    } else if (bus->getType() != GridBus::BusType::PQ) {
         temp = line.substr(40, 5);
         p = numeric_conversion<double>(temp, 0.0);
         temp = line.substr(45, 5);

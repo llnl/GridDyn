@@ -95,7 +95,7 @@ void verifyStabilityCase(ExciterTests& fixture,
         ASSERT_NE(generator, nullptr);
 
         const int returnValue = fixture.gds->dynInitialize();
-        fixture.requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+        fixture.requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
         EXPECT_EQ(returnValue, 0) << "Exciter " << exciterName << " dynInitialize issue";
 
         const int badResidual = runResidualCheck(fixture.gds, cDaeSolverMode, false);
@@ -130,12 +130,12 @@ TEST_F(ExciterTests, RootExciterTest)
 
     const int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
     const std::vector<double> initialState = gds->getState();
 
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     const std::vector<double> finalState = gds->getState();
 
     // check for stability
@@ -281,3 +281,4 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     }
 }
 #endif
+

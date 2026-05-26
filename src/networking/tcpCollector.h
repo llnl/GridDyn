@@ -26,7 +26,7 @@ class TcpCollector: public collector {
     virtual std::unique_ptr<collector> clone() const override;
 
     virtual void cloneTo(collector* col) const override;
-    virtual change_code trigger(coreTime time) override;
+    virtual ChangeCode trigger(coreTime time) override;
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;
@@ -35,3 +35,4 @@ class TcpCollector: public collector {
 };
 
 }  // namespace griddyn::tcpLib
+

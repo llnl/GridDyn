@@ -18,7 +18,7 @@ namespace loads {
 eventually will replace most of the shaped loads*/
     class SourceLoad: public ZipLoad {
       public:
-        enum sourceLoc {
+        enum SourceLoc {
             p_source = 0,
             q_source = 1,
             yp_source = 2,
@@ -28,7 +28,7 @@ eventually will replace most of the shaped loads*/
             r_source = 6,
             x_source = 7,
         };
-        enum class sourceType {
+        enum class SourceType {
             other,
             pulse,
             sine,
@@ -38,11 +38,11 @@ eventually will replace most of the shaped loads*/
       private:
         std::vector<Source*> sources;
         std::array<int, 8> sourceLink;  // source lookups for the values
-        sourceType sType = sourceType::other;
+        SourceType sType = SourceType::other;
 
       public:
         explicit SourceLoad(const std::string& objName = "sourceLoad_$");
-        SourceLoad(sourceType type, const std::string& objName = "sourceLoad_$");
+        SourceLoad(SourceType type, const std::string& objName = "sourceLoad_$");
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual void add(CoreObject* obj) override;
@@ -73,7 +73,7 @@ eventually will replace most of the shaped loads*/
 
       private:
         void getSourceLoads();
-        Source* makeSource(sourceLoc loc);
+        Source* makeSource(SourceLoc loc);
         Source* findSource(std::string_view srcname);
         Source* findSource(std::string_view srcname) const;
     };

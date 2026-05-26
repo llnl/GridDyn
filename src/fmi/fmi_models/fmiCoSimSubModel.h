@@ -20,7 +20,7 @@ namespace griddyn::fmi {
 /** class defining a subModel interacting with an FMU v2.0 object using cosimulation*/
 class FmiCoSimSubModel: public GridSubModel {
   public:
-    enum fmiSubModelFlags {
+    enum FmiSubModelFlags {
         use_output_estimator = object_flag2,
         fixed_output_interval = object_flag3,
         has_derivative_function = object_flag5,

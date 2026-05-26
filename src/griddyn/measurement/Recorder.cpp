@@ -148,7 +148,7 @@ void Recorder::fillDatasetFields()
 {
     mDataset.setFields(collector::getColumnDescriptions());
 }
-change_code Recorder::trigger(coreTime time)
+ChangeCode Recorder::trigger(coreTime time)
 {
     collector::trigger(time);
     if (mFirstTrigger) {
@@ -161,7 +161,7 @@ change_code Recorder::trigger(coreTime time)
         saveFile();
         mDataset.clear();
     }
-    return change_code::no_change;
+    return ChangeCode::no_change;
 }
 
 void Recorder::flush()
@@ -173,3 +173,4 @@ const std::string& Recorder::getSinkName() const
     return getFileName();
 }
 }  // namespace griddyn
+

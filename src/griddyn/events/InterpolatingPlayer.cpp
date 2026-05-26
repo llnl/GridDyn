@@ -157,20 +157,20 @@ std::string interpolatingPlayer::to_string() const
     return ss.str();
 }
 
-change_code interpolatingPlayer::trigger()
+ChangeCode interpolatingPlayer::trigger()
 {
     try {
         m_obj->set(field, value, unitType);
-        return change_code::parameter_change;
+        return ChangeCode::parameter_change;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::execution_failure;
     }
 }
 
-change_code interpolatingPlayer::trigger(coreTime time)
+ChangeCode interpolatingPlayer::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::not_triggered;
     if (time + kSmallTime >= triggerTime) {
         try {
             if (useSlopeField) {
@@ -180,13 +180,14 @@ change_code interpolatingPlayer::trigger(coreTime time)
                 m_obj->set(field, value, unitType);
             }
 
-            ret = change_code::parameter_change;
+            ret = ChangeCode::parameter_change;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::execution_failure;
         }
         updateTrigger(time);
     }
     return ret;
 }
 }  // namespace griddyn::events
+

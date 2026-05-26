@@ -156,7 +156,7 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
                 auto fea = std::make_shared<functionEventAdapter>(
                     [this, val]() {
                         setLevel(val);
-                        return change_code::parameter_change;
+                        return ChangeCode::parameter_change;
                     },
                     m->m_time);
                 rootSim->add(fea);
@@ -192,3 +192,4 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
 }
 }  // namespace griddyn::sources
 // NOLINTEND
+

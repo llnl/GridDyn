@@ -63,7 +63,7 @@ class braidSolver: public SolverInterface {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
 
-    virtual int calcIC(coreTime t0, coreTime tstep0, ic_modes mode, bool constraints) override;
+    virtual int calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints) override;
 
     virtual int
         solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
@@ -72,3 +72,4 @@ class braidSolver: public SolverInterface {
     virtual void getRoots() override;
 };
 }  // namespace griddyn::braid
+

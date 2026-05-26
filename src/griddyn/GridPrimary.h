@@ -19,13 +19,13 @@ class Relay;
 // them if you want the code to work properly making it adaptive would require a lot changes to
 // const strings and arrays so isn't worth it as I don't see a good reason for it to need to change
 /** @brief locations for secondary input parameters (aka bus output locations)*/
-enum secondary_input_locations {
+enum SecondaryInputLocations {
     voltageInLocation = 0,
     angleInLocation = 1,
     frequencyInLocation = 2,
 };
 /** @brief locations grid secondary output locations*/
-enum secondary_output_locations {
+enum SecondaryOutputLocations {
     PoutLocation = 0,
     QoutLocation = 1,
 };
@@ -134,7 +134,7 @@ class gridPrimary: public GridComponent {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode mode = converge_mode::high_error_only,
+                          ConvergeMode mode = ConvergeMode::high_error_only,
                           double tol = 0.01);
 
     /** @brief do a check on the power flow results
@@ -179,3 +179,4 @@ class gridPrimary: public GridComponent {
 };
 
 }  // namespace griddyn
+

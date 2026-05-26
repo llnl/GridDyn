@@ -90,12 +90,12 @@ void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (mCutoutVoltage < 2.0) {
         setActionTrigger(0, 0, mVoltageDelay);
     } else {
-        setConditionStatus(0, condition_status_t::disabled);
+        setConditionStatus(0, ConditionStatus::disabled);
     }
     if (mCutoutFrequency < 2.0) {
         setActionTrigger(0, 1, mFrequencyDelay);
     } else {
-        setConditionStatus(1, condition_status_t::disabled);
+        setConditionStatus(1, ConditionStatus::disabled);
     }
 
     Relay::dynObjectInitializeA(time0, flags);
@@ -103,7 +103,7 @@ void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void loadRelay::actionTaken(index_t ActionNum,
                             index_t conditionNum,
-                            change_code /*actionReturn*/,
+                            ChangeCode /*actionReturn*/,
                             coreTime /*actionTime*/)
 {
     logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
@@ -130,7 +130,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 }
 for (size_t kk = conditionNum + 1; kk < m_zones; ++kk)
 {
-setConditionStatus (kk, condition_status_t::disabled);
+setConditionStatus (kk, ConditionStatus::disabled);
 }
 if (conditionNum < m_condition_level)
 {
@@ -186,7 +186,7 @@ void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
     (void)conditionNum;
     /*for (size_t kk = 0; kk < m_zones; ++kk)
 {
-if (cStates[kk] == condition_status_t::active)
+if (cStates[kk] == ConditionStatus::active)
 {
 m_condition_level = kk + 1;
 }
@@ -220,3 +220,4 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 */
 }
 }  // namespace griddyn::relays
+

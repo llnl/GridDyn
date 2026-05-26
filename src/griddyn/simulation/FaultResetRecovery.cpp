@@ -39,13 +39,13 @@ int faultResetRecovery::attemptFix()
                 retval = faultResetFix1();
                 break;
             case 2:
-                retval = faultResetFix2(reset_levels::low_voltage_dyn0);
+                retval = faultResetFix2(ResetLevels::low_voltage_dyn0);
                 break;
             case 3:
-                retval = faultResetFix2(reset_levels::low_voltage_dyn1);
+                retval = faultResetFix2(ResetLevels::low_voltage_dyn1);
                 break;
             case 4:
-                retval = faultResetFix2(reset_levels::low_voltage_dyn2);
+                retval = faultResetFix2(ResetLevels::low_voltage_dyn2);
                 break;
             case 5:
                 retval = faultResetFix3();
@@ -86,7 +86,7 @@ int faultResetRecovery::faultResetFix1()
 {
     int retval = -101;
 
-    sim->reset(reset_levels::low_voltage_dyn0);
+    sim->reset(ResetLevels::low_voltage_dyn0);
 
     if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
         return retval;
@@ -108,11 +108,11 @@ int faultResetRecovery::faultResetFix1()
 
     return solver->calcIC(timeCurr,
                           sim->probeStepTime,
-                          SolverInterface::ic_modes::fixed_diff,
+                          SolverInterface::IcModes::fixed_diff,
                           true);
 }
 
-int faultResetRecovery::faultResetFix2(reset_levels rlevel)
+int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
 {
     sim->reset(rlevel);
     int retval = -101;
@@ -124,20 +124,20 @@ int faultResetRecovery::faultResetFix2(reset_levels rlevel)
     // int mmatch = JacobianCheck(sim, solver->getSolverMode());
 
     retval =
-        solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::ic_modes::fixed_diff, true);
+        solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);
     if (retval != 0) {
         // try local converge with mode which only deals with low voltage buses
         sim->converge(timeCurr,
                       solver->state_data(),
                       solver->deriv_data(),
                       solver->getSolverMode(),
-                      converge_mode::voltage_only,
+                      ConvergeMode::voltage_only,
                       0.05);
         // std::vector<double> cVolts;
         // sim->getVoltage(cVolts, solver->state_data(), solver->getSolverMode());
         retval = solver->calcIC(timeCurr,
                                 sim->probeStepTime,
-                                SolverInterface::ic_modes::fixed_diff,
+                                SolverInterface::IcModes::fixed_diff,
                                 true);
     }
     return retval;
@@ -164,7 +164,7 @@ int faultResetRecovery::faultResetFix3()
         //  dynData->printStates(true);
         retval = solver->calcIC(sim->getSimulationTime(),
                                 sim->probeStepTime,
-                                SolverInterface::ic_modes::fixed_diff,
+                                SolverInterface::IcModes::fixed_diff,
                                 true);
 
         if (retval == 0) {
@@ -179,12 +179,12 @@ int faultResetRecovery::faultResetFix3()
                           solver->state_data(),
                           solver->deriv_data(),
                           solver->getSolverMode(),
-                          converge_mode::block_iteration,
+                          ConvergeMode::block_iteration,
                           0.1);
             // dynData->printStates(true);
             retval = solver->calcIC(sim->getSimulationTime(),
                                     sim->probeStepTime,
-                                    SolverInterface::ic_modes::fixed_diff,
+                                    SolverInterface::IcModes::fixed_diff,
                                     true);
             if (retval == 0) {
                 solver->getCurrentData();
@@ -233,3 +233,4 @@ bool checkResetVoltages(const std::vector<double>& prev, const std::vector<doubl
 }
 
 }  // namespace griddyn
+

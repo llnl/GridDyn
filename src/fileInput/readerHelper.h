@@ -30,13 +30,13 @@ class ReaderInfo;
 class CoreObject;
 class BasicReaderInfo;
 
-void processParamString(GridParameter& param, ReaderInfo& readerInformation);
+void processParamString(GridParameter& param, ReaderInfo& ReaderInformation);
 
 double convertBV(std::string& baseVoltageCode);
 
 using mArray = std::vector<std::vector<double>>;
 
-double interpretString(const std::string& command, ReaderInfo& readerInformation);
+double interpretString(const std::string& command, ReaderInfo& ReaderInformation);
 
 // NOTE:PT I am leaving these as size_t since they are part of file reading and text location types
 // and spread across multiple files

@@ -47,7 +47,4 @@ class GridParameter {
     void fromString(const std::string& str);
 };
 
-// NOLINTNEXTLINE(readability-identifier-naming)
-using gridParameter = GridParameter;
-
 }  // namespace griddyn

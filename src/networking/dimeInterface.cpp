@@ -27,8 +27,8 @@ void loadDimeLibrary()
     (void)loaded;
 }
 
-void loadDimeReaderInfoDefinitions(ReaderInfo& readerInformation)
+void loadDimeReaderInfoDefinitions(ReaderInfo& ReaderInformation)
 {
-    readerInformation.addTranslate("dime", "extra");
+    ReaderInformation.addTranslate("dime", "extra");
 }
 }  // namespace griddyn

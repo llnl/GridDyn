@@ -765,7 +765,7 @@ void GridBlock::set(std::string_view param, std::string_view val)
 }
 void GridBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
 
     if ((param == "k") || (param == "gain")) {
         K = val;

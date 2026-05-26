@@ -29,18 +29,18 @@ using units::MVAR;
 using units::MW;
 
 // NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
-void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt);
-void ptiReadLoad(GridLoad* ld, const std::string& line, basicReaderInfo& opt);
-void ptiReadFixedShunt(GridLoad* ld, const std::string& line, basicReaderInfo& opt);
-void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& opt);
+void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
+void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
+void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
+void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt);
 void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    std::vector<GridBus*>& busList,
-                   basicReaderInfo& opt);
+                   BasicReaderInfo& opt);
 int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
               std::vector<GridBus*>& busList,
-              basicReaderInfo& opt);
+              BasicReaderInfo& opt);
 
 // static variables with the factories
 // get the basic busFactory
@@ -55,7 +55,7 @@ static TypeFactory<Generator>* gGenfactory = nullptr;
 
 void loadPti(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions)
+             const BasicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -66,7 +66,7 @@ void loadPti(CoreObject* parentObject,
     Generator* gen;
     index_t index;
     size_t pos;
-    basicReaderInfo readerOptionsCopy(readerOptions);
+    BasicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
 
     /*load up the factories*/
@@ -283,7 +283,7 @@ void loadPti(CoreObject* parentObject,
     file.close();
 }
 
-void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt)
+void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
 {
     std::string temp, temp2;
     double bv;
@@ -354,7 +354,7 @@ void ptiReadBus(GridBus* bus, const std::string& line, basicReaderInfo& opt)
     }
 }
 
-void ptiReadLoad(GridLoad* ld, const std::string& line, basicReaderInfo& /*opt*/)
+void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;
@@ -408,7 +408,7 @@ void ptiReadLoad(GridLoad* ld, const std::string& line, basicReaderInfo& /*opt*/
     // ignore the owner field
 }
 
-void ptiReadFixedShunt(GridLoad* ld, const std::string& line, basicReaderInfo& /*opt*/)
+void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;
@@ -442,7 +442,7 @@ void ptiReadFixedShunt(GridLoad* ld, const std::string& line, basicReaderInfo& /
     }
 }
 
-void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*/)
+void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& /*opt*/)
 {
     int rbus;
 
@@ -491,7 +491,7 @@ void ptiReadGen(Generator* gen, const std::string& line, basicReaderInfo& /*opt*
 void ptiReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    std::vector<GridBus*>& busList,
-                   basicReaderInfo& opt)
+                   BasicReaderInfo& opt)
 {
     std::string temp, temp2;
     GridBus *bus1, *bus2;
@@ -549,7 +549,7 @@ void ptiReadBranch(CoreObject* parentObject,
 int ptiReadTX(CoreObject* parentObject,
               stringVec& txlines,
               std::vector<GridBus*>& busList,
-              basicReaderInfo& opt)
+              BasicReaderInfo& opt)
 {
     int tline = 4;
     std::string temp, temp2;

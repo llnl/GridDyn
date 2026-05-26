@@ -19,7 +19,7 @@
 
 using namespace griddyn;
 
-class GovernorTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class GovernorTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GovernorTests, GovStabilityTest)
 {
@@ -38,14 +38,14 @@ TEST_F(GovernorTests, GovStabilityTest)
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
     gds->run(0.005);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
 
     gds->run(400.0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
     gds->run(500.0);
     gds->saveRecorders();

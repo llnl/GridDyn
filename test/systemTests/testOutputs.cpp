@@ -21,7 +21,7 @@ using gmlc::utilities::countDiffs;
 
 static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/";
 
-class OutputTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class OutputTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(OutputTests, OutputTest1)
 {
@@ -32,7 +32,7 @@ TEST_F(OutputTests, OutputTest1)
 
     ASSERT_TRUE(std::filesystem::exists("testout.cdf"));
 
-    gds2 = std::make_unique<gridDynSimulation>();
+    gds2 = std::make_unique<GridDynSimulation>();
     loadFile(gds2.get(), "testout.cdf");
     gds2->powerflow();
 

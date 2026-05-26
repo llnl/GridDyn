@@ -30,16 +30,16 @@ using units::MW;
 static void cdfReadBusLine(GridBus* bus,
                            const std::string& line,
                            double base,
-                           const basicReaderInfo& readerOptions);
+                           const BasicReaderInfo& readerOptions);
 static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<GridBus*> busList,
-                          const basicReaderInfo& readerOptions);
+                          const BasicReaderInfo& readerOptions);
 
 void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions)
+             const BasicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -179,7 +179,7 @@ Columns 124-127 Remote controlled bus number
 static void cdfReadBusLine(GridBus* bus,
                            const std::string& line,
                            double base,
-                           const basicReaderInfo& readerOptions)
+                           const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
     ZipLoad* load = nullptr;
@@ -406,7 +406,7 @@ static void cdfReadBranch(CoreObject* parentObject,
                           std::string line,
                           double base,
                           std::vector<GridBus*> busList,
-                          const basicReaderInfo& readerOptions)
+                          const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
     Link* lnk = nullptr;

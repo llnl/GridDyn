@@ -31,7 +31,7 @@ namespace {
 
 void loadDyr(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& /*readerOptions*/)
+             const BasicReaderInfo& /*readerOptions*/)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage

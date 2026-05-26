@@ -248,9 +248,4 @@ class ReaderInfo: public BasicReaderInfo {
     void loadDefaultDefines();
 };
 
-// NOLINTNEXTLINE(readability-identifier-naming)
-using basicReaderInfo = BasicReaderInfo;
-// NOLINTNEXTLINE(readability-identifier-naming)
-using readerInfo = ReaderInfo;
-
 }  // namespace griddyn

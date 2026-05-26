@@ -15,7 +15,7 @@ using namespace griddyn;
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 
-class ContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace std::filesystem;
 TEST_F(ContingencyTests, DISABLED_ContingencyTest1)

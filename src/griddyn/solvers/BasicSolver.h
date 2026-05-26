@@ -37,7 +37,7 @@ namespace solvers {
         /** @brief default constructor*/
         explicit basicSolver(const std::string& objName = "basic", mode_t alg = mode_t::gauss);
         /** alternate constructor to feed to SolverInterface
-    @param[in] gds  the gridDynSimulation to link to
+    @param[in] gds  the GridDynSimulation to link to
     @param[in] sMode the solverMode to solve with
     */
         basicSolver(GridDynSimulation* gds, const solverMode& sMode);

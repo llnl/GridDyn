@@ -27,7 +27,7 @@ class basicOdeSolver: public SolverInterface {
     /** @brief default constructor*/
     explicit basicOdeSolver(const std::string& objName = "basicOde");
     /** alternate constructor to feed to SolverInterface
-@param[in] gds  the gridDynSimulation to link to
+@param[in] gds  the GridDynSimulation to link to
 @param[in] sMode the solverMode to solve with
 */
     basicOdeSolver(GridDynSimulation* gds, const solverMode& sMode);

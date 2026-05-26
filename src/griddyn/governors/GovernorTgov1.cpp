@@ -261,7 +261,7 @@ void GovernorTgov1::set(std::string_view param, std::string_view val)
 
 void GovernorTgov1::set(std::string_view param, double val, unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
     if (param == "dt") {
         Dt = val;
     } else {

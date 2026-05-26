@@ -19,17 +19,17 @@ using namespace gmlc::utilities;
 
 #define DYN1_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dyn_tests1/"
 
-class DynamicSystemTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class DynamicSystemTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(DynamicSystemTests, DynTestGenModel)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_dynSimple1.xml");
 
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     int count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
@@ -38,11 +38,11 @@ TEST_F(DynamicSystemTests, DynTestGenModel)
     EXPECT_EQ(count, 0);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState(cDaeSolverMode);
 
@@ -52,7 +52,7 @@ TEST_F(DynamicSystemTests, DynTestGenModel)
 
     EXPECT_NEAR(st[5], 1.0, 1e-5);  // check the rotational speed
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
     // check for stability
@@ -65,17 +65,17 @@ TEST_F(DynamicSystemTests, DynTestExciter)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_2m4bDyn_ss_ext_only.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     auto st = gds->getState(cDaeSolverMode);
 
@@ -93,7 +93,7 @@ TEST_F(DynamicSystemTests, DynTestExciter)
 
     gds->run();
 
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     auto st2 = gds->getState(cDaeSolverMode);
 
     // check for stability
@@ -105,10 +105,10 @@ TEST_F(DynamicSystemTests, DynTestSimpleCase)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_2m4bDyn_ss.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     int count = gds->getInt("totalbuscount");
 
@@ -118,18 +118,18 @@ TEST_F(DynamicSystemTests, DynTestSimpleCase)
     EXPECT_EQ(count, 5);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState(cDaeSolverMode);
 
     EXPECT_EQ(st.size(), 30u);
 
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
     auto diff = countDiffsIgnoreCommon(st, st2, 0.0001);
@@ -140,7 +140,7 @@ TEST_F(DynamicSystemTests, DynTestInfiniteBus)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_inf_bus.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
     infiniteBus* bus = dynamic_cast<infiniteBus*>(gds->getBus(0));
     ASSERT_NE(bus, nullptr);
     gds->pFlowInitialize();
@@ -150,7 +150,7 @@ TEST_F(DynamicSystemTests, DynTestInfiniteBus)
     std::vector<double> st = gds->getState();
 
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
     EXPECT_NEAR(st2[0], st[0], 1e-5);
@@ -160,13 +160,13 @@ TEST_F(DynamicSystemTests, DynTestInfiniteBus)
 TEST_F(DynamicSystemTests, DynTestMbase)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_dynSimple1_mod.xml");
-    detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    detailedStageCheck(fileName, GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 /*
 TEST_F(DynamicSystemTests, DynTestGriddyn39)
 {
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_griddyn39.xml");
-    detailedStageCheck(fileName, gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    detailedStageCheck(fileName, GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 */

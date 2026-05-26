@@ -30,7 +30,7 @@ class cvodeInterface: public sundialsInterface {
     /** @brief constructor*/
     explicit cvodeInterface(const std::string& objName = "cvode");
     /** @brief alternate constructor
-@param[in] gds  the gridDynSimulation object to connect to
+@param[in] gds  the GridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
     cvodeInterface(GridDynSimulation* gds, const solverMode& sMode);

@@ -28,7 +28,7 @@ using std::vector;
 EquationGridDyn::EquationGridDyn(Real t0_,
                                  Real Tmax_,
                                  int N_unistep_,
-                                 gridDynSimulation* gds_,
+                                 GridDynSimulation* gds_,
                                  const Vector& y0_,
                                  solverMode* mode_,
                                  vector<double>& discontinuities,
@@ -42,7 +42,7 @@ EquationGridDyn::EquationGridDyn(Real t0_,
     y0.Resize(n);
     y0.CopyData(y0_);
     if (gds_ == NULL) {
-        cerr << "Calling constructor with noninitialised gridDynSimulation pointer..." << endl;
+        cerr << "Calling constructor with noninitialised GridDynSimulation pointer..." << endl;
         abort();
     }
     gds = gds_;

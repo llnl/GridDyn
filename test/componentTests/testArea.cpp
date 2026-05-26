@@ -19,7 +19,7 @@
 
 using namespace griddyn;
 
-class AreaTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class AreaTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(AreaTests, AreaTest1)
 {

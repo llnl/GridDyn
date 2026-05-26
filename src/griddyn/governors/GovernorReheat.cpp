@@ -208,7 +208,7 @@ void GovernorReheat::set(std::string_view param, std::string_view val)
 
 void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
     if ((param == "ts") || (param == "t1")) {
         T1 = val;
     } else if ((param == "tc") || (param == "t2")) {

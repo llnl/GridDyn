@@ -23,12 +23,12 @@ dime
         // that manage the HELICS coordination
       public:
         DimeRunner();
-        DimeRunner(std::shared_ptr<gridDynSimulation> sim);
+        DimeRunner(std::shared_ptr<GridDynSimulation> sim);
         ~DimeRunner();
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(ReaderInfo& readerInformation) override;
+            generateLocalCommandLineParser(ReaderInfo& ReaderInformation) override;
 
         virtual coreTime Run(void) override;
 

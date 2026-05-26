@@ -156,7 +156,7 @@ void DelayBlock::set(std::string_view param, std::string_view val)
 }
 void DelayBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    // param = gridDynSimulation::toLower(param);
+    // param = GridDynSimulation::toLower(param);
     if ((param == "t1") || (param == "t")) {
         if (opFlags[dyn_initialized]) {
             if (!opFlags[simplified]) {

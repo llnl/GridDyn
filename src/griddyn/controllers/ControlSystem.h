@@ -68,6 +68,4 @@ class ControlSystem: public GridSubModel {
                                   check_level_t level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 };
-using controlSystem = ControlSystem;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-class LargeValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class LargeValidationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
 using namespace griddyn;
@@ -32,23 +32,23 @@ using namespace griddyn;
 TEST_F(LargeValidationTests, TestPjmPflow)
 {
     std::string fileName = std::string(OTHER_TEST_DIRECTORY "pf.output.raw");
-    gds = std::make_unique<gridDynSimulation>();
-    readerInfo readerInformation;
-    addFlags(readerInformation, "ignore_step_up_transformers");
-    loadFile(gds, fileName, &readerInformation);
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+    gds = std::make_unique<GridDynSimulation>();
+    ReaderInfo ReaderInformation;
+    addFlags(ReaderInformation, "ignore_step_up_transformers");
+    loadFile(gds, fileName, &ReaderInformation);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
     std::vector<double> gv1;
     std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
     int mmatch = residualCheck(gds, cPflowSolverMode, 0.2, true);
     if (mmatch > 0) {
         std::println("Mmatch failures={}", mmatch);
     }
 
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     gds->getVoltage(gv2);
     ASSERT_EQ(gv1.size(), gv2.size());
     int diffc = 0;
@@ -79,19 +79,19 @@ TEST_F(LargeValidationTests, TestPgePflow)
 {
     std::string fileName =
         std::string(R"(C:\Users\top1\Documents\PG&E Basecases (epc)\a16_2018LSP.epc)");
-    gds = std::make_unique<gridDynSimulation>();
-    readerInfo readerInformation;
-    loadFile(gds, fileName, &readerInformation);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    gds = std::make_unique<GridDynSimulation>();
+    ReaderInfo ReaderInformation;
+    loadFile(gds, fileName, &ReaderInformation);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
     std::vector<double> gv1;
     std::vector<double> gv2;
     gds->getVoltage(gv1);
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
     residualCheck(gds.get(), cPflowSolverMode, 0.2, true);
 
     gds->powerflow();
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     gds->getVoltage(gv2);
     ASSERT_EQ(gv1.size(), gv2.size());
     int diffc = 0;

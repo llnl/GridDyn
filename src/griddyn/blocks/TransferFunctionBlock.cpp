@@ -237,7 +237,7 @@ void TransferFunctionBlock::set(std::string_view param, std::string_view val)
 
 void TransferFunctionBlock::set(std::string_view param, double val, units::unit unitType)
 {
-    // param   = gridDynSimulation::toLower(param);
+    // param   = GridDynSimulation::toLower(param);
     std::string pstr;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, pstr, -1);
     if (pstr.length() == 1) {

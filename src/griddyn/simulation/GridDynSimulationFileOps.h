@@ -20,7 +20,7 @@ class solverMode;
 class GridDynSimulation;
 
 /** @brief save the current state to a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
 */
 void saveState(GridDynSimulation* gds,
@@ -29,19 +29,19 @@ void saveState(GridDynSimulation* gds,
                bool append = false);
 
 /** @brief save the bus data to a csv file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the bus data to
 */
 void saveBusData(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the line data to a csv file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the line data to
 */
 void saveLineData(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the current state to an XML file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
 */
 void saveStateXML(GridDynSimulation* gds,
@@ -49,7 +49,7 @@ void saveStateXML(GridDynSimulation* gds,
                   const solverMode& sMode = cEmptySolverMode);
 
 /** @brief save the current state to a binary file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
 @param[in] sMode the solverMode to save the state
 @param[in] append  boolean indicating the file should be appended
@@ -60,7 +60,7 @@ void saveStateBinary(GridDynSimulation* gds,
                      bool append = true);
 
 /** @brief load a state vector from a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadState(GridDynSimulation* gds,
@@ -68,7 +68,7 @@ void loadState(GridDynSimulation* gds,
                const solverMode& sMode = cEmptySolverMode);
 
 /** @brief load a binary state file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadStateBinary(GridDynSimulation* gds,
@@ -76,7 +76,7 @@ void loadStateBinary(GridDynSimulation* gds,
                      const solverMode& sMode = cEmptySolverMode);
 
 /** @brief load a state vector from an XML file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadStateXML(GridDynSimulation* gds,
@@ -84,7 +84,7 @@ void loadStateXML(GridDynSimulation* gds,
                   const solverMode& sMode = cEmptySolverMode);
 
 /** @brief capture a Jacobian and a state to a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 @param[in] sMode the solverMode to get the state from
 */
@@ -93,7 +93,7 @@ void captureJacState(GridDynSimulation* gds,
                      const solverMode& sMode = cEmptySolverMode);
 
 /** @brief capture the Jacobian data to a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 @param[in] sMode the solverMode to get the state from
 */
@@ -102,68 +102,68 @@ void saveJacobian(GridDynSimulation* gds,
                   const solverMode& sMode = cEmptySolverMode);
 
 /** @brief save the powerflow results to a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlow(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the powerflow results to a cdf formatted file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlowCdf(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the powerflow results to an XML file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlowXML(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the powerflow results to a formatted Text file
  this creates a text file for human readability not machine readability
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlowTXT(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the powerflow results to a binary file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlowBinary(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief save the powerflow results to a csv file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
 */
 void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief load the powerflow results from a file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadPowerFlow(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief load the powerflow results from an XML file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief load the powerflow results from an CDF file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadPowerFlowCdf(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief load the powerflow results from a binary file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadPowerFlowBinary(GridDynSimulation* gds, const std::string& fileName);
 
 /** @brief load the powerflow results from a csv file
-@param[in] gds  the gridDynSimulation object to operate from
+@param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to load
 */
 void loadPowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);

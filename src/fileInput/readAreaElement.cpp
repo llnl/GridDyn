@@ -22,24 +22,24 @@ namespace {
 }  // namespace
 static constexpr char areaComponentName[] = "area";
 GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
-                              readerInfo& readerInformation,
+                              ReaderInfo& ReaderInformation,
                               CoreObject* searchObject)
 {
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
 
     // boiler plate code to setup the object from references or new object
     GridArea* areaObject = elementReaderSetup(element,
                                               static_cast<GridArea*>(nullptr),
                                               areaComponentName,
-                                              readerInformation,
+                                              ReaderInformation,
                                               searchObject);
 
     loadElementInformation(
-        areaObject, element, areaComponentName, readerInformation, areaIgnoreElements());
+        areaObject, element, areaComponentName, ReaderInformation, areaIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded GridArea " << areaObject->getName());
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
     return areaObject;
 }
 

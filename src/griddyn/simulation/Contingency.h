@@ -128,7 +128,7 @@ class Contingency: public gmlc::containers::BasicWorkBlock, ObjectOperatorInterf
     virtual bool isFinished() const override;
 
     /** set the contingency root object
-    @param[in] gdSim  a gridDynSimulation object that is the basis for the contingencies
+    @param[in] gdSim  a GridDynSimulation object that is the basis for the contingencies
     */
     void setContingencyRoot(GridDynSimulation* gdSim);
     /** add an event to a contingency

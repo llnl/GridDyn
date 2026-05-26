@@ -22,7 +22,7 @@ static constexpr char invalidSimulation[] = "the simulation object is not valid"
 static constexpr char invalidSolver[] = "the given solver key was not valid";
 
 SolverKey
-    gridDynSimulationGetSolverKey(GridDynSimulation sim, const char* solverType, GridDynError* err)
+    GridDynSimulationGetSolverKey(GridDynSimulation sim, const char* solverType, GridDynError* err)
 {
     auto* runner = static_cast<GriddynRunner*>(sim);
 
@@ -41,7 +41,7 @@ void gridDynSolverKeyFree(SolverKey key)
     delete skey;
 }
 
-int gridDynSimulationBusCount(GridDynSimulation sim)
+int GridDynSimulationBusCount(GridDynSimulation sim)
 {
     auto* runner = static_cast<GriddynRunner*>(sim);
 
@@ -51,7 +51,7 @@ int gridDynSimulationBusCount(GridDynSimulation sim)
     return runner->getSim()->getInt("buscount");
 }
 
-int gridDynSimulationLineCount(GridDynSimulation sim)
+int GridDynSimulationLineCount(GridDynSimulation sim)
 {
     auto* runner = static_cast<GriddynRunner*>(sim);
 
@@ -61,7 +61,7 @@ int gridDynSimulationLineCount(GridDynSimulation sim)
     return runner->getSim()->getInt("linkcount");
 }
 
-void gridDynSimulationGetResults(GridDynSimulation sim,
+void GridDynSimulationGetResults(GridDynSimulation sim,
                                  const char* dataType,
                                  double* data,
                                  int maxSize,
@@ -96,7 +96,7 @@ void gridDynSimulationGetResults(GridDynSimulation sim,
     }
 }
 
-int gridDynSimulationStateSize(GridDynSimulation sim, SolverKey key, GridDynError* err)
+int GridDynSimulationStateSize(GridDynSimulation sim, SolverKey key, GridDynError* err)
 {
     auto* runner = static_cast<GriddynRunner*>(sim);
 
@@ -112,7 +112,7 @@ int gridDynSimulationStateSize(GridDynSimulation sim, SolverKey key, GridDynErro
     return static_cast<int>(runner->getSim()->stateSize(sMode));
 }
 
-void gridDynSimulationGuessState(GridDynSimulation sim,
+void GridDynSimulationGuessState(GridDynSimulation sim,
                                  double time,
                                  double* states,
                                  double* dstate_dt,
@@ -133,7 +133,7 @@ void gridDynSimulationGuessState(GridDynSimulation sim,
     runner->getSim()->guessState(time, states, dstate_dt, sMode);
 }
 
-void gridDynSimulationSetState(GridDynSimulation sim,
+void GridDynSimulationSetState(GridDynSimulation sim,
                                double time,
                                const double* states,
                                const double* dstate_dt,
@@ -154,7 +154,7 @@ void gridDynSimulationSetState(GridDynSimulation sim,
     runner->getSim()->setState(time, states, dstate_dt, sMode);
 }
 
-void gridDynSimulationGetStateVariableTypes(GridDynSimulation sim,
+void GridDynSimulationGetStateVariableTypes(GridDynSimulation sim,
                                             double* types,
                                             SolverKey key,
                                             GridDynError* err)
@@ -173,7 +173,7 @@ void gridDynSimulationGetStateVariableTypes(GridDynSimulation sim,
     runner->getSim()->getVariableType(types, sMode);
 }
 
-void gridDynSimulationResidual(GridDynSimulation sim,
+void GridDynSimulationResidual(GridDynSimulation sim,
                                double time,
                                double* resid,
                                const double* states,
@@ -195,7 +195,7 @@ void gridDynSimulationResidual(GridDynSimulation sim,
     runner->getSim()->residualFunction(time, states, dstate_dt, resid, sMode);
 }
 
-void gridDynSimulationDerivative(GridDynSimulation sim,
+void GridDynSimulationDerivative(GridDynSimulation sim,
                                  double time,
                                  double* deriv,
                                  const double* states,
@@ -216,7 +216,7 @@ void gridDynSimulationDerivative(GridDynSimulation sim,
     runner->getSim()->derivativeFunction(time, states, deriv, sMode);
 }
 
-void gridDynSimulationAlgebraicUpdate(GridDynSimulation sim,
+void GridDynSimulationAlgebraicUpdate(GridDynSimulation sim,
                                       double time,
                                       double* update,
                                       const double* states,
@@ -238,7 +238,7 @@ void gridDynSimulationAlgebraicUpdate(GridDynSimulation sim,
     runner->getSim()->algUpdateFunction(time, states, update, sMode, alpha);
 }
 
-void gridDynSimulationJacobian(GridDynSimulation sim,
+void GridDynSimulationJacobian(GridDynSimulation sim,
                                double time,
                                const double* states,
                                const double* dstate_dt,

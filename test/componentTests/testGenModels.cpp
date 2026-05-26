@@ -18,7 +18,7 @@
 
 using namespace griddyn;
 
-class GenModelTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class GenModelTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(GenModelTests, ModelTest1)
 {
@@ -28,13 +28,13 @@ TEST_F(GenModelTests, ModelTest1)
 
     int retval = gds->dynInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
 
     std::vector<double> st = gds->getState();
     runResidualCheck(gds, cDaeSolverMode);
     // gds->saveJacobian(std::string(GENMODEL_TEST_DIRECTORY "mjac5.bin"));
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState();
 
     auto cdiff = gmlc::utilities::countDiffs(st, st2, 0.001, 0.01);
@@ -157,5 +157,5 @@ TEST_F(GenModelTests, ModelTest3)
     gds = readSimXMLFile(fileName);
 
     gds->run();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }

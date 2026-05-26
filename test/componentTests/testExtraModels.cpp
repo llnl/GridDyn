@@ -14,13 +14,13 @@
 
 using namespace griddyn;
 
-class ExtraModelTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExtraModelTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ExtraModelTests, TestThermaltxTxage)
 {
     std::string fileName = std::string(EXTRAMODEL_TEST_DIRECTORY "test_thermaltx_txage.xml");
     loadLibraries();
-    runTestXML(fileName, gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    runTestXML(fileName, GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     auto col = gds->findCollector("collector#0");
     ASSERT_NE(col, nullptr);

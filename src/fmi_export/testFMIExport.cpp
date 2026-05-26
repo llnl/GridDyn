@@ -31,7 +31,7 @@ namespace {
 constexpr std::string_view fmiTestDirectory{GRIDDYN_TEST_DIRECTORY "/fmi_export_tests/"};
 
 // NOLINTNEXTLINE(misc-multiple-inheritance)
-class FmiExportTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class FmiExportTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 void generateFmu(const std::string& target, const std::string& inputFile)
 {
@@ -48,10 +48,10 @@ void generateFmu(const std::string& target, const std::string& inputFile)
 
 using griddyn::coreTime;
 using griddyn::GridBus;
-using griddyn::gridDynSimulation;
+using griddyn::GridDynSimulation;
 using griddyn::loadFile;
 using griddyn::make_owningPtr;
-using griddyn::readerInfo;
+using griddyn::ReaderInfo;
 using griddyn::loads::ThreePhaseLoad;
 using std::filesystem::exists;
 using std::filesystem::path;
@@ -62,17 +62,17 @@ TEST_F(FmiExportTests, TestFmiEvents)
 {
     auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
 
     auto* coordinatorObject = gds->find("fmiCoordinator");
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo readerInformation;
-    loadFmiExportReaderInfoDefinitions(readerInformation);
+    ReaderInfo ReaderInformation;
+    loadFmiExportReaderInfoDefinitions(ReaderInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmiinput.xml";
-    loadFile(gds.get(), inputFile, &readerInformation, "xml");
+    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
 
     const auto& inputEvents = fmiCon->getInputs();
     ASSERT_EQ(inputEvents.size(), 1U);
@@ -84,17 +84,17 @@ TEST_F(FmiExportTests, TestFmiOutput)
 {
     auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
 
     auto* coordinatorObject = gds->find("fmiCoordinator");
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo readerInformation;
-    loadFmiExportReaderInfoDefinitions(readerInformation);
+    ReaderInfo ReaderInformation;
+    loadFmiExportReaderInfoDefinitions(ReaderInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmioutput.xml";
-    loadFile(gds.get(), inputFile, &readerInformation, "xml");
+    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
 
     const auto& outputEvents = fmiCon->getOutputs();
     ASSERT_EQ(outputEvents.size(), 1U);
@@ -106,17 +106,17 @@ TEST_F(FmiExportTests, TestFmiSimulation)
 {
     auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
 
-    gds = std::make_unique<gridDynSimulation>();
+    gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
 
     auto* coordinatorObject = gds->find("fmiCoordinator");
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    readerInfo readerInformation;
-    loadFmiExportReaderInfoDefinitions(readerInformation);
+    ReaderInfo ReaderInformation;
+    loadFmiExportReaderInfoDefinitions(ReaderInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "simulation.xml";
-    loadFile(gds.get(), inputFile, &readerInformation, "xml");
+    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
 
     const auto& inputEvents = fmiCon->getInputs();
     ASSERT_EQ(inputEvents.size(), 1U);
@@ -129,7 +129,7 @@ TEST_F(FmiExportTests, TestFmiSimulation)
     EXPECT_EQ(outputEvents[0].second.name, "load");
 
     gds->run(30);
-    checkState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    checkState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 }
 
 TEST_F(FmiExportTests, TestFmiRunner)

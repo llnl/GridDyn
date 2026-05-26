@@ -11,5 +11,5 @@ class ReaderInfo;
 
 void loadDimeLibrary();
 
-void loadDimeReaderInfoDefinitions(ReaderInfo& readerInformation);
+void loadDimeReaderInfoDefinitions(ReaderInfo& ReaderInformation);
 }  // namespace griddyn

@@ -16,7 +16,7 @@
 
 static const char event_test_directory[] = GRIDDYN_TEST_DIRECTORY "/event_tests/";
 
-class EventTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class EventTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(EventTests, EventTestLoadstring)
 {

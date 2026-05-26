@@ -211,8 +211,7 @@ void zonalRelay::actionTaken(index_t ActionNum,
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
-            auto relayEvent =
-                std::make_shared<comms::relayMessage>(comms::relayMessage::BREAKER_TRIP_EVENT);
+            auto relayEvent = std::make_shared<commMessage>(commMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
         }
     }
@@ -254,11 +253,11 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
         }
     }
     if (opFlags[use_commLink]) {
-        auto relayMessage = std::make_shared<comms::relayMessage>();
+        auto relayMessage = std::make_shared<commMessage>();
         if (conditionNum == 0) {
-            relayMessage->setMessageType(comms::relayMessage::LOCAL_FAULT_CLEARED);
+            relayMessage->setMessageType(commMessage::LOCAL_FAULT_CLEARED);
         } else {
-            relayMessage->setMessageType(comms::relayMessage::REMOTE_FAULT_CLEARED);
+            relayMessage->setMessageType(commMessage::REMOTE_FAULT_CLEARED);
         }
         cManager.send(relayMessage);
     }
@@ -267,15 +266,15 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
 void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<commMessage> message)
 {
     switch (message->getMessageType()) {
-        case comms::relayMessage::BREAKER_TRIP_COMMAND:
+        case commMessage::BREAKER_TRIP_COMMAND:
             triggerAction(0);
             break;
-        case comms::relayMessage::BREAKER_CLOSE_COMMAND:
+        case commMessage::BREAKER_CLOSE_COMMAND:
             if (m_sinkObject != nullptr) {
                 m_sinkObject->set("switch" + std::to_string(m_terminal), 0);
             }
             break;
-        case comms::relayMessage::BREAKER_OOS_COMMAND:
+        case commMessage::BREAKER_OOS_COMMAND:
             for (index_t kk = 0; kk < mZoneCount; ++kk) {
                 setConditionStatus(kk, condition_status_t::disabled);
             }

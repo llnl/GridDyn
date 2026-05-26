@@ -28,7 +28,7 @@ inline constexpr double jac_check_tol = 1e-5;
 and a numerically calculated version from the residual,  It will not check Jacobian elements
 dependent on other state derivatives This function is mostly useful for diagnosing problems and is
 used throughout the test suite
-@param[in] gds the gridDynSimulation object to test
+@param[in] gds the GridDynSimulation object to test
 @param[in] queryMode the solverMode to check the Jacobian for
 @param[in] jacTol  the tolerance to check matches
 @param[in] useStateNames  set to true to collect and print state names (vs numbers) for any mismatch
@@ -99,7 +99,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 
 /** @brief print out the structure and count of the Jacobian entries and counts
 @param[in] md the matrix data object to analyze
-@param[in] gds the gridDynSimulation object to work with
+@param[in] gds the GridDynSimulation object to work with
 @param[in] sMode the solver mode in use
 */
 void jacobianAnalysis(matrixData<double>& md,

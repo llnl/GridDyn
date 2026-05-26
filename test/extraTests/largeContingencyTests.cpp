@@ -13,7 +13,7 @@
 
 static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
 
-class LargeContingencyTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class LargeContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace std::filesystem;
 using namespace griddyn;

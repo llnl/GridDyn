@@ -19,7 +19,7 @@ class kinsolInterface: public sundialsInterface {
     /** @brief constructor*/
     explicit kinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*
-@param[in] gds  the gridDynSimulation to link with
+@param[in] gds  the GridDynSimulation to link with
 @param[in] sMode the solverMode for the solver
 */
     kinsolInterface(GridDynSimulation* gds, const solverMode& sMode);

@@ -42,7 +42,7 @@ static void
 
 void loadMatDyn(CoreObject* parentObject,
                 const std::string& fileText,
-                const basicReaderInfo& /*bri*/)
+                const BasicReaderInfo& /*bri*/)
 {
     string_view fileView = fileText;
     mArray matrixData;
@@ -294,12 +294,12 @@ static void
 // read matdyn Event files
 void loadMatDynEvent(CoreObject* parentObject,
                      const std::string& fileText,
-                     const basicReaderInfo& /*bri*/)
+                     const BasicReaderInfo& /*bri*/)
 {
     string_view fileView = fileText;
     mArray event1;
     mArray matrixData;
-    auto* gds = dynamic_cast<gridSimulation*>(parentObject->getRoot());
+    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make events if we don't have access to the simulation
         return;
     }

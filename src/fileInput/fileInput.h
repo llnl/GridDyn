@@ -74,7 +74,7 @@ enum ReaderFlags {
 };
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  ReaderInfo* readerInfoPtr = nullptr);
+                                                  ReaderInfo* ReaderInfoPtr = nullptr);
 
 void addFlags(BasicReaderInfo& bri, const std::string& flags);
 
@@ -88,7 +88,7 @@ void loadFile(CoreObject* parentObject,
               ReaderInfo* readerInf = nullptr,
               std::string ext = "");
 
-void loadGdz(CoreObject* parentObject, const std::string& fileName, ReaderInfo& readerInformation);
+void loadGdz(CoreObject* parentObject, const std::string& fileName, ReaderInfo& ReaderInformation);
 
 void loadCdf(CoreObject* parentObject,
              const std::string& fileName,
@@ -119,7 +119,7 @@ void loadMatlabFile(CoreObject* parentObject,
 
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
-             ReaderInfo& readerInformation,
+             ReaderInfo& ReaderInformation,
              const std::string& objectName = "");
 
 /** function sets a parameter in an object

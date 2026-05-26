@@ -131,7 +131,7 @@ class SolverInterface: public HelperObject {
     coreTime solveTime = negTime;  //!< storage for the time the solver is called
     std::string jacFile;  //!< the file to write the Jacobian to
     std::string stateFile;  //!< the file to write the state and residual to
-    GridDynSimulation* m_gds = nullptr;  //!< pointer the gridDynSimulation object used
+    GridDynSimulation* m_gds = nullptr;  //!< pointer the GridDynSimulation object used
     count_t svsize = 0;  //!< the state size
     count_t nnz = 0;  //!< the actual number of non-zeros in a Jacobian
     std::bitset<32> flags;  //!< flags for the solver
@@ -143,7 +143,7 @@ class SolverInterface: public HelperObject {
     explicit SolverInterface(const std::string& objName = "");
 
     /** @brief alternate constructor
-    @param[in] gds  gridDynSimulation to link with
+    @param[in] gds  GridDynSimulation to link with
     @param[in] sMode the solverMode associated with the solver
     */
     SolverInterface(GridDynSimulation* gds, const solverMode& sMode);
@@ -302,12 +302,12 @@ class SolverInterface: public HelperObject {
     */
     void printStates(bool getNames = false);
     /** @brief input the simulation data to attach to
-    @param[in] gds the gridDynSimulationObject to attach to
+    @param[in] gds the GridDynSimulationObject to attach to
     @param[in] sMode the solverMode associated with the solver
     */
     virtual void setSimulationData(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief input the simulation data to attach to
-    @param[in] gds the gridDynSimulationObject to attach to
+    @param[in] gds the GridDynSimulationObject to attach to
     */
     virtual void setSimulationData(GridDynSimulation* gds);
 
@@ -360,7 +360,7 @@ class SolverInterface: public HelperObject {
 };
 
 /** @brief make a solver from a particular mode
-@param[in] gds  the gridDynSimulation to link to
+@param[in] gds  the GridDynSimulation to link to
 @param[in] sMode the solverMode to construct the SolverInterface from
 @return a unique_ptr to a SolverInterface object
 */

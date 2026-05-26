@@ -41,11 +41,11 @@ enum class ExecMode : std::uint8_t {
 int main(int argc, char* argv[])
 {
     try {
-        auto simulation = std::make_shared<griddyn::gridDynSimulation>();
+        auto simulation = std::make_shared<griddyn::GridDynSimulation>();
 
         // Store the simulation pointer somewhere so that it can be accessed in other modules.
-        griddyn::gridDynSimulation::setInstance(
-            simulation.get());  // peer to gridDynSimulation::GetInstance ();
+        griddyn::GridDynSimulation::setInstance(
+            simulation.get());  // peer to GridDynSimulation::GetInstance ();
 
         // TODO(phlpt): Restore a configurable mechanism for loading extra models in gridDynMain.
         // executable. If always loading them when available isn't desired, alternate mechanism is
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
         }
 
         auto processState = simulation->currentProcessState();
-        if (processState >= griddyn::gridDynSimulation::gridState_t::DYNAMIC_COMPLETE) {
+        if (processState >= griddyn::GridDynSimulation::gridState_t::DYNAMIC_COMPLETE) {
             auto stateSize = simulation->getInt("dynstatesize");
             auto jacobianSize = simulation->getInt("dynnonzeros");
             auto summaryMessage = std::format(

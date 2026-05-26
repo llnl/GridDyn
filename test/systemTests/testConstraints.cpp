@@ -13,20 +13,20 @@ using namespace griddyn;
 
 #define CONSTRAINT_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/constraint_tests/"
 
-class ConstraintTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ConstraintTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ConstraintTests, ConstraintTest1)
 {
     std::string fileName = std::string(CONSTRAINT_TEST_DIRECTORY "test_constSimple1.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds->powerflow();
     printf("completed power flow\n");
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
     gds->run(30.0);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }

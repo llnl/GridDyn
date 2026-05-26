@@ -24,7 +24,7 @@ namespace griddyn {
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
 CoreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
-                            readerInfo& /*ri*/,
+                            ReaderInfo& /*ri*/,
                             CoreObject* searchObject)
 {
     return searchObject;
@@ -40,7 +40,7 @@ namespace {
     }
 }  // namespace
 CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
-                            readerInfo& readerInformation,
+                            ReaderInfo& ReaderInformation,
                             CoreObject* searchObject)
 {
     // get the optimization root
@@ -52,7 +52,7 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
     }
     gridOptObject* optObject = nullptr;
     std::string targetName;
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
     // run the boilerplate code to setup the object
     // lnk = XMLReaderSetup(aP, lnk, "econ", ri, searchObject);
     std::string objectType;
@@ -62,15 +62,15 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
     CoreObject* targetObject = nullptr;
     gridOptObject* parentOptObject = nullptr;
 
-    loadDefines(element, readerInformation);
-    loadDirectories(element, readerInformation);
+    loadDefines(element, ReaderInformation);
+    loadDirectories(element, ReaderInformation);
     if (searchObject != nullptr) {
         targetName =
             getElementFieldOptions(element, {"target", "source"}, readerConfig::defMatchType);
         if (targetName.empty()) {
             targetObject = searchObject;
         } else {
-            targetName = readerInformation.checkDefines(targetName);
+            targetName = ReaderInformation.checkDefines(targetName);
             targetObject = locateObject(targetName, searchObject);
         }
         optObject = optimizationRoot->getOptimizationObject(targetObject);
@@ -79,7 +79,7 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
             // if we need to do a type override
             auto optMode = getElementField(element, "retype", readerConfig::defMatchType);
             if (!optMode.empty()) {
-                optMode = readerInformation.checkDefines(optMode);
+                optMode = ReaderInformation.checkDefines(optMode);
                 makeLowerCase(optMode);
                 gridOptObject* retypedObject =
                     optObjectFactory->createObject(optMode, targetObject);
@@ -99,7 +99,7 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
         std::string objecttype =
             getElementFieldOptions(element, {"objecttype", "type"}, readerConfig::defMatchType);
         if (!objecttype.empty()) {
-            objectType = readerInformation.checkDefines(objecttype);
+            objectType = ReaderInformation.checkDefines(objecttype);
             makeLowerCase(objectType);
         } else {
             WARNPRINT(READER_WARN_IMPORTANT, "economic object type must be specified ");
@@ -109,7 +109,7 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
         if (mode.empty()) {
             optObject = optObjectFactory->createObject(objectType);
         } else {
-            mode = readerInformation.checkDefines(mode);
+            mode = ReaderInformation.checkDefines(mode);
             makeLowerCase(mode);
             optObject = optObjectFactory->createObject(mode, objectType);
             if (optObject == nullptr) {
@@ -122,7 +122,7 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
         std::string optMode =
             getElementFieldOptions(element, {"mode", "retype"}, readerConfig::defMatchType);
         if (!optMode.empty()) {
-            optMode = readerInformation.checkDefines(optMode);
+            optMode = ReaderInformation.checkDefines(optMode);
             makeLowerCase(optMode);
             optObject = optObjectFactory->createObject(optMode, targetObject);
             if (optObject == nullptr) {
@@ -131,8 +131,8 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
         }
         std::string refName = getElementField(element, "ref", readerConfig::defMatchType);
         if (!refName.empty()) {
-            ename = readerInformation.checkDefines(refName);
-            obj = readerInformation.makeLibraryObject(ename, optObject);
+            ename = ReaderInformation.checkDefines(refName);
+            obj = ReaderInformation.makeLibraryObject(ename, optObject);
             if (obj == nullptr) {
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "unable to locate reference object " << ename << " in library");
@@ -158,17 +158,17 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
     }
     ename = getElementField(element, "name", readerConfig::defMatchType);
     if (!ename.empty()) {
-        ename = readerInformation.checkDefines(ename);
-        if (readerInformation.prefix.empty()) {
+        ename = ReaderInformation.checkDefines(ename);
+        if (ReaderInformation.prefix.empty()) {
             optObject->setName(ename);
         } else {
-            optObject->setName(readerInformation.prefix + '_' + ename);
+            optObject->setName(ReaderInformation.prefix + '_' + ename);
         }
     }
     // locate a parent if any
     ename = getElementField(element, "parent", readerConfig::defMatchType);
     if (!ename.empty()) {
-        ename = readerInformation.checkDefines(ename);
+        ename = ReaderInformation.checkDefines(ename);
         if (optObject->isRoot()) {
             obj = locateObject(ename, searchObject);
 
@@ -195,21 +195,21 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
             addToParent(optObject, parentOptObject);
         } else {
             // set the base power to the system default (usually used for library objects
-            optObject->set("basepower", readerInformation.base);
+            optObject->set("basepower", ReaderInformation.base);
         }
     }
 
     // properties from link attributes
 
-    objSetAttributes(optObject, element, "econ", readerInformation, econIgnoreElements());
-    loadSubObjects(element, readerInformation, optObject);
+    objSetAttributes(optObject, element, "econ", ReaderInformation, econIgnoreElements());
+    loadSubObjects(element, ReaderInformation, optObject);
 
     // get all element fields
-    paramLoopElement(optObject, element, "econ", readerInformation, econIgnoreElements());
+    paramLoopElement(optObject, element, "econ", ReaderInformation, econIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded econ data " << optObject->getName());
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
     return optObject;
 }
 #endif

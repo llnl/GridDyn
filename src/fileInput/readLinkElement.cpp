@@ -26,15 +26,15 @@ namespace {
 static constexpr char linkComponentName[] = "link";
 // aP is the link element
 Link* readLinkElement(std::shared_ptr<readerElement>& element,
-                      readerInfo& readerInformation,
+                      ReaderInfo& ReaderInformation,
                       CoreObject* searchObject,
                       bool warnlink)
 {
-    auto riScope = readerInformation.newScope();
+    auto riScope = ReaderInformation.newScope();
 
     // run the boilerplate code to setup the object
     Link* linkObject = elementReaderSetup(
-        element, static_cast<Link*>(nullptr), linkComponentName, readerInformation, searchObject);
+        element, static_cast<Link*>(nullptr), linkComponentName, ReaderInformation, searchObject);
 
     // from bus
     std::string busName = getElementField(element, "from", readerConfig::defMatchType);
@@ -43,7 +43,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'from' bus");
         }
     } else if (searchObject != nullptr) {
-        busName = readerInformation.checkDefines(busName);
+        busName = ReaderInformation.checkDefines(busName);
         auto* locatedObject = locateObject(busName, searchObject);
         auto* bus = dynamic_cast<GridBus*>(locatedObject);
         if (bus != nullptr) {
@@ -66,7 +66,7 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
             WARNPRINT(READER_WARN_IMPORTANT, "link must specify a 'to' bus");
         }
     } else if (searchObject != nullptr) {
-        busName = readerInformation.checkDefines(busName);
+        busName = ReaderInformation.checkDefines(busName);
         auto* locatedObject = locateObject(busName, searchObject);
         auto* bus = dynamic_cast<GridBus*>(locatedObject);
         if (bus != nullptr) {
@@ -85,11 +85,11 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
     // properties from link attributes
 
     loadElementInformation(
-        linkObject, element, linkComponentName, readerInformation, linkIgnoreElements());
+        linkObject, element, linkComponentName, ReaderInformation, linkIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded link " << linkObject->getName());
 
-    readerInformation.closeScope(riScope);
+    ReaderInformation.closeScope(riScope);
     return linkObject;
 }
 

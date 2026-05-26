@@ -29,13 +29,13 @@ using units::deg;
 void pspReadBus(GridBus* bus,
                 const std::string& line,
                 double base,
-                const basicReaderInfo& readerOptions);
+                const BasicReaderInfo& readerOptions);
 void pspReadBranch(CoreObject* parentObject,
                    const std::string& line,
                    const std::string& line2,
                    double base,
                    std::vector<GridBus*> busList,
-                   const basicReaderInfo& readerOptions);
+                   const BasicReaderInfo& readerOptions);
 
 /*
 The PECO PSAP File Format is fully described in the _PJM Power System
@@ -61,7 +61,7 @@ a 9999 card.
 */
 void loadPsp(CoreObject* parentObject,
              const std::string& fileName,
-             const basicReaderInfo& readerOptions)
+             const BasicReaderInfo& readerOptions)
 {
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
@@ -215,7 +215,7 @@ Three default decimal places.
 void pspReadBus(GridBus* bus,
                 const std::string& line,
                 double base,
-                const basicReaderInfo& readerOptions)
+                const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
     std::string temp, temp2;
@@ -410,7 +410,7 @@ void pspReadBranch(CoreObject* parentObject,
                    const std::string& line2,
                    double base,
                    std::vector<GridBus*> busList,
-                   const basicReaderInfo& readerOptions)
+                   const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
     GridBus *bus1, *bus2;

@@ -51,6 +51,4 @@ class Dispatcher: public CoreObject {
   protected:
     virtual void dispatch(double level);
 };
-using dispatcher = Dispatcher;  // NOLINT(readability-identifier-naming)
-
 }  // namespace griddyn

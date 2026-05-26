@@ -21,7 +21,7 @@
 
 using namespace griddyn;
 
-class ExtraFmuTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class ExtraFmuTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(ExtraFmuTests, LoadFmu)
 {

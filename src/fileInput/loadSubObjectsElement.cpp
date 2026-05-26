@@ -32,7 +32,7 @@
 namespace griddyn {
 namespace {
     using load_function_t = CoreObject* (*)(std::shared_ptr<readerElement>&,
-                                            readerInfo&,
+                                            ReaderInfo&,
                                             CoreObject* parent);
 
     struct LoadFunctionEntry {
@@ -41,7 +41,7 @@ namespace {
     };
 
     CoreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement,
-                             readerInfo& readerInf,
+                             ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
         return elementReader(
@@ -49,7 +49,7 @@ namespace {
     }
 
     CoreObject* loadExciter(std::shared_ptr<readerElement>& currentElement,
-                            readerInfo& readerInf,
+                            ReaderInfo& readerInf,
                             CoreObject* parentObject)
     {
         return elementReader(
@@ -57,7 +57,7 @@ namespace {
     }
 
     CoreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement,
-                             readerInfo& readerInf,
+                             ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
         return elementReader(
@@ -65,7 +65,7 @@ namespace {
     }
 
     CoreObject* loadPss(std::shared_ptr<readerElement>& currentElement,
-                        readerInfo& readerInf,
+                        ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
         return elementReader(
@@ -73,7 +73,7 @@ namespace {
     }
 
     CoreObject* loadSource(std::shared_ptr<readerElement>& currentElement,
-                           readerInfo& readerInf,
+                           ReaderInfo& readerInf,
                            CoreObject* parentObject)
     {
         return elementReader(
@@ -81,7 +81,7 @@ namespace {
     }
 
     CoreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement,
-                              readerInfo& readerInf,
+                              ReaderInfo& readerInf,
                               CoreObject* parentObject)
     {
         return elementReader(
@@ -89,7 +89,7 @@ namespace {
     }
 
     CoreObject* loadAgc(std::shared_ptr<readerElement>& currentElement,
-                        readerInfo& readerInf,
+                        ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
         return elementReader(
@@ -97,7 +97,7 @@ namespace {
     }
 
     CoreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
-                                      readerInfo& readerInf,
+                                      ReaderInfo& readerInf,
                                       CoreObject* parentObject)
     {
         return elementReader(currentElement,
@@ -108,7 +108,7 @@ namespace {
     }
 
     CoreObject* loadBlock(std::shared_ptr<readerElement>& currentElement,
-                          readerInfo& readerInf,
+                          ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
         return elementReader(
@@ -116,7 +116,7 @@ namespace {
     }
 
     CoreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement,
-                              readerInfo& readerInf,
+                              ReaderInfo& readerInf,
                               CoreObject* parentObject)
     {
         return elementReader(
@@ -124,7 +124,7 @@ namespace {
     }
 
     CoreObject* loadLoad(std::shared_ptr<readerElement>& currentElement,
-                         readerInfo& readerInf,
+                         ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
         return elementReader(
@@ -132,7 +132,7 @@ namespace {
     }
 
     CoreObject* loadExtra(std::shared_ptr<readerElement>& currentElement,
-                          readerInfo& readerInf,
+                          ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
         return elementReader(
@@ -140,35 +140,35 @@ namespace {
     }
 
     CoreObject* loadBus(std::shared_ptr<readerElement>& currentElement,
-                        readerInfo& readerInf,
+                        ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
         return readBusElement(currentElement, readerInf, parentObject);
     }
 
     CoreObject* loadRelay(std::shared_ptr<readerElement>& currentElement,
-                          readerInfo& readerInf,
+                          ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
         return readRelayElement(currentElement, readerInf, parentObject);
     }
 
     CoreObject* loadGridArea(std::shared_ptr<readerElement>& currentElement,
-                             readerInfo& readerInf,
+                             ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
         return readGridAreaElement(currentElement, readerInf, parentObject);
     }
 
     CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
-                         readerInfo& readerInf,
+                         ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
         return readLinkElement(currentElement, readerInf, parentObject, false);
     }
 
     CoreObject* loadEcon(std::shared_ptr<readerElement>& currentElement,
-                         readerInfo& readerInf,
+                         ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
         readEconElement(currentElement, readerInf, parentObject);
@@ -176,7 +176,7 @@ namespace {
     }
 
     CoreObject* loadArray(std::shared_ptr<readerElement>& currentElement,
-                          readerInfo& readerInf,
+                          ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
         readArrayElement(currentElement, readerInf, parentObject);
@@ -184,7 +184,7 @@ namespace {
     }
 
     CoreObject* loadIf(std::shared_ptr<readerElement>& currentElement,
-                       readerInfo& readerInf,
+                       ReaderInfo& readerInf,
                        CoreObject* parentObject)
     {
         loadConditionElement(currentElement, readerInf, parentObject);
@@ -233,14 +233,14 @@ namespace {
 }  // namespace
 
 void loadSubObjects(std::shared_ptr<readerElement>& element,
-                    readerInfo& readerInformation,
+                    ReaderInfo& ReaderInformation,
                     CoreObject* parentObject)
 {
     // read areas first to set them up for other things to call
     if (element->hasElement("area")) {
         element->moveToFirstChild("area");
         while (element->isValid()) {
-            readGridAreaElement(element, readerInformation, parentObject);
+            readGridAreaElement(element, ReaderInformation, parentObject);
             element->moveToNextSibling("area");  // next area
         }
         element->moveToParent();
@@ -250,7 +250,7 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
     if (element->hasElement("bus")) {
         element->moveToFirstChild("bus");
         while (element->isValid()) {
-            readBusElement(element, readerInformation, parentObject);
+            readBusElement(element, ReaderInformation, parentObject);
             element->moveToNextSibling("bus");  // next bus
         }
         element->moveToParent();
@@ -269,14 +269,14 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
         // stacked parameters and imports
         {
             loadElementInformation(
-                parentObject, element, fieldName, readerInformation, IgnoreListType{});
+                parentObject, element, fieldName, ReaderInformation, IgnoreListType{});
         } else {
             // std::cout<<"library model :"<<fieldName<<":\n";
-            auto objectName = readerInformation.objectNameTranslate(fieldName);
+            auto objectName = ReaderInformation.objectNameTranslate(fieldName);
             if (objectName == "collector") {
-                loadCollectorElement(element, parentObject, readerInformation);
+                loadCollectorElement(element, parentObject, ReaderInformation);
             } else if (objectName == "event") {
-                loadEventElement(element, parentObject, readerInformation);
+                loadEventElement(element, parentObject, ReaderInformation);
             } else {
                 const auto* const reader =
                     std::find_if(loadFunctionMap.data(),
@@ -285,26 +285,26 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                                      return entry.mName == objectName;
                                  });
                 if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                    const auto* object = reader->mLoader(element, readerInformation, parentObject);
+                    const auto* object = reader->mLoader(element, ReaderInformation, parentObject);
                     if ((object->isRoot()) && (object != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   object->getName() << " not owned by any other object");
                     }
-                } else if (readerInformation.isCustomElement(objectName)) {
-                    auto customElementData = readerInformation.getCustomElement(objectName);
-                    auto scopeId = readerInformation.newScope();
-                    loadDefines(element, readerInformation);
+                } else if (ReaderInformation.isCustomElement(objectName)) {
+                    auto customElementData = ReaderInformation.getCustomElement(objectName);
+                    auto scopeId = ReaderInformation.newScope();
+                    loadDefines(element, ReaderInformation);
                     char argVal = '1';
                     std::string argName = "arg";
                     for (int argNum = 1; argNum <= customElementData.second; ++argVal, ++argNum) {
                         argName.push_back(argVal);
                         auto argumentValue = getElementField(element, argName);
                         if (!argumentValue.empty()) {
-                            readerInformation.addDefinition(argName, argumentValue);
+                            ReaderInformation.addDefinition(argName, argumentValue);
                         } else {
                             argumentValue = getElementField(customElementData.first, argName);
                             if (!argumentValue.empty()) {
-                                readerInformation.addDefinition(argName, argumentValue);
+                                ReaderInformation.addDefinition(argName, argumentValue);
                             } else {
                                 WARNPRINT(READER_WARN_IMPORTANT,
                                           "custom element " << argName << " not specified");
@@ -315,9 +315,9 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
                     loadElementInformation(parentObject,
                                            customElementData.first,
                                            objectName,
-                                           readerInformation,
+                                           ReaderInformation,
                                            customIgnore());
-                    readerInformation.closeScope(scopeId);
+                    ReaderInformation.closeScope(scopeId);
                 }
             }
         }

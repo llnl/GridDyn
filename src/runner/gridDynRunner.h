@@ -50,13 +50,13 @@ class GriddynRunner {
     * initialize a simulation run from command line arguments using a given ReaderInfo structure
     @param[in] argc the number of console arguments
     @param[in] argv the actual console arguments
-    @param[in] readerInformation the ReaderInfo structure that contains any additional reader
+    @param[in] ReaderInformation the ReaderInfo structure that contains any additional reader
     information
     @return >0 normal stop,  0 normal, <0 error
     */
     int Initialize(int argc,
                    char* argv[],
-                   ReaderInfo& readerInformation,
+                   ReaderInfo& ReaderInformation,
                    bool allowUnrecognized = false);
     /** initialization the simulation object so it is ready to run*/
     virtual void simInitialize();
@@ -103,7 +103,7 @@ class GriddynRunner {
 
     virtual void Finalize();
     virtual int Reset();
-    virtual int Reset(ReaderInfo& readerInformation);
+    virtual int Reset(ReaderInfo& ReaderInformation);
     /** reset the underlying simulation of a runner*/
     void resetSim(std::shared_ptr<GridDynSimulation> sim) { m_gds = std::move(sim); }
     /** get a pointer to the simulation object*/
@@ -125,12 +125,12 @@ class GriddynRunner {
     decltype(std::chrono::high_resolution_clock::now()) m_stopTime;
     bool mEventMode = false;
 
-    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(ReaderInfo& readerInformation);
+    virtual std::shared_ptr<CLI::App> generateLocalCommandLineParser(ReaderInfo& ReaderInformation);
 
-    std::shared_ptr<CLI::App> generateBaseCommandLineParser(ReaderInfo& readerInformation);
+    std::shared_ptr<CLI::App> generateBaseCommandLineParser(ReaderInfo& ReaderInformation);
 
     /** actually load the command line arguments*/
-    int loadCommandArgument(ReaderInfo& readerInformation, bool allowUnrecognized);
+    int loadCommandArgument(ReaderInfo& ReaderInformation, bool allowUnrecognized);
 
   protected:
     std::string mExecutablePath;  //!< the executable path from command line arguments

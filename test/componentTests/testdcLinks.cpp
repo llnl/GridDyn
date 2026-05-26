@@ -14,17 +14,17 @@
 
 #define HVDC_TEST_DIRECTORY GRIDDYN_TEST_DIRECTORY "/dcLink_tests/"
 
-class HvdcTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class HvdcTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
 TEST_F(HvdcTests, HvdcTest1)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc1.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(gridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::INITIALIZED);
 
     int mmatch = JacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
@@ -34,9 +34,9 @@ TEST_F(HvdcTests, HvdcTest1)
 
     gds->powerflow();
 
-    requireState(gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -56,10 +56,10 @@ TEST_F(HvdcTests, HvdcTest2)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc2.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->dynInitialize();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     int mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -73,20 +73,20 @@ TEST_F(HvdcTests, HvdcTest2)
     ASSERT_EQ(mmatch, 0);
 
     gds->run(20);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
     gds->run(40);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 
 TEST_F(HvdcTests, HvdcTest3)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc3_sc.xml");
     gds = readSimXMLFile(fileName);
-    requireState(gridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::gridState_t::STARTUP);
 
     gds->dynInitialize();
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
     int mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -99,9 +99,9 @@ TEST_F(HvdcTests, HvdcTest3)
     }
     ASSERT_EQ(mmatch, 0);
     gds->run(20);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 
     gds->run(40);
-    requireState(gridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
 }
 #endif

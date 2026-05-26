@@ -17,7 +17,6 @@
 using griddyn::dyn_initialized;
 using griddyn::emptyStateData;
 using griddyn::GridComponent;
-using griddyn::gridDynSimulation;
 using griddyn::IOdata;
 using griddyn::IOlocs;
 using griddyn::solverMode;
@@ -44,7 +43,7 @@ int gridDynObjectStateSize(GridDynObject obj, SolverKey key, GridDynError* err)
 
 void setUpSolverKeyInfo(solverKeyInfo* key, GridComponent* comp)
 {
-    auto* root = dynamic_cast<gridDynSimulation*>(comp->getRoot());
+    auto* root = dynamic_cast<griddyn::GridDynSimulation*>(comp->getRoot());
     auto ssize = root->stateSize(key->sMode_);
     key->stateBuffer.resize(ssize);
     key->dstateBuffer.resize(ssize);

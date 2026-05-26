@@ -17,7 +17,7 @@ class SolverInterface;
 class dynamicInitialConditionRecovery {
   public:
     /** @brief constructor
-    @param[in] gds the gridDynSimulation object to work from
+    @param[in] gds the GridDynSimulation object to work from
     @param[in] solverData the SolverInterface object to work from
     */
     dynamicInitialConditionRecovery(GridDynSimulation* gds,

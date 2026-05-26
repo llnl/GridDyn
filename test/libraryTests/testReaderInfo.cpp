@@ -17,7 +17,7 @@ using namespace griddyn;
 
 TEST(ReaderInfoTests, Defines)
 {
-    readerInfo r1;
+    ReaderInfo r1;
     r1.addDefinition("bob", "rt");
     r1.addDefinition("bb2", "rt2");
     r1.addDefinition("bbnum", "3");
@@ -45,7 +45,7 @@ TEST(ReaderInfoTests, Defines)
 
 TEST(ReaderInfoTests, IteratedDefine)
 {
-    readerInfo r1;
+    ReaderInfo r1;
     r1.addDefinition("bob", "rt");
     r1.addDefinition("rt", "rtb");
     auto text1 = r1.checkDefines("bob");
@@ -58,7 +58,7 @@ TEST(ReaderInfoTests, IteratedDefine)
 
 TEST(ReaderInfoTests, DefinitionScope)
 {
-    readerInfo r1;
+    ReaderInfo r1;
     r1.addDefinition("bob", "rt");
     r1.addDefinition("bb2", "rt2");
     auto p = r1.newScope();
@@ -89,7 +89,7 @@ TEST(ReaderInfoTests, DefinitionScope)
 
 TEST(ReaderInfoTests, Directories)
 {
-    readerInfo r1;
+    ReaderInfo r1;
     r1.addDirectory(xmlTestDirectory);
 
     std::string test1 = "test_xmltest1.xml";
@@ -99,7 +99,7 @@ TEST(ReaderInfoTests, Directories)
     EXPECT_TRUE(res);
     EXPECT_EQ(test1, xmlTestDirectory + "test_xmltest1.xml");
 
-    readerInfo r2;
+    ReaderInfo r2;
     r2.addDirectory(GRIDDYN_TEST_DIRECTORY);
     std::string testfile = "location_testFile.txt";
 

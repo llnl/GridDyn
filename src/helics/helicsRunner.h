@@ -30,12 +30,12 @@ executing with helics
         std::shared_ptr<helics::Federate> fed_;  //!< pointer to the helics federate object
       public:
         HelicsRunner();
-        explicit HelicsRunner(std::shared_ptr<gridDynSimulation> sim);
+        explicit HelicsRunner(std::shared_ptr<GridDynSimulation> sim);
         ~HelicsRunner();
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(ReaderInfo& readerInformation) override;
+            generateLocalCommandLineParser(ReaderInfo& ReaderInformation) override;
 
         virtual void simInitialize() override;
         virtual coreTime Run() override;

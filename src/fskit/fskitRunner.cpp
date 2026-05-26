@@ -38,7 +38,7 @@ int FskitRunner::Initialize(int argc, char* argv[])
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Initialize");
     auto returnValue = GriddynRunner::Initialize(argc, argv);
     auto simulation = GriddynRunner::getSim();
-    gridDynSimulation::setInstance(simulation.get());
+    GridDynSimulation::setInstance(simulation.get());
     return returnValue;
 }
 

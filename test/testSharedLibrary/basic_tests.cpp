@@ -26,42 +26,42 @@ static const char other_test_directory[] = GRIDDYN_TEST_DIRECTORY "/other_test_c
 TEST(SharedLibraryBasicTests, SimpleLoadTest)
 {
     GridDynError err = gridDynErrorInitialize();
-    GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
+    GridDynSimulation sim = GridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
     std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
-    gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
+    GridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
-    gridDynSimulationRun(sim, &err);
+    GridDynSimulationRun(sim, &err);
 
-    double time = gridDynSimulationGetCurrentTime(sim, &err);
+    double time = GridDynSimulationGetCurrentTime(sim, &err);
 
     EXPECT_NEAR(time, 30.0, 0.0001);
     auto obj = getSimulationObject(sim, &err);
 
     gridDynObjectFree(obj);
 
-    gridDynSimulationFree(sim);
+    GridDynSimulationFree(sim);
 }
 
 TEST(SharedLibraryBasicTests, GetResultTest)
 {
     GridDynError err = gridDynErrorInitialize();
-    GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
+    GridDynSimulation sim = GridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
     std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
-    gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
+    GridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
-    gridDynSimulationPowerflow(sim, &err);
+    GridDynSimulationPowerflow(sim, &err);
 
-    int cnt = gridDynSimulationBusCount(sim);
+    int cnt = GridDynSimulationBusCount(sim);
 
     EXPECT_EQ(cnt, 14);
     std::vector<double> voltages(cnt);
     std::vector<double> angles(cnt);
     int act;
-    gridDynSimulationGetResults(sim, "voltage", voltages.data(), cnt, &act, &err);
+    GridDynSimulationGetResults(sim, "voltage", voltages.data(), cnt, &act, &err);
     ASSERT_EQ(cnt, act);
-    gridDynSimulationGetResults(sim, "angles", angles.data(), cnt, &act, &err);
+    GridDynSimulationGetResults(sim, "angles", angles.data(), cnt, &act, &err);
     ASSERT_EQ(cnt, act);
     EXPECT_NEAR(voltages[0], 1.06, 0.001);
     EXPECT_NEAR(angles[0], 0.0, 0.00001);
@@ -70,18 +70,18 @@ TEST(SharedLibraryBasicTests, GetResultTest)
     EXPECT_NEAR(voltages[8], 1.056, 0.1);
     EXPECT_NEAR(angles[5], -14.22 * 3.1415927 / 180.0, 0.1);
 
-    gridDynSimulationFree(sim);
+    GridDynSimulationFree(sim);
 }
 
 TEST(SharedLibraryBasicTests, GetObjectTests)
 {
     GridDynError err = gridDynErrorInitialize();
-    GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
+    GridDynSimulation sim = GridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
     std::string file = std::string(ieee_test_directory) + "ieee14.cdf";
-    gridDynSimulationLoadfile(sim, file.c_str(), "", &err);
+    GridDynSimulationLoadfile(sim, file.c_str(), "", &err);
     EXPECT_EQ(err.error_code, griddyn_ok);
-    gridDynSimulationPowerflow(sim, &err);
+    GridDynSimulationPowerflow(sim, &err);
 
     auto obj = getSimulationObject(sim, &err);
 
@@ -101,13 +101,13 @@ TEST(SharedLibraryBasicTests, GetObjectTests)
     EXPECT_EQ(strSize, static_cast<int>(namestr.size()));
     EXPECT_EQ(namestr.compare(0, 5, "Bus 9"), 0);
     gridDynObjectFree(bus2);
-    gridDynSimulationFree(sim);
+    GridDynSimulationFree(sim);
 }
 
 TEST(SharedLibraryBasicTests, BuildSmallTestCase)
 {
     GridDynError err = gridDynErrorInitialize();
-    GridDynSimulation sim = gridDynSimulationCreate("", "sim1", &err);
+    GridDynSimulation sim = GridDynSimulationCreate("", "sim1", &err);
     EXPECT_NE(sim, nullptr);
     auto obj = getSimulationObject(sim, &err);
 
@@ -133,7 +133,7 @@ TEST(SharedLibraryBasicTests, BuildSmallTestCase)
     gridDynObjectSetString(lnk, "from", "bus1", &err);
     gridDynObjectSetString(lnk, "to", "bus2", &err);
 
-    gridDynSimulationPowerflow(sim, &err);
+    GridDynSimulationPowerflow(sim, &err);
 
     double V = gridDynObjectGetValueUnits(bus2, "voltage", "pu", &err);
     EXPECT_LT(V, 1.0);
@@ -143,7 +143,7 @@ TEST(SharedLibraryBasicTests, BuildSmallTestCase)
     gridDynObjectFree(ld1);
     gridDynObjectFree(lnk);
     gridDynObjectFree(obj);
-    gridDynSimulationFree(sim);
+    GridDynSimulationFree(sim);
     double V2 = gridDynObjectGetValue(bus2, "voltage", &err);
     EXPECT_EQ(V, V2);
     gridDynObjectFree(bus2);

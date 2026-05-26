@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 
-class SimulationTests: public gridDynSimulationTestFixture, public ::testing::Test {};
+class SimulationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
 

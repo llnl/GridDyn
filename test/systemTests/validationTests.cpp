@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& stream, const std::pair<std::string, std:
 using namespace griddyn;
 using namespace gmlc::utilities;
 
-class ValidationTests: public gridDynSimulationTestFixture, public ::testing::Test {
+class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Test {
   protected:
     void compareMatpowerCase(const file_pair_t& test_case_pair, const std::string& solver = "")
     {
@@ -51,7 +51,7 @@ class ValidationTests: public gridDynSimulationTestFixture, public ::testing::Te
         std::chrono::duration<double> elapsed_time;
 #endif
 
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", "summary");
         auto fileName = validationTestDirectory + test_case_pair.first;
 
@@ -61,7 +61,7 @@ class ValidationTests: public gridDynSimulationTestFixture, public ::testing::Te
         if (!solver.empty()) {
             gds->set("defpowerflow", solver);
         }
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 #if (COMPUTE_TIMES > 0)
         auto start_t = std::chrono::high_resolution_clock::now();
         gds->powerflow();
@@ -71,22 +71,22 @@ class ValidationTests: public gridDynSimulationTestFixture, public ::testing::Te
 #else
         gds->powerflow();
 #endif
-        if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
 
         volts1.resize(cnt);
         ang1.resize(cnt);
-        gds2 = std::make_unique<gridDynSimulation>();
+        gds2 = std::make_unique<GridDynSimulation>();
 
         fileName = validationTestDirectory + test_case_pair.second;
         gds2->set("consoleprintlevel", "summary");
         loadFile(gds2, fileName);
-        ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
         gds2->pFlowInitialize();
         cnt = gds2->getVoltage(volts2);
         gds2->getAngle(ang2);
@@ -221,7 +221,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
 
     for (const auto& mp : compare_cases_withq) {
         SCOPED_TRACE(mp.first);
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", PrintLevel::SUMMARY);
         std::string fileName;
         if (mp.first.length() > 25) {
@@ -231,7 +231,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         }
 
         loadFile(gds, fileName);
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 #    if (COMPUTE_TIMES > 0)
         auto start_t = std::chrono::high_resolution_clock::now();
         gds->powerflow();
@@ -241,10 +241,10 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
 #    else
         gds->powerflow();
 #    endif
-        if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -257,7 +257,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         double maxadiffbus = 0;
         double mvdiff = 0;
         double madiff = 0;
-        gds2 = std::make_unique<gridDynSimulation>();
+        gds2 = std::make_unique<GridDynSimulation>();
         if (mp.second.length() > 25) {
             fileName = mp.second;
         } else {
@@ -265,7 +265,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         }
         gds2->set("consoleprintlevel", PrintLevel::SUMMARY);
         loadFile(gds2, fileName);
-        ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
         gds2->pFlowInitialize();
         cnt = gds2->getVoltage(volts2);
         gds2->getAngle(ang2);
@@ -325,7 +325,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
 
     for (const auto& mp : compare_p_cases) {
         SCOPED_TRACE(mp.first);
-        gds = std::make_unique<gridDynSimulation>();
+        gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", "debug");
         std::string fileName;
         if (mp.first.length() > 25) {
@@ -336,7 +336,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
 
         loadFile(gds, fileName);
         gds->setFlag("no_powerflow_adjustments");
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
 #    if (COMPUTE_TIMES > 0)
         auto start_t = std::chrono::high_resolution_clock::now();
         gds->powerflow();
@@ -346,10 +346,10 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
 #    else
         gds->powerflow();
 #    endif
-        if (gds->currentProcessState() != gridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation\n";
         }
-        ASSERT_EQ(gds->currentProcessState(), gridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
 
         auto cnt = gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -383,7 +383,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         double maxadiffbus = 0;
         double mvdiff = 0;
         double madiff = 0;
-        gds2 = std::make_unique<gridDynSimulation>();
+        gds2 = std::make_unique<GridDynSimulation>();
         if (mp.second.length() > 25) {
             fileName = mp.second;
         } else {
@@ -391,7 +391,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         }
         gds2->set("consoleprintlevel", "summary");
         loadFile(gds2, fileName);
-        ASSERT_EQ(gds2->currentProcessState(), gridDynSimulation::gridState_t::STARTUP);
+        ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::STARTUP);
         gds2->pFlowInitialize();
         cnt = gds2->getVoltage(volts2);
         gds2->getAngle(ang2);

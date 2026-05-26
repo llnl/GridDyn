@@ -26,10 +26,10 @@ class OutputEstimator;
 class FmiMESubModel: public GridSubModel {
   public:
     enum FmiSubModelFlags {
-        use_output_estimator = object_flag2,
-        fixed_output_interval = object_flag3,
-        reprobe_flag = object_flag4,
-        has_derivative_function = object_flag5,
+        USE_OUTPUT_ESTIMATOR = object_flag2,
+        FIXED_OUTPUT_INTERVAL = object_flag3,
+        REPROBE_FLAG = object_flag4,
+        HAS_DERIVATIVE_FUNCTION = object_flag5,
     };
 
   protected:
@@ -41,7 +41,7 @@ class FmiMESubModel: public GridSubModel {
     std::vector<OutputEstimator*> oEst;  //!< vector of objects used for output estimation
                                          //!< //TODO:: Make this an actual vector of objects
     coreTime localIntegrationTime = 0.01;
-    FmuMode prevFmiState = FmuMode::instantiatedMode;
+    FmuMode prevFmiState = FmuMode::INSTANTIATED_MODE;
     std::vector<ValueDependencyInfo> stateInformation;
     std::vector<ValueDependencyInfo> outputInformation;
     std::vector<int> inputVarIndices;

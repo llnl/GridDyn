@@ -21,9 +21,9 @@ namespace griddyn::fmi {
 class FmiCoSimSubModel: public GridSubModel {
   public:
     enum FmiSubModelFlags {
-        use_output_estimator = object_flag2,
-        fixed_output_interval = object_flag3,
-        has_derivative_function = object_flag5,
+        USE_OUTPUT_ESTIMATOR = object_flag2,
+        FIXED_OUTPUT_INTERVAL = object_flag3,
+        HAS_DERIVATIVE_FUNCTION = object_flag5,
     };
 
   protected:

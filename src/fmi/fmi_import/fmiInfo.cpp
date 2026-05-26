@@ -222,7 +222,7 @@ std::vector<std::string> FmiInfo::getVariableNames(const std::string& type) cons
     } else {
         const FmiCausality caus = type;
         for (const auto& var : variables) {
-            if ((caus == FmiCausalityType::any) || (var.causality == caus)) {
+            if ((caus == FmiCausalityType::ANY) || (var.causality == caus)) {
                 vnames.push_back(var.name);
             }
         }
@@ -444,13 +444,13 @@ void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
         // lower case parameters and may not be needed
         variableLookup.emplace(convertToLowerCase(variables[variableIndex].name), variableIndex);
         switch (variables[variableIndex].causality.value()) {
-            case FmiCausalityType::parameter:
+            case FmiCausalityType::PARAMETER:
                 parameters.push_back(variableIndex);
                 break;
-            case FmiCausalityType::local:
+            case FmiCausalityType::LOCAL:
                 local.push_back(variableIndex);
                 break;
-            case FmiCausalityType::input:
+            case FmiCausalityType::INPUT:
                 inputs.push_back(variableIndex);
                 break;
             default:
@@ -483,7 +483,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         att = readerElementPtr->getNextAttribute();
     }
     if (readerElementPtr->hasElement("Real")) {
-        vInfo.type = FmiVariableType::real;
+        vInfo.type = FmiVariableType::REAL;
         readerElementPtr->moveToFirstChild("Real");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -505,7 +505,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Boolean")) {
-        vInfo.type = FmiVariableType::boolean;
+        vInfo.type = FmiVariableType::BOOLEAN;
         readerElementPtr->moveToFirstChild("Boolean");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -516,7 +516,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("String")) {
-        vInfo.type = FmiVariableType::string;
+        vInfo.type = FmiVariableType::STRING;
         readerElementPtr->moveToFirstChild("String");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -527,7 +527,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Integer")) {
-        vInfo.type = FmiVariableType::integer;
+        vInfo.type = FmiVariableType::INTEGER;
         readerElementPtr->moveToFirstChild("Integer");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -634,19 +634,19 @@ void FmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus)
 {
     if (!(info.causality == caus)) {
-        if ((info.causality != FmiCausalityType::input) || (caus != FmiCausalityType::parameter)) {
+        if ((info.causality != FmiCausalityType::INPUT) || (caus != FmiCausalityType::PARAMETER)) {
             return false;
         }
     }
     if (info.type == type) {
         return true;
     }
-    if (type == FmiVariableType::numeric) {
+    if (type == FmiVariableType::NUMERIC) {
         switch (info.type.value()) {
-            case FmiVariableType::boolean:
-            case FmiVariableType::integer:
-            case FmiVariableType::real:
-            case FmiVariableType::enumeration:
+            case FmiVariableType::BOOLEAN:
+            case FmiVariableType::INTEGER:
+            case FmiVariableType::REAL:
+            case FmiVariableType::ENUMERATION:
                 return true;
             default:
                 return false;

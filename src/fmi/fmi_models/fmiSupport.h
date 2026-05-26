@@ -10,15 +10,15 @@
 
 /** mode defining how to get partial derivatives for Jacobian calculations*/
 enum class RefMode : unsigned char {
-    direct = 0,
-    level1 = 1,
-    level2 = 2,
-    level3 = 3,
-    level4 = 4,
-    level5 = 5,
-    level6 = 6,
-    level7 = 7,
-    level8 = 8,
+    DIRECT = 0,
+    LEVEL1 = 1,
+    LEVEL2 = 2,
+    LEVEL3 = 3,
+    LEVEL4 = 4,
+    LEVEL5 = 5,
+    LEVEL6 = 6,
+    LEVEL7 = 7,
+    LEVEL8 = 8,
 
 };
 
@@ -28,7 +28,7 @@ class ValueDependencyInfo {
     int varIndex = -1;  //!< the actual variable index in the fmi
     int index = -1;  //!< the local index into a matrix
     bool isState = false;  //!< defining if it is a state [for output only]
-    RefMode refMode = RefMode::direct;  //!< the mode to use for computing the partial derivatives
+    RefMode refMode = RefMode::DIRECT;  //!< the mode to use for computing the partial derivatives
     std::vector<int> inputDep;  //!< the inputs on which the calculation depends
     std::vector<int> stateDep;  //!< the states on which the calculation depends
 };

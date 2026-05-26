@@ -43,20 +43,20 @@ FmuMode Fmi2Object::getCurrentMode() const
 
 void Fmi2Object::setMode(FmuMode newMode)  // NOLINT(misc-no-recursion)
 {
-    if (newMode == FmuMode::error) {
-        currentMode = FmuMode::error;
+    if (newMode == FmuMode::ERROR) {
+        currentMode = FmuMode::ERROR;
         throw(FmiErrorException());
     }
     fmi2Status ret = fmi2Error;
-    if (newMode == FmuMode::terminated) {
-        currentMode = FmuMode::terminated;
+    if (newMode == FmuMode::TERMINATED) {
+        currentMode = FmuMode::TERMINATED;
         ret = commonFunctions->fmi2Terminate(comp);
     }
 
     switch (currentMode) {
-        case FmuMode::instantiatedMode:
+        case FmuMode::INSTANTIATED_MODE:
             switch (newMode) {
-                case FmuMode::initializationMode:
+                case FmuMode::INITIALIZATION_MODE:
                     if (inputSize() == 0) {
                         setDefaultInputs();
                     }
@@ -67,18 +67,18 @@ void Fmi2Object::setMode(FmuMode newMode)  // NOLINT(misc-no-recursion)
                     ret = commonFunctions->fmi2EnterInitializationMode(comp);
                     // printf("return from fmiEnterInitializationMode with code %d\n", ret);
                     break;
-                case FmuMode::eventMode:
-                case FmuMode::stepMode:
+                case FmuMode::EVENT_MODE:
+                case FmuMode::STEP_MODE:
                     Fmi2Object::setMode(
-                        FmuMode::initializationMode);  // go into initialization first
+                        FmuMode::INITIALIZATION_MODE);  // go into initialization first
                     ret = commonFunctions->fmi2ExitInitializationMode(comp);
                     break;
                 default:
                     break;
             }
             break;
-        case FmuMode::initializationMode:
-            if ((newMode == FmuMode::eventMode) || (newMode == FmuMode::stepMode)) {
+        case FmuMode::INITIALIZATION_MODE:
+            if ((newMode == FmuMode::EVENT_MODE) || (newMode == FmuMode::STEP_MODE)) {
                 // printf("calling exit initMode\n");
                 if (!commonFunctions->fmi2ExitInitializationMode) {
                     std::println("function is not present");
@@ -101,7 +101,7 @@ void Fmi2Object::setMode(FmuMode newMode)  // NOLINT(misc-no-recursion)
 
 void Fmi2Object::reset()
 {
-    currentMode = FmuMode::instantiatedMode;
+    currentMode = FmuMode::INSTANTIATED_MODE;
     auto ret = commonFunctions->fmi2Reset(comp);
     if (ret != fmi2Status::fmi2OK) {
         handleNonOKReturnValues(ret);
@@ -112,7 +112,7 @@ template<>
 std::string Fmi2Object::get<std::string>(const std::string& param) const
 {
     auto ref = info->getVariableInformation(param);
-    if (ref.type != FmiVariableType::string) {
+    if (ref.type != FmiVariableType::STRING) {
         handleNonOKReturnValues(fmi2Status::fmi2Discard);
         return "";  // if we get here just return an empty string otherwise we threw an exception
     }
@@ -175,7 +175,7 @@ void Fmi2Object::set(const FmiVariableSet& vrset, fmi2Real value[])
 void Fmi2Object::set(const std::string& param, const char* val)
 {
     auto ref = info->getVariableInformation(param);
-    if (!(ref.type == FmiVariableType::string)) {
+    if (!(ref.type == FmiVariableType::STRING)) {
         handleNonOKReturnValues(fmi2Status::fmi2Discard);
         return;
     }
@@ -188,7 +188,7 @@ void Fmi2Object::set(const std::string& param, const char* val)
 void Fmi2Object::set(const std::string& param, const std::string& val)
 {
     auto ref = info->getVariableInformation(param);
-    if (!(ref.type == FmiVariableType::string)) {
+    if (!(ref.type == FmiVariableType::STRING)) {
         handleNonOKReturnValues(fmi2Status::fmi2Discard);
         return;
     }
@@ -202,7 +202,7 @@ void Fmi2Object::set(const std::string& param, const std::string& val)
 void Fmi2Object::setFlag(const std::string& param, bool val)
 {
     auto ref = info->getVariableInformation(param);
-    if (!(ref.type == FmiVariableType::string)) {
+    if (!(ref.type == FmiVariableType::STRING)) {
         handleNonOKReturnValues(fmi2Status::fmi2Discard);
         return;
     }
@@ -283,15 +283,15 @@ fmi2Real Fmi2Object::getPartialDerivative(int index_x, int index_y, double delta
 /** check if an output is real and actually is an output*/
 static bool isRealOutput(const VariableInformation& variableInfo)
 {
-    return ((variableInfo.index >= 0) && (variableInfo.type == FmiVariableType::real) &&
-            (variableInfo.causality == FmiCausalityType::output));
+    return ((variableInfo.index >= 0) && (variableInfo.type == FmiVariableType::REAL) &&
+            (variableInfo.causality == FmiCausalityType::OUTPUT));
 }
 
 /** check if an input is real and actually is an input*/
 static bool isRealInput(const VariableInformation& variableInfo)
 {
-    return ((variableInfo.index >= 0) && (variableInfo.type == FmiVariableType::real) &&
-            (variableInfo.causality == FmiCausalityType::input));
+    return ((variableInfo.index >= 0) && (variableInfo.type == FmiVariableType::REAL) &&
+            (variableInfo.causality == FmiCausalityType::INPUT));
 }
 
 // NOLINTBEGIN(misc-no-recursion)
@@ -456,13 +456,13 @@ bool Fmi2Object::isParameter(const std::string& param, FmiVariableType type)
 {
     const auto& variableInfo = info->getVariableInformation(param);
     if (variableInfo.index >= 0) {
-        if ((variableInfo.causality == FmiCausalityType::parameter) ||
-            (variableInfo.causality == FmiCausalityType::input)) {
+        if ((variableInfo.causality == FmiCausalityType::PARAMETER) ||
+            (variableInfo.causality == FmiCausalityType::INPUT)) {
             if (variableInfo.type == type) {
                 return true;
             }
-            if (type == FmiVariableType::numeric) {
-                if (variableInfo.type != FmiVariableType::string) {
+            if (type == FmiVariableType::NUMERIC) {
+                if (variableInfo.type != FmiVariableType::STRING) {
                     return true;
                 }
             }
@@ -479,8 +479,8 @@ bool Fmi2Object::isVariable(const std::string& var, FmiVariableType type)
         if (variableInfo.type == type) {
             return true;
         }
-        if (type == FmiVariableType::numeric) {
-            if (variableInfo.type != FmiVariableType::string) {
+        if (type == FmiVariableType::NUMERIC) {
+            if (variableInfo.type != FmiVariableType::STRING) {
                 return true;
             }
         }

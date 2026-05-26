@@ -65,22 +65,22 @@ class Fmi2Object {
         fmi2Status retval = fmi2Status::fmi2Discard;
         T ret(0);
         switch (ref.type.value()) {
-            case FmiVariableType::real: {
+            case FmiVariableType::REAL: {
                 fmi2Real res;
                 retval = commonFunctions->fmi2GetReal(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case FmiVariableType::integer: {
+            case FmiVariableType::INTEGER: {
                 fmi2Integer res;
                 retval = commonFunctions->fmi2GetInteger(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case FmiVariableType::boolean: {
+            case FmiVariableType::BOOLEAN: {
                 fmi2Boolean res;
                 retval = commonFunctions->fmi2GetBoolean(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
             } break;
-            case FmiVariableType::enumeration: {
+            case FmiVariableType::ENUMERATION: {
                 fmi2Integer res;
                 retval = commonFunctions->fmi2GetInteger(comp, &(ref.valueRef), 1, &res);
                 ret = T(res);
@@ -113,19 +113,19 @@ class Fmi2Object {
         auto ref = info->getVariableInformation(param);
         fmi2Status ret = fmi2Status::fmi2Discard;
         switch (ref.type.value()) {
-            case FmiVariableType::real: {
+            case FmiVariableType::REAL: {
                 fmi2Real val2 = static_cast<fmi2Real>(val);
                 ret = commonFunctions->fmi2SetReal(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case FmiVariableType::integer: {
+            case FmiVariableType::INTEGER: {
                 fmi2Integer val2 = static_cast<fmi2Integer>(val);
                 ret = commonFunctions->fmi2SetInteger(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case FmiVariableType::boolean: {
+            case FmiVariableType::BOOLEAN: {
                 fmi2Boolean val2 = static_cast<fmi2Boolean>(val);
                 ret = commonFunctions->fmi2SetBoolean(comp, &(ref.valueRef), 1, &val2);
             } break;
-            case FmiVariableType::enumeration: {
+            case FmiVariableType::ENUMERATION: {
                 fmi2Integer val2 = static_cast<fmi2Integer>(val);
                 ret = commonFunctions->fmi2SetInteger(comp, &(ref.valueRef), 1, &val2);
             } break;
@@ -171,8 +171,8 @@ class Fmi2Object {
     std::vector<std::string> getOutputNames() const;
     std::vector<std::string> getInputNames() const;
 
-    bool isParameter(const std::string& param, FmiVariableType type = FmiVariableType::numeric);
-    bool isVariable(const std::string& var, FmiVariableType type = FmiVariableType::numeric);
+    bool isParameter(const std::string& param, FmiVariableType type = FmiVariableType::NUMERIC);
+    bool isVariable(const std::string& var, FmiVariableType type = FmiVariableType::NUMERIC);
     std::shared_ptr<const FmiCommonFunctions> getFmiCommonFunctions() const
     {
         return commonFunctions;
@@ -182,7 +182,7 @@ class Fmi2Object {
 
   protected:
     fmi2Component comp;
-    FmuMode currentMode = FmuMode::instantiatedMode;
+    FmuMode currentMode = FmuMode::INSTANTIATED_MODE;
     std::shared_ptr<const FmiInfo> info;
     // structures for maintaining the inputs and outputs
     FmiVariableSet activeInputs;

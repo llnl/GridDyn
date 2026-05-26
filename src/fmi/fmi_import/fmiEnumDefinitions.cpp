@@ -13,36 +13,36 @@
 FmiVariability::FmiVariability(const std::string& vstring)
 {
     if (vstring == "continuous") {
-        variability = FmiVariabilityType::continuous;
+        variability = FmiVariabilityType::CONTINUOUS;
     } else if (vstring == "constant") {
-        variability = FmiVariabilityType::constant;
+        variability = FmiVariabilityType::CONSTANT;
     } else if (vstring == "fixed") {
-        variability = FmiVariabilityType::fixed;
+        variability = FmiVariabilityType::FIXED;
     } else if (vstring == "tunable") {
-        variability = FmiVariabilityType::tunable;
+        variability = FmiVariabilityType::TUNABLE;
     } else if (vstring == "discrete") {
-        variability = FmiVariabilityType::discrete;
+        variability = FmiVariabilityType::DISCRETE;
     } else {
-        variability = FmiVariabilityType::unknown;
+        variability = FmiVariabilityType::UNKNOWN;
     }
 }
 
 std::string FmiVariability::to_string() const
 {
     switch (variability) {
-        case FmiVariabilityType::continuous:
+        case FmiVariabilityType::CONTINUOUS:
             return "continuous";
             break;
-        case FmiVariabilityType::fixed:
+        case FmiVariabilityType::FIXED:
             return "fixed";
             break;
-        case FmiVariabilityType::constant:
+        case FmiVariabilityType::CONSTANT:
             return "constant";
             break;
-        case FmiVariabilityType::discrete:
+        case FmiVariabilityType::DISCRETE:
             return "discrete";
             break;
-        case FmiVariabilityType::tunable:
+        case FmiVariabilityType::TUNABLE:
             return "tunable";
             break;
         default:
@@ -53,46 +53,46 @@ std::string FmiVariability::to_string() const
 FmiCausality::FmiCausality(const std::string& vstring)
 {
     if (vstring == "local") {
-        causality = FmiCausalityType::local;
+        causality = FmiCausalityType::LOCAL;
     } else if ((vstring == "parameter") || (vstring == "param")) {
-        causality = FmiCausalityType::parameter;
+        causality = FmiCausalityType::PARAMETER;
     } else if ((vstring == "calculatedParameter") || (vstring == "calculated")) {
-        causality = FmiCausalityType::calculatedParameter;
+        causality = FmiCausalityType::CALCULATED_PARAMETER;
     } else if ((vstring == "input") || (vstring == "inputs")) {
-        causality = FmiCausalityType::input;
+        causality = FmiCausalityType::INPUT;
     } else if ((vstring == "output") || (vstring == "outputs")) {
-        causality = FmiCausalityType::output;
+        causality = FmiCausalityType::OUTPUT;
     } else if ((vstring == "independent") || (vstring == "time")) {
-        causality = FmiCausalityType::independent;
+        causality = FmiCausalityType::INDEPENDENT;
     } else if (vstring == "any") {
-        causality = FmiCausalityType::any;
+        causality = FmiCausalityType::ANY;
     } else {
-        causality = FmiCausalityType::unknown;
+        causality = FmiCausalityType::UNKNOWN;
     }
 }
 
 std::string FmiCausality::to_string() const
 {
     switch (causality) {
-        case FmiCausalityType::local:
+        case FmiCausalityType::LOCAL:
             return "local";
             break;
-        case FmiCausalityType::parameter:
+        case FmiCausalityType::PARAMETER:
             return "parameter";
             break;
-        case FmiCausalityType::calculatedParameter:
+        case FmiCausalityType::CALCULATED_PARAMETER:
             return "calculatedParameter";
             break;
-        case FmiCausalityType::input:
+        case FmiCausalityType::INPUT:
             return "input";
             break;
-        case FmiCausalityType::output:
+        case FmiCausalityType::OUTPUT:
             return "output";
             break;
-        case FmiCausalityType::independent:
+        case FmiCausalityType::INDEPENDENT:
             return "independent";
             break;
-        case FmiCausalityType::any:
+        case FmiCausalityType::ANY:
             return "any";
             break;
         default:
@@ -104,36 +104,36 @@ std::string FmiCausality::to_string() const
 FmiVariableTypeInfo::FmiVariableTypeInfo(const std::string& vstring)
 {
     if (vstring == "real") {
-        variable = FmiVariableType::real;
+        variable = FmiVariableType::REAL;
     } else if (vstring == "integer") {
-        variable = FmiVariableType::integer;
+        variable = FmiVariableType::INTEGER;
     } else if (vstring == "boolean") {
-        variable = FmiVariableType::boolean;
+        variable = FmiVariableType::BOOLEAN;
     } else if (vstring == "string") {
-        variable = FmiVariableType::string;
+        variable = FmiVariableType::STRING;
     } else if (vstring == "enumeration") {
-        variable = FmiVariableType::enumeration;
+        variable = FmiVariableType::ENUMERATION;
     } else {
-        variable = FmiVariableType::unknown;
+        variable = FmiVariableType::UNKNOWN;
     }
 }
 
 std::string FmiVariableTypeInfo::to_string() const
 {
     switch (variable) {
-        case FmiVariableType::real:
+        case FmiVariableType::REAL:
             return "real";
             break;
-        case FmiVariableType::integer:
+        case FmiVariableType::INTEGER:
             return "integer";
             break;
-        case FmiVariableType::boolean:
+        case FmiVariableType::BOOLEAN:
             return "boolean";
             break;
-        case FmiVariableType::string:
+        case FmiVariableType::STRING:
             return "string";
             break;
-        case FmiVariableType::enumeration:
+        case FmiVariableType::ENUMERATION:
             return "enumeration";
             break;
         default:
@@ -145,36 +145,36 @@ std::string FmiVariableTypeInfo::to_string() const
 FmiDependencyTypeInfo::FmiDependencyTypeInfo(const std::string& vstring)
 {
     if (vstring == "dependent") {
-        dependency = FmiDependencyType::dependent;
+        dependency = FmiDependencyType::DEPENDENT;
     } else if (vstring == "constant") {
-        dependency = FmiDependencyType::constant;
+        dependency = FmiDependencyType::CONSTANT;
     } else if (vstring == "fixed") {
-        dependency = FmiDependencyType::fixed;
+        dependency = FmiDependencyType::FIXED;
     } else if (vstring == "tunable") {
-        dependency = FmiDependencyType::tunable;
+        dependency = FmiDependencyType::TUNABLE;
     } else if (vstring == "discrete") {
-        dependency = FmiDependencyType::discrete;
+        dependency = FmiDependencyType::DISCRETE;
     } else if (vstring == "independent") {
-        dependency = FmiDependencyType::independent;
+        dependency = FmiDependencyType::INDEPENDENT;
     } else {
-        dependency = FmiDependencyType::unknown;
+        dependency = FmiDependencyType::UNKNOWN;
     }
 }
 
 std::string FmiDependencyTypeInfo::to_string() const
 {
     switch (dependency) {
-        case FmiDependencyType::dependent:
+        case FmiDependencyType::DEPENDENT:
             return "dependent";
-        case FmiDependencyType::constant:
+        case FmiDependencyType::CONSTANT:
             return "constant";
-        case FmiDependencyType::fixed:
+        case FmiDependencyType::FIXED:
             return "fixed";
-        case FmiDependencyType::tunable:
+        case FmiDependencyType::TUNABLE:
             return "tunable";
-        case FmiDependencyType::discrete:
+        case FmiDependencyType::DISCRETE:
             return "discrete";
-        case FmiDependencyType::independent:
+        case FmiDependencyType::INDEPENDENT:
             return "independent";
         default:
             return "unknown";

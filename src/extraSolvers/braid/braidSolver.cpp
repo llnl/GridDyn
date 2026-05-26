@@ -256,7 +256,7 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
 {
     TimeIntegrator* TI = ode->GetTI();
     Equation* equation = ode->GetEq();
-    BdfStrat bdf_strat = nobdf;
+    BdfStrat bdf_strat = NO_BDF;
     int lowered_by_level = 1;
     int min_order = 1;
 
@@ -293,25 +293,25 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
 
         string str_bdf_strat = param->GetStrParam("braid_bdf_strat", "usual-c");
         if (!strcmp(str_bdf_strat.c_str(), "usual"))
-            bdf_strat = usual;
+            bdf_strat = USUAL;
         else if (!strcmp(str_bdf_strat.c_str(), "usual-c"))
-            bdf_strat = usual_c;
+            bdf_strat = USUAL_C;
         else if (!strcmp(str_bdf_strat.c_str(), "inject"))
-            bdf_strat = inject;
+            bdf_strat = INJECT;
         else if (!strcmp(str_bdf_strat.c_str(), "inject-c"))
-            bdf_strat = inject_c;
+            bdf_strat = INJECT_C;
         else if (!strcmp(str_bdf_strat.c_str(), "extrap"))
-            bdf_strat = extrap;
+            bdf_strat = EXTRAP;
         else if (!strcmp(str_bdf_strat.c_str(), "extrap-c"))
-            bdf_strat = extrap_c;
+            bdf_strat = EXTRAP_C;
         else if (!strcmp(str_bdf_strat.c_str(), "uni0"))
-            bdf_strat = uni0;
+            bdf_strat = UNI0;
         else if (!strcmp(str_bdf_strat.c_str(), "uni0-c"))
-            bdf_strat = uni0_c;
+            bdf_strat = UNI0_C;
         else if (!strcmp(str_bdf_strat.c_str(), "uni1"))
-            bdf_strat = uni1;
+            bdf_strat = UNI1;
         else if (!strcmp(str_bdf_strat.c_str(), "uni1-c"))
-            bdf_strat = uni1_c;
+            bdf_strat = UNI1_C;
         else {  // NOLINT
             cerr << "Wrong bdf strategy" << endl;
             abort();
@@ -392,7 +392,7 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
     braid_SetCFactor(core, -1, cfactor);
     braid_SetCFactor(core, 0, cfactor0);
     braid_SetMinCoarse(core, min_coarse);
-    if (bdf_strat == usual || bdf_strat == inject || bdf_strat == extrap) {
+    if (bdf_strat == USUAL || bdf_strat == INJECT || bdf_strat == EXTRAP) {
         if (lowered_by_level == 0) {
             cerr << "Wrong lowered_by_level option with this BDF strategy" << endl;
             abort();
@@ -400,7 +400,7 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
         int nblvl = ceil(Real(TI->GetOrder() - min_order) / Real(lowered_by_level));
         for (int i = 0; i < nblvl; i++)
             braid_SetCFactor(core, i, 1);
-    } else if (bdf_strat == uni0 || bdf_strat == uni1) {
+    } else if (bdf_strat == UNI0 || bdf_strat == UNI1) {
         braid_SetCFactor(core, 0, 1);
     }
     braid_SetMaxIter(core, max_iter);
@@ -527,4 +527,5 @@ void braidSolver::getRoots()
     }
 }
 }  // namespace griddyn::braid
+
 

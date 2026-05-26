@@ -566,4 +566,3 @@ void DeadbandBlock::set(std::string_view param, double val, units::unit unitType
     }
 }
 }  // namespace griddyn::blocks
-

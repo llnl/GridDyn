@@ -1357,4 +1357,3 @@ double adjustableTransformer::getValidTapRatio(double testTapValue) const
     return (std::round((testTapValue - minTap) / stepSize) * stepSize) + minTap;
 }
 }  // namespace griddyn::links
-

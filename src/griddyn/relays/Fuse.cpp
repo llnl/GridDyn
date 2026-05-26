@@ -380,4 +380,3 @@ void fuse::getStateName(stringVec& stNames,
 }
 }  // namespace griddyn::relays
 // NOLINTEND
-

@@ -178,4 +178,3 @@ double NullBlock::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn::blocks
-

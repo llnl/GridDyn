@@ -681,4 +681,3 @@ double MotorLoad3::getReactivePower(double voltage) const
     return Qtemp * scale;
 }
 }  // namespace griddyn::loads
-

@@ -2765,4 +2765,3 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
-

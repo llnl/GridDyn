@@ -278,4 +278,3 @@ int dynamicInitialConditionRecovery::dynamicFix5()
 }
 
 }  // namespace griddyn
-

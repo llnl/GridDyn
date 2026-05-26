@@ -1158,4 +1158,3 @@ index_t DynamicGenerator::vSetLocation(const solverMode& sMode)
 }
 
 }  // namespace griddyn
-

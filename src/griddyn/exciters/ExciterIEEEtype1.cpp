@@ -278,4 +278,3 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
 }
 
 }  // namespace griddyn::exciters
-

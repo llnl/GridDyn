@@ -501,4 +501,3 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::genmodels
-

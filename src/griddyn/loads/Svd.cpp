@@ -373,4 +373,3 @@ ChangeCode Svd::rootCheck(const IOdata& /*inputs*/,
     return ChangeCode::NO_CHANGE;
 }
 }  // namespace griddyn::loads
-

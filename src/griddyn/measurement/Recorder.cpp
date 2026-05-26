@@ -173,4 +173,3 @@ const std::string& Recorder::getSinkName() const
     return getFileName();
 }
 }  // namespace griddyn
-

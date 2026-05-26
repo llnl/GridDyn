@@ -1632,4 +1632,3 @@ void AcLine::loadApproxFunctions()
 
 // NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn
-

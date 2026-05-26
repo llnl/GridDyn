@@ -190,4 +190,3 @@ ChangeCode interpolatingPlayer::trigger(coreTime time)
     return ret;
 }
 }  // namespace griddyn::events
-

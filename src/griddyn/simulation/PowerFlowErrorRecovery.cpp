@@ -238,5 +238,3 @@ bool powerFlowErrorRecovery::powerFlowFix5()
     return false;
 }
 }  // namespace griddyn
-
-

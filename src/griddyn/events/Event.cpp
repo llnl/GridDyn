@@ -489,4 +489,3 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
 }
 
 }  // namespace griddyn
-

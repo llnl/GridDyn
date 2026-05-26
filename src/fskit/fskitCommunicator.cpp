@@ -128,4 +128,3 @@ void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message
             msg);
     }
 }
-
